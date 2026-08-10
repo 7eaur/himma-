@@ -13,9 +13,12 @@
   ],
   "completed_slices": [
     "phase-0-audit",
-    "foundation-skeleton"
+    "foundation-skeleton",
+    "auth-and-seed"
   ],
-  "failed_gates": [],
+  "failed_gates": [
+    "gate-stage-01-attempt-1"
+  ],
   "blockers": [],
   "next_action": "Start Foundation and Security (Stage 1) implementation."
 }

@@ -1,53 +1,117 @@
+"""Authentication routes: researcher login, student login, /me, logout."""
+
 from datetime import datetime, timedelta, timezone
 import os
+
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
-from passlib.context import CryptContext
+import bcrypt
 from jose import jwt
-from db.models import User, AuditLog
-from db.database import SessionLocal
-from schemas import UserLogin, UserResponse
-from dependencies import get_db
+
+from db.models import User, Student, AuditLog
+from schemas import ResearcherLogin, StudentLogin, MeResponse
+from dependencies import (
+    get_db,
+    get_current_user,
+    get_current_student,
+    get_any_authenticated,
+    API_SECRET_KEY,
+    ALGORITHM,
+)
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-API_SECRET_KEY = os.getenv("API_SECRET_KEY", "dev_secret_key")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 # 1 day
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
-    to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + (expires_delta if expires_delta else timedelta(minutes=15))
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, API_SECRET_KEY, algorithm=ALGORITHM)
 
-@router.post("/login")
-def login(user_credentials: UserLogin, response: Response, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.username == user_credentials.username).first()
-    
-    if not user or not pwd_context.verify(user_credentials.password, user.password_hash):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
-    
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(data={"sub": user.username}, expires_delta=access_token_expires)
-    
-    # Set Secure HttpOnly SameSite cookie
+def hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+
+def verify_password(password: str, hashed: str) -> bool:
+    return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
+
+
+def _set_token_cookie(response: Response, token: str) -> None:
     response.set_cookie(
         key="access_token",
-        value=access_token,
+        value=token,
         httponly=True,
         samesite="lax",
-        secure=os.getenv("ENV") == "production" # Secure true in production
+        secure=os.getenv("ENV") == "production",
     )
-    
-    # Audit log
-    audit = AuditLog(user_id=user.id, action="LOGIN", entity_type="USER", entity_id=str(user.id))
-    db.add(audit)
-    db.commit()
-    
-    return {"message": "Logged in successfully"}
 
+
+def _create_access_token(*, sub: int, role: str) -> str:
+    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    return jwt.encode(
+        {"sub": str(sub), "role": role, "exp": expire},
+        API_SECRET_KEY,
+        algorithm=ALGORITHM,
+    )
+
+
+def _audit(db: Session, *, actor_role: str, actor_id: int, action: str,
+           entity_type: str, entity_id: str) -> None:
+    db.add(AuditLog(
+        actor_role=actor_role,
+        actor_id=actor_id,
+        action=action,
+        entity_type=entity_type,
+        entity_id=entity_id,
+    ))
+    db.commit()
+
+
+# ── Researcher login ────────────────────────────────────────────────
+@router.post("/login")
+def researcher_login(
+    creds: ResearcherLogin,
+    response: Response,
+    db: Session = Depends(get_db),
+):
+    user = db.query(User).filter(User.username == creds.username).first()
+    if not user or not verify_password(creds.password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials",
+        )
+    token = _create_access_token(sub=user.id, role="researcher")
+    _set_token_cookie(response, token)
+    _audit(db, actor_role="researcher", actor_id=user.id,
+           action="LOGIN", entity_type="USER", entity_id=str(user.id))
+    return {"message": "Logged in successfully", "role": "researcher"}
+
+
+# ── Student login ───────────────────────────────────────────────────
+@router.post("/student-login")
+def student_login(
+    creds: StudentLogin,
+    response: Response,
+    db: Session = Depends(get_db),
+):
+    student = db.query(Student).filter(Student.access_code == creds.access_code).first()
+    if not student or not student.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid access code",
+        )
+    token = _create_access_token(sub=student.id, role="student")
+    _set_token_cookie(response, token)
+    _audit(db, actor_role="student", actor_id=student.id,
+           action="LOGIN", entity_type="STUDENT", entity_id=str(student.id))
+    return {"message": "Logged in successfully", "role": "student"}
+
+
+# ── Who am I? ───────────────────────────────────────────────────────
+@router.get("/me", response_model=MeResponse)
+def me(auth=Depends(get_any_authenticated)):
+    role, entity = auth
+    display = entity.username if role == "researcher" else entity.name
+    return MeResponse(id=entity.id, role=role, display_name=display)
+
+
+# ── Logout ──────────────────────────────────────────────────────────
 @router.post("/logout")
 def logout(response: Response):
     response.delete_cookie("access_token")
