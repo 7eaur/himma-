@@ -1,5 +1,7 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
+from datetime import datetime
+from decimal import Decimal
 
 
 class ResearcherLogin(BaseModel):
@@ -16,8 +18,7 @@ class UserResponse(BaseModel):
     username: str
     role: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class StudentResponse(BaseModel):
@@ -26,8 +27,7 @@ class StudentResponse(BaseModel):
     access_code: str
     current_level: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class MeResponse(BaseModel):
@@ -35,3 +35,69 @@ class MeResponse(BaseModel):
     id: int
     role: str
     display_name: str
+
+class AssessmentStartRequest(BaseModel):
+    session_type: str # pretest, posttest, core
+
+class AssessmentSessionResponse(BaseModel):
+    id: int
+    session_type: str
+    status: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+class ContentOptionResponse(BaseModel):
+    id: int
+    text: str
+    order_index: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+class ContentStepResponse(BaseModel):
+    id: int
+    order_index: int
+    prompt_text: str
+    expected_reading_text: Optional[str] = None
+    options: list[ContentOptionResponse] = []
+
+    model_config = ConfigDict(from_attributes=True)
+
+class ContentItemResponse(BaseModel):
+    id: int
+    stable_key: str
+    kind: str
+    interaction_type: str
+    steps: list[ContentStepResponse] = []
+
+    model_config = ConfigDict(from_attributes=True)
+
+class AttemptResponseSubmit(BaseModel):
+    step_id: int
+    selected_option_id: Optional[int] = None
+    audio_storage_key: Optional[str] = None
+    audio_file_size: Optional[int] = None
+    audio_mime_type: Optional[str] = None
+    audio_duration_seconds: Optional[Decimal] = None
+
+class AudioSubmissionReviewResponse(BaseModel):
+    id: int
+    storage_key: str
+    status: str
+    submitted_at: datetime
+    
+    model_config = ConfigDict(from_attributes=True)
+
+class GradeAudioRequest(BaseModel):
+    is_valid: bool # if false, turns into rerecord_required
+    target_units: Optional[int] = None
+    deletions: Optional[int] = 0
+    substitutions: Optional[int] = 0
+    insertions: Optional[int] = 0
+    pronunciation_notes: Optional[str] = None
+    fluency_notes: Optional[str] = None
+    time_notes: Optional[str] = None
+
+class SessionFinishResponse(BaseModel):
+    id: int
+    final_score: Decimal
+    assigned_level: int

@@ -5,6 +5,9 @@ os.environ["API_SECRET_KEY"] = "test-secret-key-for-ci-only"
 from fastapi import FastAPI
 from auth import router as auth_router
 from protected import router as protected_router
+from assessment import router as assessment_router
+from review import router as review_router
+from recordings import router as recordings_router
 
 app = FastAPI(
     title="Himma API Service",
@@ -14,6 +17,9 @@ app = FastAPI(
 
 app.include_router(auth_router)
 app.include_router(protected_router)
+app.include_router(assessment_router)
+app.include_router(review_router)
+app.include_router(recordings_router)
 
 
 @app.get("/health")

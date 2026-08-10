@@ -4,8 +4,10 @@ import os
 import sys
 
 # Set test secrets BEFORE importing anything that reads them
-os.environ["API_SECRET_KEY"] = "test-secret-key-for-ci-only"
-os.environ["DATABASE_URL"] = "sqlite:///./test.db"
+if "API_SECRET_KEY" not in os.environ:
+    os.environ["API_SECRET_KEY"] = "test-secret-key-for-ci-only"
+if "DATABASE_URL" not in os.environ:
+    os.environ["DATABASE_URL"] = "sqlite:///./test.db"
 
 sys.path.insert(0, os.path.dirname(__file__))
 
@@ -19,8 +21,11 @@ from db.models import Base, User, Student
 from dependencies import get_db
 from main import app
 
-TEST_DATABASE_URL = "sqlite:///./test.db"
-engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
+TEST_DATABASE_URL = os.environ.get("DATABASE_URL")
+if TEST_DATABASE_URL.startswith("sqlite"):
+    engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
+else:
+    engine = create_engine(TEST_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
@@ -37,9 +42,10 @@ app.dependency_overrides[get_db] = override_get_db
 
 @pytest.fixture(autouse=True)
 def setup_database():
-    """Create fresh tables before each test, drop after."""
-    Base.metadata.create_all(bind=engine)
-    # Seed test data
+    """Seed test data before each test."""
+    if TEST_DATABASE_URL.startswith("sqlite"):
+        Base.metadata.create_all(bind=engine)
+        
     db = TestingSessionLocal()
     if not db.query(User).filter(User.username == "researcher1").first():
         hashed = bcrypt.hashpw(b"securepass123", bcrypt.gensalt()).decode("utf-8")
@@ -53,7 +59,15 @@ def setup_database():
     db.commit()
     db.close()
     yield
-    Base.metadata.drop_all(bind=engine)
+    # Clean up
+    if TEST_DATABASE_URL.startswith("sqlite"):
+        Base.metadata.drop_all(bind=engine)
+    else:
+        db = TestingSessionLocal()
+        for table in reversed(Base.metadata.sorted_tables):
+            db.execute(table.delete())
+        db.commit()
+        db.close()
 
 
 @pytest.fixture
