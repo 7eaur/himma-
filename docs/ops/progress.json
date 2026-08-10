@@ -1,14 +1,20 @@
 {
   "schema_version": 1,
   "project": "himma",
-  "updated_at": "2026-08-06",
-  "current_stage": 0,
-  "state": "READY_FOR_AUDIT",
-  "branch": "stage/00-audit",
+  "updated_at": "2026-08-10",
+  "current_stage": 1,
+  "state": "READY_FOR_EXECUTION",
+  "branch": "main",
   "last_green_commit": null,
-  "active_acceptance_ids": [],
-  "completed_slices": [],
+  "active_acceptance_ids": [
+    "AC-01",
+    "AC-02",
+    "AC-15"
+  ],
+  "completed_slices": [
+    "phase-0-audit"
+  ],
   "failed_gates": [],
   "blockers": [],
-  "next_action": "Initialize Git if needed, run the phase-0 repository audit, and produce the implementation plan."
+  "next_action": "Start Foundation and Security (Stage 1) implementation."
 }
