@@ -12,7 +12,8 @@
     "AC-15"
   ],
   "completed_slices": [
-    "phase-0-audit"
+    "phase-0-audit",
+    "foundation-skeleton"
   ],
   "failed_gates": [],
   "blockers": [],
