@@ -28,10 +28,14 @@ def run_seed():
         
         # 1. Seed Skills
         skills_created = 0
+        processed_skill_keys = set()
         for item in catalog:
             skill_key = item['skill_key']
             skill_name = item['skill_name']
             
+            if skill_key in processed_skill_keys:
+                continue
+                
             existing_skill = db.query(Skill).filter(Skill.skill_key == skill_key).first()
             if not existing_skill:
                 new_skill = Skill(
@@ -42,6 +46,7 @@ def run_seed():
                 )
                 db.add(new_skill)
                 skills_created += 1
+            processed_skill_keys.add(skill_key)
         db.commit()
         print(f"Created {skills_created} new skills.")
         
@@ -52,12 +57,15 @@ def run_seed():
         items_created = 0
         for item in catalog:
             stable_key = item['stable_key']
-            
+            kind_str = item['kind']
+            if kind_str == 'question':
+                kind_str = 'pretest_question'
+                
             existing_item = db.query(ContentItem).filter(ContentItem.stable_key == stable_key).first()
             if not existing_item:
                 new_item = ContentItem(
                     stable_key=stable_key,
-                    kind=ContentKind(item['kind']),
+                    kind=ContentKind(kind_str),
                     level_id=1,
                     skill_id=skills_map[item['skill_key']],
                     interaction_type='multiple_choice', # Default placeholder

@@ -35,8 +35,8 @@ export function useAudioRecorder() {
       mediaRecorderRef.current = recorder;
       recorder.start(100); // collect 100ms chunks
       setIsRecording(true);
-    } catch (err: any) {
-      setError(err.message || 'Failed to start recording. Please ensure microphone permissions are granted.');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'Failed to start recording. Please ensure microphone permissions are granted.');
     }
   }, []);
 

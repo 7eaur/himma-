@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 
 export default function ResearcherPage() {
-  const [pending, setPending] = useState<any[]>([]);
+  const [pending, setPending] = useState<unknown[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchPending = async () => {
@@ -19,6 +19,7 @@ export default function ResearcherPage() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchPending();
   }, []);
 
@@ -64,7 +65,7 @@ export default function ResearcherPage() {
                 </tr>
               </thead>
               <tbody>
-                {pending.map((sub: any) => (
+                {pending.map((sub: {id: number, submitted_at: string, storage_key: string}) => (
                   <tr key={sub.id} style={{ borderBottom: "1px solid #e2e8f0" }}>
                     <td style={{ padding: "0.5rem" }}>{sub.id}</td>
                     <td style={{ padding: "0.5rem" }}>{new Date(sub.submitted_at).toLocaleDateString()}</td>

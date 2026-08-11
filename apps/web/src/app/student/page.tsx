@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { AssessmentRunner } from '../../components/AssessmentRunner';
 
 export default function StudentPage() {
-  const [activeSession, setActiveSession] = useState<any>(null);
+  const [activeSession, setActiveSession] = useState<{id: number} | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

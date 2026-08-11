@@ -5,7 +5,7 @@ import { useAudioRecorder } from '../hooks/useAudioRecorder';
 import { saveAudioToOutbox, removeAudioFromOutbox } from '../lib/idb';
 
 export function AssessmentRunner({ sessionId, onComplete }: { sessionId: number, onComplete: () => void }) {
-  const [currentItem, setCurrentItem] = useState<any>(null);
+  const [currentItem, setCurrentItem] = useState<unknown>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,14 +39,15 @@ export function AssessmentRunner({ sessionId, onComplete }: { sessionId: number,
         setCurrentItem(data);
         resetRecording();
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError((err as Error).message);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchNextItem();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
@@ -103,8 +104,8 @@ export function AssessmentRunner({ sessionId, onComplete }: { sessionId: number,
 
       // Move to next
       fetchNextItem();
-    } catch (err: any) {
-      setError(err.message || 'Submission failed. Please try again.');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'Submission failed. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -161,7 +162,7 @@ export function AssessmentRunner({ sessionId, onComplete }: { sessionId: number,
         </div>
       ) : (
         <div style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          {step?.options.map((opt: any) => (
+          {(step?.options as {id: number, text: string}[]).map((opt) => (
             <button 
               key={opt.id} 
               onClick={() => handleSubmit(opt.id)}
