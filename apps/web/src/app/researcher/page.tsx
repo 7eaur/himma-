@@ -1,56 +1,70 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import type { AudioSubmission } from '../../types/api';
 
 export default function ResearcherPage() {
-  const [pending, setPending] = useState<unknown[]>([]);
+  const [pending, setPending] = useState<AudioSubmission[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchPending = async () => {
+  const fetchPending = useCallback(async () => {
     try {
       const res = await fetch('/api/review/pending-audio');
-      const data = await res.json();
+      const data: AudioSubmission[] = await res.json();
       setPending(data || []);
-    } catch (e) {
-      console.error("Failed to fetch", e);
+    } catch (err) {
+      console.error("Failed to fetch pending submissions", err);
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchPending();
   }, []);
 
-  const handleGrade = async (submissionId: number, isValid: boolean) => {
-    // Basic mock grading for V1
-    const payload = isValid 
-      ? { is_valid: true, target_units: 5, deletions: 0, substitutions: 0, insertions: 0 } 
+  // fetchPending is async — setState runs inside the async callback, not synchronously
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      try {
+        const res = await fetch('/api/review/pending-audio');
+        if (!active) return;
+        const data: AudioSubmission[] = await res.json();
+        setPending(data || []);
+      } catch (err) {
+        console.error("Failed to fetch pending submissions", err);
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+    load();
+    return () => { active = false; };
+  }, []);
+
+  const handleGrade = useCallback(async (submissionId: number, isValid: boolean) => {
+    const payload = isValid
+      ? { is_valid: true, target_units: 5, deletions: 0, substitutions: 0, insertions: 0 }
       : { is_valid: false };
 
     try {
       await fetch(`/api/review/audio/${submissionId}/grade`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
-      fetchPending(); // Refresh list
-    } catch (e) {
+      await fetchPending();
+    } catch {
       alert("Error grading submission");
     }
-  };
+  }, [fetchPending]);
 
-  if (loading) return <div>جاري التحميل...</div>;
+  if (loading) return <div style={{ padding: '2rem' }}>جاري التحميل...</div>;
 
   return (
-    <div style={{ padding: "2rem", direction: "rtl", fontFamily: "sans-serif" }}>
+    <div style={{ padding: "2rem", direction: "rtl", fontFamily: "var(--font-noto-kufi), sans-serif" }}>
       <h1>لوحة الباحثة</h1>
       <p>مرحبًا بك في لوحة تحكم الباحثة.</p>
 
       <section style={{ marginTop: "2rem", padding: "1rem", border: "1px solid #e2e8f0", borderRadius: "8px" }}>
         <h2>المراجعات المعلقة (التسجيلات الصوتية)</h2>
-        
+
         <div style={{ marginTop: "1rem" }}>
           {pending.length === 0 ? (
             <p>لا توجد مراجعات معلقة.</p>
@@ -65,25 +79,25 @@ export default function ResearcherPage() {
                 </tr>
               </thead>
               <tbody>
-                {pending.map((sub: {id: number, submitted_at: string, storage_key: string}) => (
+                {pending.map((sub) => (
                   <tr key={sub.id} style={{ borderBottom: "1px solid #e2e8f0" }}>
                     <td style={{ padding: "0.5rem" }}>{sub.id}</td>
-                    <td style={{ padding: "0.5rem" }}>{new Date(sub.submitted_at).toLocaleDateString()}</td>
+                    <td style={{ padding: "0.5rem" }}>{new Date(sub.submitted_at).toLocaleDateString('ar-SA')}</td>
                     <td style={{ padding: "0.5rem" }}>
-                      <audio controls src={`https://mock-s3-bucket.local/${sub.storage_key}`} />
+                      <audio controls src={`/api/recordings/stream/${sub.storage_key}`} />
                     </td>
                     <td style={{ padding: "0.5rem" }}>
-                      <button 
+                      <button
                         onClick={() => handleGrade(sub.id, true)}
                         style={{ padding: "0.25rem 0.75rem", backgroundColor: "#10b981", color: "white", border: "none", borderRadius: "4px", marginLeft: "0.5rem", cursor: "pointer" }}
                       >
                         صحيح (100%)
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleGrade(sub.id, false)}
                         style={{ padding: "0.25rem 0.75rem", backgroundColor: "#ef4444", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}
                       >
-                        غير صالح للإعتماد
+                        غير صالح للاعتماد
                       </button>
                     </td>
                   </tr>
