@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./admin.module.css";
-import type { AudioSubmission, StudentListItem } from "../../../types/api";
+import type { AudioSubmission, StudentListItem } from "@/types/api";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
