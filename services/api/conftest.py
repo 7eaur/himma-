@@ -5,7 +5,7 @@ import sys
 
 # Set test secrets BEFORE importing anything that reads them
 if "API_SECRET_KEY" not in os.environ:
-    os.environ["API_SECRET_KEY"] = "test-secret-key-for-ci-only"
+    os.environ["API_SECRET_KEY"] = "ci-test-secret"
 if "DATABASE_URL" not in os.environ:
     os.environ["DATABASE_URL"] = "sqlite:///./test.db"
 

@@ -1,22 +1,31 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import type { ContentItem } from '../types/api';
-import { useAudioRecorder } from '../hooks/useAudioRecorder';
-import { saveAudioToOutbox, removeAudioFromOutbox } from '../lib/idb';
+import { useState, useEffect, useCallback, useRef } from "react";
+import Image from "next/image";
+import type { ContentItem } from "../types/api";
+import { useAudioRecorder } from "../hooks/useAudioRecorder";
+import { saveAudioToOutbox, removeAudioFromOutbox } from "../lib/idb";
+import styles from "./AssessmentRunner.module.css";
 
-export function AssessmentRunner({ sessionId, onComplete }: { sessionId: number, onComplete: () => void }) {
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+
+export function AssessmentRunner({
+  sessionId,
+  onComplete,
+}: {
+  sessionId: number;
+  onComplete: () => void;
+}) {
   const [currentItem, setCurrentItem] = useState<ContentItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // Use a refresh counter to trigger re-fetches without calling setState in effect
+  const [questionIndex, setQuestionIndex] = useState(0);
+  const [totalQuestions] = useState(30);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const onCompleteRef = useRef(onComplete);
-  useEffect(() => {
-    onCompleteRef.current = onComplete;
-  });
+  useEffect(() => { onCompleteRef.current = onComplete; });
 
   const {
     isRecording,
@@ -27,28 +36,28 @@ export function AssessmentRunner({ sessionId, onComplete }: { sessionId: number,
     resetRecording,
   } = useAudioRecorder();
 
-  // This effect runs only when sessionId or refreshKey changes.
-  // State updates happen inside an async callback, not synchronously.
+  // Fetch next item — setState inside async callback, not synchronously
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
       setLoading(true);
       try {
-        const res = await fetch(`/api/assessment/session/${sessionId}/next`);
+        const res = await fetch(
+          `${API_URL}/assessment/session/${sessionId}/next`,
+          { credentials: "include" }
+        );
         if (cancelled) return;
-        if (!res.ok) {
-          if (res.status === 404) { onCompleteRef.current(); return; }
-          throw new Error('Failed to fetch next item');
-        }
+        if (res.status === 404) { onCompleteRef.current(); return; }
+        if (!res.ok) throw new Error("Failed to fetch next item");
+
         const data: ContentItem | null = await res.json();
         if (cancelled) return;
-        if (!data) {
-          onCompleteRef.current();
-        } else {
-          setCurrentItem(data);
-          resetRecording();
-        }
+        if (!data) { onCompleteRef.current(); return; }
+
+        setCurrentItem(data);
+        resetRecording();
+        setQuestionIndex((prev) => prev + 1);
       } catch (err: unknown) {
         if (!cancelled) setError((err as Error).message);
       } finally {
@@ -60,143 +69,202 @@ export function AssessmentRunner({ sessionId, onComplete }: { sessionId: number,
     return () => { cancelled = true; };
   }, [sessionId, refreshKey, resetRecording]);
 
-  const advanceToNext = useCallback(() => {
-    setRefreshKey(k => k + 1);
-  }, []);
+  const advanceToNext = useCallback(() => setRefreshKey((k) => k + 1), []);
 
-  const handleSubmit = useCallback(async (optionId?: number) => {
-    if (!currentItem) return;
-    setSubmitting(true);
-    setError(null);
+  const handleSubmit = useCallback(
+    async (optionId?: number) => {
+      if (!currentItem) return;
+      setSubmitting(true);
+      setError(null);
 
-    try {
-      let storageKey: string | undefined;
-      let mimeType: string | undefined;
-      let size: number | undefined;
+      try {
+        let storageKey: string | undefined;
+        let mimeType: string | undefined;
+        let size: number | undefined;
 
-      if (audioBlob) {
-        const initRes = await fetch(`/api/recordings/init`, { method: 'POST' });
-        const initData: { recording_id: string; upload_url: string } = await initRes.json();
-        const idempotencyKey = crypto.randomUUID();
-        await saveAudioToOutbox(idempotencyKey, initData.recording_id, audioBlob);
+        if (audioBlob) {
+          const initRes = await fetch(`${API_URL}/recordings/init`, {
+            method: "POST",
+            credentials: "include",
+          });
+          if (!initRes.ok) throw new Error("Failed to initialise recording");
+          const initData: { recording_id: string; upload_url: string } =
+            await initRes.json();
+          const idempotencyKey = crypto.randomUUID();
 
-        const uploadRes = await fetch(`/api/recordings/complete`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ recording_id: initData.recording_id }),
-        });
-        const uploadData: { storage_key: string } = await uploadRes.json();
-        storageKey = uploadData.storage_key;
-        mimeType = audioBlob.type;
-        size = audioBlob.size;
-        await removeAudioFromOutbox(idempotencyKey);
+          await saveAudioToOutbox(
+            idempotencyKey,
+            initData.recording_id,
+            audioBlob
+          );
+
+          const uploadRes = await fetch(`${API_URL}/recordings/complete`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ recording_id: initData.recording_id }),
+          });
+          if (!uploadRes.ok) throw new Error("Failed to complete recording upload");
+          const uploadData: { storage_key: string } = await uploadRes.json();
+          storageKey = uploadData.storage_key;
+          mimeType = audioBlob.type;
+          size = audioBlob.size;
+          await removeAudioFromOutbox(idempotencyKey);
+        }
+
+        const stepId = currentItem.steps[0]?.id;
+        const submitRes = await fetch(
+          `${API_URL}/assessment/session/${sessionId}/attempt/${currentItem.id}/submit`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Idempotency-Key": crypto.randomUUID(),
+            },
+            credentials: "include",
+            body: JSON.stringify({
+              step_id: stepId,
+              selected_option_id: optionId,
+              audio_storage_key: storageKey,
+              audio_mime_type: mimeType,
+              audio_file_size: size,
+            }),
+          }
+        );
+        if (!submitRes.ok) throw new Error("Failed to submit answer");
+
+        advanceToNext();
+      } catch (err: unknown) {
+        setError((err as Error).message || "حدث خطأ. حاول مرة أخرى.");
+      } finally {
+        setSubmitting(false);
       }
+    },
+    [currentItem, sessionId, audioBlob, advanceToNext]
+  );
 
-      const stepId = currentItem.steps[0]?.id;
-      await fetch(`/api/assessment/session/${sessionId}/attempt/${currentItem.id}/submit`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Idempotency-Key': crypto.randomUUID(),
-        },
-        body: JSON.stringify({
-          step_id: stepId,
-          selected_option_id: optionId,
-          audio_storage_key: storageKey,
-          audio_mime_type: mimeType,
-          audio_file_size: size,
-        }),
-      });
+  // ── Render states ──
+  if (loading) {
+    return (
+      <div className={styles.loadingWrap}>
+        <div className="spinner" />
+        <p className={`${styles.loadingText} font-child`}>جاري التحميل...</p>
+      </div>
+    );
+  }
 
-      advanceToNext();
-    } catch (err: unknown) {
-      setError((err as Error).message || 'Submission failed. Please try again.');
-    } finally {
-      setSubmitting(false);
-    }
-  }, [currentItem, sessionId, audioBlob, advanceToNext]);
-
-  if (loading) return <div style={{ padding: '1rem' }}>جاري التحميل...</div>;
-  if (!currentItem) return <div style={{ padding: '1rem' }}>لا توجد أسئلة متبقية.</div>;
+  if (!currentItem) {
+    return (
+      <div className={styles.emptyWrap}>
+        <p className="font-child">لا توجد أسئلة متبقية.</p>
+      </div>
+    );
+  }
 
   const step = currentItem.steps[0];
-  const isAudioQuestion = currentItem.interaction_type === 'read_aloud';
+  const isAudio = currentItem.interaction_type === "read_aloud";
+  const progress = Math.round(((questionIndex - 1) / totalQuestions) * 100);
 
   return (
-    <div style={{ padding: '2rem', border: '1px solid #ccc', borderRadius: '8px' }}>
-      <h2 style={{ marginBottom: '1rem' }}>{step?.prompt_text}</h2>
-      {error && <div style={{ color: 'red', marginBottom: '1rem' }}>{error}</div>}
+    <div className={styles.runner}>
+      {/* Progress */}
+      <div className={styles.progressSection}>
+        <div className={styles.progressLabels}>
+          <span className={styles.progressText}>السؤال {questionIndex} من {totalQuestions}</span>
+          <span className={styles.progressPct}>{progress}%</span>
+        </div>
+        <div className="progress-bar">
+          <div className="progress-bar__fill" style={{ width: `${progress}%` }} />
+        </div>
+      </div>
 
-      {isAudioQuestion ? (
-        <div style={{ marginTop: '1.5rem' }}>
-          <p style={{ fontSize: '1.4rem', fontWeight: 'bold', marginBottom: '1rem' }}>
-            {step?.expected_reading_text}
-          </p>
-          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+      {/* Character encourage */}
+      <div className={styles.characterRow} aria-hidden="true">
+        <Image
+          src="/characters/boy-explain.png"
+          alt=""
+          width={80}
+          height={80}
+          className={styles.sideCharacter}
+        />
+        {step?.prompt_text && (
+          <div className={`${styles.promptBubble} font-child`}>
+            {step.prompt_text}
+          </div>
+        )}
+      </div>
+
+      {error && (
+        <div className="alert alert-error" style={{ marginBottom: "var(--space-4)" }}>
+          {error}
+        </div>
+      )}
+
+      {/* Question content */}
+      {isAudio ? (
+        <div className={styles.audioSection}>
+          {step?.expected_reading_text && (
+            <p className={`${styles.readingText} font-child`}>
+              {step.expected_reading_text}
+            </p>
+          )}
+
+          <div className={styles.recordControls}>
             {!isRecording && !audioBlob && (
               <button
                 onClick={startRecording}
-                style={{ background: '#ef4444', color: 'white', padding: '0.5rem 1.2rem', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                className="btn btn-child"
+                style={{ background: "var(--color-error)", color: "white" }}
               >
-                بدء التسجيل 🎤
+                🎤 ابدأ التسجيل
               </button>
             )}
             {isRecording && (
               <button
                 onClick={stopRecording}
-                style={{ background: '#f59e0b', color: 'white', padding: '0.5rem 1.2rem', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                className="btn btn-child"
+                style={{ background: "var(--color-warning)", color: "white" }}
               >
-                إيقاف التسجيل ⏹
+                ⏹ إيقاف التسجيل
               </button>
             )}
-            {audioBlob && (
+            {audioBlob && !isRecording && (
               <button
                 onClick={resetRecording}
-                style={{ background: '#64748b', color: 'white', padding: '0.5rem 1.2rem', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                className="btn btn-ghost btn-child"
               >
-                إعادة التسجيل 🔄
+                🔄 إعادة التسجيل
               </button>
             )}
           </div>
-          {recorderError && <p style={{ color: 'red', marginTop: '0.5rem' }}>{recorderError}</p>}
+
+          {recorderError && (
+            <div className="alert alert-error">{recorderError}</div>
+          )}
+
           {audioBlob && (
-            <div style={{ marginTop: '1rem' }}>
+            <div className={styles.audioPreview}>
               <audio src={URL.createObjectURL(audioBlob)} controls />
             </div>
           )}
+
           <button
             disabled={!audioBlob || submitting}
             onClick={() => handleSubmit()}
-            style={{
-              marginTop: '1rem',
-              background: '#10b981',
-              color: 'white',
-              padding: '0.5rem 1.5rem',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: audioBlob && !submitting ? 'pointer' : 'not-allowed',
-              opacity: !audioBlob || submitting ? 0.5 : 1,
-            }}
+            className="btn btn-secondary btn-child"
+            style={{ marginTop: "var(--space-4)" }}
           >
-            {submitting ? 'جاري الإرسال...' : 'إرسال التسجيل'}
+            {submitting ? "جاري الإرسال..." : "إرسال التسجيل ✅"}
           </button>
         </div>
       ) : (
-        <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div className={styles.optionsGrid}>
           {step?.options.map((opt) => (
             <button
               key={opt.id}
               onClick={() => handleSubmit(opt.id)}
               disabled={submitting}
-              style={{
-                padding: '1rem',
-                textAlign: 'right',
-                border: '1px solid #e2e8f0',
-                borderRadius: '6px',
-                background: 'white',
-                cursor: submitting ? 'not-allowed' : 'pointer',
-                fontSize: '1rem',
-              }}
+              className={`${styles.optionBtn} font-child`}
             >
               {opt.text}
             </button>

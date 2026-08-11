@@ -1,55 +1,47 @@
 import Link from "next/link";
+import Image from "next/image";
+import styles from "./page.module.css";
 
 export default function Home() {
   return (
-    <main style={{
-      minHeight: "100vh",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      background: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f0fdf4 100%)",
-      fontFamily: "var(--font-noto-kufi), sans-serif",
-      direction: "rtl",
-      padding: "2rem",
-    }}>
-      {/* Himma SVG Logo */}
-      <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="شعار هِمّة">
-        <circle cx="40" cy="40" r="40" fill="#0ea5e9"/>
-        <text x="40" y="52" textAnchor="middle" fill="white" fontSize="32" fontWeight="bold" fontFamily="sans-serif">هـ</text>
-      </svg>
+    <main className={styles.hero}>
+      <div className={styles.heroContent}>
+        {/* الشعار الأصلي من ملف SVG المعتمد */}
+        <Image
+          src="/brand/logo-gradient.svg"
+          alt="شعار منصة هِمّة"
+          width={160}
+          height={80}
+          priority
+          className={styles.logo}
+        />
 
-      <h1 style={{ fontSize: "2.5rem", color: "#0c4a6e", margin: "1rem 0 0.5rem", fontWeight: 700 }}>
-        هِمّة
-      </h1>
-      <p style={{ color: "#475569", fontSize: "1.1rem", marginBottom: "2.5rem", textAlign: "center", maxWidth: 400 }}>
-        منصة تقييم مهارات القراءة العربية للمرحلة الابتدائية
-      </p>
+        <h1 className={styles.title}>مرحباً بكم في منصة هِمّة</h1>
+        <p className={styles.subtitle}>
+          منصة تقييم مهارات القراءة العربية للمرحلة الابتدائية
+        </p>
 
-      <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "center" }}>
-        <Link
-          href="/login"
-          id="btn-login-researcher"
-          style={{
-            display: "inline-block",
-            padding: "0.85rem 2rem",
-            background: "#0ea5e9",
-            color: "white",
-            borderRadius: "8px",
-            textDecoration: "none",
-            fontWeight: 700,
-            fontSize: "1rem",
-            boxShadow: "0 4px 12px rgba(14,165,233,0.3)",
-            transition: "transform 0.15s",
-          }}
-        >
-          دخول الباحثة / الطالب
-        </Link>
+        <div className={styles.actions}>
+          <Link href="/login?role=researcher" className="btn btn-primary">
+            دخول الباحثة
+          </Link>
+          <Link href="/login?role=student" className="btn btn-secondary">
+            دخول الطالب
+          </Link>
+        </div>
       </div>
 
-      <p style={{ marginTop: "3rem", color: "#94a3b8", fontSize: "0.8rem" }}>
-        المرحلة 2 · v0.1 · stage/02-content
-      </p>
+      {/* شخصية الترحيب */}
+      <div className={styles.characterWrap} aria-hidden="true">
+        <Image
+          src="/characters/boy-welcome.png"
+          alt="شخصية هِمّة"
+          width={280}
+          height={280}
+          className={styles.character}
+          priority
+        />
+      </div>
     </main>
   );
 }

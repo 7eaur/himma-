@@ -8,7 +8,7 @@ from jose import JWTError, jwt
 from db.database import SessionLocal
 from db.models import User, Student
 
-API_SECRET_KEY = os.getenv("API_SECRET_KEY")
+API_SECRET_KEY = os.environ.get("API_SECRET_KEY")
 if not API_SECRET_KEY:
     raise RuntimeError(
         "API_SECRET_KEY environment variable is required. "

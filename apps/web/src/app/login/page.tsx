@@ -1,122 +1,174 @@
 "use client";
 
-import { useState, FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useState, FormEvent, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
+import styles from "./login.module.css";
 
-export default function LoginPage() {
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+
+function LoginForm() {
   const router = useRouter();
-  const [mode, setMode] = useState<"researcher" | "student">("researcher");
+  const params = useSearchParams();
+  const initialRole = params.get("role") === "student" ? "student" : "researcher";
+
+  const [mode, setMode] = useState<"researcher" | "student">(initialRole);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [accessCode, setAccessCode] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
-
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    setLoading(true);
 
     try {
       if (mode === "researcher") {
-        const res = await fetch(`${apiUrl}/auth/login`, {
+        const res = await fetch(`${API_URL}/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({ username, password }),
         });
-        if (!res.ok) {
-          setError("بيانات الدخول غير صحيحة");
-          return;
-        }
+        if (!res.ok) { setError("بيانات الدخول غير صحيحة"); return; }
         router.push("/researcher");
       } else {
-        const res = await fetch(`${apiUrl}/auth/student-login`, {
+        const res = await fetch(`${API_URL}/auth/student-login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({ access_code: accessCode }),
         });
-        if (!res.ok) {
-          setError("رمز الدخول غير صحيح");
-          return;
-        }
+        if (!res.ok) { setError("رمز الدخول غير صحيح"); return; }
         router.push("/student");
       }
     } catch {
-      setError("حدث خطأ في الاتصال");
+      setError("حدث خطأ في الاتصال بالخادم");
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <div style={{ maxWidth: 400, margin: "4rem auto", padding: "2rem", fontFamily: "sans-serif", direction: "rtl" }}>
-      <h1 style={{ textAlign: "center" }}>تسجيل الدخول</h1>
+    <main className={styles.page}>
+      <div className={styles.card}>
+        {/* Logo */}
+        <div className={styles.logoWrap}>
+          <Image
+            src="/brand/logo-gradient.svg"
+            alt="منصة هِمّة"
+            width={120}
+            height={60}
+            priority
+          />
+        </div>
 
-      <div style={{ display: "flex", gap: "1rem", justifyContent: "center", marginBottom: "1.5rem" }}>
-        <button
-          type="button"
-          onClick={() => setMode("researcher")}
-          style={{ fontWeight: mode === "researcher" ? "bold" : "normal" }}
-          data-testid="tab-researcher"
-        >
-          باحثة
-        </button>
-        <button
-          type="button"
-          onClick={() => setMode("student")}
-          style={{ fontWeight: mode === "student" ? "bold" : "normal" }}
-          data-testid="tab-student"
-        >
-          طالب
-        </button>
-      </div>
+        <h1 className={styles.title}>تسجيل الدخول</h1>
 
-      <form onSubmit={handleSubmit}>
-        {mode === "researcher" ? (
-          <>
-            <div style={{ marginBottom: "1rem" }}>
-              <label htmlFor="username">اسم المستخدم</label>
+        {/* Role Tabs */}
+        <div className={styles.tabs} role="tablist">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mode === "researcher"}
+            className={`${styles.tab} ${mode === "researcher" ? styles.tabActive : ""}`}
+            onClick={() => { setMode("researcher"); setError(""); }}
+            data-testid="tab-researcher"
+          >
+            👩‍🔬 الباحثة
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mode === "student"}
+            className={`${styles.tab} ${mode === "student" ? styles.tabActive : ""}`}
+            onClick={() => { setMode("student"); setError(""); }}
+            data-testid="tab-student"
+          >
+            🎒 الطالب
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className={styles.form}>
+          {mode === "researcher" ? (
+            <>
+              <div className="form-group">
+                <label htmlFor="username" className="form-label">اسم المستخدم</label>
+                <input
+                  id="username"
+                  type="text"
+                  autoComplete="username"
+                  className="form-input"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                  placeholder="أدخل اسم المستخدم"
+                  data-testid="input-username"
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="password" className="form-label">كلمة المرور</label>
+                <input
+                  id="password"
+                  type="password"
+                  autoComplete="current-password"
+                  className="form-input"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  placeholder="أدخل كلمة المرور"
+                  data-testid="input-password"
+                />
+              </div>
+            </>
+          ) : (
+            <div className="form-group">
+              <label htmlFor="access-code" className="form-label">رمز دخول الطالب</label>
               <input
-                id="username"
+                id="access-code"
                 type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                autoComplete="off"
+                className={`form-input ${styles.codeInput}`}
+                value={accessCode}
+                onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
                 required
-                style={{ display: "block", width: "100%", padding: "0.5rem" }}
+                placeholder="مثال: ABC-1234"
+                maxLength={10}
+                data-testid="input-access-code"
               />
+              <p className={styles.hint}>
+                اطلب رمز الدخول من المعلمة أو الباحثة
+              </p>
             </div>
-            <div style={{ marginBottom: "1rem" }}>
-              <label htmlFor="password">كلمة المرور</label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                style={{ display: "block", width: "100%", padding: "0.5rem" }}
-              />
+          )}
+
+          {error && (
+            <div className="alert alert-error" data-testid="error-message">
+              {error}
             </div>
-          </>
-        ) : (
-          <div style={{ marginBottom: "1rem" }}>
-            <label htmlFor="access-code">رمز الدخول</label>
-            <input
-              id="access-code"
-              type="text"
-              value={accessCode}
-              onChange={(e) => setAccessCode(e.target.value)}
-              required
-              style={{ display: "block", width: "100%", padding: "0.5rem" }}
-            />
-          </div>
-        )}
+          )}
 
-        {error && <p style={{ color: "red" }} data-testid="error-message">{error}</p>}
+          <button
+            type="submit"
+            className="btn btn-primary"
+            style={{ width: "100%", marginTop: "var(--space-2)" }}
+            disabled={loading}
+            data-testid="login-submit"
+          >
+            {loading ? "جاري الدخول..." : "دخول"}
+          </button>
+        </form>
+      </div>
+    </main>
+  );
+}
 
-        <button type="submit" style={{ width: "100%", padding: "0.75rem" }} data-testid="login-submit">
-          دخول
-        </button>
-      </form>
-    </div>
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }

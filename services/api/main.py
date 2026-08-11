@@ -1,8 +1,6 @@
 import os
-# Set test secret BEFORE any other imports so dependencies.py picks it up
-os.environ["API_SECRET_KEY"] = "test-secret-key-for-ci-only"
-
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from auth import router as auth_router
 from protected import router as protected_router
 from assessment import router as assessment_router
@@ -13,6 +11,16 @@ app = FastAPI(
     title="Himma API Service",
     description="API service for Himma Educational Platform",
     version="0.1.0",
+)
+
+# CORS — allows the Next.js dev server and production URL
+_origins = os.environ.get("CORS_ORIGINS", "http://localhost:3000").split(",")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[o.strip() for o in _origins],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(auth_router)
