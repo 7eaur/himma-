@@ -1,243 +1,229 @@
-/* ============================================================
-   Himma Design System — CSS Custom Properties
-   الألوان والخطوط والمسافات لمنصة هِمّة
-   ============================================================ */
-
-@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap');
 
 :root {
-  /* --- Brand Colours --- */
-  --color-primary:      #347FD9; /* أزرق رئيسي */
-  --color-secondary:    #51B985; /* أخضر */
-  --color-accent:       #FFC857; /* ذهبي */
-  --color-navy:         #20364D; /* كحلي داكن */
-  --color-bg:           #F7FBFF; /* خلفية فاتحة */
-  --color-bg-alt:       #DCE8F2; /* خلفية بديلة */
-  --color-white:        #FFFFFF;
-  --color-text:         #20364D;
-  --color-text-muted:   #5A7A96;
-  --color-border:       #C8DDEE;
-  --color-error:        #DC2626;
-  --color-success:      #16A34A;
-  --color-warning:      #D97706;
-
-  /* --- Typography --- */
-  --font-child:    'Tajawal', 'Arial', sans-serif;
-  --font-admin:    'IBM Plex Sans Arabic', 'Arial', sans-serif;
-
-  /* --- Spacing --- */
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.25rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
-  --space-10: 2.5rem;
-  --space-12: 3rem;
-  --space-16: 4rem;
-
-  /* --- Radius --- */
-  --radius-sm: 6px;
-  --radius-md: 12px;
-  --radius-lg: 20px;
-  --radius-full: 9999px;
-
-  /* --- Shadows --- */
-  --shadow-card: 0 2px 16px rgba(52, 127, 217, 0.10);
-  --shadow-btn:  0 4px 12px rgba(52, 127, 217, 0.25);
-
-  /* --- Transitions --- */
-  --transition: 0.18s ease;
+  /* Colors */
+  --primary: #347FD9;
+  --secondary: #51B985;
+  --accent: #FFC857;
+  --dark: #20364D;
+  --bg-light: #F7FBFF;
+  --bg-muted: #DCE8F2;
+  --white: #FFFFFF;
+  --error: #E53E3E;
+  
+  /* Fonts */
+  --font-student: 'Tajawal', sans-serif;
+  --font-admin: 'IBM Plex Sans Arabic', sans-serif;
+  
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+  
+  /* Radii */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
 }
 
-/* ── Global Reset & Base ── */
-*, *::before, *::after {
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast: 0ms;
+    --transition-normal: 0ms;
+  }
+}
+
+* {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-html {
-  font-size: 16px;
-  direction: rtl;
-  /* Force light mode — منع الوضع الداكن العشوائي */
-  color-scheme: light only;
-}
-
 body {
-  font-family: var(--font-admin);
-  background-color: var(--color-bg);
-  color: var(--color-text);
-  line-height: 1.6;
+  background-color: var(--bg-light);
+  color: var(--dark);
+  font-family: var(--font-student); /* Default to student font */
+  direction: rtl;
   min-height: 100vh;
-  -webkit-font-smoothing: antialiased;
 }
 
-/* ── Typography Utilities ── */
-.font-child  { font-family: var(--font-child); }
-.font-admin  { font-family: var(--font-admin); }
-
-/* ── Layout ── */
-.container {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 var(--space-4);
+/* Admin override */
+.admin-layout {
+  font-family: var(--font-admin);
+  background-color: var(--white);
 }
 
-/* ── Button System ── */
+/* Typography */
+h1, h2, h3 {
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Buttons */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-6);
-  border: none;
+  padding: 0.75rem 1.5rem;
   border-radius: var(--radius-md);
-  font-family: var(--font-admin);
-  font-weight: 600;
-  font-size: 1rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
-  text-decoration: none;
-  white-space: nowrap;
+  border: none;
+  transition: all var(--transition-normal);
+  font-family: inherit;
 }
-.btn:active  { transform: scale(0.97); }
-.btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
 
 .btn-primary {
-  background: var(--color-primary);
-  color: var(--color-white);
-  box-shadow: var(--shadow-btn);
-}
-.btn-primary:hover:not(:disabled) { background: #2968b8; }
-
-.btn-secondary {
-  background: var(--color-secondary);
-  color: var(--color-white);
-  box-shadow: 0 4px 12px rgba(81,185,133,0.25);
-}
-.btn-secondary:hover:not(:disabled) { background: #3da070; }
-
-.btn-accent {
-  background: var(--color-accent);
-  color: var(--color-navy);
-  box-shadow: 0 4px 12px rgba(255,200,87,0.30);
-}
-.btn-accent:hover:not(:disabled) { background: #f0b820; }
-
-.btn-ghost {
-  background: transparent;
-  color: var(--color-primary);
-  border: 2px solid var(--color-primary);
-}
-.btn-ghost:hover:not(:disabled) {
-  background: var(--color-primary);
-  color: var(--color-white);
+  background-color: var(--primary);
+  color: var(--white);
 }
 
-.btn-danger {
-  background: var(--color-error);
-  color: var(--color-white);
+.btn-primary:hover {
+  background-color: #2a68b5;
+  transform: translateY(-2px);
 }
 
-/* Child-sized buttons for student screens */
-.btn-child {
-  padding: var(--space-4) var(--space-8);
-  font-family: var(--font-child);
-  font-size: 1.2rem;
-  font-weight: 700;
+.btn-large {
+  padding: 1rem 2.5rem;
+  font-size: 1.25rem;
   border-radius: var(--radius-lg);
-  min-height: 56px;
 }
 
-/* ── Card ── */
-.card {
-  background: var(--color-white);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
-  padding: var(--space-6);
-  border: 1px solid var(--color-border);
+.link-muted {
+  color: var(--dark);
+  opacity: 0.6;
+  transition: opacity var(--transition-fast);
 }
 
-/* ── Form Elements ── */
-.form-group { margin-bottom: var(--space-4); }
-
-.form-label {
-  display: block;
-  font-weight: 600;
-  margin-bottom: var(--space-2);
-  color: var(--color-navy);
-  font-size: 0.9rem;
+.link-muted:hover {
+  opacity: 1;
 }
 
-.form-input {
+/* Landing Page Styles */
+.landing-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+}
+
+.landing-content {
+  max-width: 800px;
   width: 100%;
-  padding: var(--space-3) var(--space-4);
-  border: 2px solid var(--color-border);
-  border-radius: var(--radius-md);
-  font-family: inherit;
-  font-size: 1rem;
-  color: var(--color-text);
-  background: var(--color-white);
-  transition: border-color var(--transition);
-  direction: rtl;
 }
-.form-input:focus {
-  outline: none;
-  border-color: var(--color-primary);
-}
-.form-input.error { border-color: var(--color-error); }
 
-/* ── Alert / Badge ── */
-.alert {
-  padding: var(--space-3) var(--space-4);
+.logo-text {
+  font-size: 4rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 1rem;
+  display: inline-block;
+}
+
+.hero-title {
+  font-size: 2.5rem;
+  color: var(--dark);
+  margin-bottom: 1rem;
+}
+
+.hero-subtitle {
+  font-size: 1.25rem;
+  color: var(--dark);
+  opacity: 0.8;
+  margin-bottom: 3rem;
+  line-height: 1.6;
+}
+
+.levels-section {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 4rem;
+  flex-wrap: wrap;
+}
+
+.level-card {
+  background: var(--white);
+  padding: 2rem;
   border-radius: var(--radius-md);
-  font-size: 0.9rem;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  flex: 1;
+  min-width: 200px;
+  transition: transform var(--transition-normal);
+  border-top: 4px solid var(--primary);
+}
+
+.level-card:hover {
+  transform: translateY(-5px);
+}
+
+.level-1 { border-color: var(--secondary); }
+.level-2 { border-color: var(--primary); }
+.level-3 { border-color: var(--accent); }
+
+.level-number {
+  font-size: 2rem;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 0.5rem;
+  opacity: 0.2;
+}
+
+.action-section {
+  margin-bottom: 3rem;
+}
+
+/* Forms & Inputs */
+.input-field {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid var(--bg-muted);
+  border-radius: var(--radius-md);
+  font-size: 1.25rem;
+  text-align: center;
+  font-family: inherit;
+  transition: border-color var(--transition-fast);
+  margin-bottom: 1rem;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.auth-card {
+  background: var(--white);
+  padding: 3rem;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  width: 100%;
+  max-width: 450px;
+  text-align: center;
+}
+
+.alert {
+  padding: 1rem;
+  border-radius: var(--radius-sm);
+  margin-bottom: 1rem;
   font-weight: 500;
 }
-.alert-error   { background: #FEE2E2; color: var(--color-error); border: 1px solid #FECACA; }
-.alert-success { background: #DCFCE7; color: var(--color-success); border: 1px solid #BBF7D0; }
-.alert-info    { background: var(--color-bg-alt); color: var(--color-navy); border: 1px solid var(--color-border); }
 
-/* ── Avatar / Character ── */
-.character {
-  display: block;
-  max-width: 200px;
-  height: auto;
-  margin: 0 auto;
-}
-
-/* ── Progress Bar ── */
-.progress-bar {
-  height: 10px;
-  background: var(--color-bg-alt);
-  border-radius: var(--radius-full);
-  overflow: hidden;
-}
-.progress-bar__fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
-  border-radius: var(--radius-full);
-  transition: width 0.5s ease;
-}
-
-/* ── Loading Spinner ── */
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid var(--color-bg-alt);
-  border-top-color: var(--color-primary);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin: var(--space-8) auto;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* ── Responsive ── */
-@media (max-width: 640px) {
-  :root { font-size: 15px; }
-  .container { padding: 0 var(--space-3); }
-  .card { padding: var(--space-4); }
+.alert-error {
+  background-color: #FEE2E2;
+  color: var(--error);
 }

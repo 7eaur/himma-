@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from db.database import SQLALCHEMY_DATABASE_URL
-from db.models import Skill, ContentItem, ContentStep, ContentKind, ScoringPolicy, ScoringRule
+from db.models import Skill, ContentItem, ContentStep, ContentOption, ContentAssetLink, ContentKind, ScoringPolicy, ScoringRule
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -26,12 +26,13 @@ def run_seed():
     try:
         print(f"Starting seed of {len(catalog)} items...")
         
-        # 1. Seed Skills
+        # 1. Seed Skills (use real level_id from catalog)
         skills_created = 0
         processed_skill_keys = set()
         for item in catalog:
             skill_key = item['skill_key']
             skill_name = item['skill_name']
+            level_id = item.get('level_id', 1)
             
             if skill_key in processed_skill_keys:
                 continue
@@ -42,7 +43,7 @@ def run_seed():
                     skill_key=skill_key,
                     name=skill_name,
                     description=skill_name,
-                    level_id=1 # Default
+                    level_id=level_id
                 )
                 db.add(new_skill)
                 skills_created += 1
@@ -63,16 +64,21 @@ def run_seed():
                 
             existing_item = db.query(ContentItem).filter(ContentItem.stable_key == stable_key).first()
             if not existing_item:
+                level_id = item.get('level_id', 1)
+                interaction_type = item.get('interaction_type', 'multiple_choice')
+                order_index = item.get('order_index', 1)
+                checksum = item.get('checksum', 'pending_checksum')
+
                 new_item = ContentItem(
                     stable_key=stable_key,
                     kind=ContentKind(kind_str),
-                    level_id=1,
+                    level_id=level_id,
                     skill_id=skills_map[item['skill_key']],
-                    interaction_type='multiple_choice', # Default placeholder
-                    order_index=1,
+                    interaction_type=interaction_type,
+                    order_index=order_index,
                     version=item['version'],
                     status=item['status'],
-                    checksum='pending_checksum',
+                    checksum=checksum,
                     template_data={}
                 )
                 db.add(new_item)
@@ -82,11 +88,32 @@ def run_seed():
                 for step_data in item.get('steps', []):
                     new_step = ContentStep(
                         item_id=new_item.id,
-                        order_index=step_data['order_index'],
-                        prompt_text=step_data['prompt_text'],
-                        expected_reading_text=step_data['expected_reading_text']
+                        order_index=step_data.get('order_index', 1),
+                        prompt_text=step_data.get('prompt_text', ''),
+                        expected_reading_text=step_data.get('expected_reading_text')
                     )
                     db.add(new_step)
+                    db.flush() # To get new_step.id
+
+                    # Add options
+                    for opt_data in step_data.get('options', []):
+                        new_opt = ContentOption(
+                            step_id=new_step.id,
+                            text=opt_data['text'],
+                            is_correct=opt_data.get('is_correct', False),
+                            order_index=opt_data.get('order_index', 1)
+                        )
+                        db.add(new_opt)
+
+                    # Add assets
+                    for asset_data in step_data.get('assets', []):
+                        new_asset = ContentAssetLink(
+                            step_id=new_step.id,
+                            manifest_asset_id=asset_data['asset_id'],
+                            asset_type=asset_data['type'],
+                            usage_context=asset_data.get('usage')
+                        )
+                        db.add(new_asset)
                 
                 db_items[stable_key] = new_item
                 items_created += 1

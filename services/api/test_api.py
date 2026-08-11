@@ -142,8 +142,7 @@ class TestStage2:
         db.close()
         
         # Should be exactly 105 items
-        # Wait, the catalog might have a different number. We assert it doesn't duplicate.
-        assert count > 0
+        assert count == 105
 
     def test_idor_and_401_403(self, client):
         res = client.get("/assessment/active")
@@ -181,16 +180,16 @@ class TestStage2:
         assert res.status_code == 400
         assert "30 items" in res.json()["detail"]
     def test_profile_as_student_200(self, student_client):
-        r = student_client.get("/student/profile")
+        r = student_client.get("/profile")
         assert r.status_code == 200
-        assert r.json()["name"] == "طالب 1"
+        assert r.json()["full_name"] == "طالب 1"
 
     def test_profile_unauthenticated_401(self, client):
-        r = client.get("/student/profile")
+        r = client.get("/profile")
         assert r.status_code == 401
 
     def test_profile_as_researcher_403(self, researcher_client):
-        r = researcher_client.get("/student/profile")
+        r = researcher_client.get("/profile")
         assert r.status_code == 403
 
 

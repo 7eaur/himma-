@@ -1,47 +1,60 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
-import styles from "./page.module.css";
+import { useEffect, useState } from "react";
 
-export default function Home() {
+export default function LandingPage() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   return (
-    <main className={styles.hero}>
-      <div className={styles.heroContent}>
-        {/* الشعار الأصلي من ملف SVG المعتمد */}
-        <Image
-          src="/brand/logo-gradient.svg"
-          alt="شعار منصة هِمّة"
-          width={160}
-          height={80}
-          priority
-          className={styles.logo}
-        />
+    <div className="landing-container">
+      <div className="landing-content">
+        {/* Logo and Tagline */}
+        <div className="hero-section">
+          <div className="logo-container">
+            <span className="logo-text">هِمّة</span>
+          </div>
+          <h1 className="hero-title">أتعلم، أتطور، أصل إلى القمة</h1>
+          <p className="hero-subtitle">
+            رحلة ممتعة تبدأ باختبار بسيط لتحديد مستواك، ثم تنطلق في أنشطة مصممة خصيصاً لك لتعزيز مهاراتك خطوة بخطوة.
+          </p>
+        </div>
 
-        <h1 className={styles.title}>مرحباً بكم في منصة هِمّة</h1>
-        <p className={styles.subtitle}>
-          منصة تقييم مهارات القراءة العربية للمرحلة الابتدائية
-        </p>
+        {/* Level Cards */}
+        <div className="levels-section">
+          <div className="level-card level-1">
+            <span className="level-number">1</span>
+            <h3>مبتدئ</h3>
+            <p>بداية الرحلة</p>
+          </div>
+          <div className="level-card level-2">
+            <span className="level-number">2</span>
+            <h3>متوسط</h3>
+            <p>تطور مستمر</p>
+          </div>
+          <div className="level-card level-3">
+            <span className="level-number">3</span>
+            <h3>متقدم</h3>
+            <p>وصول للقمة</p>
+          </div>
+        </div>
 
-        <div className={styles.actions}>
-          <Link href="/login?role=researcher" className="btn btn-primary">
-            دخول الباحثة
+        {/* Primary Action */}
+        <div className="action-section">
+          <Link href="/student/login" className="btn btn-primary btn-large">
+            الدخول برمز الطالب
           </Link>
-          <Link href="/login?role=student" className="btn btn-secondary">
-            دخول الطالب
+        </div>
+
+        {/* Admin Link */}
+        <div className="admin-link-section">
+          <Link href="/admin/login" className="link-muted">
+            دخول الإدارة
           </Link>
         </div>
       </div>
-
-      {/* شخصية الترحيب */}
-      <div className={styles.characterWrap} aria-hidden="true">
-        <Image
-          src="/characters/boy-welcome.png"
-          alt="شخصية هِمّة"
-          width={280}
-          height={280}
-          className={styles.character}
-          priority
-        />
-      </div>
-    </main>
+    </div>
   );
 }
