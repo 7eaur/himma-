@@ -13,8 +13,17 @@
 
 - المنجز: 
   - إكمال بناء الكتالوج (105 عناصر) باستخراج آلي مع UUIDv5 حتمي للمهارات.
-  - إكمال جميع مسارات الطالب والباحثة والتخزين الآمن للصوت مع ffprobe.
-  - بناء خوارزمية الدرجات الدقيقة وتعيين المستويات.
-  - إكمال الشريحة الخامسة (الاختبارات الشاملة و CI integration).
+| 01 | Foundation & Core Config | COMPLETE |
+| 02 | Educational Content Pipeline | FAILED (Gate Rejected) |
+| 03 | Engine & Interactive Assessment | PENDING |
+
+## Current Blocker
+- **Stage 02 Verification Failed:** 
+  - Frontend integration is incomplete and tests are mocked/skipped.
+  - Route decoupling into `/admin` and `/student` is incomplete (Admin layout bleeds into login, UI uses emojis/inline styles).
+  - Playwright E2E tests are not comprehensively covering the required vertical slice (Admin Login -> Create Student -> Student Login -> 30 Questions -> Real Audio upload to MinIO -> Admin grading).
+  - `seed.py` needs to accurately parse all fields (including specific options and interaction types, not just `multiple_choice`).
+  - Next.js needs Server-side protection (middleware) rather than client-side redirects.
+
 - العيوب والنواقص: لا يوجد.
 - التالي: تشغيل بوابة الجودة للمرحلة الثانية.
