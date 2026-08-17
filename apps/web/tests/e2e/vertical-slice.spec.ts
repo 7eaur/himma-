@@ -11,24 +11,80 @@ test.describe("Full Vertical Slice - Stage 02 Gate", () => {
 
     // 2. Create Student
     await page.goto("/admin/students/new");
-    // (Assuming this page is implemented, which I scaffolded loosely, let's just make sure the page loads for now since I didn't build the full forms for all yet).
-    await expect(page.getByText("إنشاء طالب")).toBeVisible();
-    
+    await page.getByTestId("input-student-name").fill("Student Playwright");
+    // select grade 1
+    await page.getByTestId("input-student-grade").selectOption("1");
+    await page.getByTestId("btn-create-student").click();
+
+    // Extract access code
+    const codeElement = page.locator("code").first();
+    await expect(codeElement).toBeVisible();
+    const accessCode = await codeElement.textContent();
+    expect(accessCode).toBeTruthy();
+
     // 3. Logout Admin
-    await page.goto("/admin");
-    // Click logout (this should hit the backend and clear cookie)
-    await page.getByText("تسجيل الخروج").click();
+    await page.goto("/admin/account");
+    await page.getByRole("button", { name: "تسجيل الخروج" }).click();
+    await expect(page).toHaveURL(/\/admin\/login/);
 
     // 4. Student Login
     await page.goto("/student/login");
-    await page.getByTestId("input-access-code").fill("STU001");
+    await page.getByTestId("input-access-code").fill(accessCode as string);
     await page.getByRole("button", { name: "دخول" }).click();
     await expect(page).toHaveURL(/\/student/);
 
     // 5. Student Dashboard
-    await expect(page.getByText("أهلاً بك يا")).toBeVisible();
+    await expect(page.getByText("أهلاً بك")).toBeVisible();
     
-    // We would click "Start pretest" here, but the backend mocked assessment logic isn't fully implemented with 30 questions in E2E yet.
-    // The gate expects a full end-to-end test including real Audio Blob upload to MinIO.
+    // Start Assessment (It will redirect to /student/session/[id])
+    await page.getByRole("button", { name: "ابدأ اختبار تحديد المستوى" }).click();
+    await expect(page).toHaveURL(/\/student\/session\/\d+/);
+
+    // 6. Answer 30 questions
+    for (let i = 0; i < 30; i++) {
+      // Wait for question to load
+      await expect(page.getByText(/السؤال \d+ من 30/)).toBeVisible({ timeout: 10000 });
+      
+      // Determine if it's Audio or MCQ by checking for recording button
+      const recordBtn = page.getByRole("button", { name: /ابدأ التسجيل/ });
+      const hasAudio = await recordBtn.isVisible().catch(() => false);
+
+      if (hasAudio) {
+        // Audio Question
+        await recordBtn.click();
+        await expect(page.getByRole("button", { name: /إيقاف التسجيل/ })).toBeVisible();
+        // Wait 2 seconds for fake media stream to capture something
+        await page.waitForTimeout(2000);
+        await page.getByRole("button", { name: /إيقاف التسجيل/ }).click();
+        
+        // Submit audio
+        await page.getByRole("button", { name: /إرسال التسجيل/ }).click();
+      } else {
+        // MCQ Question
+        // Just click the first option available
+        const options = page.locator("button.optionBtn, button[class*='optionBtn']");
+        await expect(options.first()).toBeVisible();
+        await options.first().click();
+      }
+    }
+
+    // 7. Verify Completion
+    await expect(page.getByText("أحسنت! انتهيت من الاختبار")).toBeVisible({ timeout: 10000 });
+
+    // 8. Admin Login to Grade
+    await page.goto("/admin/login");
+    await page.getByTestId("input-username").fill("researcher1");
+    await page.getByTestId("input-password").fill("securepass123");
+    await page.getByTestId("login-submit").click();
+
+    // 9. Audio Review
+    await page.goto("/admin/audio-review");
+    
+    // We should see audio submissions here. Let's grade the first one.
+    const gradeCorrectBtn = page.getByRole("button", { name: "✅ قراءة صحيحة" }).first();
+    await expect(gradeCorrectBtn).toBeVisible();
+    await gradeCorrectBtn.click();
+    
+    // Test passed completely!
   });
 });
