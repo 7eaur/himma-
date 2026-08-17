@@ -33,12 +33,15 @@ def verify_password(password: str, hashed: str) -> bool:
 
 
 def _set_token_cookie(response: Response, token: str) -> None:
+    is_prod = os.getenv("ENV") == "production"
     response.set_cookie(
         key="access_token",
         value=token,
         httponly=True,
-        samesite="lax",
-        secure=os.getenv("ENV") == "production",
+        samesite="none" if not is_prod else "lax",
+        secure=is_prod,
+        path="/",
+        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
 
 

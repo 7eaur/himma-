@@ -81,6 +81,10 @@ def get_current_student(request: Request, db: Session = Depends(get_db)) -> Stud
     return student
 
 
+# Alias for semantic clarity in endpoints that need researcher role
+get_current_researcher = get_current_user
+
+
 def get_any_authenticated(request: Request, db: Session = Depends(get_db)):
     """Return (role, entity) for any valid session — used by /auth/me."""
     payload = _decode_token(request)
