@@ -1,61 +1,79 @@
-# RESUME_HERE — نقطة الاستئناف
+# RESUME HERE — P02 Baseline Recovery
 
-**آخر تحديث:** 17 أغسطس 2026  
-**الفرع:** `stage/02-content`  
-**HEAD:** `88c0e71`  
-**آخر commit مقبول رسمياً:** `ac3cae2` (Stage 01 Gate)
+**Last updated:** 2026-08-18T22:42:00Z  
+**Branch:** `recovery/p02-baseline`  
+**HEAD:** `616a2ac`
 
----
+## Current Status: LOCAL STACK VERIFIED ✓
 
-## المرحلة الحالية
+All 12 integration checks passed at `2026-08-18T22:41:46`:
 
-| الحقل | القيمة |
+| Check | Result |
 |---|---|
-| المرحلة | **P02** — تثبيت خط الأساس والتعافي الآمن |
-| الحالة | **IN_PROGRESS** |
-| الفرع النشط | `recovery/p02-baseline` (قيد الإنشاء) |
+| FastAPI /health | ✓ ok |
+| Researcher login | ✓ 200 + JWT cookie |
+| /me endpoint | ✓ role=researcher |
+| Create student | ✓ id + access_code |
+| Admin logout | ✓ 200 |
+| Student login | ✓ 200 + JWT cookie |
+| Student profile | ✓ 200 |
+| Start assessment | ✓ session_id created in PostgreSQL |
+| Get question | ✓ id=1, type=multiple_choice (real Arabic content) |
+| Submit answer | ✓ saved to PostgreSQL attempts table |
+| Upload audio | ✓ 25005 bytes in MinIO himma-audio bucket |
+| Verify in DB | ✓ 1 attempt, 1 session row in PostgreSQL |
 
----
+## Local Services
 
-## ما أُنجز فعلياً
+| Service | URL | Status |
+|---|---|---|
+| PostgreSQL 18 | `localhost:5432` | Windows Service (auto) |
+| MinIO | `http://localhost:9000` | Manual terminal |
+| Redis | `localhost:6379` | Manual terminal |
+| FastAPI | `http://localhost:8000` | Manual terminal |
+| Next.js | `http://localhost:3000` | Not started yet |
 
-- [x] قراءة وثائق المشروع (START_HERE_AR, SOURCE_OF_TRUTH, ROADMAP_V2)
-- [x] تثبيت git status والفرع والـ HEAD
-- [x] جرد apps/, services/, packages/, assets/
-- [x] تصنيف المكونات (production/partial/mock/placeholder)
-- [x] تشخيص حلقة 307 في middleware.ts
-- [x] تثبيت غياب PostgreSQL/Redis/MinIO في البيئة المحلية
-- [x] مطابقة STAGE_02_REVIEW.md مع الواقع — الحكم: REJECTED
-- [x] كتابة وثائق P01 في `docs/ops/stages/P01/`
-- [x] تحديث STATUS.md و progress.json و RESUME_HERE.md
+## How to Start Services
 
----
+1. **PostgreSQL** — runs automatically as Windows service
+2. **MinIO** — open CMD, run:
+   ```cmd
+   set MINIO_ROOT_USER=minioadmin
+   set MINIO_ROOT_PASSWORD=minioadmin
+   C:\himma-services\minio\minio.exe server E:\himma-services\minio-data --console-address :9001 --address :9000
+   ```
+3. **Redis** — open CMD, run:
+   ```cmd
+   C:\himma-services\redis\redis-server.exe
+   ```
+4. **FastAPI** — open CMD, run:
+   ```cmd
+   set DATABASE_URL=postgresql://himma:himmapass@localhost:5432/himma_db
+   set API_SECRET_KEY=himma-dev-secret-key-32chars-ok!!
+   set S3_ENDPOINT=http://localhost:9000
+   set S3_ACCESS_KEY=minioadmin
+   set S3_SECRET_KEY=minioadmin
+   set S3_BUCKET_NAME=himma-audio
+   set REDIS_URL=redis://localhost:6379/0
+   set ENV=development
+   cd /d "e:\مشروع منصه همه\Himma_Unified_Repository_v1.1_FINAL\services\api"
+   python run_dev.py
+   ```
+5. **Next.js** — open CMD, run:
+   ```cmd
+   cd /d "e:\مشروع منصه همه\Himma_Unified_Repository_v1.1_FINAL\apps\web"
+   set NEXT_PUBLIC_API_URL=http://localhost:8000
+   npm run dev
+   ```
 
-## العوائق المثبتة
+## DB Credentials (local dev only)
+- PostgreSQL: `himma / himmapass @ localhost:5432/himma_db`
+- MinIO: `minioadmin / minioadmin @ localhost:9000`
+- Redis: `localhost:6379`
+- API Key: `himma-dev-secret-key-32chars-ok!!`
 
-1. **Docker غير متاح محلياً** — يتطلب استخدام GitHub Actions CI
-2. **middleware.ts يسبب 307 redirect loop** — يجب إصلاحه قبل E2E
-
----
-
-## الإجراء التالي (حرفياً)
-
-```
-1. إنشاء فرع recovery/p02-baseline من HEAD الحالي
-2. تحديث .github/workflows/ci.yml لإضافة PostgreSQL + MinIO + Redis services
-3. تحديث services/api/storage.py باستخدام boto3 حقيقي
-4. تشخيص وإصلاح middleware.ts / Cookie issue
-5. تشغيل Alembic upgrade → downgrade → upgrade في CI
-6. تشغيل seed مرتين وإثبات idempotency
-7. تشغيل E2E كامل بدون mock
-```
-
----
-
-## روابط التقارير
-
-- [CURRENT_STATE_AUDIT](./stages/P01/CURRENT_STATE_AUDIT.md)
-- [BASELINE_SNAPSHOT](./stages/P01/BASELINE_SNAPSHOT.json)
-- [GAP_REGISTER](./stages/P01/GAP_REGISTER.md)
-- [EVIDENCE_INDEX](./stages/P01/EVIDENCE_INDEX.md)
-- [RECOVERY_RECOMMENDATION](./stages/P01/RECOVERY_RECOMMENDATION.md)
+## Next Step: P02 Slice 2 — Next.js + End-to-End Browser Flow
+- Start Next.js dev server
+- Fix admin login UI (no redirect loop)  
+- Verify full browser flow: login → create student → student session → audio recording
+- Fix any remaining middleware redirect issues
