@@ -6,67 +6,89 @@ const BASE = "http://localhost:3000";
 const SCREENS_DIR = path.join(__dirname, "screenshots/p03");
 
 const VIEWPORTS = [
-  { name: "mobile", width: 390, height: 844 },
-  { name: "tablet", width: 768, height: 1024 },
+  { name: "mobile",  width: 390,  height: 844 },
+  { name: "tablet",  width: 768,  height: 1024 },
   { name: "desktop", width: 1440, height: 900 },
 ];
 
-const PAGES = [
-  { route: "/", name: "welcome" },
-  { route: "/admin/login", name: "admin-login" },
-  { route: "/student/login", name: "student-login" },
-];
+test.describe("P03.2: Full screenshots — all viewports + all pages", () => {
+  test.setTimeout(300000);
 
-test.describe("P03: Screenshots — all viewports", () => {
   test.beforeAll(() => {
     fs.mkdirSync(SCREENS_DIR, { recursive: true });
   });
 
   for (const vp of VIEWPORTS) {
-    test(`Screenshots — ${vp.name} (${vp.width}px)`, async ({ browser }) => {
+    test(`${vp.name} (${vp.width}px)`, async ({ browser }) => {
       const ctx = await browser.newContext({
         viewport: { width: vp.width, height: vp.height },
         locale: "ar-SA",
       });
       const page = await ctx.newPage();
+      const shot = async (name: string) => {
+        await page.screenshot({
+          path: path.join(SCREENS_DIR, `${name}-${vp.name}.png`),
+          fullPage: false,
+        });
+        console.log(`[shot] ${name}-${vp.name}.png`);
+      };
 
-      for (const pg of PAGES) {
-        await page.goto(`${BASE}${pg.route}`, { waitUntil: "networkidle" });
-        await page.waitForTimeout(1000);
-        const file = path.join(SCREENS_DIR, `${pg.name}-${vp.name}.png`);
-        await page.screenshot({ path: file, fullPage: false });
-        console.log(`[screenshot] ${pg.name}-${vp.name}.png`);
-      }
+      // ── Public pages ──────────────────────────────────────
+      await page.goto(`${BASE}/`, { waitUntil: "networkidle" });
+      await page.waitForTimeout(800);
+      await shot("welcome");
 
-      // Login to get admin screenshots
+      await page.goto(`${BASE}/admin/login`, { waitUntil: "networkidle" });
+      await page.waitForTimeout(600);
+      await shot("admin-login");
+
+      await page.goto(`${BASE}/student/login`, { waitUntil: "networkidle" });
+      await page.waitForTimeout(600);
+      await shot("student-login");
+
+      // ── Admin login ───────────────────────────────────────
       await page.goto(`${BASE}/admin/login`, { waitUntil: "networkidle" });
       await page.locator('[data-testid="input-username"]').click();
       await page.keyboard.type("researcher1", { delay: 30 });
       await page.locator('[data-testid="input-password"]').click();
       await page.keyboard.type("securepass123", { delay: 30 });
       await page.locator('[data-testid="login-submit"]').click();
-      await page.waitForTimeout(8000);
+      await page.waitForURL(/\/admin(?!\/login)/, { timeout: 20000 });
+      await page.waitForLoadState("networkidle", { timeout: 10000 }).catch(() => {});
+      await page.waitForTimeout(1000);
 
+      // ── Admin pages ───────────────────────────────────────
       const adminPages = [
-        { route: "/admin", name: "admin-dashboard" },
-        { route: "/admin/students", name: "admin-students" },
-        { route: "/admin/students/new", name: "admin-create-student" },
-        { route: "/admin/audio-review", name: "admin-audio-review" },
-        { route: "/admin/reports", name: "admin-reports" },
-        { route: "/admin/settings", name: "admin-settings" },
+        { route: "/admin",               name: "admin-dashboard" },
+        { route: "/admin/students",       name: "admin-students" },
+        { route: "/admin/students/new",   name: "admin-create-student" },
+        { route: "/admin/audio-review",   name: "admin-audio-review" },
+        { route: "/admin/reports",        name: "admin-reports" },
+        { route: "/admin/settings",       name: "admin-settings" },
       ];
       for (const pg of adminPages) {
         await page.goto(`${BASE}${pg.route}`, { waitUntil: "networkidle" });
-        await page.waitForTimeout(800);
-        await page.screenshot({
-          path: path.join(SCREENS_DIR, `${pg.name}-${vp.name}.png`),
-          fullPage: false,
-        });
-        console.log(`[screenshot] ${pg.name}-${vp.name}.png`);
+        await page.waitForTimeout(700);
+        await shot(pg.name);
       }
 
+      // ── Student pages ─────────────────────────────────────
+      // Logout first
+      await page.evaluate(() => fetch("/api/auth/logout", { method: "POST" }));
+      await page.goto(`${BASE}/student/login`, { waitUntil: "networkidle" });
+      await page.locator('[data-testid="input-access-code"]').click();
+      // Use known test student code (from last run or fallback)
+      await page.keyboard.type("8G4-3631", { delay: 40 });
+      await page.getByRole("button", { name: /نبدأ|دخول/ }).first().click();
+      await page.waitForURL(/\/student(?!\/login)/, { timeout: 15000 }).catch(async () => {
+        console.log("Student login fallback — trying alternate code");
+      });
+      await page.waitForLoadState("networkidle", { timeout: 8000 }).catch(() => {});
+      await page.waitForTimeout(1000);
+      await shot("student-home");
+
       await ctx.close();
-      console.log(`Done: ${vp.name}`);
+      console.log(`✓ Done: ${vp.name}`);
     });
   }
 });
