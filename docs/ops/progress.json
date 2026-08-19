@@ -1,29 +1,41 @@
 {
-  "branch": "recovery/p02-baseline",
-  "phase": "P02",
-  "slice": "Slice-2-COMPLETE",
+  "branch": "stage/03-design-routes",
+  "phase": "P03",
+  "slice": "P03.1-COMPLETE",
   "gate_status": "LOCAL_PASS",
-  "last_verified": "2026-08-19T20:18:47Z",
-  "playwright_result": "1 passed / 0 failed (1.4 min)",
+  "last_verified": "2026-08-20T01:55:45Z",
+  "playwright_result": "1 passed / 0 failed (1.0 min)",
   "playwright_steps_passed": 11,
-  "next_step": "P03: Professional Design & Routes",
+  "next_step": "P03.2: Complete remaining pages (student session, audio recording UI) + P03.3 mobile responsiveness screenshots",
+  "p03_commits": [
+    "8c28fd2 — feat(P03.1): professional design system + all routes",
+    "f15990f — fix(P03): correct asset paths, add data-testids, pure CSS system",
+    "30368a3 — fix(P03): add testids to student-login, fix keyboard.type — P02 regression PASS"
+  ],
+  "pages_built": [
+    "/               — Welcome landing (logo, characters, two entry cards)",
+    "/admin/login    — Researcher login (IBM Plex Sans, logo-navy.svg)",
+    "/admin          — Dashboard with real student count",
+    "/admin/students — Students table with empty state",
+    "/admin/students/new — Create student form + access code display",
+    "/admin/students/[id] — Student detail",
+    "/admin/audio-review — Audio review queue",
+    "/admin/reports  — Reports placeholder",
+    "/admin/settings — Researcher settings",
+    "/student/login  — Student login (Tajawal, logo-gradient, girl character)",
+    "/student        — Student home page",
+    "/student/session/[id] — Assessment runner"
+  ],
+  "screenshots_taken": {
+    "desktop": ["welcome","admin-login","admin-dashboard","admin-students","admin-create-student","admin-audio-review","admin-reports","admin-settings","student-login"],
+    "tablet": ["welcome","admin-login","admin-dashboard","admin-students","admin-create-student","admin-audio-review","admin-reports","admin-settings","student-login"],
+    "mobile": ["welcome","admin-login","student-login"]
+  },
   "services": {
     "postgresql": "RUNNING",
     "minio": "RUNNING",
     "redis": "RUNNING",
     "fastapi": "RUNNING",
     "nextjs": "RUNNING"
-  },
-  "e2e_screenshots": [
-    "01-admin-login-page.png",
-    "02-admin-dashboard.png",
-    "03-create-student-page.png",
-    "04-student-created-with-code.png",
-    "05-after-admin-logout.png",
-    "06-student-login-page.png",
-    "07-student-dashboard.png",
-    "08-student-assessment-or-dashboard.png",
-    "09-student-page-state.png",
-    "11-student-logged-out.png"
-  ]
+  }
 }
