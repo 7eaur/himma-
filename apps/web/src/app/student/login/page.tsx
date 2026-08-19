@@ -79,6 +79,7 @@ export default function StudentLogin() {
             <input
               type="text"
               className="w-full border-4 border-border rounded-2xl p-4 text-center text-3xl font-mono font-bold text-primary tracking-widest uppercase transition-colors focus:border-primary focus:outline-none placeholder-muted/50"
+              data-testid="input-access-code"
               value={accessCode}
               onChange={handleAccessCodeChange}
               placeholder="ABC-1234"
@@ -91,6 +92,7 @@ export default function StudentLogin() {
           <button
             type="submit"
             className="w-full bg-primary hover:bg-[#276bb8] text-white font-bold text-xl py-5 rounded-2xl shadow-lg transition-transform hover:-translate-y-1 active:translate-y-0"
+            data-testid="student-login-submit"
             disabled={isLoading || accessCode.length < 3}
           >
             {isLoading ? <span className="spinner mx-auto border-4"></span> : "يلا نبدأ!"}

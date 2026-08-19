@@ -103,10 +103,12 @@ test("P02-S2: Full browser flow — researcher + student", async ({ page }) => {
   await shot(page, "06-student-login-page");
 
   const code = accessCode?.trim() ?? "8G4-3631"; // fallback to known code
-  await page.getByTestId("input-access-code").or(
+  const codeInput = page.getByTestId("input-access-code").or(
     page.locator("input[placeholder*='رمز']").first()
-  ).fill(code);
-  await page.getByRole("button", { name: /دخول/ }).first().click();
+  );
+  await codeInput.click();
+  await page.keyboard.type(code, { delay: 50 });
+  await page.getByRole("button", { name: /دخول|نبدأ/ }).first().click();
 
   // window.location.href = /student triggers full navigation
   await page.waitForURL(/\/student(?!\/login)/, { timeout: 10000 });
