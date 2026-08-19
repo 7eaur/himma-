@@ -98,7 +98,7 @@ export default function StudentHomePage() {
       <main className="flex-1 flex flex-col items-center justify-center p-6 text-center max-w-2xl mx-auto w-full">
         <Image 
           // Using boy-welcome as default, in a real app we'd use gender from profile if available
-          src="/characters/boy-welcome.png" 
+          src="/characters/boy/welcome.png" 
           alt="Welcome" 
           width={220} 
           height={280}

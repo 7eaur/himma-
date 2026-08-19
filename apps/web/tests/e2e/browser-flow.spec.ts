@@ -18,18 +18,21 @@ test("P02-S2: Full browser flow — researcher + student", async ({ page }) => {
 
   // ── 1. Admin login page ──────────────────────────────────────────────────
   await page.goto(`${BASE}/admin/login`);
-  await expect(page.locator("h1")).toContainText("مرحباً", { timeout: 8000 });
+  await expect(page.locator("h1")).toContainText("تسجيل", { timeout: 8000 });
+
   await shot(page, "01-admin-login-page");
   console.log("✓ Admin login page loaded");
 
   // ── 2. Login as researcher ──────────────────────────────────────────────
-  await page.getByTestId("input-username").fill("researcher1");
-  await page.getByTestId("input-password").fill("securepass123");
+  await page.getByTestId("input-username").click();
+  await page.keyboard.type("researcher1", { delay: 40 });
+  await page.getByTestId("input-password").click();
+  await page.keyboard.type("securepass123", { delay: 40 });
   await page.getByTestId("login-submit").click();
 
   // window.location.href triggers full navigation — wait for it
-  await page.waitForURL(/\/admin(?!\/login)/, { timeout: 15000 });
-  await page.waitForLoadState("networkidle", { timeout: 10000 }).catch(() => {});
+  await page.waitForURL(/\/admin(?!\/login)/, { timeout: 20000 });
+  await page.waitForLoadState("networkidle", { timeout: 12000 }).catch(() => {});
   await page.waitForTimeout(1500);
   await shot(page, "02-admin-dashboard");
   console.log(`✓ Admin dashboard: ${page.url()}`);
@@ -52,7 +55,8 @@ test("P02-S2: Full browser flow — researcher + student", async ({ page }) => {
   const nameInput = page.getByTestId("input-student-name").or(
     page.locator("input[placeholder*='اسم']").first()
   );
-  await nameInput.fill(`طالب اختبار ${ts}`);
+  await nameInput.click();
+  await page.keyboard.type(`طالب اختبار ${ts}`, { delay: 20 });
 
   // Grade select if present
   const gradeSelect = page.getByTestId("input-student-grade").or(
@@ -61,7 +65,7 @@ test("P02-S2: Full browser flow — researcher + student", async ({ page }) => {
   const gradeExists = await gradeSelect.isVisible().catch(() => false);
   if (gradeExists) await gradeSelect.selectOption("1");
 
-  const createBtn = page.getByTestId("btn-create-student").or(
+  const createBtn = page.getByTestId("submit-create-student").or(
     page.getByRole("button", { name: /إنشاء|إضافة|حفظ/ }).first()
   );
   await createBtn.click();

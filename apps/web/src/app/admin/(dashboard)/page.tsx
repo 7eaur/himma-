@@ -97,7 +97,7 @@ export default function AdminDashboard() {
         
         {students.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <Image src="/characters/girl-welcome.png" alt="No students" width={120} height={150} className="opacity-50 mb-4" />
+            <Image src="/characters/girl/welcome.png" alt="No students" width={120} height={150} className="opacity-50 mb-4" />
             <p className="text-muted mb-4">لا يوجد طلاب مضافين حتى الآن.</p>
             <Link href="/admin/students/new" className="btn-primary">
               إضافة طالب جديد

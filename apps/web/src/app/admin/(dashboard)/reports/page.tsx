@@ -6,7 +6,7 @@ export default function ReportsPage() {
   return (
     <div className="flex-1 font-plex max-w-6xl w-full mx-auto flex flex-col items-center justify-center py-20 text-center">
       <Image 
-        src="/characters/boy-welcome.png" 
+        src="/characters/boy/welcome.png" 
         alt="Coming Soon" 
         width={180} 
         height={240} 

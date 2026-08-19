@@ -55,6 +55,7 @@ export default function AdminLogin() {
             <input
               type="text"
               className="input-field"
+              data-testid="input-username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
@@ -67,6 +68,7 @@ export default function AdminLogin() {
             <input
               type="password"
               className="input-field"
+              data-testid="input-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -77,6 +79,7 @@ export default function AdminLogin() {
           <button
             type="submit"
             className="btn-primary w-full mt-6"
+            data-testid="login-submit"
             disabled={isLoading}
           >
             {isLoading ? <span className="spinner"></span> : "دخول"}

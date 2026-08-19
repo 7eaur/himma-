@@ -34,7 +34,7 @@ export default function StudentSessionPage() {
         <div className="flex items-center gap-3">
           <span className="font-bold text-navy">{student?.full_name?.split(' ')[0] || "طالب"}</span>
           <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold overflow-hidden border-2 border-primary">
-            <Image src="/characters/boy-welcome.png" alt="Avatar" width={40} height={40} className="object-cover translate-y-1" />
+            <Image src="/characters/boy/welcome.png" alt="Avatar" width={40} height={40} className="object-cover translate-y-1" />
           </div>
         </div>
       </header>
@@ -52,7 +52,7 @@ export default function StudentSessionPage() {
               <p className="font-bold text-primary">أنت بطل! استمر</p>
             </div>
             <Image 
-              src="/characters/boy-welcome.png" 
+              src="/characters/boy/welcome.png" 
               alt="Encouraging Character" 
               width={180} 
               height={240}

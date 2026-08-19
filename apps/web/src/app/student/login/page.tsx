@@ -55,7 +55,7 @@ export default function StudentLogin() {
         
         <div className="flex justify-center mb-8">
           <Image 
-            src="/characters/girl-welcome.png" 
+            src="/characters/girl/welcome.png" 
             alt="Welcome" 
             width={160} 
             height={200}

@@ -54,7 +54,7 @@ export default function StudentsPage() {
           </div>
         ) : students.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <Image src="/characters/boy-welcome.png" alt="No students" width={120} height={150} className="opacity-50 mb-4" />
+            <Image src="/characters/boy/welcome.png" alt="No students" width={120} height={150} className="opacity-50 mb-4" />
             <h3 className="text-lg font-medium text-navy mb-2">لا يوجد طلاب</h3>
             <p className="text-muted mb-6">لم تقم بإضافة أي طلاب بعد.</p>
             <Link href="/admin/students/new" className="btn-primary">

@@ -117,6 +117,7 @@ export default function NewStudentPage() {
             <input
               type="text"
               className="input-field"
+              data-testid="input-student-name"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="مثال: أحمد محمد عبدالله"
@@ -128,6 +129,7 @@ export default function NewStudentPage() {
             <label className="block text-navy font-medium mb-2">الصف الدراسي</label>
             <select
               className="input-field"
+              data-testid="input-student-grade"
               value={gradeLevel}
               onChange={(e) => setGradeLevel(e.target.value)}
               required
@@ -177,6 +179,7 @@ export default function NewStudentPage() {
             <button
               type="submit"
               className="btn-primary"
+              data-testid="submit-create-student"
               disabled={isLoading}
             >
               {isLoading ? <span className="spinner"></span> : "إضافة الطالب"}

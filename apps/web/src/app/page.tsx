@@ -29,7 +29,7 @@ export default function WelcomePage() {
             <h2 className="text-2xl font-semibold text-primary mb-6">دخول الباحثة</h2>
             <div className="flex-1 w-full flex justify-center mb-6 min-h-[200px]">
               <Image 
-                src="/characters/boy-welcome.png" 
+                src="/characters/boy/welcome.png" 
                 alt="Researcher Welcome" 
                 width={150} 
                 height={200} 
@@ -44,7 +44,7 @@ export default function WelcomePage() {
             <h2 className="text-2xl font-bold text-primary mb-6">دخول الطالب</h2>
             <div className="flex-1 w-full flex justify-center mb-6 min-h-[200px]">
               <Image 
-                src="/characters/girl-welcome.png" 
+                src="/characters/girl/welcome.png" 
                 alt="Student Welcome" 
                 width={150} 
                 height={200} 

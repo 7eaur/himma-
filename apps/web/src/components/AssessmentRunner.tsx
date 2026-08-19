@@ -88,7 +88,7 @@ export default function AssessmentRunner({ sessionId }: AssessmentRunnerProps) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center text-center">
         <div className="relative w-48 h-64 mb-8">
-          <Image src="/characters/girl-welcome.png" alt="Success" fill className="object-contain" />
+          <Image src="/characters/girl/welcome.png" alt="Success" fill className="object-contain" />
         </div>
         <h2 className="text-4xl font-bold text-navy mb-4">أحسنت يا بطل!</h2>
         <p className="text-xl text-muted mb-8 max-w-md">
