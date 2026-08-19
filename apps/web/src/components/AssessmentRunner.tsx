@@ -7,7 +7,7 @@ import { useAudioRecorder } from "../hooks/useAudioRecorder";
 import { saveAudioToOutbox, removeAudioFromOutbox } from "../lib/idb";
 import styles from "./AssessmentRunner.module.css";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+
 
 export function AssessmentRunner({
   sessionId,
@@ -44,7 +44,7 @@ export function AssessmentRunner({
       setLoading(true);
       try {
         const res = await fetch(
-          `${API_URL}/assessment/session/${sessionId}/next`,
+          `/api/assessment/session/${sessionId}/next`,
           { credentials: "include" }
         );
         if (cancelled) return;
@@ -83,7 +83,7 @@ export function AssessmentRunner({
         let size: number | undefined;
 
         if (audioBlob) {
-          const initRes = await fetch(`${API_URL}/recordings/init`, {
+          const initRes = await fetch(`/api/recordings/init`, {
             method: "POST",
             credentials: "include",
           });
@@ -98,7 +98,7 @@ export function AssessmentRunner({
             audioBlob
           );
 
-          const uploadRes = await fetch(`${API_URL}/recordings/complete`, {
+          const uploadRes = await fetch(`/api/recordings/complete`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
@@ -114,7 +114,7 @@ export function AssessmentRunner({
 
         const stepId = currentItem.steps[0]?.id;
         const submitRes = await fetch(
-          `${API_URL}/assessment/session/${sessionId}/attempt/${currentItem.id}/submit`,
+          `/api/assessment/session/${sessionId}/attempt/${currentItem.id}/submit`,
           {
             method: "POST",
             headers: {

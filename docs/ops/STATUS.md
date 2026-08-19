@@ -1,8 +1,8 @@
 # STATUS — Himma Platform
 
 **Branch:** `recovery/p02-baseline`  
-**Last Verified:** 2026-08-18T22:41:46Z  
-**Overall Phase:** P02 — Baseline Recovery
+**Last Verified:** 2026-08-19T20:18:47Z  
+**Overall Phase:** P02 — COMPLETE ✅
 
 ---
 
@@ -21,21 +21,31 @@
 | Answer storage | ✓ Verified | attempts table in PostgreSQL |
 | Audio upload | ✓ Verified | real MinIO presigned PUT, not mock |
 
-## 🔄 P02 Slice 2 — Browser UI: IN PROGRESS
+## ✅ P02 Slice 2 — Browser UI: COMPLETE
 
-- [ ] Start Next.js dev server
-- [ ] Fix admin login page (no sidebar, no redirect loop)
-- [ ] Verify login from real browser
-- [ ] Test create student from UI
-- [ ] Test student session from UI
-- [ ] Test audio recording and upload from UI
+**Playwright E2E: 1 passed (1.4 min) — 2026-08-19T20:18:47Z**
 
-## Previous Gate History
+| Step | Status | Evidence |
+|---|---|---|
+| Next.js :3000 | ✓ Running | Ready in 7.1s |
+| Admin login page | ✓ | screenshot 01-admin-login-page.png |
+| Admin dashboard | ✓ URL=/admin | screenshot 02-admin-dashboard.png |
+| Session persists (refresh) | ✓ | cookie survives page reload |
+| Create student page | ✓ | screenshot 03-create-student-page.png |
+| Student created | ✓ code=604-4387 | screenshot 04-student-created-with-code.png |
+| Admin logout | ✓ | screenshot 05-after-admin-logout.png |
+| Student login | ✓ URL=/student | screenshots 06, 07 |
+| Student session persists | ✓ | cookie survives page reload |
+| Assessment area | ✓ | screenshot 08-student-assessment-or-dashboard.png |
+| Student session end | ✓ | screenshot 11-student-logged-out.png |
 
-- **Stage 02 (stage/02-content):** REJECTED — SQLite mocks, broken CI, 13/13 tests failing
-- **P01 Audit (2626168):** Complete — all gaps documented
-- **P02 Slice 1 (616a2ac → current):** PASSED locally
+### Key fixes applied in P02 Slice 2
+- Replaced Next.js `rewrites` with explicit route handlers in `src/app/api/`
+- Set `window.location.href` (full page nav) after login so proxy.ts sees cookie
+- Renamed `middleware.ts` → `proxy.ts` for Next.js 16 compatibility
+- Switched all client fetches to `/api/` proxy (same-origin, cookies forwarded)
+- Deleted stale `.next` cache to force Turbopack to recompile route handlers
 
----
+## 🔜 Next: P03 — Professional Design & Routes
 
-❌ **CI/GitHub Actions:** Not blocking — local verification is primary for now
+Branch: `recovery/p02-baseline` → merge to main → start P03

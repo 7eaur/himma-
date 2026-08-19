@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import styles from "../../admin.module.css";
 import type { StudentProfile } from "@/types/api";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+
 
 export default function StudentDetail() {
   const params = useParams();
@@ -17,7 +17,7 @@ export default function StudentDetail() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(`${API_URL}/researcher/students`, { credentials: "include" });
+        const res = await fetch(`/api/researcher/students`, { credentials: "include" });
         if (!res.ok) throw new Error("فشل تحميل بيانات الطالب");
         const list: StudentProfile[] = await res.json();
         const found = list.find(s => s.id === Number(params.id));

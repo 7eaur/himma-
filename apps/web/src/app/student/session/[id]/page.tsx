@@ -7,7 +7,7 @@ import type { AssessmentSession } from "../../../../types/api";
 import { AssessmentRunner } from "../../../../components/AssessmentRunner";
 import styles from "../../student.module.css";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+
 
 type StudentProfile = {
   id: number;
@@ -29,8 +29,8 @@ export default function StudentPage() {
     async function load() {
       try {
         const [profileRes, sessionRes] = await Promise.all([
-          fetch(`${API_URL}/profile`, { credentials: "include" }),
-          fetch(`${API_URL}/assessment/active`, { credentials: "include" }),
+          fetch(`/api/profile`, { credentials: "include" }),
+          fetch(`/api/assessment/active`, { credentials: "include" }),
         ]);
 
         if (!profileRes.ok) {
@@ -59,7 +59,7 @@ export default function StudentPage() {
   const startPretest = async () => {
     setError(null);
     try {
-      const res = await fetch(`${API_URL}/assessment/start`, {
+      const res = await fetch(`/api/assessment/start`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -76,7 +76,7 @@ export default function StudentPage() {
   const handleComplete = async () => {
     if (!activeSession) return;
     try {
-      await fetch(`${API_URL}/assessment/session/${activeSession.id}/finish`, {
+      await fetch(`/api/assessment/session/${activeSession.id}/finish`, {
         method: "POST",
         headers: { "Idempotency-Key": crypto.randomUUID() },
         credentials: "include",

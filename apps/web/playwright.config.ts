@@ -33,12 +33,13 @@ export default defineConfig({
     },
   ],
 
-  // Only start dev server if not in CI (CI starts servers manually)
-  webServer: process.env.CI ? undefined : {
+  // Next.js dev server — reuses the one started manually in terminal
+  // Start it first: cd apps/web && set NEXT_PUBLIC_API_URL=http://localhost:8000 && npm run dev
+  webServer: {
     command: "npm run dev",
     url: "http://localhost:3000",
     reuseExistingServer: true,
     timeout: 60000,
+    env: { NEXT_PUBLIC_API_URL: "http://localhost:8000" },
   },
 });
-

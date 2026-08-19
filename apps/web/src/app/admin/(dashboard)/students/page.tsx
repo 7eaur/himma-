@@ -1,11 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import styles from "../admin.module.css";
 import type { StudentListItem } from "@/types/api";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 export default function StudentsList() {
   const [students, setStudents] = useState<StudentListItem[]>([]);
@@ -16,7 +15,7 @@ export default function StudentsList() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(`${API_URL}/researcher/students`, { credentials: "include" });
+        const res = await fetch(`/api/researcher/students`, { credentials: "include" });
         if (!res.ok) throw new Error("فشل تحميل الطلاب");
         setStudents(await res.json());
       } catch (err: any) {

@@ -5,8 +5,6 @@ import { useRouter } from "next/navigation";
 import styles from "./admin.module.css";
 import type { AudioSubmission, StudentListItem } from "@/types/api";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-
 export default function AdminDashboard() {
   const [students, setStudents] = useState<StudentListItem[]>([]);
   const [pendingAudio, setPendingAudio] = useState<AudioSubmission[]>([]);
@@ -17,10 +15,11 @@ export default function AdminDashboard() {
     let active = true;
     async function load() {
       try {
+        // Use same-origin /api/... proxy — cookies are sent automatically
         const [meRes, studentsRes, audioRes] = await Promise.all([
-          fetch(`${API_URL}/me`, { credentials: "include" }),
-          fetch(`${API_URL}/researcher/students`, { credentials: "include" }),
-          fetch(`${API_URL}/review/pending-audio`, { credentials: "include" }),
+          fetch("/api/me", { credentials: "include" }),
+          fetch("/api/researcher/students", { credentials: "include" }),
+          fetch("/api/review/pending-audio", { credentials: "include" }),
         ]);
 
         if (!meRes.ok) { router.push("/admin/login"); return; }

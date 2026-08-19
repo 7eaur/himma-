@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -6,7 +6,6 @@ import Image from "next/image";
 import Link from "next/link";
 import type { StudentProfile, AssessmentSession } from "@/types/api";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 export default function StudentDashboard() {
   const [profile, setProfile] = useState<StudentProfile | null>(null);
@@ -19,8 +18,8 @@ export default function StudentDashboard() {
     async function loadData() {
       try {
         const [profileRes, activeRes] = await Promise.all([
-          fetch(`${API_URL}/profile`, { credentials: "include" }),
-          fetch(`${API_URL}/assessment/active`, { credentials: "include" }),
+          fetch(`/api/profile`, { credentials: "include" }),
+          fetch(`/api/assessment/active`, { credentials: "include" }),
         ]);
 
         if (!profileRes.ok) {
@@ -49,7 +48,7 @@ export default function StudentDashboard() {
 
   const handleLogout = async () => {
     try {
-      await fetch(`${API_URL}/auth/logout`, { method: "POST", credentials: "include" });
+      await fetch(`/api/auth/logout`, { method: "POST", credentials: "include" });
       router.push("/student/login");
     } catch {
       // Force redirect anyway
@@ -59,7 +58,7 @@ export default function StudentDashboard() {
 
   const startPretest = async () => {
     try {
-      const res = await fetch(`${API_URL}/assessment/start`, {
+      const res = await fetch(`/api/assessment/start`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

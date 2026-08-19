@@ -1,17 +1,29 @@
-﻿{
-    "branch":  "recovery/p02-baseline",
-    "slice":  "Slice-1-COMPLETE",
-    "gate_status":  "LOCAL_PASS",
-    "phase":  "P02",
-    "checks_total":  12,
-    "next_step":  "P02-Slice-2: Next.js browser flow",
-    "checks_passed":  12,
-    "last_verified":  "2026-08-18T22:41:46Z",
-    "services":  {
-                     "postgresql":  "RUNNING",
-                     "minio":  "RUNNING",
-                     "redis":  "RUNNING",
-                     "nextjs":  "NOT_STARTED",
-                     "fastapi":  "RUNNING"
-                 }
+{
+  "branch": "recovery/p02-baseline",
+  "phase": "P02",
+  "slice": "Slice-2-COMPLETE",
+  "gate_status": "LOCAL_PASS",
+  "last_verified": "2026-08-19T20:18:47Z",
+  "playwright_result": "1 passed / 0 failed (1.4 min)",
+  "playwright_steps_passed": 11,
+  "next_step": "P03: Professional Design & Routes",
+  "services": {
+    "postgresql": "RUNNING",
+    "minio": "RUNNING",
+    "redis": "RUNNING",
+    "fastapi": "RUNNING",
+    "nextjs": "RUNNING"
+  },
+  "e2e_screenshots": [
+    "01-admin-login-page.png",
+    "02-admin-dashboard.png",
+    "03-create-student-page.png",
+    "04-student-created-with-code.png",
+    "05-after-admin-logout.png",
+    "06-student-login-page.png",
+    "07-student-dashboard.png",
+    "08-student-assessment-or-dashboard.png",
+    "09-student-page-state.png",
+    "11-student-logged-out.png"
+  ]
 }

@@ -1,11 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "../../admin.module.css";
 import type { StudentProfile } from "@/types/api";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 export default function CreateStudent() {
   const [name, setName] = useState("");
@@ -22,7 +21,7 @@ export default function CreateStudent() {
     setError("");
     
     try {
-      const res = await fetch(`${API_URL}/researcher/students`, {
+      const res = await fetch(`/api/researcher/students`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

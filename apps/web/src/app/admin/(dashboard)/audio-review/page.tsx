@@ -1,10 +1,9 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback } from "react";
 import styles from "../admin.module.css";
 import type { AudioSubmission } from "@/types/api";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 export default function AudioReview() {
   const [pendingAudio, setPendingAudio] = useState<AudioSubmission[]>([]);
@@ -14,7 +13,7 @@ export default function AudioReview() {
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/review/pending-audio`, { credentials: "include" });
+      const res = await fetch(`/api/review/pending-audio`, { credentials: "include" });
       if (!res.ok) throw new Error("فشل تحميل التسجيلات");
       setPendingAudio(await res.json());
     } catch (err: any) {
@@ -34,7 +33,7 @@ export default function AudioReview() {
       : { is_valid: false };
       
     try {
-      const res = await fetch(`${API_URL}/review/audio/${submissionId}/grade`, {
+      const res = await fetch(`/api/review/audio/${submissionId}/grade`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -73,7 +72,7 @@ export default function AudioReview() {
               
               <audio
                 controls
-                src={`${API_URL}/recordings/stream/${sub.storage_key}`}
+                src={`/api/recordings/stream/${sub.storage_key}`}
                 style={{ width: "100%", margin: "1rem 0" }}
               />
               

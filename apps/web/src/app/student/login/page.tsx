@@ -24,7 +24,7 @@ export default function StudentLogin() {
 
       if (!res.ok) throw new Error("رمز الدخول غير صحيح");
       
-      router.push("/student");
+      window.location.href = "/student";
     } catch (err: any) {
       setError(err.message || "حدث خطأ في الاتصال بالخادم");
       setLoading(false);

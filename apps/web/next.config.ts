@@ -4,17 +4,8 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: false,
   },
-  // Silence workspace root warning
-  turbopack: {},
-  async rewrites() {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-    return [
-      {
-        source: "/api/:path*",
-        destination: `${apiUrl}/:path*`,
-      },
-    ];
-  },
+  // API proxy is handled by src/app/api/[...path]/route.ts
+  // which correctly forwards Set-Cookie headers (rewrites do not).
 };
 
 export default nextConfig;

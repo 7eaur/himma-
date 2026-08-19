@@ -27,7 +27,9 @@ export default function AdminLogin() {
 
       if (!res.ok) throw new Error("بيانات الدخول غير صحيحة");
       
-      router.push("/admin");
+      // Full page navigation (not router.push) — forces browser to send
+      // the newly-set cookie on the next request so proxy.ts sees it
+      window.location.href = "/admin";
     } catch (err: any) {
       setError(err.message || "حدث خطأ في الاتصال بالخادم");
     } finally {

@@ -1,10 +1,9 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import styles from "../admin.module.css";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 type ResearcherProfile = { id: number; username: string; full_name: string };
 
@@ -17,7 +16,7 @@ export default function AccountPage() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(`${API_URL}/me`, { credentials: "include" });
+        const res = await fetch(`/api/me`, { credentials: "include" });
         if (!res.ok) throw new Error("تعذر تحميل بيانات الحساب");
         setProfile(await res.json());
       } catch (err: any) {
@@ -31,7 +30,7 @@ export default function AccountPage() {
 
   const handleLogout = async () => {
     try {
-      await fetch(`${API_URL}/auth/logout`, { method: "POST", credentials: "include" });
+      await fetch(`/api/auth/logout`, { method: "POST", credentials: "include" });
       router.push("/admin/login");
     } catch {
       router.push("/admin/login");
