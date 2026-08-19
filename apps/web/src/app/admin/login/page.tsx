@@ -1,22 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
-import styles from "./admin-login.module.css";
 
 export default function AdminLogin() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     setError("");
-    setLoading(true);
 
     try {
       const res = await fetch("/api/auth/login", {
@@ -25,95 +21,67 @@ export default function AdminLogin() {
         body: JSON.stringify({ username, password }),
       });
 
-      if (!res.ok) throw new Error("بيانات الدخول غير صحيحة");
-      
-      // Full page navigation (not router.push) — forces browser to send
-      // the newly-set cookie on the next request so proxy.ts sees it
-      window.location.href = "/admin";
-    } catch (err: any) {
-      setError(err.message || "حدث خطأ في الاتصال بالخادم");
+      if (res.ok) {
+        window.location.href = "/admin";
+      } else {
+        const data = await res.json();
+        setError(data.detail || "Invalid credentials");
+      }
+    } catch (err) {
+      setError("An error occurred during login");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className={styles.container}>
-      <div className={styles.card}>
-        <div className={styles.formSide}>
-          <div className={styles.logoMobile}>
-            <Image src="/brand/logo-navy.svg" alt="هِمّة" width={120} height={60} />
-          </div>
-          
-          <div className={styles.header}>
-            <h1 className={styles.title}>مرحباً بعودتك</h1>
-            <p className={styles.subtitle}>الرجاء إدخال بيانات الدخول للوصول إلى لوحة الإدارة</p>
-          </div>
-          
-          {error && <div className={styles.errorAlert} data-testid="error-message">{error}</div>}
-          
-          <form onSubmit={handleSubmit} className={styles.form}>
-            <div className={styles.inputGroup}>
-              <label htmlFor="username" className={styles.label}>اسم المستخدم</label>
-              <input
-                id="username"
-                type="text"
-                className={styles.input}
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                data-testid="input-username"
-                required
-                disabled={loading}
-                autoFocus
-              />
-            </div>
-
-            <div className={styles.inputGroup}>
-              <label htmlFor="password" className={styles.label}>كلمة المرور</label>
-              <div className={styles.passwordWrapper}>
-                <input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  className={styles.input}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  data-testid="input-password"
-                  required
-                  disabled={loading}
-                />
-                <button
-                  type="button"
-                  className={styles.togglePassword}
-                  onClick={() => setShowPassword(!showPassword)}
-                  tabIndex={-1}
-                >
-                  {showPassword ? "إخفاء" : "إظهار"}
-                </button>
-              </div>
-            </div>
-            
-            <button 
-              type="submit" 
-              className={styles.submitBtn} 
-              disabled={loading}
-              data-testid="login-submit"
-            >
-              {loading ? "جاري التحقق..." : "دخول"}
-            </button>
-          </form>
+    <div className="min-h-screen bg-bg flex items-center justify-center p-4 font-plex">
+      <div className="card w-full max-w-md">
+        <div className="flex justify-center mb-8">
+          <Image src="/brand/logo-navy.svg" alt="Himma Logo" width={140} height={48} />
         </div>
-
-        <div className={styles.brandSide}>
-          <div className={styles.brandContent}>
-            <Image src="/brand/logo-white.svg" alt="هِمّة" width={180} height={90} className={styles.brandLogo} />
-            <h2 className={styles.brandTagline}>أتعلم، أتطور، أصل إلى القمة</h2>
-            <div className={styles.brandVisual}>
-              {/* Fallback to simple illustration if no explicit characters image found */}
-              <div className={styles.shape1}></div>
-              <div className={styles.shape2}></div>
-            </div>
+        
+        <h1 className="text-2xl font-bold text-navy mb-6 text-center">تسجيل دخول الباحثة</h1>
+        
+        {error && (
+          <div data-testid="error-message" className="alert-error text-center mb-4">
+            {error}
           </div>
-        </div>
+        )}
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-navy font-medium mb-2">اسم المستخدم</label>
+            <input
+              type="text"
+              className="input-field"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              dir="ltr"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-navy font-medium mb-2">كلمة المرور</label>
+            <input
+              type="password"
+              className="input-field"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              dir="ltr"
+            />
+          </div>
+          
+          <button
+            type="submit"
+            className="btn-primary w-full mt-6"
+            disabled={isLoading}
+          >
+            {isLoading ? <span className="spinner"></span> : "دخول"}
+          </button>
+        </form>
       </div>
     </div>
   );

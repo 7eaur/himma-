@@ -1,166 +1,65 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import Image from "next/image";
-import type { AssessmentSession } from "../../../../types/api";
-import { AssessmentRunner } from "../../../../components/AssessmentRunner";
-import styles from "../../student.module.css";
+import { useParams, useRouter } from "next/navigation";
+import AssessmentRunner from "@/components/AssessmentRunner";
 
-
-
-type StudentProfile = {
-  id: number;
-  full_name: string;
-  grade: number;
-  access_code: string;
-};
-
-export default function StudentPage() {
-  const [profile, setProfile] = useState<StudentProfile | null>(null);
-  const [activeSession, setActiveSession] = useState<AssessmentSession | null>(null);
-  const [loading, setLoading] = useState(true);
+export default function StudentSessionPage() {
+  const params = useParams();
   const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
-  const [completed, setCompleted] = useState(false);
+  const id = params.id as string;
+  
+  const [student, setStudent] = useState<any>(null);
 
   useEffect(() => {
-    let active = true;
-    async function load() {
+    const fetchMe = async () => {
       try {
-        const [profileRes, sessionRes] = await Promise.all([
-          fetch(`/api/profile`, { credentials: "include" }),
-          fetch(`/api/assessment/active`, { credentials: "include" }),
-        ]);
-
-        if (!profileRes.ok) {
-          router.push("/login?role=student");
-          return;
+        const res = await fetch("/api/me");
+        if (res.ok) {
+          setStudent(await res.json());
         }
-
-        if (!active) return;
-        const profileData: StudentProfile = await profileRes.json();
-        setProfile(profileData);
-
-        if (sessionRes.ok) {
-          const sessionData: AssessmentSession | null = await sessionRes.json();
-          if (active) setActiveSession(sessionData);
-        }
-      } catch {
-        if (active) setError("تعذّر الاتصال بالخادم");
-      } finally {
-        if (active) setLoading(false);
+      } catch (err) {
+        console.error("Error fetching student info", err);
       }
-    }
-    load();
-    return () => { active = false; };
-  }, [router]);
-
-  const startPretest = async () => {
-    setError(null);
-    try {
-      const res = await fetch(`/api/assessment/start`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ session_type: "pretest" }),
-      });
-      if (!res.ok) throw new Error("Failed to start");
-      const data: AssessmentSession = await res.json();
-      setActiveSession(data);
-    } catch {
-      setError("تعذّر بدء الاختبار. حاول مرة أخرى.");
-    }
-  };
-
-  const handleComplete = async () => {
-    if (!activeSession) return;
-    try {
-      await fetch(`/api/assessment/session/${activeSession.id}/finish`, {
-        method: "POST",
-        headers: { "Idempotency-Key": crypto.randomUUID() },
-        credentials: "include",
-      });
-    } finally {
-      setActiveSession(null);
-      setCompleted(true);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className={styles.page}>
-        <div className="spinner" />
-      </div>
-    );
-  }
-
-  if (completed) {
-    return (
-      <div className={styles.page}>
-        <div className={styles.completedCard}>
-          <Image src="/characters/boy-success.png" alt="أحسنت!" width={200} height={200} />
-          <h2 className={styles.completedTitle}>أحسنت! انتهيت من الاختبار 🎉</h2>
-          <p className={styles.completedSub}>سيقيّم المعلم نتيجتك قريباً</p>
-          <button
-            className="btn btn-primary btn-child"
-            onClick={() => setCompleted(false)}
-          >
-            العودة للبداية
-          </button>
-        </div>
-      </div>
-    );
-  }
+    };
+    
+    fetchMe();
+  }, []);
 
   return (
-    <div className={styles.page}>
-      {/* Header */}
-      <header className={styles.header}>
-        <Image src="/brand/logo-gradient.svg" alt="هِمّة" width={100} height={50} />
-        {profile && (
-          <div className={styles.studentInfo}>
-            <span className={styles.studentName}>{profile.full_name}</span>
-            <span className={styles.studentGrade}>الصف {profile.grade}</span>
+    <div className="min-h-screen bg-bg flex flex-col font-tajawal relative">
+      <header className="p-4 flex justify-between items-center bg-white border-b border-border z-10 shadow-sm">
+        <Image src="/brand/logo-gradient.svg" alt="Himma Logo" width={120} height={40} />
+        <div className="flex items-center gap-3">
+          <span className="font-bold text-navy">{student?.full_name?.split(' ')[0] || "طالب"}</span>
+          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold overflow-hidden border-2 border-primary">
+            <Image src="/characters/boy-welcome.png" alt="Avatar" width={40} height={40} className="object-cover translate-y-1" />
           </div>
-        )}
+        </div>
       </header>
 
-      {/* Main content */}
-      <main className={styles.main}>
-        {error && <div className="alert alert-error">{error}</div>}
-
-        {!activeSession ? (
-          <div className={styles.welcomeSection}>
-            <Image
-              src="/characters/boy-welcome.png"
-              alt="أهلاً وسهلاً"
-              width={220}
-              height={220}
-              className="character"
-            />
-            <h1 className={`${styles.welcomeTitle} font-child`}>
-              أهلاً {profile?.full_name ?? "بك"}! 👋
-            </h1>
-            <p className={styles.welcomeText}>
-              هل أنت مستعد لبدء اختبار القراءة؟
-            </p>
-            <button
-              className="btn btn-primary btn-child"
-              onClick={startPretest}
-              data-testid="btn-start-assessment"
-            >
-              ابدأ الاختبار 🚀
-            </button>
-          </div>
-        ) : (
-          <div className={styles.assessmentWrap}>
-            <AssessmentRunner
-              sessionId={activeSession.id}
-              onComplete={handleComplete}
+      <main className="flex-1 flex w-full max-w-5xl mx-auto h-[calc(100vh-73px)]">
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col p-4 md:p-8 overflow-y-auto">
+          <AssessmentRunner sessionId={id} />
+        </div>
+        
+        {/* Character Sidebar (Desktop only) */}
+        <div className="hidden md:flex flex-col justify-end w-64 p-4 shrink-0">
+          <div className="relative">
+            <div className="absolute top-[-40px] right-[20px] bg-white p-3 rounded-2xl rounded-br-none shadow-md border border-border">
+              <p className="font-bold text-primary">أنت بطل! استمر</p>
+            </div>
+            <Image 
+              src="/characters/boy-welcome.png" 
+              alt="Encouraging Character" 
+              width={180} 
+              height={240}
+              className="object-contain" 
             />
           </div>
-        )}
+        </div>
       </main>
     </div>
   );

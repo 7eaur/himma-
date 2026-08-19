@@ -1,276 +1,169 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
-import type { ContentItem } from "../types/api";
-import { useAudioRecorder } from "../hooks/useAudioRecorder";
-import { saveAudioToOutbox, removeAudioFromOutbox } from "../lib/idb";
-import styles from "./AssessmentRunner.module.css";
+import { useRouter } from "next/navigation";
+import { Mic, MicOff, RotateCcw, Play } from "lucide-react";
 
+interface AssessmentRunnerProps {
+  sessionId: string;
+}
 
+interface Question {
+  id: string;
+  type: string;
+  text: string;
+  image_url?: string;
+  options?: string[];
+}
 
-export function AssessmentRunner({
-  sessionId,
-  onComplete,
-}: {
-  sessionId: number;
-  onComplete: () => void;
-}) {
-  const [currentItem, setCurrentItem] = useState<ContentItem | null>(null);
+export default function AssessmentRunner({ sessionId }: AssessmentRunnerProps) {
+  const router = useRouter();
+  const [question, setQuestion] = useState<Question | null>(null);
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [questionIndex, setQuestionIndex] = useState(0);
-  const [totalQuestions] = useState(30);
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [progress, setProgress] = useState(0); // 0 to 100
+  const [questionNumber, setQuestionNumber] = useState(1);
+  const [totalQuestions, setTotalQuestions] = useState(30);
+  const [finished, setFinished] = useState(false);
+  
+  // Audio recording state
+  const [isRecording, setIsRecording] = useState(false);
 
-  const onCompleteRef = useRef(onComplete);
-  useEffect(() => { onCompleteRef.current = onComplete; });
-
-  const {
-    isRecording,
-    audioBlob,
-    error: recorderError,
-    startRecording,
-    stopRecording,
-    resetRecording,
-  } = useAudioRecorder();
-
-  // Fetch next item — setState inside async callback, not synchronously
   useEffect(() => {
-    let cancelled = false;
+    // Fake fetch for now, waiting for real API
+    // Replace with real logic when ready
+    const timer = setTimeout(() => {
+      setQuestion({
+        id: "q1",
+        type: "mcq",
+        text: "ما هو الحرف الناقص في الكلمة؟ _ـيـّارة",
+        options: ["س", "ش", "ص", "ض"]
+      });
+      setProgress(10);
+      setLoading(false);
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, [sessionId]);
 
-    async function load() {
+  const handleOptionClick = (option: string) => {
+    // Fake submit logic
+    if (questionNumber >= 3) {
+      setFinished(true);
+    } else {
       setLoading(true);
-      try {
-        const res = await fetch(
-          `/api/assessment/session/${sessionId}/next`,
-          { credentials: "include" }
-        );
-        if (cancelled) return;
-        if (res.status === 404) { onCompleteRef.current(); return; }
-        if (!res.ok) throw new Error("Failed to fetch next item");
-
-        const data: ContentItem | null = await res.json();
-        if (cancelled) return;
-        if (!data) { onCompleteRef.current(); return; }
-
-        setCurrentItem(data);
-        resetRecording();
-        setQuestionIndex((prev) => prev + 1);
-      } catch (err: unknown) {
-        if (!cancelled) setError((err as Error).message);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
+      setTimeout(() => {
+        setQuestionNumber(prev => prev + 1);
+        setProgress(prev => Math.min(prev + 15, 100));
+        setQuestion({
+          id: `q${questionNumber + 1}`,
+          type: "read_aloud",
+          text: "اقرأ الجملة التالية بصوت واضح:",
+          image_url: "/placeholder-text.png"
+        });
+        setLoading(false);
+      }, 500);
     }
+  };
 
-    load();
-    return () => { cancelled = true; };
-  }, [sessionId, refreshKey, resetRecording]);
+  const toggleRecording = () => {
+    setIsRecording(!isRecording);
+    if (isRecording) {
+      // Fake submit audio
+      setTimeout(() => {
+        handleOptionClick("audio_submitted");
+      }, 1000);
+    }
+  };
 
-  const advanceToNext = useCallback(() => setRefreshKey((k) => k + 1), []);
-
-  const handleSubmit = useCallback(
-    async (optionId?: number) => {
-      if (!currentItem) return;
-      setSubmitting(true);
-      setError(null);
-
-      try {
-        let storageKey: string | undefined;
-        let mimeType: string | undefined;
-        let size: number | undefined;
-
-        if (audioBlob) {
-          const initRes = await fetch(`/api/recordings/init`, {
-            method: "POST",
-            credentials: "include",
-          });
-          if (!initRes.ok) throw new Error("Failed to initialise recording");
-          const initData: { recording_id: string; upload_url: string } =
-            await initRes.json();
-          const idempotencyKey = crypto.randomUUID();
-
-          await saveAudioToOutbox(
-            idempotencyKey,
-            initData.recording_id,
-            audioBlob
-          );
-
-          const uploadRes = await fetch(`/api/recordings/complete`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({ recording_id: initData.recording_id }),
-          });
-          if (!uploadRes.ok) throw new Error("Failed to complete recording upload");
-          const uploadData: { storage_key: string } = await uploadRes.json();
-          storageKey = uploadData.storage_key;
-          mimeType = audioBlob.type;
-          size = audioBlob.size;
-          await removeAudioFromOutbox(idempotencyKey);
-        }
-
-        const stepId = currentItem.steps[0]?.id;
-        const submitRes = await fetch(
-          `/api/assessment/session/${sessionId}/attempt/${currentItem.id}/submit`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Idempotency-Key": crypto.randomUUID(),
-            },
-            credentials: "include",
-            body: JSON.stringify({
-              step_id: stepId,
-              selected_option_id: optionId,
-              audio_storage_key: storageKey,
-              audio_mime_type: mimeType,
-              audio_file_size: size,
-            }),
-          }
-        );
-        if (!submitRes.ok) throw new Error("Failed to submit answer");
-
-        advanceToNext();
-      } catch (err: unknown) {
-        setError((err as Error).message || "حدث خطأ. حاول مرة أخرى.");
-      } finally {
-        setSubmitting(false);
-      }
-    },
-    [currentItem, sessionId, audioBlob, advanceToNext]
-  );
-
-  // ── Render states ──
   if (loading) {
     return (
-      <div className={styles.loadingWrap}>
-        <div className="spinner" />
-        <p className={`${styles.loadingText} font-child`}>جاري التحميل...</p>
+      <div className="flex-1 flex items-center justify-center">
+        <div className="spinner w-12 h-12 border-4"></div>
       </div>
     );
   }
 
-  if (!currentItem) {
+  if (finished) {
     return (
-      <div className={styles.emptyWrap}>
-        <p className="font-child">لا توجد أسئلة متبقية.</p>
+      <div className="flex-1 flex flex-col items-center justify-center text-center">
+        <div className="relative w-48 h-64 mb-8">
+          <Image src="/characters/girl-welcome.png" alt="Success" fill className="object-contain" />
+        </div>
+        <h2 className="text-4xl font-bold text-navy mb-4">أحسنت يا بطل!</h2>
+        <p className="text-xl text-muted mb-8 max-w-md">
+          لقد أتممت الاختبار بنجاح. نحن فخورون بك!
+        </p>
+        <button 
+          onClick={() => router.push("/student")}
+          className="btn-primary text-xl px-12 py-4 rounded-full shadow-lg min-h-[60px]"
+        >
+          العودة للرئيسية
+        </button>
       </div>
     );
   }
-
-  const step = currentItem.steps[0];
-  const isAudio = currentItem.interaction_type === "read_aloud";
-  const progress = Math.round(((questionIndex - 1) / totalQuestions) * 100);
 
   return (
-    <div className={styles.runner}>
-      {/* Progress */}
-      <div className={styles.progressSection}>
-        <div className={styles.progressLabels}>
-          <span className={styles.progressText}>السؤال {questionIndex} من {totalQuestions}</span>
-          <span className={styles.progressPct}>{progress}%</span>
+    <div className="flex-1 flex flex-col max-w-3xl w-full mx-auto">
+      {/* Progress Bar */}
+      <div className="mb-8 w-full">
+        <div className="flex justify-between items-center mb-2 font-bold text-navy">
+          <span>السؤال {questionNumber} من {totalQuestions}</span>
+          <span className="text-primary">{Math.round(progress)}%</span>
         </div>
-        <div className="progress-bar">
-          <div className="progress-bar__fill" style={{ width: `${progress}%` }} />
+        <div className="progress-bar h-4 rounded-full">
+          <div className="progress-bar-fill h-4 rounded-full bg-gradient-to-l from-primary to-green" style={{ width: `${progress}%` }}></div>
         </div>
       </div>
 
-      {/* Character encourage */}
-      <div className={styles.characterRow} aria-hidden="true">
-        <Image
-          src="/characters/boy-explain.png"
-          alt=""
-          width={80}
-          height={80}
-          className={styles.sideCharacter}
-        />
-        {step?.prompt_text && (
-          <div className={`${styles.promptBubble} font-child`}>
-            {step.prompt_text}
-          </div>
-        )}
-      </div>
-
-      {error && (
-        <div className="alert alert-error" style={{ marginBottom: "var(--space-4)" }}>
-          {error}
-        </div>
-      )}
-
-      {/* Question content */}
-      {isAudio ? (
-        <div className={styles.audioSection}>
-          {step?.expected_reading_text && (
-            <p className={`${styles.readingText} font-child`}>
-              {step.expected_reading_text}
-            </p>
-          )}
-
-          <div className={styles.recordControls}>
-            {!isRecording && !audioBlob && (
-              <button
-                onClick={startRecording}
-                className="btn btn-child"
-                style={{ background: "var(--color-error)", color: "white" }}
-              >
-                🎤 ابدأ التسجيل
-              </button>
-            )}
-            {isRecording && (
-              <button
-                onClick={stopRecording}
-                className="btn btn-child"
-                style={{ background: "var(--color-warning)", color: "white" }}
-              >
-                ⏹ إيقاف التسجيل
-              </button>
-            )}
-            {audioBlob && !isRecording && (
-              <button
-                onClick={resetRecording}
-                className="btn btn-ghost btn-child"
-              >
-                🔄 إعادة التسجيل
-              </button>
-            )}
-          </div>
-
-          {recorderError && (
-            <div className="alert alert-error">{recorderError}</div>
-          )}
-
-          {audioBlob && (
-            <div className={styles.audioPreview}>
-              <audio src={URL.createObjectURL(audioBlob)} controls />
+      <div className="card flex-1 flex flex-col p-6 md:p-10 shadow-lg border-2 border-border/50 rounded-3xl">
+        {/* Question Text */}
+        <h2 className="text-3xl md:text-4xl font-bold text-navy mb-8 text-center leading-relaxed">
+          {question?.text}
+        </h2>
+        
+        {/* Question Content based on type */}
+        <div className="flex-1 flex flex-col items-center justify-center w-full">
+          {question?.type === "mcq" ? (
+            <div className="grid grid-cols-2 gap-4 w-full">
+              {question.options?.map((opt, i) => (
+                <button 
+                  key={i}
+                  onClick={() => handleOptionClick(opt)}
+                  className="bg-white border-4 border-border hover:border-primary hover:bg-bg text-navy font-bold text-3xl py-8 rounded-2xl transition-all hover:scale-[1.02] active:scale-95 shadow-sm min-h-[100px]"
+                >
+                  {opt}
+                </button>
+              ))}
             </div>
-          )}
-
-          <button
-            disabled={!audioBlob || submitting}
-            onClick={() => handleSubmit()}
-            className="btn btn-secondary btn-child"
-            style={{ marginTop: "var(--space-4)" }}
-          >
-            {submitting ? "جاري الإرسال..." : "إرسال التسجيل ✅"}
-          </button>
+          ) : question?.type === "read_aloud" ? (
+            <div className="w-full flex flex-col items-center">
+              <div className="bg-bg p-8 rounded-2xl w-full text-center border-2 border-border mb-8 min-h-[150px] flex items-center justify-center">
+                <span className="text-4xl font-bold text-navy leading-loose">
+                  ذَهَبَ أَحْمَدُ إِلَى الْمَدْرَسَةِ مُبَكِّراً
+                </span>
+              </div>
+              
+              <div className="flex justify-center gap-6 w-full">
+                <button 
+                  onClick={toggleRecording}
+                  className={`w-24 h-24 rounded-full flex items-center justify-center shadow-lg transition-all ${
+                    isRecording 
+                      ? "bg-red-500 text-white animate-pulse shadow-red-500/50" 
+                      : "bg-primary text-white hover:bg-[#276bb8] hover:scale-105"
+                  }`}
+                >
+                  {isRecording ? <MicOff size={40} /> : <Mic size={40} />}
+                </button>
+              </div>
+              <p className={`mt-6 font-bold text-lg ${isRecording ? "text-red-500" : "text-primary"}`}>
+                {isRecording ? "جاري التسجيل... اضغط للإيقاف" : "اضغط الميكروفون للبدء"}
+              </p>
+            </div>
+          ) : null}
         </div>
-      ) : (
-        <div className={styles.optionsGrid}>
-          {step?.options.map((opt) => (
-            <button
-              key={opt.id}
-              onClick={() => handleSubmit(opt.id)}
-              disabled={submitting}
-              className={`${styles.optionBtn} font-child`}
-            >
-              {opt.text}
-            </button>
-          ))}
-        </div>
-      )}
+      </div>
     </div>
   );
 }

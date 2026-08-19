@@ -1,107 +1,189 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import styles from "../../admin.module.css";
-import type { StudentProfile } from "@/types/api";
+import Link from "next/link";
+import { ArrowRight, Copy, CheckCircle } from "lucide-react";
 
-
-export default function CreateStudent() {
-  const [name, setName] = useState("");
-  const [grade, setGrade] = useState("1");
-  const [loading, setLoading] = useState(false);
+export default function NewStudentPage() {
+  const [fullName, setFullName] = useState("");
+  const [gradeLevel, setGradeLevel] = useState("1");
+  const [gender, setGender] = useState("boy");
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [createdStudent, setCreatedStudent] = useState<StudentProfile | null>(null);
-  
-  const router = useRouter();
+  const [successCode, setSuccessCode] = useState("");
+  const [copied, setCopied] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setIsLoading(true);
     setError("");
-    
+
     try {
-      const res = await fetch(`/api/researcher/students`, {
+      const res = await fetch("/api/researcher/students", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ full_name: name, grade: parseInt(grade) }),
+        body: JSON.stringify({ 
+          full_name: fullName, 
+          grade_level: parseInt(gradeLevel) 
+          // gender is currently not standard in API, just ignoring for now
+        }),
       });
-      
-      if (!res.ok) throw new Error("تعذر إنشاء الطالب");
-      
-      const data = await res.json();
-      setCreatedStudent(data);
-    } catch (err: any) {
-      setError(err.message);
+
+      if (res.ok) {
+        const data = await res.json();
+        setSuccessCode(data.access_code);
+      } else {
+        const data = await res.json();
+        setError(data.detail || "حدث خطأ أثناء إضافة الطالب");
+      }
+    } catch (err) {
+      setError("حدث خطأ أثناء الاتصال بالخادم");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  return (
-    <div style={{ maxWidth: "600px" }}>
-      <h1 style={{ marginBottom: "2rem" }}>إضافة طالب جديد</h1>
-      
-      {error && <div className="alert alert-error" style={{ marginBottom: "1rem" }}>{error}</div>}
-      
-      {createdStudent ? (
-        <div className="alert alert-success" style={{ padding: "2rem", textAlign: "center" }}>
-          <h2>تم إنشاء الطالب بنجاح!</h2>
-          <p style={{ margin: "1rem 0" }}>رمز الدخول الخاص به هو:</p>
-          <code style={{ fontSize: "2rem", display: "block", color: "var(--primary)" }}>
-            {createdStudent.access_code}
-          </code>
-          <p style={{ marginTop: "1rem", color: "var(--dark)" }}>احتفظ بهذا الرمز وأعطه للطالب للدخول</p>
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(successCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  if (successCode) {
+    return (
+      <div className="flex-1 font-plex max-w-2xl mx-auto w-full">
+        <div className="card text-center py-12">
+          <div className="w-16 h-16 bg-green/10 text-green rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle size={32} />
+          </div>
+          <h2 className="text-2xl font-bold text-navy mb-2">تمت إضافة الطالب بنجاح</h2>
+          <p className="text-muted mb-8">يرجى حفظ رمز الدخول التالي وإعطائه للطالب ليتمكن من الدخول إلى المنصة.</p>
           
-          <div style={{ display: "flex", gap: "1rem", justifyContent: "center", marginTop: "2rem" }}>
-            <button className="btn btn-secondary" onClick={() => { setCreatedStudent(null); setName(""); }}>
+          <div className="bg-bg p-6 rounded-lg border border-border mb-8 max-w-sm mx-auto">
+            <p className="text-sm text-muted mb-2">رمز الدخول</p>
+            <div className="flex items-center justify-center gap-4">
+              <span className="text-3xl font-mono font-bold text-primary tracking-widest">{successCode}</span>
+              <button 
+                onClick={copyToClipboard}
+                className="p-2 text-muted hover:text-primary hover:bg-primary/10 rounded-md transition-colors"
+                title="نسخ الرمز"
+              >
+                {copied ? <CheckCircle size={20} className="text-green" /> : <Copy size={20} />}
+              </button>
+            </div>
+          </div>
+          
+          <div className="flex justify-center gap-4">
+            <button 
+              onClick={() => {
+                setSuccessCode("");
+                setFullName("");
+                setGradeLevel("1");
+              }}
+              className="btn-secondary"
+            >
               إضافة طالب آخر
             </button>
-            <button className="btn btn-primary" onClick={() => router.push("/admin/students")}>
-              العودة للقائمة
-            </button>
+            <Link href="/admin/students" className="btn-primary">
+              العودة لقائمة الطلاب
+            </Link>
           </div>
         </div>
-      ) : (
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-          <div className="form-group">
-            <label className="form-label">الاسم الكامل</label>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 font-plex max-w-2xl mx-auto w-full">
+      <div className="mb-6 flex items-center gap-4">
+        <Link href="/admin/students" className="p-2 text-muted hover:text-navy hover:bg-bg rounded-full transition-colors">
+          <ArrowRight size={24} />
+        </Link>
+        <div>
+          <h1 className="text-2xl font-bold text-navy">إضافة طالب جديد</h1>
+        </div>
+      </div>
+
+      <div className="card">
+        {error && (
+          <div className="alert-error mb-6">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-navy font-medium mb-2">اسم الطالب الثلاثي</label>
             <input
               type="text"
               className="input-field"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="مثال: أحمد محمد عبدالله"
               required
-              data-testid="input-student-name"
-              placeholder="مثال: أحمد العتيبي"
             />
           </div>
-          <div className="form-group">
-            <label className="form-label">الصف الدراسي</label>
+
+          <div>
+            <label className="block text-navy font-medium mb-2">الصف الدراسي</label>
             <select
               className="input-field"
-              value={grade}
-              onChange={(e) => setGrade(e.target.value)}
-              data-testid="input-student-grade"
+              value={gradeLevel}
+              onChange={(e) => setGradeLevel(e.target.value)}
+              required
             >
-              <option value="1">الصف الأول</option>
-              <option value="2">الصف الثاني</option>
-              <option value="3">الصف الثالث</option>
-              <option value="4">الصف الرابع</option>
+              <option value="1">الصف الأول الابتدائي</option>
+              <option value="2">الصف الثاني الابتدائي</option>
+              <option value="3">الصف الثالث الابتدائي</option>
             </select>
           </div>
           
-          <button 
-            type="submit" 
-            className="btn btn-primary" 
-            disabled={loading}
-            data-testid="btn-create-student"
-          >
-            {loading ? "جاري الحفظ..." : "إنشاء طالب وتوليد الرمز"}
-          </button>
+          <div>
+            <label className="block text-navy font-medium mb-3">الجنس</label>
+            <div className="flex gap-4">
+              <label className="flex-1 cursor-pointer">
+                <input 
+                  type="radio" 
+                  name="gender" 
+                  value="boy" 
+                  checked={gender === "boy"}
+                  onChange={() => setGender("boy")}
+                  className="peer sr-only" 
+                />
+                <div className="p-4 border border-border rounded-lg text-center peer-checked:border-primary peer-checked:bg-primary/5 transition-colors">
+                  ولد
+                </div>
+              </label>
+              <label className="flex-1 cursor-pointer">
+                <input 
+                  type="radio" 
+                  name="gender" 
+                  value="girl" 
+                  checked={gender === "girl"}
+                  onChange={() => setGender("girl")}
+                  className="peer sr-only" 
+                />
+                <div className="p-4 border border-border rounded-lg text-center peer-checked:border-primary peer-checked:bg-primary/5 transition-colors">
+                  بنت
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-border flex justify-end gap-4">
+            <Link href="/admin/students" className="btn-ghost">
+              إلغاء
+            </Link>
+            <button
+              type="submit"
+              className="btn-primary"
+              disabled={isLoading}
+            >
+              {isLoading ? <span className="spinner"></span> : "إضافة الطالب"}
+            </button>
+          </div>
         </form>
-      )}
+      </div>
     </div>
   );
 }
