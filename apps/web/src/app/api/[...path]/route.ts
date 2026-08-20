@@ -20,7 +20,7 @@ async function proxy(req: NextRequest, { params }: { params: Promise<{ path: str
   };
 
   if (!["GET", "HEAD"].includes(req.method)) {
-    init.body = await req.arrayBuffer();
+    init.body = await req.blob();
   }
 
   const upstream = await fetch(url, init);

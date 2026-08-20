@@ -1,41 +1,29 @@
 {
-  "branch": "stage/03-design-routes",
-  "phase": "P03",
-  "slice": "P03.1-COMPLETE",
-  "gate_status": "LOCAL_PASS",
-  "last_verified": "2026-08-20T01:55:45Z",
-  "playwright_result": "1 passed / 0 failed (1.0 min)",
-  "playwright_steps_passed": 11,
-  "next_step": "P03.2: Complete remaining pages (student session, audio recording UI) + P03.3 mobile responsiveness screenshots",
-  "p03_commits": [
-    "8c28fd2 — feat(P03.1): professional design system + all routes",
-    "f15990f — fix(P03): correct asset paths, add data-testids, pure CSS system",
-    "30368a3 — fix(P03): add testids to student-login, fix keyboard.type — P02 regression PASS"
-  ],
-  "pages_built": [
-    "/               — Welcome landing (logo, characters, two entry cards)",
-    "/admin/login    — Researcher login (IBM Plex Sans, logo-navy.svg)",
-    "/admin          — Dashboard with real student count",
-    "/admin/students — Students table with empty state",
-    "/admin/students/new — Create student form + access code display",
-    "/admin/students/[id] — Student detail",
-    "/admin/audio-review — Audio review queue",
-    "/admin/reports  — Reports placeholder",
-    "/admin/settings — Researcher settings",
-    "/student/login  — Student login (Tajawal, logo-gradient, girl character)",
-    "/student        — Student home page",
-    "/student/session/[id] — Assessment runner"
-  ],
-  "screenshots_taken": {
-    "desktop": ["welcome","admin-login","admin-dashboard","admin-students","admin-create-student","admin-audio-review","admin-reports","admin-settings","student-login"],
-    "tablet": ["welcome","admin-login","admin-dashboard","admin-students","admin-create-student","admin-audio-review","admin-reports","admin-settings","student-login"],
-    "mobile": ["welcome","admin-login","student-login"]
+  "schema_version": 2,
+  "plan_version": "HIMMA-V2",
+  "branch": "stage/04-production-slice",
+  "phase": "P04",
+  "slice": "P04.1-IN_PROGRESS",
+  "gate_status": "IN_PROGRESS",
+  "last_verified": "2026-08-20T03:27:00Z",
+  "p03_sha": "974598c",
+  "p03_status": "ACCEPTED",
+  "p03_evidence": "1 passed P02 regression + 3 passed screenshots (2.7m)",
+  "p04_goal": "Full production vertical slice: researcher creates student → student completes 30-question pretest → records audio → uploads to MinIO → researcher reviews → session finishes → level assigned",
+  "p04_slices": {
+    "S1": "Assessment session UI: question renderer, option selection, answer submit, progress bar",
+    "S2": "Audio recording UI: record/stop/preview/upload to MinIO via /assessment/upload-audio",
+    "S3": "Session completion: all 30 answered → finish → level result page",
+    "S4": "Audio review page (admin): list pending, play recording, grade (rubric), mark graded",
+    "S5": "E2E Playwright: full scenario researcher→student→30q→audio→MinIO→review→finish→level"
   },
+  "current_slice": "S1",
   "services": {
     "postgresql": "RUNNING",
     "minio": "RUNNING",
     "redis": "RUNNING",
     "fastapi": "RUNNING",
     "nextjs": "RUNNING"
-  }
+  },
+  "next_step": "Build AssessmentRunner component: fetch /assessment/active, GET /assessment/session/{id}/next, render question/options, POST submit, progress bar, then audio recording step"
 }

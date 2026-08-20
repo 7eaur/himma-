@@ -16,16 +16,26 @@ export default function StudentHomePage() {
   const [student, setStudent] = useState<StudentMe | null>(null);
   const [loading, setLoading] = useState(true);
   const [startingSession, setStartingSession] = useState(false);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const meRes = await fetch("/api/me");
+        const [meRes, activeRes] = await Promise.all([
+          fetch("/api/me"),
+          fetch("/api/assessment/active")
+        ]);
         if (meRes.ok) {
           setStudent(await meRes.json());
         }
+        if (activeRes.ok) {
+          const activeSession = await activeRes.json();
+          if (activeSession && activeSession.id) {
+            setActiveSessionId(activeSession.id);
+          }
+        }
       } catch (err) {
-        console.error("Error fetching student info", err);
+        console.error("Error fetching student info or active session", err);
       } finally {
         setLoading(false);
       }
@@ -34,10 +44,17 @@ export default function StudentHomePage() {
   }, []);
 
   const handleStartAssessment = async () => {
+    if (activeSessionId) {
+      router.push(`/student/session/${activeSessionId}`);
+      return;
+    }
+    
     setStartingSession(true);
     try {
       const res = await fetch("/api/assessment/start", {
-        method: "POST"
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_type: "pretest" })
       });
       if (res.ok) {
         const session = await res.json();
@@ -111,6 +128,8 @@ export default function StudentHomePage() {
               <span className="spinner border-4 w-6 h-6"></span>
               <span>جاري التجهيز...</span>
             </span>
+          ) : activeSessionId ? (
+            "استئناف الاختبار"
           ) : (
             "ابدأ الاختبار"
           )}
