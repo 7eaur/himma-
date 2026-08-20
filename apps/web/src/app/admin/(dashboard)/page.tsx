@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Users, Activity } from "lucide-react";
+import { Users, Activity, Plus } from "lucide-react";
 
 interface Researcher {
   id: string;
@@ -31,95 +31,97 @@ export default function AdminDashboard() {
           fetch("/api/researcher/students")
         ]);
         
-        if (meRes.ok) {
-          setResearcher(await meRes.json());
-        }
-        
-        if (studentsRes.ok) {
-          setStudents(await studentsRes.json());
-        }
+        if (meRes.ok) setResearcher(await meRes.json());
+        if (studentsRes.ok) setStudents(await studentsRes.json());
       } catch (err) {
         console.error("Error fetching dashboard data", err);
       } finally {
         setLoading(false);
       }
     };
-    
     fetchData();
   }, []);
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="spinner w-8 h-8"></div>
+      <div className="flex-1 flex items-center justify-center min-h-[60vh]">
+        <div className="spinner w-8 h-8 border-4"></div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 font-plex max-w-6xl w-full mx-auto">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-navy mb-2">
-          مرحباً، {researcher?.username || "الباحثة"}
-        </h1>
-        <p className="text-muted">نظرة عامة على أداء الطلاب ونشاطاتهم اليوم.</p>
+    <div className="flex-1 w-full max-w-6xl mx-auto space-y-8 pb-10">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-navy mb-1">
+            مرحباً، {researcher?.username || "الباحثة"}
+          </h1>
+          <p className="text-muted text-sm">نظرة عامة على أداء الطلاب ونشاطاتهم اليوم.</p>
+        </div>
+        <Link href="/admin/students/new" className="btn-primary w-fit">
+          <Plus size={20} />
+          إضافة طالب
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div className="card flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+        <div className="stat-card">
+          <div className="stat-icon bg-primary/10 text-primary">
             <Users size={24} />
           </div>
           <div>
-            <p className="text-sm text-muted mb-1">إجمالي الطلاب</p>
-            <p className="text-2xl font-bold text-navy">{students.length}</p>
+            <p className="stat-label">إجمالي الطلاب</p>
+            <p className="stat-value">{students.length}</p>
           </div>
         </div>
         
-        <div className="card flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-green/10 flex items-center justify-center text-green">
+        <div className="stat-card">
+          <div className="stat-icon bg-green/10 text-green">
             <Activity size={24} />
           </div>
           <div>
-            <p className="text-sm text-muted mb-1">الطلاب النشطين</p>
-            <p className="text-2xl font-bold text-navy">{students.length}</p>
+            <p className="stat-label">الطلاب النشطين</p>
+            <p className="stat-value">{students.length}</p>
           </div>
         </div>
       </div>
 
       <div className="card">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-navy">الطلاب المضافين حديثاً</h2>
+          <h2 className="text-lg font-bold text-navy">الطلاب المضافين حديثاً</h2>
           <Link href="/admin/students" className="text-primary hover:underline text-sm font-medium">
             عرض الكل
           </Link>
         </div>
         
         {students.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <Image src="/characters/girl/welcome.png" alt="No students" width={120} height={150} className="opacity-50 mb-4" />
-            <p className="text-muted mb-4">لا يوجد طلاب مضافين حتى الآن.</p>
+          <div className="empty-state">
+            <Image src="/characters/girl/welcome.png" alt="No students" width={100} height={140} className="mb-6 opacity-80" />
+            <h3 className="text-lg font-bold text-navy mb-2">لا يوجد طلاب حتى الآن</h3>
+            <p className="text-muted mb-6">أضف أول طالب للبدء في تتبع تقدمهم</p>
             <Link href="/admin/students/new" className="btn-primary">
+              <Plus size={20} />
               إضافة طالب جديد
             </Link>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-right border-collapse">
+            <table className="data-table">
               <thead>
-                <tr className="border-b border-border">
-                  <th className="pb-3 font-semibold text-muted text-sm">الاسم</th>
-                  <th className="pb-3 font-semibold text-muted text-sm">الصف</th>
-                  <th className="pb-3 font-semibold text-muted text-sm">رمز الدخول</th>
+                <tr>
+                  <th>الاسم</th>
+                  <th>الصف</th>
+                  <th>رمز الدخول</th>
                 </tr>
               </thead>
               <tbody>
                 {students.slice(0, 5).map(student => (
-                  <tr key={student.id} className="border-b border-border last:border-0">
-                    <td className="py-4 text-navy font-medium">{student.full_name}</td>
-                    <td className="py-4 text-navy">{student.grade_level}</td>
-                    <td className="py-4">
-                      <span className="badge bg-bg text-primary border border-primary/20 tracking-wider ltr text-left">
+                  <tr key={student.id}>
+                    <td className="font-medium text-navy">{student.full_name}</td>
+                    <td>{student.grade_level}</td>
+                    <td>
+                      <span className="badge badge-gray border border-border tracking-widest px-3 py-1 font-mono text-sm" dir="ltr">
                         {student.access_code}
                       </span>
                     </td>

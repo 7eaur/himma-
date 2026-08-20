@@ -2,13 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { LayoutDashboard, Users, UserPlus, Mic, BarChart2, Settings, LogOut, Menu, X } from "lucide-react";
 
 export default function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
@@ -23,19 +22,19 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
-      router.push("/");
+      window.location.href = "/";
     } catch (err) {
       console.error("Logout failed", err);
     }
   };
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full bg-white font-plex">
-      <div className="p-6 flex justify-center items-center border-b border-border">
+    <>
+      <div className="sidebar-brand">
         <Image src="/brand/logo-navy.svg" alt="Himma Logo" width={120} height={40} />
       </div>
       
-      <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+      <nav className="sidebar-nav">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
@@ -44,43 +43,38 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
               key={item.href}
               href={item.href}
               onClick={() => setMobileMenuOpen(false)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-md transition-colors ${
-                isActive 
-                  ? "bg-bg text-primary font-medium" 
-                  : "text-muted hover:bg-bg hover:text-navy"
-              }`}
+              className={`sidebar-nav-item ${isActive ? "active" : ""}`}
             >
-              <Icon size={20} className={isActive ? "text-primary" : "text-muted"} />
+              <Icon size={20} className="sidebar-nav-icon" />
               <span>{item.label}</span>
             </Link>
           );
         })}
       </nav>
 
-      <div className="p-4 border-t border-border">
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-3 px-4 py-3 w-full text-red-600 hover:bg-red-50 rounded-md transition-colors font-medium"
-        >
-          <LogOut size={20} />
+      <div className="sidebar-footer">
+        <div className="sidebar-user">
+          <div className="sidebar-avatar">ب</div>
+          <div className="sidebar-user-name">الباحثة</div>
+        </div>
+        <button onClick={handleLogout} className="sidebar-logout">
+          <LogOut size={18} />
           <span>تسجيل الخروج</span>
         </button>
       </div>
-    </div>
+    </>
   );
 
   return (
-    <div className="sidebar-layout font-plex">
-      {/* Desktop Sidebar */}
-      <aside className="sidebar">
+    <div className="sidebar-layout" dir="rtl">
+      <aside className="sidebar hidden md:flex">
         <SidebarContent />
       </aside>
 
-      {/* Mobile Sidebar Overlay */}
       {mobileMenuOpen && (
         <div className="md:hidden fixed inset-0 z-50 flex">
           <div className="fixed inset-0 bg-black/50" onClick={() => setMobileMenuOpen(false)} />
-          <div className="relative w-64 max-w-sm flex-1 bg-white flex flex-col z-50">
+          <div className="relative w-64 max-w-sm flex-1 bg-white flex flex-col z-50 h-full">
             <button 
               onClick={() => setMobileMenuOpen(false)}
               className="absolute top-4 left-4 p-2 text-muted hover:bg-bg rounded-md"
@@ -92,8 +86,7 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
         </div>
       )}
 
-      {/* Main Content */}
-      <main className="sidebar-content flex flex-col">
+      <main className="sidebar-content">
         <div className="md:hidden flex items-center justify-between bg-white p-4 border-b border-border mb-4 rounded-md shadow-sm">
           <Image src="/brand/logo-navy.svg" alt="Himma Logo" width={100} height={32} />
           <button 

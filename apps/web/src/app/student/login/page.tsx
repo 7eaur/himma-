@@ -34,7 +34,6 @@ export default function StudentLogin() {
   };
 
   const handleAccessCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Basic formatting for ABC-1234
     let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
     if (val.length > 3) {
       val = val.slice(0, 3) + "-" + val.slice(3, 7);
@@ -43,27 +42,27 @@ export default function StudentLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-bg flex flex-col items-center justify-center p-4 font-tajawal relative overflow-hidden">
-      {/* Decorative background elements */}
-      <div className="absolute top-[-10%] right-[-5%] w-64 h-64 bg-yellow/20 rounded-full blur-3xl -z-10"></div>
-      <div className="absolute bottom-[-10%] left-[-5%] w-80 h-80 bg-primary/20 rounded-full blur-3xl -z-10"></div>
+    <div className="student-login-root" dir="rtl">
+      <div className="student-login-amb-1" />
+      <div className="student-login-amb-2" />
 
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-8 border-4 border-white">
-        <div className="flex justify-center mb-8">
+      <div className="student-login-card">
+        <div className="flex justify-center student-login-logo">
           <Image src="/brand/logo-gradient.svg" alt="Himma Logo" width={180} height={60} />
         </div>
         
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-6">
           <Image 
-            src="/characters/girl/welcome.png" 
+            src="/characters/boy/welcome.png" 
             alt="Welcome" 
-            width={160} 
-            height={200}
+            width={140} 
+            height={180}
             className="drop-shadow-md hover:scale-105 transition-transform duration-300" 
           />
         </div>
         
-        <h1 className="text-3xl font-bold text-navy mb-8 text-center">أهلاً بك يا بطل!</h1>
+        <h1 className="student-login-title">أهلاً بك يا بطل!</h1>
+        <p className="student-login-sub">أدخل رمز الدخول السري لنبدأ التعلم معاً</p>
         
         {error && (
           <div data-testid="error-message" className="alert-error text-center mb-6 font-bold">
@@ -71,29 +70,24 @@ export default function StudentLogin() {
           </div>
         )}
         
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-navy font-bold text-lg mb-3 text-center">
-              أدخل رمز الدخول السري الخاص بك
-            </label>
-            <input
-              type="text"
-              className="w-full border-4 border-border rounded-2xl p-4 text-center text-3xl font-mono font-bold text-primary tracking-widest uppercase transition-colors focus:border-primary focus:outline-none placeholder-muted/50"
-              data-testid="input-access-code"
-              value={accessCode}
-              onChange={handleAccessCodeChange}
-              placeholder="ABC-1234"
-              maxLength={8}
-              required
-              dir="ltr"
-            />
-          </div>
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            className="student-login-code-input mb-4"
+            data-testid="input-access-code"
+            value={accessCode}
+            onChange={handleAccessCodeChange}
+            placeholder="ABC-1234"
+            maxLength={8}
+            required
+            dir="ltr"
+          />
           
           <button
             type="submit"
-            className="w-full bg-primary hover:bg-[#276bb8] text-white font-bold text-xl py-5 rounded-2xl shadow-lg transition-transform hover:-translate-y-1 active:translate-y-0"
+            className="student-login-btn"
             data-testid="student-login-submit"
-            disabled={isLoading || accessCode.length < 3}
+            disabled={isLoading || accessCode.length < 8}
           >
             {isLoading ? <span className="spinner mx-auto border-4"></span> : "يلا نبدأ!"}
           </button>

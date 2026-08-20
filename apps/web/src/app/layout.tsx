@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { ScrollAnimator } from "@/components/ScrollAnimator";
 
 export const metadata: Metadata = {
   title: "منصة همة التعليمية",
@@ -13,7 +14,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" dir="rtl">
-      <body>{children}</body>
+      <body>
+        <ScrollAnimator />
+        {children}
+      </body>
     </html>
   );
 }
