@@ -3,27 +3,39 @@
   "plan_version": "HIMMA-V2",
   "branch": "stage/04-production-slice",
   "phase": "P04",
-  "slice": "P04.1-IN_PROGRESS",
-  "gate_status": "IN_PROGRESS",
-  "last_verified": "2026-08-20T03:27:00Z",
+  "slice": "S1-COMPLETE",
+  "gate_status": "REGRESSION_PASS",
+  "last_verified": "2026-08-20T04:50:00Z",
   "p03_sha": "974598c",
   "p03_status": "ACCEPTED",
-  "p03_evidence": "1 passed P02 regression + 3 passed screenshots (2.7m)",
-  "p04_goal": "Full production vertical slice: researcher creates student → student completes 30-question pretest → records audio → uploads to MinIO → researcher reviews → session finishes → level assigned",
-  "p04_slices": {
-    "S1": "Assessment session UI: question renderer, option selection, answer submit, progress bar",
-    "S2": "Audio recording UI: record/stop/preview/upload to MinIO via /assessment/upload-audio",
-    "S3": "Session completion: all 30 answered → finish → level result page",
-    "S4": "Audio review page (admin): list pending, play recording, grade (rubric), mark graded",
-    "S5": "E2E Playwright: full scenario researcher→student→30q→audio→MinIO→review→finish→level"
+  "p04_sha_s1": "00ce24a",
+  "p04_evidence": "1 passed P02 regression (1.1m) — assessment runner + audio recording + review UI built",
+  "p04_goal": "Full production vertical slice: researcher creates student -> pretest 30q -> audio -> MinIO -> researcher reviews -> finish -> level assigned",
+  "p04_completed": {
+    "S1": "Assessment session runner /student/session/[id]/page.tsx — full state machine",
+    "S2": "Audio recording via MediaRecorder API -> upload to MinIO",
+    "S3": "Session finish -> result screen -> level display",
+    "S4": "Admin audio review /admin/(dashboard)/audio-review/page.tsx — full grading UI",
+    "S5": "API proxy body fix (POST body forwarding)",
+    "S6": "Student home: active session check + resume button + JSON body for assessment start",
+    "CSS": "globals.css fixed to clean UTF-8, P04 classes appended (assessment, recording, result, review)"
   },
-  "current_slice": "S1",
+  "p04_pending": {
+    "S7": "Full E2E Playwright test for complete P04 scenario",
+    "S8": "Audio presigned URL endpoint for review playback"
+  },
   "services": {
     "postgresql": "RUNNING",
     "minio": "RUNNING",
     "redis": "RUNNING",
-    "fastapi": "RUNNING",
-    "nextjs": "RUNNING"
+    "fastapi": "RUNNING:8000",
+    "nextjs": "RUNNING:3000"
   },
-  "next_step": "Build AssessmentRunner component: fetch /assessment/active, GET /assessment/session/{id}/next, render question/options, POST submit, progress bar, then audio recording step"
+  "db_content": {
+    "pretest_items": 30,
+    "steps_per_item": 1,
+    "options_per_step": 4,
+    "interaction_types": "multiple_choice"
+  },
+  "next_step": "P04.S7: Full E2E Playwright test — researcher->student->30q->audio->MinIO->review->finish->level"
 }
