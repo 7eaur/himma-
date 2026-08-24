@@ -36,7 +36,7 @@ export default function NewStudentPage() {
         const data = await res.json();
         setError(data.detail || "حدث خطأ أثناء إضافة الطالب");
       }
-    } catch (err) {
+    } catch {
       setError("حدث خطأ أثناء الاتصال بالخادم");
     } finally {
       setIsLoading(false);

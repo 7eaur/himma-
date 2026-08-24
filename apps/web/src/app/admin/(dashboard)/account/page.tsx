@@ -19,8 +19,8 @@ export default function AccountPage() {
         const res = await fetch(`/api/me`, { credentials: "include" });
         if (!res.ok) throw new Error("تعذر تحميل بيانات الحساب");
         setProfile(await res.json());
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "تعذر تحميل بيانات الحساب");
       } finally {
         setLoading(false);
       }

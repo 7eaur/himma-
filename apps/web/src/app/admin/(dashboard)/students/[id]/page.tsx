@@ -34,7 +34,7 @@ export default function StudentDetailPage() {
             setError("لم يتم العثور على الطالب");
           }
         }
-      } catch (err) {
+      } catch {
         setError("حدث خطأ أثناء تحميل بيانات الطالب");
       } finally {
         setLoading(false);

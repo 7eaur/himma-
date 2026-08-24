@@ -1,12 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from datetime import datetime, timezone
 from typing import List
 from decimal import Decimal
 
 from dependencies import get_db, get_current_user
 from db.models import (
-    User, AudioSubmission, AttemptResponse, AuditLog, AudioReview
+    User, AudioSubmission, Attempt, AttemptResponse, AuditLog, AudioReview
 )
 import schemas
 
@@ -41,6 +40,20 @@ def grade_audio_submission(
         
     if not request.is_valid:
         submission.status = "rerecord_required"
+        response.is_correct = None
+        attempt = db.query(Attempt).filter(Attempt.id == response.attempt_id).first()
+        if not attempt:
+            raise HTTPException(status_code=404, detail="Attempt not found")
+        attempt.status = "in_progress"
+        attempt.completed_at = None
+        db.add(AuditLog(
+            actor_role="researcher",
+            actor_id=researcher.id,
+            action="request_audio_rerecord",
+            entity_type="AudioSubmission",
+            entity_id=str(submission.id),
+            details="Recording marked invalid; student attempt reopened",
+        ))
         db.commit()
         return {"status": "ok", "message": "Marked for rerecord"}
         

@@ -2,17 +2,13 @@ import { render, screen } from "@testing-library/react";
 import Home from "./page";
 
 describe("Home page", () => {
-  it("renders the welcome heading", () => {
+  it("renders the approved welcome heading", () => {
     render(<Home />);
-    expect(
-      screen.getByText("مرحباً بكم في منصة هِمّة التعليمية")
-    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /نتعلّم بهدوء/ })).toBeInTheDocument();
   });
 
-  it("renders the subtitle", () => {
+  it("offers student login", () => {
     render(<Home />);
-    expect(
-      screen.getByText("النسخة الإنتاجية - النواة والأمن")
-    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /دخول الطالب/ })).toHaveAttribute("href", "/student/login");
   });
 });

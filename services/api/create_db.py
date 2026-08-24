@@ -1,46 +1,51 @@
+import os
+
 import psycopg2
 from psycopg2 import sql
 
-def create():
-    try:
-        # Try connecting with user postgres, empty password or 'postgres'
-        conn = None
-        for pwd in ["", "postgres", "admin", "root"]:
-            try:
-                conn = psycopg2.connect(dbname="postgres", user="postgres", password=pwd, host="localhost")
-                print(f"Connected with password: '{pwd}'")
-                break
-            except Exception as e:
-                pass
-        
-        if not conn:
-            print("Failed to connect to default postgres DB.")
-            return
 
+def create():
+    admin_dsn = os.environ.get("PG_ADMIN_DSN")
+    db_user = os.environ.get("DB_USER", "himma")
+    db_password = os.environ.get("DB_PASSWORD")
+    db_name = os.environ.get("DB_NAME", "himma_db")
+    if not admin_dsn or not db_password:
+        raise RuntimeError("PG_ADMIN_DSN and DB_PASSWORD are required")
+
+    try:
+        conn = psycopg2.connect(admin_dsn)
         conn.autocommit = True
         cur = conn.cursor()
-        
-        # Create user
+
         try:
-            cur.execute("CREATE USER himma WITH PASSWORD 'himmapass';")
-            print("Created user himma")
+            cur.execute(
+                sql.SQL("CREATE USER {} WITH PASSWORD %s").format(sql.Identifier(db_user)),
+                (db_password,),
+            )
+            print(f"Created database role {db_user}")
         except psycopg2.errors.DuplicateObject:
-            print("User himma already exists")
-            cur.execute("ALTER USER himma WITH PASSWORD 'himmapass';")
-            print("Updated password for himma")
-            
-        # Create DB
+            cur.execute(
+                sql.SQL("ALTER USER {} WITH PASSWORD %s").format(sql.Identifier(db_user)),
+                (db_password,),
+            )
+            print(f"Updated database role {db_user}")
+
         try:
-            cur.execute("CREATE DATABASE himma_db OWNER himma;")
-            print("Created database himma_db")
+            cur.execute(
+                sql.SQL("CREATE DATABASE {} OWNER {}").format(
+                    sql.Identifier(db_name),
+                    sql.Identifier(db_user),
+                )
+            )
+            print(f"Created database {db_name}")
         except psycopg2.errors.DuplicateDatabase:
-            print("Database himma_db already exists")
-            
+            print(f"Database {db_name} already exists")
+
         cur.close()
         conn.close()
-        
-    except Exception as e:
-        print(f"Error: {e}")
+    except Exception as exc:
+        raise RuntimeError("Database bootstrap failed") from exc
+
 
 if __name__ == "__main__":
     create()

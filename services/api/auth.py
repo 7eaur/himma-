@@ -38,7 +38,7 @@ def _set_token_cookie(response: Response, token: str) -> None:
         key="access_token",
         value=token,
         httponly=True,
-        samesite="none" if not is_prod else "lax",
+        samesite="lax",
         secure=is_prod,
         path="/",
         max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
@@ -117,5 +117,11 @@ def me(auth=Depends(get_any_authenticated)):
 # ── Logout ──────────────────────────────────────────────────────────
 @router.post("/logout")
 def logout(response: Response):
-    response.delete_cookie("access_token")
+    response.delete_cookie(
+        "access_token",
+        path="/",
+        secure=os.getenv("ENV") == "production",
+        httponly=True,
+        samesite="lax",
+    )
     return {"message": "Logged out successfully"}

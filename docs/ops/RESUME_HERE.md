@@ -38,8 +38,8 @@ All 12 integration checks passed at `2026-08-18T22:41:46`:
 1. **PostgreSQL** — runs automatically as Windows service
 2. **MinIO** — open CMD, run:
    ```cmd
-   set MINIO_ROOT_USER=minioadmin
-   set MINIO_ROOT_PASSWORD=minioadmin
+   set MINIO_ROOT_USER=<set-locally>
+   set MINIO_ROOT_PASSWORD=<set-locally>
    C:\himma-services\minio\minio.exe server E:\himma-services\minio-data --console-address :9001 --address :9000
    ```
 3. **Redis** — open CMD, run:
@@ -48,11 +48,11 @@ All 12 integration checks passed at `2026-08-18T22:41:46`:
    ```
 4. **FastAPI** — open CMD, run:
    ```cmd
-   set DATABASE_URL=postgresql://himma:himmapass@localhost:5432/himma_db
-   set API_SECRET_KEY=himma-dev-secret-key-32chars-ok!!
+   set DATABASE_URL=<set-locally>
+   set API_SECRET_KEY=<set-locally>
    set S3_ENDPOINT=http://localhost:9000
-   set S3_ACCESS_KEY=minioadmin
-   set S3_SECRET_KEY=minioadmin
+   set S3_ACCESS_KEY=<set-locally>
+   set S3_SECRET_KEY=<set-locally>
    set S3_BUCKET_NAME=himma-audio
    set REDIS_URL=redis://localhost:6379/0
    set ENV=development
@@ -66,11 +66,10 @@ All 12 integration checks passed at `2026-08-18T22:41:46`:
    npm run dev
    ```
 
-## DB Credentials (local dev only)
-- PostgreSQL: `himma / himmapass @ localhost:5432/himma_db`
-- MinIO: `minioadmin / minioadmin @ localhost:9000`
-- Redis: `localhost:6379`
-- API Key: `himma-dev-secret-key-32chars-ok!!`
+## Local credentials
+
+لا تُحفظ قيم الاتصال في المستودع. أنشئ قيمًا محلية جديدة في `.env` غير
+المرفوع، ودوّر القيم التي كانت موثقة سابقًا قبل إعادة استخدامها.
 
 ## Next Step: P02 Slice 2 — Next.js + End-to-End Browser Flow
 - Start Next.js dev server

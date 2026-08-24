@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function AdminLogin() {
+  const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -22,12 +24,13 @@ export default function AdminLogin() {
       });
 
       if (res.ok) {
-        window.location.href = "/admin";
+        router.replace("/admin");
+        router.refresh();
       } else {
         const data = await res.json();
         setError(data.detail || "Invalid credentials");
       }
-    } catch (err) {
+    } catch {
       setError("An error occurred during login");
     } finally {
       setIsLoading(false);

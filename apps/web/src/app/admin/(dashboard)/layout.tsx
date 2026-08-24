@@ -2,38 +2,32 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { LayoutDashboard, Users, UserPlus, Mic, BarChart2, Settings, LogOut, Menu, X } from "lucide-react";
 
-export default function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+const navItems = [
+  { href: "/admin", label: "لوحة القيادة", icon: LayoutDashboard },
+  { href: "/admin/students", label: "الطلاب", icon: Users },
+  { href: "/admin/students/new", label: "إضافة طالب", icon: UserPlus },
+  { href: "/admin/audio-review", label: "مراجعة التسجيلات", icon: Mic },
+  { href: "/admin/reports", label: "التقارير", icon: BarChart2 },
+  { href: "/admin/settings", label: "الإعدادات", icon: Settings },
+];
 
-  const navItems = [
-    { href: "/admin", label: "لوحة القيادة", icon: LayoutDashboard },
-    { href: "/admin/students", label: "الطلاب", icon: Users },
-    { href: "/admin/students/new", label: "إضافة طالب", icon: UserPlus },
-    { href: "/admin/audio-review", label: "مراجعة التسجيلات", icon: Mic },
-    { href: "/admin/reports", label: "التقارير", icon: BarChart2 },
-    { href: "/admin/settings", label: "الإعدادات", icon: Settings },
-  ];
+interface SidebarContentProps {
+  pathname: string;
+  onNavigate: () => void;
+  onLogout: () => void;
+}
 
-  const handleLogout = async () => {
-    try {
-      await fetch("/api/auth/logout", { method: "POST" });
-      window.location.href = "/";
-    } catch (err) {
-      console.error("Logout failed", err);
-    }
-  };
-
-  const SidebarContent = () => (
+function SidebarContent({ pathname, onNavigate, onLogout }: SidebarContentProps) {
+  return (
     <>
       <div className="sidebar-brand">
         <Image src="/brand/logo-navy.svg" alt="Himma Logo" width={120} height={40} />
       </div>
-      
+
       <nav className="sidebar-nav">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
@@ -42,7 +36,7 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
             <Link
               key={item.href}
               href={item.href}
-              onClick={() => setMobileMenuOpen(false)}
+              onClick={onNavigate}
               className={`sidebar-nav-item ${isActive ? "active" : ""}`}
             >
               <Icon size={20} className="sidebar-nav-icon" />
@@ -57,18 +51,34 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
           <div className="sidebar-avatar">ب</div>
           <div className="sidebar-user-name">الباحثة</div>
         </div>
-        <button onClick={handleLogout} className="sidebar-logout">
+        <button onClick={onLogout} className="sidebar-logout">
           <LogOut size={18} />
           <span>تسجيل الخروج</span>
         </button>
       </div>
     </>
   );
+}
+
+export default function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      router.replace("/");
+      router.refresh();
+    } catch (err) {
+      console.error("Logout failed", err);
+    }
+  };
 
   return (
     <div className="sidebar-layout" dir="rtl">
       <aside className="sidebar hidden md:flex">
-        <SidebarContent />
+        <SidebarContent pathname={pathname} onNavigate={() => setMobileMenuOpen(false)} onLogout={handleLogout} />
       </aside>
 
       {mobileMenuOpen && (
@@ -81,7 +91,7 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
             >
               <X size={24} />
             </button>
-            <SidebarContent />
+            <SidebarContent pathname={pathname} onNavigate={() => setMobileMenuOpen(false)} onLogout={handleLogout} />
           </div>
         </div>
       )}

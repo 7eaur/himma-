@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Mic, MicOff, RotateCcw, Play } from "lucide-react";
+import { Mic, MicOff } from "lucide-react";
 
 interface AssessmentRunnerProps {
   sessionId: string;
@@ -23,7 +23,7 @@ export default function AssessmentRunner({ sessionId }: AssessmentRunnerProps) {
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState(0); // 0 to 100
   const [questionNumber, setQuestionNumber] = useState(1);
-  const [totalQuestions, setTotalQuestions] = useState(30);
+  const totalQuestions = 30;
   const [finished, setFinished] = useState(false);
   
   // Audio recording state
@@ -46,7 +46,7 @@ export default function AssessmentRunner({ sessionId }: AssessmentRunnerProps) {
     return () => clearTimeout(timer);
   }, [sessionId]);
 
-  const handleOptionClick = (option: string) => {
+  const handleOptionClick = () => {
     // Fake submit logic
     if (questionNumber >= 3) {
       setFinished(true);
@@ -71,7 +71,7 @@ export default function AssessmentRunner({ sessionId }: AssessmentRunnerProps) {
     if (isRecording) {
       // Fake submit audio
       setTimeout(() => {
-        handleOptionClick("audio_submitted");
+        handleOptionClick();
       }, 1000);
     }
   };
@@ -130,7 +130,7 @@ export default function AssessmentRunner({ sessionId }: AssessmentRunnerProps) {
               {question.options?.map((opt, i) => (
                 <button 
                   key={i}
-                  onClick={() => handleOptionClick(opt)}
+                  onClick={handleOptionClick}
                   className="bg-white border-4 border-border hover:border-primary hover:bg-bg text-navy font-bold text-3xl py-8 rounded-2xl transition-all hover:scale-[1.02] active:scale-95 shadow-sm min-h-[100px]"
                 >
                   {opt}

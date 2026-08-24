@@ -10,11 +10,18 @@ export async function POST(req: NextRequest) {
     method: "POST",
     headers: { "Content-Type": "application/json", cookie: cookieHeader },
   });
+  const body = await upstream.arrayBuffer();
 
-  const res = NextResponse.json({ message: "logged out" }, { status: 200 });
-
-  res.cookies.set("access_token", "", { httpOnly: true, path: "/", maxAge: 0, sameSite: "lax" });
-  res.cookies.set("access_token_js", "", { httpOnly: false, path: "/", maxAge: 0, sameSite: "lax" });
+  const res = new NextResponse(body, {
+    status: upstream.status,
+    headers: {
+      "content-type": upstream.headers.get("content-type") ?? "application/json",
+    },
+  });
+  const setCookie = upstream.headers.get("set-cookie");
+  if (setCookie) {
+    res.headers.set("set-cookie", setCookie);
+  }
 
   return res;
 }

@@ -1,6 +1,6 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { CheckCircle, AlertCircle, XCircle } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { CheckCircle, Play, XCircle } from 'lucide-react';
 
 interface AudioSubmission {
   id: number;
@@ -9,12 +9,45 @@ interface AudioSubmission {
   submitted_at: string;
 }
 
+function AudioPlayer({ storageKey }: { storageKey: string }) {
+  const [src, setSrc] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadRecording = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/recordings/stream-by-key?key=${encodeURIComponent(storageKey)}`);
+      if (!res.ok) throw new Error('Could not load recording');
+      const data = await res.json();
+      setSrc(data.url);
+    } catch {
+      setError('تعذر تحميل التسجيل');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (src) return <audio src={src} controls style={{ width: '100%' }} />;
+
+  return (
+    <div>
+      <button type="button" className="review-valid-btn" onClick={loadRecording} disabled={loading}>
+        <Play size={16} /> {loading ? 'جاري التحميل...' : 'تشغيل التسجيل'}
+      </button>
+      {error && <p className="alert alert-error">{error}</p>}
+    </div>
+  );
+}
+
 export default function AudioReviewPage() {
   const [submissions, setSubmissions] = useState<AudioSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [gradingId, setGradingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [isValid, setIsValid] = useState<boolean>(true);
   const [targetUnits, setTargetUnits] = useState<number>(10);
   const [deletions, setDeletions] = useState<number>(0);
@@ -22,24 +55,37 @@ export default function AudioReviewPage() {
   const [insertions, setInsertions] = useState<number>(0);
   const [notes, setNotes] = useState<string>('');
 
-  const fetchSubmissions = async () => {
+  const fetchSubmissions = useCallback(async () => {
     try {
       const res = await fetch('/api/review/pending-audio');
       if (!res.ok) throw new Error('Failed to fetch pending audio');
       const data = await res.json();
       setSubmissions(data);
-    } catch (e) {
+    } catch {
       setError('Error loading audio submissions');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchSubmissions();
-    const interval = setInterval(fetchSubmissions, 30000);
-    return () => clearInterval(interval);
-  }, []);
+    const initialLoad = window.setTimeout(() => void fetchSubmissions(), 0);
+    const interval = window.setInterval(() => void fetchSubmissions(), 30000);
+    return () => {
+      window.clearTimeout(initialLoad);
+      window.clearInterval(interval);
+    };
+  }, [fetchSubmissions]);
+
+  const openReview = (id: number) => {
+    setEditingId(id);
+    setIsValid(true);
+    setTargetUnits(10);
+    setDeletions(0);
+    setSubstitutions(0);
+    setInsertions(0);
+    setNotes('');
+  };
 
   const handleGrade = async (id: number) => {
     setGradingId(id);
@@ -61,6 +107,7 @@ export default function AudioReviewPage() {
       if (!res.ok) throw new Error('Grading failed');
       
       setSubmissions(s => s.filter(x => x.id !== id));
+      setEditingId(null);
       
       // Reset form
       setIsValid(true);
@@ -69,7 +116,7 @@ export default function AudioReviewPage() {
       setSubstitutions(0);
       setInsertions(0);
       setNotes('');
-    } catch (e) {
+    } catch {
       alert('Error grading submission');
     } finally {
       setGradingId(null);
@@ -106,11 +153,14 @@ export default function AudioReviewPage() {
                 </span>
               </div>
               <div className="review-audio-player" style={{marginBottom:16}}>
-                {/* Normally we'd use a presigned URL or proxy route to access MinIO */}
-                {/* For P04, we assume the frontend can load it if it's public or through an API */}
-                <audio src={`/api/audio/${sub.storage_key}`} controls />
+                <AudioPlayer storageKey={sub.storage_key} />
               </div>
 
+              {editingId !== sub.id ? (
+                <button type="button" className="review-submit-btn" onClick={() => openReview(sub.id)}>
+                  بدء المراجعة
+                </button>
+              ) : (
               <div className="review-grade-form">
                 <div className="review-valid-toggle" style={{marginBottom:16}}>
                   <span className="review-rubric-label">حالة التسجيل:</span>
@@ -167,6 +217,7 @@ export default function AudioReviewPage() {
                   {gradingId === sub.id ? 'جاري الحفظ...' : 'حفظ التقييم'}
                 </button>
               </div>
+              )}
             </div>
           ))}
         </div>

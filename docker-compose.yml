@@ -5,7 +5,7 @@ services:
     image: postgres:15-alpine
     environment:
       POSTGRES_USER: ${DB_USER:-himma}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-himmapass}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in the local environment}
       POSTGRES_DB: ${DB_NAME:-himma_db}
     ports:
       - "5432:5432"
@@ -32,8 +32,8 @@ services:
   minio:
     image: minio/minio:latest
     environment:
-      MINIO_ROOT_USER: ${S3_ACCESS_KEY:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-minioadmin}
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:?Set S3_ACCESS_KEY in the local environment}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:?Set S3_SECRET_KEY in the local environment}
     command: server /data --console-address ":9001"
     ports:
       - "9000:9000"

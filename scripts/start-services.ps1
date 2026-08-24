@@ -16,6 +16,10 @@ if ($Stop) {
 
 Write-Host "===== Starting Himma Local Services =====" -ForegroundColor Cyan
 
+if (-not $env:S3_ACCESS_KEY -or -not $env:S3_SECRET_KEY) {
+    throw "Set S3_ACCESS_KEY and S3_SECRET_KEY in the local environment before starting MinIO."
+}
+
 # 1. Redis
 $redisProc = Get-Process "redis-server" -ErrorAction SilentlyContinue
 if ($redisProc) {
@@ -41,8 +45,8 @@ if ($minioProc) {
     $pinfo.Arguments = "server C:\himma-services\minio-data --console-address :9001 --address :9000"
     $pinfo.UseShellExecute = $false
     $pinfo.CreateNoWindow = $true
-    $pinfo.EnvironmentVariables["MINIO_ROOT_USER"] = "minioadmin"
-    $pinfo.EnvironmentVariables["MINIO_ROOT_PASSWORD"] = "minioadmin"
+    $pinfo.EnvironmentVariables["MINIO_ROOT_USER"] = $env:S3_ACCESS_KEY
+    $pinfo.EnvironmentVariables["MINIO_ROOT_PASSWORD"] = $env:S3_SECRET_KEY
     $proc = New-Object System.Diagnostics.Process
     $proc.StartInfo = $pinfo
     $proc.Start() | Out-Null
@@ -65,9 +69,9 @@ if ($pgService -and $pgService.Status -eq "Running") {
 
 Write-Host ""
 Write-Host "===== Service URLs =====" -ForegroundColor Cyan
-Write-Host "PostgreSQL : postgresql://himma:himmapass@localhost:5432/himma_db"
+Write-Host "PostgreSQL : configured through DATABASE_URL"
 Write-Host "Redis      : redis://localhost:6379/0"
 Write-Host "MinIO API  : http://localhost:9000"
-Write-Host "MinIO UI   : http://localhost:9001  (minioadmin / minioadmin)"
+Write-Host "MinIO UI   : http://localhost:9001"
 Write-Host "FastAPI    : http://localhost:8000  (run: .\scripts\start-api.ps1)"
 Write-Host "Next.js    : http://localhost:3000  (run: cd apps/web && npm run dev)"

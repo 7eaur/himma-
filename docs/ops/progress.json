@@ -1,41 +1,38 @@
 {
   "schema_version": 2,
   "plan_version": "HIMMA-V2",
-  "branch": "stage/04-production-slice",
-  "phase": "P04",
-  "slice": "S1-COMPLETE",
-  "gate_status": "REGRESSION_PASS",
-  "last_verified": "2026-08-20T04:50:00Z",
-  "p03_sha": "974598c",
-  "p03_status": "ACCEPTED",
-  "p04_sha_s1": "00ce24a",
-  "p04_evidence": "1 passed P02 regression (1.1m) — assessment runner + audio recording + review UI built",
-  "p04_goal": "Full production vertical slice: researcher creates student -> pretest 30q -> audio -> MinIO -> researcher reviews -> finish -> level assigned",
-  "p04_completed": {
-    "S1": "Assessment session runner /student/session/[id]/page.tsx — full state machine",
-    "S2": "Audio recording via MediaRecorder API -> upload to MinIO",
-    "S3": "Session finish -> result screen -> level display",
-    "S4": "Admin audio review /admin/(dashboard)/audio-review/page.tsx — full grading UI",
-    "S5": "API proxy body fix (POST body forwarding)",
-    "S6": "Student home: active session check + resume button + JSON body for assessment start",
-    "CSS": "globals.css fixed to clean UTF-8, P04 classes appended (assessment, recording, result, review)"
+  "branch": "recovery/codex-baseline",
+  "base_sha": "aa89aa8e628247151bf2e4a97eac30b50f9ea238",
+  "phase": "P00-RECOVERY",
+  "slice": "B00-TRUSTED-BASELINE",
+  "gate_status": "LOCAL_PASS_CI_PENDING",
+  "last_verified": "2026-08-24T04:03:46Z",
+  "current_goal": "Push the recovered baseline and require green GitHub Actions on PostgreSQL and MinIO before feature work",
+  "baseline_results": {
+    "typescript": "PASS",
+    "eslint": "PASS: 0 errors, 0 warnings",
+    "frontend_unit": "PASS: 4 tests",
+    "frontend_build": "PASS: Next.js production build, 17 routes",
+    "backend_pytest": "PASS: 30 tests; one dependency deprecation warning",
+    "python_compile": "PASS",
+    "alembic": "LOCAL PASS: four-revision PostgreSQL offline upgrade; real PostgreSQL upgrade/downgrade/upgrade and model drift check pending CI",
+    "smoke": "PASS: FastAPI and Next production, API proxy, researcher/student login, secure cookie contract",
+    "security": "PASS for current tracked tree; rotation of previously exposed values remains mandatory before production",
+    "audio_rerecord": "PASS: rejected recording reopens attempt and replacement returns to review"
   },
-  "p04_pending": {
-    "S7": "Full E2E Playwright test for complete P04 scenario",
-    "S8": "Audio presigned URL endpoint for review playback"
+  "migration_policy": "No new migration generated: corrected model metadata is expected to match existing head; CI alembic check is authoritative",
+  "acceptance_ids": ["AC-01", "AC-02", "AC-05", "AC-14"],
+  "historical_p04": {
+    "source_branch": "stage/04-production-slice",
+    "source_sha": "aa89aa8e628247151bf2e4a97eac30b50f9ea238",
+    "claim": "Assessment runner, audio upload, manual review, and level result existed but the reported gate was not reproducible",
+    "superseded_by": "B00-TRUSTED-BASELINE"
   },
-  "services": {
-    "postgresql": "RUNNING",
-    "minio": "RUNNING",
-    "redis": "RUNNING",
-    "fastapi": "RUNNING:8000",
-    "nextjs": "RUNNING:3000"
+  "remaining_gate": {
+    "system": "GitHub Actions",
+    "required_jobs": ["backend", "frontend", "integration"],
+    "services": ["PostgreSQL", "MinIO", "Redis"],
+    "status": "PENDING_PUSH"
   },
-  "db_content": {
-    "pretest_items": 30,
-    "steps_per_item": 1,
-    "options_per_step": 4,
-    "interaction_types": "multiple_choice"
-  },
-  "next_step": "P04.S7: Full E2E Playwright test — researcher->student->30q->audio->MinIO->review->finish->level"
+  "next_step": "Commit and push recovery/codex-baseline, inspect CI evidence, then pause for stage acceptance"
 }

@@ -3,11 +3,15 @@
 import os
 import sys
 
-# Set test secrets BEFORE importing anything that reads them
-if "API_SECRET_KEY" not in os.environ:
-    os.environ["API_SECRET_KEY"] = "ci-test-secret"
-if "DATABASE_URL" not in os.environ:
-    os.environ["DATABASE_URL"] = "sqlite:///./test.db"
+# Isolate tests from any developer or production database configuration.
+# PostgreSQL integration can be requested explicitly with HIMMA_TEST_DATABASE_URL.
+os.environ["API_SECRET_KEY"] = "test-only-api-secret-at-least-32-chars"
+os.environ["DATABASE_URL"] = os.environ.get(
+    "HIMMA_TEST_DATABASE_URL",
+    "sqlite:///./.pytest-himma.db",
+)
+os.environ["S3_ACCESS_KEY"] = "test-only-access-key"
+os.environ["S3_SECRET_KEY"] = "test-only-secret-key"
 
 sys.path.insert(0, os.path.dirname(__file__))
 
@@ -44,11 +48,12 @@ app.dependency_overrides[get_db] = override_get_db
 def setup_database():
     """Seed test data before each test."""
     if TEST_DATABASE_URL.startswith("sqlite"):
+        Base.metadata.drop_all(bind=engine)
         Base.metadata.create_all(bind=engine)
         
     db = TestingSessionLocal()
     if not db.query(User).filter(User.username == "researcher1").first():
-        hashed = bcrypt.hashpw(b"securepass123", bcrypt.gensalt()).decode("utf-8")
+        hashed = bcrypt.hashpw(b"test-only-researcher-password", bcrypt.gensalt()).decode("utf-8")
         db.add(User(
             username="researcher1",
             password_hash=hashed,
@@ -72,7 +77,8 @@ def setup_database():
 
 @pytest.fixture
 def client():
-    return TestClient(app)
+    with TestClient(app) as test_client:
+        yield test_client
 
 
 @pytest.fixture
@@ -80,7 +86,7 @@ def researcher_client(client):
     """A TestClient already logged in as researcher."""
     resp = client.post("/auth/login", json={
         "username": "researcher1",
-        "password": "securepass123",
+        "password": "test-only-researcher-password",
     })
     assert resp.status_code == 200
     return client

@@ -1,8 +1,8 @@
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
-import { useParams } from 'next/navigation';
-import { Mic, MicOff, Volume2, CheckCircle, AlertCircle, ChevronLeft } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
+import { Mic, MicOff, CheckCircle, AlertCircle, ChevronLeft } from 'lucide-react';
 
 const BASE = '';
 
@@ -21,12 +21,13 @@ interface ContentItem {
 
 export default function SessionPage() {
   const params = useParams();
+  const router = useRouter();
   const sessionId = params.id as string;
   
   const [phase, setPhase] = useState<Phase>('loading');
   const [item, setItem] = useState<ContentItem | null>(null);
   const [answered, setAnswered] = useState(0); // count of submitted
-  const [total] = useState(30);
+  const [total, setTotal] = useState(30);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [feedbackOption, setFeedbackOption] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -45,58 +46,74 @@ export default function SessionPage() {
   const [finalScore, setFinalScore] = useState<number | null>(null);
   const [assignedLevel, setAssignedLevel] = useState<number | null>(null);
 
-  const fetchNextItem = useCallback(async () => {
-    setPhase('loading');
-    setSelectedOption(null);
-    setFeedbackOption(null);
-    setAudioBlob(null);
-    setAudioUrl(null);
-    setRecordingTime(0);
-    try {
-      const res = await fetch(`${BASE}/api/assessment/session/${sessionId}/next`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      if (!data) {
-        // Session complete — call finish
-        await finishSession();
-        return;
-      }
-      setItem(data);
-      setPhase(data.interaction_type === 'audio_record' ? 'recording' : 'question');
-    } catch (e) {
-      setError('حدث خطأ في تحميل السؤال');
-      setPhase('error');
-    }
-  }, [sessionId]);
-
-  useEffect(() => { fetchNextItem(); }, [fetchNextItem]);
-
-  const finishSession = async () => {
+  const finishSession = useCallback(async () => {
     setPhase('finishing');
     try {
       const res = await fetch(`${BASE}/api/assessment/session/${sessionId}/finish`, { method: 'POST' });
-      if (res.status === 400) {
-        // Ungraded audio — waiting for review
+      const data = await res.json().catch(() => null);
+      const detail = typeof data?.detail === 'string' ? data.detail : '';
+      if ((res.status === 400 || res.status === 409) && detail.includes('ungraded audio')) {
         setPhase('waiting_audio_review');
         return;
       }
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
       setFinalScore(Number(data.final_score));
       setAssignedLevel(data.assigned_level);
       setPhase('done');
-    } catch (e) {
+    } catch {
       setError('حدث خطأ في إنهاء الاختبار');
       setPhase('error');
     }
-  };
+  }, [sessionId]);
+
+  const fetchNextItem = useCallback(async () => {
+    try {
+      const res = await fetch(`${BASE}/api/assessment/session/${sessionId}/next`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data: ContentItem | null = await res.json();
+      if (!data) {
+        await finishSession();
+        return;
+      }
+
+      setSelectedOption(null);
+      setFeedbackOption(null);
+      setAudioBlob(null);
+      setAudioUrl(previousUrl => {
+        if (previousUrl) URL.revokeObjectURL(previousUrl);
+        return null;
+      });
+      setRecordingTime(0);
+      setItem(data);
+      const isAudioItem = data.interaction_type === 'read_aloud' || data.interaction_type === 'audio_record';
+      setPhase(isAudioItem ? 'recording' : 'question');
+    } catch {
+      setError('حدث خطأ في تحميل السؤال');
+      setPhase('error');
+    }
+  }, [finishSession, sessionId]);
+
+  const fetchProgress = useCallback(async () => {
+    const res = await fetch(`${BASE}/api/assessment/session/${sessionId}/progress`);
+    if (!res.ok) return;
+    const data = await res.json();
+    setAnswered(data.completed_items);
+    if (data.total_items > 0) setTotal(data.total_items);
+  }, [sessionId]);
+
+  useEffect(() => {
+    const initialLoad = window.setTimeout(() => {
+      void Promise.all([fetchProgress(), fetchNextItem()]);
+    }, 0);
+    return () => window.clearTimeout(initialLoad);
+  }, [fetchNextItem, fetchProgress]);
 
   const submitAnswer = async (optionId: number | null, audioKey?: string, audioSize?: number, audioMime?: string) => {
     if (!item || !item.steps[0]) return;
     setPhase('submitting');
     if (optionId) setFeedbackOption(optionId);
     try {
-      await fetch(`${BASE}/api/assessment/session/${sessionId}/attempt/${item.id}/submit`, {
+      const res = await fetch(`${BASE}/api/assessment/session/${sessionId}/attempt/${item.id}/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -107,11 +124,12 @@ export default function SessionPage() {
           audio_mime_type: audioMime,
         })
       });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setAnswered(prev => prev + 1);
       // Brief feedback pause for choice questions
       if (optionId) await new Promise(r => setTimeout(r, 700));
       await fetchNextItem();
-    } catch (e) {
+    } catch {
       setError('حدث خطأ في حفظ الإجابة');
       setPhase('error');
     }
@@ -122,12 +140,18 @@ export default function SessionPage() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       chunksRef.current = [];
-      const mr = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
+      const preferredMime = 'audio/webm;codecs=opus';
+      const mr = MediaRecorder.isTypeSupported(preferredMime)
+        ? new MediaRecorder(stream, { mimeType: preferredMime })
+        : new MediaRecorder(stream);
       mr.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data); };
       mr.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        const blob = new Blob(chunksRef.current, { type: mr.mimeType || 'audio/webm' });
         setAudioBlob(blob);
-        setAudioUrl(URL.createObjectURL(blob));
+        setAudioUrl(previousUrl => {
+          if (previousUrl) URL.revokeObjectURL(previousUrl);
+          return URL.createObjectURL(blob);
+        });
         stream.getTracks().forEach(t => t.stop());
       };
       mr.start();
@@ -191,7 +215,7 @@ export default function SessionPage() {
           <div className="result-level-badge">مستواك: {levelNames[assignedLevel] || assignedLevel}</div>
           <Image src="/characters/boy/success.png" alt="" width={140} height={180} style={{margin:'0 auto 24px',display:'block'}} />
           <button
-            onClick={() => { window.location.href = '/student'; }}
+            onClick={() => router.push('/student')}
             className="assessment-submit-btn"
           >العودة للصفحة الرئيسية</button>
         </div>
@@ -206,7 +230,7 @@ export default function SessionPage() {
           <h1 className="result-title" style={{fontSize:'1.6rem'}}>في انتظار المراجعة</h1>
           <p className="result-subtitle">أجبت على جميع الأسئلة. الباحثة ستراجع تسجيلك الصوتي قريباً، ثم ستظهر نتيجتك.</p>
           <Image src="/characters/girl/encourage.png" alt="" width={140} height={180} style={{margin:'16px auto',display:'block'}} />
-          <button onClick={() => window.location.href='/student'} className="assessment-submit-btn" style={{background:'var(--color-muted)'}}>العودة</button>
+          <button onClick={() => router.push('/student')} className="assessment-submit-btn" style={{background:'var(--color-muted)'}}>العودة</button>
         </div>
       </div>
     );
@@ -241,7 +265,7 @@ export default function SessionPage() {
       {/* Header with progress */}
       <div className="assessment-header">
         <button
-          onClick={() => window.location.href='/student'}
+          onClick={() => router.push('/student')}
           style={{background:'none',border:'none',cursor:'pointer',color:'var(--color-muted)',display:'flex',alignItems:'center',gap:'4px',fontSize:'0.85rem',fontFamily:'var(--font-student)'}}
         >
           <ChevronLeft size={16} /> رجوع
@@ -275,14 +299,13 @@ export default function SessionPage() {
               )}
             </div>
             <div className="assessment-options">
-              {item.steps[0].options
+              {[...item.steps[0].options]
                 .sort((a, b) => a.order_index - b.order_index)
                 .map(opt => (
                   <button
                     key={opt.id}
                     className={`assessment-option${selectedOption === opt.id ? ' selected' : ''}${feedbackOption === opt.id ? ' feedback-chosen' : ''}`}
                     onClick={() => setSelectedOption(opt.id)}
-                    disabled={phase === 'submitting'}
                   >
                     {opt.text}
                     {selectedOption === opt.id && <CheckCircle size={20} style={{flexShrink:0}} />}
@@ -293,7 +316,6 @@ export default function SessionPage() {
               <button
                 className="assessment-submit-btn"
                 onClick={() => submitAnswer(selectedOption)}
-                disabled={phase === 'submitting'}
               >
                 تأكيد الإجابة
               </button>
@@ -314,6 +336,7 @@ export default function SessionPage() {
                   className={`recording-btn ${isRecording ? 'recording' : 'idle'}`}
                   onClick={isRecording ? stopRecording : startRecording}
                   disabled={uploading}
+                  aria-label={isRecording ? 'إيقاف التسجيل' : 'ابدأ التسجيل'}
                 >
                   {isRecording ? <MicOff size={36} color="white" /> : <Mic size={36} color="white" />}
                 </button>
@@ -334,7 +357,14 @@ export default function SessionPage() {
                 <audio src={audioUrl!} controls style={{width:'100%',margin:'16px 0'}} />
                 <div style={{display:'flex',gap:'12px',justifyContent:'center',marginTop:'8px'}}>
                   <button
-                    onClick={() => { setAudioBlob(null); setAudioUrl(null); setRecordingTime(0); }}
+                    onClick={() => {
+                      setAudioBlob(null);
+                      setAudioUrl(previousUrl => {
+                        if (previousUrl) URL.revokeObjectURL(previousUrl);
+                        return null;
+                      });
+                      setRecordingTime(0);
+                    }}
                     style={{padding:'12px 24px',border:'2px solid var(--color-border)',borderRadius:'var(--r-full)',background:'white',cursor:'pointer',fontFamily:'var(--font-student)',fontWeight:600,fontSize:'0.9rem'}}
                   >إعادة التسجيل</button>
                   <button

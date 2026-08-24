@@ -1,5 +1,5 @@
-from pydantic import BaseModel, ConfigDict
-from typing import Optional
+from pydantic import BaseModel, ConfigDict, Field
+from typing import Any, Literal, Optional
 from datetime import datetime
 from decimal import Decimal
 
@@ -37,7 +37,7 @@ class MeResponse(BaseModel):
     display_name: str
 
 class AssessmentStartRequest(BaseModel):
-    session_type: str # pretest, posttest, core
+    session_type: Literal["pretest", "posttest", "core"]
 
 class AssessmentSessionResponse(BaseModel):
     id: int
@@ -45,6 +45,12 @@ class AssessmentSessionResponse(BaseModel):
     status: str
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class AssessmentProgressResponse(BaseModel):
+    completed_items: int
+    total_items: int
+    has_pending_item: bool
 
 class ContentOptionResponse(BaseModel):
     id: int
@@ -58,7 +64,7 @@ class ContentStepResponse(BaseModel):
     order_index: int
     prompt_text: str
     expected_reading_text: Optional[str] = None
-    options: list[ContentOptionResponse] = []
+    options: list[ContentOptionResponse] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -67,7 +73,8 @@ class ContentItemResponse(BaseModel):
     stable_key: str
     kind: str
     interaction_type: str
-    steps: list[ContentStepResponse] = []
+    steps: list[ContentStepResponse] = Field(default_factory=list)
+    template_data: Optional[dict[str, Any]] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -75,7 +82,7 @@ class AttemptResponseSubmit(BaseModel):
     step_id: int
     selected_option_id: Optional[int] = None
     audio_storage_key: Optional[str] = None
-    audio_file_size: Optional[int] = None
+    audio_file_size: Optional[int] = Field(default=None, gt=0)
     audio_mime_type: Optional[str] = None
     audio_duration_seconds: Optional[Decimal] = None
 
@@ -89,10 +96,10 @@ class AudioSubmissionReviewResponse(BaseModel):
 
 class GradeAudioRequest(BaseModel):
     is_valid: bool # if false, turns into rerecord_required
-    target_units: Optional[int] = None
-    deletions: Optional[int] = 0
-    substitutions: Optional[int] = 0
-    insertions: Optional[int] = 0
+    target_units: Optional[int] = Field(default=None, gt=0)
+    deletions: int = Field(default=0, ge=0)
+    substitutions: int = Field(default=0, ge=0)
+    insertions: int = Field(default=0, ge=0)
     pronunciation_notes: Optional[str] = None
     fluency_notes: Optional[str] = None
     time_notes: Optional[str] = None

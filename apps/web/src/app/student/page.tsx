@@ -69,7 +69,8 @@ export default function StudentHomePage() {
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
-      window.location.href = "/";
+      router.replace("/");
+      router.refresh();
     } catch (err) {
       console.error("Logout failed", err);
     }

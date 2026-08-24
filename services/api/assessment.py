@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import joinedload
 from datetime import datetime, timezone
@@ -7,13 +7,19 @@ from typing import Optional
 from dependencies import get_db, get_current_student
 from db.models import (
     Student, AssessmentSession, Attempt, AttemptResponse, ContentItem, 
-    ContentStep, ContentOption, AudioSubmission, ScoringRule, ScoringPolicy, AudioReview
+    ContentStep, ContentOption, AudioSubmission, AudioReview
 )
 import schemas
 import storage
 from decimal import Decimal
 
 router = APIRouter(prefix="/assessment", tags=["Assessment"])
+
+KIND_BY_SESSION_TYPE = {
+    "pretest": "pretest_question",
+    "posttest": "posttest_question",
+    "core": "core_activity",
+}
 
 @router.post("/start", response_model=schemas.AssessmentSessionResponse)
 def start_assessment(
@@ -69,31 +75,32 @@ def get_next_item(
     if not session or session.status != "in_progress":
         raise HTTPException(status_code=404, detail="Active session not found")
 
-    # Get already attempted items
+    pending_attempt = db.query(Attempt).filter(
+        Attempt.session_id == session_id,
+        Attempt.status == "in_progress",
+    ).order_by(Attempt.id).first()
+    if pending_attempt:
+        return db.query(ContentItem).options(
+            joinedload(ContentItem.steps).joinedload(ContentStep.options)
+        ).filter(ContentItem.id == pending_attempt.item_id).first()
+
+    # Completed items must not be offered again.
     attempted_item_ids = [
         att.item_id for att in 
-        db.query(Attempt.item_id).filter(Attempt.session_id == session_id).all()
+        db.query(Attempt.item_id).filter(
+            Attempt.session_id == session_id,
+            Attempt.status == "completed",
+        ).all()
     ]
 
-    # Find the next item based on session_type
-    kind_map = {
-        "pretest": "pretest_question",
-        "posttest": "posttest_question",
-        "core": "core_activity"
-    }
-    
     next_item = db.query(ContentItem).options(
         joinedload(ContentItem.steps).joinedload(ContentStep.options)
     ).filter(
-        ContentItem.kind == kind_map.get(session.session_type, "pretest_question"),
+        ContentItem.kind == KIND_BY_SESSION_TYPE[session.session_type],
         ContentItem.id.notin_(attempted_item_ids)
     ).order_by(ContentItem.order_index).first()
 
     if not next_item:
-        # Session complete
-        session.status = "completed"
-        session.completed_at = datetime.now(timezone.utc)
-        db.commit()
         return None
 
     # We must ensure we don't leak `is_correct` in the response, 
@@ -109,6 +116,40 @@ def get_next_item(
     db.commit()
 
     return next_item
+
+
+@router.get(
+    "/session/{session_id}/progress",
+    response_model=schemas.AssessmentProgressResponse,
+)
+def get_session_progress(
+    session_id: int,
+    db: Session = Depends(get_db),
+    student: Student = Depends(get_current_student),
+):
+    session = db.query(AssessmentSession).filter(
+        AssessmentSession.id == session_id,
+        AssessmentSession.student_id == student.id,
+    ).first()
+    if not session or session.status != "in_progress":
+        raise HTTPException(status_code=404, detail="Active session not found")
+
+    completed_items = db.query(Attempt).filter(
+        Attempt.session_id == session_id,
+        Attempt.status == "completed",
+    ).count()
+    has_pending_item = db.query(Attempt).filter(
+        Attempt.session_id == session_id,
+        Attempt.status == "in_progress",
+    ).first() is not None
+    total_items = db.query(ContentItem).filter(
+        ContentItem.kind == KIND_BY_SESSION_TYPE[session.session_type],
+    ).count()
+    return {
+        "completed_items": completed_items,
+        "total_items": total_items,
+        "has_pending_item": has_pending_item,
+    }
 
 @router.post("/session/{session_id}/attempt/{item_id}/submit")
 def submit_attempt(
@@ -135,21 +176,81 @@ def submit_attempt(
     if not attempt:
         raise HTTPException(status_code=400, detail="Attempt not found")
 
-    # Idempotency check: see if response for this step already exists
+    item = db.query(ContentItem).filter(ContentItem.id == item_id).first()
+    step = db.query(ContentStep).filter(
+        ContentStep.id == submission.step_id,
+        ContentStep.item_id == item_id,
+    ).first()
+    if not item or not step:
+        raise HTTPException(status_code=400, detail="Step does not belong to this attempt")
+
+    # Idempotency check: see if response for this step already exists.
+    # A rejected recording is the single exception: the student must be able
+    # to replace it without creating a second response for the same step.
     existing_response = db.query(AttemptResponse).filter(
         AttemptResponse.attempt_id == attempt.id,
         AttemptResponse.step_id == submission.step_id
     ).first()
 
-    if existing_response:
-        return {"status": "ok", "message": "Already submitted"}
-
     # Grade if it's an option selection
     is_correct = None
-    if submission.selected_option_id:
-        option = db.query(ContentOption).filter(ContentOption.id == submission.selected_option_id).first()
-        if option:
-            is_correct = option.is_correct
+    is_audio_item = item.interaction_type in {"read_aloud", "audio_record"}
+    if is_audio_item:
+        if submission.selected_option_id is not None or not submission.audio_storage_key:
+            raise HTTPException(status_code=400, detail="Audio response is required for this item")
+        expected_prefix = f"audio/{student.id}/"
+        if not submission.audio_storage_key.startswith(expected_prefix):
+            raise HTTPException(status_code=403, detail="Audio key does not belong to this student")
+        if submission.audio_file_size is None:
+            raise HTTPException(status_code=400, detail="Audio file size is required")
+        if not (submission.audio_mime_type or "").startswith("audio/"):
+            raise HTTPException(status_code=400, detail="Invalid audio MIME type")
+        try:
+            storage.verify_audio(
+                submission.audio_storage_key,
+                submission.audio_file_size,
+                submission.audio_mime_type,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc))
+        except RuntimeError:
+            raise HTTPException(status_code=503, detail="Audio storage is unavailable")
+
+        if existing_response:
+            audio = db.query(AudioSubmission).filter(
+                AudioSubmission.response_id == existing_response.id,
+            ).first()
+            if not audio or audio.status != "rerecord_required":
+                return {"status": "ok", "message": "Already submitted"}
+
+            audio.storage_key = submission.audio_storage_key
+            audio.file_size = submission.audio_file_size
+            audio.mime_type = submission.audio_mime_type
+            audio.duration_seconds = submission.audio_duration_seconds
+            audio.status = "uploaded"
+            audio.submitted_at = datetime.now(timezone.utc)
+            existing_response.is_correct = None
+            existing_response.submitted_at = datetime.now(timezone.utc)
+            attempt.status = "completed"
+            attempt.completed_at = datetime.now(timezone.utc)
+            db.commit()
+            return {
+                "status": "ok",
+                "message": "Rerecord submitted",
+                "is_correct": None,
+            }
+    else:
+        if existing_response:
+            return {"status": "ok", "message": "Already submitted"}
+        if submission.audio_storage_key or submission.selected_option_id is None:
+            raise HTTPException(status_code=400, detail="A selected option is required for this item")
+        option = db.query(ContentOption).filter(
+            ContentOption.id == submission.selected_option_id,
+            ContentOption.step_id == submission.step_id,
+        ).first()
+        if not option:
+            raise HTTPException(status_code=400, detail="Option does not belong to this step")
+        is_correct = option.is_correct
 
     new_response = AttemptResponse(
         attempt_id=attempt.id,
@@ -160,7 +261,7 @@ def submit_attempt(
     db.add(new_response)
     db.flush() # get id
 
-    if submission.audio_storage_key:
+    if is_audio_item:
         audio = AudioSubmission(
             response_id=new_response.id,
             storage_key=submission.audio_storage_key,
@@ -195,11 +296,30 @@ def finish_session(
     
     if not session or session.status != "in_progress":
         raise HTTPException(status_code=400, detail="Invalid session")
+
+    rerecord_exists = db.query(AudioSubmission).join(
+        AttemptResponse, AttemptResponse.id == AudioSubmission.response_id,
+    ).join(
+        Attempt, Attempt.id == AttemptResponse.attempt_id,
+    ).filter(
+        Attempt.session_id == session_id,
+        AudioSubmission.status == "rerecord_required",
+    ).first()
+    if rerecord_exists:
+        raise HTTPException(
+            status_code=409,
+            detail="Cannot finish session with audio requiring rerecord",
+        )
         
     # Verify that exactly 30 items (if pretest/posttest) have attempts, and all attempts are completed.
     if session.session_type in ["pretest", "posttest"]:
-        attempts_count = db.query(Attempt).filter(Attempt.session_id == session_id).count()
-        if attempts_count < 30:
+        required_items = db.query(ContentItem).filter(
+            ContentItem.kind == KIND_BY_SESSION_TYPE[session.session_type],
+        ).count()
+        attempts = db.query(Attempt).filter(Attempt.session_id == session_id).all()
+        if required_items != 30 or len(attempts) != required_items or any(
+            attempt.status != "completed" for attempt in attempts
+        ):
             raise HTTPException(status_code=400, detail="Cannot finish session before completing all 30 items")
             
     # Sum up score securely on backend using Decimal
@@ -211,7 +331,7 @@ def finish_session(
             audio_sub = db.query(AudioSubmission).filter(AudioSubmission.response_id == response.id).first()
             if audio_sub:
                 if audio_sub.status == "uploaded":
-                    raise HTTPException(status_code=400, detail="Cannot finish session with ungraded audio")
+                    raise HTTPException(status_code=409, detail="Cannot finish session with ungraded audio")
                 if audio_sub.status == "graded":
                     review = db.query(AudioReview).filter(AudioReview.submission_id == audio_sub.id).order_by(AudioReview.id.desc()).first()
                     if review:
@@ -264,16 +384,17 @@ def upload_audio_submission(
     if not session or session.status != "in_progress":
         raise HTTPException(status_code=400, detail="Invalid session")
         
-    if not file.content_type.startswith("audio/"):
+    if not file.content_type or not file.content_type.startswith("audio/"):
         raise HTTPException(status_code=400, detail="Must be an audio file")
         
     try:
-        storage_key, file_size = storage.upload_audio(file)
+        storage_key, file_size = storage.upload_audio(file, student.id)
         return {
             "audio_storage_key": storage_key,
             "audio_file_size": file_size,
             "audio_mime_type": file.content_type
         }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception:
+        raise HTTPException(status_code=503, detail="Audio storage is unavailable")

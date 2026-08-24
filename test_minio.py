@@ -31,7 +31,8 @@ print(f"Verified in MinIO: size={size} bytes, type={head['ContentType']}")
 
 # 4. Generate presigned URL (5 min)
 url = s3.generate_presigned_url('get_object', Params={'Bucket': bucket, 'Key': key}, ExpiresIn=300)
-print(f"Presigned URL: {url[:80]}...")
+assert url.startswith(('http://', 'https://'))
+print("Presigned URL generated successfully")
 
 # 5. Save record to PostgreSQL using direct psycopg2
 import psycopg2

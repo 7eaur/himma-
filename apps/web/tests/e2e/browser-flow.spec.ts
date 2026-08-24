@@ -3,8 +3,9 @@ import path from "path";
 import fs from "fs";
 
 const BASE = "http://localhost:3000";
-const API = "http://localhost:8000";
 const SCREENSHOTS = path.join(__dirname, "../../screenshots");
+const RESEARCHER_USERNAME = process.env.E2E_RESEARCHER_USERNAME;
+const RESEARCHER_PASSWORD = process.env.E2E_RESEARCHER_PASSWORD;
 
 if (!fs.existsSync(SCREENSHOTS)) fs.mkdirSync(SCREENSHOTS, { recursive: true });
 
@@ -15,6 +16,9 @@ async function shot(page: Page, name: string) {
 }
 
 test("P02-S2: Full browser flow — researcher + student", async ({ page }) => {
+  if (!RESEARCHER_USERNAME || !RESEARCHER_PASSWORD) {
+    throw new Error("E2E_RESEARCHER_USERNAME and E2E_RESEARCHER_PASSWORD are required");
+  }
 
   // ── 1. Admin login page ──────────────────────────────────────────────────
   await page.goto(`${BASE}/admin/login`);
@@ -25,9 +29,9 @@ test("P02-S2: Full browser flow — researcher + student", async ({ page }) => {
 
   // ── 2. Login as researcher ──────────────────────────────────────────────
   await page.getByTestId("input-username").click();
-  await page.keyboard.type("researcher1", { delay: 40 });
+  await page.keyboard.type(RESEARCHER_USERNAME, { delay: 40 });
   await page.getByTestId("input-password").click();
-  await page.keyboard.type("securepass123", { delay: 40 });
+  await page.keyboard.type(RESEARCHER_PASSWORD, { delay: 40 });
   await page.getByTestId("login-submit").click();
 
   // window.location.href triggers full navigation — wait for it
@@ -81,7 +85,8 @@ test("P02-S2: Full browser flow — researcher + student", async ({ page }) => {
     )
   ).first();
   const accessCode = await codeEl.textContent({ timeout: 8000 }).catch(() => null);
-  console.log(`✓ Student created, access code: ${accessCode}`);
+  expect(accessCode?.trim(), "New student access code should be displayed").toBeTruthy();
+  console.log("✓ Student created and access code displayed");
 
   // ── 6. Admin logout ─────────────────────────────────────────────────────
   const logoutBtn = page.getByRole("button", { name: /خروج|تسجيل الخروج/ }).first()
@@ -102,7 +107,7 @@ test("P02-S2: Full browser flow — researcher + student", async ({ page }) => {
   await page.goto(`${BASE}/student/login`);
   await shot(page, "06-student-login-page");
 
-  const code = accessCode?.trim() ?? "8G4-3631"; // fallback to known code
+  const code = accessCode!.trim();
   const codeInput = page.getByTestId("input-access-code").or(
     page.locator("input[placeholder*='رمز']").first()
   );

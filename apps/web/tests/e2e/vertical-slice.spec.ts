@@ -1,14 +1,17 @@
 import { test, expect, APIRequestContext } from "@playwright/test";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const RESEARCHER_USERNAME = process.env.E2E_RESEARCHER_USERNAME ?? "admin";
+const RESEARCHER_PASSWORD = process.env.E2E_RESEARCHER_PASSWORD;
 
 /**
  * Login helper: calls API directly and stores cookies in the browser context.
  * This bypasses the UI login form to avoid the 307 redirect cookie issue.
  */
 async function loginAsResearcher(request: APIRequestContext, context: import("@playwright/test").BrowserContext) {
+  if (!RESEARCHER_PASSWORD) throw new Error("E2E_RESEARCHER_PASSWORD is required");
   const res = await request.post(`${API_URL}/auth/login`, {
-    data: { username: "researcher1", password: "securepass123" },
+    data: { username: RESEARCHER_USERNAME, password: RESEARCHER_PASSWORD },
   });
   expect(res.status(), "Admin login should return 200").toBe(200);
 
@@ -23,7 +26,7 @@ async function loginAsResearcher(request: APIRequestContext, context: import("@p
         domain: "localhost",
         path: "/",
         httpOnly: true,
-        sameSite: "None",
+        sameSite: "Lax",
         secure: false,
       }]);
     }
@@ -46,7 +49,7 @@ async function loginAsStudent(request: APIRequestContext, context: import("@play
         domain: "localhost",
         path: "/",
         httpOnly: true,
-        sameSite: "None",
+        sameSite: "Lax",
         secure: false,
       }]);
     }
@@ -69,14 +72,14 @@ test.describe("Full Vertical Slice — P02 Gate", () => {
     const studentName = `E2E Student ${Date.now()}`;
     await page.getByTestId("input-student-name").fill(studentName);
     await page.getByTestId("input-student-grade").selectOption("1");
-    await page.getByTestId("btn-create-student").click();
+    await page.getByTestId("submit-create-student").click();
 
     // ── Step 3: Extract access code ──────────────────────────────────────────
     const codeEl = page.locator("code").first();
     await expect(codeEl).toBeVisible({ timeout: 10000 });
     const accessCode = (await codeEl.textContent())?.trim();
     expect(accessCode, "Access code should be present").toBeTruthy();
-    console.log(`Created student with access code: ${accessCode}`);
+    console.log("Created student and captured one-time access code");
 
     // ── Step 4: Clear admin session ──────────────────────────────────────────
     await context.clearCookies();
@@ -90,6 +93,8 @@ test.describe("Full Vertical Slice — P02 Gate", () => {
     const startBtn = page.getByRole("button", { name: /ابدأ|اختبار/ });
     await startBtn.click();
     await expect(page).toHaveURL(/\/student\/session\/\d+/, { timeout: 10000 });
+    const sessionId = page.url().match(/\/student\/session\/(\d+)/)?.[1];
+    expect(sessionId, "Session id should be present in the URL").toBeTruthy();
 
     // ── Step 7: Answer questions (up to 30) ──────────────────────────────────
     let questionsAnswered = 0;
@@ -97,12 +102,12 @@ test.describe("Full Vertical Slice — P02 Gate", () => {
 
     while (questionsAnswered < maxQuestions) {
       // Wait for either next question or completion screen
-      const isDone = await page.getByText(/أحسنت|انتهيت|اكتملت/).isVisible().catch(() => false);
+      const isDone = await page.getByText(/أحسنت|في انتظار المراجعة/).isVisible().catch(() => false);
       if (isDone) break;
 
       // Check for audio question
       const recordBtn = page.getByRole("button", { name: /ابدأ التسجيل|سجّل/ }).first();
-      const hasAudio = await recordBtn.isVisible({ timeout: 5000 }).catch(() => false);
+      const hasAudio = await recordBtn.isVisible().catch(() => false);
 
       if (hasAudio) {
         // Audio question: use fake media stream (configured in playwright.config.ts)
@@ -116,7 +121,7 @@ test.describe("Full Vertical Slice — P02 Gate", () => {
         await submitBtn.click();
       } else {
         // MCQ question: click first visible option
-        const optionBtns = page.locator("[class*='optionBtn'], [data-testid='option']");
+        const optionBtns = page.locator(".assessment-option");
         const count = await optionBtns.count();
         if (count === 0) {
           // No options visible yet — might still be loading
@@ -124,6 +129,7 @@ test.describe("Full Vertical Slice — P02 Gate", () => {
           continue;
         }
         await optionBtns.first().click({ timeout: 5000 });
+        await page.getByRole("button", { name: "تأكيد الإجابة" }).click();
       }
 
       questionsAnswered++;
@@ -134,9 +140,7 @@ test.describe("Full Vertical Slice — P02 Gate", () => {
     console.log(`Answered ${questionsAnswered} questions`);
 
     // ── Step 8: Verify completion ─────────────────────────────────────────────
-    await expect(
-      page.getByText(/أحسنت|انتهيت|اكتمل/)
-    ).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText("في انتظار المراجعة")).toBeVisible({ timeout: 15000 });
 
     // ── Step 9: Admin reviews audio ───────────────────────────────────────────
     await context.clearCookies();
@@ -144,18 +148,26 @@ test.describe("Full Vertical Slice — P02 Gate", () => {
     await page.goto("/admin/audio-review");
     await expect(page).not.toHaveURL(/login/, { timeout: 5000 });
 
-    // Check if there are any pending audio reviews (may be 0 if no audio questions were answered)
-    const pendingAudio = page.getByRole("button", { name: /صحيحة|صالح/ }).first();
-    const hasPending = await pendingAudio.isVisible({ timeout: 3000 }).catch(() => false);
-
-    if (hasPending) {
-      await pendingAudio.click();
-      console.log("Graded one audio submission");
-    } else {
-      console.log("No pending audio reviews (OK if no audio questions were seeded)");
+    const startReview = page.getByRole("button", { name: "بدء المراجعة" });
+    await expect(startReview.first()).toBeVisible({ timeout: 15000 });
+    let reviewed = 0;
+    while (await startReview.count()) {
+      await startReview.first().click();
+      await page.getByRole("button", { name: "حفظ التقييم" }).click();
+      await expect(page.getByRole("button", { name: "حفظ التقييم" })).toHaveCount(0);
+      reviewed++;
     }
+    expect(reviewed).toBeGreaterThan(0);
 
-    // ── Step 10: Verify student list updated ─────────────────────────────────
+    // ── Step 10: Student receives the final result after review ───────────────
+    await context.clearCookies();
+    await loginAsStudent(request, context, accessCode!);
+    await page.goto(`/student/session/${sessionId}`);
+    await expect(page.getByText("أحسنت")).toBeVisible({ timeout: 15000 });
+
+    // ── Step 11: Verify student list updated ─────────────────────────────────
+    await context.clearCookies();
+    await loginAsResearcher(request, context);
     await page.goto("/admin/students");
     await expect(page.getByText(studentName)).toBeVisible({ timeout: 5000 });
 

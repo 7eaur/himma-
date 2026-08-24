@@ -3,6 +3,10 @@ import { test } from "@playwright/test";
 const BASE = "http://localhost:3000";
 
 test("DEBUG: keyboard type + capture all network", async ({ page }) => {
+  test.skip(process.env.E2E_DEBUG !== "1", "Diagnostic test; enable explicitly with E2E_DEBUG=1");
+  const username = process.env.E2E_RESEARCHER_USERNAME;
+  const password = process.env.E2E_RESEARCHER_PASSWORD;
+  if (!username || !password) throw new Error("E2E researcher credentials are required");
   // Capture ALL responses
   const allResponses: { url: string; status: number }[] = [];
   page.on("response", async (r) => {
@@ -21,20 +25,20 @@ test("DEBUG: keyboard type + capture all network", async ({ page }) => {
   const passwordInput = page.locator('[data-testid="input-password"]');
 
   await usernameInput.click();
-  await page.keyboard.type("researcher1", { delay: 50 });
+  await page.keyboard.type(username, { delay: 50 });
   console.log("Typed username");
 
   await passwordInput.click();
-  await page.keyboard.type("securepass123", { delay: 50 });
+  await page.keyboard.type(password, { delay: 50 });
   console.log("Typed password");
 
   // Check React state via evaluate
   const values = await page.evaluate(() => {
     const u = document.querySelector('[data-testid="input-username"]') as HTMLInputElement;
     const p = document.querySelector('[data-testid="input-password"]') as HTMLInputElement;
-    return { username: u?.value, password: p?.value };
+    return { usernameEntered: Boolean(u?.value), passwordEntered: Boolean(p?.value) };
   });
-  console.log("Input values in DOM:", JSON.stringify(values));
+  console.log("Input state in DOM:", JSON.stringify(values));
 
   // Clear responses before submit to see only new ones
   allResponses.length = 0;
@@ -55,17 +59,17 @@ test("DEBUG: keyboard type + capture all network", async ({ page }) => {
   console.log("PAGE ERROR:", errorEl ?? "(none)");
 
   // Also try direct browser-side fetch to verify route works
-  const fetchResult = await page.evaluate(async () => {
+  const fetchResult = await page.evaluate(async ({ username, password }) => {
     try {
       const r = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: "researcher1", password: "securepass123" }),
+        body: JSON.stringify({ username, password }),
       });
       return { status: r.status, ok: r.ok, body: await r.text() };
-    } catch(e: any) {
-      return { error: e.message };
+    } catch(e: unknown) {
+      return { error: e instanceof Error ? e.message : "Unknown error" };
     }
-  });
+  }, { username, password });
   console.log("DIRECT FETCH result:", JSON.stringify(fetchResult));
 });

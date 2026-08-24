@@ -23,7 +23,7 @@
 services:
   postgres:
     image: postgres:16-alpine
-    env: { POSTGRES_PASSWORD: himmapass, POSTGRES_DB: himma_db }
+    env: { POSTGRES_PASSWORD: <set-in-ci>, POSTGRES_DB: himma_db }
   minio:
     image: minio/minio
     command: server /data

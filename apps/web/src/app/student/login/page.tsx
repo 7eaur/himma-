@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function StudentLogin() {
+  const router = useRouter();
   const [accessCode, setAccessCode] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -21,12 +23,13 @@ export default function StudentLogin() {
       });
 
       if (res.ok) {
-        window.location.href = "/student";
+        router.replace("/student");
+        router.refresh();
       } else {
         const data = await res.json();
         setError(data.detail || "رمز الدخول غير صحيح");
       }
-    } catch (err) {
+    } catch {
       setError("حدث خطأ أثناء تسجيل الدخول");
     } finally {
       setIsLoading(false);

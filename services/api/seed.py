@@ -148,6 +148,7 @@ def run_seed():
     except Exception as e:
         db.rollback()
         print(f"Seeding failed: {str(e)}")
+        raise
     finally:
         db.close()
 

@@ -20,12 +20,15 @@ from botocore.exceptions import ClientError
 router = APIRouter(prefix="/recordings", tags=["Recordings"])
 
 S3_ENDPOINT = os.getenv("S3_ENDPOINT", "http://localhost:9000")
-S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY", "minioadmin")
-S3_SECRET_KEY = os.getenv("S3_SECRET_KEY", "minioadmin")
+S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY")
+S3_SECRET_KEY = os.getenv("S3_SECRET_KEY")
 S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME", "himma-audio")
 # Presigned URL validity in seconds (15 min for upload, 5 min for stream)
 UPLOAD_URL_EXPIRY = 900
 STREAM_URL_EXPIRY = 300
+
+if not S3_ACCESS_KEY or not S3_SECRET_KEY:
+    raise RuntimeError("S3_ACCESS_KEY and S3_SECRET_KEY are required")
 
 
 def _get_s3():
@@ -167,6 +170,9 @@ def stream_by_key(
     Generate a presigned GET URL for a storage_key directly.
     Used by the audio-review page which stores the full storage_key.
     """
+    if not key.startswith("audio/"):
+        raise HTTPException(status_code=400, detail="Invalid recording key")
+
     s3 = _get_s3()
     try:
         s3.head_object(Bucket=S3_BUCKET_NAME, Key=key)

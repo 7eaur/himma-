@@ -3,6 +3,9 @@ import path from "path";
 import fs from "fs";
 
 const BASE = "http://localhost:3000";
+const RESEARCHER_USERNAME = process.env.E2E_RESEARCHER_USERNAME;
+const RESEARCHER_PASSWORD = process.env.E2E_RESEARCHER_PASSWORD;
+const STUDENT_ACCESS_CODE = process.env.E2E_STUDENT_ACCESS_CODE;
 const SCREENS_DIR = path.join(__dirname, "screenshots/p03");
 
 const VIEWPORTS = [
@@ -49,9 +52,12 @@ test.describe("P03.2: Full screenshots — all viewports + all pages", () => {
       // ── Admin login ───────────────────────────────────────
       await page.goto(`${BASE}/admin/login`, { waitUntil: "networkidle" });
       await page.locator('[data-testid="input-username"]').click();
-      await page.keyboard.type("researcher1", { delay: 30 });
+      if (!RESEARCHER_USERNAME || !RESEARCHER_PASSWORD) {
+        throw new Error("E2E_RESEARCHER_USERNAME and E2E_RESEARCHER_PASSWORD are required");
+      }
+      await page.keyboard.type(RESEARCHER_USERNAME, { delay: 30 });
       await page.locator('[data-testid="input-password"]').click();
-      await page.keyboard.type("securepass123", { delay: 30 });
+      await page.keyboard.type(RESEARCHER_PASSWORD, { delay: 30 });
       await page.locator('[data-testid="login-submit"]').click();
       await page.waitForURL(/\/admin(?!\/login)/, { timeout: 20000 });
       await page.waitForLoadState("networkidle", { timeout: 10000 }).catch(() => {});
@@ -77,8 +83,10 @@ test.describe("P03.2: Full screenshots — all viewports + all pages", () => {
       await page.evaluate(() => fetch("/api/auth/logout", { method: "POST" }));
       await page.goto(`${BASE}/student/login`, { waitUntil: "networkidle" });
       await page.locator('[data-testid="input-access-code"]').click();
-      // Use known test student code (from last run or fallback)
-      await page.keyboard.type("8G4-3631", { delay: 40 });
+      if (!STUDENT_ACCESS_CODE) {
+        throw new Error("E2E_STUDENT_ACCESS_CODE is required for authenticated screenshots");
+      }
+      await page.keyboard.type(STUDENT_ACCESS_CODE, { delay: 40 });
       await page.getByRole("button", { name: /نبدأ|دخول/ }).first().click();
       await page.waitForURL(/\/student(?!\/login)/, { timeout: 15000 }).catch(async () => {
         console.log("Student login fallback — trying alternate code");

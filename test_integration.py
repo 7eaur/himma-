@@ -5,7 +5,11 @@ Integration smoke test — runs against real local stack:
 import os, requests, sys, time
 from urllib.parse import urlparse
 
-API = "http://localhost:8000"
+API = os.environ.get("HIMMA_API_URL", "http://localhost:8000")
+RESEARCHER_USERNAME = os.environ.get("E2E_RESEARCHER_USERNAME")
+RESEARCHER_PASSWORD = os.environ.get("E2E_RESEARCHER_PASSWORD")
+if not RESEARCHER_USERNAME or not RESEARCHER_PASSWORD:
+    raise RuntimeError("E2E_RESEARCHER_USERNAME and E2E_RESEARCHER_PASSWORD are required")
 
 def step(msg):
     print(f"\n{'='*50}\n▶ {msg}")
@@ -16,7 +20,7 @@ def ok(msg):
 def fail(msg, resp=None):
     print(f"  ✗ {msg}")
     if resp is not None:
-        print(f"    Status: {resp.status_code}, Body: {resp.text[:300]}")
+        print(f"    Status: {resp.status_code}")
     sys.exit(1)
 
 # ── 1. Health ─────────────────────────────────────────────────────────────────
@@ -29,10 +33,10 @@ ok(f"health OK — {r.json()}")
 step("2. Researcher login")
 sess_admin = requests.Session()
 r = sess_admin.post(f"{API}/auth/login",
-    json={"username": "researcher1", "password": "securepass123"}, timeout=5)
+    json={"username": RESEARCHER_USERNAME, "password": RESEARCHER_PASSWORD}, timeout=5)
 if r.status_code != 200:
     fail("Admin login failed", r)
-ok(f"Logged in as researcher1, cookies: {list(sess_admin.cookies.keys())}")
+ok("Researcher authenticated")
 
 # ── 3. /me endpoint ───────────────────────────────────────────────────────────
 step("3. /me endpoint (researcher)")
@@ -52,7 +56,7 @@ if r.status_code not in (200, 201):
 student_data = r.json()
 access_code = student_data.get("access_code") or student_data.get("student", {}).get("access_code")
 student_id = student_data.get("id") or student_data.get("student", {}).get("id")
-ok(f"Student created: id={student_id}, access_code={access_code}")
+ok(f"Synthetic student created: id={student_id}")
 
 # ── 5. Admin logout ───────────────────────────────────────────────────────────
 step("5. Admin logout")
@@ -66,14 +70,14 @@ r = sess_student.post(f"{API}/auth/student-login",
     json={"access_code": access_code}, timeout=5)
 if r.status_code != 200:
     fail("Student login failed", r)
-ok(f"Student logged in, cookies: {list(sess_student.cookies.keys())}")
+ok("Synthetic student logged in")
 
 # ── 7. Get student profile ────────────────────────────────────────────────────
 step("7. Student profile")
 r = sess_student.get(f"{API}/profile", timeout=5)
 if r.status_code != 200:
     fail("Profile failed", r)
-ok(f"Profile: {r.json().get('name')}")
+ok(f"Profile: {r.json().get('full_name')}")
 
 # ── 8. Start assessment session ───────────────────────────────────────────────
 step("8. Start assessment session")
@@ -97,15 +101,10 @@ ok(f"Question: id={item_id}, step_id={step_id}, type={q_type}")
 
 # ── 10. Submit answer ─────────────────────────────────────────────────────────
 step("10. Submit answer to PostgreSQL")
+first_option_id = q.get("steps", [{}])[0].get("options", [{}])[0].get("id") if q.get("steps") else None
 r = sess_student.post(
     f"{API}/assessment/session/{session_id}/attempt/{item_id}/submit",
-    json={"step_id": step_id, "selected_option": 0}, timeout=10)
-if r.status_code not in (200, 201):
-    # Try with option_id (first option from the question)
-    first_option_id = q.get("steps", [{}])[0].get("options", [{}])[0].get("id") if q.get("steps") else None
-    r = sess_student.post(
-        f"{API}/assessment/session/{session_id}/attempt/{item_id}/submit",
-        json={"step_id": step_id, "option_id": first_option_id}, timeout=10)
+    json={"step_id": step_id, "selected_option_id": first_option_id}, timeout=10)
 if r.status_code not in (200, 201):
     fail("Submit answer failed", r)
 ok(f"Answer saved: {r.json()!r:.150}")

@@ -22,7 +22,7 @@ class TestResearcherAuth:
     def test_login_success(self, client):
         r = client.post("/auth/login", json={
             "username": "researcher1",
-            "password": "securepass123",
+            "password": "test-only-researcher-password",
         })
         assert r.status_code == 200
         body = r.json()
@@ -47,7 +47,7 @@ class TestResearcherAuth:
     def test_cookie_httponly_samesite(self, client):
         r = client.post("/auth/login", json={
             "username": "researcher1",
-            "password": "securepass123",
+            "password": "test-only-researcher-password",
         })
         cookie_header = r.headers.get("set-cookie", "")
         assert "httponly" in cookie_header.lower()
@@ -211,6 +211,13 @@ class TestLogout:
 # ═══════════════════════════════════════════════════════════════════════
 
 class TestAssessmentAndScoring:
+    def test_audio_grade_counts_reject_negative_values(self):
+        from pydantic import ValidationError
+        from schemas import GradeAudioRequest
+
+        with pytest.raises(ValidationError):
+            GradeAudioRequest(is_valid=True, target_units=10, deletions=-1)
+
     def test_student_start_assessment(self, student_client):
         # We assume student STU001 is set up by conftest
         r = student_client.post("/assessment/start", json={"session_type": "pretest"})
@@ -221,3 +228,192 @@ class TestAssessmentAndScoring:
         r = researcher_client.get("/review/pending-audio")
         assert r.status_code == 200
         assert r.json() == []
+
+    def test_next_item_resumes_pending_attempt(self, student_client):
+        import seed
+
+        seed.run_seed()
+        session = student_client.post(
+            "/assessment/start", json={"session_type": "pretest"}
+        ).json()
+
+        first = student_client.get(
+            f"/assessment/session/{session['id']}/next"
+        )
+        resumed = student_client.get(
+            f"/assessment/session/{session['id']}/next"
+        )
+
+        assert first.status_code == 200
+        assert resumed.status_code == 200
+        assert resumed.json()["id"] == first.json()["id"]
+        progress = student_client.get(
+            f"/assessment/session/{session['id']}/progress"
+        )
+        assert progress.status_code == 200
+        assert progress.json() == {
+            "completed_items": 0,
+            "total_items": 30,
+            "has_pending_item": True,
+        }
+
+    def test_next_item_does_not_complete_session(self, student_client):
+        session = student_client.post(
+            "/assessment/start", json={"session_type": "pretest"}
+        ).json()
+
+        next_item = student_client.get(
+            f"/assessment/session/{session['id']}/next"
+        )
+        active = student_client.get("/assessment/active")
+
+        assert next_item.status_code == 200
+        assert next_item.json() is None
+        assert active.json()["id"] == session["id"]
+        assert active.json()["status"] == "in_progress"
+
+    def test_rejects_option_outside_attempt_step(self, student_client):
+        import seed
+
+        seed.run_seed()
+        session = student_client.post(
+            "/assessment/start", json={"session_type": "pretest"}
+        ).json()
+        item = student_client.get(
+            f"/assessment/session/{session['id']}/next"
+        ).json()
+
+        response = student_client.post(
+            f"/assessment/session/{session['id']}/attempt/{item['id']}/submit",
+            json={
+                "step_id": item["steps"][0]["id"],
+                "selected_option_id": 999999,
+            },
+        )
+
+        assert response.status_code == 400
+        assert response.json()["detail"] == "Option does not belong to this step"
+
+    def test_invalid_audio_reopens_attempt_and_accepts_rerecord(
+        self, client, monkeypatch
+    ):
+        import seed
+        import assessment
+        from db.database import SessionLocal
+        from db.models import (
+            AssessmentSession,
+            Attempt,
+            AttemptResponse,
+            AudioSubmission,
+            ContentItem,
+            Student,
+        )
+
+        seed.run_seed()
+        monkeypatch.setattr(assessment.storage, "verify_audio", lambda *_args: None)
+
+        assert client.post(
+            "/auth/student-login", json={"access_code": "STU001"}
+        ).status_code == 200
+        session_id = client.post(
+            "/assessment/start", json={"session_type": "pretest"}
+        ).json()["id"]
+
+        db = SessionLocal()
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        session = db.query(AssessmentSession).filter(
+            AssessmentSession.id == session_id,
+            AssessmentSession.student_id == student.id,
+        ).one()
+        audio_item = db.query(ContentItem).filter(
+            ContentItem.kind == "pretest_question",
+            ContentItem.interaction_type == "read_aloud",
+        ).order_by(ContentItem.order_index).first()
+        attempt = Attempt(session_id=session.id, item_id=audio_item.id)
+        db.add(attempt)
+        db.commit()
+        db.refresh(attempt)
+        student_id = student.id
+        attempt_id = attempt.id
+        item_id = audio_item.id
+        step_id = audio_item.steps[0].id
+        db.close()
+
+        first_key = f"audio/{student_id}/first.webm"
+        first = client.post(
+            f"/assessment/session/{session_id}/attempt/{item_id}/submit",
+            json={
+                "step_id": step_id,
+                "audio_storage_key": first_key,
+                "audio_file_size": 128,
+                "audio_mime_type": "audio/webm",
+            },
+        )
+        assert first.status_code == 200
+
+        db = SessionLocal()
+        response = db.query(AttemptResponse).filter(
+            AttemptResponse.attempt_id == attempt_id,
+        ).one()
+        response_id = response.id
+        submission_id = db.query(AudioSubmission).filter(
+            AudioSubmission.response_id == response_id,
+        ).one().id
+        db.close()
+
+        assert client.post(
+            "/auth/login",
+            json={
+                "username": "researcher1",
+                "password": "test-only-researcher-password",
+            },
+        ).status_code == 200
+        rejected = client.post(
+            f"/review/audio/{submission_id}/grade",
+            json={"is_valid": False},
+        )
+        assert rejected.status_code == 200
+
+        db = SessionLocal()
+        assert db.query(Attempt).filter(Attempt.id == attempt_id).one().status == "in_progress"
+        assert db.query(AudioSubmission).filter(
+            AudioSubmission.id == submission_id,
+        ).one().status == "rerecord_required"
+        db.close()
+
+        assert client.post(
+            "/auth/student-login", json={"access_code": "STU001"}
+        ).status_code == 200
+        resumed = client.get(f"/assessment/session/{session_id}/next")
+        assert resumed.status_code == 200
+        assert resumed.json()["id"] == item_id
+
+        finish = client.post(f"/assessment/session/{session_id}/finish")
+        assert finish.status_code == 409
+        assert "requiring rerecord" in finish.json()["detail"]
+
+        second_key = f"audio/{student_id}/second.webm"
+        replacement = client.post(
+            f"/assessment/session/{session_id}/attempt/{item_id}/submit",
+            json={
+                "step_id": step_id,
+                "audio_storage_key": second_key,
+                "audio_file_size": 256,
+                "audio_mime_type": "audio/webm",
+            },
+        )
+        assert replacement.status_code == 200
+        assert replacement.json()["message"] == "Rerecord submitted"
+
+        db = SessionLocal()
+        refreshed_attempt = db.query(Attempt).filter(Attempt.id == attempt_id).one()
+        refreshed_audio = db.query(AudioSubmission).filter(
+            AudioSubmission.id == submission_id,
+        ).one()
+        assert refreshed_attempt.status == "completed"
+        assert refreshed_audio.status == "uploaded"
+        assert refreshed_audio.storage_key == second_key
+        assert db.query(AudioSubmission).filter(
+            AudioSubmission.response_id == response_id,
+        ).count() == 1
+        db.close()

@@ -1,8 +1,7 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Enum, Numeric, JSON
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Numeric, JSON
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import declarative_base, relationship
 import enum
-from sqlalchemy.orm import declarative_base
 from datetime import datetime, timezone
 
 Base = declarative_base()
@@ -77,7 +76,7 @@ class ContentItem(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     stable_key = Column(String(100), unique=True, index=True, nullable=False)
-    kind = Column(Enum(ContentKind), nullable=False)
+    kind = Column(String(50), nullable=False)
     level_id = Column(Integer, nullable=False)
     skill_id = Column(Integer, ForeignKey("skills.id"), nullable=False)
     interaction_type = Column(String(50), nullable=False) # e.g., 'multiple_choice', 'audio_record'
@@ -96,7 +95,7 @@ class ContentStep(Base):
     __tablename__ = "content_steps"
     
     id = Column(Integer, primary_key=True, index=True)
-    item_id = Column(Integer, ForeignKey("content_items.id"), nullable=False)
+    item_id = Column(Integer, ForeignKey("content_items.id", ondelete="CASCADE"), nullable=False)
     order_index = Column(Integer, nullable=False)
     prompt_text = Column(String, nullable=False)
     expected_reading_text = Column(String, nullable=True)
@@ -110,7 +109,7 @@ class ContentOption(Base):
     __tablename__ = "content_options"
     
     id = Column(Integer, primary_key=True, index=True)
-    step_id = Column(Integer, ForeignKey("content_steps.id"), nullable=False)
+    step_id = Column(Integer, ForeignKey("content_steps.id", ondelete="CASCADE"), nullable=False)
     text = Column(String, nullable=False)
     is_correct = Column(Boolean, nullable=False, default=False)
     order_index = Column(Integer, nullable=False)
@@ -122,8 +121,8 @@ class ContentAssetLink(Base):
     __tablename__ = "content_asset_links"
     
     id = Column(Integer, primary_key=True, index=True)
-    item_id = Column(Integer, ForeignKey("content_items.id"), nullable=True)
-    step_id = Column(Integer, ForeignKey("content_steps.id"), nullable=True)
+    item_id = Column(Integer, ForeignKey("content_items.id", ondelete="CASCADE"), nullable=True)
+    step_id = Column(Integer, ForeignKey("content_steps.id", ondelete="CASCADE"), nullable=True)
     manifest_asset_id = Column(String(200), nullable=False)
     asset_type = Column(String(50), nullable=False)
     usage_context = Column(String(50), nullable=True)
