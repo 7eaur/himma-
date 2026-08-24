@@ -4,9 +4,9 @@
 
 **Base:** `recovery/codex-baseline@e5fafe757bd57f8bdce35a8f8d0f3bbcc0784c2d`
 
-**Last Verified:** 2026-08-24T06:22:45Z
+**Last Verified:** 2026-08-24T06:33:19Z
 
-**Overall Phase:** B01 — LOCAL GATE PASS; REMOTE GATE PENDING
+**Overall Phase:** B01 — REMOTE GATE PASS; WAITING FOR USER ACCEPTANCE
 
 ---
 
@@ -21,7 +21,7 @@
 - Planned checks: exact 30 pretest + 30 posttest + 10 core/5 reinforcement per level; correct 10/12/8 assessment distribution; stable/unique IDs; one skill per item; approved interaction enum; source hash/drift check; manifest ID and binary existence; semantic audio text match; explicit declaration of unavailable media; deterministic generation; seed idempotency; full backend/frontend/integration gate.
 - Known boundary: B01 establishes the legal catalog and seed contract. Full UI behavior for every interaction template remains a later vertical slice and AC-03/AC-04 are not declared fully closed here.
 
-### B01 local gate result
+### B01 gate result
 
 | Gate | Current result |
 |---|---|
@@ -36,8 +36,9 @@
 | Frontend | PASS — ESLint, TypeScript, 4/4 Jest tests, and Next.js production build (17 routes) |
 | Content package TypeScript | PASS |
 | Diff/secret hygiene | PASS — no whitespace errors and no new credential material |
+| GitHub Actions | PASS — run [#28](https://github.com/7eaur/himma-/actions/runs/32697460612) on `dc272337f389b63a1eb017b32c3f899570b15226`; `backend`, `frontend`, and `integration` |
 
-No Docker was run locally. PostgreSQL/MinIO/Redis and the full browser path remain the GitHub Actions remote gate for this slice.
+No Docker was run locally. GitHub Actions completed the PostgreSQL/MinIO/Redis gate, idempotent seed, migrations/drift check, production builds, and the full student/audio-review browser path. B01 is paused here until the user explicitly replies `تم`; B02 has not started.
 
 ---
 
