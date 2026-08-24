@@ -4,21 +4,38 @@
 
 **Base:** `b01/content-source-of-truth@26d25e081b0c7c66f5d6b09b8b1750e67c745b41`
 
-**Last Verified:** 2026-08-24T22:05:29Z
+**Last Verified:** 2026-08-24T22:53:16Z
 
-**Overall Phase:** B02 — STUDENT DATA AND ASSESSMENT LIFECYCLE IN PROGRESS
+**Overall Phase:** B02 — REMOTE GREEN; WAITING FOR USER ACCEPTANCE
 
 ---
 
 ## Current slice — B02: student data and assessment lifecycle
 
 - Acceptance IDs affected: AC-02, AC-03, AC-05, AC-10 (lifecycle contract only), and AC-14.
-- Scope: make the researcher's student record, grade, pseudonymous access code, status, and current level consistent across database/API/UI; enforce one resumable pretest/posttest session per student; persist item/step progress and elapsed time; require idempotent submissions; and prevent duplicate or early completion.
-- Migration impact: additive migration expected for missing student/lifecycle fields, constraints, and indexes. No destructive data migration is authorized. Upgrade and downgrade/restore notes are required, and PostgreSQL `alembic check` is authoritative.
+- Delivered scope: the researcher can create and inspect the maximum 15 grade-three student records and enable an eligible posttest; the student receives a pseudonymous code, starts or resumes exactly one pretest/posttest, resumes the exact unanswered step, submits choice/audio responses idempotently, and retains durable item/step timing and progress.
+- Migration impact: additive `0004_student_lifecycle` migration adds lifecycle fields, checks, unique/partial indexes, and durable operation idempotency. PostgreSQL upgrade/downgrade/upgrade and `alembic check` passed; no B01 content or user data is destructively rewritten.
 - Privacy/security impact: minimal child profile only; no email or self-registration. Codes remain pseudonymous and unique, researcher-only student management is server-authorized, student resources remain ownership-scoped, and logs/tests use synthetic identifiers only.
-- Failure/rollback: retain the last committed attempt/checkpoint; interrupted requests resume the existing session/item without duplicate attempts or responses. The migration must downgrade without deleting existing B01 content.
-- Planned checks: model/schema/API/UI contract audit; unique-code collision handling; 15-student boundary; grade/status validation; researcher/student authorization and IDOR; one active session; pre/post eligibility; exact 30-item lifecycle; multi-step item progression; elapsed-time persistence; idempotency/retry; early-finish rejection; interruption/resume E2E; migration upgrade/downgrade/upgrade and drift; full backend/frontend/integration gate.
+- Failure/rollback: retain the last committed attempt/checkpoint; interrupted requests resume the existing session/item without duplicate attempts or responses. The migration downgrade removes only B02 schema additions and leaves B01 content intact.
+- Production correction found by the remote gate: the same-origin Next.js proxy now forwards the allowlisted `Idempotency-Key`; without this, FastAPI correctly rejected student submissions and the browser remained at `0/30`.
 - Known boundary: B02 establishes deterministic student and assessment state. Initial level thresholds and adaptive reinforcement decisions belong to B03; final improvement analytics belong to B05.
+
+### B02 gate result
+
+| Gate | Current result |
+|---|---|
+| Approved content | PASS — 105 items, 44 skills, exact 30/30 assessments and two explicit media gaps |
+| Student contract | PASS — grade fixed to 3, non-ambiguous unique code, researcher ownership, and hard 15-student boundary |
+| Assessment lifecycle | PASS — one pre/post session, researcher-enabled posttest, exact-step resume, early-finish rejection, rerecord support, and durable timing |
+| Idempotency | PASS — answer and audio replay without duplicate rows or double-counted time; changed payload conflicts; web proxy preserves the key |
+| Backend tests | PASS — 37/37; one dependency deprecation warning |
+| Frontend | PASS — ESLint, TypeScript, 4/4 Jest tests, and Next.js production build (17 routes) |
+| Alembic | PASS — PostgreSQL upgrade/downgrade/upgrade, single head `0004_student_lifecycle`, and no model drift |
+| Browser integration | PASS — researcher creates student; student completes 30 questions with audio and a forced reload/resume; researcher grades audio; final result and roster update verified |
+| Diff/secret hygiene | PASS — no whitespace errors, new credential material, production TODO/FIXME, or mock/fake assessment path |
+| GitHub Actions | PASS — run [#32](https://github.com/7eaur/himma-/actions/runs/32786468307) on `f45cf88a92a32a7569357db3416c90861332e015`; `backend`, `frontend`, and `integration` |
+
+No Docker was run locally. GitHub Actions provided disposable PostgreSQL, Redis, and pinned-checksum MinIO services for the authoritative remote gate. B02 is paused at this green checkpoint until the user explicitly replies `تم`; B03 has not started.
 
 ---
 
@@ -50,7 +67,7 @@
 | Diff/secret hygiene | PASS — no whitespace errors and no new credential material |
 | GitHub Actions | PASS — run [#28](https://github.com/7eaur/himma-/actions/runs/32697460612) on `dc272337f389b63a1eb017b32c3f899570b15226`; `backend`, `frontend`, and `integration` |
 
-No Docker was run locally. GitHub Actions completed the PostgreSQL/MinIO/Redis gate, idempotent seed, migrations/drift check, production builds, and the full student/audio-review browser path. B01 is paused here until the user explicitly replies `تم`; B02 has not started.
+No Docker was run locally. GitHub Actions completed the PostgreSQL/MinIO/Redis gate, idempotent seed, migrations/drift check, production builds, and the full student/audio-review browser path. The user accepted B01 and authorized B02 with the explicit word `تم`.
 
 ---
 
@@ -144,4 +161,4 @@ The B00 remote gate is complete on `recovery/codex-baseline@e5fafe757bd57f8bdce3
 
 ## 🔜 Next: P03 — Professional Design & Routes
 
-Branch: `recovery/p02-baseline` → merge to main → start P03
+Historical next step at that time: `recovery/p02-baseline` → P03. This instruction is superseded by the B00–B02 recovery plan above.

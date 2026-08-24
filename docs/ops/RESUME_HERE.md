@@ -1,78 +1,44 @@
-# RESUME HERE — P02 Baseline Recovery
+# RESUME HERE — B02 Student Assessment Lifecycle
 
-**Last updated:** 2026-08-18T22:42:00Z  
-**Branch:** `recovery/p02-baseline`  
-**HEAD:** `616a2ac`
+**Last updated:** 2026-08-24T22:53:16Z
 
-## Current Status: LOCAL STACK VERIFIED ✓
+**Branch:** `b02/student-assessment-lifecycle`
 
-All 12 integration checks passed at `2026-08-18T22:41:46`:
+**Base:** `b01/content-source-of-truth@26d25e081b0c7c66f5d6b09b8b1750e67c745b41`
 
-| Check | Result |
+**Verified implementation:** `f45cf88a92a32a7569357db3416c90861332e015`
+
+## Current status: REMOTE GREEN — WAITING FOR USER ACCEPTANCE
+
+B02 is complete within its approved boundary. GitHub Actions [#32](https://github.com/7eaur/himma-/actions/runs/32786468307) passed `backend`, `frontend`, and `integration` with PostgreSQL, Redis, pinned-checksum MinIO, and Playwright. Do not start B03 until the user explicitly replies `تم`.
+
+## Delivered
+
+- Researcher-owned student records with grade fixed to 3, pseudonymous unique access codes, and a hard maximum of 15 students.
+- One pretest and one researcher-enabled posttest per student, with one active session at a time.
+- Exact unanswered-step resume after interruption, persisted item/step timing, early-finish rejection, and audio rerecord recovery.
+- Durable idempotency for choice answers and audio uploads, including replay, changed-payload conflicts, deterministic audio keys, and no duplicate/double-counted submissions.
+- Student/researcher UI contracts for resume, progress, posttest eligibility, and posttest enable/disable.
+- Additive Alembic revision `0004_student_lifecycle`; PostgreSQL upgrade/downgrade/upgrade and drift check passed.
+- Same-origin web proxy allowlists and forwards `Idempotency-Key`; the remote E2E caught and verified this production correction.
+
+## Gate evidence
+
+| Gate | Result |
 |---|---|
-| FastAPI /health | ✓ ok |
-| Researcher login | ✓ 200 + JWT cookie |
-| /me endpoint | ✓ role=researcher |
-| Create student | ✓ id + access_code |
-| Admin logout | ✓ 200 |
-| Student login | ✓ 200 + JWT cookie |
-| Student profile | ✓ 200 |
-| Start assessment | ✓ session_id created in PostgreSQL |
-| Get question | ✓ id=1, type=multiple_choice (real Arabic content) |
-| Submit answer | ✓ saved to PostgreSQL attempts table |
-| Upload audio | ✓ 25005 bytes in MinIO himma-audio bucket |
-| Verify in DB | ✓ 1 attempt, 1 session row in PostgreSQL |
+| Backend | 37/37 tests passed |
+| Frontend | TypeScript, ESLint, 4/4 Jest, production build passed |
+| Content | 105 items, 44 skills, exact required distributions, two declared audio gaps |
+| Alembic | Single head, upgrade/downgrade/upgrade, no schema drift |
+| Browser E2E | 30-question pretest, audio upload/review, forced reload/resume, final result, roster update |
+| GitHub Actions | Run #32 — all required jobs passed |
 
-## Local Services
+No Docker was run locally. Local checks used the repository runtimes; the remote gate supplied disposable services. No real child data, recording, credential, database dump, cache, or dependency directory was committed.
 
-| Service | URL | Status |
-|---|---|---|
-| PostgreSQL 18 | `localhost:5432` | Windows Service (auto) |
-| MinIO | `http://localhost:9000` | Manual terminal |
-| Redis | `localhost:6379` | Manual terminal |
-| FastAPI | `http://localhost:8000` | Manual terminal |
-| Next.js | `http://localhost:3000` | Not started yet |
+## Remaining external decisions
 
-## How to Start Services
+Use `docs/ops/OPEN_ITEMS.md`. B03 is not blocked by those items. OI-02 becomes blocking before B04; recording retention, secret rotation, and hosting remain launch/production gates.
 
-1. **PostgreSQL** — runs automatically as Windows service
-2. **MinIO** — open CMD, run:
-   ```cmd
-   set MINIO_ROOT_USER=<set-locally>
-   set MINIO_ROOT_PASSWORD=<set-locally>
-   C:\himma-services\minio\minio.exe server E:\himma-services\minio-data --console-address :9001 --address :9000
-   ```
-3. **Redis** — open CMD, run:
-   ```cmd
-   C:\himma-services\redis\redis-server.exe
-   ```
-4. **FastAPI** — open CMD, run:
-   ```cmd
-   set DATABASE_URL=<set-locally>
-   set API_SECRET_KEY=<set-locally>
-   set S3_ENDPOINT=http://localhost:9000
-   set S3_ACCESS_KEY=<set-locally>
-   set S3_SECRET_KEY=<set-locally>
-   set S3_BUCKET_NAME=himma-audio
-   set REDIS_URL=redis://localhost:6379/0
-   set ENV=development
-   cd /d "e:\مشروع منصه همه\Himma_Unified_Repository_v1.1_FINAL\services\api"
-   python run_dev.py
-   ```
-5. **Next.js** — open CMD, run:
-   ```cmd
-   cd /d "e:\مشروع منصه همه\Himma_Unified_Repository_v1.1_FINAL\apps\web"
-   set NEXT_PUBLIC_API_URL=http://localhost:8000
-   npm run dev
-   ```
+## Next after explicit `تم`
 
-## Local credentials
-
-لا تُحفظ قيم الاتصال في المستودع. أنشئ قيمًا محلية جديدة في `.env` غير
-المرفوع، ودوّر القيم التي كانت موثقة سابقًا قبل إعادة استخدامها.
-
-## Next Step: P02 Slice 2 — Next.js + End-to-End Browser Flow
-- Start Next.js dev server
-- Fix admin login UI (no redirect loop)  
-- Verify full browser flow: login → create student → student session → audio recording
-- Fix any remaining middleware redirect issues
+Create a separate B03 branch from this green B02 checkpoint. Implement initial level assignment thresholds and adaptive activity/reinforcement routing using the approved 50/30/20 mastery rules. Do not mix B05 reporting or B04 automatic speech analysis into B03.
