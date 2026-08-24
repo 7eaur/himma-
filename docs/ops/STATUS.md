@@ -4,9 +4,9 @@
 
 **Base:** `stage/04-production-slice@aa89aa8e628247151bf2e4a97eac30b50f9ea238`
 
-**Last Verified:** 2026-08-24T04:03:46Z
+**Last Verified:** 2026-08-24T05:31:04Z
 
-**Overall Phase:** P00-RECOVERY — LOCAL PASS, CI PENDING
+**Overall Phase:** P00-RECOVERY — B00 REMOTE GATE PASS; WAITING FOR USER ACCEPTANCE
 
 ---
 
@@ -33,14 +33,15 @@
 | Next.js production build | PASS — 17 routes |
 | Backend tests | PASS — 30/30; one dependency deprecation warning |
 | Python compilation | PASS |
-| Alembic | Four-revision PostgreSQL offline upgrade PASS; real PostgreSQL upgrade/downgrade/upgrade and `alembic check` delegated to CI |
+| Alembic | PASS — PostgreSQL upgrade/downgrade/upgrade and `alembic check` completed in CI |
 | No-Docker smoke | PASS — FastAPI + Next production start, API proxy, researcher/student login, HttpOnly/Lax cookie, no JavaScript-readable duplicate token |
 | Secret hygiene | PASS for current tracked tree after redaction; previously exposed values still require rotation before production |
 | Audio state machine | PASS in tests — uploaded → rerecord required → attempt reopened → replacement uploaded |
+| GitHub Actions | PASS — run [#26](https://github.com/7eaur/himma-/actions/runs/32693585887): `backend`, `frontend`, and `integration` |
 
 Material repairs include deterministic test isolation, the canonical `read_aloud` contract, resumable pending attempts, strict finish behavior, audio ownership/metadata validation, authorized recording playback, a single HttpOnly authentication cookie, required environment configuration, and CI gates for PostgreSQL, MinIO, and the complete browser slice.
 
-The local gate is complete. B00 remains open only until the pushed commit passes GitHub Actions on real PostgreSQL and MinIO.
+The B00 remote gate is complete on `recovery/codex-baseline@24c5175c52ed893d1221c4b9b5432083ff04df91`. GitHub Actions passed the backend, frontend, and full PostgreSQL/MinIO/Redis browser integration gates. Work is paused here until the user explicitly replies `تم`.
 
 ### B00 exit gate
 

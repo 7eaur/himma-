@@ -5,9 +5,9 @@
   "base_sha": "aa89aa8e628247151bf2e4a97eac30b50f9ea238",
   "phase": "P00-RECOVERY",
   "slice": "B00-TRUSTED-BASELINE",
-  "gate_status": "LOCAL_PASS_CI_PENDING",
-  "last_verified": "2026-08-24T04:03:46Z",
-  "current_goal": "Push the recovered baseline and require green GitHub Actions on PostgreSQL and MinIO before feature work",
+  "gate_status": "REMOTE_PASS_WAITING_USER_ACCEPTANCE",
+  "last_verified": "2026-08-24T05:31:04Z",
+  "current_goal": "Preserve the accepted B00 remote-gate evidence and pause until the user explicitly replies تم",
   "baseline_results": {
     "typescript": "PASS",
     "eslint": "PASS: 0 errors, 0 warnings",
@@ -15,7 +15,7 @@
     "frontend_build": "PASS: Next.js production build, 17 routes",
     "backend_pytest": "PASS: 30 tests; one dependency deprecation warning",
     "python_compile": "PASS",
-    "alembic": "LOCAL PASS: four-revision PostgreSQL offline upgrade; real PostgreSQL upgrade/downgrade/upgrade and model drift check pending CI",
+    "alembic": "PASS: PostgreSQL upgrade/downgrade/upgrade and alembic check completed in CI",
     "smoke": "PASS: FastAPI and Next production, API proxy, researcher/student login, secure cookie contract",
     "security": "PASS for current tracked tree; rotation of previously exposed values remains mandatory before production",
     "audio_rerecord": "PASS: rejected recording reopens attempt and replacement returns to review"
@@ -28,11 +28,15 @@
     "claim": "Assessment runner, audio upload, manual review, and level result existed but the reported gate was not reproducible",
     "superseded_by": "B00-TRUSTED-BASELINE"
   },
-  "remaining_gate": {
+  "remote_gate": {
     "system": "GitHub Actions",
+    "workflow_run_id": 32693585887,
+    "workflow_run_number": 26,
+    "workflow_run_url": "https://github.com/7eaur/himma-/actions/runs/32693585887",
+    "head_sha": "24c5175c52ed893d1221c4b9b5432083ff04df91",
     "required_jobs": ["backend", "frontend", "integration"],
     "services": ["PostgreSQL", "MinIO", "Redis"],
-    "status": "PENDING_PUSH"
+    "status": "PASS"
   },
-  "next_step": "Commit and push recovery/codex-baseline, inspect CI evidence, then pause for stage acceptance"
+  "next_step": "Wait for the user's explicit word تم before starting B01"
 }
