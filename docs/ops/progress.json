@@ -1,13 +1,13 @@
 {
   "schema_version": 2,
   "plan_version": "HIMMA-V2",
-  "branch": "b01/content-source-of-truth",
-  "base_sha": "e5fafe757bd57f8bdce35a8f8d0f3bbcc0784c2d",
-  "phase": "B01-CONTENT",
-  "slice": "B01-CONTENT-SOURCE-OF-TRUTH",
-  "gate_status": "REMOTE_PASS_WAITING_USER_ACCEPTANCE",
-  "last_verified": "2026-08-24T06:33:19Z",
-  "current_goal": "Preserve the accepted B01 evidence and wait for the user's explicit تم before B02",
+  "branch": "b02/student-assessment-lifecycle",
+  "base_sha": "26d25e081b0c7c66f5d6b09b8b1750e67c745b41",
+  "phase": "B02-STUDENT-ASSESSMENT",
+  "slice": "B02-STUDENT-DATA-AND-ASSESSMENT-LIFECYCLE",
+  "gate_status": "IN_PROGRESS",
+  "last_verified": "2026-08-24T22:05:29Z",
+  "current_goal": "Unify student data and implement an idempotent resumable pre/post assessment lifecycle with durable timing",
   "baseline_results": {
     "typescript": "PASS",
     "eslint": "PASS: 0 errors, 0 warnings",
@@ -23,15 +23,15 @@
     "content_schema": "PASS: JSON Schema Draft 2020-12 and deterministic source-equivalence validator",
     "content_seed": "PASS: idempotent exact counts and explicit refusal to mix a legacy catalog"
   },
-  "migration_policy": "B01 makes no schema migration; legacy seeded data requires a reviewed versioned reconciliation and the seed fails closed until then",
-  "acceptance_ids": ["AC-03", "AC-04"],
+  "migration_policy": "Additive B02 migration only; no destructive data rewrite; require PostgreSQL upgrade/downgrade/upgrade and alembic check",
+  "acceptance_ids": ["AC-02", "AC-03", "AC-05", "AC-10", "AC-14"],
   "historical_p04": {
     "source_branch": "stage/04-production-slice",
     "source_sha": "aa89aa8e628247151bf2e4a97eac30b50f9ea238",
     "claim": "Assessment runner, audio upload, manual review, and level result existed but the reported gate was not reproducible",
     "superseded_by": "B00-TRUSTED-BASELINE"
   },
-  "remote_gate": {
+  "previous_remote_gate": {
     "system": "GitHub Actions",
     "workflow_run_id": 32697460612,
     "workflow_run_number": 28,
@@ -41,5 +41,5 @@
     "services": ["PostgreSQL", "MinIO", "Redis"],
     "status": "PASS"
   },
-  "next_step": "Wait for the user's explicit word تم before starting B02"
+  "next_step": "Audit current student/session/attempt contracts, then implement the smallest complete B02 migration/API/UI/test slice"
 }

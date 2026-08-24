@@ -30,16 +30,14 @@ export interface ContentItem {
   steps: ContentStep[];
 }
 
-/** Assessment session (pretest / posttest / core) */
+/** Assessment session exposed by the B02 student assessment API. */
 export interface AssessmentSession {
   id: number;
-  student_id: number;
-  session_type: "pretest" | "posttest" | "core";
-  status: "in_progress" | "completed" | "abandoned";
+  session_type: "pretest" | "posttest";
+  status: "in_progress" | "completed";
   started_at: string;
   completed_at: string | null;
-  final_score: number | null;
-  assigned_level: number | null;
+  elapsed_seconds: number;
 }
 
 /** Audio submission awaiting researcher review */
@@ -67,9 +65,12 @@ export interface StudentProfile {
   id: number;
   full_name: string;
   access_code: string;
-  grade: number;
+  grade_level: 3;
   current_level: number;
   status: "active" | "inactive";
+  posttest_enabled: boolean;
+  next_action: "resume" | "pretest" | "learning" | "posttest" | "completed";
+  active_session: AssessmentSession | null;
 }
 
 /** Student as returned in researcher list */
@@ -77,7 +78,10 @@ export interface StudentListItem {
   id: number;
   full_name: string;
   access_code: string;
-  grade: number;
+  grade_level: 3;
   current_level: number;
   status: "active" | "inactive";
+  posttest_enabled: boolean;
+  posttest_eligible: boolean;
+  created_at: string;
 }

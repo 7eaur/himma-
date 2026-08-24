@@ -6,7 +6,7 @@ import Link from "next/link";
 import { UserPlus, Eye } from "lucide-react";
 
 interface Student {
-  id: string;
+  id: number;
   full_name: string;
   grade_level: number;
   access_code: string;

@@ -121,6 +121,110 @@ class TestResearcherProtected:
         assert r.status_code == 403
 
 
+class TestStudentLifecycle:
+    def test_create_and_detail_use_one_grade_three_contract(self, researcher_client):
+        import re
+
+        created = researcher_client.post(
+            "/researcher/students",
+            json={"full_name": "  طالب   تجريبي  ", "grade_level": 3},
+        )
+        assert created.status_code == 201
+        body = created.json()
+        assert body["full_name"] == "طالب تجريبي"
+        assert body["grade_level"] == 3
+        assert body["status"] == "active"
+        assert body["current_level"] == 1
+        assert body["posttest_enabled"] is False
+        assert body["posttest_eligible"] is False
+        assert body["created_at"]
+        assert re.fullmatch(r"[A-HJ-NP-Z]{4}-[2-9]{4}", body["access_code"])
+
+        detail = researcher_client.get(f"/researcher/students/{body['id']}")
+        assert detail.status_code == 200
+        assert detail.json() == body
+
+    def test_rejects_non_third_grade(self, researcher_client):
+        invalid = researcher_client.post(
+            "/researcher/students",
+            json={"full_name": "طالب تجريبي", "grade_level": 2},
+        )
+        assert invalid.status_code == 422
+
+    def test_student_cannot_read_researcher_detail(self, student_client):
+        assert student_client.get("/researcher/students/1").status_code == 403
+
+    def test_study_cap_is_exactly_fifteen_students(self, researcher_client):
+        for number in range(2, 16):
+            created = researcher_client.post(
+                "/researcher/students",
+                json={"full_name": f"طالب رقم {number}", "grade_level": 3},
+            )
+            assert created.status_code == 201
+
+        rejected = researcher_client.post(
+            "/researcher/students",
+            json={"full_name": "طالب زائد", "grade_level": 3},
+        )
+        assert rejected.status_code == 409
+        assert "15" in rejected.json()["detail"]
+
+    def test_posttest_requires_completed_pretest_and_researcher_enable(self, client):
+        from datetime import datetime, timezone
+        from db.database import SessionLocal
+        from db.models import AssessmentSession, Student
+
+        assert client.post(
+            "/auth/student-login", json={"access_code": "STU001"}
+        ).status_code == 200
+        blocked = client.post(
+            "/assessment/start", json={"session_type": "posttest"}
+        )
+        assert blocked.status_code == 409
+
+        db = SessionLocal()
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        db.add(AssessmentSession(
+            student_id=student.id,
+            session_type="pretest",
+            status="completed",
+            completed_at=datetime.now(timezone.utc),
+        ))
+        db.commit()
+        student_id = student.id
+        db.close()
+
+        assert client.post(
+            "/auth/login",
+            json={
+                "username": "researcher1",
+                "password": "test-only-researcher-password",
+            },
+        ).status_code == 200
+        enabled = client.post(
+            f"/researcher/students/{student_id}/posttest-access",
+            json={"enabled": True},
+        )
+        assert enabled.status_code == 200
+        assert enabled.json()["posttest_enabled"] is True
+        assert enabled.json()["posttest_eligible"] is True
+
+        assert client.post(
+            "/auth/student-login", json={"access_code": "STU001"}
+        ).status_code == 200
+        profile = client.get("/profile")
+        assert profile.json()["next_action"] == "posttest"
+        started = client.post(
+            "/assessment/start", json={"session_type": "posttest"}
+        )
+        assert started.status_code == 200
+        resumed = client.post(
+            "/assessment/start", json={"session_type": "posttest"}
+        )
+        assert resumed.status_code == 200
+        assert resumed.json()["id"] == started.json()["id"]
+
+
 # ═══════════════════════════════════════════════════════════════════════
 # 6. Student-only endpoints → 200 / 401 / 403
 # ═══════════════════════════════════════════════════════════════════════
@@ -238,19 +342,53 @@ class TestStage2:
         assert res.status_code == 401
 
     def test_idempotency_key(self, student_client):
-        # Start session
+        import seed
+        from db.database import SessionLocal
+        from db.models import AssessmentSession, AttemptResponse
+
+        seed.run_seed()
         res = student_client.post("/assessment/start", json={"session_type": "pretest"})
         assert res.status_code == 200
         session_id = res.json()["id"]
-        
-        # Submit same attempt twice with same idempotency key
-        headers = {"Idempotency-Key": "test-key-123"}
-        res1 = student_client.post(f"/assessment/session/{session_id}/attempt/1/submit", json={"step_id": 1}, headers=headers)
-        res2 = student_client.post(f"/assessment/session/{session_id}/attempt/1/submit", json={"step_id": 1}, headers=headers)
-        
-        # In a real idempotency setup, res2 should match res1 or return 409
-        # For now, just ensuring it doesn't crash
-        assert res1.status_code in [200, 400, 404]
+        item = student_client.get(
+            f"/assessment/session/{session_id}/next"
+        ).json()
+        step = item["steps"][0]
+        payload = {
+            "step_id": step["id"],
+            "selected_option_id": step["options"][0]["id"],
+            "elapsed_seconds": 7,
+        }
+        headers = {"Idempotency-Key": "test-answer-key-0001"}
+
+        first = student_client.post(
+            f"/assessment/session/{session_id}/attempt/{item['id']}/submit",
+            json=payload,
+            headers=headers,
+        )
+        replay = student_client.post(
+            f"/assessment/session/{session_id}/attempt/{item['id']}/submit",
+            json=payload,
+            headers=headers,
+        )
+
+        assert first.status_code == 200
+        assert replay.status_code == 200
+        assert replay.json() == first.json()
+        db = SessionLocal()
+        assert db.query(AttemptResponse).count() == 1
+        assert db.query(AssessmentSession).filter(
+            AssessmentSession.id == session_id
+        ).one().elapsed_seconds == 7
+        db.close()
+
+        changed = dict(payload, elapsed_seconds=8)
+        conflict = student_client.post(
+            f"/assessment/session/{session_id}/attempt/{item['id']}/submit",
+            json=changed,
+            headers=headers,
+        )
+        assert conflict.status_code == 409
         
     def test_prevent_early_finish(self, student_client):
         # Get active or start
@@ -339,8 +477,71 @@ class TestAssessmentAndScoring:
         assert progress.json() == {
             "completed_items": 0,
             "total_items": 30,
+            "completed_steps": 0,
+            "total_steps": 30,
             "has_pending_item": True,
+            "elapsed_seconds": 0,
         }
+
+    def test_multi_step_item_resumes_exact_unanswered_step(self, student_client):
+        import seed
+        from db.database import SessionLocal
+        from db.models import ContentItem, ContentOption, ContentStep
+
+        seed.run_seed()
+        db = SessionLocal()
+        item = db.query(ContentItem).filter(
+            ContentItem.kind == "pretest_question",
+            ContentItem.interaction_type == "multiple_choice",
+        ).order_by(ContentItem.order_index).first()
+        second_step = ContentStep(
+            item_id=item.id,
+            order_index=2,
+            prompt_text="خطوة اختبار ثانية",
+        )
+        db.add(second_step)
+        db.flush()
+        db.add(ContentOption(
+            step_id=second_step.id,
+            text="إجابة صحيحة",
+            is_correct=True,
+            order_index=1,
+        ))
+        db.commit()
+        second_step_id = second_step.id
+        db.close()
+
+        session = student_client.post(
+            "/assessment/start", json={"session_type": "pretest"}
+        ).json()
+        first = student_client.get(
+            f"/assessment/session/{session['id']}/next"
+        ).json()
+        first_step = first["steps"][0]
+        submitted = student_client.post(
+            f"/assessment/session/{session['id']}/attempt/{first['id']}/submit",
+            headers={"Idempotency-Key": "multi-step-first-0001"},
+            json={
+                "step_id": first_step["id"],
+                "selected_option_id": first_step["options"][0]["id"],
+                "elapsed_seconds": 5,
+            },
+        )
+        assert submitted.status_code == 200
+
+        resumed = student_client.get(
+            f"/assessment/session/{session['id']}/next"
+        )
+        assert resumed.status_code == 200
+        assert resumed.json()["id"] == first["id"]
+        assert [step["id"] for step in resumed.json()["steps"]] == [second_step_id]
+        progress = student_client.get(
+            f"/assessment/session/{session['id']}/progress"
+        ).json()
+        assert progress["completed_items"] == 0
+        assert progress["completed_steps"] == 1
+        assert progress["total_steps"] == 31
+        assert progress["elapsed_seconds"] == 5
 
     def test_next_item_does_not_complete_session(self, student_client):
         session = student_client.post(
@@ -370,6 +571,7 @@ class TestAssessmentAndScoring:
 
         response = student_client.post(
             f"/assessment/session/{session['id']}/attempt/{item['id']}/submit",
+            headers={"Idempotency-Key": "outside-option-0001"},
             json={
                 "step_id": item["steps"][0]["id"],
                 "selected_option_id": 999999,
@@ -427,6 +629,7 @@ class TestAssessmentAndScoring:
         first_key = f"audio/{student_id}/first.webm"
         first = client.post(
             f"/assessment/session/{session_id}/attempt/{item_id}/submit",
+            headers={"Idempotency-Key": "audio-answer-first-0001"},
             json={
                 "step_id": step_id,
                 "audio_storage_key": first_key,
@@ -480,6 +683,7 @@ class TestAssessmentAndScoring:
         second_key = f"audio/{student_id}/second.webm"
         replacement = client.post(
             f"/assessment/session/{session_id}/attempt/{item_id}/submit",
+            headers={"Idempotency-Key": "audio-answer-second-0001"},
             json={
                 "step_id": step_id,
                 "audio_storage_key": second_key,

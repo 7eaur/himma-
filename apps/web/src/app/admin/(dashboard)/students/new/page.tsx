@@ -6,8 +6,6 @@ import { ArrowRight, Copy, CheckCircle } from "lucide-react";
 
 export default function NewStudentPage() {
   const [fullName, setFullName] = useState("");
-  const [gradeLevel, setGradeLevel] = useState("1");
-  const [gender, setGender] = useState("boy");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [successCode, setSuccessCode] = useState("");
@@ -22,11 +20,7 @@ export default function NewStudentPage() {
       const res = await fetch("/api/researcher/students", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          full_name: fullName, 
-          grade_level: parseInt(gradeLevel) 
-          // gender is currently not standard in API, just ignoring for now
-        }),
+        body: JSON.stringify({ full_name: fullName, grade_level: 3 }),
       });
 
       if (res.ok) {
@@ -83,7 +77,6 @@ export default function NewStudentPage() {
               onClick={() => {
                 setSuccessCode("");
                 setFullName("");
-                setGradeLevel("1");
               }}
               className="btn-secondary"
             >
@@ -135,46 +128,15 @@ export default function NewStudentPage() {
             <select
               className="input-field"
               data-testid="input-student-grade"
-              value={gradeLevel}
-              onChange={(e) => setGradeLevel(e.target.value)}
-              required
+              value="3"
+              disabled
+              aria-describedby="grade-help"
             >
-              <option value="1">الصف الأول الابتدائي</option>
-              <option value="2">الصف الثاني الابتدائي</option>
               <option value="3">الصف الثالث الابتدائي</option>
             </select>
-          </div>
-          
-          <div>
-            <label className="block text-navy font-medium mb-3">الجنس</label>
-            <div className="flex gap-4">
-              <label className="flex-1 cursor-pointer">
-                <input 
-                  type="radio" 
-                  name="gender" 
-                  value="boy" 
-                  checked={gender === "boy"}
-                  onChange={() => setGender("boy")}
-                  className="peer sr-only" 
-                />
-                <div className="p-4 border border-border rounded-lg text-center peer-checked:border-primary peer-checked:bg-primary/5 transition-colors">
-                  ولد
-                </div>
-              </label>
-              <label className="flex-1 cursor-pointer">
-                <input 
-                  type="radio" 
-                  name="gender" 
-                  value="girl" 
-                  checked={gender === "girl"}
-                  onChange={() => setGender("girl")}
-                  className="peer sr-only" 
-                />
-                <div className="p-4 border border-border rounded-lg text-center peer-checked:border-primary peer-checked:bg-primary/5 transition-colors">
-                  بنت
-                </div>
-              </label>
-            </div>
+            <p id="grade-help" className="text-sm text-muted mt-2">
+              عينة الدراسة معتمدة لطلاب الصف الثالث فقط.
+            </p>
           </div>
 
           <div className="pt-4 border-t border-border flex justify-end gap-4">

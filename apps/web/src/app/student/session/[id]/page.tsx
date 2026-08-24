@@ -41,6 +41,7 @@ export default function SessionPage() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const stepStartedAtRef = useRef<number>(0);
   
   // Result state
   const [finalScore, setFinalScore] = useState<number | null>(null);
@@ -85,6 +86,7 @@ export default function SessionPage() {
       });
       setRecordingTime(0);
       setItem(data);
+      stepStartedAtRef.current = Date.now();
       const isAudioItem = data.interaction_type === 'read_aloud' || data.interaction_type === 'audio_record';
       setPhase(isAudioItem ? 'recording' : 'question');
     } catch {
@@ -108,26 +110,55 @@ export default function SessionPage() {
     return () => window.clearTimeout(initialLoad);
   }, [fetchNextItem, fetchProgress]);
 
+  const operationKey = (operation: 'answer' | 'upload') => {
+    if (!item?.steps[0]) return '';
+    return `himma:idempotency:${sessionId}:${item.id}:${item.steps[0].id}:${operation}`;
+  };
+
+  const getIdempotencyKey = (operation: 'answer' | 'upload') => {
+    const storageKey = operationKey(operation);
+    if (!storageKey) return crypto.randomUUID();
+    const existing = window.sessionStorage.getItem(storageKey);
+    if (existing) return existing;
+    const created = crypto.randomUUID();
+    window.sessionStorage.setItem(storageKey, created);
+    return created;
+  };
+
+  const clearIdempotencyKeys = () => {
+    for (const operation of ['answer', 'upload'] as const) {
+      const storageKey = operationKey(operation);
+      if (storageKey) window.sessionStorage.removeItem(storageKey);
+    }
+  };
+
   const submitAnswer = async (optionId: number | null, audioKey?: string, audioSize?: number, audioMime?: string) => {
     if (!item || !item.steps[0]) return;
     setPhase('submitting');
-    if (optionId) setFeedbackOption(optionId);
+    if (optionId !== null) setFeedbackOption(optionId);
+    const elapsedSeconds = Math.min(
+      3600,
+      Math.max(0, Math.floor((Date.now() - stepStartedAtRef.current) / 1000)),
+    );
     try {
       const res = await fetch(`${BASE}/api/assessment/session/${sessionId}/attempt/${item.id}/submit`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Idempotency-Key': getIdempotencyKey('answer'),
+        },
         body: JSON.stringify({
           step_id: item.steps[0].id,
           selected_option_id: optionId,
           audio_storage_key: audioKey,
           audio_file_size: audioSize,
           audio_mime_type: audioMime,
+          elapsed_seconds: elapsedSeconds,
         })
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setAnswered(prev => prev + 1);
-      // Brief feedback pause for choice questions
-      if (optionId) await new Promise(r => setTimeout(r, 700));
+      clearIdempotencyKeys();
+      await fetchProgress();
       await fetchNextItem();
     } catch {
       setError('حدث خطأ في حفظ الإجابة');
@@ -180,6 +211,7 @@ export default function SessionPage() {
       formData.append('file', audioBlob, 'recording.webm');
       const uploadRes = await fetch(`${BASE}/api/assessment/session/${sessionId}/upload-audio`, {
         method: 'POST',
+        headers: { 'Idempotency-Key': getIdempotencyKey('upload') },
         body: formData
       });
       if (!uploadRes.ok) throw new Error('Upload failed');

@@ -80,7 +80,7 @@ export default function StudentLogin() {
             data-testid="input-access-code"
             value={accessCode}
             onChange={handleAccessCodeChange}
-            placeholder="ABC-1234"
+            placeholder="ABCD-2345"
             maxLength={8}
             required
             dir="ltr"

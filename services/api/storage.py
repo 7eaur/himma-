@@ -1,4 +1,5 @@
 import os
+import hashlib
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 from fastapi import UploadFile
@@ -27,23 +28,54 @@ def init_storage():
     except ClientError:
         s3_client.create_bucket(Bucket=S3_BUCKET_NAME)
 
-def upload_audio(file: UploadFile, owner_id: int) -> tuple[str, int]:
-    """Uploads file to S3 and returns (storage_key, file_size)."""
-    extension = ".webm" if "webm" in (file.content_type or "") else ".audio"
-    key = f"audio/{owner_id}/{uuid.uuid4()}{extension}"
-    s3_client.upload_fileobj(
-        file.file,
-        S3_BUCKET_NAME,
-        key,
-        ExtraArgs={"ContentType": file.content_type}
-    )
-    # Get file size
-    response = s3_client.head_object(Bucket=S3_BUCKET_NAME, Key=key)
-    file_size = response['ContentLength']
+def upload_audio(
+    file: UploadFile,
+    owner_id: int,
+    operation_id: str,
+) -> tuple[str, int, str]:
+    """Store audio under a deterministic key and return key, size, digest."""
+    payload = file.file.read(MAX_AUDIO_BYTES + 1)
+    file_size = len(payload)
     if file_size <= 0 or file_size > MAX_AUDIO_BYTES:
-        s3_client.delete_object(Bucket=S3_BUCKET_NAME, Key=key)
         raise ValueError("Audio file size is outside the allowed range")
-    return key, file_size
+
+    digest = hashlib.sha256(payload).hexdigest()
+    extension = ".webm" if "webm" in (file.content_type or "") else ".audio"
+    object_id = uuid.uuid5(
+        uuid.NAMESPACE_URL,
+        f"himma-audio:{owner_id}:{operation_id}",
+    )
+    key = f"audio/{owner_id}/{object_id}{extension}"
+
+    try:
+        existing = s3_client.head_object(Bucket=S3_BUCKET_NAME, Key=key)
+    except ClientError as exc:
+        error_code = exc.response.get("Error", {}).get("Code")
+        if error_code not in {"404", "NoSuchKey", "NotFound"}:
+            raise RuntimeError("Audio storage is unavailable") from exc
+    except BotoCoreError as exc:
+        raise RuntimeError("Audio storage is unavailable") from exc
+    else:
+        existing_digest = existing.get("Metadata", {}).get("sha256")
+        if (
+            existing.get("ContentLength") == file_size
+            and existing.get("ContentType") == file.content_type
+            and existing_digest == digest
+        ):
+            return key, file_size, digest
+        raise ValueError("Idempotency-Key was reused with different audio")
+
+    try:
+        s3_client.put_object(
+            Bucket=S3_BUCKET_NAME,
+            Key=key,
+            Body=payload,
+            ContentType=file.content_type,
+            Metadata={"sha256": digest},
+        )
+    except (BotoCoreError, ClientError) as exc:
+        raise RuntimeError("Audio storage is unavailable") from exc
+    return key, file_size, digest
 
 
 def verify_audio(storage_key: str, expected_size: int, expected_mime: str) -> None:

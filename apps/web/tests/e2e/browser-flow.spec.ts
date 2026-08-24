@@ -67,7 +67,10 @@ test("P02-S2: Full browser flow — researcher + student", async ({ page }) => {
     page.locator("select").first()
   );
   const gradeExists = await gradeSelect.isVisible().catch(() => false);
-  if (gradeExists) await gradeSelect.selectOption("1");
+  if (gradeExists) {
+    await expect(gradeSelect).toHaveValue("3");
+    await expect(gradeSelect).toBeDisabled();
+  }
 
   const createBtn = page.getByTestId("submit-create-student").or(
     page.getByRole("button", { name: /إنشاء|إضافة|حفظ/ }).first()

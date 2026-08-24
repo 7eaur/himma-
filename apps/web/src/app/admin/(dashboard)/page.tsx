@@ -12,7 +12,7 @@ interface Researcher {
 }
 
 interface Student {
-  id: string;
+  id: number;
   full_name: string;
   grade_level: number;
   access_code: string;

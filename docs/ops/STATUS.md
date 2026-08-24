@@ -1,12 +1,24 @@
 # STATUS — Himma Platform
 
-**Branch:** `b01/content-source-of-truth`
+**Branch:** `b02/student-assessment-lifecycle`
 
-**Base:** `recovery/codex-baseline@e5fafe757bd57f8bdce35a8f8d0f3bbcc0784c2d`
+**Base:** `b01/content-source-of-truth@26d25e081b0c7c66f5d6b09b8b1750e67c745b41`
 
-**Last Verified:** 2026-08-24T06:33:19Z
+**Last Verified:** 2026-08-24T22:05:29Z
 
-**Overall Phase:** B01 — REMOTE GATE PASS; WAITING FOR USER ACCEPTANCE
+**Overall Phase:** B02 — STUDENT DATA AND ASSESSMENT LIFECYCLE IN PROGRESS
+
+---
+
+## Current slice — B02: student data and assessment lifecycle
+
+- Acceptance IDs affected: AC-02, AC-03, AC-05, AC-10 (lifecycle contract only), and AC-14.
+- Scope: make the researcher's student record, grade, pseudonymous access code, status, and current level consistent across database/API/UI; enforce one resumable pretest/posttest session per student; persist item/step progress and elapsed time; require idempotent submissions; and prevent duplicate or early completion.
+- Migration impact: additive migration expected for missing student/lifecycle fields, constraints, and indexes. No destructive data migration is authorized. Upgrade and downgrade/restore notes are required, and PostgreSQL `alembic check` is authoritative.
+- Privacy/security impact: minimal child profile only; no email or self-registration. Codes remain pseudonymous and unique, researcher-only student management is server-authorized, student resources remain ownership-scoped, and logs/tests use synthetic identifiers only.
+- Failure/rollback: retain the last committed attempt/checkpoint; interrupted requests resume the existing session/item without duplicate attempts or responses. The migration must downgrade without deleting existing B01 content.
+- Planned checks: model/schema/API/UI contract audit; unique-code collision handling; 15-student boundary; grade/status validation; researcher/student authorization and IDOR; one active session; pre/post eligibility; exact 30-item lifecycle; multi-step item progression; elapsed-time persistence; idempotency/retry; early-finish rejection; interruption/resume E2E; migration upgrade/downgrade/upgrade and drift; full backend/frontend/integration gate.
+- Known boundary: B02 establishes deterministic student and assessment state. Initial level thresholds and adaptive reinforcement decisions belong to B03; final improvement analytics belong to B05.
 
 ---
 

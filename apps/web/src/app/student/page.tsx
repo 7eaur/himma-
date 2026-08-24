@@ -6,9 +6,11 @@ import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 
 interface StudentMe {
-  id: string;
+  id: number;
   full_name: string;
   grade_level: number;
+  next_action: "resume" | "pretest" | "learning" | "posttest" | "completed";
+  active_session: { id: number; session_type: "pretest" | "posttest" } | null;
 }
 
 export default function StudentHomePage() {
@@ -16,26 +18,17 @@ export default function StudentHomePage() {
   const [student, setStudent] = useState<StudentMe | null>(null);
   const [loading, setLoading] = useState(true);
   const [startingSession, setStartingSession] = useState(false);
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [meRes, activeRes] = await Promise.all([
-          fetch("/api/me"),
-          fetch("/api/assessment/active")
-        ]);
-        if (meRes.ok) {
-          setStudent(await meRes.json());
-        }
-        if (activeRes.ok) {
-          const activeSession = await activeRes.json();
-          if (activeSession && activeSession.id) {
-            setActiveSessionId(activeSession.id);
-          }
-        }
+        const profileRes = await fetch("/api/profile");
+        if (!profileRes.ok) throw new Error("تعذر تحميل مسار الطالب");
+        setStudent(await profileRes.json());
       } catch (err) {
         console.error("Error fetching student info or active session", err);
+        setError("تعذر تحميل بياناتك. يرجى تحديث الصفحة.");
       } finally {
         setLoading(false);
       }
@@ -44,24 +37,32 @@ export default function StudentHomePage() {
   }, []);
 
   const handleStartAssessment = async () => {
-    if (activeSessionId) {
-      router.push(`/student/session/${activeSessionId}`);
+    if (!student) return;
+    if (student.active_session) {
+      router.push(`/student/session/${student.active_session.id}`);
       return;
     }
+    if (student.next_action !== "pretest" && student.next_action !== "posttest") return;
     
     setStartingSession(true);
+    setError("");
     try {
       const res = await fetch("/api/assessment/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_type: "pretest" })
+        body: JSON.stringify({ session_type: student.next_action })
       });
       if (res.ok) {
         const session = await res.json();
         router.push(`/student/session/${session.id}`);
+      } else {
+        const data = await res.json().catch(() => null);
+        setError(data?.detail || "تعذر بدء الاختبار");
+        setStartingSession(false);
       }
     } catch (err) {
       console.error("Error starting assessment", err);
+      setError("تعذر الاتصال بالخادم");
       setStartingSession(false);
     }
   };
@@ -116,12 +117,19 @@ export default function StudentHomePage() {
           <div className="student-grade-badge">الصف {student.grade_level}</div>
         )}
         <p className="student-subtitle">
-          هل أنت مستعد لنبدأ رحلة التعلم والتطور معاً؟
+          {student?.next_action === "learning"
+            ? "أكملت الاختبار القبلي. ستظهر أنشطة مستواك في المرحلة التعليمية التالية."
+            : student?.next_action === "completed"
+              ? "أكملت الاختبارين القبلي والبعدي بنجاح."
+              : student?.next_action === "posttest"
+                ? "أصبح الاختبار البعدي متاحًا لك."
+                : "هل أنت مستعد لنبدأ رحلة التعلم والتطور معاً؟"}
         </p>
+        {error && <p className="alert-error">{error}</p>}
         
         <button
           onClick={handleStartAssessment}
-          disabled={startingSession}
+          disabled={startingSession || student?.next_action === "learning" || student?.next_action === "completed"}
           className="student-start-btn"
         >
           {startingSession ? (
@@ -129,10 +137,16 @@ export default function StudentHomePage() {
               <span className="spinner border-4 w-6 h-6"></span>
               <span>جاري التجهيز...</span>
             </span>
-          ) : activeSessionId ? (
+          ) : student?.next_action === "resume" ? (
             "استئناف الاختبار"
+          ) : student?.next_action === "posttest" ? (
+            "ابدأ الاختبار البعدي"
+          ) : student?.next_action === "learning" ? (
+            "بانتظار الأنشطة التعليمية"
+          ) : student?.next_action === "completed" ? (
+            "اكتمل المسار"
           ) : (
-            "ابدأ الاختبار"
+            "ابدأ الاختبار القبلي"
           )}
         </button>
       </main>

@@ -56,7 +56,7 @@ async function loginAsStudent(request: APIRequestContext, context: import("@play
   }
 }
 
-test.describe("Full Vertical Slice — P02 Gate", () => {
+test.describe("Full Vertical Slice — B02 Lifecycle Gate", () => {
   test("Admin creates student → Student takes pretest → Admin grades audio", async ({
     page,
     context,
@@ -71,7 +71,8 @@ test.describe("Full Vertical Slice — P02 Gate", () => {
 
     const studentName = `E2E Student ${Date.now()}`;
     await page.getByTestId("input-student-name").fill(studentName);
-    await page.getByTestId("input-student-grade").selectOption("1");
+    await expect(page.getByTestId("input-student-grade")).toHaveValue("3");
+    await expect(page.getByTestId("input-student-grade")).toBeDisabled();
     await page.getByTestId("submit-create-student").click();
 
     // ── Step 3: Extract access code ──────────────────────────────────────────
@@ -135,6 +136,10 @@ test.describe("Full Vertical Slice — P02 Gate", () => {
       questionsAnswered++;
       // Brief pause between questions
       await page.waitForTimeout(500);
+      if (questionsAnswered === 1) {
+        await page.reload();
+        await expect(page).toHaveURL(new RegExp(`/student/session/${sessionId}`));
+      }
     }
 
     console.log(`Answered ${questionsAnswered} questions`);

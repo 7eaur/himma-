@@ -15,9 +15,14 @@ beforeEach(() => {
     .fn()
     .mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ id: 1, full_name: "طالب تجريبي", grade_level: 3 }),
-    })
-    .mockResolvedValueOnce({ ok: true, json: async () => null });
+      json: async () => ({
+        id: 1,
+        full_name: "طالب تجريبي",
+        grade_level: 3,
+        next_action: "pretest",
+        active_session: null,
+      }),
+    });
 });
 
 describe("Student page", () => {
@@ -28,6 +33,6 @@ describe("Student page", () => {
 
   it("offers the pretest when there is no active session", async () => {
     render(<StudentPage />);
-    expect(await screen.findByRole("button", { name: "ابدأ الاختبار" })).toBeEnabled();
+    expect(await screen.findByRole("button", { name: "ابدأ الاختبار القبلي" })).toBeEnabled();
   });
 });

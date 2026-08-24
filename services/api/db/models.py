@@ -1,4 +1,17 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Numeric, JSON
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    Column,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    JSON,
+    Numeric,
+    String,
+    UniqueConstraint,
+    text,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import declarative_base, relationship
 import enum
@@ -26,9 +39,18 @@ class Student(Base):
     id = Column(Integer, primary_key=True, index=True)
     access_code = Column(String(50), unique=True, index=True, nullable=False)
     name = Column(String(200), nullable=False)  # Pseudonym only
+    grade_level = Column(Integer, default=3, server_default="3", nullable=False)
     current_level = Column(Integer, default=1, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
+    posttest_enabled = Column(Boolean, default=False, server_default="false", nullable=False)
+    posttest_enabled_at = Column(DateTime(timezone=True), nullable=True)
+    posttest_enabled_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+    __table_args__ = (
+        CheckConstraint("grade_level = 3", name="ck_students_grade_level_third"),
+        CheckConstraint("current_level BETWEEN 1 AND 3", name="ck_students_current_level"),
+    )
 
 
 class AuditLog(Base):
@@ -167,6 +189,39 @@ class AssessmentSession(Base):
     completed_at = Column(DateTime(timezone=True), nullable=True)
     final_score = Column(Numeric(precision=10, scale=4), nullable=True)
     assigned_level = Column(Integer, nullable=True)
+    elapsed_seconds = Column(Integer, default=0, server_default="0", nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    __table_args__ = (
+        CheckConstraint(
+            "session_type IN ('pretest', 'posttest', 'core')",
+            name="ck_assessment_sessions_type",
+        ),
+        CheckConstraint(
+            "status IN ('in_progress', 'completed')",
+            name="ck_assessment_sessions_status",
+        ),
+        CheckConstraint("elapsed_seconds >= 0", name="ck_assessment_sessions_elapsed"),
+        Index(
+            "uq_assessment_sessions_active_student",
+            "student_id",
+            unique=True,
+            postgresql_where=text("status = 'in_progress'"),
+            sqlite_where=text("status = 'in_progress'"),
+        ),
+        Index(
+            "uq_assessment_sessions_prepost_once",
+            "student_id",
+            "session_type",
+            unique=True,
+            postgresql_where=text("session_type IN ('pretest', 'posttest')"),
+            sqlite_where=text("session_type IN ('pretest', 'posttest')"),
+        ),
+    )
 
 class Attempt(Base):
     """An attempt of a ContentItem within a session."""
@@ -178,6 +233,16 @@ class Attempt(Base):
     status = Column(String(50), nullable=False, default="in_progress")
     started_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     completed_at = Column(DateTime(timezone=True), nullable=True)
+    elapsed_seconds = Column(Integer, default=0, server_default="0", nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("session_id", "item_id", name="uq_attempts_session_item"),
+        CheckConstraint(
+            "status IN ('in_progress', 'completed')",
+            name="ck_attempts_status",
+        ),
+        CheckConstraint("elapsed_seconds >= 0", name="ck_attempts_elapsed"),
+    )
 
 class AttemptResponse(Base):
     """An answer given to a ContentStep."""
@@ -189,6 +254,38 @@ class AttemptResponse(Base):
     selected_option_id = Column(Integer, ForeignKey("content_options.id"), nullable=True)
     is_correct = Column(Boolean, nullable=True) # Null until graded
     submitted_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    elapsed_seconds = Column(Integer, default=0, server_default="0", nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("attempt_id", "step_id", name="uq_attempt_responses_attempt_step"),
+        CheckConstraint("elapsed_seconds >= 0", name="ck_attempt_responses_elapsed"),
+    )
+
+
+class OperationIdempotency(Base):
+    """Durable replay protection for student write operations."""
+
+    __tablename__ = "operation_idempotency"
+
+    id = Column(Integer, primary_key=True, index=True)
+    actor_role = Column(String(50), nullable=False)
+    actor_id = Column(Integer, nullable=False)
+    operation = Column(String(100), nullable=False)
+    idempotency_key = Column(String(128), nullable=False)
+    request_hash = Column(String(64), nullable=False)
+    response_json = Column(JSON().with_variant(JSONB, "postgresql"), nullable=False)
+    status_code = Column(Integer, nullable=False, default=200, server_default="200")
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+    __table_args__ = (
+        UniqueConstraint(
+            "actor_role",
+            "actor_id",
+            "operation",
+            "idempotency_key",
+            name="uq_operation_idempotency_scope_key",
+        ),
+    )
 
 class AudioSubmission(Base):
     """Audio recordings submitted for AttemptResponses."""

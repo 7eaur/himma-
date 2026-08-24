@@ -6,11 +6,15 @@ import { ArrowRight, User, Hash, Calendar, Play } from "lucide-react";
 import { useParams } from "next/navigation";
 
 interface Student {
-  id: string;
+  id: number;
   full_name: string;
   grade_level: number;
   access_code: string;
   created_at: string;
+  current_level: number;
+  status: "active" | "inactive";
+  posttest_enabled: boolean;
+  posttest_eligible: boolean;
 }
 
 export default function StudentDetailPage() {
@@ -19,20 +23,19 @@ export default function StudentDetailPage() {
   
   const [student, setStudent] = useState<Student | null>(null);
   const [loading, setLoading] = useState(true);
+  const [updatingPosttest, setUpdatingPosttest] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchStudent = async () => {
       try {
-        const res = await fetch(`/api/researcher/students`);
+        const res = await fetch(`/api/researcher/students/${id}`);
         if (res.ok) {
-          const students: Student[] = await res.json();
-          const found = students.find(s => s.id === id);
-          if (found) {
-            setStudent(found);
-          } else {
-            setError("لم يتم العثور على الطالب");
-          }
+          setStudent(await res.json());
+        } else if (res.status === 404) {
+          setError("لم يتم العثور على الطالب");
+        } else {
+          setError("تعذر تحميل بيانات الطالب");
         }
       } catch {
         setError("حدث خطأ أثناء تحميل بيانات الطالب");
@@ -46,6 +49,26 @@ export default function StudentDetailPage() {
     }
   }, [id]);
 
+  const updatePosttestAccess = async () => {
+    if (!student) return;
+    setUpdatingPosttest(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/researcher/students/${student.id}/posttest-access`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled: !student.posttest_enabled }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "تعذر تحديث إتاحة الاختبار البعدي");
+      setStudent(data);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "تعذر تحديث إتاحة الاختبار البعدي");
+    } finally {
+      setUpdatingPosttest(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex-1 flex justify-center py-12">
@@ -54,7 +77,7 @@ export default function StudentDetailPage() {
     );
   }
 
-  if (error || !student) {
+  if (!student) {
     return (
       <div className="flex-1 font-plex max-w-4xl mx-auto w-full">
         <div className="alert-error">{error || "لم يتم العثور على الطالب"}</div>
@@ -88,7 +111,9 @@ export default function StudentDetailPage() {
               <p className="text-lg font-mono font-bold text-primary tracking-widest">{student.access_code}</p>
             </div>
             
-            <span className="badge bg-green/10 text-green w-full py-2">نشط</span>
+            <span className="badge bg-green/10 text-green w-full py-2">
+              {student.status === "active" ? "نشط" : "غير نشط"}
+            </span>
           </div>
         </div>
         
@@ -104,6 +129,13 @@ export default function StudentDetailPage() {
                 </div>
               </div>
               <div className="flex items-start gap-3">
+                <Hash className="text-muted mt-0.5" size={18} />
+                <div>
+                  <p className="text-sm text-muted">المستوى الحالي</p>
+                  <p className="text-navy">المستوى {student.current_level}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
                 <Calendar className="text-muted mt-0.5" size={18} />
                 <div>
                   <p className="text-sm text-muted">تاريخ الإضافة</p>
@@ -115,11 +147,28 @@ export default function StudentDetailPage() {
 
           <div className="card">
             <h3 className="text-lg font-bold text-navy mb-4 border-b border-border pb-2">الاختبارات</h3>
+            {error && <div className="alert-error mb-4">{error}</div>}
             <div className="flex flex-col items-center justify-center py-8 text-center border-2 border-dashed border-border rounded-lg">
-              <p className="text-muted mb-4">لا توجد اختبارات سابقة لهذا الطالب</p>
-              <button className="btn-primary flex items-center gap-2">
+              <p className="text-muted mb-4">
+                {student.posttest_enabled
+                  ? "الاختبار البعدي متاح للطالب الآن."
+                  : student.posttest_eligible
+                    ? "أكمل الطالب الاختبار القبلي، ويمكن إتاحة الاختبار البعدي له."
+                    : "يتاح الاختبار البعدي بعد إكمال الطالب للاختبار القبلي."}
+              </p>
+              <button
+                className="btn-primary flex items-center gap-2"
+                onClick={updatePosttestAccess}
+                disabled={updatingPosttest || (!student.posttest_eligible && !student.posttest_enabled)}
+              >
                 <Play size={18} />
-                <span>بدء التقييم البعدي</span>
+                <span>
+                  {updatingPosttest
+                    ? "جاري الحفظ..."
+                    : student.posttest_enabled
+                      ? "إيقاف إتاحة الاختبار البعدي"
+                      : "إتاحة الاختبار البعدي"}
+                </span>
               </button>
             </div>
           </div>

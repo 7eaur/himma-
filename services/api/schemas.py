@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import Any, Literal, Optional
 from datetime import datetime
 from decimal import Decimal
@@ -21,13 +21,49 @@ class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class StudentCreateRequest(BaseModel):
+    full_name: str = Field(min_length=2, max_length=80)
+    grade_level: Literal[3] = 3
+
+    @field_validator("full_name")
+    @classmethod
+    def normalize_full_name(cls, value: str) -> str:
+        normalized = " ".join(value.split())
+        if len(normalized) < 2:
+            raise ValueError("Student pseudonym must contain at least two characters")
+        if any(ord(character) < 32 for character in normalized):
+            raise ValueError("Student pseudonym contains unsupported characters")
+        return normalized
+
+
 class StudentResponse(BaseModel):
     id: int
-    name: str
+    full_name: str
     access_code: str
+    grade_level: Literal[3]
     current_level: int
+    status: Literal["active", "inactive"]
+    posttest_enabled: bool
+    posttest_eligible: bool
+    created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class StudentPosttestAccessRequest(BaseModel):
+    enabled: bool
+
+
+class StudentProfileResponse(BaseModel):
+    id: int
+    full_name: str
+    access_code: str
+    grade_level: Literal[3]
+    current_level: int
+    status: Literal["active", "inactive"]
+    posttest_enabled: bool
+    next_action: Literal["resume", "pretest", "learning", "posttest", "completed"]
+    active_session: Optional["AssessmentSessionResponse"] = None
 
 
 class MeResponse(BaseModel):
@@ -37,12 +73,15 @@ class MeResponse(BaseModel):
     display_name: str
 
 class AssessmentStartRequest(BaseModel):
-    session_type: Literal["pretest", "posttest", "core"]
+    session_type: Literal["pretest", "posttest"]
 
 class AssessmentSessionResponse(BaseModel):
     id: int
     session_type: str
     status: str
+    elapsed_seconds: int
+    started_at: datetime
+    completed_at: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -50,7 +89,10 @@ class AssessmentSessionResponse(BaseModel):
 class AssessmentProgressResponse(BaseModel):
     completed_items: int
     total_items: int
+    completed_steps: int
+    total_steps: int
     has_pending_item: bool
+    elapsed_seconds: int
 
 class ContentOptionResponse(BaseModel):
     id: int
@@ -85,6 +127,7 @@ class AttemptResponseSubmit(BaseModel):
     audio_file_size: Optional[int] = Field(default=None, gt=0)
     audio_mime_type: Optional[str] = None
     audio_duration_seconds: Optional[Decimal] = None
+    elapsed_seconds: int = Field(default=0, ge=0, le=3600)
 
 class AudioSubmissionReviewResponse(BaseModel):
     id: int
