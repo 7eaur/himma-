@@ -75,7 +75,7 @@ test.describe("Full Vertical Slice — P02 Gate", () => {
     await page.getByTestId("submit-create-student").click();
 
     // ── Step 3: Extract access code ──────────────────────────────────────────
-    const codeEl = page.locator("code").first();
+    const codeEl = page.getByTestId("student-access-code");
     await expect(codeEl).toBeVisible({ timeout: 10000 });
     const accessCode = (await codeEl.textContent())?.trim();
     expect(accessCode, "Access code should be present").toBeTruthy();

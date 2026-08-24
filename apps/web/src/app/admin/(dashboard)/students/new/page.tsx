@@ -62,7 +62,12 @@ export default function NewStudentPage() {
           <div className="bg-bg p-6 rounded-lg border border-border mb-8 max-w-sm mx-auto">
             <p className="text-sm text-muted mb-2">رمز الدخول</p>
             <div className="flex items-center justify-center gap-4">
-              <span className="text-3xl font-mono font-bold text-primary tracking-widest">{successCode}</span>
+              <span
+                className="text-3xl font-mono font-bold text-primary tracking-widest"
+                data-testid="student-access-code"
+              >
+                {successCode}
+              </span>
               <button 
                 onClick={copyToClipboard}
                 className="p-2 text-muted hover:text-primary hover:bg-primary/10 rounded-md transition-colors"
