@@ -130,19 +130,6 @@ jobs:
           --health-timeout=5s
           --health-retries=10
 
-      minio:
-        image: bitnami/minio:latest
-        env:
-          MINIO_ROOT_USER: ci-minio-access-key
-          MINIO_ROOT_PASSWORD: ci-minio-secret-key
-        ports:
-          - 9000:9000
-        options: >-
-          --health-cmd="curl -sf http://localhost:9000/minio/health/live || exit 1"
-          --health-interval=10s
-          --health-timeout=10s
-          --health-retries=5
-
       redis:
         image: redis:7-alpine
         ports:
@@ -177,6 +164,26 @@ jobs:
       - name: Install backend deps
         working-directory: services/api
         run: pip install -r requirements.txt
+
+      - name: Start pinned MinIO server
+        env:
+          MINIO_ROOT_USER: ci-minio-access-key
+          MINIO_ROOT_PASSWORD: ci-minio-secret-key
+        run: |
+          curl -fsSLo /tmp/minio \
+            https://dl.min.io/server/minio/release/linux-amd64/archive/minio.RELEASE.2025-09-07T16-13-09Z
+          echo "7c5bd8512c6e966455b1d198209358b2d191c77a83ab377c4073281065fb855f  /tmp/minio" \
+            | sha256sum --check -
+          chmod +x /tmp/minio
+          mkdir -p /tmp/minio-data
+          nohup /tmp/minio server /tmp/minio-data --address :9000 \
+            >/tmp/minio.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:9000/minio/health/live && break
+            sleep 2
+          done
+          curl -sf http://localhost:9000/minio/health/live \
+            || (cat /tmp/minio.log && exit 1)
 
       - name: Init MinIO bucket
         working-directory: services/api
