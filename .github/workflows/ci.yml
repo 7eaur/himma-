@@ -1,11 +1,11 @@
-name: Himma CI — Recovery Baseline
+name: Himma CI — Quality Gate
 
 permissions:
   contents: read
 
 on:
   push:
-    branches: [main, 'stage/*', 'recovery/*']
+    branches: [main, 'stage/*', 'recovery/*', 'b*/*']
   pull_request:
     branches: [main]
 
@@ -51,6 +51,9 @@ jobs:
 
       - name: Install dependencies
         run: pip install -r requirements.txt pytest httpx
+
+      - name: Validate approved content catalog
+        run: python ../../packages/content/scripts/validate_catalog.py
 
       - name: Alembic migrations — upgrade, downgrade, upgrade
         run: |

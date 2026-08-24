@@ -7,7 +7,8 @@
   "scripts": {
     "build": "tsc",
     "lint": "eslint src --ext .ts",
-    "test": "jest"
+    "validate": "python3 scripts/validate_catalog.py",
+    "test": "python3 scripts/validate_catalog.py"
   },
   "dependencies": {},
   "devDependencies": {

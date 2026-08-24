@@ -1,32 +1,85 @@
-/**
- * Himma Educational Content Catalog
- * Exposes 105 verified items (30 pretest, 30 posttest, 30 core, 15 remedial)
- */
+import catalogData from "./catalog.json";
 
-export interface ContentItemDef {
-  stable_key: string;
-  kind: "pretest_question" | "posttest_question" | "core_activity" | "reinforcement_activity";
-  level_id: number;
-  skill_id: number;
-  interaction_type: "multiple_choice" | "audio_record" | "sequence" | "matching";
-  order_index: number;
-  prompt_text: string;
-  expected_reading_text?: string;
-  points: number;
-  rubric?: string;
-  version: string;
-  template_data?: any;
-  options: {
-    text: string;
-    is_correct: boolean;
-    order_index: number;
-  }[];
-  assets: {
-    manifest_asset_id: string;
-    asset_type: "image" | "audio";
-    usage_context: string;
-  }[];
+export type ContentKind =
+  | "pretest_question"
+  | "posttest_question"
+  | "core_activity"
+  | "reinforcement_activity";
+
+export type InteractionType =
+  | "choose_one"
+  | "listen_choose_one"
+  | "choose_image"
+  | "listen_choose_image"
+  | "choose_many"
+  | "listen_choose_many"
+  | "sequence"
+  | "memory_sequence"
+  | "path_sequence"
+  | "build_word"
+  | "read_aloud"
+  | "timed_read_aloud";
+
+export interface MediaRef {
+  asset_id: string;
+  asset_type: "audio" | "image";
+  usage: string;
+  semantic_text: string;
 }
 
-// TODO: Import from actual manifests and map to exactly 105 items.
-export const catalog: ContentItemDef[] = [];
+export interface MediaGap {
+  asset_type: "audio" | "image";
+  usage: string;
+  semantic_text: string;
+  status: "declared_missing";
+  reason: string;
+  impact: string;
+}
+
+export interface ContentRound {
+  round_id: string;
+  order_index: number;
+  source_text: string;
+  media: MediaRef[];
+  media_gaps: MediaGap[];
+}
+
+export interface ContentItemDef {
+  canonical_id: string;
+  stable_key: string;
+  kind: ContentKind;
+  level_id: 1 | 2 | 3;
+  order_index: number;
+  title: string;
+  skill_id: string;
+  skill_name: string;
+  source_skill_name: string;
+  interaction_type: InteractionType;
+  source_method: string;
+  criterion: string | null;
+  note: string | null;
+  item_assets: MediaRef[];
+  rounds: ContentRound[];
+  checksum: string;
+}
+
+export interface SkillDef {
+  skill_id: string;
+  skill_code: string;
+  level_id: 1 | 2 | 3;
+  name: string;
+}
+
+export interface ContentCatalog {
+  schema_version: 1;
+  catalog_version: string;
+  language: "ar";
+  direction: "rtl";
+  skills: SkillDef[];
+  items: ContentItemDef[];
+  media_gaps: Array<MediaGap & { item_id: string; round_id: string }>;
+}
+
+export const catalog = catalogData as ContentCatalog;
+export const contentItems = catalog.items;
+export const skills = catalog.skills;

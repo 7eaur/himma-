@@ -1,12 +1,43 @@
 # STATUS — Himma Platform
 
-**Branch:** `recovery/codex-baseline`
+**Branch:** `b01/content-source-of-truth`
 
-**Base:** `stage/04-production-slice@aa89aa8e628247151bf2e4a97eac30b50f9ea238`
+**Base:** `recovery/codex-baseline@e5fafe757bd57f8bdce35a8f8d0f3bbcc0784c2d`
 
-**Last Verified:** 2026-08-24T05:31:04Z
+**Last Verified:** 2026-08-24T06:22:45Z
 
-**Overall Phase:** P00-RECOVERY — B00 REMOTE GATE PASS; WAITING FOR USER ACCEPTANCE
+**Overall Phase:** B01 — LOCAL GATE PASS; REMOTE GATE PENDING
+
+---
+
+## Current slice — B01: content and skills source of truth
+
+- Acceptance IDs affected: AC-03 (content contract portion) and AC-04 (catalog/schema/asset portion).
+- Scope: compile the client-approved DOCX into one versioned machine-readable catalog; preserve every approved question/activity round; map every item to one stable skill; bind only semantically matching audio/image manifest IDs; and reject silent duplicates, unknown interactions, drift, or undeclared media gaps.
+- Source precedence: the original approved DOCX remains the academic authority. The generated catalog is its executable mirror and records the original/derived source hashes.
+- Migration impact: no schema migration. A database already seeded from the superseded catalog needs a reviewed data reconciliation before reseeding; the new seed fails closed instead of duplicating or deleting content, and no user database is modified in B01.
+- Privacy/security impact: none. The catalog contains approved educational material only and no student identifiers, recordings, credentials, or research results.
+- Failure/rollback: generated output is reproducible from the preserved source; the B00 commit remains intact and the B01 branch can be abandoned without changing the protected base branches.
+- Planned checks: exact 30 pretest + 30 posttest + 10 core/5 reinforcement per level; correct 10/12/8 assessment distribution; stable/unique IDs; one skill per item; approved interaction enum; source hash/drift check; manifest ID and binary existence; semantic audio text match; explicit declaration of unavailable media; deterministic generation; seed idempotency; full backend/frontend/integration gate.
+- Known boundary: B01 establishes the legal catalog and seed contract. Full UI behavior for every interaction template remains a later vertical slice and AC-03/AC-04 are not declared fully closed here.
+
+### B01 local gate result
+
+| Gate | Current result |
+|---|---|
+| Approved source equivalence | PASS — every catalog title, source skill, method, round, criterion, and note found in order in the original DOCX |
+| Catalog contract | PASS — 105 items, 44 stable skills, 264 preserved rounds, 185 manifest-backed media references |
+| Required distribution | PASS — 30 pretest + 30 posttest with 10/12/8 distribution; 10 core + 5 reinforcement per level |
+| JSON Schema 2020-12 | PASS — schema structure and full catalog instance validated |
+| Media integrity | PASS — stable manifest IDs, semantic audio/image checks, and physical binary checks |
+| Declared media gaps | PASS — only `L1-CORE-06-R01` («موز») and `L2-CORE-06-R04` («سَا»); no incorrect substitution |
+| Seed safety | PASS — idempotent; 105 items/44 skills; exact distributions; one correct option per projected choice round; refuses legacy-catalog mixing |
+| Backend tests | PASS — 31/31; one dependency deprecation warning |
+| Frontend | PASS — ESLint, TypeScript, 4/4 Jest tests, and Next.js production build (17 routes) |
+| Content package TypeScript | PASS |
+| Diff/secret hygiene | PASS — no whitespace errors and no new credential material |
+
+No Docker was run locally. PostgreSQL/MinIO/Redis and the full browser path remain the GitHub Actions remote gate for this slice.
 
 ---
 
@@ -37,11 +68,11 @@
 | No-Docker smoke | PASS — FastAPI + Next production start, API proxy, researcher/student login, HttpOnly/Lax cookie, no JavaScript-readable duplicate token |
 | Secret hygiene | PASS for current tracked tree after redaction; previously exposed values still require rotation before production |
 | Audio state machine | PASS in tests — uploaded → rerecord required → attempt reopened → replacement uploaded |
-| GitHub Actions | PASS — run [#26](https://github.com/7eaur/himma-/actions/runs/32693585887): `backend`, `frontend`, and `integration` |
+| GitHub Actions | PASS — run [#27](https://github.com/7eaur/himma-/actions/runs/32693950375): `backend`, `frontend`, and `integration` |
 
 Material repairs include deterministic test isolation, the canonical `read_aloud` contract, resumable pending attempts, strict finish behavior, audio ownership/metadata validation, authorized recording playback, a single HttpOnly authentication cookie, required environment configuration, and CI gates for PostgreSQL, MinIO, and the complete browser slice.
 
-The B00 remote gate is complete on `recovery/codex-baseline@24c5175c52ed893d1221c4b9b5432083ff04df91`. GitHub Actions passed the backend, frontend, and full PostgreSQL/MinIO/Redis browser integration gates. Work is paused here until the user explicitly replies `تم`.
+The B00 remote gate is complete on `recovery/codex-baseline@e5fafe757bd57f8bdce35a8f8d0f3bbcc0784c2d`. GitHub Actions passed the backend, frontend, and full PostgreSQL/MinIO/Redis browser integration gates. The user accepted B00 and authorized B01 with the explicit word `تم`.
 
 ### B00 exit gate
 

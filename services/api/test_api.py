@@ -126,23 +126,108 @@ class TestResearcherProtected:
 # ═══════════════════════════════════════════════════════════════════════
 
 class TestStage2:
-    def test_seed_idempotency_105_items(self):
-        # First seed is run in conftest or before
+    def test_seed_idempotency_approved_catalog(self):
+        from sqlalchemy import func
+        from db.database import SessionLocal
+        from db.models import ContentAssetLink, ContentItem, ContentOption, ContentStep, Skill
+
         import seed
         seed.run_seed()
-        
-        # Seed again
-        seed.run_seed()
-        
-        # Check items
-        from db.database import SessionLocal
-        from db.models import ContentItem
+
         db = SessionLocal()
-        count = db.query(ContentItem).count()
+        first_counts = {
+            "items": db.query(ContentItem).count(),
+            "skills": db.query(Skill).count(),
+            "steps": db.query(ContentStep).count(),
+            "options": db.query(ContentOption).count(),
+            "assets": db.query(ContentAssetLink).count(),
+        }
         db.close()
-        
-        # Should be exactly 105 items
-        assert count == 105
+
+        seed.run_seed()
+
+        db = SessionLocal()
+        second_counts = {
+            "items": db.query(ContentItem).count(),
+            "skills": db.query(Skill).count(),
+            "steps": db.query(ContentStep).count(),
+            "options": db.query(ContentOption).count(),
+            "assets": db.query(ContentAssetLink).count(),
+        }
+        assert first_counts == second_counts
+        assert first_counts["items"] == 105
+        assert first_counts["skills"] == 44
+
+        for kind in ("pretest_question", "posttest_question"):
+            distribution = dict(
+                db.query(ContentItem.level_id, func.count(ContentItem.id))
+                .filter(ContentItem.kind == kind)
+                .group_by(ContentItem.level_id)
+                .all()
+            )
+            assert distribution == {1: 10, 2: 12, 3: 8}
+
+        for level_id in (1, 2, 3):
+            assert db.query(ContentItem).filter(
+                ContentItem.kind == "core_activity",
+                ContentItem.level_id == level_id,
+            ).count() == 10
+            assert db.query(ContentItem).filter(
+                ContentItem.kind == "reinforcement_activity",
+                ContentItem.level_id == level_id,
+            ).count() == 5
+
+        choice_steps = db.query(ContentStep).join(ContentItem).filter(
+            ContentItem.interaction_type == "multiple_choice"
+        ).all()
+        assert choice_steps
+        for step in choice_steps:
+            assert step.options
+            assert sum(option.is_correct for option in step.options) == 1
+
+        reading_steps = db.query(ContentStep).join(ContentItem).filter(
+            ContentItem.interaction_type == "read_aloud"
+        ).all()
+        assert reading_steps
+        assert all(step.expected_reading_text for step in reading_steps)
+        assert all(not step.options for step in reading_steps)
+        db.close()
+
+    def test_seed_refuses_to_mix_legacy_catalog(self):
+        from db.database import SessionLocal
+        from db.models import ContentItem, ContentKind, Skill
+
+        import seed
+
+        db = SessionLocal()
+        legacy_skill = Skill(
+            skill_key="legacy-skill-key",
+            canonical_skill_id="legacy_skill",
+            name="Legacy test skill",
+            description="Test-only row",
+            level_id=1,
+        )
+        db.add(legacy_skill)
+        db.flush()
+        db.add(
+            ContentItem(
+                stable_key="legacy-content-key",
+                kind=ContentKind.pretest_question,
+                level_id=1,
+                skill_id=legacy_skill.id,
+                interaction_type="multiple_choice",
+                order_index=1,
+                version="legacy-test",
+                status="approved",
+                checksum="legacy-test-checksum",
+                template_data={},
+            )
+        )
+        db.commit()
+        db.close()
+
+        with pytest.raises(RuntimeError, match="legacy content catalog"):
+            seed.run_seed()
 
     def test_idor_and_401_403(self, client):
         res = client.get("/assessment/active")
