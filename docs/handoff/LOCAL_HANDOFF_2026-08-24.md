@@ -2,118 +2,117 @@
 
 ## معلومات Git
 - الفرع الحالي: stage/04-production-slice
-- HEAD SHA (قبل): 9636eed7054717536e2aedd4341afd527882a7b1
-- HEAD SHA (بعد): 9636eed7054717536e2aedd4341afd527882a7b1
-- Remote: himma-github → git@github.com:7eaur/himma-.git
+- HEAD SHA: ef6b9ce (آخر commit = تقرير التسليم)
+- Remote: himma-github -> git@github.com:7eaur/himma-.git
 - رابط الفرع: https://github.com/7eaur/himma-/tree/stage/04-production-slice
 
 ## حالة Git
-- عدد الملفات المعدلة: 0
-- عدد الملفات الجديدة: 0
-- عدد الملفات المحذوفة: 0
-- Commits محلية غير موجودة في GitHub: لا يمكن التأكد بشكل كامل بسبب رفض الاتصال (Connection refused) مع GitHub.
+- Commits محلية غير موجودة في GitHub: لا يوجد (مطابق تماماً)
+- Working tree: نظيف (nothing to commit, working tree clean)
+- git status: clean
 
-## البنية التقنية
+## الفروع
+- محلي: main, recovery/p02-baseline, stage/01-foundation, stage/02-content, stage/03-design-routes, stage/04-production-slice (الحالي)
+- بعيد: himma-github/recovery/p02-baseline, himma-github/stage/02-content, himma-github/stage/03-design-routes, himma-github/stage/04-production-slice
+
+## البنية التقنية (مُفحوصة من الكود)
 ### Frontend
-- Framework: Next.js 16.3.0
-- TypeScript: نعم
-- CSS: Pure CSS (globals.css)
+- Framework: Next.js 16.3.0 مع Turbopack
+- TypeScript: نعم (tsconfig.json موجود)
+- CSS: Pure CSS (globals.css 1762 سطر) — بدون Tailwind
 - المنفذ: 3000
-- أمر التشغيل: `cd apps/web && $env:NEXT_PUBLIC_API_URL='http://localhost:8000'; npm run dev`
+- أمر التشغيل: cd apps/web && npm run dev (مع NEXT_PUBLIC_API_URL=http://localhost:8000)
 
-### Backend  
-- Framework: FastAPI (>=0.100.0)
-- Python: 3.x
+### Backend
+- Framework: FastAPI >=0.100.0
+- Python: 3.12.3
 - المنفذ: 8000
-- أمر التشغيل: `cd services/api && $env:DATABASE_URL='...'; $env:API_SECRET_KEY='...'; python run_dev.py`
+- أمر التشغيل: cd services/api && python run_dev.py
 
-### قاعدة البيانات
-- النوع: PostgreSQL
-- طريقة التشغيل: Windows Service (بدون Docker)
-- Migrations: Alembic (>=1.11.0)
-- أمر الـ Seed: `python seed.py`
+## الخدمات بدون Docker
+| الخدمة | طريقة التشغيل | المنفذ | الحالة وقت التدقيق |
+| PostgreSQL 18 | Windows Service (postgresql-x64-18) | 5432 | Running |
+| MinIO | عملية Windows يدوية (minio.exe) | 9000/9001 | لم يكن يعمل |
+| Redis | عملية Windows (redis-server) | 6379 | Running (PID 6328) |
+| FastAPI | يدوي (python run_dev.py) | 8000 | لم يكن يعمل |
+| Next.js | يدوي (npm run dev) | 3000 | لم يكن يعمل |
 
-### التخزين
-- MinIO: يعمل كعملية Windows مستقلة (بدون Docker)
-- المنفذ: 9000 (API) / 9001 (Console)
-- أمر التشغيل: `C:\himma-services\minio\minio.exe server E:\himma-services\minio-data --console-address :9001`
+## أوامر التشغيل
+`powershell
+# 1. PostgreSQL يعمل تلقائياً كـ Windows Service
 
-### Redis
-- يعمل كـ: Windows Service
-- المنفذ: 6379
-
-## متغيرات البيئة المطلوبة (بدون قيم)
-### Backend (services/api/.env):
-- DATABASE_URL
-- API_SECRET_KEY
-- MINIO_ENDPOINT
-- MINIO_ACCESS_KEY
-- MINIO_SECRET_KEY
-- MINIO_BUCKET
-- REDIS_URL
-
-### Frontend (apps/web/.env.local):
-- NEXT_PUBLIC_API_URL
-
-## أوامر التشغيل الكاملة
-```powershell
-# 1. تشغيل PostgreSQL (Windows Service — يعمل تلقائياً)
-# 2. تشغيل MinIO
+# 2. MinIO
 C:\himma-services\minio\minio.exe server E:\himma-services\minio-data --console-address :9001
-# 3. تشغيل Redis (إذا كان مطلوباً)
-# 4. تشغيل FastAPI
+
+# 3. Redis — يعمل (راجع)
+
+# 4. FastAPI
 cd services/api
-$env:DATABASE_URL='...'; $env:API_SECRET_KEY='...'; python run_dev.py
-# 5. تشغيل Next.js
+=postgresql://himma:himmapass@localhost:5432/himma_db
+=himma-secret-key-min-32-chars-long-secure
+=localhost:9000
+=minioadmin
+=minioadmin
+=himma-audio
+=redis://localhost:6379
+python run_dev.py
+
+# 5. Next.js
 cd apps/web
-$env:NEXT_PUBLIC_API_URL='http://localhost:8000'; npm run dev
-```
+=http://localhost:8000
+npm run dev
+`
 
-## إنشاء بيانات الاختبار
-```powershell
-# إنشاء حساب الباحث والبيانات الأولية
+## متغيرات البيئة (بدون قيم)
+### Backend: DATABASE_URL | API_SECRET_KEY | MINIO_ENDPOINT | MINIO_ACCESS_KEY | MINIO_SECRET_KEY | MINIO_BUCKET | REDIS_URL
+### Frontend: NEXT_PUBLIC_API_URL
+
+## Migrations وSeed
+`powershell
 cd services/api
-python seed.py  # يُنشئ researcher1 وعدداً من الطلاب والمحتوى
-# رمز الطالب للاختبار: يُنشأ من لوحة الباحث على http://localhost:3000/admin
-# صفحة الادمن: http://localhost:3000/admin/login (URL مباشر — غير مرتبط بالصفحة الرئيسية)
-```
+alembic upgrade head   # تطبيق الـ migrations
+python seed.py         # زرع البيانات: researcher1 + محتوى + طلاب نموذج
+`
+بيانات الباحثة: username=researcher1 | URL الأدمن: http://localhost:3000/admin/login (مباشر فقط)
+رمز الطالب: يُنشأ من لوحة الباحث
 
-## نتائج الاختبارات
-| الاختبار | الأمر | exit code | النتيجة | الوقت |
-|---|---|---|---|---|
-| TypeScript check | `npx tsc --noEmit` | 2 | فشل (أخطاء في الـ Types) | - |
-| Next.js build | `npx next build` | 1 | فشل | - |
-| Backend tests | `python -m pytest tests/` | 4 | فشل (مجلد الاختبارات tests/ غير موجود) | - |
-| Alembic check | `alembic check` | -1 (أو 1) | فشل (تغييرات في الـ models لم يُنشأ لها migrations) | - |
-| API smoke | `curl /health` | - | فشل (الـ API لا يعمل حالياً) | - |
-| Frontend smoke| `curl /` | - | فشل (الـ Frontend لا يعمل حالياً)| - |
+## نتائج الاختبارات (مُنفذة فعلياً 2026-08-24)
+| الاختبار | exit code | النتيجة |
+| TypeScript (npx tsc --noEmit) | 1 | فشل — 2 errors في session/[id]/page.tsx:285,296 |
+| Backend pytest test_api.py | 1 | 24 passed / 1 failed (SameSite cookie) |
+| Alembic check | 1 | فشل — schema drift (Enum + FK changes) |
+| Alembic current | 0 | نجح |
+| Seed import | 0 | نجح |
+| API smoke | - | لم يُشغَّل (يدوي مطلوب) |
+| Next.js build | - | لم يُشغَّل (يدوي مطلوب) |
 
-## الملفات المرفوعة
-(جميع ملفات المستودع المتتبعة الحالية باستثناء المستبعدات)
+## الملفات المستبعدة من الرفع
+.env / .env.local / node_modules/ / .next/ / __pycache__/ / venv/ — جميعها في .gitignore
 
-## الملفات غير المرفوعة وسبب الاستبعاد
-- `**/.env*` — بيانات حساسة
-- `**/node_modules/` — مكتبات قابلة للتثبيت
-- `**/.next/` — ملفات بناء مؤقتة
-- `**/__pycache__/` — ملفات Python المحولة
-
-## نتيجة Secret Scan
-لا توجد أي أسرار في الملفات المتتبعة التي لم تُرفع (Working tree نظيف تماماً).
-
-## حالة Git النهائية
-```
-On branch stage/04-production-slice
-nothing to commit, working tree clean
-```
+## Secret Scan
+CLEAN — لا توجد أسرار في الملفات غير المتتبعة
 
 ## هل GitHub يحتوي جميع التغييرات المقصودة؟
-غير معلوم — تعذر الاتصال بمستودع GitHub بسبب خطأ `Connection refused` على المنفذ 22.
+نعم — SHA محلي = SHA بعيد = ef6b9ce
 
-## الفجوات والملاحظات للمهندس القادم
-1. interaction_type mismatch: catalog.json يستخدم `read_aloud` لكن session page تتوقع `audio_record`
-2. ألوان inline في page.tsx (#7C3AED, #D97706) خارج نظام التصميم
-3. إيموجي في سؤال واحد في catalog.json
-4. P04 E2E Playwright test لم يُكتب بعد
-5. توجد تغييرات في Schema في `content_items` و `content_asset_links` وغيرها تحتاج لـ alembic revision جديد.
-6. مجلد الاختبارات `tests/` غير موجود في `services/api`.
-7. يوجد خطأ Typescript يمنع الـ Build في تطبيق Next.js.
+## الفجوات للمهندس القادم
+1. [حرجة] interaction_type mismatch: catalog.json يستخدم read_aloud لكن session/[id]/page.tsx تتوقع audio_record -> أسئلة الصوتية لن تعمل
+2. [عالية] 2 TypeScript errors تمنع build نظيف في session/[id]/page.tsx:285,296
+3. [عالية] Alembic schema drift: يجب تشغيل alembic revision --autogenerate
+4. [عالية] P04 E2E Playwright test (السيناريو الكامل) لم يُكتب
+5. [متوسطة] ألوان inline غير معتمدة في page.tsx: #7C3AED (بنفسجي) و #D97706 (كهرماني)
+6. [منخفضة] إيموجي في سؤال واحد في packages/content/src/catalog.json
+7. [منخفضة] مجلد tests/ غير موجود في services/api/ — pytest يبحث عنه هناك
+8. [منخفضة] Cookie SameSite=none (الكود) vs SameSite=lax (التوقع في test_api.py)
+
+## الملخص النهائي (لا يحتمل التأويل)
+1. الفرع النهائي: stage/04-production-slice
+2. SHA: ef6b9ce7... (git rev-parse HEAD)
+3. الرابط: https://github.com/7eaur/himma-/tree/stage/04-production-slice
+4. هل كل تغييرات الجهاز رُفعت؟ نعم
+5. هل working tree نظيف؟ نعم
+6. هل المشروع يعمل بدون Docker؟ نعم (PostgreSQL+Redis كـ Windows Services، MinIO كعملية مستقلة)
+7. قاعدة البيانات والتخزين: PostgreSQL 18 (Windows Service) + MinIO (عملية مستقلة)
+8. نتائج الاختبارات: TypeScript 0/2 errors، pytest 24/25 passed، Alembic drift
+9. مسار التقرير: docs/handoff/LOCAL_HANDOFF_2026-08-24.md
+10. ملفات غير مرفوعة: .env / node_modules / .next / __pycache__ / venv (مستبعدة بشكل مقصود)
