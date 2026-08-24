@@ -10,13 +10,19 @@ async function proxy(req: NextRequest, { params }: { params: Promise<{ path: str
 
   const cookieHeader = req.headers.get("cookie") ?? "";
   const contentType = req.headers.get("content-type") ?? "";
+  const idempotencyKey = req.headers.get("idempotency-key");
+
+  const headers: Record<string, string> = {
+    "content-type": contentType,
+    cookie: cookieHeader,
+  };
+  if (idempotencyKey) {
+    headers["idempotency-key"] = idempotencyKey;
+  }
 
   const init: RequestInit = {
     method: req.method,
-    headers: {
-      "content-type": contentType,
-      cookie: cookieHeader,
-    },
+    headers,
   };
 
   if (!["GET", "HEAD"].includes(req.method)) {

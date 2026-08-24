@@ -147,8 +147,8 @@ test.describe("Full Vertical Slice — B02 Lifecycle Gate", () => {
 
       questionsAnswered++;
       if (questionsAnswered < maxQuestions) {
-        await expect(progressCounter).toContainText(`${questionsAnswered}/`, { timeout: 15000 });
         await waitForActionablePhase();
+        await expect(progressCounter).toContainText(`${questionsAnswered}/`, { timeout: 15000 });
       }
       if (questionsAnswered === 1) {
         await page.reload();
