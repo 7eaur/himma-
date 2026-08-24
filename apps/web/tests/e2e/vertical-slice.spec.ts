@@ -97,21 +97,38 @@ test.describe("Full Vertical Slice — B02 Lifecycle Gate", () => {
     const sessionId = page.url().match(/\/student\/session\/(\d+)/)?.[1];
     expect(sessionId, "Session id should be present in the URL").toBeTruthy();
 
+    const sessionRoot = page.getByTestId("assessment-session");
+    const progressCounter = page.getByTestId("assessment-progress");
+    const waitForActionablePhase = async () => {
+      await expect(sessionRoot).toHaveAttribute(
+        "data-phase",
+        /^(question|recording|waiting_audio_review|done|error)$/,
+        { timeout: 15000 },
+      );
+      const currentPhase = await sessionRoot.getAttribute("data-phase");
+      if (currentPhase === "error") {
+        const message = (await sessionRoot.textContent())?.trim() || "Unknown assessment error";
+        throw new Error(`Assessment entered an error state: ${message}`);
+      }
+      return currentPhase;
+    };
+
+    await waitForActionablePhase();
+
     // ── Step 7: Answer questions (up to 30) ──────────────────────────────────
     let questionsAnswered = 0;
     const maxQuestions = 30;
 
     while (questionsAnswered < maxQuestions) {
-      // Wait for either next question or completion screen
-      const isDone = await page.getByText(/أحسنت|في انتظار المراجعة/).isVisible().catch(() => false);
-      if (isDone) break;
+      const currentPhase = await waitForActionablePhase();
+      if (currentPhase === "waiting_audio_review" || currentPhase === "done") break;
 
       // Check for audio question
-      const recordBtn = page.getByRole("button", { name: /ابدأ التسجيل|سجّل/ }).first();
-      const hasAudio = await recordBtn.isVisible().catch(() => false);
+      const recordBtn = page.getByRole("button", { name: "ابدأ التسجيل" });
 
-      if (hasAudio) {
+      if (currentPhase === "recording") {
         // Audio question: use fake media stream (configured in playwright.config.ts)
+        await expect(recordBtn).toBeVisible({ timeout: 5000 });
         await recordBtn.click();
         await page.waitForTimeout(2500); // record 2.5s of fake audio
         const stopBtn = page.getByRole("button", { name: /إيقاف|أوقف/ }).first();
@@ -123,22 +140,21 @@ test.describe("Full Vertical Slice — B02 Lifecycle Gate", () => {
       } else {
         // MCQ question: click first visible option
         const optionBtns = page.locator(".assessment-option");
-        const count = await optionBtns.count();
-        if (count === 0) {
-          // No options visible yet — might still be loading
-          await page.waitForTimeout(1000);
-          continue;
-        }
+        await expect(optionBtns.first()).toBeVisible({ timeout: 5000 });
         await optionBtns.first().click({ timeout: 5000 });
         await page.getByRole("button", { name: "تأكيد الإجابة" }).click();
       }
 
       questionsAnswered++;
-      // Brief pause between questions
-      await page.waitForTimeout(500);
+      if (questionsAnswered < maxQuestions) {
+        await expect(progressCounter).toContainText(`${questionsAnswered}/`, { timeout: 15000 });
+        await waitForActionablePhase();
+      }
       if (questionsAnswered === 1) {
         await page.reload();
         await expect(page).toHaveURL(new RegExp(`/student/session/${sessionId}`));
+        await waitForActionablePhase();
+        await expect(progressCounter).toContainText("1/", { timeout: 15000 });
       }
     }
 

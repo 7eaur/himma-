@@ -233,7 +233,7 @@ export default function SessionPage() {
 
   if (phase === 'done' && assignedLevel !== null) {
     return (
-      <div className="result-shell">
+      <div className="result-shell" data-testid="assessment-session" data-phase="done">
         <div className="result-card">
           <div className="result-icon">
             <CheckCircle size={44} color="#51B985" />
@@ -257,7 +257,7 @@ export default function SessionPage() {
 
   if (phase === 'waiting_audio_review') {
     return (
-      <div className="result-shell">
+      <div className="result-shell" data-testid="assessment-session" data-phase="waiting_audio_review">
         <div className="result-card">
           <h1 className="result-title" style={{fontSize:'1.6rem'}}>في انتظار المراجعة</h1>
           <p className="result-subtitle">أجبت على جميع الأسئلة. الباحثة ستراجع تسجيلك الصوتي قريباً، ثم ستظهر نتيجتك.</p>
@@ -270,7 +270,7 @@ export default function SessionPage() {
 
   if (phase === 'error') {
     return (
-      <div className="result-shell">
+      <div className="result-shell" data-testid="assessment-session" data-phase="error">
         <div className="result-card">
           <AlertCircle size={48} color="#DC2626" style={{margin:'0 auto 16px',display:'block'}} />
           <h1 className="result-title" style={{color:'#DC2626',fontSize:'1.4rem'}}>حدث خطأ</h1>
@@ -283,7 +283,7 @@ export default function SessionPage() {
 
   if (phase === 'finishing') {
     return (
-      <div className="result-shell">
+      <div className="result-shell" data-testid="assessment-session" data-phase="finishing">
         <div className="result-card">
           <div className="spinner" style={{width:48,height:48,margin:'0 auto 20px'}} />
           <p style={{textAlign:'center',color:'var(--color-muted)',fontFamily:'var(--font-student)',fontSize:'1.1rem'}}>جاري حساب نتيجتك...</p>
@@ -293,7 +293,7 @@ export default function SessionPage() {
   }
 
   return (
-    <div className="assessment-shell">
+    <div className="assessment-shell" data-testid="assessment-session" data-phase={phase}>
       {/* Header with progress */}
       <div className="assessment-header">
         <button
@@ -305,7 +305,7 @@ export default function SessionPage() {
         <div className="assessment-progress-bar">
           <div className="assessment-progress-fill" style={{width:`${progress}%`}} />
         </div>
-        <span className="assessment-counter">{answered}/{total}</span>
+        <span className="assessment-counter" data-testid="assessment-progress">{answered}/{total}</span>
       </div>
 
       <div className="assessment-body">
