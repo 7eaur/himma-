@@ -15,7 +15,6 @@ async function loginAsResearcher(request: APIRequestContext, context: import("@p
   });
   expect(res.status(), "Admin login should return 200").toBe(200);
 
-  // Extract set-cookie header and inject into browser context
   const setCookieHeader = res.headers()["set-cookie"];
   if (setCookieHeader) {
     const cookieMatch = setCookieHeader.match(/access_token=([^;]+)/);
@@ -56,12 +55,14 @@ async function loginAsStudent(request: APIRequestContext, context: import("@play
   }
 }
 
-test.describe("Full Vertical Slice — B02 Lifecycle Gate", () => {
-  test("Admin creates student → Student takes pretest → Admin grades audio", async ({
+test.describe("Full Vertical Slice — Stage 2 Closure Gate", () => {
+  test("Admin creates student → pretest/review → assigned core path → researcher sees 10/10", async ({
     page,
     context,
     request,
   }) => {
+    test.setTimeout(180000);
+
     // ── Step 1: Login as Admin via API ──────────────────────────────────────
     await loginAsResearcher(request, context);
 
@@ -80,7 +81,8 @@ test.describe("Full Vertical Slice — B02 Lifecycle Gate", () => {
     await expect(codeEl).toBeVisible({ timeout: 10000 });
     const accessCode = (await codeEl.textContent())?.trim();
     expect(accessCode, "Access code should be present").toBeTruthy();
-    console.log("Created student and captured one-time access code");
+    const studentId = page.url().match(/\/admin\/students\/(\d+)/)?.[1];
+    expect(studentId, "Student id should be present in the URL").toBeTruthy();
 
     // ── Step 4: Clear admin session ──────────────────────────────────────────
     await context.clearCookies();
@@ -115,7 +117,7 @@ test.describe("Full Vertical Slice — B02 Lifecycle Gate", () => {
 
     await waitForActionablePhase();
 
-    // ── Step 7: Answer questions (up to 30) ──────────────────────────────────
+    // ── Step 7: Answer the exact 30-question pretest ─────────────────────────
     let questionsAnswered = 0;
     const maxQuestions = 30;
 
@@ -123,14 +125,11 @@ test.describe("Full Vertical Slice — B02 Lifecycle Gate", () => {
       const currentPhase = await waitForActionablePhase();
       if (currentPhase === "waiting_audio_review" || currentPhase === "done") break;
 
-      // Check for audio question
       const recordBtn = page.getByRole("button", { name: "ابدأ التسجيل" });
-
       if (currentPhase === "recording") {
-        // Audio question: use fake media stream (configured in playwright.config.ts)
         await expect(recordBtn).toBeVisible({ timeout: 5000 });
         await recordBtn.click();
-        await page.waitForTimeout(2500); // record 2.5s of fake audio
+        await page.waitForTimeout(2500);
         const stopBtn = page.getByRole("button", { name: /إيقاف|أوقف/ }).first();
         await stopBtn.click();
         await page.waitForTimeout(500);
@@ -138,7 +137,6 @@ test.describe("Full Vertical Slice — B02 Lifecycle Gate", () => {
         await expect(submitBtn).toBeEnabled({ timeout: 5000 });
         await submitBtn.click();
       } else {
-        // MCQ question: click first visible option
         const optionBtns = page.locator(".assessment-option");
         await expect(optionBtns.first()).toBeVisible({ timeout: 5000 });
         await optionBtns.first().click({ timeout: 5000 });
@@ -158,12 +156,10 @@ test.describe("Full Vertical Slice — B02 Lifecycle Gate", () => {
       }
     }
 
-    console.log(`Answered ${questionsAnswered} questions`);
-
-    // ── Step 8: Verify completion ─────────────────────────────────────────────
+    expect(questionsAnswered).toBe(30);
     await expect(page.getByText("في انتظار المراجعة")).toBeVisible({ timeout: 15000 });
 
-    // ── Step 9: Admin reviews audio ───────────────────────────────────────────
+    // ── Step 8: Admin reviews all pretest audio ───────────────────────────────
     await context.clearCookies();
     await loginAsResearcher(request, context);
     await page.goto("/admin/audio-review");
@@ -180,18 +176,74 @@ test.describe("Full Vertical Slice — B02 Lifecycle Gate", () => {
     }
     expect(reviewed).toBeGreaterThan(0);
 
-    // ── Step 10: Student receives the final result after review ───────────────
+    // ── Step 9: Student receives result and assigned level ────────────────────
     await context.clearCookies();
     await loginAsStudent(request, context, accessCode!);
     await page.goto(`/student/session/${sessionId}`);
     await expect(page.getByText("أحسنت")).toBeVisible({ timeout: 15000 });
 
-    // ── Step 11: Verify student list updated ─────────────────────────────────
+    // ── Step 10: Start the ten core learning activities ───────────────────────
+    await page.goto("/student");
+    const learningButton = page.getByRole("button", { name: /ابدأ أنشطة مستواك|متابعة الأنشطة/ });
+    await expect(learningButton).toBeEnabled({ timeout: 10000 });
+    await learningButton.click();
+    await expect(page).toHaveURL(/\/student\/activity\/\d+/, { timeout: 10000 });
+
+    const activityRoot = page.getByTestId("activity-session");
+    const activityProgress = page.getByTestId("activity-progress");
+    await expect(activityRoot).toHaveAttribute("data-phase", /^(active|done)$/, { timeout: 15000 });
+
+    // Reload once to prove the learning path resumes from its durable session.
+    await page.reload();
+    await expect(activityRoot).toHaveAttribute("data-phase", /^(active|done)$/, { timeout: 15000 });
+
+    let learningInteractions = 0;
+    while ((await activityRoot.getAttribute("data-phase")) !== "done") {
+      learningInteractions++;
+      expect(learningInteractions, "Core path should terminate").toBeLessThan(100);
+
+      const gapButton = page.getByRole("button", { name: "متابعة دون احتساب هذه الجولة" });
+      if (await gapButton.count()) {
+        await gapButton.click();
+      } else {
+        const verifyButton = page.getByRole("button", { name: "تحقق وتابع" });
+        const recordButton = page.getByRole("button", { name: "ابدأ القراءة" });
+
+        if (await recordButton.count()) {
+          await recordButton.click();
+          await page.waitForTimeout(700);
+          await page.getByRole("button", { name: /إيقاف التسجيل/ }).click();
+          await expect(page.getByRole("button", { name: "حفظ القراءة والمتابعة" })).toBeEnabled({ timeout: 5000 });
+          await page.getByRole("button", { name: "حفظ القراءة والمتابعة" }).click();
+        } else {
+          const optionButtons = activityRoot.locator("button[aria-pressed]");
+          await expect(optionButtons.first()).toBeVisible({ timeout: 5000 });
+          const optionCount = await optionButtons.count();
+          for (let index = 0; index < optionCount; index++) {
+            await optionButtons.nth(index).click();
+            if (await verifyButton.isEnabled()) break;
+          }
+          await expect(verifyButton).toBeEnabled({ timeout: 3000 });
+          await verifyButton.click();
+        }
+      }
+
+      await expect(activityRoot).toHaveAttribute("data-phase", /^(active|done)$/, { timeout: 15000 });
+    }
+
+    await expect(page.getByText("أحسنت، أكملت أنشطة مستواك")).toBeVisible({ timeout: 15000 });
+    await expect(activityProgress).toContainText("10/10");
+
+    // ── Step 11: Researcher sees 10/10 and can enable posttest ────────────────
     await context.clearCookies();
     await loginAsResearcher(request, context);
+    await page.goto(`/admin/students/${studentId}`);
+    await expect(page.getByText("10 من 10")).toBeVisible({ timeout: 10000 });
+    const enablePosttest = page.getByRole("button", { name: "إتاحة الاختبار البعدي" });
+    await expect(enablePosttest).toBeEnabled();
+
+    // ── Step 12: Verify student list remains intact ───────────────────────────
     await page.goto("/admin/students");
     await expect(page.getByText(studentName)).toBeVisible({ timeout: 5000 });
-
-    console.log("✓ Vertical slice complete");
   });
 });
