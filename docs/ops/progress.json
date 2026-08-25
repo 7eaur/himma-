@@ -1,31 +1,13 @@
 {
   "schema_version": 2,
   "plan_version": "HIMMA-V2",
-  "branch": "b03/adaptive-learning-engine",
-  "phase": "STAGE-3-ADAPTIVE-LEARNING",
-  "slice": "B03-ADAPTIVE-LEARNING-ENGINE",
-  "gate_status": "ACCEPTED",
+  "branch": "b04/asr-pipeline",
+  "phase": "STAGE-4-P07-SPEECH-ANALYSIS",
+  "slice": "P07-PROVIDER-NEUTRAL-INFRASTRUCTURE",
+  "gate_status": "IN_PROGRESS",
   "last_verified": "2026-08-25",
-  "accepted_implementation_sha": "8d64eb9766fd69618960af0b279ae94484618d17",
-  "github_actions": {
-    "run_number": 83,
-    "run_id": 32800935038,
-    "backend": "PASS",
-    "frontend": "PASS",
-    "integration": "PASS"
-  },
-  "visual_evidence": {
-    "artifact_id": 9546598013,
-    "artifact_name": "playwright-report",
-    "digest": "sha256:18fdf5f93421abb2c22e22cc196a81fc5bca9614fa841820546bee2c328ea2c2",
-    "screenshots": [
-      "01-student-created.png",
-      "02-first-learning-activity.png",
-      "03-learning-complete.png",
-      "04-researcher-progress-10-of-10.png"
-    ],
-    "adaptive_ui_evidence": "04-researcher-progress-10-of-10.png shows event-backed stars, current level, 10/10 core progress, saved adaptive decision, 100% moving mastery, manual override controls, and decision history"
-  },
+  "base_checkpoint": "53666a0a67d19586ed1ea792b93d5c102dcb7883",
+  "last_accepted_implementation_sha": "8d64eb9766fd69618960af0b279ae94484618d17",
   "accepted_checkpoints": {
     "B00": "recovery/codex-baseline@e5fafe757bd57f8bdce35a8f8d0f3bbcc0784c2d",
     "B01": "b01/content-source-of-truth@26d25e081b0c7c66f5d6b09b8b1750e67c745b41",
@@ -33,26 +15,34 @@
     "STAGE2_CLOSURE": "b02/stage2-closure@38a1b8d1a03a56f08aa3afdf9404593351e05a87",
     "B03": "b03/adaptive-learning-engine@8d64eb9766fd69618960af0b279ae94484618d17"
   },
-  "verified_results": {
-    "weighted_mastery": "PASS: newest three valid attempts weighted 50/30/20",
-    "valid_attempt_filter": "PASS: incomplete, rerecord-required, unresolved/low-confidence audio and declared media-gap-only evidence are excluded rather than penalised",
-    "promotion_gate": "PASS: >=80 plus required skill coverage and no required skill below 60; no promotion above level 3",
-    "support_and_demotion": "PASS: <50 receives support first; demotion is one level only after a second consecutive low automatic decision; never below level 1",
-    "reinforcement_routing": "PASS: exact weakest-skill reinforcement from approved catalog only; no unrelated fallback",
-    "transition_idempotency": "PASS: decision snapshots and recommended attempts are durable and reload-safe",
-    "manual_override": "PASS: researcher reason required; manual decision is separate and automatic history is preserved",
-    "rewards": "PASS: stars/badges originate from valid completed learning events and are not duplicated",
-    "researcher_ui": "PASS: adaptive decision, moving mastery, level transition, rewards, manual override and history are visible",
-    "postgresql_alembic": "PASS: upgrade/downgrade/upgrade and model drift check",
-    "frontend": "PASS: TypeScript, ESLint, frontend unit tests and production build",
-    "browser_gate": "PASS: full student/researcher vertical slice remains green and the researcher evidence screenshot contains the adaptive panel and rewards",
-    "github_actions": "PASS: run #83 (32800935038), backend/frontend/integration all green"
+  "p07_infrastructure": {
+    "status": "IMPLEMENTED_PENDING_REMOTE_GATE",
+    "delivered": [
+      "durable speech_analysis_jobs queue schema",
+      "durable speech_analyses result schema",
+      "reversible Alembic migration 0007",
+      "replaceable SpeechProvider protocol with fail-closed unconfigured runtime",
+      "DB-backed worker with uploaded-audio discovery",
+      "retry/backoff/dead-letter states",
+      "reference-guided Arabic word alignment",
+      "correct/deletion/insertion/substitution extraction",
+      "provider timing/confidence fields when available",
+      "researcher queue/status/manual-retry API",
+      "calibration gate that keeps results in human review until threshold/version are explicitly configured",
+      "tests for alignment, provider absence, human-review default, calibrated acceptance and retry/dead-letter"
+    ]
   },
-  "excluded_until_later": [
-    "automatic ASR provider integration",
-    "production ASR confidence/alignment pipeline",
-    "final research reporting/export hardening",
-    "release/deployment hardening"
+  "blockers": [
+    "OI-02 production ASR provider/privacy/cost/recording-transfer decision is not yet approved",
+    "Representative recordings from the client are pending",
+    "OI-03 confidence threshold must be calibrated from those representative recordings",
+    "No automatic academic speech scoring may be enabled before the provider and calibration gates are satisfied"
   ],
-  "next_step": "Start Stage 4 / P07 ASR only from the accepted B03 checkpoint; select and document the real ASR provider before integrating automatic speech scoring"
+  "safety_rules": [
+    "No fake production ASR adapter",
+    "No academic penalty for provider failure or unresolved/low-confidence speech",
+    "No phoneme/haraka claim without calibration evidence",
+    "Accepted B03 adaptation rules remain unchanged"
+  ],
+  "next_step": "Finish the remote CI gate for the provider-neutral P07 infrastructure. When representative recordings arrive, evaluate and approve a real ASR provider, calibrate confidence, add the real adapter, then run the private MinIO -> worker -> ASR -> alignment -> researcher-review integration gate."
 }
