@@ -2,15 +2,21 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import Any, Literal, Optional
 from datetime import datetime
 from decimal import Decimal
+import re
 
 
 class ResearcherLogin(BaseModel):
-    username: str
-    password: str
+    username: str = Field(min_length=2, max_length=150)
+    password: str = Field(min_length=1, max_length=200)
 
 
 class StudentLogin(BaseModel):
     access_code: str
+
+    @field_validator("access_code")
+    @classmethod
+    def normalize_access_code(cls, value: str) -> str:
+        return value.strip()
 
 
 class UserResponse(BaseModel):
@@ -21,18 +27,93 @@ class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class SupervisorProfileUpdateRequest(BaseModel):
+    username: str = Field(min_length=2, max_length=150)
+
+    @field_validator("username")
+    @classmethod
+    def normalize_username(cls, value: str) -> str:
+        normalized = " ".join(value.split())
+        if len(normalized) < 2:
+            raise ValueError("اسم المشرف يجب أن يحتوي على حرفين على الأقل")
+        if any(ord(character) < 32 for character in normalized):
+            raise ValueError("اسم المشرف يحتوي على رموز غير مدعومة")
+        return normalized
+
+
+class SupervisorPasswordChangeRequest(BaseModel):
+    current_password: str = Field(min_length=1, max_length=200)
+    new_password: str = Field(min_length=8, max_length=200)
+
+
+class SupervisorCreateRequest(BaseModel):
+    username: str = Field(min_length=2, max_length=150)
+    password: str = Field(min_length=8, max_length=200)
+
+    @field_validator("username")
+    @classmethod
+    def normalize_supervisor_username(cls, value: str) -> str:
+        return SupervisorProfileUpdateRequest.normalize_username(value)
+
+
+class SupervisorResponse(BaseModel):
+    id: int
+    username: str
+    is_active: bool
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class StudentCreateRequest(BaseModel):
     full_name: str = Field(min_length=2, max_length=80)
     grade_level: Literal[3] = 3
+    access_code: Optional[str] = None
 
     @field_validator("full_name")
     @classmethod
     def normalize_full_name(cls, value: str) -> str:
         normalized = " ".join(value.split())
         if len(normalized) < 2:
-            raise ValueError("Student pseudonym must contain at least two characters")
+            raise ValueError("اسم الطالب يجب أن يحتوي على حرفين على الأقل")
         if any(ord(character) < 32 for character in normalized):
-            raise ValueError("Student pseudonym contains unsupported characters")
+            raise ValueError("اسم الطالب يحتوي على رموز غير مدعومة")
+        return normalized
+
+    @field_validator("access_code")
+    @classmethod
+    def validate_access_code(cls, value: Optional[str]) -> Optional[str]:
+        if value is None or not value.strip():
+            return None
+        normalized = value.strip()
+        if not re.fullmatch(r"\d{6}", normalized):
+            raise ValueError("رمز دخول الطالب يجب أن يتكون من 6 أرقام")
+        return normalized
+
+
+class StudentUpdateRequest(BaseModel):
+    full_name: Optional[str] = Field(default=None, min_length=2, max_length=80)
+    is_active: Optional[bool] = None
+
+    @field_validator("full_name")
+    @classmethod
+    def normalize_optional_full_name(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        return StudentCreateRequest.normalize_full_name(value)
+
+
+class StudentAccessCodeUpdateRequest(BaseModel):
+    access_code: Optional[str] = None
+
+    @field_validator("access_code")
+    @classmethod
+    def validate_optional_access_code(cls, value: Optional[str]) -> Optional[str]:
+        if value is None or not value.strip():
+            return None
+        normalized = value.strip()
+        if not re.fullmatch(r"\d{6}", normalized):
+            raise ValueError("رمز دخول الطالب يجب أن يتكون من 6 أرقام")
         return normalized
 
 
@@ -108,12 +189,24 @@ class ContentOptionResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ContentAssetResponse(BaseModel):
+    asset_id: str
+    asset_type: str
+    usage: Optional[str] = None
+    semantic_text: Optional[str] = None
+    url: str
+    option_id: Optional[int] = None
+
+
 class ContentStepResponse(BaseModel):
     id: int
     order_index: int
     prompt_text: str
+    instruction_text: Optional[str] = None
     expected_reading_text: Optional[str] = None
     options: list[ContentOptionResponse] = Field(default_factory=list)
+    assets: list[ContentAssetResponse] = Field(default_factory=list)
+    media_gaps: list[dict[str, Any]] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -121,9 +214,13 @@ class ContentStepResponse(BaseModel):
 class ContentItemResponse(BaseModel):
     id: int
     stable_key: str
+    canonical_id: Optional[str] = None
     kind: str
     interaction_type: str
+    title: Optional[str] = None
+    source_method: Optional[str] = None
     steps: list[ContentStepResponse] = Field(default_factory=list)
+    item_assets: list[ContentAssetResponse] = Field(default_factory=list)
     template_data: Optional[dict[str, Any]] = None
 
     model_config = ConfigDict(from_attributes=True)
@@ -149,7 +246,7 @@ class AudioSubmissionReviewResponse(BaseModel):
 
 
 class GradeAudioRequest(BaseModel):
-    is_valid: bool  # if false, turns into rerecord_required
+    is_valid: bool
     target_units: Optional[int] = Field(default=None, gt=0)
     deletions: int = Field(default=0, ge=0)
     substitutions: int = Field(default=0, ge=0)
