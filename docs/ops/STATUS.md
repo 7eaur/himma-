@@ -1,64 +1,67 @@
 # STATUS — Himma Platform
 
-**Branch:** `b03/adaptive-learning-engine`
+**Branch:** `b04/asr-pipeline`
 
-**Stage:** Stage 3 / B03 — `ACCEPTED`
+**Stage:** Stage 4 / P07 — `IN_PROGRESS`
 
-**Accepted implementation SHA:** `8d64eb9766fd69618960af0b279ae94484618d17`
+**Base checkpoint:** `53666a0a67d19586ed1ea792b93d5c102dcb7883`
 
-**Authoritative implementation gate:** GitHub Actions #83 — run `32800935038`
+**Last accepted stage:** Stage 3 / B03 at implementation SHA `8d64eb9766fd69618960af0b279ae94484618d17`
 
 **Last verified:** 2026-08-25
 
 ---
 
-## Stage 3 adaptive learning — ACCEPTED
+## Stage 4 / P07 speech analysis — provider-neutral infrastructure
 
-Stage 3 extends the accepted Stage-2 learning path without rewriting the Stage-2 checkpoint. The adaptive engine, reinforcement routing, rewards and researcher controls are implemented on `b03/adaptive-learning-engine` and verified against PostgreSQL and the remote CI gate.
+P07 is now on a clean branch from the accepted Stage-3 handoff. The current slice prepares the real speech-analysis architecture without pretending a production ASR provider has been approved.
 
-### Delivered and verified
+### Implemented in the current slice
 
-- Moving mastery uses exactly the newest three valid attempts with weights `50/30/20` (newest → oldest).
-- Invalid academic evidence is neutral rather than punitive: incomplete attempts, rerecord-required audio, unresolved/low-confidence audio and declared missing-media-only evidence are excluded.
-- `<50%` triggers support first. A one-level demotion can occur only after a second consecutive low automatic decision, never below level 1.
-- `>=80%` may promote one level only when required skill coverage exists and no required skill is below `60%`; promotion never exceeds level 3.
-- The `50–<80` stability band stays at the current level.
-- Reinforcement is selected only from the approved catalog and must match the weakest skill exactly. If no unused exact mapping exists, the runtime blocks rather than substituting unrelated content.
-- Adaptive decisions are durable/idempotent snapshots and preserve their evidence and explanation.
-- Researcher manual override requires a documented reason, is recorded as a separate decision, and does not erase automatic history.
-- Rewards are event-backed: stars/badges require valid completed learning evidence and use durable reward keys to prevent duplicate rewards on refresh/retry.
-- Researcher student detail shows stars/badges, latest adaptive decision, moving mastery, level transition, reason, targeted recommendation, manual override and decision history.
-- Stage-2 guarantees remain intact: approved catalog, ten core activities, reload resume, timing/idempotency, researcher 10/10 progress and posttest gating.
+- Durable `speech_analysis_jobs` queue table with queued/processing/retry/dead-letter/blocked-provider/review states.
+- Durable `speech_analyses` result table storing provider/model/request metadata, reference text, transcript, confidence, duration, alignment events and calibration version.
+- Reversible Alembic migration `0007_speech_analysis_pipeline`.
+- Replaceable `SpeechProvider` protocol/adapter boundary.
+- Runtime fails closed when no approved provider exists; there is no fake production ASR fallback.
+- DB-backed asynchronous worker that discovers uploaded recordings and processes due jobs outside the HTTP request path.
+- Retry/backoff/dead-letter behavior for temporary provider failures.
+- Reference-guided Arabic word alignment against the exact reading text shown to the student.
+- Word-level `correct`, `deletion`, `insertion`, and `substitution` events.
+- Provider word timing/confidence fields are preserved when an approved provider supplies them.
+- Researcher API for queue status, enqueue/status lookup and explicit retry.
+- Confidence policy is fail-closed: until a calibrated threshold and calibration version are configured, valid ASR output remains `review_required`.
+- Speech processing does not mutate the student's academic score by itself.
 
-### Acceptance evidence
+### Tests added
 
-| Gate | Result |
-|---|---|
-| Adaptive boundary/unit tests | PASS — 50/30/20, 50/80 thresholds, 60 skill floor, level floor/ceiling, support-before-demotion, manual override history |
-| Valid-evidence filtering | PASS — unresolved/invalid evidence is excluded rather than treated as failure |
-| Reinforcement routing | PASS — exact weakest-skill mapping from approved content only |
-| Rewards | PASS — valid event-backed stars/badges with duplicate protection |
-| PostgreSQL/Alembic | PASS — upgrade → downgrade → upgrade and `alembic check` |
-| Catalog/seed | PASS — approved catalog validation and idempotent seed |
-| Backend | PASS |
-| TypeScript | PASS |
-| ESLint | PASS |
-| Frontend unit tests | PASS |
-| Next.js production build | PASS |
-| Browser integration | PASS |
-| GitHub Actions | PASS — backend, frontend and integration all green in run #83 (`32800935038`) |
-| Visual evidence | PASS — Playwright artifact `9546598013`, digest `sha256:18fdf5f93421abb2c22e22cc196a81fc5bca9614fa841820546bee2c328ea2c2` |
+- Arabic normalization and diacritic-insensitive lexical matching.
+- Exact reading, deletion, insertion and substitution alignment cases.
+- Provider-not-configured => blocked state and zero fake analyses.
+- Valid provider output remains human-review-only before calibration.
+- Calibrated threshold path is separately tested.
+- Temporary provider errors retry and then dead-letter at the configured limit.
 
-The full-page researcher screenshot `04-researcher-progress-10-of-10.png` from the accepted B03 run visibly contains the adaptive panel, event-backed stars, 10/10 core progress, moving mastery, current/target level, manual-override controls and saved decision history.
+## P07 is NOT accepted yet
 
-### Accepted checkpoints
+The approved roadmap requires OI-02 to be resolved before the stage can close. The client representative recordings are still pending, therefore these items remain blocked:
+
+- production ASR provider selection/approval;
+- vendor privacy/retention/cost/recording-transfer decision;
+- Arabic child-reading accuracy evaluation on Himma material;
+- production confidence threshold calibration (OI-03);
+- real provider integration through private MinIO -> worker -> ASR -> alignment;
+- any phoneme/haraka scoring not proven by calibration.
+
+Until those gates are satisfied, manual researcher review remains authoritative and P07 stays `IN_PROGRESS` rather than `ACCEPTED`.
+
+## Preserved accepted checkpoints
 
 - B00: `recovery/codex-baseline@e5fafe757bd57f8bdce35a8f8d0f3bbcc0784c2d`
 - B01: `b01/content-source-of-truth@26d25e081b0c7c66f5d6b09b8b1750e67c745b41`
 - B02 lifecycle: `b02/student-assessment-lifecycle@6a5293879fb25555dc2992ee0cf2b6f7c7441afa`
 - Stage 2 closure: `b02/stage2-closure@38a1b8d1a03a56f08aa3afdf9404593351e05a87`
-- Stage 3 / B03 implementation: `b03/adaptive-learning-engine@8d64eb9766fd69618960af0b279ae94484618d17`
+- Stage 3 / B03: `b03/adaptive-learning-engine@8d64eb9766fd69618960af0b279ae94484618d17`
 
-## Next phase
+## Next action
 
-Stage 3 is closed. The next roadmap boundary is Stage 4 / P07 speech processing (ASR). A real provider must be selected and documented before automatic ASR/alignment/confidence logic is integrated. Research reporting/export and final release hardening remain later stages and must not be silently mixed into the ASR slice.
+Finish the remote CI gate for this infrastructure slice. When the representative recordings arrive, use them to choose/verify the real ASR provider and calibrate confidence before adding any production automatic speech decision.
