@@ -1,59 +1,42 @@
 {
   "schema_version": 2,
   "plan_version": "HIMMA-V2",
-  "branch": "b02/student-assessment-lifecycle",
-  "base_sha": "26d25e081b0c7c66f5d6b09b8b1750e67c745b41",
-  "phase": "B02-STUDENT-ASSESSMENT",
-  "slice": "B02-STUDENT-DATA-AND-ASSESSMENT-LIFECYCLE",
-  "gate_status": "REMOTE_GREEN_WAITING_USER_ACCEPTANCE",
-  "last_verified": "2026-08-24T22:53:16Z",
-  "current_goal": "Hold the green B02 student and assessment lifecycle checkpoint until explicit user acceptance",
+  "branch": "b02/stage2-closure",
+  "base_sha": "6a5293879fb25555dc2992ee0cf2b6f7c7441afa",
+  "phase": "STAGE-2-CLOSURE",
+  "slice": "B02-ACTIVITY-EXECUTION-RECOVERY",
+  "gate_status": "IN_PROGRESS",
+  "last_verified": "2026-08-25",
+  "current_goal": "Reconstruct the unpushed Stage 2 activity execution work and close Stage 2 remotely without altering the accepted B02 checkpoint",
+  "accepted_checkpoints": {
+    "B00": "recovery/codex-baseline@e5fafe757bd57f8bdce35a8f8d0f3bbcc0784c2d",
+    "B01": "b01/content-source-of-truth@26d25e081b0c7c66f5d6b09b8b1750e67c745b41",
+    "B02": "b02/student-assessment-lifecycle@6a5293879fb25555dc2992ee0cf2b6f7c7441afa"
+  },
   "baseline_results": {
-    "typescript": "PASS",
-    "eslint": "PASS: 0 errors, 0 warnings",
-    "frontend_unit": "PASS: 4 tests",
-    "frontend_build": "PASS: Next.js production build, 17 routes",
-    "backend_pytest": "PASS: 37 tests; one dependency deprecation warning",
-    "python_compile": "PASS",
-    "alembic": "PASS: PostgreSQL upgrade/downgrade/upgrade and alembic check completed in CI",
-    "smoke": "PASS: FastAPI and Next production, API proxy, researcher/student login, secure cookie contract",
-    "security": "PASS for current tracked tree; rotation of previously exposed values remains mandatory before production",
-    "audio_rerecord": "PASS: rejected recording reopens attempt and replacement returns to review",
-    "content_catalog": "PASS: 105 items, 44 stable skills, 264 approved rounds, 185 validated media references, 2 explicit missing-audio gaps",
-    "content_schema": "PASS: JSON Schema Draft 2020-12 and deterministic source-equivalence validator",
-    "content_seed": "PASS: idempotent exact counts and explicit refusal to mix a legacy catalog",
-    "student_contract": "PASS: fixed grade 3, pseudonymous unique codes, researcher authorization, and maximum 15 students",
-    "assessment_lifecycle": "PASS: one resumable pre/post session, exact unanswered-step resume, durable timing, and researcher-enabled posttest",
-    "submission_idempotency": "PASS: durable answer/audio replay, conflict detection, no duplicate rows or double-counted time, and same-origin proxy preservation",
-    "b02_browser_e2e": "PASS: 30 questions including audio, forced reload/resume, human audio review, final result, and roster verification"
+    "b02_remote_gate": "PASS: GitHub Actions #32 backend/frontend/integration",
+    "backend_pytest": "PASS at accepted B02 checkpoint: 37 tests",
+    "frontend": "PASS at accepted B02 checkpoint: TypeScript, ESLint, 4 Jest tests, production build",
+    "alembic": "PASS at accepted B02 checkpoint: PostgreSQL upgrade/downgrade/upgrade and drift check",
+    "content_catalog": "PASS: 105 items, 44 skills, 264 rounds, 30 core, 15 reinforcement, 2 declared media gaps",
+    "assessment_level_assignment": "PRESENT: <50 level 1; <80 level 2; otherwise level 3",
+    "activity_runtime": "MISSING REMOTELY: student activity route remains placeholder and learning action is disabled"
   },
-  "migration_policy": "Additive B02 migration only; no destructive data rewrite; require PostgreSQL upgrade/downgrade/upgrade and alembic check",
-  "acceptance_ids": ["AC-02", "AC-03", "AC-05", "AC-10", "AC-14"],
-  "historical_p04": {
-    "source_branch": "stage/04-production-slice",
-    "source_sha": "aa89aa8e628247151bf2e4a97eac30b50f9ea238",
-    "claim": "Assessment runner, audio upload, manual review, and level result existed but the reported gate was not reproducible",
-    "superseded_by": "B00-TRUSTED-BASELINE"
-  },
-  "previous_remote_gate": {
-    "system": "GitHub Actions",
-    "workflow_run_id": 32697460612,
-    "workflow_run_number": 28,
-    "workflow_run_url": "https://github.com/7eaur/himma-/actions/runs/32697460612",
-    "head_sha": "dc272337f389b63a1eb017b32c3f899570b15226",
-    "required_jobs": ["backend", "frontend", "integration"],
-    "services": ["PostgreSQL", "MinIO", "Redis"],
-    "status": "PASS"
-  },
-  "current_remote_gate": {
-    "system": "GitHub Actions",
-    "workflow_run_id": 32786468307,
-    "workflow_run_number": 32,
-    "workflow_run_url": "https://github.com/7eaur/himma-/actions/runs/32786468307",
-    "verified_implementation_sha": "f45cf88a92a32a7569357db3416c90861332e015",
-    "required_jobs": ["backend", "frontend", "integration"],
-    "services": ["PostgreSQL", "MinIO", "Redis"],
-    "status": "PASS"
-  },
-  "next_step": "Pause. Do not start B03 until the user explicitly replies تم; then create a new B03 branch for initial level assignment and adaptive activity routing"
+  "recovery_evidence": "docs/ops/stages/B02_STAGE2_CLOSURE_RECOVERY.md",
+  "scope": [
+    "ten core activities for assigned level",
+    "approved interaction runtime",
+    "approved media rendering with declared-gap handling",
+    "durable activity progress/resume/timing/idempotency",
+    "researcher progress visibility",
+    "posttest remains gated until core path completion and researcher enablement",
+    "remote PostgreSQL/catalog/backend/frontend/browser gate"
+  ],
+  "excluded_until_later": [
+    "automatic ASR",
+    "50/30/20 adaptive mastery decisions",
+    "automatic reinforcement routing",
+    "Stage 3 acceptance"
+  ],
+  "next_step": "Implement the Stage 2 activity execution path on b02/stage2-closure and run GitHub Actions until all required jobs are green"
 }
