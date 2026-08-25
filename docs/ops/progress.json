@@ -5,38 +5,48 @@
   "base_sha": "6a5293879fb25555dc2992ee0cf2b6f7c7441afa",
   "phase": "STAGE-2-CLOSURE",
   "slice": "B02-ACTIVITY-EXECUTION-RECOVERY",
-  "gate_status": "IN_PROGRESS",
+  "gate_status": "ACCEPTED",
   "last_verified": "2026-08-25",
-  "current_goal": "Reconstruct the unpushed Stage 2 activity execution work and close Stage 2 remotely without altering the accepted B02 checkpoint",
+  "accepted_implementation_sha": "38a1b8d1a03a56f08aa3afdf9404593351e05a87",
+  "github_actions": {
+    "run_number": 60,
+    "run_id": 32797279749,
+    "backend": "PASS",
+    "frontend": "PASS",
+    "integration": "PASS"
+  },
+  "visual_evidence": {
+    "artifact_id": 9545339547,
+    "artifact_name": "playwright-report",
+    "digest": "sha256:b7329302ab3e619f92942342f7f5d57a11cdbbe12797f493a6446b5077093fa8",
+    "screenshots": [
+      "01-student-created.png",
+      "02-first-learning-activity.png",
+      "03-learning-complete.png",
+      "04-researcher-progress-10-of-10.png"
+    ]
+  },
   "accepted_checkpoints": {
     "B00": "recovery/codex-baseline@e5fafe757bd57f8bdce35a8f8d0f3bbcc0784c2d",
     "B01": "b01/content-source-of-truth@26d25e081b0c7c66f5d6b09b8b1750e67c745b41",
-    "B02": "b02/student-assessment-lifecycle@6a5293879fb25555dc2992ee0cf2b6f7c7441afa"
+    "B02": "b02/student-assessment-lifecycle@6a5293879fb25555dc2992ee0cf2b6f7c7441afa",
+    "STAGE2_CLOSURE": "b02/stage2-closure@38a1b8d1a03a56f08aa3afdf9404593351e05a87"
   },
-  "baseline_results": {
-    "b02_remote_gate": "PASS: GitHub Actions #32 backend/frontend/integration",
-    "backend_pytest": "PASS at accepted B02 checkpoint: 37 tests",
-    "frontend": "PASS at accepted B02 checkpoint: TypeScript, ESLint, 4 Jest tests, production build",
-    "alembic": "PASS at accepted B02 checkpoint: PostgreSQL upgrade/downgrade/upgrade and drift check",
+  "verified_results": {
     "content_catalog": "PASS: 105 items, 44 skills, 264 rounds, 30 core, 15 reinforcement, 2 declared media gaps",
-    "assessment_level_assignment": "PRESENT: <50 level 1; <80 level 2; otherwise level 3",
-    "activity_runtime": "MISSING REMOTELY: student activity route remains placeholder and learning action is disabled"
+    "assessment_level_assignment": "PASS: <50 level 1; <80 level 2; otherwise level 3",
+    "activity_runtime": "PASS: ten assigned core activities with approved interaction runtime",
+    "activity_resume": "PASS: durable reload resume, timing, retries and idempotency",
+    "researcher_progress": "PASS: researcher sees completed core path as 10/10",
+    "posttest_gate": "PASS: requires completed pretest + ten core activities + explicit researcher enablement",
+    "alembic": "PASS: PostgreSQL upgrade/downgrade/upgrade and drift check",
+    "frontend": "PASS: TypeScript, ESLint, unit tests and production build",
+    "browser_gate": "PASS: create student -> pretest -> audio review -> level assignment -> ten core activities -> reload resume -> researcher 10/10"
   },
-  "recovery_evidence": "docs/ops/stages/B02_STAGE2_CLOSURE_RECOVERY.md",
-  "scope": [
-    "ten core activities for assigned level",
-    "approved interaction runtime",
-    "approved media rendering with declared-gap handling",
-    "durable activity progress/resume/timing/idempotency",
-    "researcher progress visibility",
-    "posttest remains gated until core path completion and researcher enablement",
-    "remote PostgreSQL/catalog/backend/frontend/browser gate"
-  ],
   "excluded_until_later": [
     "automatic ASR",
-    "50/30/20 adaptive mastery decisions",
-    "automatic reinforcement routing",
-    "Stage 3 acceptance"
+    "Stage 3 adaptive mastery decisions",
+    "automatic reinforcement routing"
   ],
-  "next_step": "Implement the Stage 2 activity execution path on b02/stage2-closure and run GitHub Actions until all required jobs are green"
+  "next_step": "Start Stage 3 from the accepted Stage-2 closure checkpoint on a new branch"
 }
