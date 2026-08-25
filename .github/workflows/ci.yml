@@ -79,7 +79,7 @@ jobs:
           "
 
       - name: Run backend tests
-        run: pytest test_api.py -v --tb=short
+        run: pytest -v --tb=short
 
   # ─── Frontend: type-check + lint + build ──────────────────────────────────
   frontend:
