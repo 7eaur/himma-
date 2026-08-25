@@ -33,7 +33,6 @@ export default function SettingsPage() {
   const [message, setMessage] = useState<{ kind: "success" | "error"; text: string }>({ kind: "success", text: "" });
 
   const load = useCallback(async () => {
-    setLoading(true);
     try {
       const [accountResponse, supervisorsResponse] = await Promise.all([
         fetch("/api/researcher/account", { cache: "no-store" }),
