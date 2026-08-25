@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, User, Hash, Calendar, Play } from "lucide-react";
+import { ArrowRight, User, Hash, Calendar, Play, BookOpen } from "lucide-react";
 import { useParams } from "next/navigation";
 
 interface Student {
@@ -15,12 +15,15 @@ interface Student {
   status: "active" | "inactive";
   posttest_enabled: boolean;
   posttest_eligible: boolean;
+  core_completed_items: number;
+  core_total_items: number;
+  core_completed: boolean;
 }
 
 export default function StudentDetailPage() {
   const params = useParams();
   const id = params.id as string;
-  
+
   const [student, setStudent] = useState<Student | null>(null);
   const [loading, setLoading] = useState(true);
   const [updatingPosttest, setUpdatingPosttest] = useState(false);
@@ -43,10 +46,8 @@ export default function StudentDetailPage() {
         setLoading(false);
       }
     };
-    
-    if (id) {
-      fetchStudent();
-    }
+
+    if (id) void fetchStudent();
   }, [id]);
 
   const updatePosttestAccess = async () => {
@@ -72,7 +73,7 @@ export default function StudentDetailPage() {
   if (loading) {
     return (
       <div className="flex-1 flex justify-center py-12">
-        <div className="spinner w-8 h-8"></div>
+        <div className="spinner w-8 h-8" />
       </div>
     );
   }
@@ -86,15 +87,15 @@ export default function StudentDetailPage() {
     );
   }
 
+  const progressPercent = Math.round((student.core_completed_items / Math.max(1, student.core_total_items)) * 100);
+
   return (
     <div className="flex-1 font-plex max-w-4xl mx-auto w-full">
       <div className="mb-6 flex items-center gap-4">
         <Link href="/admin/students" className="p-2 text-muted hover:text-navy hover:bg-bg rounded-full transition-colors">
           <ArrowRight size={24} />
         </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-navy">ملف الطالب</h1>
-        </div>
+        <h1 className="text-2xl font-bold text-navy">ملف الطالب</h1>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -105,18 +106,18 @@ export default function StudentDetailPage() {
             </div>
             <h2 className="text-xl font-bold text-navy mb-1">{student.full_name}</h2>
             <p className="text-muted mb-4">الصف {student.grade_level}</p>
-            
+
             <div className="bg-bg p-3 rounded-md mb-4">
               <p className="text-xs text-muted mb-1">رمز الدخول</p>
               <p className="text-lg font-mono font-bold text-primary tracking-widest">{student.access_code}</p>
             </div>
-            
+
             <span className="badge bg-green/10 text-green w-full py-2">
               {student.status === "active" ? "نشط" : "غير نشط"}
             </span>
           </div>
         </div>
-        
+
         <div className="md:col-span-2 space-y-6">
           <div className="card">
             <h3 className="text-lg font-bold text-navy mb-4 border-b border-border pb-2">المعلومات الأساسية</h3>
@@ -139,10 +140,29 @@ export default function StudentDetailPage() {
                 <Calendar className="text-muted mt-0.5" size={18} />
                 <div>
                   <p className="text-sm text-muted">تاريخ الإضافة</p>
-                  <p className="text-navy">{new Date(student.created_at).toLocaleDateString('ar-SA')}</p>
+                  <p className="text-navy">{new Date(student.created_at).toLocaleDateString("ar-SA")}</p>
                 </div>
               </div>
             </div>
+          </div>
+
+          <div className="card">
+            <div className="flex items-center justify-between gap-4 mb-4 border-b border-border pb-2">
+              <h3 className="text-lg font-bold text-navy">المسار التعليمي</h3>
+              <BookOpen size={20} className="text-primary" />
+            </div>
+            <div className="flex items-center justify-between text-sm mb-2">
+              <span className="text-muted">الأنشطة الأساسية المكتملة</span>
+              <strong className="text-navy">{student.core_completed_items} من {student.core_total_items}</strong>
+            </div>
+            <div className="w-full h-3 rounded-full bg-bg overflow-hidden" aria-label={`تقدم الأنشطة ${progressPercent}%`}>
+              <div className="h-full bg-green rounded-full" style={{ width: `${progressPercent}%` }} />
+            </div>
+            <p className="text-sm text-muted mt-3">
+              {student.core_completed
+                ? "اكتمل المسار الأساسي المخصص لهذا المستوى."
+                : "يستمر الطالب في الأنشطة الأساسية حتى يكمل الأنشطة العشرة."}
+            </p>
           </div>
 
           <div className="card">
@@ -153,8 +173,8 @@ export default function StudentDetailPage() {
                 {student.posttest_enabled
                   ? "الاختبار البعدي متاح للطالب الآن."
                   : student.posttest_eligible
-                    ? "أكمل الطالب الاختبار القبلي، ويمكن إتاحة الاختبار البعدي له."
-                    : "يتاح الاختبار البعدي بعد إكمال الطالب للاختبار القبلي."}
+                    ? "أكمل الطالب الاختبار القبلي ومساره الأساسي، ويمكن إتاحة الاختبار البعدي له."
+                    : "يتاح الاختبار البعدي بعد إكمال الاختبار القبلي والأنشطة الأساسية العشرة."}
               </p>
               <button
                 className="btn-primary flex items-center gap-2"
