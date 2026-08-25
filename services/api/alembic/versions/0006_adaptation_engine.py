@@ -1,4 +1,4 @@
-"""adaptive learning decision history
+"""adaptive learning decisions and rewards
 
 Revision ID: 0006_adaptation_engine
 Revises: 0005_activity_runtime
@@ -27,6 +27,7 @@ def upgrade() -> None:
         sa.Column("previous_level", sa.Integer(), nullable=False),
         sa.Column("new_level", sa.Integer(), nullable=False),
         sa.Column("weakest_skill_id", sa.Integer(), nullable=True),
+        sa.Column("recommended_item_id", sa.Integer(), nullable=True),
         sa.Column("valid_attempt_count", sa.Integer(), server_default="0", nullable=False),
         sa.Column("consecutive_low_count", sa.Integer(), server_default="0", nullable=False),
         sa.Column("snapshot_key", sa.String(length=200), nullable=True),
@@ -39,6 +40,7 @@ def upgrade() -> None:
         sa.Column("actor_id", sa.Integer(), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.ForeignKeyConstraint(["actor_id"], ["users.id"]),
+        sa.ForeignKeyConstraint(["recommended_item_id"], ["content_items.id"]),
         sa.ForeignKeyConstraint(["student_id"], ["students.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["weakest_skill_id"], ["skills.id"]),
         sa.PrimaryKeyConstraint("id"),
@@ -52,8 +54,34 @@ def upgrade() -> None:
     op.create_index(op.f("ix_adaptation_decisions_id"), "adaptation_decisions", ["id"], unique=False)
     op.create_index(op.f("ix_adaptation_decisions_student_id"), "adaptation_decisions", ["student_id"], unique=False)
 
+    op.create_table(
+        "reward_events",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("student_id", sa.Integer(), nullable=False),
+        sa.Column("attempt_id", sa.Integer(), nullable=True),
+        sa.Column("reward_type", sa.String(length=20), nullable=False),
+        sa.Column("reward_key", sa.String(length=120), nullable=False),
+        sa.Column("stars", sa.Integer(), nullable=True),
+        sa.Column("label", sa.String(length=200), nullable=False),
+        sa.Column(
+            "details",
+            sa.JSON().with_variant(postgresql.JSONB(astext_type=sa.Text()), "postgresql"),
+            nullable=False,
+        ),
+        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
+        sa.ForeignKeyConstraint(["attempt_id"], ["attempts.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["student_id"], ["students.id"], ondelete="CASCADE"),
+        sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("student_id", "reward_key", name="uq_reward_event_student_key"),
+    )
+    op.create_index(op.f("ix_reward_events_id"), "reward_events", ["id"], unique=False)
+    op.create_index(op.f("ix_reward_events_student_id"), "reward_events", ["student_id"], unique=False)
+
 
 def downgrade() -> None:
+    op.drop_index(op.f("ix_reward_events_student_id"), table_name="reward_events")
+    op.drop_index(op.f("ix_reward_events_id"), table_name="reward_events")
+    op.drop_table("reward_events")
     op.drop_index(op.f("ix_adaptation_decisions_student_id"), table_name="adaptation_decisions")
     op.drop_index(op.f("ix_adaptation_decisions_id"), table_name="adaptation_decisions")
     op.drop_table("adaptation_decisions")
