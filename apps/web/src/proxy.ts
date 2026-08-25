@@ -1,11 +1,22 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
-// Route protection is handled by the pages themselves via /api/me check.
-// This proxy file exists only to satisfy Next.js 16 requirement.
-export function proxy() {
+export function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  if (pathname === "/admin/login") {
+    return NextResponse.next();
+  }
+
+  if (!request.cookies.get("access_token")?.value) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/admin/login";
+    loginUrl.searchParams.set("next", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: [],
+  matcher: ["/admin/:path*"],
 };
