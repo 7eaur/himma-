@@ -1,418 +1,586 @@
-'use client';
-import { useState, useEffect, useCallback, useRef } from 'react';
-import Image from 'next/image';
-import { useParams, useRouter } from 'next/navigation';
-import { Mic, MicOff, CheckCircle, AlertCircle, ChevronLeft } from 'lucide-react';
+"use client";
 
-const BASE = '';
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
+import { useParams, useRouter } from "next/navigation";
+import { Check, Headphones, Mic, MicOff, RotateCcw, Volume2 } from "lucide-react";
+import styles from "./session.module.css";
 
-type Phase = 'loading' | 'question' | 'recording' | 'submitting' | 'finishing' | 'done' | 'error' | 'waiting_audio_review';
+type Interaction =
+  | "choose_one"
+  | "listen_choose_one"
+  | "choose_image"
+  | "listen_choose_image"
+  | "choose_many"
+  | "listen_choose_many"
+  | "sequence"
+  | "memory_sequence"
+  | "path_sequence"
+  | "build_word"
+  | "read_aloud"
+  | "timed_read_aloud";
 
-interface ContentOption { id: number; text: string; order_index: number; }
-interface ContentStep {
-  id: number; order_index: number; prompt_text: string;
-  expected_reading_text: string | null; options: ContentOption[];
+interface ContentOption {
+  id: number;
+  text: string;
+  order_index: number;
 }
+
+interface ContentAsset {
+  asset_id: string;
+  asset_type: string;
+  usage?: string | null;
+  semantic_text?: string | null;
+  url: string;
+  option_id?: number | null;
+}
+
+interface ContentStep {
+  id: number;
+  order_index: number;
+  prompt_text: string;
+  instruction_text?: string | null;
+  expected_reading_text?: string | null;
+  options: ContentOption[];
+  assets: ContentAsset[];
+  media_gaps: Array<{ semantic_text?: string; status?: string }>;
+}
+
 interface ContentItem {
-  id: number; stable_key: string; kind: string;
-  interaction_type: string; steps: ContentStep[];
-  template_data?: { image_url?: string; audio_url?: string; };
+  id: number;
+  stable_key: string;
+  canonical_id?: string | null;
+  kind: string;
+  interaction_type: Interaction;
+  title?: string | null;
+  source_method?: string | null;
+  template_data?: { criterion?: string | null; [key: string]: unknown } | null;
+  item_assets: ContentAsset[];
+  steps: ContentStep[];
+}
+
+interface ProgressPayload {
+  completed_items: number;
+  total_items: number;
+  completed_steps: number;
+  total_steps: number;
+  has_pending_item: boolean;
+  elapsed_seconds: number;
+}
+
+type Phase = "loading" | "active" | "submitting" | "finishing" | "waiting" | "done" | "error";
+
+const SINGLE = new Set<Interaction>(["choose_one", "listen_choose_one", "choose_image", "listen_choose_image"]);
+const MULTI = new Set<Interaction>(["choose_many", "listen_choose_many"]);
+const ORDER = new Set<Interaction>(["sequence", "memory_sequence", "path_sequence", "build_word"]);
+const LISTEN = new Set<Interaction>(["listen_choose_one", "listen_choose_image", "listen_choose_many"]);
+const READ = new Set<Interaction>(["read_aloud", "timed_read_aloud"]);
+
+const LEVEL_LABELS = ["الاستعداد للقراءة", "بناء الكلمة", "الطلاقة والفهم"];
+
+function conciseTitle(title?: string | null) {
+  if (!title) return "مهمة قصيرة";
+  const afterColon = title.includes(":") ? title.split(":").slice(1).join(":").trim() : title;
+  return afterColon.replace(/^السؤال\s+\d+\s*/u, "").trim() || "مهمة قصيرة";
+}
+
+function cleanPrompt(raw: string, interaction: Interaction) {
+  if (LISTEN.has(interaction) || READ.has(interaction) || ORDER.has(interaction)) return "";
+  let value = raw.replace(/^التعليمات:\s*/u, "");
+  value = value.split(/الخيارات:|الصور:/u)[0].trim();
+  if (value.startsWith("العناصر:") && value.includes("التعليمات:")) {
+    value = value.split("التعليمات:")[1]?.trim() || value;
+  }
+  return value;
+}
+
+function criterionCount(item: ContentItem, optionsLength: number) {
+  const criterion = String(item.template_data?.criterion || "").trim();
+  if (!criterion || criterion === "بالترتيب المذكور") return optionsLength;
+  const parts = criterion.split(/\s+ثم\s+|[،,]/u).map((part) => part.trim()).filter(Boolean);
+  return parts.length > 0 ? Math.min(parts.length, optionsLength) : optionsLength;
+}
+
+function pseudoShuffle<T extends { id: number }>(values: T[]) {
+  return [...values].sort((a, b) => ((a.id * 17) % 97) - ((b.id * 17) % 97));
 }
 
 export default function SessionPage() {
   const params = useParams();
   const router = useRouter();
-  const sessionId = params.id as string;
-  
-  const [phase, setPhase] = useState<Phase>('loading');
+  const sessionId = String(params.id);
+
+  const [phase, setPhase] = useState<Phase>("loading");
   const [item, setItem] = useState<ContentItem | null>(null);
-  const [answered, setAnswered] = useState(0); // count of submitted
-  const [total, setTotal] = useState(30);
-  const [selectedOption, setSelectedOption] = useState<number | null>(null);
-  const [feedbackOption, setFeedbackOption] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  
-  // Recording state
+  const [progress, setProgress] = useState<ProgressPayload | null>(null);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [error, setError] = useState("");
+  const [isListening, setIsListening] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [recordingTime, setRecordingTime] = useState(0);
-  const [uploading, setUploading] = useState(false);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const stepStartedAtRef = useRef<number>(0);
-  
-  // Result state
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [finalScore, setFinalScore] = useState<number | null>(null);
   const [assignedLevel, setAssignedLevel] = useState<number | null>(null);
 
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const stepStartedAtRef = useRef(Date.now());
+  const playbackRef = useRef<HTMLAudioElement | null>(null);
+
+  const step = item?.steps[0] ?? null;
+  const interaction = item?.interaction_type;
+  const options = useMemo(() => pseudoShuffle(step?.options ?? []), [step]);
+  const audioAssets = useMemo(() => step?.assets.filter((asset) => asset.asset_type === "audio") ?? [], [step]);
+  const imageAssets = useMemo(() => step?.assets.filter((asset) => asset.asset_type === "image") ?? [], [step]);
+  const contextAssets = useMemo(() => item?.item_assets.filter((asset) => asset.asset_type === "image") ?? [], [item]);
+  const answered = progress?.completed_items ?? 0;
+  const total = progress?.total_items || 30;
+  const percent = Math.min(100, Math.round((answered / Math.max(1, total)) * 100));
+
+  const operationKey = (kind: "answer" | "upload") => {
+    if (!item || !step) return "";
+    return `himma:assessment:${sessionId}:${item.id}:${step.id}:${kind}`;
+  };
+
+  const getIdempotencyKey = (kind: "answer" | "upload") => {
+    const key = operationKey(kind);
+    if (!key) return crypto.randomUUID();
+    const existing = window.sessionStorage.getItem(key);
+    if (existing) return existing;
+    const created = crypto.randomUUID();
+    window.sessionStorage.setItem(key, created);
+    return created;
+  };
+
+  const clearOperationKeys = () => {
+    for (const kind of ["answer", "upload"] as const) {
+      const key = operationKey(kind);
+      if (key) window.sessionStorage.removeItem(key);
+    }
+  };
+
+  const resetMediaState = () => {
+    setSelectedIds([]);
+    setAudioBlob(null);
+    setAudioUrl((current) => {
+      if (current) URL.revokeObjectURL(current);
+      return null;
+    });
+    setRecordingSeconds(0);
+    setError("");
+  };
+
+  const fetchProgress = useCallback(async () => {
+    const response = await fetch(`/api/assessment/session/${sessionId}/progress`, { cache: "no-store" });
+    if (response.ok) setProgress(await response.json());
+  }, [sessionId]);
+
   const finishSession = useCallback(async () => {
-    setPhase('finishing');
+    setPhase("finishing");
+    setError("");
     try {
-      const res = await fetch(`${BASE}/api/assessment/session/${sessionId}/finish`, { method: 'POST' });
-      const data = await res.json().catch(() => null);
-      const detail = typeof data?.detail === 'string' ? data.detail : '';
-      if ((res.status === 400 || res.status === 409) && detail.includes('ungraded audio')) {
-        setPhase('waiting_audio_review');
+      const response = await fetch(`/api/assessment/session/${sessionId}/finish`, { method: "POST" });
+      const data = await response.json().catch(() => null);
+      const detail = typeof data?.detail === "string" ? data.detail : "";
+      if (response.status === 409 && detail.includes("انتظار المراجعة")) {
+        setPhase("waiting");
         return;
       }
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!response.ok) throw new Error(detail || "تعذر إنهاء الاختبار");
       setFinalScore(Number(data.final_score));
-      setAssignedLevel(data.assigned_level);
-      setPhase('done');
-    } catch {
-      setError('حدث خطأ في إنهاء الاختبار');
-      setPhase('error');
+      setAssignedLevel(Number(data.assigned_level));
+      setPhase("done");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "تعذر إنهاء الاختبار");
+      setPhase("error");
     }
   }, [sessionId]);
 
-  const fetchNextItem = useCallback(async () => {
+  const fetchNext = useCallback(async () => {
+    setPhase("loading");
+    setError("");
     try {
-      const res = await fetch(`${BASE}/api/assessment/session/${sessionId}/next`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data: ContentItem | null = await res.json();
+      const response = await fetch(`/api/assessment/session/${sessionId}/next`, { cache: "no-store" });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(data?.detail || "تعذر تحميل السؤال");
       if (!data) {
         await finishSession();
         return;
       }
-
-      setSelectedOption(null);
-      setFeedbackOption(null);
-      setAudioBlob(null);
-      setAudioUrl(previousUrl => {
-        if (previousUrl) URL.revokeObjectURL(previousUrl);
-        return null;
-      });
-      setRecordingTime(0);
       setItem(data);
+      resetMediaState();
       stepStartedAtRef.current = Date.now();
-      const isAudioItem = data.interaction_type === 'read_aloud' || data.interaction_type === 'audio_record';
-      setPhase(isAudioItem ? 'recording' : 'question');
-    } catch {
-      setError('حدث خطأ في تحميل السؤال');
-      setPhase('error');
+      await fetchProgress();
+      setPhase("active");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "تعذر تحميل السؤال");
+      setPhase("error");
     }
-  }, [finishSession, sessionId]);
-
-  const fetchProgress = useCallback(async () => {
-    const res = await fetch(`${BASE}/api/assessment/session/${sessionId}/progress`);
-    if (!res.ok) return;
-    const data = await res.json();
-    setAnswered(data.completed_items);
-    if (data.total_items > 0) setTotal(data.total_items);
-  }, [sessionId]);
+  }, [fetchProgress, finishSession, sessionId]);
 
   useEffect(() => {
-    const initialLoad = window.setTimeout(() => {
-      void Promise.all([fetchProgress(), fetchNextItem()]);
-    }, 0);
-    return () => window.clearTimeout(initialLoad);
-  }, [fetchNextItem, fetchProgress]);
+    const kickoff = window.setTimeout(() => void fetchNext(), 0);
+    return () => {
+      window.clearTimeout(kickoff);
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (recorderRef.current?.state === "recording") recorderRef.current.stop();
+      playbackRef.current?.pause();
+    };
+  }, [fetchNext]);
 
-  const operationKey = (operation: 'answer' | 'upload') => {
-    if (!item?.steps[0]) return '';
-    return `himma:idempotency:${sessionId}:${item.id}:${item.steps[0].id}:${operation}`;
-  };
-
-  const getIdempotencyKey = (operation: 'answer' | 'upload') => {
-    const storageKey = operationKey(operation);
-    if (!storageKey) return crypto.randomUUID();
-    const existing = window.sessionStorage.getItem(storageKey);
-    if (existing) return existing;
-    const created = crypto.randomUUID();
-    window.sessionStorage.setItem(storageKey, created);
-    return created;
-  };
-
-  const clearIdempotencyKeys = () => {
-    for (const operation of ['answer', 'upload'] as const) {
-      const storageKey = operationKey(operation);
-      if (storageKey) window.sessionStorage.removeItem(storageKey);
-    }
-  };
-
-  const submitAnswer = async (optionId: number | null, audioKey?: string, audioSize?: number, audioMime?: string) => {
-    if (!item || !item.steps[0]) return;
-    setPhase('submitting');
-    if (optionId !== null) setFeedbackOption(optionId);
-    const elapsedSeconds = Math.min(
-      3600,
-      Math.max(0, Math.floor((Date.now() - stepStartedAtRef.current) / 1000)),
-    );
+  const playPrompt = async () => {
+    if (audioAssets.length === 0 || isListening) return;
+    setIsListening(true);
     try {
-      const res = await fetch(`${BASE}/api/assessment/session/${sessionId}/attempt/${item.id}/submit`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Idempotency-Key': getIdempotencyKey('answer'),
-        },
-        body: JSON.stringify({
-          step_id: item.steps[0].id,
-          selected_option_id: optionId,
-          audio_storage_key: audioKey,
-          audio_file_size: audioSize,
-          audio_mime_type: audioMime,
-          elapsed_seconds: elapsedSeconds,
-        })
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      clearIdempotencyKeys();
-      await fetchProgress();
-      await fetchNextItem();
+      for (const asset of audioAssets) {
+        await new Promise<void>((resolve, reject) => {
+          const audio = new Audio(asset.url);
+          playbackRef.current = audio;
+          audio.onended = () => resolve();
+          audio.onerror = () => reject(new Error("تعذر تشغيل الصوت"));
+          void audio.play().catch(reject);
+        });
+      }
     } catch {
-      setError('حدث خطأ في حفظ الإجابة');
-      setPhase('error');
+      setError("تعذر تشغيل الصوت. تحقق من الصوت في الجهاز ثم حاول مرة أخرى.");
+    } finally {
+      setIsListening(false);
+      playbackRef.current = null;
     }
   };
 
-  // Audio recording logic
+  const toggleOption = (optionId: number) => {
+    if (!interaction || phase !== "active") return;
+    setError("");
+    if (SINGLE.has(interaction)) {
+      setSelectedIds([optionId]);
+      return;
+    }
+    if (MULTI.has(interaction)) {
+      setSelectedIds((current) => current.includes(optionId) ? current.filter((id) => id !== optionId) : [...current, optionId]);
+      return;
+    }
+    if (ORDER.has(interaction)) {
+      setSelectedIds((current) => current.includes(optionId) ? current : [...current, optionId]);
+    }
+  };
+
+  const submitAnswer = async () => {
+    if (!item || !step || !interaction) return;
+    setPhase("submitting");
+    setError("");
+    const elapsed = Math.min(3600, Math.max(0, Math.floor((Date.now() - stepStartedAtRef.current) / 1000)));
+    try {
+      const body: Record<string, unknown> = { step_id: step.id, elapsed_seconds: elapsed };
+      if (SINGLE.has(interaction)) body.selected_option_id = selectedIds[0];
+      if (MULTI.has(interaction) || ORDER.has(interaction)) body.selected_option_ids = selectedIds;
+      const response = await fetch(`/api/assessment/session/${sessionId}/attempt/${item.id}/submit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Idempotency-Key": getIdempotencyKey("answer") },
+        body: JSON.stringify(body),
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(data?.detail || "تعذر حفظ الإجابة");
+      clearOperationKeys();
+      await fetchProgress();
+      await fetchNext();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "تعذر حفظ الإجابة");
+      setPhase("active");
+    }
+  };
+
   const startRecording = async () => {
+    setError("");
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       chunksRef.current = [];
-      const preferredMime = 'audio/webm;codecs=opus';
-      const mr = MediaRecorder.isTypeSupported(preferredMime)
-        ? new MediaRecorder(stream, { mimeType: preferredMime })
-        : new MediaRecorder(stream);
-      mr.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data); };
-      mr.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: mr.mimeType || 'audio/webm' });
+      const preferred = "audio/webm;codecs=opus";
+      const recorder = MediaRecorder.isTypeSupported(preferred) ? new MediaRecorder(stream, { mimeType: preferred }) : new MediaRecorder(stream);
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) chunksRef.current.push(event.data);
+      };
+      recorder.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
         setAudioBlob(blob);
-        setAudioUrl(previousUrl => {
-          if (previousUrl) URL.revokeObjectURL(previousUrl);
+        setAudioUrl((current) => {
+          if (current) URL.revokeObjectURL(current);
           return URL.createObjectURL(blob);
         });
-        stream.getTracks().forEach(t => t.stop());
+        stream.getTracks().forEach((track) => track.stop());
       };
-      mr.start();
-      mediaRecorderRef.current = mr;
+      recorder.start();
+      recorderRef.current = recorder;
       setIsRecording(true);
-      setRecordingTime(0);
-      timerRef.current = setInterval(() => setRecordingTime(t => t + 1), 1000);
+      setRecordingSeconds(0);
+      timerRef.current = setInterval(() => setRecordingSeconds((value) => value + 1), 1000);
     } catch {
-      setError('لم يتم السماح بالوصول إلى الميكروفون');
+      setError("لم نتمكن من تشغيل الميكروفون. اسمح للمتصفح باستخدامه ثم حاول مرة أخرى.");
     }
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-      if (timerRef.current) clearInterval(timerRef.current);
-    }
+    if (!recorderRef.current || recorderRef.current.state !== "recording") return;
+    recorderRef.current.stop();
+    setIsRecording(false);
+    if (timerRef.current) clearInterval(timerRef.current);
   };
 
-  const uploadAndSubmit = async () => {
-    if (!audioBlob || !item) return;
-    setUploading(true);
+  const uploadReading = async () => {
+    if (!item || !step || !audioBlob) return;
+    setPhase("submitting");
+    setError("");
     try {
-      const formData = new FormData();
-      formData.append('file', audioBlob, 'recording.webm');
-      const uploadRes = await fetch(`${BASE}/api/assessment/session/${sessionId}/upload-audio`, {
-        method: 'POST',
-        headers: { 'Idempotency-Key': getIdempotencyKey('upload') },
-        body: formData
+      const form = new FormData();
+      form.append("file", audioBlob, "assessment-reading.webm");
+      const upload = await fetch(`/api/assessment/session/${sessionId}/upload-audio`, {
+        method: "POST",
+        headers: { "Idempotency-Key": getIdempotencyKey("upload") },
+        body: form,
       });
-      if (!uploadRes.ok) throw new Error('Upload failed');
-      const { audio_storage_key, audio_file_size, audio_mime_type } = await uploadRes.json();
-      await submitAnswer(null, audio_storage_key, audio_file_size, audio_mime_type);
-    } catch {
-      setError('فشل رفع التسجيل الصوتي — يرجى المحاولة مجدداً');
-      setPhase('recording');
-    } finally {
-      setUploading(false);
+      const uploaded = await upload.json().catch(() => null);
+      if (!upload.ok) throw new Error(uploaded?.detail || "تعذر رفع التسجيل");
+
+      const elapsed = Math.min(3600, Math.max(0, Math.floor((Date.now() - stepStartedAtRef.current) / 1000)));
+      const submit = await fetch(`/api/assessment/session/${sessionId}/attempt/${item.id}/submit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Idempotency-Key": getIdempotencyKey("answer") },
+        body: JSON.stringify({
+          step_id: step.id,
+          audio_storage_key: uploaded.audio_storage_key,
+          audio_file_size: uploaded.audio_file_size,
+          audio_mime_type: uploaded.audio_mime_type,
+          audio_duration_seconds: recordingSeconds,
+          elapsed_seconds: elapsed,
+        }),
+      });
+      const data = await submit.json().catch(() => null);
+      if (!submit.ok) throw new Error(data?.detail || "تعذر حفظ القراءة");
+      clearOperationKeys();
+      await fetchProgress();
+      await fetchNext();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "تعذر حفظ القراءة");
+      setPhase("active");
     }
   };
 
-  const fmtTime = (s: number) => `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
-  const levelNames: Record<number, string> = { 1: 'الاستعداد للقراءة', 2: 'بناء الكلمة', 3: 'الطلاقة والفهم' };
-  const progress = Math.round((answered / total) * 100);
+  const sideCharacter = interaction && READ.has(interaction) ? "/characters/girl/encourage.png" : "/characters/girl/explain.png";
+  const targetCount = item ? criterionCount(item, step?.options.length ?? 0) : 0;
+  const canSubmit = Boolean(
+    interaction && (
+      (SINGLE.has(interaction) && selectedIds.length === 1)
+      || (MULTI.has(interaction) && selectedIds.length >= 2)
+      || (ORDER.has(interaction) && selectedIds.length === targetCount)
+    ),
+  );
 
-  // ── Render ──────────────────────────────────────────────────────
-
-  if (phase === 'done' && assignedLevel !== null) {
+  if (phase === "done" && assignedLevel !== null) {
     return (
-      <div className="result-shell" data-testid="assessment-session" data-phase="done">
-        <div className="result-card">
-          <div className="result-icon">
-            <CheckCircle size={44} color="#51B985" />
+      <div className={styles.resultPage} dir="rtl" data-testid="assessment-session" data-phase="done">
+        <div className={styles.resultCard}>
+          <div className={styles.resultContent}>
+            <span className={styles.badge}><Check size={16} /> اكتمل الاختبار</span>
+            <h1 className={styles.title}>أحسنت، أكملت المهمة!</h1>
+            <p className={styles.instruction}>تم حفظ إجاباتك وقراءتك. هِمّة ستقودك الآن إلى المسار الأنسب لك.</p>
+            <div className={styles.score}>{Math.round(finalScore || 0)}%</div>
+            <p className="font-bold text-navy mb-6">مستواك: {LEVEL_LABELS[Math.max(0, assignedLevel - 1)] || assignedLevel}</p>
+            <button className={styles.primary} onClick={() => router.push("/student")}>متابعة رحلتي</button>
           </div>
-          <h1 className="result-title">أحسنت</h1>
-          <p className="result-subtitle">لقد أنهيت اختبارك بنجاح. هِمّة ستختار لك ما يناسبك.</p>
-          <div className="result-score-circle">
-            <span className="result-score-num">{Math.round(finalScore || 0)}%</span>
-            <span className="result-score-label">نتيجتك</span>
+          <div className={styles.resultVisual}>
+            <Image src="/characters/girl/success.png" alt="شخصية هِمّة تحتفل بالإنجاز" width={340} height={410} priority />
           </div>
-          <div className="result-level-badge">مستواك: {levelNames[assignedLevel] || assignedLevel}</div>
-          <Image src="/characters/boy/success.png" alt="" width={140} height={180} style={{margin:'0 auto 24px',display:'block'}} />
-          <button
-            onClick={() => router.push('/student')}
-            className="assessment-submit-btn"
-          >العودة للصفحة الرئيسية</button>
         </div>
       </div>
     );
   }
 
-  if (phase === 'waiting_audio_review') {
+  if (phase === "waiting") {
     return (
-      <div className="result-shell" data-testid="assessment-session" data-phase="waiting_audio_review">
-        <div className="result-card">
-          <h1 className="result-title" style={{fontSize:'1.6rem'}}>في انتظار المراجعة</h1>
-          <p className="result-subtitle">أجبت على جميع الأسئلة. الباحثة ستراجع تسجيلك الصوتي قريباً، ثم ستظهر نتيجتك.</p>
-          <Image src="/characters/girl/encourage.png" alt="" width={140} height={180} style={{margin:'16px auto',display:'block'}} />
-          <button onClick={() => router.push('/student')} className="assessment-submit-btn" style={{background:'var(--color-muted)'}}>العودة</button>
+      <div className={styles.resultPage} dir="rtl" data-testid="assessment-session" data-phase="waiting_audio_review">
+        <div className={styles.resultCard}>
+          <div className={styles.resultContent}>
+            <span className={styles.badge}>تم حفظ إجاباتك</span>
+            <h1 className={styles.title}>عمل رائع</h1>
+            <p className={styles.instruction}>أنهيت الأسئلة. سيُراجع المشرف تسجيلات القراءة، وبعدها تظهر النتيجة بشكل صحيح.</p>
+            <button className={styles.primary} onClick={() => router.push("/student")}>العودة إلى مساري</button>
+          </div>
+          <div className={styles.resultVisual}><Image src="/characters/girl/encourage.png" alt="شخصية هِمّة تشجع الطالب" width={330} height={400} /></div>
         </div>
       </div>
     );
   }
 
-  if (phase === 'error') {
+  if (phase === "finishing" || phase === "loading") {
     return (
-      <div className="result-shell" data-testid="assessment-session" data-phase="error">
-        <div className="result-card">
-          <AlertCircle size={48} color="#DC2626" style={{margin:'0 auto 16px',display:'block'}} />
-          <h1 className="result-title" style={{color:'#DC2626',fontSize:'1.4rem'}}>حدث خطأ</h1>
-          <p className="result-subtitle">{error}</p>
-          <button onClick={fetchNextItem} className="assessment-submit-btn">حاول مجدداً</button>
+      <div className={styles.page} dir="rtl" data-testid="assessment-session" data-phase={phase}>
+        <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+          <Image src="/brand/logo-navy.svg" alt="هِمّة" width={120} height={42} />
+          <div className="spinner w-12 h-12 border-4" />
+          <p className="text-muted">{phase === "finishing" ? "جاري إنهاء الاختبار..." : "جاري تجهيز المهمة التالية..."}</p>
         </div>
       </div>
     );
   }
 
-  if (phase === 'finishing') {
+  if (phase === "error" || !item || !step || !interaction) {
     return (
-      <div className="result-shell" data-testid="assessment-session" data-phase="finishing">
-        <div className="result-card">
-          <div className="spinner" style={{width:48,height:48,margin:'0 auto 20px'}} />
-          <p style={{textAlign:'center',color:'var(--color-muted)',fontFamily:'var(--font-student)',fontSize:'1.1rem'}}>جاري حساب نتيجتك...</p>
+      <div className={styles.page} dir="rtl" data-testid="assessment-session" data-phase="error">
+        <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-6 text-center">
+          <Image src="/brand/logo-navy.svg" alt="هِمّة" width={120} height={42} />
+          <h1 className="text-2xl font-bold text-navy">تعذر فتح المهمة</h1>
+          <p className="text-muted max-w-lg">{error || "حدث خطأ غير متوقع."}</p>
+          <button className={styles.primary} onClick={() => void fetchNext()}>حاول مرة أخرى</button>
         </div>
       </div>
     );
   }
+
+  const displayPrompt = cleanPrompt(step.prompt_text, interaction);
+  const hasMediaGap = step.media_gaps.length > 0;
+  const imageChoice = interaction === "choose_image" || interaction === "listen_choose_image";
+  const sequenceWithImages = ORDER.has(interaction) && imageAssets.some((asset) => asset.option_id);
 
   return (
-    <div className="assessment-shell" data-testid="assessment-session" data-phase={phase}>
-      {/* Header with progress */}
-      <div className="assessment-header">
-        <button
-          onClick={() => router.push('/student')}
-          style={{background:'none',border:'none',cursor:'pointer',color:'var(--color-muted)',display:'flex',alignItems:'center',gap:'4px',fontSize:'0.85rem',fontFamily:'var(--font-student)'}}
-        >
-          <ChevronLeft size={16} /> رجوع
-        </button>
-        <div className="assessment-progress-bar">
-          <div className="assessment-progress-fill" style={{width:`${progress}%`}} />
+    <div className={styles.page} dir="rtl" data-testid="assessment-session" data-phase={phase === "submitting" ? "submitting" : "question"}>
+      <header className={styles.topbar}>
+        <div className={styles.logo}><Image src="/brand/logo-navy.svg" alt="هِمّة" width={112} height={38} priority /></div>
+        <div className={styles.progressWrap}>
+          <div className={styles.progressMeta}><span>{conciseTitle(item.title)}</span><span>{Math.min(answered + 1, total)} من {total}</span></div>
+          <div className={styles.progressTrack}><div className={styles.progressFill} style={{ width: `${percent}%` }} /></div>
         </div>
-        <span className="assessment-counter" data-testid="assessment-progress">{answered}/{total}</span>
-      </div>
+        <button className={styles.exit} onClick={() => router.push("/student")}>خروج</button>
+      </header>
 
-      <div className="assessment-body">
-        {(phase === 'loading' || phase === 'submitting') && (
-          <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'16px',padding:'60px 0'}}>
-            <div className="spinner" style={{width:48,height:48}} />
-            <p style={{color:'var(--color-muted)',fontFamily:'var(--font-student)',fontSize:'1rem'}}>جاري التحميل...</p>
-          </div>
-        )}
+      <main className={styles.shell}>
+        <section className={styles.card}>
+          <span className={styles.badge}>{LISTEN.has(interaction) ? <Headphones size={15} /> : READ.has(interaction) ? <Mic size={15} /> : <Check size={15} />} مهمة واحدة في كل مرة</span>
+          <h1 className={styles.title}>{step.instruction_text || conciseTitle(item.title)}</h1>
+          <p className={styles.instruction}>{conciseTitle(item.title)}</p>
+          {displayPrompt && <div className={styles.prompt}>{displayPrompt}</div>}
 
-        {phase === 'question' && item && item.steps[0] && (
-          <>
-            <div className="assessment-question-card">
-              <p className="assessment-question-num">السؤال {answered + 1} من {total}</p>
-              <p className="assessment-question-text">{item.steps[0].prompt_text}</p>
-              {item.template_data?.image_url && (
-                <Image
-                  src={item.template_data.image_url}
-                  alt="صورة السؤال"
-                  width={400} height={220}
-                  className="assessment-question-img"
-                />
-              )}
+          {contextAssets[0] && (
+            <div className={styles.contextImage}><Image src={contextAssets[0].url} alt={contextAssets[0].semantic_text || "صورة توضيحية"} width={460} height={250} unoptimized /></div>
+          )}
+
+          {LISTEN.has(interaction) && (
+            <button className={`${styles.listenButton} ${isListening ? styles.listenPulse : ""}`} onClick={() => void playPrompt()} disabled={isListening || audioAssets.length === 0} data-testid="listen-prompt">
+              <Volume2 size={26} aria-hidden="true" />
+              <span>{isListening ? "استمع" : "استمع"}</span>
+            </button>
+          )}
+
+          {hasMediaGap && (
+            <div className={styles.notice}>
+              هذا الصوت غير متوفر ضمن الملفات المعتمدة حاليًا، لذلك لن يُطلب منك الإجابة على هذه المهمة الآن.
             </div>
-            <div className="assessment-options">
-              {[...item.steps[0].options]
-                .sort((a, b) => a.order_index - b.order_index)
-                .map(opt => (
-                  <button
-                    key={opt.id}
-                    className={`assessment-option${selectedOption === opt.id ? ' selected' : ''}${feedbackOption === opt.id ? ' feedback-chosen' : ''}`}
-                    onClick={() => setSelectedOption(opt.id)}
-                  >
-                    {opt.text}
-                    {selectedOption === opt.id && <CheckCircle size={20} style={{flexShrink:0}} />}
+          )}
+
+          {!hasMediaGap && imageChoice && (
+            <div className={styles.imageOptions} data-testid="image-options">
+              {imageAssets.filter((asset) => asset.option_id).map((asset) => {
+                const optionId = Number(asset.option_id);
+                const selected = selectedIds.includes(optionId);
+                return (
+                  <button key={`${asset.asset_id}-${optionId}`} className={`${styles.imageOption} ${selected ? styles.imageOptionSelected : ""}`} onClick={() => toggleOption(optionId)} aria-pressed={selected}>
+                    {selected && <span className={styles.selectedMark}><Check size={16} /></span>}
+                    <Image src={asset.url} alt={asset.semantic_text || "خيار مصور"} width={220} height={150} unoptimized />
+                    <span className={styles.imageLabel}>{asset.semantic_text || step.options.find((option) => option.id === optionId)?.text}</span>
                   </button>
-                ))}
+                );
+              })}
             </div>
-            {selectedOption && (
-              <button
-                className="assessment-submit-btn"
-                onClick={() => submitAnswer(selectedOption)}
-              >
-                تأكيد الإجابة
-              </button>
-            )}
-          </>
-        )}
+          )}
 
-        {phase === 'recording' && item && item.steps[0] && (
-          <div className="recording-card">
-            <p className="assessment-question-num">السؤال {answered + 1} من {total} — تسجيل صوتي</p>
-            <p className="recording-prompt">{item.steps[0].prompt_text}</p>
-            {item.steps[0].expected_reading_text && (
-              <div className="recording-reading-text">{item.steps[0].expected_reading_text}</div>
-            )}
-            {!audioBlob ? (
-              <>
-                <button
-                  className={`recording-btn ${isRecording ? 'recording' : 'idle'}`}
-                  onClick={isRecording ? stopRecording : startRecording}
-                  disabled={uploading}
-                  aria-label={isRecording ? 'إيقاف التسجيل' : 'ابدأ التسجيل'}
-                >
-                  {isRecording ? <MicOff size={36} color="white" /> : <Mic size={36} color="white" />}
-                </button>
-                {isRecording && (
+          {!hasMediaGap && ORDER.has(interaction) && (
+            <>
+              <div className={styles.sequenceBoard} data-testid="sequence-board">
+                {selectedIds.length === 0 && <span className={styles.sequenceHint}>{interaction === "build_word" ? "اضغط الحروف بالترتيب لتكوين الكلمة" : "اضغط العناصر بالترتيب الصحيح"}</span>}
+                {selectedIds.map((id, index) => {
+                  const option = step.options.find((candidate) => candidate.id === id);
+                  return <span className={styles.sequenceChip} key={id}><span className={styles.number}>{index + 1}</span>{option?.text}</span>;
+                })}
+              </div>
+
+              {interaction === "build_word" && imageAssets[0] && (
+                <div className={styles.contextImage}><Image src={imageAssets[0].url} alt={imageAssets[0].semantic_text || "صورة الكلمة"} width={340} height={200} unoptimized /></div>
+              )}
+
+              {sequenceWithImages && interaction !== "build_word" ? (
+                <div className={styles.imageOptions} data-testid="sequence-image-options">
+                  {imageAssets.filter((asset) => asset.option_id && !selectedIds.includes(Number(asset.option_id))).map((asset) => (
+                    <button key={asset.asset_id} className={styles.imageOption} onClick={() => toggleOption(Number(asset.option_id))}>
+                      <Image src={asset.url} alt={asset.semantic_text || "عنصر ترتيب"} width={220} height={150} unoptimized />
+                      <span className={styles.imageLabel}>{asset.semantic_text}</span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className={styles.options}>
+                  {options.filter((option) => !selectedIds.includes(option.id)).map((option) => (
+                    <button key={option.id} className={styles.option} onClick={() => toggleOption(option.id)}>{option.text}</button>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {!hasMediaGap && !READ.has(interaction) && !ORDER.has(interaction) && !imageChoice && (
+            <div className={styles.options}>
+              {options.map((option) => {
+                const selected = selectedIds.includes(option.id);
+                return <button key={option.id} className={`${styles.option} ${selected ? styles.optionSelected : ""}`} onClick={() => toggleOption(option.id)} aria-pressed={selected}>{option.text}</button>;
+              })}
+            </div>
+          )}
+
+          {!hasMediaGap && READ.has(interaction) && (
+            <>
+              <div className={`${styles.readingBox} ${(step.expected_reading_text?.length || 0) > 55 ? styles.readingBoxLong : ""}`} data-testid="reading-text">
+                {step.expected_reading_text || "اقرأ النص الظاهر"}
+              </div>
+              <div className={styles.recordPanel}>
+                {!audioBlob ? (
                   <>
-                    <div className="recording-waveform">
-                      {[1,2,3,4,5,6,7].map(i => <div key={i} className="recording-bar" />)}
+                    <button className={`${styles.recordButton} ${isRecording ? styles.recordButtonRecording : ""}`} onClick={isRecording ? stopRecording : () => void startRecording()} aria-label={isRecording ? "إيقاف التسجيل" : "بدء التسجيل"} data-testid="record-reading">
+                      {isRecording ? <MicOff size={30} /> : <Mic size={30} />}
+                    </button>
+                    <p className="font-bold text-navy">{isRecording ? "جاري التسجيل... اضغط للإيقاف" : "اضغط لبدء التسجيل"}</p>
+                    {isRecording && <p className={styles.timer}>{String(Math.floor(recordingSeconds / 60)).padStart(2, "0")}:{String(recordingSeconds % 60).padStart(2, "0")}</p>}
+                  </>
+                ) : (
+                  <>
+                    {audioUrl && <audio className={styles.audioPreview} src={audioUrl} controls />}
+                    <p className="text-sm text-muted">استمع إلى تسجيلك، ثم أرسله أو أعد المحاولة.</p>
+                    <div className={styles.actions}>
+                      <button className={styles.secondary} onClick={() => { setAudioBlob(null); setAudioUrl(null); setRecordingSeconds(0); }}><RotateCcw size={17} /> إعادة التسجيل</button>
+                      <button className={styles.primary} onClick={() => void uploadReading()} disabled={phase === "submitting"}>إرسال التسجيل</button>
                     </div>
-                    <p className="recording-timer">{fmtTime(recordingTime)}</p>
                   </>
                 )}
-                <p className="recording-status">
-                  {isRecording ? 'جاري التسجيل — اضغط للإيقاف' : 'اضغط للبدء في التسجيل'}
-                </p>
-              </>
-            ) : (
-              <>
-                <audio src={audioUrl!} controls style={{width:'100%',margin:'16px 0'}} />
-                <div style={{display:'flex',gap:'12px',justifyContent:'center',marginTop:'8px'}}>
-                  <button
-                    onClick={() => {
-                      setAudioBlob(null);
-                      setAudioUrl(previousUrl => {
-                        if (previousUrl) URL.revokeObjectURL(previousUrl);
-                        return null;
-                      });
-                      setRecordingTime(0);
-                    }}
-                    style={{padding:'12px 24px',border:'2px solid var(--color-border)',borderRadius:'var(--r-full)',background:'white',cursor:'pointer',fontFamily:'var(--font-student)',fontWeight:600,fontSize:'0.9rem'}}
-                  >إعادة التسجيل</button>
-                  <button
-                    className="assessment-submit-btn"
-                    style={{flex:1}}
-                    onClick={uploadAndSubmit}
-                    disabled={uploading}
-                  >
-                    {uploading ? 'جاري الرفع...' : 'إرسال التسجيل'}
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        )}
-      </div>
+              </div>
+            </>
+          )}
+
+          {error && <div className={styles.error} role="alert">{error}</div>}
+
+          {!hasMediaGap && !READ.has(interaction) && (
+            <div className={styles.actions}>
+              {ORDER.has(interaction) && selectedIds.length > 0 && <button className={styles.secondary} onClick={() => setSelectedIds([])}><RotateCcw size={17} /> إعادة الترتيب</button>}
+              <button className={styles.primary} onClick={() => void submitAnswer()} disabled={!canSubmit || phase === "submitting"}>
+                {phase === "submitting" ? "جاري الحفظ..." : "تأكيد والمتابعة"}
+              </button>
+            </div>
+          )}
+        </section>
+
+        <aside className={styles.side} aria-label="نصيحة هِمّة">
+          <div className={styles.tip}>{READ.has(interaction) ? "اقرأ بهدوء وبصوت طبيعي. لا تحتاج إلى السرعة؛ المهم أن تكون القراءة واضحة." : LISTEN.has(interaction) ? "يمكنك الاستماع مرة أخرى قبل اختيار الإجابة." : "خذ وقتك، ركّز في المهمة، ثم اختر ما تراه صحيحًا."}</div>
+          <Image className={styles.character} src={sideCharacter} alt="شخصية هِمّة المساعدة" width={190} height={260} />
+        </aside>
+      </main>
     </div>
   );
 }
