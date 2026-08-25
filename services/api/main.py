@@ -7,6 +7,7 @@ from assessment import router as assessment_router
 from review import router as review_router
 from recordings import router as recordings_router
 from activities import router as activities_router
+from adaptation import router as adaptation_router
 from media import router as media_router
 
 app = FastAPI(
@@ -29,6 +30,7 @@ app.include_router(auth_router)
 app.include_router(protected_router)
 app.include_router(assessment_router)
 app.include_router(activities_router)
+app.include_router(adaptation_router)
 app.include_router(media_router)
 app.include_router(review_router)
 app.include_router(recordings_router)
