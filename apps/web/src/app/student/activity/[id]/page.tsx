@@ -121,7 +121,7 @@ export default function StudentActivityPage() {
   const [isRecording, setIsRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
-  const startedAtRef = useRef(Date.now());
+  const startedAtRef = useRef(0);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -168,8 +168,11 @@ export default function StudentActivityPage() {
   }, [fetchProgress, sessionId]);
 
   useEffect(() => {
-    void fetchNext();
+    const kickoff = window.setTimeout(() => {
+      void fetchNext();
+    }, 0);
     return () => {
+      window.clearTimeout(kickoff);
       if (timerRef.current) clearInterval(timerRef.current);
       if (recorderRef.current?.state === "recording") recorderRef.current.stop();
     };
