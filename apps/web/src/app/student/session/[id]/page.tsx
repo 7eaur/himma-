@@ -20,12 +20,7 @@ type Interaction =
   | "read_aloud"
   | "timed_read_aloud";
 
-interface ContentOption {
-  id: number;
-  text: string;
-  order_index: number;
-}
-
+interface ContentOption { id: number; text: string; order_index: number; }
 interface ContentAsset {
   asset_id: string;
   asset_type: string;
@@ -34,7 +29,6 @@ interface ContentAsset {
   url: string;
   option_id?: number | null;
 }
-
 interface ContentStep {
   id: number;
   order_index: number;
@@ -45,7 +39,6 @@ interface ContentStep {
   assets: ContentAsset[];
   media_gaps: Array<{ semantic_text?: string; status?: string }>;
 }
-
 interface ContentItem {
   id: number;
   stable_key: string;
@@ -58,7 +51,6 @@ interface ContentItem {
   item_assets: ContentAsset[];
   steps: ContentStep[];
 }
-
 interface ProgressPayload {
   completed_items: number;
   total_items: number;
@@ -67,7 +59,6 @@ interface ProgressPayload {
   has_pending_item: boolean;
   elapsed_seconds: number;
 }
-
 type Phase = "loading" | "active" | "submitting" | "finishing" | "waiting" | "done" | "error";
 
 const SINGLE = new Set<Interaction>(["choose_one", "listen_choose_one", "choose_image", "listen_choose_image"]);
@@ -75,13 +66,12 @@ const MULTI = new Set<Interaction>(["choose_many", "listen_choose_many"]);
 const ORDER = new Set<Interaction>(["sequence", "memory_sequence", "path_sequence", "build_word"]);
 const LISTEN = new Set<Interaction>(["listen_choose_one", "listen_choose_image", "listen_choose_many"]);
 const READ = new Set<Interaction>(["read_aloud", "timed_read_aloud"]);
-
 const LEVEL_LABELS = ["الاستعداد للقراءة", "بناء الكلمة", "الطلاقة والفهم"];
 
 function conciseTitle(title?: string | null) {
   if (!title) return "مهمة قصيرة";
-  const afterColon = title.includes(":") ? title.split(":").slice(1).join(":").trim() : title;
-  return afterColon.replace(/^السؤال\s+\d+\s*/u, "").trim() || "مهمة قصيرة";
+  const value = title.includes(":") ? title.split(":").slice(1).join(":").trim() : title;
+  return value.replace(/^السؤال\s+\d+\s*/u, "").trim() || "مهمة قصيرة";
 }
 
 function cleanPrompt(raw: string, interaction: Interaction) {
@@ -98,10 +88,10 @@ function criterionCount(item: ContentItem, optionsLength: number) {
   const criterion = String(item.template_data?.criterion || "").trim();
   if (!criterion || criterion === "بالترتيب المذكور") return optionsLength;
   const parts = criterion.split(/\s+ثم\s+|[،,]/u).map((part) => part.trim()).filter(Boolean);
-  return parts.length > 0 ? Math.min(parts.length, optionsLength) : optionsLength;
+  return parts.length ? Math.min(parts.length, optionsLength) : optionsLength;
 }
 
-function pseudoShuffle<T extends { id: number }>(values: T[]) {
+function stableOptionOrder(values: ContentOption[]) {
   return [...values].sort((a, b) => ((a.id * 17) % 97) - ((b.id * 17) % 97));
 }
 
@@ -126,12 +116,12 @@ export default function SessionPage() {
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const stepStartedAtRef = useRef(Date.now());
+  const stepStartedAtRef = useRef(0);
   const playbackRef = useRef<HTMLAudioElement | null>(null);
 
   const step = item?.steps[0] ?? null;
   const interaction = item?.interaction_type;
-  const options = useMemo(() => pseudoShuffle(step?.options ?? []), [step]);
+  const options = useMemo(() => stableOptionOrder(step?.options ?? []), [step]);
   const audioAssets = useMemo(() => step?.assets.filter((asset) => asset.asset_type === "audio") ?? [], [step]);
   const imageAssets = useMemo(() => step?.assets.filter((asset) => asset.asset_type === "image") ?? [], [step]);
   const contextAssets = useMemo(() => item?.item_assets.filter((asset) => asset.asset_type === "image") ?? [], [item]);
@@ -161,7 +151,7 @@ export default function SessionPage() {
     }
   };
 
-  const resetMediaState = () => {
+  const clearQuestionState = () => {
     setSelectedIds([]);
     setAudioBlob(null);
     setAudioUrl((current) => {
@@ -210,7 +200,13 @@ export default function SessionPage() {
         return;
       }
       setItem(data);
-      resetMediaState();
+      setSelectedIds([]);
+      setAudioBlob(null);
+      setAudioUrl((current) => {
+        if (current) URL.revokeObjectURL(current);
+        return null;
+      });
+      setRecordingSeconds(0);
       stepStartedAtRef.current = Date.now();
       await fetchProgress();
       setPhase("active");
@@ -231,8 +227,9 @@ export default function SessionPage() {
   }, [fetchNext]);
 
   const playPrompt = async () => {
-    if (audioAssets.length === 0 || isListening) return;
+    if (!audioAssets.length || isListening) return;
     setIsListening(true);
+    setError("");
     try {
       for (const asset of audioAssets) {
         await new Promise<void>((resolve, reject) => {
@@ -244,7 +241,7 @@ export default function SessionPage() {
         });
       }
     } catch {
-      setError("تعذر تشغيل الصوت. تحقق من الصوت في الجهاز ثم حاول مرة أخرى.");
+      setError("تعذر تشغيل الصوت. تحقق من مستوى الصوت في الجهاز ثم حاول مرة أخرى.");
     } finally {
       setIsListening(false);
       playbackRef.current = null;
@@ -254,10 +251,7 @@ export default function SessionPage() {
   const toggleOption = (optionId: number) => {
     if (!interaction || phase !== "active") return;
     setError("");
-    if (SINGLE.has(interaction)) {
-      setSelectedIds([optionId]);
-      return;
-    }
+    if (SINGLE.has(interaction)) return setSelectedIds([optionId]);
     if (MULTI.has(interaction)) {
       setSelectedIds((current) => current.includes(optionId) ? current.filter((id) => id !== optionId) : [...current, optionId]);
       return;
@@ -299,9 +293,7 @@ export default function SessionPage() {
       chunksRef.current = [];
       const preferred = "audio/webm;codecs=opus";
       const recorder = MediaRecorder.isTypeSupported(preferred) ? new MediaRecorder(stream, { mimeType: preferred }) : new MediaRecorder(stream);
-      recorder.ondataavailable = (event) => {
-        if (event.data.size > 0) chunksRef.current.push(event.data);
-      };
+      recorder.ondataavailable = (event) => { if (event.data.size > 0) chunksRef.current.push(event.data); };
       recorder.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
         setAudioBlob(blob);
@@ -342,7 +334,6 @@ export default function SessionPage() {
       });
       const uploaded = await upload.json().catch(() => null);
       if (!upload.ok) throw new Error(uploaded?.detail || "تعذر رفع التسجيل");
-
       const elapsed = Math.min(3600, Math.max(0, Math.floor((Date.now() - stepStartedAtRef.current) / 1000)));
       const submit = await fetch(`/api/assessment/session/${sessionId}/attempt/${item.id}/submit`, {
         method: "POST",
@@ -367,16 +358,6 @@ export default function SessionPage() {
     }
   };
 
-  const sideCharacter = interaction && READ.has(interaction) ? "/characters/girl/encourage.png" : "/characters/girl/explain.png";
-  const targetCount = item ? criterionCount(item, step?.options.length ?? 0) : 0;
-  const canSubmit = Boolean(
-    interaction && (
-      (SINGLE.has(interaction) && selectedIds.length === 1)
-      || (MULTI.has(interaction) && selectedIds.length >= 2)
-      || (ORDER.has(interaction) && selectedIds.length === targetCount)
-    ),
-  );
-
   if (phase === "done" && assignedLevel !== null) {
     return (
       <div className={styles.resultPage} dir="rtl" data-testid="assessment-session" data-phase="done">
@@ -389,9 +370,7 @@ export default function SessionPage() {
             <p className="font-bold text-navy mb-6">مستواك: {LEVEL_LABELS[Math.max(0, assignedLevel - 1)] || assignedLevel}</p>
             <button className={styles.primary} onClick={() => router.push("/student")}>متابعة رحلتي</button>
           </div>
-          <div className={styles.resultVisual}>
-            <Image src="/characters/girl/success.png" alt="شخصية هِمّة تحتفل بالإنجاز" width={340} height={410} priority />
-          </div>
+          <div className={styles.resultVisual}><Image src="/characters/girl/success.png" alt="شخصية هِمّة تحتفل بالإنجاز" width={340} height={410} priority /></div>
         </div>
       </div>
     );
@@ -442,6 +421,13 @@ export default function SessionPage() {
   const hasMediaGap = step.media_gaps.length > 0;
   const imageChoice = interaction === "choose_image" || interaction === "listen_choose_image";
   const sequenceWithImages = ORDER.has(interaction) && imageAssets.some((asset) => asset.option_id);
+  const targetCount = criterionCount(item, step.options.length);
+  const canSubmit = Boolean(
+    (SINGLE.has(interaction) && selectedIds.length === 1)
+    || (MULTI.has(interaction) && selectedIds.length >= 2)
+    || (ORDER.has(interaction) && selectedIds.length === targetCount),
+  );
+  const sideCharacter = READ.has(interaction) ? "/characters/girl/encourage.png" : "/characters/girl/explain.png";
 
   return (
     <div className={styles.page} dir="rtl" data-testid="assessment-session" data-phase={phase === "submitting" ? "submitting" : "question"}>
@@ -466,17 +452,12 @@ export default function SessionPage() {
           )}
 
           {LISTEN.has(interaction) && (
-            <button className={`${styles.listenButton} ${isListening ? styles.listenPulse : ""}`} onClick={() => void playPrompt()} disabled={isListening || audioAssets.length === 0} data-testid="listen-prompt">
-              <Volume2 size={26} aria-hidden="true" />
-              <span>{isListening ? "استمع" : "استمع"}</span>
+            <button className={`${styles.listenButton} ${isListening ? styles.listenPulse : ""}`} onClick={() => void playPrompt()} disabled={isListening || !audioAssets.length} data-testid="listen-prompt">
+              <Volume2 size={26} aria-hidden="true" /><span>استمع</span>
             </button>
           )}
 
-          {hasMediaGap && (
-            <div className={styles.notice}>
-              هذا الصوت غير متوفر ضمن الملفات المعتمدة حاليًا، لذلك لن يُطلب منك الإجابة على هذه المهمة الآن.
-            </div>
-          )}
+          {hasMediaGap && <div className={styles.notice}>هذا الصوت غير متوفر ضمن الملفات المعتمدة حاليًا، لذلك لن يُطلب منك الإجابة على هذه المهمة الآن.</div>}
 
           {!hasMediaGap && imageChoice && (
             <div className={styles.imageOptions} data-testid="image-options">
@@ -497,10 +478,10 @@ export default function SessionPage() {
           {!hasMediaGap && ORDER.has(interaction) && (
             <>
               <div className={styles.sequenceBoard} data-testid="sequence-board">
-                {selectedIds.length === 0 && <span className={styles.sequenceHint}>{interaction === "build_word" ? "اضغط الحروف بالترتيب لتكوين الكلمة" : "اضغط العناصر بالترتيب الصحيح"}</span>}
+                {!selectedIds.length && <span className={styles.sequenceHint}>{interaction === "build_word" ? "اضغط الحروف بالترتيب لتكوين الكلمة" : "اضغط العناصر بالترتيب الصحيح"}</span>}
                 {selectedIds.map((id, index) => {
                   const option = step.options.find((candidate) => candidate.id === id);
-                  return <span className={styles.sequenceChip} key={id}><span className={styles.number}>{index + 1}</span>{option?.text}</span>;
+                  return <span className={styles.sequenceChip} key={`${id}-${index}`}><span className={styles.number}>{index + 1}</span>{option?.text}</span>;
                 })}
               </div>
 
@@ -518,11 +499,7 @@ export default function SessionPage() {
                   ))}
                 </div>
               ) : (
-                <div className={styles.options}>
-                  {options.filter((option) => !selectedIds.includes(option.id)).map((option) => (
-                    <button key={option.id} className={styles.option} onClick={() => toggleOption(option.id)}>{option.text}</button>
-                  ))}
-                </div>
+                <div className={styles.options}>{options.filter((option) => !selectedIds.includes(option.id)).map((option) => <button key={option.id} className={styles.option} onClick={() => toggleOption(option.id)}>{option.text}</button>)}</div>
               )}
             </>
           )}
@@ -538,9 +515,7 @@ export default function SessionPage() {
 
           {!hasMediaGap && READ.has(interaction) && (
             <>
-              <div className={`${styles.readingBox} ${(step.expected_reading_text?.length || 0) > 55 ? styles.readingBoxLong : ""}`} data-testid="reading-text">
-                {step.expected_reading_text || "اقرأ النص الظاهر"}
-              </div>
+              <div className={`${styles.readingBox} ${(step.expected_reading_text?.length || 0) > 55 ? styles.readingBoxLong : ""}`} data-testid="reading-text">{step.expected_reading_text || "اقرأ النص الظاهر"}</div>
               <div className={styles.recordPanel}>
                 {!audioBlob ? (
                   <>
@@ -555,7 +530,7 @@ export default function SessionPage() {
                     {audioUrl && <audio className={styles.audioPreview} src={audioUrl} controls />}
                     <p className="text-sm text-muted">استمع إلى تسجيلك، ثم أرسله أو أعد المحاولة.</p>
                     <div className={styles.actions}>
-                      <button className={styles.secondary} onClick={() => { setAudioBlob(null); setAudioUrl(null); setRecordingSeconds(0); }}><RotateCcw size={17} /> إعادة التسجيل</button>
+                      <button className={styles.secondary} onClick={() => { clearQuestionState(); stepStartedAtRef.current = Date.now(); }}><RotateCcw size={17} /> إعادة التسجيل</button>
                       <button className={styles.primary} onClick={() => void uploadReading()} disabled={phase === "submitting"}>إرسال التسجيل</button>
                     </div>
                   </>
@@ -569,9 +544,7 @@ export default function SessionPage() {
           {!hasMediaGap && !READ.has(interaction) && (
             <div className={styles.actions}>
               {ORDER.has(interaction) && selectedIds.length > 0 && <button className={styles.secondary} onClick={() => setSelectedIds([])}><RotateCcw size={17} /> إعادة الترتيب</button>}
-              <button className={styles.primary} onClick={() => void submitAnswer()} disabled={!canSubmit || phase === "submitting"}>
-                {phase === "submitting" ? "جاري الحفظ..." : "تأكيد والمتابعة"}
-              </button>
+              <button className={styles.primary} onClick={() => void submitAnswer()} disabled={!canSubmit || phase === "submitting"}>{phase === "submitting" ? "جاري الحفظ..." : "تأكيد والمتابعة"}</button>
             </div>
           )}
         </section>
