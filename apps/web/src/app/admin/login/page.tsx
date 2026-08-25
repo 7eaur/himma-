@@ -2,12 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { LockKeyhole, UserRound } from "lucide-react";
 
 export default function AdminLogin() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -46,8 +45,7 @@ export default function AdminLogin() {
         return;
       }
 
-      const next = searchParams.get("next");
-      router.replace(next?.startsWith("/admin") ? next : "/admin");
+      router.replace("/admin");
       router.refresh();
     } catch {
       setError("تعذر الاتصال بالخادم الآن. حاول مرة أخرى بعد قليل.");
