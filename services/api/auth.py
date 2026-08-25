@@ -1,4 +1,4 @@
-"""Authentication routes: researcher login, student login, /me, logout."""
+"""Authentication routes for supervisor and student sessions."""
 
 from datetime import datetime, timedelta, timezone
 import os
@@ -12,8 +12,6 @@ from db.models import User, Student, AuditLog
 from schemas import ResearcherLogin, StudentLogin, MeResponse
 from dependencies import (
     get_db,
-    get_current_user,
-    get_current_student,
     get_any_authenticated,
     API_SECRET_KEY,
     ALGORITHM,
@@ -66,27 +64,30 @@ def _audit(db: Session, *, actor_role: str, actor_id: int, action: str,
     db.commit()
 
 
-# ── Researcher login ────────────────────────────────────────────────
 @router.post("/login")
-def researcher_login(
+def supervisor_login(
     creds: ResearcherLogin,
     response: Response,
     db: Session = Depends(get_db),
 ):
     user = db.query(User).filter(User.username == creds.username).first()
-    if not user or not verify_password(creds.password, user.password_hash):
+    if (
+        not user
+        or not user.is_active
+        or user.role != "researcher"
+        or not verify_password(creds.password, user.password_hash)
+    ):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials",
+            detail="اسم المستخدم أو كلمة المرور غير صحيحة",
         )
     token = _create_access_token(sub=user.id, role="researcher")
     _set_token_cookie(response, token)
     _audit(db, actor_role="researcher", actor_id=user.id,
            action="LOGIN", entity_type="USER", entity_id=str(user.id))
-    return {"message": "Logged in successfully", "role": "researcher"}
+    return {"message": "تم تسجيل الدخول بنجاح", "role": "researcher"}
 
 
-# ── Student login ───────────────────────────────────────────────────
 @router.post("/student-login")
 def student_login(
     creds: StudentLogin,
@@ -97,16 +98,15 @@ def student_login(
     if not student or not student.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid access code",
+            detail="رمز الدخول غير صحيح، تحقق منه وحاول مرة أخرى",
         )
     token = _create_access_token(sub=student.id, role="student")
     _set_token_cookie(response, token)
     _audit(db, actor_role="student", actor_id=student.id,
            action="LOGIN", entity_type="STUDENT", entity_id=str(student.id))
-    return {"message": "Logged in successfully", "role": "student"}
+    return {"message": "تم تسجيل الدخول بنجاح", "role": "student"}
 
 
-# ── Who am I? ───────────────────────────────────────────────────────
 @router.get("/me", response_model=MeResponse)
 def me(auth=Depends(get_any_authenticated)):
     role, entity = auth
@@ -114,7 +114,6 @@ def me(auth=Depends(get_any_authenticated)):
     return MeResponse(id=entity.id, role=role, display_name=display)
 
 
-# ── Logout ──────────────────────────────────────────────────────────
 @router.post("/logout")
 def logout(response: Response):
     response.delete_cookie(
@@ -124,4 +123,4 @@ def logout(response: Response):
         httponly=True,
         samesite="lax",
     )
-    return {"message": "Logged out successfully"}
+    return {"message": "تم تسجيل الخروج بنجاح"}
