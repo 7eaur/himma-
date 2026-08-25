@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Users, Activity, Plus } from "lucide-react";
+import { Activity, ArrowLeft, BookOpenCheck, Plus, ShieldCheck, Users } from "lucide-react";
 
-interface Researcher {
-  id: string;
-  username: string;
+interface Supervisor {
+  id: number;
+  full_name?: string;
+  username?: string;
   role: string;
 }
 
@@ -16,122 +17,116 @@ interface Student {
   full_name: string;
   grade_level: number;
   access_code: string;
+  current_level: number;
+  status: "active" | "inactive";
+  posttest_enabled: boolean;
+  posttest_eligible: boolean;
+  core_completed_items: number;
+  core_total_items: number;
+  created_at: string;
 }
 
 export default function AdminDashboard() {
-  const [researcher, setResearcher] = useState<Researcher | null>(null);
+  const [supervisor, setSupervisor] = useState<Supervisor | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [meRes, studentsRes] = await Promise.all([
-          fetch("/api/me"),
-          fetch("/api/researcher/students")
-        ]);
-        
-        if (meRes.ok) setResearcher(await meRes.json());
-        if (studentsRes.ok) setStudents(await studentsRes.json());
-      } catch (err) {
-        console.error("Error fetching dashboard data", err);
-      } finally {
-        setLoading(false);
-      }
+    let cancelled = false;
+    void Promise.all([
+      fetch("/api/me", { cache: "no-store" }),
+      fetch("/api/researcher/students", { cache: "no-store" }),
+    ])
+      .then(async ([meResponse, studentsResponse]) => {
+        if (!meResponse.ok || !studentsResponse.ok) throw new Error("تعذر تحميل لوحة المشرف");
+        const meData: Supervisor = await meResponse.json();
+        const studentsData: Student[] = await studentsResponse.json();
+        if (cancelled) return;
+        setSupervisor(meData);
+        setStudents(studentsData);
+      })
+      .catch((caught: unknown) => {
+        if (!cancelled) setError(caught instanceof Error ? caught.message : "تعذر تحميل لوحة المشرف");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
     };
-    fetchData();
   }, []);
+
+  const activeStudents = useMemo(() => students.filter((student) => student.status === "active").length, [students]);
+  const learningStudents = useMemo(() => students.filter((student) => student.core_completed_items > 0 && student.core_completed_items < student.core_total_items).length, [students]);
+  const readyForPosttest = useMemo(() => students.filter((student) => student.posttest_eligible || student.posttest_enabled).length, [students]);
+  const recentStudents = useMemo(() => [...students].sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at)).slice(0, 6), [students]);
+  const supervisorName = supervisor?.full_name || supervisor?.username || "المشرف";
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center min-h-[60vh]">
-        <div className="spinner w-8 h-8 border-4"></div>
+      <div className="flex-1 flex flex-col items-center justify-center min-h-[60vh] gap-3" dir="rtl">
+        <div className="spinner w-10 h-10 border-4" />
+        <p className="text-muted">جاري تجهيز لوحة المشرف...</p>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 w-full max-w-6xl mx-auto space-y-8 pb-10">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div className="flex-1 w-full max-w-6xl mx-auto space-y-7 pb-10" dir="rtl">
+      <div className="rounded-3xl bg-gradient-to-l from-[#edf6ff] to-white border border-border p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-5">
         <div>
-          <h1 className="text-2xl font-bold text-navy mb-1">
-            مرحباً، {researcher?.username || "الباحثة"}
-          </h1>
-          <p className="text-muted text-sm">نظرة عامة على أداء الطلاب ونشاطاتهم اليوم.</p>
+          <div className="inline-flex items-center gap-2 text-primary text-sm font-semibold mb-2"><ShieldCheck size={17} /> لوحة المشرف</div>
+          <h1 className="text-3xl font-bold text-navy mb-2">مرحبًا، {supervisorName}</h1>
+          <p className="text-muted">تابع الطلاب، الأنشطة، نتائج التكيف، والتجهيز للاختبار البعدي من مكان واحد.</p>
         </div>
-        <Link href="/admin/students/new" className="btn-primary w-fit">
-          <Plus size={20} />
-          إضافة طالب
-        </Link>
+        <Link href="/admin/students/new" className="btn-primary w-fit"><Plus size={19} /> إضافة طالب</Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div className="stat-card">
-          <div className="stat-icon bg-primary/10 text-primary">
-            <Users size={24} />
-          </div>
-          <div>
-            <p className="stat-label">إجمالي الطلاب</p>
-            <p className="stat-value">{students.length}</p>
-          </div>
-        </div>
-        
-        <div className="stat-card">
-          <div className="stat-icon bg-green/10 text-green">
-            <Activity size={24} />
-          </div>
-          <div>
-            <p className="stat-label">الطلاب النشطين</p>
-            <p className="stat-value">{students.length}</p>
-          </div>
-        </div>
+      {error && <div className="alert-error">{error}</div>}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="stat-card"><div className="stat-card-icon blue"><Users size={23} /></div><div><p className="stat-card-value">{students.length}</p><p className="stat-card-label">إجمالي الطلاب</p></div></div>
+        <div className="stat-card"><div className="stat-card-icon green"><Activity size={23} /></div><div><p className="stat-card-value">{activeStudents}</p><p className="stat-card-label">حسابات نشطة</p></div></div>
+        <div className="stat-card"><div className="stat-card-icon yellow"><BookOpenCheck size={23} /></div><div><p className="stat-card-value">{learningStudents}</p><p className="stat-card-label">في المسار التعليمي</p></div></div>
+        <div className="stat-card"><div className="stat-card-icon blue"><ShieldCheck size={23} /></div><div><p className="stat-card-value">{readyForPosttest}</p><p className="stat-card-label">جاهزون للاختبار البعدي</p></div></div>
       </div>
 
-      <div className="card">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-lg font-bold text-navy">الطلاب المضافين حديثاً</h2>
-          <Link href="/admin/students" className="text-primary hover:underline text-sm font-medium">
-            عرض الكل
-          </Link>
+      <section className="card">
+        <div className="flex justify-between items-center gap-3 mb-6 flex-wrap">
+          <div><h2 className="text-lg font-bold text-navy">أحدث الطلاب</h2><p className="text-sm text-muted mt-1">آخر الحسابات المضافة وحالة تقدمها الحالية.</p></div>
+          <Link href="/admin/students" className="text-primary text-sm font-semibold inline-flex items-center gap-1">عرض جميع الطلاب <ArrowLeft size={16} /></Link>
         </div>
-        
-        {students.length === 0 ? (
+
+        {recentStudents.length === 0 ? (
           <div className="empty-state">
-            <Image src="/characters/girl/welcome.png" alt="No students" width={100} height={140} className="mb-6 opacity-80" />
-            <h3 className="text-lg font-bold text-navy mb-2">لا يوجد طلاب حتى الآن</h3>
-            <p className="text-muted mb-6">أضف أول طالب للبدء في تتبع تقدمهم</p>
-            <Link href="/admin/students/new" className="btn-primary">
-              <Plus size={20} />
-              إضافة طالب جديد
-            </Link>
+            <Image src="/characters/girl/welcome.png" alt="شخصية هِمّة" width={105} height={140} className="mb-6" />
+            <h3>لا يوجد طلاب حتى الآن</h3>
+            <p className="mb-6">أضف أول طالب ليبدأ مساره في هِمّة.</p>
+            <Link href="/admin/students/new" className="btn-primary"><Plus size={19} /> إضافة طالب جديد</Link>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="data-table">
-              <thead>
-                <tr>
-                  <th>الاسم</th>
-                  <th>الصف</th>
-                  <th>رمز الدخول</th>
-                </tr>
-              </thead>
+              <thead><tr><th>الطالب</th><th>رمز الدخول</th><th>المستوى</th><th>تقدم الأنشطة</th><th>الحالة</th></tr></thead>
               <tbody>
-                {students.slice(0, 5).map(student => (
-                  <tr key={student.id}>
-                    <td className="font-medium text-navy">{student.full_name}</td>
-                    <td>{student.grade_level}</td>
-                    <td>
-                      <span className="badge badge-gray border border-border tracking-widest px-3 py-1 font-mono text-sm" dir="ltr">
-                        {student.access_code}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                {recentStudents.map((student) => {
+                  const progress = Math.round((student.core_completed_items / Math.max(1, student.core_total_items)) * 100);
+                  return (
+                    <tr key={student.id}>
+                      <td><Link href={`/admin/students/${student.id}`} className="font-semibold text-navy hover:text-primary">{student.full_name}</Link></td>
+                      <td><span className="badge badge-gray border border-border tracking-widest px-3 py-1 font-mono" dir="ltr">{student.access_code}</span></td>
+                      <td>المستوى {student.current_level}</td>
+                      <td><div className="flex items-center gap-2 min-w-[130px]"><div className="progress-track"><div className="progress-fill" style={{ width: `${progress}%` }} /></div><span className="text-xs text-muted">{student.core_completed_items}/{student.core_total_items}</span></div></td>
+                      <td><span className={`badge ${student.status === "active" ? "badge-green" : "badge-gray"}`}>{student.status === "active" ? "نشط" : "موقوف"}</span></td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         )}
-      </div>
+      </section>
     </div>
   );
 }
