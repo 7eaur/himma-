@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { BookOpen, CheckCircle2, LogOut } from "lucide-react";
-import pathStyles from "./studentPath.module.css";
+import { BookOpenCheck, Check, Headphones, LogOut, Map, Star } from "lucide-react";
+import styles from "./home.module.css";
 
 interface StudentMe {
   id: number;
@@ -26,6 +26,13 @@ interface LearningStatus {
   session_id: number | null;
 }
 
+interface RewardEvent {
+  id: number;
+  type: string;
+  stars: number;
+  label: string;
+}
+
 const LEVEL_NAMES: Record<number, string> = {
   1: "الاستعداد للقراءة",
   2: "بناء الكلمة",
@@ -36,6 +43,7 @@ export default function StudentHomePage() {
   const router = useRouter();
   const [student, setStudent] = useState<StudentMe | null>(null);
   const [learning, setLearning] = useState<LearningStatus | null>(null);
+  const [rewards, setRewards] = useState<RewardEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState("");
@@ -43,18 +51,28 @@ export default function StudentHomePage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const profileRes = await fetch("/api/profile");
-        if (!profileRes.ok) throw new Error("تعذر تحميل مسار الطالب");
-        const profile: StudentMe = await profileRes.json();
+        const profileResponse = await fetch("/api/profile", { cache: "no-store" });
+        const profileData = await profileResponse.json().catch(() => null);
+        if (!profileResponse.ok) throw new Error(profileData?.detail || "تعذر تحميل مسارك");
+        const profile: StudentMe = profileData;
         setStudent(profile);
 
+        const requests: Promise<void>[] = [];
         if (profile.next_action === "learning" || profile.active_session?.session_type === "core") {
-          const learningRes = await fetch("/api/activities/status");
-          if (learningRes.ok) setLearning(await learningRes.json());
+          requests.push(
+            fetch("/api/activities/status", { cache: "no-store" }).then(async (response) => {
+              if (response.ok) setLearning(await response.json());
+            }),
+          );
         }
+        requests.push(
+          fetch("/api/rewards", { cache: "no-store" }).then(async (response) => {
+            if (response.ok) setRewards(await response.json());
+          }),
+        );
+        await Promise.all(requests);
       } catch (err) {
-        console.error("Error fetching student path", err);
-        setError("تعذر تحميل بياناتك. يرجى تحديث الصفحة.");
+        setError(err instanceof Error ? err.message : "تعذر تحميل بياناتك. حدّث الصفحة وحاول مرة أخرى.");
       } finally {
         setLoading(false);
       }
@@ -66,42 +84,36 @@ export default function StudentHomePage() {
     if (!student) return;
     setStarting(true);
     setError("");
-
     try {
       if (student.active_session?.session_type === "pretest" || student.active_session?.session_type === "posttest") {
         router.push(`/student/session/${student.active_session.id}`);
         return;
       }
 
-      if (student.next_action === "learning" || student.active_session?.session_type === "core") {
-        const existingSession = student.active_session?.session_type === "core"
-          ? student.active_session.id
-          : learning?.session_id;
+      const isLearning = student.next_action === "learning" || student.active_session?.session_type === "core";
+      if (isLearning) {
+        const existingSession = student.active_session?.session_type === "core" ? student.active_session.id : learning?.session_id;
         if (existingSession) {
           router.push(`/student/activity/${existingSession}`);
           return;
         }
-        if (learning?.completed) {
-          setStarting(false);
-          return;
-        }
-        const res = await fetch("/api/activities/start", { method: "POST" });
-        const data = await res.json().catch(() => null);
-        if (!res.ok) throw new Error(data?.detail || "تعذر بدء الأنشطة التعليمية");
+        if (learning?.completed) return;
+        const response = await fetch("/api/activities/start", { method: "POST" });
+        const data = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(data?.detail || "تعذر بدء الأنشطة التعليمية");
         router.push(`/student/activity/${data.session_id}`);
         return;
       }
 
       if (student.next_action === "pretest" || student.next_action === "posttest") {
-        const res = await fetch("/api/assessment/start", {
+        const response = await fetch("/api/assessment/start", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ session_type: student.next_action }),
         });
-        const data = await res.json().catch(() => null);
-        if (!res.ok) throw new Error(data?.detail || "تعذر بدء الاختبار");
+        const data = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(data?.detail || "تعذر بدء الاختبار");
         router.push(`/student/session/${data.id}`);
-        return;
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "تعذر الاتصال بالخادم");
@@ -112,105 +124,145 @@ export default function StudentHomePage() {
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
+    } finally {
       router.replace("/");
       router.refresh();
-    } catch (err) {
-      console.error("Logout failed", err);
     }
   };
 
+  const totalStars = useMemo(() => rewards.reduce((sum, reward) => sum + (reward.stars || 0), 0), [rewards]);
+
   if (loading) {
     return (
-      <div className="student-home-root">
-        <div className="flex-1 flex items-center justify-center">
+      <div className={styles.page} dir="rtl">
+        <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+          <Image src="/brand/logo-gradient.svg" alt="هِمّة" width={130} height={44} priority />
           <div className="spinner w-12 h-12 border-4" />
+          <p className="text-muted">جاري تجهيز رحلتك...</p>
         </div>
       </div>
     );
   }
 
-  const isLearning = student?.next_action === "learning" || student?.active_session?.session_type === "core";
-  const learningCompleted = Boolean(learning?.completed);
-  const learningProgress = learning
-    ? Math.min(100, Math.round((learning.completed_items / Math.max(1, learning.total_items)) * 100))
-    : 0;
+  if (!student) {
+    return (
+      <div className={styles.page} dir="rtl">
+        <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-6 text-center">
+          <h1 className="text-2xl font-bold">تعذر فتح حساب الطالب</h1>
+          <p className="text-muted">{error || "سجّل الدخول مرة أخرى."}</p>
+          <button className={styles.button} onClick={() => router.replace("/student/login")}>العودة إلى الدخول</button>
+        </div>
+      </div>
+    );
+  }
 
-  let primaryLabel = "ابدأ الاختبار القبلي";
-  const primaryDisabled = starting || student?.next_action === "completed" || (isLearning && learningCompleted);
-  if (starting) primaryLabel = "جاري التجهيز...";
-  else if (student?.active_session?.session_type === "pretest" || student?.active_session?.session_type === "posttest") primaryLabel = "استئناف الاختبار";
-  else if (isLearning && (student?.active_session?.session_type === "core" || learning?.session_id)) primaryLabel = "متابعة الأنشطة";
-  else if (isLearning && !learningCompleted) primaryLabel = "ابدأ أنشطة مستواك";
-  else if (student?.next_action === "posttest") primaryLabel = "ابدأ الاختبار البعدي";
-  else if (student?.next_action === "completed") primaryLabel = "اكتمل المسار";
-  else if (learningCompleted) primaryLabel = "أكملت أنشطة مستواك";
+  const isLearning = student.next_action === "learning" || student.active_session?.session_type === "core";
+  const learningCompleted = Boolean(learning?.completed);
+  const learningProgress = learning ? Math.min(100, Math.round((learning.completed_items / Math.max(1, learning.total_items)) * 100)) : 0;
+  const firstName = student.full_name.split(" ")[0] || "بطل هِمّة";
+
+  let heroTitle = "الاختبار القبلي";
+  let heroDescription = "أسئلة قصيرة ومتنوعة تساعد هِمّة على اختيار البداية المناسبة لك.";
+  let primaryLabel = "ابدأ الاختبار";
+  let phaseIndex = 0;
+  let character = "/characters/girl/welcome.png";
+
+  if (student.active_session?.session_type === "pretest") primaryLabel = "متابعة الاختبار";
+  if (isLearning) {
+    phaseIndex = 1;
+    heroTitle = `مستواك: ${LEVEL_NAMES[student.current_level] || `المستوى ${student.current_level}`}`;
+    heroDescription = learningCompleted
+      ? "أكملت أنشطة مستواك. سيظهر الاختبار البعدي عندما يفتحه المشرف."
+      : "أنشطة قصيرة بالصوت والصورة والقراءة، تتكيف مع تقدمك خطوة بخطوة.";
+    primaryLabel = learningCompleted ? "أكملت هذا المستوى" : (student.active_session?.session_type === "core" || learning?.session_id ? "متابعة الأنشطة" : "ابدأ أنشطة مستواك");
+    character = learningCompleted ? "/characters/girl/success.png" : "/characters/girl/explain.png";
+  }
+  if (student.next_action === "posttest" || student.active_session?.session_type === "posttest") {
+    phaseIndex = 2;
+    heroTitle = "الاختبار البعدي";
+    heroDescription = "خطوتك الأخيرة لقياس التطور الذي حققته خلال رحلة هِمّة.";
+    primaryLabel = student.active_session?.session_type === "posttest" ? "متابعة الاختبار" : "ابدأ الاختبار البعدي";
+    character = "/characters/girl/encourage.png";
+  }
+  if (student.next_action === "completed") {
+    phaseIndex = 3;
+    heroTitle = "أكملت رحلتك";
+    heroDescription = "أنهيت الاختبارين والأنشطة التعليمية. أحسنت التقدم!";
+    primaryLabel = "اكتمل المسار";
+    character = "/characters/girl/success.png";
+  }
+
+  const primaryDisabled = starting || student.next_action === "completed" || (isLearning && learningCompleted);
 
   return (
-    <div className="student-home-root" dir="rtl">
-      <div className="student-login-amb-1" />
-      <div className="student-login-amb-2" />
-
-      <header className="student-home-header">
-        <Image src="/brand/logo-gradient.svg" alt="هِمّة" width={140} height={45} priority />
-        <button onClick={handleLogout} className="student-logout-btn">
-          <LogOut size={16} />
-          <span>خروج</span>
-        </button>
+    <div className={styles.page} dir="rtl" data-testid="student-home">
+      <header className={styles.header}>
+        <Image src="/brand/logo-gradient.svg" alt="هِمّة" width={132} height={44} priority />
+        <div className={styles.userChip}>
+          <div className={styles.avatar}>{firstName.charAt(0)}</div>
+          <div><strong>{firstName}</strong><button className={styles.logout} onClick={() => void handleLogout()}><LogOut size={14} /> خروج</button></div>
+        </div>
       </header>
 
-      <main className="student-home-main">
-        <Image
-          src={learningCompleted ? "/characters/boy/success.png" : "/characters/boy/welcome.png"}
-          alt="شخصية هِمّة"
-          width={220}
-          height={280}
-          className="student-home-char"
-          priority
-        />
+      <main className={styles.container}>
+        <section className={styles.welcome}>
+          <div>
+            <span className={styles.eyebrow}><Star size={14} fill="currentColor" /> صباح التقدم</span>
+            <h1>مرحبًا يا {firstName}</h1>
+            <p>خطوتك التالية جاهزة، وهِمّة تحفظ تقدمك تلقائيًا.</p>
+          </div>
+          <div className={styles.stars}><strong>{totalStars} ⭐</strong><span>نجومك حتى الآن</span></div>
+        </section>
 
-        <h1 className="student-greeting">
-          أهلاً بك يا بطل، {student?.full_name?.split(" ")[0] || "يا بطل"}!
-        </h1>
-        {student?.grade_level && <div className="student-grade-badge">الصف {student.grade_level}</div>}
-
-        {isLearning && student && (
-          <section className={pathStyles.learningCard} aria-label="تقدم الأنشطة التعليمية">
-            <div className={pathStyles.learningTitle}>
-              <BookOpen size={21} aria-hidden="true" />
-              <span>مستواك: {LEVEL_NAMES[student.current_level] || `المستوى ${student.current_level}`}</span>
+        <div className={styles.grid}>
+          <section className={`${styles.hero} ${student.next_action === "completed" ? styles.completed : ""}`}>
+            <div className={styles.heroContent}>
+              <span className={styles.stepLabel}><BookOpenCheck size={15} /> خطوتك الحالية</span>
+              <h2>{heroTitle}</h2>
+              <p>{heroDescription}</p>
+              <div className={styles.meta}>
+                {isLearning ? <><span>{learning?.completed_items ?? 0} من {learning?.total_items ?? 10} أنشطة</span><span>•</span><span>مهمة واحدة في كل شاشة</span></> : <><span>30 سؤالًا</span><span>•</span><span>يحفظ تلقائيًا</span></>}
+              </div>
+              <button className={styles.button} onClick={() => void handlePrimaryAction()} disabled={primaryDisabled} data-testid="student-primary-action">
+                {starting && <span className="spinner w-5 h-5" />}{primaryLabel}
+              </button>
+              {error && <div className={styles.error} role="alert">{error}</div>}
             </div>
-            <div className={pathStyles.progressRow}>
-              <span>{learning?.completed_items ?? 0} من {learning?.total_items ?? 10}</span>
-              <span>{learningProgress}%</span>
-            </div>
-            <div className={pathStyles.progressTrack} aria-hidden="true">
-              <span className={pathStyles.progressFill} style={{ width: `${learningProgress}%` }} />
-            </div>
-            <p className={pathStyles.learningNote}>
-              {learningCompleted
-                ? "أحسنت، أكملت أنشطة مستواك. سيظهر الاختبار البعدي عندما تفتحه الباحثة."
-                : "أمامك عشرة أنشطة قصيرة. كل شاشة فيها مهمة واحدة واضحة."}
-            </p>
-            {learningCompleted && <CheckCircle2 size={26} className={pathStyles.learningCheck} aria-hidden="true" />}
+            <div className={styles.heroVisual}><Image src={character} alt="شخصية هِمّة" width={250} height={300} priority /></div>
           </section>
-        )}
 
-        <p className="student-subtitle">
-          {student?.next_action === "completed"
-            ? "أكملت الاختبارين القبلي والبعدي. أحسنت التقدم."
-            : student?.next_action === "posttest"
-              ? "أصبح الاختبار البعدي متاحًا لك."
-              : isLearning
-                ? "هيا نكمل خطوة جديدة في رحلة التعلّم."
-                : "هل أنت مستعد لنبدأ رحلة التعلّم والتطور؟"}
-        </p>
+          <aside className={styles.side}>
+            <div className={styles.tipCard}>
+              <div className={styles.tipIcon}><Headphones size={21} /></div>
+              <h3>قبل أن تبدأ</h3>
+              <p>اختر مكانًا هادئًا، وارفع صوت الجهاز بدرجة مريحة، واسمح باستخدام الميكروفون عند القراءة.</p>
+            </div>
+            <div className={styles.progressCard}>
+              <div className={styles.tipIcon}><Map size={21} /></div>
+              <h3>تقدم المستوى</h3>
+              <div className={styles.progressRing} style={{ "--progress": `${isLearning ? learningProgress : phaseIndex >= 2 ? 100 : 0}%` } as React.CSSProperties}>
+                <strong>{isLearning ? `${learningProgress}%` : phaseIndex >= 2 ? "100%" : "جاهز"}</strong>
+              </div>
+              <p>{isLearning ? "كل نشاط مكتمل يقربك من هدفك." : "سنبدأ بخطوة قصيرة لتحديد مسارك."}</p>
+            </div>
+          </aside>
+        </div>
 
-        {error && <p className="alert-error">{error}</p>}
-
-        <button onClick={handlePrimaryAction} disabled={primaryDisabled} className="student-start-btn">
-          {starting && <span className="spinner border-4 w-6 h-6" />}
-          <span>{primaryLabel}</span>
-        </button>
+        <section className={styles.journey} aria-label="رحلة الطالب">
+          <div className={styles.journeyHeader}><h3>رحلتك في هِمّة</h3><span>نبني على مستواك الحقيقي</span></div>
+          <div className={styles.steps}>
+            {[{label:"نكتشف بدايتك",sub:"الاختبار القبلي"},{label:"نتعلم ونتطور",sub:"أنشطة متكيفة"},{label:"نقيس تقدمك",sub:"الاختبار البعدي"}].map((entry,index) => {
+              const done = phaseIndex > index || student.next_action === "completed";
+              const current = phaseIndex === index;
+              return (
+                <div key={entry.label} className={`${styles.step} ${done ? styles.stepDone : ""} ${current ? styles.stepCurrent : ""}`}>
+                  <div className={styles.stepIcon}>{done ? <Check size={20} /> : index + 1}</div>
+                  <strong>{entry.label}</strong><span>{entry.sub}</span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
       </main>
     </div>
   );
