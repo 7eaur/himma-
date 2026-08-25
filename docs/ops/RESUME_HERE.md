@@ -1,44 +1,49 @@
-# RESUME HERE — B02 Student Assessment Lifecycle
+# RESUME HERE — Stage 2 Closure Recovery
 
-**Last updated:** 2026-08-24T22:53:16Z
+**Last updated:** 2026-08-25
 
-**Branch:** `b02/student-assessment-lifecycle`
+**Branch:** `b02/stage2-closure`
 
-**Base:** `b01/content-source-of-truth@26d25e081b0c7c66f5d6b09b8b1750e67c745b41`
+**Base:** `b02/student-assessment-lifecycle@6a5293879fb25555dc2992ee0cf2b6f7c7441afa`
 
-**Verified implementation:** `f45cf88a92a32a7569357db3416c90861332e015`
+**Last accepted remote checkpoint:** B02 lifecycle gate, GitHub Actions #32 green.
 
-## Current status: REMOTE GREEN — WAITING FOR USER ACCEPTANCE
+## Current status: IN PROGRESS — RECONSTRUCTING UNPUSHED STAGE 2 CLOSURE WORK
 
-B02 is complete within its approved boundary. GitHub Actions [#32](https://github.com/7eaur/himma-/actions/runs/32786468307) passed `backend`, `frontend`, and `integration` with PostgreSQL, Redis, pinned-checksum MinIO, and Playwright. Do not start B03 until the user explicitly replies `تم`.
+A detailed cross-check of the Work-session handoff against GitHub established that the later activity/UI work described after B02 was not pushed to any repository branch. The green B02 branch remains intact and is not being rewritten.
 
-## Delivered
+The recovery branch `b02/stage2-closure` was created from the exact B02 green checkpoint. The governing recovery note is `docs/ops/stages/B02_STAGE2_CLOSURE_RECOVERY.md`.
 
-- Researcher-owned student records with grade fixed to 3, pseudonymous unique access codes, and a hard maximum of 15 students.
-- One pretest and one researcher-enabled posttest per student, with one active session at a time.
-- Exact unanswered-step resume after interruption, persisted item/step timing, early-finish rejection, and audio rerecord recovery.
-- Durable idempotency for choice answers and audio uploads, including replay, changed-payload conflicts, deterministic audio keys, and no duplicate/double-counted submissions.
-- Student/researcher UI contracts for resume, progress, posttest eligibility, and posttest enable/disable.
-- Additive Alembic revision `0004_student_lifecycle`; PostgreSQL upgrade/downgrade/upgrade and drift check passed.
-- Same-origin web proxy allowlists and forwards `Idempotency-Key`; the remote E2E caught and verified this production correction.
+## What is already remotely verified
 
-## Gate evidence
+- B00 trusted recovery accepted.
+- B01 content source-of-truth accepted: 105 items, 44 skills, 264 rounds, exact 30/30 assessments and 30 core + 15 reinforcement activities.
+- B02 student/assessment lifecycle accepted: maximum 15 grade-three students, pseudonymous access codes, pre/post lifecycle, exact resume, durable timing, idempotency, MinIO audio upload, human review, researcher-enabled posttest.
+- Initial assessment level assignment already exists in backend finish logic: `<50 => level 1`, `<80 => level 2`, otherwise level 3.
 
-| Gate | Result |
-|---|---|
-| Backend | 37/37 tests passed |
-| Frontend | TypeScript, ESLint, 4/4 Jest, production build passed |
-| Content | 105 items, 44 skills, exact required distributions, two declared audio gaps |
-| Alembic | Single head, upgrade/downgrade/upgrade, no schema drift |
-| Browser E2E | 30-question pretest, audio upload/review, forced reload/resume, final result, roster update |
-| GitHub Actions | Run #32 — all required jobs passed |
+## Verified gap that must be closed now
 
-No Docker was run locally. Local checks used the repository runtimes; the remote gate supplied disposable services. No real child data, recording, credential, database dump, cache, or dependency directory was committed.
+Remote GitHub still contains a placeholder student activity page and the student home disables the learning action. Therefore Stage 2 is not yet remotely closed even though a later local Work session reported implementing the activity runner.
 
-## Remaining external decisions
+## Current slice
 
-Use `docs/ops/OPEN_ITEMS.md`. B03 is not blocked by those items. OI-02 becomes blocking before B04; recording retention, secret rotation, and hosting remain launch/production gates.
+Reconstruct and finish the Stage 2 learning path on this branch only:
 
-## Next after explicit `تم`
+1. Execute exactly ten core activities for the student’s assigned level.
+2. Support the approved catalog interaction values rather than flattening them to generic multiple choice.
+3. Render approved images/audio/icons/brand assets and preserve the two declared media gaps without fake replacements or penalties.
+4. Persist activity progress/timing safely and resume after reload without duplicate submissions.
+5. Expose progress to the researcher.
+6. Keep posttest unavailable until the required core path is complete and then require researcher enablement.
+7. Run PostgreSQL/Alembic, catalog/media, backend, frontend, build and full browser gate remotely.
 
-Create a separate B03 branch from this green B02 checkpoint. Implement initial level assignment thresholds and adaptive activity/reinforcement routing using the approved 50/30/20 mastery rules. Do not mix B05 reporting or B04 automatic speech analysis into B03.
+## Do not do yet
+
+- Do not start or label B03/Stage 3 accepted.
+- Do not implement automatic ASR.
+- Do not add adaptive 50/30/20 mastery decisions or automatic reinforcement routing in this closure slice.
+- Do not alter the accepted B02 branch.
+
+## Next action
+
+Implement the missing activity execution path on `b02/stage2-closure`, then push evidence through GitHub Actions. Stage 3 begins only after Stage 2 closure is remotely green and documented.
