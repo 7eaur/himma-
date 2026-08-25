@@ -1,16 +1,14 @@
 """Adaptive learning activity runtime.
 
-The accepted Stage-2 core runner remains the durable execution base. P06 adds
-50/30/20 decisions between completed activity attempts, exact skill-matched
-reinforcement, and level transitions without counting reinforcement as one of
-the ten approved core activities for a level.
+The accepted Stage-2 core runner remains the durable execution base. This
+recovery layer restores the canonical interaction/media contract so each
+approved learning activity is rendered as designed instead of collapsing into
+a generic text-choice screen.
 """
 
 from __future__ import annotations
 
-import json
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException
@@ -25,6 +23,14 @@ from assessment import (
     _store_idempotency,
     _validate_idempotency_key,
 )
+from content_runtime import (
+    canonical_id,
+    canonical_interaction,
+    instruction_text,
+    item_assets,
+    media_gaps,
+    step_assets,
+)
 from db.activity_models import ActivityStepResponse
 from db.models import (
     AssessmentSession,
@@ -32,7 +38,6 @@ from db.models import (
     AttemptResponse,
     AudioSubmission,
     ContentItem,
-    ContentOption,
     ContentStep,
     Student,
 )
@@ -42,8 +47,6 @@ router = APIRouter(prefix="/activities", tags=["Activities"])
 
 MAX_STEP_ATTEMPTS = 2
 CORE_ACTIVITY_COUNT = 10
-REPO_ROOT = Path(__file__).resolve().parents[2]
-CATALOG_PATH = REPO_ROOT / "packages" / "content" / "src" / "catalog.json"
 
 
 class ActivitySubmitRequest(BaseModel):
@@ -52,22 +55,6 @@ class ActivitySubmitRequest(BaseModel):
     hint_used: bool = False
     elapsed_seconds: int = Field(default=0, ge=0, le=3600)
     declared_media_gap_skip: bool = False
-
-
-def _catalog_round_index() -> dict[tuple[str, int], dict[str, Any]]:
-    try:
-        catalog = json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        raise RuntimeError("Approved activity catalog is unavailable") from exc
-    index: dict[tuple[str, int], dict[str, Any]] = {}
-    for item in catalog.get("items", []):
-        canonical_id = item.get("canonical_id")
-        for round_data in item.get("rounds", []):
-            index[(canonical_id, int(round_data.get("order_index", 0)))] = round_data
-    return index
-
-
-_CATALOG_ROUNDS = _catalog_round_index()
 
 
 def _pretest_completed(db: Session, student_id: int) -> bool:
@@ -111,34 +98,12 @@ def _activity_session_or_404(
         AssessmentSession.session_type == "core",
     ).first()
     if not session or (require_active and session.status != "in_progress"):
-        raise HTTPException(status_code=404, detail="Active learning session not found")
+        raise HTTPException(status_code=404, detail="جلسة التعلم غير موجودة أو انتهت")
     return session
 
 
-def _canonical_interaction(item: ContentItem) -> str:
-    data = item.template_data or {}
-    return data.get("canonical_interaction_type") or item.interaction_type
-
-
-def _canonical_id(item: ContentItem) -> str:
-    data = item.template_data or {}
-    return data.get("canonical_id") or item.stable_key
-
-
 def _step_gap(item: ContentItem, step: ContentStep) -> list[dict[str, Any]]:
-    return list(_CATALOG_ROUNDS.get((_canonical_id(item), step.order_index), {}).get("media_gaps", []))
-
-
-def _step_assets(step: ContentStep) -> list[dict[str, Any]]:
-    return [
-        {
-            "asset_id": asset.manifest_asset_id,
-            "asset_type": asset.asset_type,
-            "usage": asset.usage_context,
-            "url": f"/api/media/{asset.manifest_asset_id}",
-        }
-        for asset in step.assets
-    ]
+    return media_gaps(item, step)
 
 
 def _step_state(db: Session, attempt: Attempt, step: ContentStep) -> dict[str, Any]:
@@ -172,30 +137,32 @@ def _step_state(db: Session, attempt: Attempt, step: ContentStep) -> dict[str, A
 
 def _step_payload(db: Session, item: ContentItem, attempt: Attempt, step: ContentStep) -> dict[str, Any]:
     state = _step_state(db, attempt, step)
-    interaction = _canonical_interaction(item)
+    interaction = canonical_interaction(item)
     return {
         "session_id": attempt.session_id,
         "item": {
             "id": item.id,
             "stable_key": item.stable_key,
-            "canonical_id": _canonical_id(item),
+            "canonical_id": canonical_id(item),
             "title": (item.template_data or {}).get("title") or "نشاط تعليمي",
             "level_id": item.level_id,
             "order_index": item.order_index,
             "interaction_type": interaction,
             "source_method": (item.template_data or {}).get("source_method"),
             "kind": item.kind,
+            "assets": item_assets(item),
         },
         "step": {
             "id": step.id,
             "order_index": step.order_index,
             "prompt_text": step.prompt_text,
+            "instruction_text": instruction_text(item, step),
             "expected_reading_text": step.expected_reading_text,
             "options": [
                 {"id": option.id, "text": option.text, "order_index": option.order_index}
                 for option in step.options
             ],
-            "assets": _step_assets(step),
+            "assets": step_assets(item, step),
             "media_gaps": _step_gap(item, step),
         },
         "attempts_used": state["attempts_used"],
@@ -294,9 +261,9 @@ def start_learning(
     student: Student = Depends(get_current_student),
 ):
     if not student.is_active:
-        raise HTTPException(status_code=403, detail="Student account is inactive")
+        raise HTTPException(status_code=403, detail="حساب الطالب غير نشط")
     if not _pretest_completed(db, student.id):
-        raise HTTPException(status_code=409, detail="Complete the pretest before starting learning activities")
+        raise HTTPException(status_code=409, detail="أكمل الاختبار القبلي قبل بدء الأنشطة التعليمية")
 
     active_any = db.query(AssessmentSession).filter(
         AssessmentSession.student_id == student.id,
@@ -305,7 +272,7 @@ def start_learning(
     if active_any:
         if active_any.session_type == "core":
             return _progress_payload(db, active_any, active_any.assigned_level or student.current_level)
-        raise HTTPException(status_code=409, detail="Resume the active assessment first")
+        raise HTTPException(status_code=409, detail="أكمل الاختبار الجاري أولًا")
 
     completed = _core_session(db, student.id, completed=True, level_id=student.current_level)
     if completed:
@@ -316,7 +283,7 @@ def start_learning(
         ContentItem.level_id == student.current_level,
     ).count()
     if total != CORE_ACTIVITY_COUNT:
-        raise HTTPException(status_code=409, detail="Approved core activity set is incomplete")
+        raise HTTPException(status_code=409, detail="مجموعة الأنشطة الأساسية المعتمدة غير مكتملة")
 
     session = AssessmentSession(
         student_id=student.id,
@@ -332,7 +299,7 @@ def start_learning(
         active = _core_session(db, student.id, completed=False)
         if active:
             return _progress_payload(db, active, active.assigned_level or student.current_level)
-        raise HTTPException(status_code=409, detail="Learning session lifecycle conflict")
+        raise HTTPException(status_code=409, detail="حدث تعارض أثناء بدء جلسة التعلم")
     db.refresh(session)
     return _progress_payload(db, session, student.current_level)
 
@@ -358,7 +325,16 @@ def _load_item(db: Session, item_id: int):
     return db.query(ContentItem).options(
         joinedload(ContentItem.steps).joinedload(ContentStep.options),
         joinedload(ContentItem.steps).joinedload(ContentStep.assets),
+        joinedload(ContentItem.assets),
     ).filter(ContentItem.id == item_id).first()
+
+
+def _rich_item_query(db: Session):
+    return db.query(ContentItem).options(
+        joinedload(ContentItem.steps).joinedload(ContentStep.options),
+        joinedload(ContentItem.steps).joinedload(ContentStep.assets),
+        joinedload(ContentItem.assets),
+    )
 
 
 @router.get("/session/{session_id}/next")
@@ -373,17 +349,13 @@ def next_activity_step(
     if pending_attempt:
         item = _load_item(db, pending_attempt.item_id)
         if not item:
-            raise HTTPException(status_code=409, detail="Activity content is unavailable")
+            raise HTTPException(status_code=409, detail="تعذر تحميل محتوى النشاط")
         for step in item.steps:
             if not _step_state(db, pending_attempt, step)["done"]:
                 return _step_payload(db, item, pending_attempt, step)
         _finalize_attempt_if_done(db, pending_attempt, item)
         db.commit()
-        pending_attempt = None
 
-    # A completed attempt is the only moment at which the moving 50/30/20
-    # snapshot can advance. The preparation helper is idempotent, so reloads do
-    # not duplicate decisions or recommendations.
     from adaptation_runtime import prepare_next_for_student
 
     prepared = prepare_next_for_student(db, student, session)
@@ -401,8 +373,11 @@ def next_activity_step(
     if pending_attempt:
         item = _load_item(db, pending_attempt.item_id)
         if not item:
-            raise HTTPException(status_code=409, detail="Recommended activity content is unavailable")
-        first_pending = next((step for step in item.steps if not _step_state(db, pending_attempt, step)["done"]), None)
+            raise HTTPException(status_code=409, detail="تعذر تحميل نشاط التقوية الموصى به")
+        first_pending = next(
+            (step for step in item.steps if not _step_state(db, pending_attempt, step)["done"]),
+            None,
+        )
         if first_pending:
             return _step_payload(db, item, pending_attempt, first_pending)
         _finalize_attempt_if_done(db, pending_attempt, item)
@@ -415,10 +390,7 @@ def next_activity_step(
             Attempt.status == "completed",
         ).all()
     ]
-    query = db.query(ContentItem).options(
-        joinedload(ContentItem.steps).joinedload(ContentStep.options),
-        joinedload(ContentItem.steps).joinedload(ContentStep.assets),
-    ).filter(
+    query = _rich_item_query(db).filter(
         ContentItem.kind == "core_activity",
         ContentItem.level_id == level_id,
     )
@@ -430,7 +402,7 @@ def next_activity_step(
         db.commit()
         if session.status == "completed":
             return None
-        raise HTTPException(status_code=409, detail="Approved adaptive path cannot continue without mapped content")
+        raise HTTPException(status_code=409, detail="لا يمكن متابعة المسار دون محتوى معتمد مطابق")
 
     attempt = Attempt(session_id=session.id, item_id=item.id, status="in_progress")
     db.add(attempt)
@@ -444,7 +416,7 @@ def next_activity_step(
         ).one()
     first_step = next(iter(item.steps), None)
     if not first_step:
-        raise HTTPException(status_code=409, detail="Activity has no approved rounds")
+        raise HTTPException(status_code=409, detail="النشاط لا يحتوي على جولات معتمدة")
     return _step_payload(db, item, attempt, first_step)
 
 
@@ -452,18 +424,22 @@ def _score_submission(item: ContentItem, step: ContentStep, option_ids: list[int
     ordered = sorted(step.options, key=lambda option: option.order_index)
     valid_ids = {option.id for option in ordered}
     if not option_ids or any(option_id not in valid_ids for option_id in option_ids):
-        raise HTTPException(status_code=400, detail="Response contains an option outside this activity round")
+        raise HTTPException(status_code=400, detail="الإجابة تحتوي على خيار لا ينتمي إلى هذه الجولة")
+    if len(set(option_ids)) != len(option_ids):
+        raise HTTPException(status_code=400, detail="لا يمكن اختيار العنصر نفسه أكثر من مرة")
 
-    interaction = _canonical_interaction(item)
+    interaction = canonical_interaction(item)
     if interaction in {"choose_one", "listen_choose_one", "choose_image", "listen_choose_image"}:
         if len(option_ids) != 1:
-            raise HTTPException(status_code=400, detail="Choose exactly one option")
+            raise HTTPException(status_code=400, detail="اختر إجابة واحدة فقط")
         correct = next((option.id for option in ordered if option.is_correct), None)
         return option_ids[0] == correct
 
     if interaction in {"choose_many", "listen_choose_many"}:
         if len(ordered) < 2:
-            raise HTTPException(status_code=409, detail="Approved multi-select round is incomplete")
+            raise HTTPException(status_code=409, detail="جولة الاختيار المتعدد المعتمدة غير مكتملة")
+        # Accepted content seeding preserves the two target items in positions
+        # one and two for the multi-select rounds.
         expected = {ordered[0].id, ordered[1].id}
         return set(option_ids) == expected and len(option_ids) == len(expected)
 
@@ -471,7 +447,7 @@ def _score_submission(item: ContentItem, step: ContentStep, option_ids: list[int
         expected = [option.id for option in ordered]
         return option_ids == expected
 
-    raise HTTPException(status_code=400, detail=f"Unsupported activity interaction: {interaction}")
+    raise HTTPException(status_code=400, detail="نوع هذا النشاط غير مدعوم حاليًا")
 
 
 @router.post("/session/{session_id}/attempt/{item_id}/submit")
@@ -497,28 +473,28 @@ def submit_activity_step(
         Attempt.status == "in_progress",
     ).first()
     if not attempt:
-        raise HTTPException(status_code=404, detail="Active activity attempt not found")
+        raise HTTPException(status_code=404, detail="لا توجد محاولة نشطة لهذا النشاط")
 
     item = _load_item(db, item_id)
     step = next((candidate for candidate in item.steps if candidate.id == body.step_id), None) if item else None
     if not item or not step:
-        raise HTTPException(status_code=400, detail="Round does not belong to this activity")
+        raise HTTPException(status_code=400, detail="الجولة لا تنتمي إلى هذا النشاط")
 
-    interaction = _canonical_interaction(item)
+    interaction = canonical_interaction(item)
     if interaction in {"read_aloud", "timed_read_aloud"}:
-        raise HTTPException(status_code=400, detail="Use the audio upload/assessment submit path for read-aloud rounds")
+        raise HTTPException(status_code=400, detail="استخدم مسار التسجيل الصوتي لجولة القراءة الجهرية")
 
     previous = db.query(ActivityStepResponse).filter(
         ActivityStepResponse.attempt_id == attempt.id,
         ActivityStepResponse.step_id == step.id,
     ).order_by(ActivityStepResponse.attempt_no).all()
     if previous and (previous[-1].is_correct or len(previous) >= MAX_STEP_ATTEMPTS):
-        raise HTTPException(status_code=409, detail="This round is already complete; reload to continue")
+        raise HTTPException(status_code=409, detail="هذه الجولة مكتملة بالفعل؛ أعد تحميل الصفحة للمتابعة")
 
     gaps = _step_gap(item, step)
     if body.declared_media_gap_skip:
         if not gaps:
-            raise HTTPException(status_code=400, detail="This round has no declared media gap")
+            raise HTTPException(status_code=400, detail="هذه الجولة لا تحتوي على فجوة وسائط معلنة")
         is_correct = True
         payload = {"declared_media_gap_skip": True, "gaps": gaps}
     else:
@@ -552,9 +528,8 @@ def submit_activity_step(
         "show_hint": (not is_correct and attempts_used < MAX_STEP_ATTEMPTS),
         "activity_complete": attempt.status == "completed",
         # Session completion is deliberately finalized by GET /next after P06
-        # has evaluated the newly completed attempt. This keeps the old client
-        # behavior (it asks for the next step) while preventing false posttest
-        # unlocks before an adaptive support/transition decision.
+        # evaluates the newly completed attempt. This prevents false posttest
+        # unlocks before support/transition logic runs.
         "learning_complete": False,
     }
     _store_idempotency(db, student.id, operation, idempotency_key, request_hash, response_json)
