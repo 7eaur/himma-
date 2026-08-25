@@ -26,76 +26,81 @@ def get_db():
 
 
 def _decode_token(request: Request) -> dict:
-    """Extract and decode the JWT from the access_token cookie."""
     token = request.cookies.get("access_token")
     if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated",
+            detail="يرجى تسجيل الدخول أولًا",
         )
     try:
         payload = jwt.decode(token, API_SECRET_KEY, algorithms=[ALGORITHM])
     except JWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token",
+            detail="انتهت جلسة الدخول أو أصبحت غير صالحة، سجّل الدخول مرة أخرى",
         )
     return payload
 
 
 def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:
-    """Resolve the authenticated *researcher* from cookie JWT."""
+    """Resolve the authenticated supervisor from the legacy researcher role."""
     payload = _decode_token(request)
     role = payload.get("role")
     if role != "researcher":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Researcher access required",
+            detail="هذه الصفحة متاحة للمشرف فقط",
         )
-    user_id = payload.get("sub")
-    user = db.query(User).filter(User.id == int(user_id)).first()
-    if user is None or not user.is_active:
+    try:
+        user_id = int(payload.get("sub"))
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=401, detail="جلسة الدخول غير صالحة")
+    user = db.query(User).filter(User.id == user_id).first()
+    if user is None or not user.is_active or user.role != "researcher":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
+            detail="حساب المشرف غير متاح، سجّل الدخول مرة أخرى",
         )
     return user
 
 
 def get_current_student(request: Request, db: Session = Depends(get_db)) -> Student:
-    """Resolve the authenticated *student* from cookie JWT."""
     payload = _decode_token(request)
     role = payload.get("role")
     if role != "student":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Student access required",
+            detail="هذه الصفحة متاحة للطالب فقط",
         )
-    student_id = payload.get("sub")
-    student = db.query(Student).filter(Student.id == int(student_id)).first()
+    try:
+        student_id = int(payload.get("sub"))
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=401, detail="جلسة الدخول غير صالحة")
+    student = db.query(Student).filter(Student.id == student_id).first()
     if student is None or not student.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Student not found",
+            detail="حساب الطالب غير متاح، تواصل مع المشرف",
         )
     return student
 
 
-# Alias for semantic clarity in endpoints that need researcher role
 get_current_researcher = get_current_user
 
 
 def get_any_authenticated(request: Request, db: Session = Depends(get_db)):
-    """Return (role, entity) for any valid session — used by /auth/me."""
     payload = _decode_token(request)
     role = payload.get("role")
-    entity_id = payload.get("sub")
+    try:
+        entity_id = int(payload.get("sub"))
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=401, detail="جلسة الدخول غير صالحة")
     if role == "researcher":
-        entity = db.query(User).filter(User.id == int(entity_id)).first()
+        entity = db.query(User).filter(User.id == entity_id, User.is_active.is_(True)).first()
     elif role == "student":
-        entity = db.query(Student).filter(Student.id == int(entity_id)).first()
+        entity = db.query(Student).filter(Student.id == entity_id, Student.is_active.is_(True)).first()
     else:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Unknown role")
+        raise HTTPException(status_code=403, detail="نوع الحساب غير معروف")
     if entity is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not found")
+        raise HTTPException(status_code=401, detail="الحساب غير موجود أو غير نشط")
     return role, entity
