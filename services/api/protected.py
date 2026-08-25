@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from db.models import AssessmentSession, AuditLog, Student, User
+from db.models import AssessmentSession, AuditLog, Attempt, Student, User
 from dependencies import get_db, get_current_user, get_current_student, get_any_authenticated
 import schemas
 
@@ -24,7 +24,7 @@ def get_me(auth=Depends(get_any_authenticated)):
     return {"id": entity.id, "full_name": entity.name, "role": "student"}
 
 
-# ─── Student: /profile (called by student page) ───────────────────────────────
+# ─── Student lifecycle helpers ────────────────────────────────────────────────
 def _completed_session(db: Session, student_id: int, session_type: str) -> bool:
     return db.query(AssessmentSession.id).filter(
         AssessmentSession.student_id == student_id,
@@ -33,9 +33,24 @@ def _completed_session(db: Session, student_id: int, session_type: str) -> bool:
     ).first() is not None
 
 
+def _core_progress(db: Session, student_id: int) -> tuple[int, bool]:
+    session = db.query(AssessmentSession).filter(
+        AssessmentSession.student_id == student_id,
+        AssessmentSession.session_type == "core",
+    ).order_by(AssessmentSession.id.desc()).first()
+    if not session:
+        return 0, False
+    completed = db.query(Attempt).filter(
+        Attempt.session_id == session.id,
+        Attempt.status == "completed",
+    ).count()
+    return completed, session.status == "completed"
+
+
 def _student_payload(db: Session, student: Student) -> dict:
     pretest_completed = _completed_session(db, student.id, "pretest")
     posttest_completed = _completed_session(db, student.id, "posttest")
+    core_completed_items, core_completed = _core_progress(db, student.id)
     return {
         "id": student.id,
         "full_name": student.name,
@@ -44,7 +59,10 @@ def _student_payload(db: Session, student: Student) -> dict:
         "current_level": student.current_level,
         "status": "active" if student.is_active else "inactive",
         "posttest_enabled": student.posttest_enabled,
-        "posttest_eligible": pretest_completed and not posttest_completed,
+        "posttest_eligible": pretest_completed and core_completed and not posttest_completed,
+        "core_completed_items": core_completed_items,
+        "core_total_items": 10,
+        "core_completed": core_completed,
         "created_at": student.created_at,
     }
 
@@ -60,13 +78,15 @@ def student_profile(
     ).order_by(AssessmentSession.id.desc()).first()
     pretest_completed = _completed_session(db, student.id, "pretest")
     posttest_completed = _completed_session(db, student.id, "posttest")
-    if active_session:
+    _, core_completed = _core_progress(db, student.id)
+
+    if active_session and active_session.session_type in {"pretest", "posttest"}:
         next_action = "resume"
     elif not pretest_completed:
         next_action = "pretest"
     elif posttest_completed:
         next_action = "completed"
-    elif student.posttest_enabled:
+    elif core_completed and student.posttest_enabled:
         next_action = "posttest"
     else:
         next_action = "learning"
@@ -179,6 +199,7 @@ def set_posttest_access(
         raise HTTPException(status_code=404, detail="Student not found")
 
     pretest_completed = _completed_session(db, student.id, "pretest")
+    _, core_completed = _core_progress(db, student.id)
     posttest_completed = _completed_session(db, student.id, "posttest")
     if posttest_completed:
         raise HTTPException(status_code=409, detail="The posttest is already completed")
@@ -191,6 +212,8 @@ def set_posttest_access(
         raise HTTPException(status_code=409, detail="The posttest is currently in progress")
     if body.enabled and not pretest_completed:
         raise HTTPException(status_code=409, detail="Complete the pretest before enabling the posttest")
+    if body.enabled and not core_completed:
+        raise HTTPException(status_code=409, detail="Complete the ten assigned learning activities before enabling the posttest")
 
     student.posttest_enabled = body.enabled
     student.posttest_enabled_at = datetime.now(timezone.utc) if body.enabled else None
