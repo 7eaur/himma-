@@ -1,45 +1,54 @@
-# RESUME HERE — Stage 2 Accepted / Stage 3 Ready
+# RESUME HERE — Stage 3 Accepted / Stage 4 Ready
 
 **Last updated:** 2026-08-25
 
-**Current branch:** `b02/stage2-closure`
+**Current branch:** `b03/adaptive-learning-engine`
 
-**Accepted Stage-2 implementation SHA:** `38a1b8d1a03a56f08aa3afdf9404593351e05a87`
+**Accepted B03 implementation SHA:** `8d64eb9766fd69618960af0b279ae94484618d17`
 
-**Remote acceptance gate:** GitHub Actions #60 (`32797279749`) — backend, frontend and integration all PASS.
+**Authoritative implementation gate:** GitHub Actions #83 (`32800935038`) — backend, frontend and integration all PASS.
 
-## Current status: STAGE 2 ACCEPTED
+## Current status: STAGE 3 / B03 ACCEPTED
 
-The previously unpushed Stage-2 activity work was reconstructed from the accepted B02 lifecycle checkpoint and verified remotely. The accepted B02 branch was not rewritten.
+Stage 2 remains preserved as the accepted learning-path baseline. Stage 3 adds the adaptive-learning engine, approved reinforcement routing, event-backed rewards and researcher decision controls without rewriting the accepted Stage-2 branch.
 
-The verified student path is now:
+## Verified adaptive behavior
 
-1. Researcher creates a grade-three student and receives a pseudonymous access code.
-2. Student completes the exact approved 30-item pretest with durable reload/resume and audio-review lifecycle.
-3. Assessment completion assigns level 1/2/3 using the existing thresholds.
-4. Student enters exactly ten approved core activities for that assigned level.
-5. Activity rounds persist timing, retries, progress and idempotent submissions and resume after reload.
-6. Approved media is rendered by manifest id; the two declared gaps remain neutral and explicit.
-7. Researcher sees the core path reach `10 من 10`.
-8. Only then may the researcher enable the posttest.
+1. Only valid completed learning evidence enters adaptive scoring. Missing-media-only rounds, incomplete attempts and unresolved/rerecord audio are academically neutral.
+2. The newest three valid attempts are weighted `50/30/20`.
+3. `<50%` gives support first; a second consecutive low automatic decision may demote exactly one level, never below level 1.
+4. `50–<80%` stays in the current level.
+5. `>=80%` can promote one level only with required-skill coverage and no required skill below `60%`, never above level 3.
+6. Reinforcement uses an unused approved activity matching the weakest skill exactly; no unrelated fallback is allowed.
+7. Decisions are durable/idempotent snapshots with saved explanations and history.
+8. Researcher override requires a reason and is appended as a separate manual decision rather than deleting automated history.
+9. Stars and badges are created only by valid real completion events and are duplicate-safe.
+10. Researcher UI exposes adaptive state, moving mastery, transition, rewards, manual controls and decision history.
 
-## Visual evidence
+## Remote evidence
 
-Run #60 generated a Playwright artifact named `playwright-report` (artifact `9545339547`) containing screenshots for student creation, the first learning activity, learning completion and researcher `10/10` progress.
+- Implementation: `b03/adaptive-learning-engine@8d64eb9766fd69618960af0b279ae94484618d17`
+- GitHub Actions: run #83 / `32800935038`
+- Backend: PASS
+- Frontend: PASS
+- Integration / Playwright: PASS
+- Playwright artifact: `9546598013` (`playwright-report`)
+- Artifact digest: `sha256:18fdf5f93421abb2c22e22cc196a81fc5bca9614fa841820546bee2c328ea2c2`
+- Adaptive visual evidence: `screenshots/04-researcher-progress-10-of-10.png` shows 12 event-backed stars, level 3, 10/10 core completion, adaptive decision, 100.0% moving mastery, level 3 → 3, manual override controls and saved decision history.
 
-## Stage 3 starting boundary
+## Do not reopen
 
-Stage 3 may now begin from the final Stage-2 closure checkpoint. Do not rewrite the accepted Stage-2 branch while implementing it.
+- Do not rewrite B00/B01/B02 or accepted Stage-2 closure branches.
+- Do not replace approved reinforcement content with invented fallback activities.
+- Do not treat missing media or unresolved audio as an incorrect academic response.
+- Do not change the 50/30/20, 50/80 and 60% skill-floor rules without an explicit requirements decision.
 
-Planned Stage-3 scope:
+## Next boundary — Stage 4 / P07 ASR
 
-- compute mastery/adaptive decisions after the ten core activities;
-- apply the approved 50/30/20 logic at the correct decision point;
-- route the five reinforcement activities only when the approved rules require them;
-- persist reinforcement progress and re-evaluation;
-- expose the adaptive state to researcher reporting without leaking answer keys to the student;
-- keep automatic ASR outside scope unless separately approved.
+Before writing automatic speech scoring code, select and document a real ASR provider and its integration contract. The ASR slice must then cover private audio retrieval, normalization, transcription, alignment/error extraction, confidence handling, human-review fallback and auditability while preserving the existing manual-review lifecycle.
+
+Automatic ASR is **not** considered delivered by B03. Research dashboards/exports and final release hardening also remain separate later stages.
 
 ## Next action
 
-Create the Stage-3 branch from the final accepted Stage-2 documentation checkpoint and implement the adaptive-learning engine behind its own remote quality gate.
+Create the Stage-4/P07 branch from the final accepted B03 documentation checkpoint, record the ASR provider decision, then implement the speech pipeline behind its own backend/frontend/integration quality gate.
