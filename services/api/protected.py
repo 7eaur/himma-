@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from db.models import AssessmentSession, AuditLog, Attempt, Student, User
+from db.models import AssessmentSession, AuditLog, Attempt, ContentItem, Student, User
 from dependencies import get_db, get_current_user, get_current_student, get_any_authenticated
 import schemas
 
@@ -40,11 +40,20 @@ def _core_progress(db: Session, student_id: int) -> tuple[int, bool]:
     ).order_by(AssessmentSession.id.desc()).first()
     if not session:
         return 0, False
-    completed = db.query(Attempt).filter(
-        Attempt.session_id == session.id,
-        Attempt.status == "completed",
-    ).count()
-    return completed, session.status == "completed"
+    # Reinforcement attempts can share the durable learning session in P06, but
+    # they must never inflate the ten-core progress or unlock the posttest.
+    completed = (
+        db.query(Attempt.id)
+        .join(ContentItem, ContentItem.id == Attempt.item_id)
+        .filter(
+            Attempt.session_id == session.id,
+            Attempt.status == "completed",
+            ContentItem.kind == "core_activity",
+            ContentItem.level_id == session.assigned_level,
+        )
+        .count()
+    )
+    return completed, session.status == "completed" and completed >= 10
 
 
 def _student_payload(db: Session, student: Student) -> dict:
