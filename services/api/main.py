@@ -10,6 +10,7 @@ from activities import router as activities_router
 from adaptation import router as adaptation_router
 from adaptation_runtime import router as adaptation_runtime_router
 from media import router as media_router
+from speech_analysis import router as speech_analysis_router
 
 app = FastAPI(
     title="Himma API Service",
@@ -36,6 +37,7 @@ app.include_router(adaptation_runtime_router)
 app.include_router(media_router)
 app.include_router(review_router)
 app.include_router(recordings_router)
+app.include_router(speech_analysis_router)
 
 
 @app.get("/health")
