@@ -169,7 +169,7 @@ export default function StudentHomePage() {
         />
 
         <h1 className="student-greeting">
-          أهلاً بك، {student?.full_name?.split(" ")[0] || "يا بطل"}
+          أهلاً بك يا بطل، {student?.full_name?.split(" ")[0] || "يا بطل"}!
         </h1>
         {student?.grade_level && <div className="student-grade-badge">الصف {student.grade_level}</div>}
 
