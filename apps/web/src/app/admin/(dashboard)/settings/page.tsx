@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { KeyRound, ShieldCheck, UserPlus, UsersRound } from "lucide-react";
 
 interface Supervisor {
@@ -32,29 +32,39 @@ export default function SettingsPage() {
   const [busy, setBusy] = useState("");
   const [message, setMessage] = useState<{ kind: "success" | "error"; text: string }>({ kind: "success", text: "" });
 
-  const load = useCallback(async () => {
-    try {
-      const [accountResponse, supervisorsResponse] = await Promise.all([
-        fetch("/api/researcher/account", { cache: "no-store" }),
-        fetch("/api/researcher/supervisors", { cache: "no-store" }),
-      ]);
-      if (!accountResponse.ok || !supervisorsResponse.ok) {
-        throw new Error("تعذر تحميل إعدادات الحساب");
-      }
-      const accountData: Supervisor = await accountResponse.json();
-      setAccount(accountData);
-      setUsername(accountData.username);
-      setSupervisors(await supervisorsResponse.json());
-    } catch (error) {
-      setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر تحميل الإعدادات" });
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    void load();
-  }, [load]);
+    let cancelled = false;
+
+    void Promise.all([
+      fetch("/api/researcher/account", { cache: "no-store" }),
+      fetch("/api/researcher/supervisors", { cache: "no-store" }),
+    ])
+      .then(async ([accountResponse, supervisorsResponse]) => {
+        if (!accountResponse.ok || !supervisorsResponse.ok) {
+          throw new Error("تعذر تحميل إعدادات الحساب");
+        }
+        const accountData: Supervisor = await accountResponse.json();
+        const supervisorsData: Supervisor[] = await supervisorsResponse.json();
+        if (cancelled) return;
+        setAccount(accountData);
+        setUsername(accountData.username);
+        setSupervisors(supervisorsData);
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        setMessage({
+          kind: "error",
+          text: error instanceof Error ? error.message : "تعذر تحميل الإعدادات",
+        });
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const parseError = async (response: Response, fallback: string) => {
     const data = await response.json().catch(() => null);
@@ -75,6 +85,7 @@ export default function SettingsPage() {
       const updated: Supervisor = await response.json();
       setAccount(updated);
       setUsername(updated.username);
+      setSupervisors((current) => current.map((supervisor) => supervisor.id === updated.id ? updated : supervisor));
       setMessage({ kind: "success", text: "تم حفظ بيانات المشرف بنجاح." });
     } catch (error) {
       setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر حفظ البيانات" });
@@ -120,9 +131,10 @@ export default function SettingsPage() {
         body: JSON.stringify({ username: newSupervisorName, password: newSupervisorPassword }),
       });
       if (!response.ok) throw new Error(await parseError(response, "تعذر إضافة المشرف"));
+      const created: Supervisor = await response.json();
+      setSupervisors((current) => [...current, created].sort((a, b) => a.id - b.id));
       setNewSupervisorName("");
       setNewSupervisorPassword("");
-      await load();
       setMessage({ kind: "success", text: "تم إنشاء حساب المشرف الجديد." });
     } catch (error) {
       setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر إضافة المشرف" });
