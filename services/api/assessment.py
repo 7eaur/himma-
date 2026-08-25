@@ -6,12 +6,22 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, File, Header, HTTPException, UploadFile
+from pydantic import BaseModel, Field
 from sqlalchemy import func, or_
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import Session, joinedload
 
+from content_runtime import (
+    canonical_id,
+    canonical_interaction,
+    instruction_text,
+    item_assets,
+    media_gaps,
+    semantic_key,
+    step_assets,
+)
 from dependencies import get_db, get_current_student
+from db.activity_models import ActivityStepResponse
 from db.models import (
     AudioReview,
     AudioSubmission,
@@ -34,15 +44,38 @@ KIND_BY_SESSION_TYPE = {
     "posttest": "posttest_question",
 }
 
+AUDIO_INTERACTIONS = {"read_aloud", "timed_read_aloud"}
+SINGLE_INTERACTIONS = {
+    "choose_one",
+    "listen_choose_one",
+    "choose_image",
+    "listen_choose_image",
+}
+STRUCTURED_INTERACTIONS = {
+    "choose_many",
+    "listen_choose_many",
+    "sequence",
+    "memory_sequence",
+    "path_sequence",
+    "build_word",
+}
 IDEMPOTENCY_KEY_PATTERN = re.compile(r"^[A-Za-z0-9._:-]{16,128}$")
+
+
+class AssessmentAnswerRequest(BaseModel):
+    step_id: int
+    selected_option_id: Optional[int] = None
+    selected_option_ids: list[int] = Field(default_factory=list, max_length=20)
+    audio_storage_key: Optional[str] = None
+    audio_file_size: Optional[int] = Field(default=None, gt=0)
+    audio_mime_type: Optional[str] = None
+    audio_duration_seconds: Optional[Decimal] = None
+    elapsed_seconds: int = Field(default=0, ge=0, le=3600)
 
 
 def _validate_idempotency_key(value: str) -> str:
     if not IDEMPOTENCY_KEY_PATTERN.fullmatch(value):
-        raise HTTPException(
-            status_code=400,
-            detail="Idempotency-Key must be 16-128 safe characters",
-        )
+        raise HTTPException(status_code=400, detail="تعذر حفظ المحاولة. أعد تحميل الصفحة وحاول مرة أخرى")
     return value
 
 
@@ -67,10 +100,7 @@ def _idempotency_replay(
     if not record:
         return None
     if record.request_hash != request_hash:
-        raise HTTPException(
-            status_code=409,
-            detail="Idempotency-Key was already used with a different request",
-        )
+        raise HTTPException(status_code=409, detail="هذه المحاولة سُجلت مسبقًا ببيانات مختلفة")
     return record.response_json
 
 
@@ -106,12 +136,10 @@ def _commit_idempotent(
         return response_json
     except IntegrityError:
         db.rollback()
-        replay = _idempotency_replay(
-            db, student_id, operation, idempotency_key, request_hash
-        )
+        replay = _idempotency_replay(db, student_id, operation, idempotency_key, request_hash)
         if replay is not None:
             return replay
-        raise HTTPException(status_code=409, detail="Concurrent submission conflict")
+        raise HTTPException(status_code=409, detail="حدث تعارض أثناء حفظ الإجابة. أعد المحاولة")
 
 
 def _session_for_student(
@@ -126,38 +154,129 @@ def _session_for_student(
         AssessmentSession.student_id == student_id,
     ).first()
     if not session or (require_active and session.status != "in_progress"):
-        raise HTTPException(status_code=404, detail="Active session not found")
+        raise HTTPException(status_code=404, detail="الجلسة غير موجودة أو انتهت")
     return session
 
 
+def _load_item(db: Session, item_id: int) -> ContentItem | None:
+    return db.query(ContentItem).options(
+        joinedload(ContentItem.steps).joinedload(ContentStep.options),
+        joinedload(ContentItem.steps).joinedload(ContentStep.assets),
+        joinedload(ContentItem.assets),
+    ).filter(ContentItem.id == item_id).first()
+
+
 def _item_step_payload(item: ContentItem, step: ContentStep) -> dict:
+    data = item.template_data or {}
     return {
         "id": item.id,
         "stable_key": item.stable_key,
+        "canonical_id": canonical_id(item),
         "kind": item.kind,
-        "interaction_type": item.interaction_type,
+        "interaction_type": canonical_interaction(item),
+        "title": data.get("title") or "مهمة تعليمية",
+        "source_method": data.get("source_method"),
         "template_data": item.template_data,
+        "item_assets": item_assets(item),
         "steps": [{
             "id": step.id,
             "order_index": step.order_index,
             "prompt_text": step.prompt_text,
+            "instruction_text": instruction_text(item, step),
             "expected_reading_text": step.expected_reading_text,
             "options": [
                 {"id": option.id, "text": option.text, "order_index": option.order_index}
                 for option in step.options
             ],
+            "assets": step_assets(item, step),
+            "media_gaps": media_gaps(item, step),
         }],
     }
+
+
+def _structured_response_exists(db: Session, attempt_id: int, step_id: int) -> bool:
+    return db.query(ActivityStepResponse.id).filter(
+        ActivityStepResponse.attempt_id == attempt_id,
+        ActivityStepResponse.step_id == step_id,
+    ).first() is not None
+
+
+def _answered_step_ids(db: Session, attempt_id: int) -> set[int]:
+    classic = {
+        row.step_id
+        for row in db.query(AttemptResponse.step_id).outerjoin(
+            AudioSubmission,
+            AudioSubmission.response_id == AttemptResponse.id,
+        ).filter(
+            AttemptResponse.attempt_id == attempt_id,
+            or_(AudioSubmission.id.is_(None), AudioSubmission.status != "rerecord_required"),
+        ).all()
+    }
+    structured = {
+        row.step_id
+        for row in db.query(ActivityStepResponse.step_id).filter(
+            ActivityStepResponse.attempt_id == attempt_id,
+        ).all()
+    }
+    return classic | structured
+
+
+def _completed_response_count(db: Session, attempt_id: int) -> int:
+    classic = db.query(AttemptResponse.id).filter(AttemptResponse.attempt_id == attempt_id).count()
+    structured = db.query(ActivityStepResponse.id).filter(ActivityStepResponse.attempt_id == attempt_id).count()
+    return classic + structured
+
+
+def _criterion_parts(item: ContentItem) -> list[str]:
+    criterion = str((item.template_data or {}).get("criterion") or "").strip()
+    if not criterion or criterion in {"بالترتيب المذكور", "مطابقة", "الدقة والاسترسال"}:
+        return []
+    return [part.strip(" .") for part in re.split(r"\s+ثم\s+|[،,]", criterion) if part.strip(" .")]
+
+
+def _expected_order_ids(item: ContentItem, step: ContentStep) -> list[int]:
+    ordered = sorted(step.options, key=lambda option: option.order_index)
+    parts = _criterion_parts(item)
+    if not parts:
+        return [option.id for option in ordered]
+
+    unused = list(ordered)
+    result: list[int] = []
+    for part in parts:
+        key = semantic_key(part)
+        match = next(
+            (
+                option
+                for option in unused
+                if semantic_key(option.text) == key
+                or key in semantic_key(option.text)
+                or semantic_key(option.text) in key
+            ),
+            None,
+        )
+        if not match:
+            return [option.id for option in ordered]
+        result.append(match.id)
+        unused.remove(match)
+    return result
+
+
+def _validate_option_ids(step: ContentStep, selected_ids: list[int]) -> None:
+    allowed = {option.id for option in step.options}
+    if not selected_ids or any(option_id not in allowed for option_id in selected_ids):
+        raise HTTPException(status_code=400, detail="الإجابة المختارة لا تنتمي إلى هذا السؤال")
+    if len(set(selected_ids)) != len(selected_ids):
+        raise HTTPException(status_code=400, detail="لا يمكن اختيار العنصر نفسه أكثر من مرة")
+
 
 @router.post("/start", response_model=schemas.AssessmentSessionResponse)
 def start_assessment(
     request: schemas.AssessmentStartRequest,
     db: Session = Depends(get_db),
-    student: Student = Depends(get_current_student)
+    student: Student = Depends(get_current_student),
 ):
-    """Start or resume the single eligible pre/post assessment."""
     if not student.is_active:
-        raise HTTPException(status_code=403, detail="Student account is inactive")
+        raise HTTPException(status_code=403, detail="حساب الطالب غير نشط")
 
     active = db.query(AssessmentSession).filter(
         AssessmentSession.student_id == student.id,
@@ -166,7 +285,7 @@ def start_assessment(
     if active:
         if active.session_type == request.session_type:
             return active
-        raise HTTPException(status_code=409, detail="Resume the active assessment first")
+        raise HTTPException(status_code=409, detail="أكمل الجلسة الحالية أولًا")
 
     completed = db.query(AssessmentSession).filter(
         AssessmentSession.student_id == student.id,
@@ -174,7 +293,7 @@ def start_assessment(
         AssessmentSession.status == "completed",
     ).first()
     if completed:
-        raise HTTPException(status_code=409, detail="This assessment is already completed")
+        raise HTTPException(status_code=409, detail="هذا الاختبار مكتمل بالفعل")
 
     if request.session_type == "posttest":
         pretest_completed = db.query(AssessmentSession.id).filter(
@@ -183,14 +302,14 @@ def start_assessment(
             AssessmentSession.status == "completed",
         ).first()
         if not pretest_completed:
-            raise HTTPException(status_code=409, detail="Complete the pretest first")
+            raise HTTPException(status_code=409, detail="أكمل الاختبار القبلي أولًا")
         if not student.posttest_enabled:
-            raise HTTPException(status_code=403, detail="The researcher has not enabled the posttest")
+            raise HTTPException(status_code=403, detail="لم يفتح المشرف الاختبار البعدي بعد")
 
     new_session = AssessmentSession(
         student_id=student.id,
         session_type=request.session_type,
-        status="in_progress"
+        status="in_progress",
     )
     db.add(new_session)
     try:
@@ -203,29 +322,28 @@ def start_assessment(
         ).first()
         if active and active.session_type == request.session_type:
             return active
-        raise HTTPException(status_code=409, detail="Assessment lifecycle conflict")
+        raise HTTPException(status_code=409, detail="تعذر بدء الاختبار بسبب تعارض في الجلسة")
     db.refresh(new_session)
     return new_session
+
 
 @router.get("/active", response_model=Optional[schemas.AssessmentSessionResponse])
 def get_active_session(
     db: Session = Depends(get_db),
-    student: Student = Depends(get_current_student)
+    student: Student = Depends(get_current_student),
 ):
-    """Get the current active session for resume."""
-    session = db.query(AssessmentSession).filter(
+    return db.query(AssessmentSession).filter(
         AssessmentSession.student_id == student.id,
-        AssessmentSession.status == "in_progress"
+        AssessmentSession.status == "in_progress",
     ).first()
-    return session
+
 
 @router.get("/session/{session_id}/next", response_model=Optional[schemas.ContentItemResponse])
 def get_next_item(
     session_id: int,
     db: Session = Depends(get_db),
-    student: Student = Depends(get_current_student)
+    student: Student = Depends(get_current_student),
 ):
-    """Return exactly one unanswered task without leaking answer keys."""
     session = _session_for_student(db, session_id, student.id)
 
     pending_attempt = db.query(Attempt).filter(
@@ -233,59 +351,34 @@ def get_next_item(
         Attempt.status == "in_progress",
     ).order_by(Attempt.id).first()
     if pending_attempt:
-        item = db.query(ContentItem).options(
-            joinedload(ContentItem.steps).joinedload(ContentStep.options)
-        ).filter(ContentItem.id == pending_attempt.item_id).first()
-        answered_step_ids = {
-            row.step_id
-            for row in db.query(AttemptResponse.step_id).outerjoin(
-                AudioSubmission,
-                AudioSubmission.response_id == AttemptResponse.id,
-            ).filter(
-                AttemptResponse.attempt_id == pending_attempt.id,
-                or_(
-                    AudioSubmission.id.is_(None),
-                    AudioSubmission.status != "rerecord_required",
-                ),
-            ).all()
-        }
-        next_step = next(
-            (step for step in item.steps if step.id not in answered_step_ids),
-            None,
-        )
+        item = _load_item(db, pending_attempt.item_id)
+        if not item:
+            raise HTTPException(status_code=409, detail="تعذر تحميل محتوى السؤال")
+        answered_step_ids = _answered_step_ids(db, pending_attempt.id)
+        next_step = next((step for step in item.steps if step.id not in answered_step_ids), None)
         if next_step:
             return _item_step_payload(item, next_step)
-
-        # Reconcile an interrupted commit where every step exists but the
-        # attempt status was not updated yet.
         pending_attempt.status = "completed"
         pending_attempt.completed_at = datetime.now(timezone.utc)
         db.commit()
 
-    # Completed items must not be offered again.
     attempted_item_ids = [
-        att.item_id for att in 
-        db.query(Attempt.item_id).filter(
+        row.item_id
+        for row in db.query(Attempt.item_id).filter(
             Attempt.session_id == session_id,
             Attempt.status == "completed",
         ).all()
     ]
-
-    next_item = db.query(ContentItem).options(
-        joinedload(ContentItem.steps).joinedload(ContentStep.options)
-    ).filter(
+    query = db.query(ContentItem).filter(
         ContentItem.kind == KIND_BY_SESSION_TYPE[session.session_type],
-        ContentItem.id.notin_(attempted_item_ids)
-    ).order_by(ContentItem.order_index).first()
-
+    )
+    if attempted_item_ids:
+        query = query.filter(ContentItem.id.notin_(attempted_item_ids))
+    next_item = query.order_by(ContentItem.order_index).first()
     if not next_item:
         return None
 
-    attempt = Attempt(
-        session_id=session_id,
-        item_id=next_item.id,
-        status="in_progress"
-    )
+    attempt = Attempt(session_id=session_id, item_id=next_item.id, status="in_progress")
     db.add(attempt)
     try:
         db.commit()
@@ -296,126 +389,112 @@ def get_next_item(
             Attempt.item_id == next_item.id,
         ).one()
 
-    first_step = next(iter(next_item.steps), None)
-    if not first_step:
-        raise HTTPException(status_code=409, detail="Content item has no steps")
-    return _item_step_payload(next_item, first_step)
+    item = _load_item(db, next_item.id)
+    first_step = next(iter(item.steps if item else []), None)
+    if not item or not first_step:
+        raise HTTPException(status_code=409, detail="السؤال لا يحتوي على مهمة قابلة للتنفيذ")
+    return _item_step_payload(item, first_step)
 
 
-@router.get(
-    "/session/{session_id}/progress",
-    response_model=schemas.AssessmentProgressResponse,
-)
+@router.get("/session/{session_id}/progress", response_model=schemas.AssessmentProgressResponse)
 def get_session_progress(
     session_id: int,
     db: Session = Depends(get_db),
     student: Student = Depends(get_current_student),
 ):
     session = _session_for_student(db, session_id, student.id)
-
     completed_items = db.query(Attempt).filter(
         Attempt.session_id == session_id,
         Attempt.status == "completed",
     ).count()
-    has_pending_item = db.query(Attempt).filter(
+    has_pending_item = db.query(Attempt.id).filter(
         Attempt.session_id == session_id,
         Attempt.status == "in_progress",
     ).first() is not None
     total_items = db.query(ContentItem).filter(
         ContentItem.kind == KIND_BY_SESSION_TYPE[session.session_type],
     ).count()
-    completed_steps = db.query(AttemptResponse).join(
+    classic_steps = db.query(AttemptResponse.id).join(
         Attempt, Attempt.id == AttemptResponse.attempt_id,
+    ).filter(Attempt.session_id == session_id).count()
+    structured_steps = db.query(ActivityStepResponse.id).join(
+        Attempt, Attempt.id == ActivityStepResponse.attempt_id,
     ).filter(Attempt.session_id == session_id).count()
     total_steps = db.query(func.count(ContentStep.id)).join(
         ContentItem, ContentItem.id == ContentStep.item_id,
-    ).filter(
-        ContentItem.kind == KIND_BY_SESSION_TYPE[session.session_type],
-    ).scalar() or 0
+    ).filter(ContentItem.kind == KIND_BY_SESSION_TYPE[session.session_type]).scalar() or 0
     return {
         "completed_items": completed_items,
         "total_items": total_items,
-        "completed_steps": completed_steps,
+        "completed_steps": classic_steps + structured_steps,
         "total_steps": total_steps,
         "has_pending_item": has_pending_item,
         "elapsed_seconds": session.elapsed_seconds,
     }
 
+
 @router.post("/session/{session_id}/attempt/{item_id}/submit")
 def submit_attempt(
     session_id: int,
     item_id: int,
-    submission: schemas.AttemptResponseSubmit,
+    submission: AssessmentAnswerRequest,
     idempotency_key: str = Header(..., alias="Idempotency-Key"),
     db: Session = Depends(get_db),
     student: Student = Depends(get_current_student),
 ):
-    """Submit one step with durable replay protection and timing."""
     idempotency_key = _validate_idempotency_key(idempotency_key)
     operation = f"assessment.answer:{session_id}:{item_id}"
     request_hash = _request_hash(submission.model_dump(mode="json"))
-    replay = _idempotency_replay(
-        db, student.id, operation, idempotency_key, request_hash
-    )
+    replay = _idempotency_replay(db, student.id, operation, idempotency_key, request_hash)
     if replay is not None:
         return replay
 
     session = _session_for_student(db, session_id, student.id)
-
     attempt = db.query(Attempt).filter(
         Attempt.session_id == session_id,
-        Attempt.item_id == item_id
+        Attempt.item_id == item_id,
     ).first()
-    
     if not attempt:
-        raise HTTPException(status_code=404, detail="Attempt not found")
+        raise HTTPException(status_code=404, detail="لم يتم العثور على محاولة هذا السؤال")
 
-    item = db.query(ContentItem).filter(ContentItem.id == item_id).first()
-    step = db.query(ContentStep).filter(
-        ContentStep.id == submission.step_id,
-        ContentStep.item_id == item_id,
-    ).first()
+    item = _load_item(db, item_id)
+    step = next((candidate for candidate in (item.steps if item else []) if candidate.id == submission.step_id), None)
     if not item or not step:
-        raise HTTPException(status_code=400, detail="Step does not belong to this attempt")
+        raise HTTPException(status_code=400, detail="السؤال أو الخطوة غير صالحين")
 
+    interaction = canonical_interaction(item)
     existing_response = db.query(AttemptResponse).filter(
         AttemptResponse.attempt_id == attempt.id,
-        AttemptResponse.step_id == submission.step_id
+        AttemptResponse.step_id == submission.step_id,
     ).first()
+    existing_structured = _structured_response_exists(db, attempt.id, submission.step_id)
+    is_correct: bool | None = None
 
-    is_correct = None
-    is_audio_item = item.interaction_type in {"read_aloud", "audio_record"}
-    if is_audio_item:
-        if submission.selected_option_id is not None or not submission.audio_storage_key:
-            raise HTTPException(status_code=400, detail="Audio response is required for this item")
+    if interaction in AUDIO_INTERACTIONS:
+        if submission.selected_option_id is not None or submission.selected_option_ids or not submission.audio_storage_key:
+            raise HTTPException(status_code=400, detail="سجّل قراءتك ثم أرسل التسجيل")
         expected_prefix = f"audio/{student.id}/"
         if not submission.audio_storage_key.startswith(expected_prefix):
-            raise HTTPException(status_code=403, detail="Audio key does not belong to this student")
+            raise HTTPException(status_code=403, detail="ملف التسجيل لا يخص هذا الطالب")
         if submission.audio_file_size is None:
-            raise HTTPException(status_code=400, detail="Audio file size is required")
+            raise HTTPException(status_code=400, detail="بيانات التسجيل غير مكتملة")
         if not (submission.audio_mime_type or "").startswith("audio/"):
-            raise HTTPException(status_code=400, detail="Invalid audio MIME type")
+            raise HTTPException(status_code=400, detail="صيغة التسجيل الصوتي غير مدعومة")
         try:
             storage.verify_audio(
                 submission.audio_storage_key,
                 submission.audio_file_size,
                 submission.audio_mime_type,
             )
-        except ValueError as exc:
-            raise HTTPException(status_code=400, detail=str(exc))
+        except ValueError:
+            raise HTTPException(status_code=400, detail="تعذر التحقق من ملف التسجيل")
         except RuntimeError:
-            raise HTTPException(status_code=503, detail="Audio storage is unavailable")
+            raise HTTPException(status_code=503, detail="خدمة حفظ التسجيلات غير متاحة الآن")
 
         if existing_response:
-            audio = db.query(AudioSubmission).filter(
-                AudioSubmission.response_id == existing_response.id,
-            ).first()
+            audio = db.query(AudioSubmission).filter(AudioSubmission.response_id == existing_response.id).first()
             if not audio or audio.status != "rerecord_required":
-                raise HTTPException(
-                    status_code=409,
-                    detail="This step was already submitted; reload to resume",
-                )
-
+                raise HTTPException(status_code=409, detail="تم إرسال هذه القراءة مسبقًا")
             audio.storage_key = submission.audio_storage_key
             audio.file_size = submission.audio_file_size
             audio.mime_type = submission.audio_mime_type
@@ -425,138 +504,108 @@ def submit_attempt(
             existing_response.is_correct = None
             existing_response.submitted_at = datetime.now(timezone.utc)
             existing_response.elapsed_seconds += submission.elapsed_seconds
-            attempt.elapsed_seconds += submission.elapsed_seconds
-            attempt.status = "completed"
-            attempt.completed_at = datetime.now(timezone.utc)
-            session.elapsed_seconds += submission.elapsed_seconds
-            session.updated_at = datetime.now(timezone.utc)
-            response_json = {
-                "status": "ok",
-                "message": "Rerecord submitted",
-                "is_correct": None,
-            }
-            _store_idempotency(
-                db,
-                student.id,
-                operation,
-                idempotency_key,
-                request_hash,
-                response_json,
+        else:
+            response = AttemptResponse(
+                attempt_id=attempt.id,
+                step_id=step.id,
+                selected_option_id=None,
+                is_correct=None,
+                elapsed_seconds=submission.elapsed_seconds,
             )
-            return _commit_idempotent(
-                db,
-                student.id,
-                operation,
-                idempotency_key,
-                request_hash,
-                response_json,
-            )
-    else:
-        if existing_response:
-            raise HTTPException(
-                status_code=409,
-                detail="This step was already submitted; reload to resume",
-            )
+            db.add(response)
+            db.flush()
+            db.add(AudioSubmission(
+                response_id=response.id,
+                storage_key=submission.audio_storage_key,
+                file_size=submission.audio_file_size,
+                mime_type=submission.audio_mime_type or "audio/webm",
+                duration_seconds=submission.audio_duration_seconds,
+            ))
+
+    elif interaction in SINGLE_INTERACTIONS:
+        if existing_response or existing_structured:
+            raise HTTPException(status_code=409, detail="تم إرسال إجابة هذا السؤال مسبقًا")
         if submission.audio_storage_key or submission.selected_option_id is None:
-            raise HTTPException(status_code=400, detail="A selected option is required for this item")
-        option = db.query(ContentOption).filter(
-            ContentOption.id == submission.selected_option_id,
-            ContentOption.step_id == submission.step_id,
-        ).first()
+            raise HTTPException(status_code=400, detail="اختر إجابة قبل المتابعة")
+        option = next((candidate for candidate in step.options if candidate.id == submission.selected_option_id), None)
         if not option:
-            raise HTTPException(status_code=400, detail="Option does not belong to this step")
-        is_correct = option.is_correct
+            raise HTTPException(status_code=400, detail="الإجابة المختارة غير صالحة")
+        is_correct = bool(option.is_correct)
+        db.add(AttemptResponse(
+            attempt_id=attempt.id,
+            step_id=step.id,
+            selected_option_id=option.id,
+            is_correct=is_correct,
+            elapsed_seconds=submission.elapsed_seconds,
+        ))
 
-    new_response = AttemptResponse(
-        attempt_id=attempt.id,
-        step_id=submission.step_id,
-        selected_option_id=submission.selected_option_id,
-        is_correct=is_correct,
-        elapsed_seconds=submission.elapsed_seconds,
-    )
-    db.add(new_response)
-    db.flush() # get id
+    elif interaction in STRUCTURED_INTERACTIONS:
+        if existing_response or existing_structured:
+            raise HTTPException(status_code=409, detail="تم إرسال إجابة هذا السؤال مسبقًا")
+        selected_ids = submission.selected_option_ids
+        _validate_option_ids(step, selected_ids)
+        if interaction in {"sequence", "memory_sequence", "path_sequence", "build_word"}:
+            expected_ids = _expected_order_ids(item, step)
+            is_correct = selected_ids == expected_ids
+        else:
+            expected_ids = [option.id for option in step.options if option.is_correct]
+            is_correct = set(selected_ids) == set(expected_ids)
+        db.add(ActivityStepResponse(
+            attempt_id=attempt.id,
+            step_id=step.id,
+            attempt_no=1,
+            response_payload={"selected_option_ids": selected_ids},
+            is_correct=bool(is_correct),
+            hint_used=False,
+            elapsed_seconds=submission.elapsed_seconds,
+        ))
+    else:
+        raise HTTPException(status_code=409, detail="نوع هذا السؤال غير مدعوم حاليًا")
 
-    if is_audio_item:
-        audio = AudioSubmission(
-            response_id=new_response.id,
-            storage_key=submission.audio_storage_key,
-            file_size=submission.audio_file_size or 0,
-            mime_type=submission.audio_mime_type or "audio/webm",
-            duration_seconds=submission.audio_duration_seconds
-        )
-        db.add(audio)
-
-    # Check if all steps are completed
-    total_steps = db.query(ContentStep).filter(ContentStep.item_id == item_id).count()
-    completed_steps = db.query(AttemptResponse).filter(AttemptResponse.attempt_id == attempt.id).count()
-    
-    if completed_steps >= total_steps:
+    db.flush()
+    total_steps = len(item.steps)
+    if _completed_response_count(db, attempt.id) >= total_steps:
         attempt.status = "completed"
         attempt.completed_at = datetime.now(timezone.utc)
-
     attempt.elapsed_seconds += submission.elapsed_seconds
     session.elapsed_seconds += submission.elapsed_seconds
     session.updated_at = datetime.now(timezone.utc)
+
     response_json = {"status": "ok", "is_correct": is_correct}
-    _store_idempotency(
-        db,
-        student.id,
-        operation,
-        idempotency_key,
-        request_hash,
-        response_json,
-    )
-    return _commit_idempotent(
-        db,
-        student.id,
-        operation,
-        idempotency_key,
-        request_hash,
-        response_json,
-    )
+    _store_idempotency(db, student.id, operation, idempotency_key, request_hash, response_json)
+    return _commit_idempotent(db, student.id, operation, idempotency_key, request_hash, response_json)
+
 
 @router.post("/session/{session_id}/finish", response_model=schemas.SessionFinishResponse)
 def finish_session(
     session_id: int,
     db: Session = Depends(get_db),
-    student: Student = Depends(get_current_student)
+    student: Student = Depends(get_current_student),
 ):
-    """Finish the session and compute the final score and level."""
     session = db.query(AssessmentSession).filter(
         AssessmentSession.id == session_id,
-        AssessmentSession.student_id == student.id
+        AssessmentSession.student_id == student.id,
     ).first()
-    
     if not session or session.status != "in_progress":
-        raise HTTPException(status_code=400, detail="Invalid session")
+        raise HTTPException(status_code=400, detail="الجلسة غير صالحة أو مكتملة")
 
     rerecord_exists = db.query(AudioSubmission).join(
         AttemptResponse, AttemptResponse.id == AudioSubmission.response_id,
-    ).join(
-        Attempt, Attempt.id == AttemptResponse.attempt_id,
-    ).filter(
+    ).join(Attempt, Attempt.id == AttemptResponse.attempt_id).filter(
         Attempt.session_id == session_id,
         AudioSubmission.status == "rerecord_required",
     ).first()
     if rerecord_exists:
-        raise HTTPException(
-            status_code=409,
-            detail="Cannot finish session with audio requiring rerecord",
-        )
-        
-    # Verify that exactly 30 items (if pretest/posttest) have attempts, and all attempts are completed.
+        raise HTTPException(status_code=409, detail="يوجد تسجيل يحتاج إلى إعادة قبل إنهاء الاختبار")
+
     if session.session_type in ["pretest", "posttest"]:
         required_items = db.query(ContentItem).filter(
             ContentItem.kind == KIND_BY_SESSION_TYPE[session.session_type],
         ).count()
         attempts = db.query(Attempt).filter(Attempt.session_id == session_id).all()
-        if required_items != 30 or len(attempts) != required_items or any(
-            attempt.status != "completed" for attempt in attempts
-        ):
-            raise HTTPException(status_code=400, detail="Cannot finish session before completing all 30 items")
-            
-    # Sum up score securely on backend using Decimal
+        if required_items != 30 or len(attempts) != required_items or any(attempt.status != "completed" for attempt in attempts):
+            raise HTTPException(status_code=400, detail="أكمل الأسئلة الثلاثين قبل إنهاء الاختبار")
+
     total_score = Decimal("0.0")
     attempts = db.query(Attempt).filter(Attempt.session_id == session_id).all()
     for attempt in attempts:
@@ -565,47 +614,42 @@ def finish_session(
             audio_sub = db.query(AudioSubmission).filter(AudioSubmission.response_id == response.id).first()
             if audio_sub:
                 if audio_sub.status == "uploaded":
-                    raise HTTPException(status_code=409, detail="Cannot finish session with ungraded audio")
+                    raise HTTPException(status_code=409, detail="يوجد تسجيل صوتي في انتظار المراجعة")
                 if audio_sub.status == "graded":
-                    review = db.query(AudioReview).filter(AudioReview.submission_id == audio_sub.id).order_by(AudioReview.id.desc()).first()
+                    review = db.query(AudioReview).filter(
+                        AudioReview.submission_id == audio_sub.id,
+                    ).order_by(AudioReview.id.desc()).first()
                     if review:
                         total_score += review.rubric_score
-            else:
-                if response.is_correct:
-                    total_score += Decimal("1.0")
-                    
-    # The approved pre/post contract fixes the assessment denominator at 30 items.
+            elif response.is_correct:
+                total_score += Decimal("1.0")
+        structured = db.query(ActivityStepResponse).filter(
+            ActivityStepResponse.attempt_id == attempt.id,
+        ).all()
+        total_score += sum((Decimal("1.0") for response in structured if response.is_correct), Decimal("0.0"))
+
     final_percentage = (total_score / Decimal("30.0")) * Decimal("100.0")
-    
-    # Assign level based on exact percentage
     if final_percentage < Decimal("50.0"):
         assigned_level = 1
     elif final_percentage < Decimal("80.0"):
         assigned_level = 2
     else:
         assigned_level = 3
-        
+
     session.final_score = final_percentage
     session.assigned_level = assigned_level
     session.status = "completed"
     session.completed_at = datetime.now(timezone.utc)
     session.updated_at = datetime.now(timezone.utc)
-    
-    # Optional: Update student's current_level if this is a pre/posttest
     if session.session_type in ["pretest", "posttest"]:
         student.current_level = assigned_level
     if session.session_type == "posttest":
         student.posttest_enabled = False
         student.posttest_enabled_at = None
         student.posttest_enabled_by = None
-        
     db.commit()
-    
-    return {
-        "id": session.id,
-        "final_score": final_percentage,
-        "assigned_level": assigned_level
-    }
+    return {"id": session.id, "final_score": final_percentage, "assigned_level": assigned_level}
+
 
 @router.post("/session/{session_id}/upload-audio")
 def upload_audio_submission(
@@ -615,26 +659,20 @@ def upload_audio_submission(
     student: Student = Depends(get_current_student),
     db: Session = Depends(get_db),
 ):
-    """Upload audio for an assessment session (returns metadata to submit with attempt)."""
     idempotency_key = _validate_idempotency_key(idempotency_key)
     _session_for_student(db, session_id, student.id)
-
     if not file.content_type or not file.content_type.startswith("audio/"):
-        raise HTTPException(status_code=400, detail="Must be an audio file")
+        raise HTTPException(status_code=400, detail="اختر ملفًا صوتيًا صالحًا")
 
     operation = f"assessment.audio.upload:{session_id}"
     try:
-        storage_key, file_size, digest = storage.upload_audio(
-            file, student.id, f"{session_id}:{idempotency_key}"
-        )
+        storage_key, file_size, digest = storage.upload_audio(file, student.id, f"{session_id}:{idempotency_key}")
         request_hash = _request_hash({
             "sha256": digest,
             "content_type": file.content_type,
             "file_size": file_size,
         })
-        replay = _idempotency_replay(
-            db, student.id, operation, idempotency_key, request_hash
-        )
+        replay = _idempotency_replay(db, student.id, operation, idempotency_key, request_hash)
         if replay is not None:
             return replay
         response_json = {
@@ -642,23 +680,9 @@ def upload_audio_submission(
             "audio_file_size": file_size,
             "audio_mime_type": file.content_type,
         }
-        _store_idempotency(
-            db,
-            student.id,
-            operation,
-            idempotency_key,
-            request_hash,
-            response_json,
-        )
-        return _commit_idempotent(
-            db,
-            student.id,
-            operation,
-            idempotency_key,
-            request_hash,
-            response_json,
-        )
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
+        _store_idempotency(db, student.id, operation, idempotency_key, request_hash, response_json)
+        return _commit_idempotent(db, student.id, operation, idempotency_key, request_hash, response_json)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="ملف التسجيل غير صالح")
     except RuntimeError:
-        raise HTTPException(status_code=503, detail="Audio storage is unavailable")
+        raise HTTPException(status_code=503, detail="خدمة حفظ التسجيلات غير متاحة الآن")
