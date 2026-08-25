@@ -7,6 +7,9 @@ from alembic import context
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from db.models import Base
+# Register the additive Stage-2 activity table in Base.metadata so
+# `alembic check` compares the real runtime schema instead of ignoring it.
+import db.activity_models  # noqa: F401,E402
 from db.database import SQLALCHEMY_DATABASE_URL
 
 config = context.config
