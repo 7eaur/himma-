@@ -209,7 +209,6 @@ def _stars_for_attempt(db: Session, attempt: Attempt) -> tuple[int, dict]:
     structured = db.query(ActivityStepResponse).filter(
         ActivityStepResponse.attempt_id == attempt.id,
     ).order_by(ActivityStepResponse.step_id, ActivityStepResponse.attempt_no).all()
-    retries = False
     hints = any(row.hint_used for row in structured)
     by_step: dict[int, list[ActivityStepResponse]] = {}
     for row in structured:
@@ -246,6 +245,11 @@ def ensure_rewards(db: Session, student_id: int) -> list[RewardEvent]:
     )
     changed = False
     for attempt, item, session in completed:
+        # Rewards must represent a real, academically valid completion. A
+        # gap-only round, unresolved/low-confidence recording, rerecord request,
+        # or otherwise incomplete evidence is neutral and earns no stars yet.
+        if _attempt_signal(db, attempt, item) is None:
+            continue
         key = f"activity:{attempt.id}:stars"
         exists = db.query(RewardEvent.id).filter(
             RewardEvent.student_id == student_id,
@@ -266,7 +270,7 @@ def ensure_rewards(db: Session, student_id: int) -> list[RewardEvent]:
 
     for level_id, label in BADGE_BY_LEVEL.items():
         completed_core = (
-            db.query(Attempt.id)
+            db.query(Attempt, ContentItem)
             .join(ContentItem, ContentItem.id == Attempt.item_id)
             .join(AssessmentSession, AssessmentSession.id == Attempt.session_id)
             .filter(
@@ -275,10 +279,13 @@ def ensure_rewards(db: Session, student_id: int) -> list[RewardEvent]:
                 ContentItem.kind == "core_activity",
                 ContentItem.level_id == level_id,
             )
-            .count()
+            .all()
+        )
+        valid_completed_core = sum(
+            1 for attempt, item in completed_core if _attempt_signal(db, attempt, item) is not None
         )
         key = f"level:{level_id}:core-complete"
-        if completed_core >= 10 and not db.query(RewardEvent.id).filter(
+        if valid_completed_core >= 10 and not db.query(RewardEvent.id).filter(
             RewardEvent.student_id == student_id,
             RewardEvent.reward_key == key,
         ).first():
@@ -289,7 +296,7 @@ def ensure_rewards(db: Session, student_id: int) -> list[RewardEvent]:
                 reward_key=key,
                 stars=None,
                 label=label,
-                details={"event": "ten_core_activities_completed", "level_id": level_id},
+                details={"event": "ten_valid_core_activities_completed", "level_id": level_id},
             ))
             changed = True
 
@@ -431,7 +438,7 @@ def student_rewards(
 
 
 @router.get("/researcher/students/{student_id}/adaptation/history")
-def adaptation_history(
+def researcher_adaptation_history(
     student_id: int,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -439,10 +446,13 @@ def adaptation_history(
     student = db.query(Student).filter(Student.id == student_id).first()
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
-    rows = db.query(AdaptationDecision).filter(
-        AdaptationDecision.student_id == student_id,
-    ).order_by(AdaptationDecision.id).all()
-    return [_decision_payload(row) for row in rows]
+    return [
+        _decision_payload(row)
+        for row in db.query(AdaptationDecision)
+        .filter(AdaptationDecision.student_id == student_id)
+        .order_by(AdaptationDecision.id)
+        .all()
+    ]
 
 
 @router.get("/researcher/students/{student_id}/rewards")
@@ -454,7 +464,7 @@ def researcher_rewards(
     student = db.query(Student).filter(Student.id == student_id).first()
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
-    return [_reward_payload(row) for row in ensure_rewards(db, student.id)]
+    return [_reward_payload(row) for row in ensure_rewards(db, student_id)]
 
 
 @router.post("/researcher/students/{student_id}/adaptation/manual-override")
@@ -482,7 +492,7 @@ def manual_override(
         snapshot_key=None,
         explanation={"reason": "researcher_manual_override"},
         manual_reason=body.reason.strip(),
-        actor_id=user.id,
+        reviewer_id=user.id,
     )
     student.current_level = body.new_level
     db.add(decision)
