@@ -34,7 +34,7 @@ async function loginAsStudent(request: APIRequestContext, context: import("@play
 }
 
 async function shot(page: import("@playwright/test").Page, name: string) {
-  await page.screenshot({ path: `test-results/screenshots/${name}.png`, fullPage: true });
+  await page.screenshot({ path: `playwright-report/screenshots/${name}.png`, fullPage: true });
 }
 
 test.describe("Full Vertical Slice — Stage 2 Closure Gate", () => {
