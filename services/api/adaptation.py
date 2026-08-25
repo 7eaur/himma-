@@ -492,7 +492,7 @@ def manual_override(
         snapshot_key=None,
         explanation={"reason": "researcher_manual_override"},
         manual_reason=body.reason.strip(),
-        reviewer_id=user.id,
+        actor_id=user.id,
     )
     student.current_level = body.new_level
     db.add(decision)
