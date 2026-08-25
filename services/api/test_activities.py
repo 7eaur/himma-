@@ -64,8 +64,8 @@ def _mark_audio_round_reviewed(session_id: int, item_id: int, step_id: int) -> N
     """Finish an audio round at the assessment-review boundary for this lifecycle test.
 
     Audio upload/review itself has dedicated coverage. This helper keeps the older
-    Stage-2 "exactly ten core activities" regression focused on routing/resume and
-    avoids pretending a read-aloud round has a multiple-choice option.
+    Stage-2 core regression focused on routing/resume and avoids pretending a
+    read-aloud round has a multiple-choice option.
     """
     db = SessionLocal()
     attempt = db.query(Attempt).filter(
@@ -89,6 +89,25 @@ def _mark_audio_round_reviewed(session_id: int, item_id: int, step_id: int) -> N
         )
         db.commit()
     db.close()
+
+
+def _completed_core_ids(session_id: int, level_id: int) -> list[str]:
+    db = SessionLocal()
+    rows = (
+        db.query(ContentItem)
+        .join(Attempt, Attempt.item_id == ContentItem.id)
+        .filter(
+            Attempt.session_id == session_id,
+            Attempt.status == "completed",
+            ContentItem.kind == "core_activity",
+            ContentItem.level_id == level_id,
+        )
+        .order_by(ContentItem.order_index)
+        .all()
+    )
+    ids = [(item.template_data or {}).get("canonical_id") for item in rows]
+    db.close()
+    return ids
 
 
 class TestActivityLifecycle:
@@ -115,19 +134,14 @@ class TestActivityLifecycle:
         assert resumed.status_code == 200
         assert resumed.json()["session_id"] == session_id
 
-        seen_items: list[str] = []
         safety = 0
-        while True:
+        while len(_completed_core_ids(session_id, 1)) < 10:
             safety += 1
-            assert safety < 80, "Core learning path did not terminate"
+            assert safety < 120, "Level-one core contract did not complete"
             response = student_client.get(f"/activities/session/{session_id}/next")
-            assert response.status_code == 200
+            assert response.status_code == 200, response.text
             activity = response.json()
-            if activity is None:
-                break
-
-            if not seen_items or seen_items[-1] != activity["item"]["canonical_id"]:
-                seen_items.append(activity["item"]["canonical_id"])
+            assert activity is not None, "Adaptive runtime ended before all ten level-one core items completed"
 
             step = activity["step"]
             interaction = activity["item"]["interaction_type"]
@@ -168,12 +182,18 @@ class TestActivityLifecycle:
             )
             assert submitted.status_code == 200, submitted.text
 
-        assert seen_items == [f"L1-CORE-{index:02d}" for index in range(1, 11)]
-        progress = student_client.get(f"/activities/session/{session_id}/progress")
-        assert progress.status_code == 200
-        assert progress.json()["status"] == "completed"
-        assert progress.json()["completed_items"] == 10
-        assert progress.json()["total_items"] == 10
+        assert _completed_core_ids(session_id, 1) == [f"L1-CORE-{index:02d}" for index in range(1, 11)]
+
+        # B03 may continue the same durable learning session into approved
+        # reinforcement or a new level. The Stage-2 regression remains strict
+        # about its contract: all ten level-one core items must complete once,
+        # while reinforcement never masquerades as an eleventh core item.
+        db = SessionLocal()
+        assert db.query(ContentItem).filter(
+            ContentItem.kind == "core_activity",
+            ContentItem.level_id == 1,
+        ).count() == 10
+        db.close()
 
         profile = student_client.get("/profile")
         assert profile.status_code == 200
