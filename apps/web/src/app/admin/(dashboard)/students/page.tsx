@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { UserPlus, Eye } from "lucide-react";
+import { Eye, Search, UserPlus } from "lucide-react";
 
 interface Student {
   id: number;
@@ -11,99 +11,112 @@ interface Student {
   grade_level: number;
   access_code: string;
   created_at: string;
+  current_level: number;
+  status: "active" | "inactive";
+  core_completed_items: number;
+  core_total_items: number;
+  posttest_enabled: boolean;
 }
 
 export default function StudentsPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [query, setQuery] = useState("");
+  const [status, setStatus] = useState<"all" | "active" | "inactive">("all");
 
   useEffect(() => {
-    const fetchStudents = async () => {
-      try {
-        const res = await fetch("/api/researcher/students");
-        if (res.ok) {
-          setStudents(await res.json());
-        }
-      } catch (err) {
-        console.error("Error fetching students", err);
-      } finally {
-        setLoading(false);
-      }
+    let cancelled = false;
+    void fetch("/api/researcher/students", { cache: "no-store" })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("تعذر تحميل قائمة الطلاب");
+        const data: Student[] = await response.json();
+        if (!cancelled) setStudents(data);
+      })
+      .catch((caught: unknown) => {
+        if (!cancelled) setError(caught instanceof Error ? caught.message : "تعذر تحميل الطلاب");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
     };
-    
-    fetchStudents();
   }, []);
 
+  const filtered = useMemo(() => {
+    const needle = query.trim().toLocaleLowerCase("ar");
+    return students.filter((student) => {
+      const matchesStatus = status === "all" || student.status === status;
+      const matchesQuery = !needle
+        || student.full_name.toLocaleLowerCase("ar").includes(needle)
+        || student.access_code.includes(needle);
+      return matchesStatus && matchesQuery;
+    });
+  }, [query, status, students]);
+
   return (
-    <div className="flex-1 font-plex max-w-6xl w-full mx-auto">
-      <div className="flex justify-between items-center mb-8">
+    <div className="flex-1 font-plex max-w-6xl w-full mx-auto" dir="rtl">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-7">
         <div>
-          <h1 className="text-2xl font-bold text-navy mb-2">إدارة الطلاب</h1>
-          <p className="text-muted">عرض وإدارة جميع الطلاب المسجلين.</p>
+          <p className="text-sm text-primary font-semibold mb-1">إدارة العينة</p>
+          <h1 className="text-3xl font-bold text-navy mb-2">الطلاب</h1>
+          <p className="text-muted">عرض الحسابات، الرموز، المستوى الحالي وتقدم الأنشطة.</p>
         </div>
-        <Link href="/admin/students/new" className="btn-primary flex items-center gap-2">
-          <UserPlus size={18} />
-          <span>إضافة طالب</span>
-        </Link>
+        <Link href="/admin/students/new" className="btn-primary flex items-center gap-2 w-fit"><UserPlus size={18} /><span>إضافة طالب</span></Link>
       </div>
 
-      <div className="card">
+      {error && <div className="alert-error mb-5">{error}</div>}
+
+      <section className="card">
+        <div className="grid md:grid-cols-[1fr_180px_auto] gap-3 mb-6">
+          <label className="relative">
+            <span className="sr-only">البحث عن طالب</span>
+            <input className="input-field pr-11" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ابحث بالاسم أو رمز الدخول" />
+            <Search size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted" aria-hidden="true" />
+          </label>
+          <select className="input-field" value={status} onChange={(event) => setStatus(event.target.value as typeof status)} aria-label="تصفية حسب حالة الحساب">
+            <option value="all">كل الحالات</option>
+            <option value="active">نشط</option>
+            <option value="inactive">موقوف</option>
+          </select>
+          <div className="rounded-xl bg-bg border border-border px-4 flex items-center justify-center text-sm text-muted">{filtered.length} من {students.length}</div>
+        </div>
+
         {loading ? (
-          <div className="flex justify-center py-12">
-            <div className="spinner w-8 h-8"></div>
-          </div>
+          <div className="flex flex-col items-center justify-center gap-3 py-14"><div className="spinner w-9 h-9" /><p className="text-muted">جاري تحميل الطلاب...</p></div>
         ) : students.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <Image src="/characters/boy/welcome.png" alt="No students" width={120} height={150} className="opacity-50 mb-4" />
-            <h3 className="text-lg font-medium text-navy mb-2">لا يوجد طلاب</h3>
-            <p className="text-muted mb-6">لم تقم بإضافة أي طلاب بعد.</p>
-            <Link href="/admin/students/new" className="btn-primary">
-              إضافة طالب جديد
-            </Link>
+          <div className="empty-state">
+            <Image src="/characters/girl/welcome.png" alt="شخصية هِمّة" width={115} height={150} />
+            <h3>لا يوجد طلاب حتى الآن</h3>
+            <p className="mb-6">أضف أول طالب ليبدأ استخدام المنصة.</p>
+            <Link href="/admin/students/new" className="btn-primary">إضافة طالب جديد</Link>
           </div>
+        ) : filtered.length === 0 ? (
+          <div className="empty-state py-12"><Search size={36} className="mb-3" /><h3>لا توجد نتائج مطابقة</h3><p>جرّب اسمًا آخر أو غيّر التصفية.</p></div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-right border-collapse">
-              <thead>
-                <tr className="border-b border-border bg-bg/50">
-                  <th className="py-4 px-4 font-semibold text-navy">الاسم</th>
-                  <th className="py-4 px-4 font-semibold text-navy">الصف</th>
-                  <th className="py-4 px-4 font-semibold text-navy">رمز الدخول</th>
-                  <th className="py-4 px-4 font-semibold text-navy">تاريخ الإضافة</th>
-                  <th className="py-4 px-4 font-semibold text-navy text-center">الإجراءات</th>
-                </tr>
-              </thead>
+            <table className="data-table">
+              <thead><tr><th>الطالب</th><th>رمز الدخول</th><th>المستوى</th><th>تقدم الأنشطة</th><th>الحالة</th><th>التفاصيل</th></tr></thead>
               <tbody>
-                {students.map(student => (
-                  <tr key={student.id} className="border-b border-border last:border-0 hover:bg-bg/50 transition-colors">
-                    <td className="py-4 px-4 text-navy font-medium">{student.full_name}</td>
-                    <td className="py-4 px-4 text-navy">{student.grade_level}</td>
-                    <td className="py-4 px-4">
-                      <span className="badge bg-white text-primary border border-primary/20 tracking-wider font-mono px-3 py-1 ltr text-left">
-                        {student.access_code}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4 text-muted text-sm">
-                      {new Date(student.created_at).toLocaleDateString('ar-SA')}
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="flex justify-center">
-                        <Link 
-                          href={`/admin/students/${student.id}`}
-                          className="p-2 text-muted hover:text-primary hover:bg-primary/10 rounded-md transition-colors"
-                          title="عرض التفاصيل"
-                        >
-                          <Eye size={20} />
-                        </Link>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {filtered.map((student) => {
+                  const progress = Math.round((student.core_completed_items / Math.max(1, student.core_total_items)) * 100);
+                  return (
+                    <tr key={student.id}>
+                      <td><div><Link href={`/admin/students/${student.id}`} className="font-semibold text-navy hover:text-primary">{student.full_name}</Link><p className="text-xs text-muted mt-1">أضيف {new Date(student.created_at).toLocaleDateString("ar-SA")}</p></div></td>
+                      <td><span className="badge badge-gray border border-border tracking-widest px-3 py-1 font-mono" dir="ltr">{student.access_code}</span></td>
+                      <td><span className="font-semibold text-navy">{student.current_level}</span></td>
+                      <td><div className="flex items-center gap-2 min-w-[150px]"><div className="progress-track"><div className="progress-fill" style={{ width: `${progress}%` }} /></div><span className="text-xs text-muted whitespace-nowrap">{student.core_completed_items}/{student.core_total_items}</span></div></td>
+                      <td><span className={`badge ${student.status === "active" ? "badge-green" : "badge-gray"}`}>{student.status === "active" ? "نشط" : "موقوف"}</span></td>
+                      <td><Link href={`/admin/students/${student.id}`} className="inline-flex items-center gap-2 text-primary font-semibold text-sm p-2 rounded-md hover:bg-primary/10" aria-label={`فتح ملف ${student.full_name}`}><Eye size={18} /> فتح</Link></td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         )}
-      </div>
+      </section>
     </div>
   );
 }
