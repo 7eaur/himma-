@@ -76,13 +76,21 @@ test.describe("Full Vertical Slice — Stage 2 Closure Gate", () => {
     await expect(page.getByTestId("input-student-grade")).toBeDisabled();
     await page.getByTestId("submit-create-student").click();
 
-    // ── Step 3: Extract access code ──────────────────────────────────────────
+    // ── Step 3: Extract access code and resolve id from the researcher API ──
+    // The creation screen intentionally stays on /new to show/copy the code,
+    // so URL parsing is not a valid source of the new student's id.
     const codeEl = page.getByTestId("student-access-code");
     await expect(codeEl).toBeVisible({ timeout: 10000 });
     const accessCode = (await codeEl.textContent())?.trim();
     expect(accessCode, "Access code should be present").toBeTruthy();
-    const studentId = page.url().match(/\/admin\/students\/(\d+)/)?.[1];
-    expect(studentId, "Student id should be present in the URL").toBeTruthy();
+
+    const studentsRes = await request.get(`${API_URL}/researcher/students`);
+    expect(studentsRes.status(), "Researcher should be able to resolve the created student").toBe(200);
+    const students: Array<{ id: number; access_code: string; full_name: string }> = await studentsRes.json();
+    const createdStudent = students.find((candidate) => candidate.access_code === accessCode);
+    expect(createdStudent?.full_name).toBe(studentName);
+    const studentId = createdStudent?.id;
+    expect(studentId, "Created student id should be present in the researcher API").toBeTruthy();
 
     // ── Step 4: Clear admin session ──────────────────────────────────────────
     await context.clearCookies();
