@@ -1,9 +1,9 @@
-"""Stage-2 learning activity runtime.
+"""Adaptive learning activity runtime.
 
-This module deliberately keeps the accepted B02 assessment lifecycle intact and
-adds the missing execution path for the ten approved core activities of the
-student's assigned level. Reinforcement selection and 50/30/20 adaptation remain
-B03 work.
+The accepted Stage-2 core runner remains the durable execution base. P06 adds
+50/30/20 decisions between completed activity attempts, exact skill-matched
+reinforcement, and level transitions without counting reinforcement as one of
+the ten approved core activities for a level.
 """
 
 from __future__ import annotations
@@ -15,7 +15,6 @@ from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
-from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload
 
@@ -32,7 +31,6 @@ from db.models import (
     Attempt,
     AttemptResponse,
     AudioSubmission,
-    ContentAssetLink,
     ContentItem,
     ContentOption,
     ContentStep,
@@ -80,11 +78,19 @@ def _pretest_completed(db: Session, student_id: int) -> bool:
     ).first() is not None
 
 
-def _core_session(db: Session, student_id: int, *, completed: Optional[bool] = None):
+def _core_session(
+    db: Session,
+    student_id: int,
+    *,
+    completed: Optional[bool] = None,
+    level_id: Optional[int] = None,
+):
     query = db.query(AssessmentSession).filter(
         AssessmentSession.student_id == student_id,
         AssessmentSession.session_type == "core",
     )
+    if level_id is not None:
+        query = query.filter(AssessmentSession.assigned_level == level_id)
     if completed is True:
         query = query.filter(AssessmentSession.status == "completed")
     elif completed is False:
@@ -178,6 +184,7 @@ def _step_payload(db: Session, item: ContentItem, attempt: Attempt, step: Conten
             "order_index": item.order_index,
             "interaction_type": interaction,
             "source_method": (item.template_data or {}).get("source_method"),
+            "kind": item.kind,
         },
         "step": {
             "id": step.id,
@@ -198,11 +205,18 @@ def _step_payload(db: Session, item: ContentItem, attempt: Attempt, step: Conten
     }
 
 
-def _completed_core_items(db: Session, session_id: int) -> int:
-    return db.query(Attempt).filter(
-        Attempt.session_id == session_id,
-        Attempt.status == "completed",
-    ).count()
+def _completed_core_items(db: Session, session_id: int, level_id: int) -> int:
+    return (
+        db.query(Attempt.id)
+        .join(ContentItem, ContentItem.id == Attempt.item_id)
+        .filter(
+            Attempt.session_id == session_id,
+            Attempt.status == "completed",
+            ContentItem.kind == "core_activity",
+            ContentItem.level_id == level_id,
+        )
+        .count()
+    )
 
 
 def _progress_payload(db: Session, session: AssessmentSession, level_id: int) -> dict[str, Any]:
@@ -214,7 +228,7 @@ def _progress_payload(db: Session, session: AssessmentSession, level_id: int) ->
         "session_id": session.id,
         "status": session.status,
         "level_id": level_id,
-        "completed_items": _completed_core_items(db, session.id),
+        "completed_items": _completed_core_items(db, session.id, level_id),
         "total_items": total,
         "elapsed_seconds": session.elapsed_seconds,
     }
@@ -233,7 +247,7 @@ def _finalize_session_if_done(db: Session, session: AssessmentSession, level_id:
         ContentItem.kind == "core_activity",
         ContentItem.level_id == level_id,
     ).count()
-    completed = _completed_core_items(db, session.id)
+    completed = _completed_core_items(db, session.id, level_id)
     if required == CORE_ACTIVITY_COUNT and completed >= required:
         session.status = "completed"
         session.completed_at = datetime.now(timezone.utc)
@@ -265,7 +279,8 @@ def learning_status(
             "completed": False,
             "session_id": None,
         }
-    progress = _progress_payload(db, session, student.current_level)
+    level_id = session.assigned_level or student.current_level
+    progress = _progress_payload(db, session, level_id)
     return {
         "available": True,
         **progress,
@@ -289,12 +304,12 @@ def start_learning(
     ).first()
     if active_any:
         if active_any.session_type == "core":
-            return _progress_payload(db, active_any, student.current_level)
+            return _progress_payload(db, active_any, active_any.assigned_level or student.current_level)
         raise HTTPException(status_code=409, detail="Resume the active assessment first")
 
-    completed = _core_session(db, student.id, completed=True)
+    completed = _core_session(db, student.id, completed=True, level_id=student.current_level)
     if completed:
-        return _progress_payload(db, completed, student.current_level)
+        return _progress_payload(db, completed, completed.assigned_level or student.current_level)
 
     total = db.query(ContentItem).filter(
         ContentItem.kind == "core_activity",
@@ -316,7 +331,7 @@ def start_learning(
         db.rollback()
         active = _core_session(db, student.id, completed=False)
         if active:
-            return _progress_payload(db, active, student.current_level)
+            return _progress_payload(db, active, active.assigned_level or student.current_level)
         raise HTTPException(status_code=409, detail="Learning session lifecycle conflict")
     db.refresh(session)
     return _progress_payload(db, session, student.current_level)
@@ -332,6 +347,20 @@ def learning_progress(
     return _progress_payload(db, session, session.assigned_level or student.current_level)
 
 
+def _pending_attempt(db: Session, session_id: int):
+    return db.query(Attempt).filter(
+        Attempt.session_id == session_id,
+        Attempt.status == "in_progress",
+    ).order_by(Attempt.id).first()
+
+
+def _load_item(db: Session, item_id: int):
+    return db.query(ContentItem).options(
+        joinedload(ContentItem.steps).joinedload(ContentStep.options),
+        joinedload(ContentItem.steps).joinedload(ContentStep.assets),
+    ).filter(ContentItem.id == item_id).first()
+
+
 @router.get("/session/{session_id}/next")
 def next_activity_step(
     session_id: int,
@@ -339,28 +368,45 @@ def next_activity_step(
     student: Student = Depends(get_current_student),
 ):
     session = _activity_session_or_404(db, session_id, student.id)
-    level_id = session.assigned_level or student.current_level
 
-    pending_attempt = db.query(Attempt).filter(
-        Attempt.session_id == session.id,
-        Attempt.status == "in_progress",
-    ).order_by(Attempt.id).first()
-
+    pending_attempt = _pending_attempt(db, session.id)
     if pending_attempt:
-        item = db.query(ContentItem).options(
-            joinedload(ContentItem.steps).joinedload(ContentStep.options),
-            joinedload(ContentItem.steps).joinedload(ContentStep.assets),
-        ).filter(ContentItem.id == pending_attempt.item_id).first()
+        item = _load_item(db, pending_attempt.item_id)
         if not item:
             raise HTTPException(status_code=409, detail="Activity content is unavailable")
         for step in item.steps:
             if not _step_state(db, pending_attempt, step)["done"]:
                 return _step_payload(db, item, pending_attempt, step)
         _finalize_attempt_if_done(db, pending_attempt, item)
-        _finalize_session_if_done(db, session, level_id)
         db.commit()
-        if session.status == "completed":
-            return None
+        pending_attempt = None
+
+    # A completed attempt is the only moment at which the moving 50/30/20
+    # snapshot can advance. The preparation helper is idempotent, so reloads do
+    # not duplicate decisions or recommendations.
+    from adaptation_runtime import prepare_next_for_student
+
+    prepared = prepare_next_for_student(db, student, session)
+    if prepared.get("mapping_blocked"):
+        raise HTTPException(
+            status_code=409,
+            detail="يحتاج المسار إلى ربط نشاط تقوية معتمد للمهارة الأضعف قبل المتابعة.",
+        )
+
+    db.refresh(session)
+    db.refresh(student)
+    level_id = session.assigned_level or student.current_level
+
+    pending_attempt = _pending_attempt(db, session.id)
+    if pending_attempt:
+        item = _load_item(db, pending_attempt.item_id)
+        if not item:
+            raise HTTPException(status_code=409, detail="Recommended activity content is unavailable")
+        first_pending = next((step for step in item.steps if not _step_state(db, pending_attempt, step)["done"]), None)
+        if first_pending:
+            return _step_payload(db, item, pending_attempt, first_pending)
+        _finalize_attempt_if_done(db, pending_attempt, item)
+        db.commit()
 
     completed_ids = [
         row.item_id
@@ -382,7 +428,9 @@ def next_activity_step(
     if not item:
         _finalize_session_if_done(db, session, level_id)
         db.commit()
-        return None
+        if session.status == "completed":
+            return None
+        raise HTTPException(status_code=409, detail="Approved adaptive path cannot continue without mapped content")
 
     attempt = Attempt(session_id=session.id, item_id=item.id, status="in_progress")
     db.add(attempt)
@@ -416,9 +464,6 @@ def _score_submission(item: ContentItem, step: ContentStep, option_ids: list[int
     if interaction in {"choose_many", "listen_choose_many"}:
         if len(ordered) < 2:
             raise HTTPException(status_code=409, detail="Approved multi-select round is incomplete")
-        # In the approved Himma multi-select activities the first two source
-        # options are the two requested matching examples; the remaining option
-        # is the distractor. Preserve that source ordering explicitly.
         expected = {ordered[0].id, ordered[1].id}
         return set(option_ids) == expected and len(option_ids) == len(expected)
 
@@ -454,10 +499,7 @@ def submit_activity_step(
     if not attempt:
         raise HTTPException(status_code=404, detail="Active activity attempt not found")
 
-    item = db.query(ContentItem).options(
-        joinedload(ContentItem.steps).joinedload(ContentStep.options),
-        joinedload(ContentItem.steps).joinedload(ContentStep.assets),
-    ).filter(ContentItem.id == item_id).first()
+    item = _load_item(db, item_id)
     step = next((candidate for candidate in item.steps if candidate.id == body.step_id), None) if item else None
     if not item or not step:
         raise HTTPException(status_code=400, detail="Round does not belong to this activity")
@@ -499,7 +541,6 @@ def submit_activity_step(
     db.flush()
 
     _finalize_attempt_if_done(db, attempt, item)
-    _finalize_session_if_done(db, session, session.assigned_level or student.current_level)
 
     attempts_used = len(previous) + 1
     complete = bool(is_correct or attempts_used >= MAX_STEP_ATTEMPTS)
@@ -510,7 +551,11 @@ def submit_activity_step(
         "step_complete": complete,
         "show_hint": (not is_correct and attempts_used < MAX_STEP_ATTEMPTS),
         "activity_complete": attempt.status == "completed",
-        "learning_complete": session.status == "completed",
+        # Session completion is deliberately finalized by GET /next after P06
+        # has evaluated the newly completed attempt. This keeps the old client
+        # behavior (it asks for the next step) while preventing false posttest
+        # unlocks before an adaptive support/transition decision.
+        "learning_complete": False,
     }
     _store_idempotency(db, student.id, operation, idempotency_key, request_hash, response_json)
     return _commit_idempotent(
