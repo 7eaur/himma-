@@ -45,6 +45,9 @@ class StudentResponse(BaseModel):
     status: Literal["active", "inactive"]
     posttest_enabled: bool
     posttest_eligible: bool
+    core_completed_items: int = 0
+    core_total_items: int = 10
+    core_completed: bool = False
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
@@ -72,8 +75,10 @@ class MeResponse(BaseModel):
     role: str
     display_name: str
 
+
 class AssessmentStartRequest(BaseModel):
     session_type: Literal["pretest", "posttest"]
+
 
 class AssessmentSessionResponse(BaseModel):
     id: int
@@ -94,12 +99,14 @@ class AssessmentProgressResponse(BaseModel):
     has_pending_item: bool
     elapsed_seconds: int
 
+
 class ContentOptionResponse(BaseModel):
     id: int
     text: str
     order_index: int
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class ContentStepResponse(BaseModel):
     id: int
@@ -109,6 +116,7 @@ class ContentStepResponse(BaseModel):
     options: list[ContentOptionResponse] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class ContentItemResponse(BaseModel):
     id: int
@@ -120,6 +128,7 @@ class ContentItemResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class AttemptResponseSubmit(BaseModel):
     step_id: int
     selected_option_id: Optional[int] = None
@@ -129,16 +138,18 @@ class AttemptResponseSubmit(BaseModel):
     audio_duration_seconds: Optional[Decimal] = None
     elapsed_seconds: int = Field(default=0, ge=0, le=3600)
 
+
 class AudioSubmissionReviewResponse(BaseModel):
     id: int
     storage_key: str
     status: str
     submitted_at: datetime
-    
+
     model_config = ConfigDict(from_attributes=True)
 
+
 class GradeAudioRequest(BaseModel):
-    is_valid: bool # if false, turns into rerecord_required
+    is_valid: bool  # if false, turns into rerecord_required
     target_units: Optional[int] = Field(default=None, gt=0)
     deletions: int = Field(default=0, ge=0)
     substitutions: int = Field(default=0, ge=0)
@@ -146,6 +157,7 @@ class GradeAudioRequest(BaseModel):
     pronunciation_notes: Optional[str] = None
     fluency_notes: Optional[str] = None
     time_notes: Optional[str] = None
+
 
 class SessionFinishResponse(BaseModel):
     id: int
