@@ -17,6 +17,7 @@ from db.models import AssessmentSession, Attempt, ContentItem, Student
 from dependencies import get_current_student, get_db
 
 router = APIRouter(prefix="/adaptation", tags=["Adaptation Runtime"])
+CORE_ACTIVITY_COUNT = 10
 
 
 def _first_consolidation_item(db: Session, level_id: int) -> ContentItem | None:
@@ -28,6 +29,20 @@ def _first_consolidation_item(db: Session, level_id: int) -> ContentItem | None:
         )
         .order_by(ContentItem.order_index)
         .first()
+    )
+
+
+def _completed_core_count(db: Session, session_id: int, level_id: int) -> int:
+    return (
+        db.query(Attempt.id)
+        .join(ContentItem, ContentItem.id == Attempt.item_id)
+        .filter(
+            Attempt.session_id == session_id,
+            Attempt.status == "completed",
+            ContentItem.kind == "core_activity",
+            ContentItem.level_id == level_id,
+        )
+        .count()
     )
 
 
@@ -52,7 +67,6 @@ def _ensure_recommended_attempt(
     item = db.query(ContentItem).filter(ContentItem.id == item_id).first()
     if not item:
         return None
-    # A recommendation is only allowed inside the level it was selected for.
     allowed_levels = {decision.previous_level, decision.new_level}
     if item.level_id not in allowed_levels:
         raise HTTPException(status_code=409, detail="Adaptive recommendation is outside the allowed level transition")
@@ -78,60 +92,50 @@ def _ensure_recommended_attempt(
     return attempt.id
 
 
-@router.post("/session/{session_id}/prepare-next")
-def prepare_adaptive_next(
-    session_id: int,
-    db: Session = Depends(get_db),
-    student: Student = Depends(get_current_student),
-):
-    session = db.query(AssessmentSession).filter(
-        AssessmentSession.id == session_id,
-        AssessmentSession.student_id == student.id,
-        AssessmentSession.session_type == "core",
-    ).with_for_update().first()
-    if not session:
-        raise HTTPException(status_code=404, detail="Learning session not found")
+def prepare_next_for_student(db: Session, student: Student, session: AssessmentSession) -> dict:
+    """Evaluate a completed-attempt snapshot and prepare the next approved item.
 
+    The function is idempotent: the decision snapshot is unique and the session/item
+    attempt pair is unique, so browser refreshes cannot duplicate a transition.
+    """
     decision_payload = evaluate_student(db, student)
     if not decision_payload.get("ready"):
         return {
             "continue_learning": session.status == "in_progress",
             "decision": decision_payload,
             "recommended_attempt_id": None,
+            "mapping_blocked": False,
+            "level_id": session.assigned_level,
         }
 
     decision = db.query(AdaptationDecision).filter(
         AdaptationDecision.id == decision_payload["decision_id"],
     ).one()
 
-    transitioned = decision.new_level != (session.assigned_level or decision.previous_level)
+    old_session_level = session.assigned_level or decision.previous_level
+    transitioned = decision.new_level != old_session_level
     if transitioned:
         session.assigned_level = decision.new_level
-        # A level transition continues the intervention rather than falsely
-        # unlocking the posttest from the just-finished previous-level core set.
         session.status = "in_progress"
         session.completed_at = None
         session.updated_at = datetime.now(timezone.utc)
 
     attempt_id = _ensure_recommended_attempt(db, session, decision)
     if attempt_id is not None and session.status == "completed":
-        # Support/consolidation must be completed before the learning session is
-        # allowed to remain academically complete.
         session.status = "in_progress"
         session.completed_at = None
         session.updated_at = datetime.now(timezone.utc)
 
-    # If all ten core activities completed but the approved decision calls for
-    # support/stability and there is no exact skill-matched reinforcement left,
-    # do not invent content. Record the mapping gap and keep the researcher in
-    # control instead of silently opening the posttest.
+    level_for_progress = session.assigned_level or student.current_level
+    core_complete = _completed_core_count(db, session.id, level_for_progress) >= CORE_ACTIVITY_COUNT
     mapping_blocked = (
-        session.status == "completed"
+        core_complete
         and decision.action in {"support", "stay"}
         and decision.explanation.get("reason") != "top_level_mastery"
         and attempt_id is None
     )
     if mapping_blocked:
+        # Never substitute an unrelated activity merely to keep the flow moving.
         session.status = "in_progress"
         session.completed_at = None
         explanation = dict(decision.explanation or {})
@@ -150,3 +154,19 @@ def prepare_adaptive_next(
         "mapping_blocked": mapping_blocked,
         "level_id": session.assigned_level,
     }
+
+
+@router.post("/session/{session_id}/prepare-next")
+def prepare_adaptive_next(
+    session_id: int,
+    db: Session = Depends(get_db),
+    student: Student = Depends(get_current_student),
+):
+    session = db.query(AssessmentSession).filter(
+        AssessmentSession.id == session_id,
+        AssessmentSession.student_id == student.id,
+        AssessmentSession.session_type == "core",
+    ).with_for_update().first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Learning session not found")
+    return prepare_next_for_student(db, student, session)
