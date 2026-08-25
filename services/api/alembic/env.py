@@ -11,6 +11,7 @@ from db.models import Base
 # the production schema rather than silently ignoring them.
 import db.activity_models  # noqa: F401,E402
 import db.adaptation_models  # noqa: F401,E402
+import db.speech_models  # noqa: F401,E402
 from db.database import SQLALCHEMY_DATABASE_URL
 
 config = context.config
