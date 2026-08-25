@@ -137,7 +137,8 @@ class TestStudentLifecycle:
         assert body["posttest_enabled"] is False
         assert body["posttest_eligible"] is False
         assert body["created_at"]
-        assert re.fullmatch(r"[A-HJ-NP-Z]{4}-[2-9]{4}", body["access_code"])
+        assert re.fullmatch(r"\d{6}", body["access_code"])
+        assert not body["access_code"].startswith("0")
 
         detail = researcher_client.get(f"/researcher/students/{body['id']}")
         assert detail.status_code == 200
@@ -208,7 +209,7 @@ class TestStudentLifecycle:
             json={"enabled": True},
         )
         assert too_early.status_code == 409
-        assert "ten assigned learning activities" in too_early.json()["detail"]
+        assert "الأنشطة التعليمية العشرة" in too_early.json()["detail"]
 
         db = SessionLocal()
         student = db.query(Student).filter(Student.id == student_id).one()
@@ -434,7 +435,7 @@ class TestStage2:
 
         res = student_client.post(f"/assessment/session/{session_id}/finish")
         assert res.status_code == 400
-        assert "30 items" in res.json()["detail"]
+        assert "الأسئلة الثلاثين" in res.json()["detail"]
 
     def test_profile_as_student_200(self, student_client):
         r = student_client.get("/profile")
@@ -611,7 +612,7 @@ class TestAssessmentAndScoring:
         )
 
         assert response.status_code == 400
-        assert response.json()["detail"] == "Option does not belong to this step"
+        assert response.json()["detail"] == "الإجابة المختارة غير صالحة"
 
     def test_invalid_audio_reopens_attempt_and_accepts_rerecord(
         self, client, monkeypatch
@@ -710,7 +711,7 @@ class TestAssessmentAndScoring:
 
         finish = client.post(f"/assessment/session/{session_id}/finish")
         assert finish.status_code == 409
-        assert "requiring rerecord" in finish.json()["detail"]
+        assert "يحتاج إلى إعادة" in finish.json()["detail"]
 
         second_key = f"audio/{student_id}/second.webm"
         replacement = client.post(
@@ -724,7 +725,8 @@ class TestAssessmentAndScoring:
             },
         )
         assert replacement.status_code == 200
-        assert replacement.json()["message"] == "Rerecord submitted"
+        assert replacement.json()["status"] == "ok"
+        assert replacement.json()["is_correct"] is None
 
         db = SessionLocal()
         refreshed_attempt = db.query(Attempt).filter(Attempt.id == attempt_id).one()
