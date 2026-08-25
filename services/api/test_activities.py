@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 
 import seed
 from db.database import SessionLocal
-from db.models import AssessmentSession, ContentItem, ContentOption, Student
+from db.models import AssessmentSession, Attempt, AttemptResponse, ContentItem, ContentOption, Student
 
 
 def _complete_pretest(access_code: str = "STU001", level: int = 1) -> int:
@@ -60,6 +60,37 @@ def _correct_option_id(step_id: int) -> int:
     return option_id
 
 
+def _mark_audio_round_reviewed(session_id: int, item_id: int, step_id: int) -> None:
+    """Finish an audio round at the assessment-review boundary for this lifecycle test.
+
+    Audio upload/review itself has dedicated coverage. This helper keeps the older
+    Stage-2 "exactly ten core activities" regression focused on routing/resume and
+    avoids pretending a read-aloud round has a multiple-choice option.
+    """
+    db = SessionLocal()
+    attempt = db.query(Attempt).filter(
+        Attempt.session_id == session_id,
+        Attempt.item_id == item_id,
+        Attempt.status == "in_progress",
+    ).one()
+    existing = db.query(AttemptResponse).filter(
+        AttemptResponse.attempt_id == attempt.id,
+        AttemptResponse.step_id == step_id,
+    ).first()
+    if not existing:
+        db.add(
+            AttemptResponse(
+                attempt_id=attempt.id,
+                step_id=step_id,
+                selected_option_id=None,
+                is_correct=True,
+                elapsed_seconds=1,
+            )
+        )
+        db.commit()
+    db.close()
+
+
 class TestActivityLifecycle:
     def test_learning_requires_completed_pretest(self, student_client):
         status = student_client.get("/activities/status")
@@ -100,6 +131,10 @@ class TestActivityLifecycle:
 
             step = activity["step"]
             interaction = activity["item"]["interaction_type"]
+            if interaction in {"read_aloud", "timed_read_aloud"} and not step["media_gaps"]:
+                _mark_audio_round_reviewed(session_id, activity["item"]["id"], step["id"])
+                continue
+
             if step["media_gaps"]:
                 payload = {
                     "step_id": step["id"],
