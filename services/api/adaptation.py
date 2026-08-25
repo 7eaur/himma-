@@ -1,4 +1,4 @@
-"""P06 adaptive learning engine.
+"""P06 adaptive learning engine and event-backed rewards.
 
 Academic rules come from the approved Himma requirements: the newest three valid
 attempts are weighted 50/30/20; <50 receives support first and can demote only
@@ -17,7 +17,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from db.adaptation_models import AdaptationDecision
+from db.adaptation_models import AdaptationDecision, RewardEvent
 from db.activity_models import ActivityStepResponse
 from db.models import (
     AssessmentSession,
@@ -36,6 +36,12 @@ WEIGHTS = (0.50, 0.30, 0.20)  # newest -> oldest
 PROMOTION_THRESHOLD = 80.0
 SUPPORT_THRESHOLD = 50.0
 CRITICAL_SKILL_FLOOR = 60.0
+
+BADGE_BY_LEVEL = {
+    1: "مستكشف الحروف",
+    2: "بطل الكلمات",
+    3: "قارئ متميز",
+}
 
 
 @dataclass(frozen=True)
@@ -151,6 +157,9 @@ def _valid_signals(db: Session, student_id: int, level_id: int) -> list[AttemptS
 
 
 def _skill_gate_state(db: Session, level_id: int, signals: list[AttemptSignal]) -> tuple[bool, Optional[float], Optional[int]]:
+    # The approved source does not mark a smaller critical-skill subset in the
+    # executable catalog. Conservatively, every core skill is treated as required;
+    # this prevents a false promotion and can be relaxed only by an explicit map.
     required_skill_ids = {
         row[0]
         for row in db.query(ContentItem.skill_id)
@@ -170,7 +179,129 @@ def _skill_gate_state(db: Session, level_id: int, signals: list[AttemptSignal]) 
     return coverage_ok, minimum, weakest_skill_id
 
 
+def _recommended_reinforcement(db: Session, student_id: int, level_id: int, weakest_skill_id: Optional[int]) -> Optional[int]:
+    if weakest_skill_id is None:
+        return None
+    used = {
+        row[0]
+        for row in db.query(Attempt.item_id)
+        .join(AssessmentSession, AssessmentSession.id == Attempt.session_id)
+        .join(ContentItem, ContentItem.id == Attempt.item_id)
+        .filter(
+            AssessmentSession.student_id == student_id,
+            ContentItem.kind == "reinforcement_activity",
+            ContentItem.level_id == level_id,
+        )
+        .all()
+    }
+    query = db.query(ContentItem).filter(
+        ContentItem.kind == "reinforcement_activity",
+        ContentItem.level_id == level_id,
+        ContentItem.skill_id == weakest_skill_id,
+    )
+    if used:
+        query = query.filter(ContentItem.id.notin_(used))
+    item = query.order_by(ContentItem.order_index).first()
+    return item.id if item else None
+
+
+def _stars_for_attempt(db: Session, attempt: Attempt) -> tuple[int, dict]:
+    structured = db.query(ActivityStepResponse).filter(
+        ActivityStepResponse.attempt_id == attempt.id,
+    ).order_by(ActivityStepResponse.step_id, ActivityStepResponse.attempt_no).all()
+    retries = False
+    hints = any(row.hint_used for row in structured)
+    by_step: dict[int, list[ActivityStepResponse]] = {}
+    for row in structured:
+        by_step.setdefault(row.step_id, []).append(row)
+    retries = any(len(rows) > 1 for rows in by_step.values())
+
+    if not retries and not hints:
+        stars = 3
+        reason = "completed_without_help"
+    elif retries:
+        stars = 1
+        reason = "completed_after_retries"
+    else:
+        # The client source line for the two-star wording is incomplete. This
+        # middle bucket is intentionally limited to a completed activity that
+        # used help but did not require a repeated submitted attempt.
+        stars = 2
+        reason = "completed_with_help_without_retry"
+    return stars, {"reason": reason, "retry_used": retries, "hint_used": hints}
+
+
+def ensure_rewards(db: Session, student_id: int) -> list[RewardEvent]:
+    completed = (
+        db.query(Attempt, ContentItem, AssessmentSession)
+        .join(ContentItem, ContentItem.id == Attempt.item_id)
+        .join(AssessmentSession, AssessmentSession.id == Attempt.session_id)
+        .filter(
+            AssessmentSession.student_id == student_id,
+            Attempt.status == "completed",
+            ContentItem.kind.in_(["core_activity", "reinforcement_activity"]),
+        )
+        .order_by(Attempt.id)
+        .all()
+    )
+    changed = False
+    for attempt, item, session in completed:
+        key = f"activity:{attempt.id}:stars"
+        exists = db.query(RewardEvent.id).filter(
+            RewardEvent.student_id == student_id,
+            RewardEvent.reward_key == key,
+        ).first()
+        if not exists:
+            stars, details = _stars_for_attempt(db, attempt)
+            db.add(RewardEvent(
+                student_id=student_id,
+                attempt_id=attempt.id,
+                reward_type="stars",
+                reward_key=key,
+                stars=stars,
+                label=f"{stars} من 3",
+                details={**details, "item_id": item.id, "level_id": item.level_id},
+            ))
+            changed = True
+
+    for level_id, label in BADGE_BY_LEVEL.items():
+        completed_core = (
+            db.query(Attempt.id)
+            .join(ContentItem, ContentItem.id == Attempt.item_id)
+            .join(AssessmentSession, AssessmentSession.id == Attempt.session_id)
+            .filter(
+                AssessmentSession.student_id == student_id,
+                Attempt.status == "completed",
+                ContentItem.kind == "core_activity",
+                ContentItem.level_id == level_id,
+            )
+            .count()
+        )
+        key = f"level:{level_id}:core-complete"
+        if completed_core >= 10 and not db.query(RewardEvent.id).filter(
+            RewardEvent.student_id == student_id,
+            RewardEvent.reward_key == key,
+        ).first():
+            db.add(RewardEvent(
+                student_id=student_id,
+                attempt_id=None,
+                reward_type="badge",
+                reward_key=key,
+                stars=None,
+                label=label,
+                details={"event": "ten_core_activities_completed", "level_id": level_id},
+            ))
+            changed = True
+
+    if changed:
+        db.commit()
+    return db.query(RewardEvent).filter(
+        RewardEvent.student_id == student_id,
+    ).order_by(RewardEvent.id).all()
+
+
 def evaluate_student(db: Session, student: Student) -> dict:
+    ensure_rewards(db, student.id)
     level_id = student.current_level
     signals = _valid_signals(db, student.id, level_id)
     if len(signals) < 3:
@@ -213,6 +344,9 @@ def evaluate_student(db: Session, student: Student) -> dict:
         previous_low=previous_low,
     )
     low_count = (int(previous.consecutive_low_count) + 1 if previous_low else 1) if mastery < SUPPORT_THRESHOLD else 0
+    recommended_item_id = None
+    if action in {"support", "stay"} and reason != "top_level_mastery":
+        recommended_item_id = _recommended_reinforcement(db, student.id, level_id, weakest_skill_id)
     explanation = {
         "weights_newest_to_oldest": list(WEIGHTS),
         "attempts_newest_to_oldest": [
@@ -224,6 +358,7 @@ def evaluate_student(db: Session, student: Student) -> dict:
         "required_skill_floor": CRITICAL_SKILL_FLOOR,
         "promotion_threshold": PROMOTION_THRESHOLD,
         "support_threshold": SUPPORT_THRESHOLD,
+        "reinforcement_assignment": "exact_weakest_skill_match" if recommended_item_id else None,
         "reason": reason,
     }
     decision = AdaptationDecision(
@@ -234,6 +369,7 @@ def evaluate_student(db: Session, student: Student) -> dict:
         previous_level=level_id,
         new_level=new_level,
         weakest_skill_id=weakest_skill_id,
+        recommended_item_id=recommended_item_id,
         valid_attempt_count=len(signals),
         consecutive_low_count=low_count,
         snapshot_key=snapshot_key,
@@ -257,11 +393,24 @@ def _decision_payload(decision: AdaptationDecision) -> dict:
         "previous_level": decision.previous_level,
         "new_level": decision.new_level,
         "weakest_skill_id": decision.weakest_skill_id,
+        "recommended_item_id": decision.recommended_item_id,
         "valid_attempt_count": decision.valid_attempt_count,
         "consecutive_low_count": decision.consecutive_low_count,
         "explanation": decision.explanation,
         "manual_reason": decision.manual_reason,
         "created_at": decision.created_at,
+    }
+
+
+def _reward_payload(reward: RewardEvent) -> dict:
+    return {
+        "id": reward.id,
+        "type": reward.reward_type,
+        "key": reward.reward_key,
+        "stars": reward.stars,
+        "label": reward.label,
+        "details": reward.details,
+        "created_at": reward.created_at,
     }
 
 
@@ -271,6 +420,14 @@ def adaptation_status(
     student: Student = Depends(get_current_student),
 ):
     return evaluate_student(db, student)
+
+
+@router.get("/rewards")
+def student_rewards(
+    db: Session = Depends(get_db),
+    student: Student = Depends(get_current_student),
+):
+    return [_reward_payload(row) for row in ensure_rewards(db, student.id)]
 
 
 @router.get("/researcher/students/{student_id}/adaptation/history")
@@ -286,6 +443,18 @@ def adaptation_history(
         AdaptationDecision.student_id == student_id,
     ).order_by(AdaptationDecision.id).all()
     return [_decision_payload(row) for row in rows]
+
+
+@router.get("/researcher/students/{student_id}/rewards")
+def researcher_rewards(
+    student_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    student = db.query(Student).filter(Student.id == student_id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    return [_reward_payload(row) for row in ensure_rewards(db, student.id)]
 
 
 @router.post("/researcher/students/{student_id}/adaptation/manual-override")
@@ -307,6 +476,7 @@ def manual_override(
         previous_level=previous_level,
         new_level=body.new_level,
         weakest_skill_id=None,
+        recommended_item_id=None,
         valid_attempt_count=0,
         consecutive_low_count=0,
         snapshot_key=None,
