@@ -27,7 +27,6 @@ class TestResearcherAuth:
         assert r.status_code == 200
         body = r.json()
         assert body["role"] == "researcher"
-        # Cookie must be set
         assert "access_token" in r.cookies
 
     def test_login_wrong_password_401(self, client):
@@ -169,11 +168,13 @@ class TestStudentLifecycle:
         assert rejected.status_code == 409
         assert "15" in rejected.json()["detail"]
 
-    def test_posttest_requires_completed_pretest_and_researcher_enable(self, client):
+    def test_posttest_requires_completed_pretest_core_path_and_researcher_enable(self, client):
         from datetime import datetime, timezone
+        import seed
         from db.database import SessionLocal
-        from db.models import AssessmentSession, Student
+        from db.models import AssessmentSession, Attempt, ContentItem, Student
 
+        seed.run_seed()
         assert client.post(
             "/auth/student-login", json={"access_code": "STU001"}
         ).status_code == 200
@@ -184,12 +185,13 @@ class TestStudentLifecycle:
 
         db = SessionLocal()
         student = db.query(Student).filter(Student.access_code == "STU001").one()
-        db.add(AssessmentSession(
+        pretest = AssessmentSession(
             student_id=student.id,
             session_type="pretest",
             status="completed",
             completed_at=datetime.now(timezone.utc),
-        ))
+        )
+        db.add(pretest)
         db.commit()
         student_id = student.id
         db.close()
@@ -201,6 +203,39 @@ class TestStudentLifecycle:
                 "password": "test-only-researcher-password",
             },
         ).status_code == 200
+        too_early = client.post(
+            f"/researcher/students/{student_id}/posttest-access",
+            json={"enabled": True},
+        )
+        assert too_early.status_code == 409
+        assert "ten assigned learning activities" in too_early.json()["detail"]
+
+        db = SessionLocal()
+        student = db.query(Student).filter(Student.id == student_id).one()
+        core_session = AssessmentSession(
+            student_id=student.id,
+            session_type="core",
+            status="completed",
+            assigned_level=student.current_level,
+            completed_at=datetime.now(timezone.utc),
+        )
+        db.add(core_session)
+        db.flush()
+        core_items = db.query(ContentItem).filter(
+            ContentItem.kind == "core_activity",
+            ContentItem.level_id == student.current_level,
+        ).order_by(ContentItem.order_index).all()
+        assert len(core_items) == 10
+        for item in core_items:
+            db.add(Attempt(
+                session_id=core_session.id,
+                item_id=item.id,
+                status="completed",
+                completed_at=datetime.now(timezone.utc),
+            ))
+        db.commit()
+        db.close()
+
         enabled = client.post(
             f"/researcher/students/{student_id}/posttest-access",
             json={"enabled": True},
@@ -208,6 +243,8 @@ class TestStudentLifecycle:
         assert enabled.status_code == 200
         assert enabled.json()["posttest_enabled"] is True
         assert enabled.json()["posttest_eligible"] is True
+        assert enabled.json()["core_completed_items"] == 10
+        assert enabled.json()["core_completed"] is True
 
         assert client.post(
             "/auth/student-login", json={"access_code": "STU001"}
@@ -336,8 +373,7 @@ class TestStage2:
     def test_idor_and_401_403(self, client):
         res = client.get("/assessment/active")
         assert res.status_code == 401
-        
-        # Try without valid token
+
         res = client.post("/assessment/start", json={"session_type": "pretest"})
         assert res.status_code == 401
 
@@ -389,19 +425,17 @@ class TestStage2:
             headers=headers,
         )
         assert conflict.status_code == 409
-        
+
     def test_prevent_early_finish(self, student_client):
-        # Get active or start
         res = student_client.get("/assessment/active")
         if not res.json():
             res = student_client.post("/assessment/start", json={"session_type": "pretest"})
         session_id = res.json()["id"]
-        
-        # Try to finish
+
         res = student_client.post(f"/assessment/session/{session_id}/finish")
-        # Should fail because 30 items not completed
         assert res.status_code == 400
         assert "30 items" in res.json()["detail"]
+
     def test_profile_as_student_200(self, student_client):
         r = student_client.get("/profile")
         assert r.status_code == 200
@@ -424,7 +458,6 @@ class TestLogout:
     def test_logout_clears_cookie(self, researcher_client):
         r = researcher_client.post("/auth/logout")
         assert r.status_code == 200
-        # After logout, /auth/me must fail
         r2 = researcher_client.get("/auth/me")
         assert r2.status_code == 401
 
@@ -442,11 +475,10 @@ class TestAssessmentAndScoring:
             GradeAudioRequest(is_valid=True, target_units=10, deletions=-1)
 
     def test_student_start_assessment(self, student_client):
-        # We assume student STU001 is set up by conftest
         r = student_client.post("/assessment/start", json={"session_type": "pretest"})
         assert r.status_code == 200
         assert r.json()["session_type"] == "pretest"
-        
+
     def test_researcher_pending_audio_empty(self, researcher_client):
         r = researcher_client.get("/review/pending-audio")
         assert r.status_code == 200
