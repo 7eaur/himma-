@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { BookOpen, CheckCircle2, LogOut } from "lucide-react";
+import pathStyles from "./studentPath.module.css";
 
 interface StudentMe {
   id: number;
@@ -135,7 +136,7 @@ export default function StudentHomePage() {
     : 0;
 
   let primaryLabel = "ابدأ الاختبار القبلي";
-  let primaryDisabled = starting || student?.next_action === "completed" || (isLearning && learningCompleted);
+  const primaryDisabled = starting || student?.next_action === "completed" || (isLearning && learningCompleted);
   if (starting) primaryLabel = "جاري التجهيز...";
   else if (student?.active_session?.session_type === "pretest" || student?.active_session?.session_type === "posttest") primaryLabel = "استئناف الاختبار";
   else if (isLearning && (student?.active_session?.session_type === "core" || learning?.session_id)) primaryLabel = "متابعة الأنشطة";
@@ -173,24 +174,24 @@ export default function StudentHomePage() {
         {student?.grade_level && <div className="student-grade-badge">الصف {student.grade_level}</div>}
 
         {isLearning && student && (
-          <section className="student-learning-card" aria-label="تقدم الأنشطة التعليمية">
-            <div className="student-learning-title">
+          <section className={pathStyles.learningCard} aria-label="تقدم الأنشطة التعليمية">
+            <div className={pathStyles.learningTitle}>
               <BookOpen size={21} aria-hidden="true" />
               <span>مستواك: {LEVEL_NAMES[student.current_level] || `المستوى ${student.current_level}`}</span>
             </div>
-            <div className="student-learning-progress-row">
+            <div className={pathStyles.progressRow}>
               <span>{learning?.completed_items ?? 0} من {learning?.total_items ?? 10}</span>
               <span>{learningProgress}%</span>
             </div>
-            <div className="student-learning-progress" aria-hidden="true">
-              <span style={{ width: `${learningProgress}%` }} />
+            <div className={pathStyles.progressTrack} aria-hidden="true">
+              <span className={pathStyles.progressFill} style={{ width: `${learningProgress}%` }} />
             </div>
-            <p className="student-learning-note">
+            <p className={pathStyles.learningNote}>
               {learningCompleted
                 ? "أحسنت، أكملت أنشطة مستواك. سيظهر الاختبار البعدي عندما تفتحه الباحثة."
                 : "أمامك عشرة أنشطة قصيرة. كل شاشة فيها مهمة واحدة واضحة."}
             </p>
-            {learningCompleted && <CheckCircle2 size={26} className="student-learning-check" aria-hidden="true" />}
+            {learningCompleted && <CheckCircle2 size={26} className={pathStyles.learningCheck} aria-hidden="true" />}
           </section>
         )}
 
