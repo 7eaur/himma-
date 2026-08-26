@@ -369,10 +369,33 @@ test.describe("Himma recovered vertical slice", () => {
     }
     await shot(page, "14-supervisor-student-management-10-of-10");
 
+    if (adaptiveReviewHold) {
+      const panel = page.getByTestId("reinforcement-review-panel");
+      await expect(panel).toBeVisible({ timeout: 10000 });
+      await panel.getByLabel("سبب الإسناد").fill("اختيار نشاط تقوية معتمد لاستكمال المسار بعد مراجعة الأداء.");
+      await panel.getByRole("button", { name: "إسناد النشاط وتوثيق القرار" }).click();
+      await expect(page.getByText("تم إسناد نشاط التقوية. يستطيع الطالب الآن متابعة مساره.")).toBeVisible({ timeout: 8000 });
+      await shot(page, "15-supervisor-reinforcement-assigned");
+
+      await context.clearCookies();
+      await loginAsStudent(request, context, accessCode);
+      await page.goto(`/student/activity/${learningSessionId}`);
+      await expect(page.getByTestId("student-adaptive-hold")).toHaveCount(0, { timeout: 10000 });
+      await expect(page.getByTestId("activity-session")).toHaveAttribute("data-phase", "active", { timeout: 15000 });
+      const resumedResponse = await request.get(`${API_URL}/activities/session/${learningSessionId}/next`);
+      expect(resumedResponse.status()).toBe(200);
+      const resumed: ActivityPayload | null = await resumedResponse.json();
+      expect(resumed).toBeTruthy();
+      await shot(page, "16-student-reinforcement-resumed");
+
+      await context.clearCookies();
+      await loginAsSupervisor(request, context);
+    }
+
     await page.goto("/admin/reports");
     await expect(page.getByRole("heading", { name: "التقارير والإحصائيات" })).toBeVisible();
     await expect(page.getByText(studentName)).toBeVisible();
-    await shot(page, "15-supervisor-live-reports");
+    await shot(page, adaptiveReviewHold ? "17-supervisor-live-reports" : "15-supervisor-live-reports");
 
     await page.goto("/admin/students");
     await expect(page.getByText(studentName)).toBeVisible({ timeout: 5000 });
