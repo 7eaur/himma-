@@ -1,8 +1,8 @@
 """Runtime bridge between the durable Stage-2 activity session and P06 decisions.
 
-Reinforcement and consolidation attempts intentionally share the durable `core`
-learning session. They are separate content kinds, so researcher/core progress
-continues to count only the ten approved core activities for the *current* level.
+Reinforcement and consolidation attempts intentionally share the durable ``core``
+learning session. They are separate content kinds, so supervisor/core progress
+continues to count only the ten approved core activities for the current level.
 """
 
 from datetime import datetime, timezone
@@ -46,6 +46,26 @@ def _completed_core_count(db: Session, session_id: int, level_id: int) -> int:
     )
 
 
+def _recommended_attempt_state(
+    db: Session,
+    session_id: int,
+    item_id: int | None,
+) -> str | None:
+    """Return the durable state of the recommendation already attached to a decision.
+
+    A completed reinforcement is a fulfilled recommendation, not a missing mapping.
+    This distinction prevents a student from being blocked again immediately after
+    completing the exact remedial activity that the adaptive engine assigned.
+    """
+    if item_id is None:
+        return None
+    attempt = db.query(Attempt).filter(
+        Attempt.session_id == session_id,
+        Attempt.item_id == item_id,
+    ).first()
+    return attempt.status if attempt else None
+
+
 def _ensure_recommended_attempt(
     db: Session,
     session: AssessmentSession,
@@ -69,7 +89,7 @@ def _ensure_recommended_attempt(
         return None
     allowed_levels = {decision.previous_level, decision.new_level}
     if item.level_id not in allowed_levels:
-        raise HTTPException(status_code=409, detail="Adaptive recommendation is outside the allowed level transition")
+        raise HTTPException(status_code=409, detail="نشاط التوصية خارج انتقال المستوى المسموح")
 
     existing = db.query(Attempt).filter(
         Attempt.session_id == session.id,
@@ -93,10 +113,11 @@ def _ensure_recommended_attempt(
 
 
 def prepare_next_for_student(db: Session, student: Student, session: AssessmentSession) -> dict:
-    """Evaluate a completed-attempt snapshot and prepare the next approved item.
+    """Evaluate the latest valid snapshot and prepare the next approved activity.
 
-    The function is idempotent: the decision snapshot is unique and the session/item
-    attempt pair is unique, so browser refreshes cannot duplicate a transition.
+    The function is idempotent. Browser refreshes cannot duplicate a transition,
+    and a completed reinforcement is remembered as fulfilled instead of becoming
+    a false mapping gap on the next request.
     """
     decision_payload = evaluate_student(db, student)
     if not decision_payload.get("ready"):
@@ -120,7 +141,22 @@ def prepare_next_for_student(db: Session, student: Student, session: AssessmentS
         session.completed_at = None
         session.updated_at = datetime.now(timezone.utc)
 
+    recommendation_state_before = _recommended_attempt_state(
+        db,
+        session.id,
+        decision.recommended_item_id,
+    )
     attempt_id = _ensure_recommended_attempt(db, session, decision)
+    recommendation_state_after = _recommended_attempt_state(
+        db,
+        session.id,
+        decision.recommended_item_id,
+    )
+    recommendation_fulfilled = (
+        recommendation_state_before == "completed"
+        or recommendation_state_after == "completed"
+    )
+
     if attempt_id is not None and session.status == "completed":
         session.status = "in_progress"
         session.completed_at = None
@@ -133,13 +169,20 @@ def prepare_next_for_student(db: Session, student: Student, session: AssessmentS
         and decision.action in {"support", "stay"}
         and decision.explanation.get("reason") != "top_level_mastery"
         and attempt_id is None
+        and not recommendation_fulfilled
     )
     if mapping_blocked:
-        # Never substitute an unrelated activity merely to keep the flow moving.
+        # Never substitute unrelated content merely to keep the flow moving.
         session.status = "in_progress"
         session.completed_at = None
         explanation = dict(decision.explanation or {})
-        explanation["mapping_gap"] = "no_unused_exact_skill_reinforcement"
+        explanation["mapping_gap"] = "no_approved_reinforcement_selected_for_weakest_skill"
+        decision.explanation = explanation
+    elif recommendation_fulfilled:
+        explanation = dict(decision.explanation or {})
+        if explanation.pop("mapping_gap", None) is not None:
+            explanation["mapping_gap_resolved"] = True
+        explanation["reinforcement_fulfilled"] = True
         decision.explanation = explanation
 
     db.commit()
@@ -152,6 +195,7 @@ def prepare_next_for_student(db: Session, student: Student, session: AssessmentS
         },
         "recommended_attempt_id": attempt_id,
         "mapping_blocked": mapping_blocked,
+        "recommendation_fulfilled": recommendation_fulfilled,
         "level_id": session.assigned_level,
     }
 
@@ -168,5 +212,5 @@ def prepare_adaptive_next(
         AssessmentSession.session_type == "core",
     ).with_for_update().first()
     if not session:
-        raise HTTPException(status_code=404, detail="Learning session not found")
+        raise HTTPException(status_code=404, detail="جلسة التعلم غير موجودة")
     return prepare_next_for_student(db, student, session)
