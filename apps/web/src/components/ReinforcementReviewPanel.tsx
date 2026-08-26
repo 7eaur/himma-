@@ -85,9 +85,9 @@ export default function ReinforcementReviewPanel() {
   if (!studentId) return null;
 
   const visibleMessage = message?.studentId === studentId ? message : null;
-  const reviewMatchesStudent = review && String(review.student_id) === studentId;
+  const activeReview: ReviewPayload | null = review && String(review.student_id) === studentId ? review : null;
 
-  if (!reviewMatchesStudent) {
+  if (!activeReview) {
     if (!visibleMessage) return null;
     return (
       <section className="mx-auto mb-6 w-full max-w-6xl" dir="rtl" aria-live="polite">
@@ -99,7 +99,7 @@ export default function ReinforcementReviewPanel() {
     );
   }
 
-  const available = reviewMatchesStudent.options.filter((option) => !option.already_used);
+  const available = activeReview.options.filter((option) => !option.already_used);
 
   const assign = async () => {
     if (!selectedItem) {
@@ -138,7 +138,7 @@ export default function ReinforcementReviewPanel() {
           <div>
             <div className="mb-1 flex items-center gap-2 text-sm font-bold text-amber-800"><AlertCircle size={16} /> يحتاج قرار تقوية من المشرف</div>
             <h2 className="text-xl font-extrabold text-navy">اختر نشاطًا معتمدًا قبل متابعة المسار</h2>
-            <p className="mt-2 text-sm leading-7 text-slate-600">لم يجد المحرك تطابقًا آليًا آمنًا بين المهارة الأضعف وأحد أنشطة التقوية الخمسة المعتمدة. لن تختار المنصة نشاطًا عشوائيًا؛ اختر من الأنشطة المعتمدة في المستوى {reviewMatchesStudent.level_id} واكتب سبب القرار.</p>
+            <p className="mt-2 text-sm leading-7 text-slate-600">لم يجد المحرك تطابقًا آليًا آمنًا بين المهارة الأضعف وأحد أنشطة التقوية الخمسة المعتمدة. لن تختار المنصة نشاطًا عشوائيًا؛ اختر من الأنشطة المعتمدة في المستوى {activeReview.level_id} واكتب سبب القرار.</p>
           </div>
         </div>
 
