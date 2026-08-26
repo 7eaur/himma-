@@ -35,7 +35,6 @@ export default function ReinforcementReviewPanel() {
   const pathname = usePathname();
   const studentId = useMemo(() => pathname.match(/^\/admin\/students\/(\d+)$/)?.[1] ?? null, [pathname]);
   const [review, setReview] = useState<ReviewPayload | null>(null);
-  const [loading, setLoading] = useState(false);
   const [selectedItem, setSelectedItem] = useState("");
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
@@ -43,11 +42,8 @@ export default function ReinforcementReviewPanel() {
 
   useEffect(() => {
     let cancelled = false;
-    if (!studentId) {
-      setReview(null);
-      return;
-    }
-    setLoading(true);
+    if (!studentId) return;
+
     void fetch(`/api/researcher/students/${studentId}/adaptation/reinforcement-options`, { cache: "no-store" })
       .then(async (response) => {
         const data = await response.json().catch(() => null);
@@ -64,16 +60,14 @@ export default function ReinforcementReviewPanel() {
       })
       .catch((error: unknown) => {
         if (!cancelled) setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر فحص حالة التقوية" });
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
       });
+
     return () => {
       cancelled = true;
     };
   }, [studentId]);
 
-  if (!studentId || loading || !review) return null;
+  if (!studentId || !review || String(review.student_id) !== studentId) return null;
 
   const available = review.options.filter((option) => !option.already_used);
 
