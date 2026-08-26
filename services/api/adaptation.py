@@ -15,6 +15,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from db.adaptation_models import AdaptationDecision, RewardEvent
@@ -230,6 +231,22 @@ def _stars_for_attempt(db: Session, attempt: Attempt) -> tuple[int, dict]:
     return stars, {"reason": reason, "retry_used": retries, "hint_used": hints}
 
 
+def _add_reward_once(db: Session, reward: RewardEvent) -> bool:
+    """Insert a reward without allowing a concurrent duplicate to abort the outer transaction.
+
+    Reward generation is called by several student endpoints (status, next activity,
+    rewards) and those requests can overlap in a browser. The database unique key is
+    the final authority; a savepoint contains the expected loser of that race.
+    """
+    try:
+        with db.begin_nested():
+            db.add(reward)
+            db.flush()
+        return True
+    except IntegrityError:
+        return False
+
+
 def ensure_rewards(db: Session, student_id: int) -> list[RewardEvent]:
     completed = (
         db.query(Attempt, ContentItem, AssessmentSession)
@@ -257,16 +274,18 @@ def ensure_rewards(db: Session, student_id: int) -> list[RewardEvent]:
         ).first()
         if not exists:
             stars, details = _stars_for_attempt(db, attempt)
-            db.add(RewardEvent(
-                student_id=student_id,
-                attempt_id=attempt.id,
-                reward_type="stars",
-                reward_key=key,
-                stars=stars,
-                label=f"{stars} من 3",
-                details={**details, "item_id": item.id, "level_id": item.level_id},
-            ))
-            changed = True
+            changed = _add_reward_once(
+                db,
+                RewardEvent(
+                    student_id=student_id,
+                    attempt_id=attempt.id,
+                    reward_type="stars",
+                    reward_key=key,
+                    stars=stars,
+                    label=f"{stars} من 3",
+                    details={**details, "item_id": item.id, "level_id": item.level_id},
+                ),
+            ) or changed
 
     for level_id, label in BADGE_BY_LEVEL.items():
         completed_core = (
@@ -289,16 +308,18 @@ def ensure_rewards(db: Session, student_id: int) -> list[RewardEvent]:
             RewardEvent.student_id == student_id,
             RewardEvent.reward_key == key,
         ).first():
-            db.add(RewardEvent(
-                student_id=student_id,
-                attempt_id=None,
-                reward_type="badge",
-                reward_key=key,
-                stars=None,
-                label=label,
-                details={"event": "ten_valid_core_activities_completed", "level_id": level_id},
-            ))
-            changed = True
+            changed = _add_reward_once(
+                db,
+                RewardEvent(
+                    student_id=student_id,
+                    attempt_id=None,
+                    reward_type="badge",
+                    reward_key=key,
+                    stars=None,
+                    label=label,
+                    details={"event": "ten_valid_core_activities_completed", "level_id": level_id},
+                ),
+            ) or changed
 
     if changed:
         db.commit()
@@ -445,7 +466,7 @@ def researcher_adaptation_history(
 ):
     student = db.query(Student).filter(Student.id == student_id).first()
     if not student:
-        raise HTTPException(status_code=404, detail="Student not found")
+        raise HTTPException(status_code=404, detail="الطالب غير موجود")
     return [
         _decision_payload(row)
         for row in db.query(AdaptationDecision)
@@ -463,7 +484,7 @@ def researcher_rewards(
 ):
     student = db.query(Student).filter(Student.id == student_id).first()
     if not student:
-        raise HTTPException(status_code=404, detail="Student not found")
+        raise HTTPException(status_code=404, detail="الطالب غير موجود")
     return [_reward_payload(row) for row in ensure_rewards(db, student_id)]
 
 
@@ -476,7 +497,7 @@ def manual_override(
 ):
     student = db.query(Student).filter(Student.id == student_id).with_for_update().first()
     if not student:
-        raise HTTPException(status_code=404, detail="Student not found")
+        raise HTTPException(status_code=404, detail="الطالب غير موجود")
     previous_level = student.current_level
     decision = AdaptationDecision(
         student_id=student.id,
