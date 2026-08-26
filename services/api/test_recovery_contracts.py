@@ -115,6 +115,22 @@ def test_listen_choose_image_restores_audio_and_clickable_image_mapping(student_
     assert {asset["option_id"] for asset in images} == {option["id"] for option in step["options"]}
 
 
+def test_approved_image_and_audio_assets_serve_real_bytes(client):
+    image = client.get("/media/VOC-01")
+    assert image.status_code == 200
+    assert image.headers["content-type"].startswith("image/")
+    assert len(image.content) > 1_000
+
+    audio = client.get("/media/LET-01")
+    assert audio.status_code == 200
+    assert audio.headers["content-type"].startswith("audio/")
+    assert len(audio.content) > 500
+
+    missing = client.get("/media/NOT-APPROVED")
+    assert missing.status_code == 404
+    assert "غير متوفر" in missing.json()["detail"]
+
+
 def test_sequence_assessment_uses_structured_response_not_generic_single_choice(student_client):
     from db.database import SessionLocal
     from db.activity_models import ActivityStepResponse
