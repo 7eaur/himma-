@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Clock3, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import styles from "./student-adaptive-hold.module.css";
 
 interface AdaptationStatus {
   ready?: boolean;
@@ -52,28 +53,30 @@ export default function StudentAdaptiveHoldOverlay() {
   if (!held) return null;
 
   return (
-    <div className="fixed inset-0 z-[70] overflow-y-auto bg-[#F7FBFF]/95 px-4 py-8 backdrop-blur-sm" dir="rtl" data-testid="student-adaptive-hold">
-      <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-3xl items-center justify-center">
-        <section className="w-full overflow-hidden rounded-[32px] border border-[#DCE8F2] bg-white shadow-[0_25px_70px_rgba(32,54,77,.12)]">
-          <div className="grid md:grid-cols-[1.1fr_.9fr]">
-            <div className="flex flex-col justify-center p-7 md:p-10">
-              <span className="mb-4 inline-flex w-fit items-center gap-2 rounded-full bg-[#EDF9F4] px-3 py-2 text-sm font-bold text-[#347b5b]">
-                <CheckCircle2 size={17} /> أنهيت خطوتك بنجاح
+    <div className={styles.overlay} dir="rtl" data-testid="student-adaptive-hold" role="dialog" aria-modal="true" aria-labelledby="adaptive-hold-title">
+      <div className={styles.viewport}>
+        <section className={styles.card}>
+          <div className={styles.grid}>
+            <div className={styles.copy}>
+              <span className={styles.badge}>
+                <CheckCircle2 size={17} aria-hidden="true" /> أنهيت خطوتك بنجاح
               </span>
-              <h1 className="text-3xl font-black leading-[1.45] text-[#20364D] md:text-4xl">أحسنت! نجهّز لك الخطوة الأنسب.</h1>
-              <p className="mt-4 text-base leading-8 text-slate-600">لاحظت هِمّة أن اختيار نشاط التقوية التالي يحتاج مراجعة المشرف حتى تحصل على تدريب مناسب فعلًا، وليس نشاطًا عشوائيًا.</p>
-              <div className="mt-6 flex items-start gap-3 rounded-2xl border border-[#DCE8F2] bg-[#F7FBFF] p-4 text-sm leading-7 text-slate-600">
-                <Clock3 className="mt-1 shrink-0 text-[#347FD9]" size={20} />
-                <p><strong className="text-[#20364D]">لا يوجد خطأ في إجابتك.</strong><br />يمكنك العودة إلى مسارك الآن، وبعد أن يحدد المشرف نشاط التقوية سيظهر لك عند المتابعة.</p>
+              <h1 id="adaptive-hold-title" className={styles.title}>أحسنت! نجهّز لك الخطوة الأنسب.</h1>
+              <p className={styles.description}>لاحظت هِمّة أن اختيار نشاط التقوية التالي يحتاج مراجعة المشرف حتى تحصل على تدريب مناسب فعلًا، وليس نشاطًا عشوائيًا.</p>
+              <div className={styles.notice}>
+                <Clock3 size={20} aria-hidden="true" />
+                <p><strong>لا يوجد خطأ في إجابتك.</strong><br />يمكنك العودة إلى مسارك الآن، وبعد أن يحدد المشرف نشاط التقوية سيظهر لك عند المتابعة.</p>
               </div>
-              <div className="mt-7 flex flex-wrap gap-3">
-                <button className="btn-primary" onClick={() => router.push("/student")}>العودة إلى مساري</button>
-                <button className="btn-secondary" disabled={checking} onClick={() => void manualCheck()}><RefreshCw size={17} /> {checking ? "جاري الفحص..." : "تحقق من الخطوة"}</button>
+              <div className={styles.actions}>
+                <button className={styles.primary} onClick={() => router.push("/student")}>العودة إلى مساري</button>
+                <button className={styles.secondary} disabled={checking} onClick={() => void manualCheck()}>
+                  <RefreshCw size={17} aria-hidden="true" /> {checking ? "جاري الفحص..." : "تحقق من الخطوة"}
+                </button>
               </div>
             </div>
-            <div className="relative flex min-h-72 items-end justify-center bg-gradient-to-b from-[#EDF5FF] to-[#F4FBF8] px-6 pt-8">
-              <div className="absolute top-8 rounded-full bg-white px-4 py-2 text-sm font-bold text-[#347FD9] shadow-sm">المشرف يراجع المسار</div>
-              <Image src="/characters/girl/encourage.png" alt="شخصية هِمّة تشجع الطالب" width={260} height={320} className="h-auto max-h-72 w-auto object-contain" priority />
+            <div className={styles.visual}>
+              <div className={styles.visualLabel}>المشرف يراجع المسار</div>
+              <Image src="/characters/girl/encourage.png" alt="شخصية هِمّة تشجع الطالب" width={310} height={330} className={styles.character} priority />
             </div>
           </div>
         </section>
