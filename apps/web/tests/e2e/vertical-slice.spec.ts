@@ -331,7 +331,9 @@ test.describe("Himma recovered vertical slice", () => {
         const blocked = await currentResponse.json();
         expect(String(blocked?.detail || "")).toContain("ربط نشاط تقوية");
         adaptiveReviewHold = true;
-        await expect(page.getByText(/ربط نشاط تقوية/)).toBeVisible({ timeout: 7000 });
+        const hold = page.getByTestId("student-adaptive-hold");
+        await expect(hold).toBeVisible({ timeout: 7000 });
+        await expect(hold.getByRole("heading", { name: /نجهّز لك الخطوة الأنسب/ })).toBeVisible();
         await shot(page, "13-adaptive-review-hold");
         break;
       }
