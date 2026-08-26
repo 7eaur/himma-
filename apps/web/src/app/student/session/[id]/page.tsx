@@ -59,6 +59,7 @@ interface ProgressPayload {
   has_pending_item: boolean;
   elapsed_seconds: number;
 }
+
 type Phase = "loading" | "active" | "submitting" | "finishing" | "waiting" | "done" | "error";
 
 const SINGLE = new Set<Interaction>(["choose_one", "listen_choose_one", "choose_image", "listen_choose_image"]);
@@ -128,6 +129,7 @@ export default function SessionPage() {
   const answered = progress?.completed_items ?? 0;
   const total = progress?.total_items || 30;
   const percent = Math.min(100, Math.round((answered / Math.max(1, total)) * 100));
+  const targetCount = item && step ? criterionCount(item, step.options.length) : 0;
 
   const operationKey = (kind: "answer" | "upload") => {
     if (!item || !step) return "";
@@ -251,13 +253,20 @@ export default function SessionPage() {
   const toggleOption = (optionId: number) => {
     if (!interaction || phase !== "active") return;
     setError("");
-    if (SINGLE.has(interaction)) return setSelectedIds([optionId]);
+    if (SINGLE.has(interaction)) {
+      setSelectedIds([optionId]);
+      return;
+    }
     if (MULTI.has(interaction)) {
       setSelectedIds((current) => current.includes(optionId) ? current.filter((id) => id !== optionId) : [...current, optionId]);
       return;
     }
     if (ORDER.has(interaction)) {
-      setSelectedIds((current) => current.includes(optionId) ? current : [...current, optionId]);
+      setSelectedIds((current) => {
+        if (current.includes(optionId)) return current;
+        if (targetCount > 0 && current.length >= targetCount) return current;
+        return [...current, optionId];
+      });
     }
   };
 
@@ -421,7 +430,6 @@ export default function SessionPage() {
   const hasMediaGap = step.media_gaps.length > 0;
   const imageChoice = interaction === "choose_image" || interaction === "listen_choose_image";
   const sequenceWithImages = ORDER.has(interaction) && imageAssets.some((asset) => asset.option_id);
-  const targetCount = criterionCount(item, step.options.length);
   const canSubmit = Boolean(
     (SINGLE.has(interaction) && selectedIds.length === 1)
     || (MULTI.has(interaction) && selectedIds.length >= 2)
@@ -492,14 +500,18 @@ export default function SessionPage() {
               {sequenceWithImages && interaction !== "build_word" ? (
                 <div className={styles.imageOptions} data-testid="sequence-image-options">
                   {imageAssets.filter((asset) => asset.option_id && !selectedIds.includes(Number(asset.option_id))).map((asset) => (
-                    <button key={asset.asset_id} className={styles.imageOption} onClick={() => toggleOption(Number(asset.option_id))}>
+                    <button key={asset.asset_id} className={styles.imageOption} onClick={() => toggleOption(Number(asset.option_id))} disabled={targetCount > 0 && selectedIds.length >= targetCount}>
                       <Image src={asset.url} alt={asset.semantic_text || "عنصر ترتيب"} width={220} height={150} unoptimized />
                       <span className={styles.imageLabel}>{asset.semantic_text}</span>
                     </button>
                   ))}
                 </div>
               ) : (
-                <div className={styles.options}>{options.filter((option) => !selectedIds.includes(option.id)).map((option) => <button key={option.id} className={styles.option} onClick={() => toggleOption(option.id)}>{option.text}</button>)}</div>
+                <div className={styles.options}>
+                  {options.filter((option) => !selectedIds.includes(option.id)).map((option) => (
+                    <button key={option.id} className={styles.option} onClick={() => toggleOption(option.id)} disabled={targetCount > 0 && selectedIds.length >= targetCount}>{option.text}</button>
+                  ))}
+                </div>
               )}
             </>
           )}
