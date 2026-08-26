@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Clock3, RefreshCw } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface AdaptationStatus {
   ready?: boolean;
@@ -14,9 +14,11 @@ export default function StudentAdaptiveHoldOverlay() {
   const router = useRouter();
   const [held, setHeld] = useState(false);
   const [checking, setChecking] = useState(false);
+  const checkingRef = useRef(false);
 
   const check = useCallback(async () => {
-    if (checking) return;
+    if (checkingRef.current) return;
+    checkingRef.current = true;
     setChecking(true);
     try {
       const response = await fetch("/api/adaptation/status", { cache: "no-store" });
@@ -26,9 +28,10 @@ export default function StudentAdaptiveHoldOverlay() {
     } catch {
       // The activity page keeps its own recoverable network handling.
     } finally {
+      checkingRef.current = false;
       setChecking(false);
     }
-  }, [checking]);
+  }, []);
 
   useEffect(() => {
     void check();
