@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { LayoutDashboard, Users, UserPlus, Mic, BarChart2, Settings, LogOut, Menu, X } from "lucide-react";
+import styles from "./dashboard-layout.module.css";
 
 const navItems = [
   { href: "/admin", label: "نظرة عامة", icon: LayoutDashboard },
@@ -26,7 +27,7 @@ function SidebarContent({ pathname, supervisorName, onNavigate, onLogout }: Side
   const initial = supervisorName.trim().charAt(0) || "م";
   return (
     <>
-      <div className="sidebar-brand">
+      <div className={styles.brand}>
         <Image src="/brand/logo-navy.svg" alt="هِمّة" width={120} height={40} priority />
       </div>
 
@@ -40,8 +41,9 @@ function SidebarContent({ pathname, supervisorName, onNavigate, onLogout }: Side
               href={item.href}
               onClick={onNavigate}
               className={`sidebar-nav-item ${isActive ? "active" : ""}`}
+              aria-current={isActive ? "page" : undefined}
             >
-              <Icon size={20} className="sidebar-nav-icon" aria-hidden="true" />
+              <Icon size={20} className={styles.navIcon} aria-hidden="true" />
               <span>{item.label}</span>
             </Link>
           );
@@ -49,14 +51,14 @@ function SidebarContent({ pathname, supervisorName, onNavigate, onLogout }: Side
       </nav>
 
       <div className="sidebar-footer">
-        <div className="sidebar-user">
-          <div className="sidebar-avatar" aria-hidden="true">{initial}</div>
-          <div>
-            <div className="sidebar-user-name">{supervisorName || "المشرف"}</div>
+        <div className={styles.user}>
+          <div className={styles.avatar} aria-hidden="true">{initial}</div>
+          <div className="min-w-0">
+            <div className={styles.userName}>{supervisorName || "المشرف"}</div>
             <div className="text-xs text-muted">مشرف المنصة</div>
           </div>
         </div>
-        <button onClick={onLogout} className="sidebar-logout">
+        <button onClick={onLogout} className={styles.logout}>
           <LogOut size={18} aria-hidden="true" />
           <span>تسجيل الخروج</span>
         </button>
@@ -107,10 +109,10 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
 
   if (authState !== "ready") {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-bg" dir="rtl" data-testid="admin-auth-guard">
+      <div className={styles.guard} dir="rtl" data-testid="admin-auth-guard">
         <Image src="/brand/logo-navy.svg" alt="هِمّة" width={130} height={46} priority />
         <div className="spinner w-12 h-12 border-4" />
-        <p className="text-muted">جاري التحقق من جلسة المشرف...</p>
+        <p>جاري التحقق من جلسة المشرف...</p>
       </div>
     );
   }
@@ -130,30 +132,18 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
 
       {mobileMenuOpen && (
         <div className="md:hidden fixed inset-0 z-50 flex">
-          <div className="fixed inset-0 bg-black/50" onClick={() => setMobileMenuOpen(false)} />
-          <div className="relative w-64 max-w-sm flex-1 bg-white flex flex-col z-50 h-full">
-            <button
-              onClick={() => setMobileMenuOpen(false)}
-              className="absolute top-4 left-4 p-2 text-muted hover:bg-bg rounded-md"
-              aria-label="إغلاق القائمة"
-            >
-              <X size={24} />
-            </button>
+          <div className="fixed inset-0 bg-black/50" onClick={() => setMobileMenuOpen(false)} aria-hidden="true" />
+          <div className={styles.mobilePanel} role="dialog" aria-modal="true" aria-label="قائمة لوحة المشرف">
+            <button onClick={() => setMobileMenuOpen(false)} className={styles.mobileClose} aria-label="إغلاق القائمة"><X size={24} /></button>
             <SidebarContent {...sidebarProps} />
           </div>
         </div>
       )}
 
       <main className="sidebar-content">
-        <div className="md:hidden flex items-center justify-between bg-white p-4 border-b border-border mb-4 rounded-md shadow-sm">
+        <div className={`md:hidden ${styles.mobileBar}`}>
           <Image src="/brand/logo-navy.svg" alt="هِمّة" width={100} height={32} />
-          <button
-            onClick={() => setMobileMenuOpen(true)}
-            className="p-2 text-navy hover:bg-bg rounded-md"
-            aria-label="فتح القائمة"
-          >
-            <Menu size={24} />
-          </button>
+          <button onClick={() => setMobileMenuOpen(true)} className={styles.menuButton} aria-label="فتح القائمة"><Menu size={24} /></button>
         </div>
         {children}
       </main>
