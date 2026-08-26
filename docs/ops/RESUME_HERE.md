@@ -1,47 +1,55 @@
-# RESUME HERE — Stage 4 / P07 Infrastructure
+# RESUME HERE — Corrective Recovery Closure
 
-**Last updated:** 2026-08-25
+**Last updated:** 2026-08-26
 
-**Current branch:** `b04/asr-pipeline`
+**Current branch:** `recovery/ui-media-admin-overhaul`
 
-**Base checkpoint:** `53666a0a67d19586ed1ea792b93d5c102dcb7883`
+**Recovery base:** `d4bf7fff33bacf7ac02f4e0e81a72c659bf1a2ce`
 
-**Last accepted stage:** Stage 3 / B03, implementation SHA `8d64eb9766fd69618960af0b279ae94484618d17`
+**Recovery implementation checkpoint:** `7dbc52bcc70a5768c81cd04065be00f1949c429d`
 
-## Current status: P07 IN_PROGRESS
+**Evidence:** GitHub Actions #171 / run `32928214424` — backend, frontend and integration/Playwright all green.
 
-The provider-neutral speech-analysis infrastructure is implemented on the Stage-4 branch. P07 must not be marked accepted until a real ASR provider and representative recordings satisfy OI-02/OI-03.
+**Last accepted roadmap stage:** Stage 3 / B03, implementation SHA `8d64eb9766fd69618960af0b279ae94484618d17`
 
-## Implemented now
+## Current status
 
-1. `speech_analysis_jobs` durable DB queue.
-2. `speech_analyses` durable machine-result table.
-3. Alembic `0007_speech_analysis_pipeline` with downgrade.
-4. Replaceable `SpeechProvider` contract; no approved provider means explicit `blocked_provider` and no fake result.
-5. Asynchronous `speech_worker.py` with uploaded-audio discovery, retries, backoff and dead-letter.
-6. Reference-guided Arabic alignment with correct/deletion/insertion/substitution classification.
-7. Optional provider word timing/confidence preservation.
-8. Researcher speech queue/status/retry endpoints.
-9. Calibration gate: no configured threshold/version => `review_required`.
-10. Added unit tests for Arabic alignment, provider absence, calibration behavior, retry and dead-letter.
+The UI/media/admin/student corrective recovery is implemented and evidenced. The branch is at the documentation-closure boundary; accepted Stage-2/Stage-3 branches were not modified.
 
-## Hard safety/academic boundaries
+P07 speech analysis is still `IN_PROGRESS / EXTERNALLY BLOCKED`. Do not confuse recovery closure with P07 acceptance.
 
-- Manual researcher review remains authoritative until calibration is approved.
-- Provider failure or low/unresolved confidence does not become an academic error.
-- No fake/mock production ASR adapter.
-- No phoneme/haraka conclusions before sample-based evidence.
-- Do not alter accepted B03 adaptation rules in this stage.
+## What the recovery delivered
 
-## Pending from client / external decision
+1. Rebuilt child-facing landing and journey UI using the approved Himma identity.
+2. Restored canonical approved interaction types from the 105-item content source instead of generic button rendering.
+3. Connected approved images/audio to assessment and activity runtime and added real-media regression checks.
+4. Added complete student recording/re-record/send states while retaining manual review as the academic authority.
+5. Protected supervisor routes and standardized visible Arabic terminology to **المشرف**.
+6. Added functional supervisor username/password/add-supervisor settings.
+7. Added six-digit numeric student code creation, editing/regeneration, name/status management and Arabic messages.
+8. Added adaptive reinforcement-gap handling: calm student hold, approved same-level supervisor options, written reason, audit record and resumed student activity.
+9. Preserved declared media gaps as neutral rather than inventing missing approved audio.
+10. Extended Playwright end-to-end evidence through reinforcement assignment/resume and reports; latest artifact contains 17 screenshots.
 
-- Representative Arabic reading recordings.
-- OI-02: production provider, contract/privacy, cost and recording-transfer policy.
-- OI-03: confidence threshold calibrated from representative samples.
-- OI-05 retention policy before real child data is stored in production.
+## Recovery quality gate already proven on implementation checkpoint
+
+Run #171 / `32928214424` passed:
+
+- frontend TypeScript, ESLint, unit tests, production Next.js build;
+- backend catalog validation, migration round-trip/drift check, seed idempotency and test suite;
+- PostgreSQL, Redis, pinned/checksummed MinIO, FastAPI and Next.js integration;
+- Chromium Playwright journey from public landing to supervisor/student lifecycle, pre-test, real media, recording/manual audio review, learning, adaptive hold, supervisor reinforcement assignment, student resume and live reports.
+
+## Hard boundaries that still remain
+
+- No real production ASR provider has been approved.
+- Representative child-reading recordings are still pending.
+- OI-02 provider/privacy/cost/recording-transfer decision remains open.
+- OI-03 calibrated confidence threshold/version remains open.
+- OI-05 real-child-audio retention policy remains open.
+- OI-10 approved source audio for `موز` and `سَا` remains missing; affected rounds stay neutral.
+- No automatic phoneme/haraka scoring claim is permitted without sample-based calibration evidence.
 
 ## Next action
 
-Complete the remote GitHub Actions gate for the provider-neutral infrastructure. After recordings arrive: benchmark candidate provider(s) on the supplied known reference texts, document the decision, add the real adapter, calibrate confidence, then run an integration gate covering private MinIO audio -> worker -> ASR -> alignment -> persisted result -> researcher review.
-
-P08 reports/exports and P09 release hardening remain separate later stages.
+Run/verify the Quality Gate on the final documentation head of `recovery/ui-media-admin-overhaul`. If green, the corrective recovery slice is closed. The next roadmap work is P07 real-provider evaluation only after the external recordings/provider/privacy/calibration inputs are available.
