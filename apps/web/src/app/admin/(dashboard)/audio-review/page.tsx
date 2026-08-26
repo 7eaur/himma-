@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { CheckCircle2, Headphones, Play, RefreshCw, RotateCcw, UserRound, XCircle } from "lucide-react";
 
@@ -62,6 +62,7 @@ export default function AudioReviewPage() {
   const [message, setMessage] = useState<{ kind: "success" | "error"; text: string }>({ kind: "success", text: "" });
   const [gradingId, setGradingId] = useState<number | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const editingRef = useRef<number | null>(null);
   const [isValid, setIsValid] = useState(true);
   const [targetUnits, setTargetUnits] = useState(10);
   const [deletions, setDeletions] = useState(0);
@@ -71,14 +72,22 @@ export default function AudioReviewPage() {
   const [fluencyNotes, setFluencyNotes] = useState("");
 
   useEffect(() => {
+    editingRef.current = editingId;
+  }, [editingId]);
+
+  useEffect(() => {
     let cancelled = false;
 
     const fetchQueue = () => {
+      // Do not replace the queue while a supervisor is actively grading a card.
+      // Periodic refresh previously could detach the live form between pointer
+      // down/up and also discard notes typed by the supervisor.
+      if (editingRef.current !== null) return;
       void fetch("/api/review/pending-audio", { cache: "no-store" })
         .then(async (response) => {
           if (!response.ok) throw new Error("تعذر تحميل التسجيلات المنتظرة");
           const data: AudioSubmission[] = await response.json();
-          if (!cancelled) setSubmissions(data);
+          if (!cancelled && editingRef.current === null) setSubmissions(data);
         })
         .catch((caught: unknown) => {
           if (!cancelled) setMessage({ kind: "error", text: caught instanceof Error ? caught.message : "تعذر تحميل التسجيلات" });
@@ -97,6 +106,10 @@ export default function AudioReviewPage() {
   }, []);
 
   const refreshQueue = async () => {
+    if (editingId !== null) {
+      setMessage({ kind: "error", text: "أكمل المراجعة الحالية أو ألغها قبل تحديث القائمة." });
+      return;
+    }
     setRefreshing(true);
     setMessage({ kind: "success", text: "" });
     try {
@@ -111,6 +124,7 @@ export default function AudioReviewPage() {
   };
 
   const openReview = (id: number) => {
+    editingRef.current = id;
     setEditingId(id);
     setIsValid(true);
     setTargetUnits(10);
@@ -120,6 +134,11 @@ export default function AudioReviewPage() {
     setPronunciationNotes("");
     setFluencyNotes("");
     setMessage({ kind: "success", text: "" });
+  };
+
+  const closeReview = () => {
+    editingRef.current = null;
+    setEditingId(null);
   };
 
   const handleGrade = async (id: number) => {
@@ -143,6 +162,7 @@ export default function AudioReviewPage() {
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(data?.detail || "تعذر حفظ التقييم");
       setSubmissions((current) => current.filter((submission) => submission.id !== id));
+      editingRef.current = null;
       setEditingId(null);
       setMessage({ kind: "success", text: isValid ? "تم حفظ تقييم التسجيل." : "تم طلب إعادة التسجيل من الطالب." });
     } catch (caught) {
@@ -160,7 +180,7 @@ export default function AudioReviewPage() {
           <h1 className="text-3xl font-bold text-navy mb-2">التسجيلات الصوتية</h1>
           <p className="text-muted">استمع إلى قراءة الطالب مع النص المرجعي، ثم سجّل الأخطاء أو اطلب إعادة التسجيل.</p>
         </div>
-        <button className="btn-secondary w-fit" onClick={() => void refreshQueue()} disabled={refreshing}><RefreshCw size={17} /> {refreshing ? "جاري التحديث..." : "تحديث القائمة"}</button>
+        <button className="btn-secondary w-fit" onClick={() => void refreshQueue()} disabled={refreshing || editingId !== null}><RefreshCw size={17} /> {refreshing ? "جاري التحديث..." : "تحديث القائمة"}</button>
       </div>
 
       {message.text && <div className={`${message.kind === "success" ? "alert-success" : "alert-error"} mb-5`}>{message.text}</div>}
@@ -201,9 +221,9 @@ export default function AudioReviewPage() {
               <div className="rounded-2xl border border-border bg-white p-4 mb-5"><AudioPlayer storageKey={submission.storage_key} /></div>
 
               {editingId !== submission.id ? (
-                <button className="btn-primary" onClick={() => openReview(submission.id)}>بدء المراجعة</button>
+                <button className="btn-primary" onClick={() => openReview(submission.id)} disabled={editingId !== null}>بدء المراجعة</button>
               ) : (
-                <div className="rounded-2xl bg-bg border border-border p-5 space-y-5">
+                <div className="rounded-2xl bg-bg border border-border p-5 space-y-5" data-testid={`audio-review-editor-${submission.id}`}>
                   <div>
                     <p className="font-bold text-navy mb-3">صلاحية التسجيل</p>
                     <div className="flex gap-3 flex-wrap">
@@ -230,7 +250,7 @@ export default function AudioReviewPage() {
                   )}
 
                   <div className="flex justify-end gap-3 flex-wrap">
-                    <button className="btn-ghost" onClick={() => setEditingId(null)} disabled={gradingId === submission.id}>إلغاء</button>
+                    <button className="btn-ghost" onClick={closeReview} disabled={gradingId === submission.id}>إلغاء</button>
                     <button className="btn-primary" onClick={() => void handleGrade(submission.id)} disabled={gradingId === submission.id}>{gradingId === submission.id ? "جاري الحفظ..." : isValid ? "حفظ التقييم" : "طلب إعادة التسجيل"}</button>
                   </div>
                 </div>
