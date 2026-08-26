@@ -19,8 +19,8 @@ router = APIRouter(prefix="/media", tags=["Media"])
 REPO_ROOT = Path(__file__).resolve().parents[2]
 AUDIO_ROOT = REPO_ROOT / "assets" / "audio" / "HIMMA_AUDIO_V1"
 AUDIO_MANIFEST = AUDIO_ROOT / "manifest.csv"
-IMAGE_ROOT = REPO_ROOT / "assets" / "education" / "developer"
-IMAGE_MAP = IMAGE_ROOT / "asset-map.json"
+EDUCATION_ROOT = REPO_ROOT / "assets" / "education"
+IMAGE_MAP = EDUCATION_ROOT / "developer" / "asset-map.json"
 
 
 def _build_asset_index() -> dict[str, tuple[Path, str]]:
@@ -49,8 +49,10 @@ def _build_asset_index() -> dict[str, tuple[Path, str]]:
             relative = files.get("webp_small") or files.get("webp") or files.get("png")
             if not asset_id or not relative:
                 continue
-            path = (IMAGE_ROOT / relative).resolve()
-            if path.is_file() and IMAGE_ROOT.resolve() in path.parents:
+            # asset-map paths are relative to the educational image package root
+            # (for example assets/vocabulary/webp/...), not to developer/.
+            path = (EDUCATION_ROOT / relative).resolve()
+            if path.is_file() and EDUCATION_ROOT.resolve() in path.parents:
                 content_type = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
                 index[asset_id] = (path, content_type)
     except (OSError, json.JSONDecodeError):
@@ -66,7 +68,7 @@ _ASSETS = _build_asset_index()
 def approved_asset(asset_id: str):
     entry = _ASSETS.get(asset_id)
     if not entry:
-        raise HTTPException(status_code=404, detail="Approved media asset not found")
+        raise HTTPException(status_code=404, detail="الملف التعليمي المطلوب غير متوفر ضمن الأصول المعتمدة")
     path, media_type = entry
     return FileResponse(
         path,
