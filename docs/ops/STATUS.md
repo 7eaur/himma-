@@ -1,58 +1,68 @@
 # STATUS — Himma Platform
 
-**Branch:** `b04/asr-pipeline`
+**Current branch:** `recovery/ui-media-admin-overhaul`
 
-**Stage:** Stage 4 / P07 — `IN_PROGRESS`
+**Current corrective slice:** UI / Media / Supervisor / Student Recovery — `READY_FOR_CLOSURE_GATE`
 
-**Base checkpoint:** `53666a0a67d19586ed1ea792b93d5c102dcb7883`
+**Recovery implementation checkpoint:** `7dbc52bcc70a5768c81cd04065be00f1949c429d`
 
-**Last accepted stage:** Stage 3 / B03 at implementation SHA `8d64eb9766fd69618960af0b279ae94484618d17`
+**Recovery evidence run:** GitHub Actions #171 — `32928214424` — backend/frontend/integration all successful.
 
-**Last verified:** 2026-08-25
+**Underlying roadmap stage:** Stage 4 / P07 Speech Analysis — `IN_PROGRESS / EXTERNALLY BLOCKED`
+
+**Last accepted roadmap stage:** Stage 3 / B03 at implementation SHA `8d64eb9766fd69618960af0b279ae94484618d17`
+
+**Last verified:** 2026-08-26
 
 ---
 
-## Stage 4 / P07 speech analysis — provider-neutral infrastructure
+## Corrective recovery completed
 
-P07 is now on a clean branch from the accepted Stage-3 handoff. The current slice prepares the real speech-analysis architecture without pretending a production ASR provider has been approved.
+The recovery branch was cut from the existing P07 infrastructure state without changing the accepted Stage-2 or Stage-3 branches. The objective was to repair the real product experience and missing runtime semantics before continuing speech-provider work.
 
-### Implemented in the current slice
+### Student experience
 
-- Durable `speech_analysis_jobs` queue table with queued/processing/retry/dead-letter/blocked-provider/review states.
-- Durable `speech_analyses` result table storing provider/model/request metadata, reference text, transcript, confidence, duration, alignment events and calibration version.
-- Reversible Alembic migration `0007_speech_analysis_pipeline`.
-- Replaceable `SpeechProvider` protocol/adapter boundary.
-- Runtime fails closed when no approved provider exists; there is no fake production ASR fallback.
-- DB-backed asynchronous worker that discovers uploaded recordings and processes due jobs outside the HTTP request path.
-- Retry/backoff/dead-letter behavior for temporary provider failures.
-- Reference-guided Arabic word alignment against the exact reading text shown to the student.
-- Word-level `correct`, `deletion`, `insertion`, and `substitution` events.
-- Provider word timing/confidence fields are preserved when an approved provider supplies them.
-- Researcher API for queue status, enqueue/status lookup and explicit retry.
-- Confidence policy is fail-closed: until a calibrated threshold and calibration version are configured, valid ASR output remains `review_required`.
-- Speech processing does not mutate the student's academic score by itself.
+- Rebuilt the child-facing landing page and student journey dashboard using the approved Himma identity and static approved character assets.
+- Restored canonical interaction semantics from the approved 105-item catalog instead of flattening activities into generic multiple-choice buttons.
+- Assessment and learning runtime now support image choice, listen+image, choose-many, sequence/path/memory sequence, build-word and read-aloud/timed-read-aloud interaction families.
+- Approved education images/audio are served from the real asset package; media routing is regression-tested with real bytes.
+- Reading tasks provide recording/re-record/send states without claiming calibrated automatic pronunciation scoring.
+- Declared source media gaps remain explicit and academically neutral; no invented audio is substituted.
+- Adaptive reinforcement gaps now produce a calm student hold state and resume after a documented supervisor assignment.
 
-### Tests added
+### Supervisor experience
 
-- Arabic normalization and diacritic-insensitive lexical matching.
-- Exact reading, deletion, insertion and substitution alignment cases.
-- Provider-not-configured => blocked state and zero fake analyses.
-- Valid provider output remains human-review-only before calibration.
-- Calibrated threshold path is separately tested.
-- Temporary provider errors retry and then dead-letter at the configured limit.
+- `/admin` is protected and unauthenticated users are redirected to login before dashboard data is rendered.
+- Product-facing terminology uses **المشرف**; the legacy internal role value `researcher` remains only for schema/JWT/API compatibility.
+- Supervisor settings support username update, password change, listing supervisors and creating an additional supervisor.
+- Student creation supports secure auto-generated six-digit numeric codes or manual six-digit codes.
+- Student management supports name/status edits, access-code change/regeneration, adaptation override, post-test gate and reinforcement resolution.
+- Reinforcement resolution exposes only approved unused same-level reinforcement activities, requires a written reason, and records audit evidence.
+- Dashboard, audio review and reports are wired into the tested end-to-end path.
 
-## P07 is NOT accepted yet
+### Quality evidence
 
-The approved roadmap requires OI-02 to be resolved before the stage can close. The client representative recordings are still pending, therefore these items remain blocked:
+GitHub Actions #171 (`32928214424`) passed:
 
-- production ASR provider selection/approval;
-- vendor privacy/retention/cost/recording-transfer decision;
-- Arabic child-reading accuracy evaluation on Himma material;
-- production confidence threshold calibration (OI-03);
-- real provider integration through private MinIO -> worker -> ASR -> alignment;
-- any phoneme/haraka scoring not proven by calibration.
+- frontend TypeScript, ESLint, unit tests and production Next.js build;
+- backend approved catalog validation, reversible migrations/drift check, idempotent seed and backend tests;
+- integration PostgreSQL + Redis + pinned/checksummed MinIO + FastAPI + Next.js + Chromium;
+- Playwright full journey from public page through supervisor/student lifecycle, 30-item pre-test, real image media, recording/manual audio review, adaptive learning, reinforcement review/resume and live reports.
 
-Until those gates are satisfied, manual researcher review remains authoritative and P07 stays `IN_PROGRESS` rather than `ACCEPTED`.
+The Playwright artifact contains 17 screenshots, including real image-choice media, reading/recording UI, adaptive hold, supervisor reinforcement assignment and resumed student reinforcement.
+
+## P07 speech analysis remains NOT accepted
+
+The recovery work does **not** resolve the real-ASR external gates. The following remain blocked until representative recordings/provider decisions are supplied:
+
+- production ASR provider selection and approval;
+- privacy/retention/cost/recording-transfer decision;
+- representative Arabic child-reading accuracy evaluation;
+- calibrated confidence threshold/version;
+- real provider adapter through private storage → worker → ASR → alignment;
+- any phoneme/haraka automatic scoring claim not proven by calibration.
+
+Manual supervisor audio review remains authoritative. No fake production ASR fallback is enabled.
 
 ## Preserved accepted checkpoints
 
@@ -64,4 +74,4 @@ Until those gates are satisfied, manual researcher review remains authoritative 
 
 ## Next action
 
-Finish the remote CI gate for this infrastructure slice. When the representative recordings arrive, use them to choose/verify the real ASR provider and calibrate confidence before adding any production automatic speech decision.
+Run the final closure gate on the documentation head of this recovery branch. After recovery closure, resume P07 only when the external provider/recording/calibration inputs are available; do not represent P07 as accepted before those gates are satisfied.
