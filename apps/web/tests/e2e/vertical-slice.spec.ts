@@ -115,20 +115,25 @@ async function answerAssessmentVisual(page: Page, item: RichItem) {
   }
 
   if (interaction === "sequence" || interaction === "memory_sequence" || interaction === "path_sequence" || interaction === "build_word") {
+    const confirm = page.getByRole("button", { name: "تأكيد والمتابعة" });
     const sequenceImages = page.getByTestId("sequence-image-options");
     if (await sequenceImages.count()) {
-      while (await sequenceImages.getByRole("button").count()) {
-        await sequenceImages.getByRole("button").first().click();
+      while (!(await confirm.isEnabled())) {
+        const next = sequenceImages.getByRole("button").filter({ visible: true }).first();
+        if (!(await next.count())) break;
+        await next.click();
       }
     } else {
       const orderedOptions = [...step.options].sort((a, b) => a.order_index - b.order_index);
       for (const option of orderedOptions) {
+        if (await confirm.isEnabled()) break;
         const candidate = page.getByRole("button", { name: option.text, exact: true }).first();
         await expect(candidate).toBeVisible({ timeout: 5000 });
-        await candidate.click();
+        if (await candidate.isEnabled()) await candidate.click();
       }
     }
-    await page.getByRole("button", { name: "تأكيد والمتابعة" }).click();
+    await expect(confirm).toBeEnabled({ timeout: 5000 });
+    await confirm.click();
     return;
   }
 
