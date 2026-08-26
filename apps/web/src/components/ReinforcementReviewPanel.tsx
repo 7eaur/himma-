@@ -23,6 +23,12 @@ interface ReviewPayload {
   options: ReinforcementOption[];
 }
 
+interface PanelMessage {
+  kind: "success" | "error";
+  text: string;
+  studentId: string;
+}
+
 function apiError(data: unknown, fallback: string) {
   if (typeof data === "object" && data !== null && "detail" in data) {
     const detail = (data as { detail?: unknown }).detail;
@@ -38,7 +44,7 @@ export default function ReinforcementReviewPanel() {
   const [selectedItem, setSelectedItem] = useState("");
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState<{ kind: "success" | "error"; text: string } | null>(null);
+  const [message, setMessage] = useState<PanelMessage | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -50,16 +56,25 @@ export default function ReinforcementReviewPanel() {
         if (cancelled) return;
         if (response.status === 409) {
           setReview(null);
+          setMessage(null);
           return;
         }
         if (!response.ok) throw new Error(apiError(data, "تعذر فحص حالة التقوية"));
         const payload = data as ReviewPayload;
         setReview(payload);
+        setMessage(null);
         const firstAvailable = payload.options.find((option) => !option.already_used);
         setSelectedItem(firstAvailable ? String(firstAvailable.item_id) : "");
       })
       .catch((error: unknown) => {
-        if (!cancelled) setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر فحص حالة التقوية" });
+        if (!cancelled) {
+          setReview(null);
+          setMessage({
+            kind: "error",
+            text: error instanceof Error ? error.message : "تعذر فحص حالة التقوية",
+            studentId,
+          });
+        }
       });
 
     return () => {
@@ -67,17 +82,32 @@ export default function ReinforcementReviewPanel() {
     };
   }, [studentId]);
 
-  if (!studentId || !review || String(review.student_id) !== studentId) return null;
+  if (!studentId) return null;
 
-  const available = review.options.filter((option) => !option.already_used);
+  const visibleMessage = message?.studentId === studentId ? message : null;
+  const reviewMatchesStudent = review && String(review.student_id) === studentId;
+
+  if (!reviewMatchesStudent) {
+    if (!visibleMessage) return null;
+    return (
+      <section className="mx-auto mb-6 w-full max-w-6xl" dir="rtl" aria-live="polite">
+        <div className={visibleMessage.kind === "success" ? "alert-success" : "alert-error"}>
+          {visibleMessage.kind === "success" && <CheckCircle2 size={18} className="inline ml-2" />}
+          {visibleMessage.text}
+        </div>
+      </section>
+    );
+  }
+
+  const available = reviewMatchesStudent.options.filter((option) => !option.already_used);
 
   const assign = async () => {
     if (!selectedItem) {
-      setMessage({ kind: "error", text: "اختر نشاط تقوية معتمدًا." });
+      setMessage({ kind: "error", text: "اختر نشاط تقوية معتمدًا.", studentId });
       return;
     }
     if (reason.trim().length < 5) {
-      setMessage({ kind: "error", text: "اكتب سبب الاختيار بوضوح ليُحفظ في سجل القرارات." });
+      setMessage({ kind: "error", text: "اكتب سبب الاختيار بوضوح ليُحفظ في سجل القرارات.", studentId });
       return;
     }
     setBusy(true);
@@ -91,10 +121,10 @@ export default function ReinforcementReviewPanel() {
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(apiError(data, "تعذر إسناد نشاط التقوية"));
       setReview(null);
-      setMessage({ kind: "success", text: "تم إسناد نشاط التقوية. يستطيع الطالب الآن متابعة مساره." });
-      window.setTimeout(() => window.location.reload(), 900);
+      setMessage({ kind: "success", text: "تم إسناد نشاط التقوية. يستطيع الطالب الآن متابعة مساره.", studentId });
+      window.setTimeout(() => window.location.reload(), 1200);
     } catch (error) {
-      setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر إسناد نشاط التقوية" });
+      setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر إسناد نشاط التقوية", studentId });
     } finally {
       setBusy(false);
     }
@@ -108,7 +138,7 @@ export default function ReinforcementReviewPanel() {
           <div>
             <div className="mb-1 flex items-center gap-2 text-sm font-bold text-amber-800"><AlertCircle size={16} /> يحتاج قرار تقوية من المشرف</div>
             <h2 className="text-xl font-extrabold text-navy">اختر نشاطًا معتمدًا قبل متابعة المسار</h2>
-            <p className="mt-2 text-sm leading-7 text-slate-600">لم يجد المحرك تطابقًا آليًا آمنًا بين المهارة الأضعف وأحد أنشطة التقوية الخمسة المعتمدة. لن تختار المنصة نشاطًا عشوائيًا؛ اختر من الأنشطة المعتمدة في المستوى {review.level_id} واكتب سبب القرار.</p>
+            <p className="mt-2 text-sm leading-7 text-slate-600">لم يجد المحرك تطابقًا آليًا آمنًا بين المهارة الأضعف وأحد أنشطة التقوية الخمسة المعتمدة. لن تختار المنصة نشاطًا عشوائيًا؛ اختر من الأنشطة المعتمدة في المستوى {reviewMatchesStudent.level_id} واكتب سبب القرار.</p>
           </div>
         </div>
 
@@ -132,7 +162,7 @@ export default function ReinforcementReviewPanel() {
           )}
         </div>
       </div>
-      {message && <div className={`mt-4 ${message.kind === "success" ? "alert-success" : "alert-error"}`}>{message.kind === "success" && <CheckCircle2 size={18} className="inline ml-2" />}{message.text}</div>}
+      {visibleMessage && <div className={`mt-4 ${visibleMessage.kind === "success" ? "alert-success" : "alert-error"}`}>{visibleMessage.kind === "success" && <CheckCircle2 size={18} className="inline ml-2" />}{visibleMessage.text}</div>}
     </section>
   );
 }
