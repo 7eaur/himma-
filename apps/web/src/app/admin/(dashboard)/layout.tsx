@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { LayoutDashboard, Users, UserPlus, Mic, BarChart2, Settings, LogOut, Menu, X } from "lucide-react";
+import ReinforcementReviewPanel from "@/components/ReinforcementReviewPanel";
 import styles from "./dashboard-layout.module.css";
 
 const navItems = [
@@ -145,6 +146,7 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
           <Image src="/brand/logo-navy.svg" alt="هِمّة" width={100} height={32} />
           <button onClick={() => setMobileMenuOpen(true)} className={styles.menuButton} aria-label="فتح القائمة"><Menu size={24} /></button>
         </div>
+        <ReinforcementReviewPanel />
         {children}
       </main>
     </div>
