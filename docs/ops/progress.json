@@ -1,12 +1,22 @@
 {
   "schema_version": 2,
   "plan_version": "HIMMA-V2",
-  "branch": "b04/asr-pipeline",
-  "phase": "STAGE-4-P07-SPEECH-ANALYSIS",
-  "slice": "P07-PROVIDER-NEUTRAL-INFRASTRUCTURE",
-  "gate_status": "IN_PROGRESS",
-  "last_verified": "2026-08-25",
-  "base_checkpoint": "53666a0a67d19586ed1ea792b93d5c102dcb7883",
+  "branch": "recovery/ui-media-admin-overhaul",
+  "phase": "CORRECTIVE-RECOVERY",
+  "slice": "UI-MEDIA-ADMIN-STUDENT-OVERHAUL",
+  "gate_status": "READY_FOR_CLOSURE_GATE",
+  "last_verified": "2026-08-26",
+  "base_checkpoint": "d4bf7fff33bacf7ac02f4e0e81a72c659bf1a2ce",
+  "recovery_implementation_checkpoint": "7dbc52bcc70a5768c81cd04065be00f1949c429d",
+  "recovery_evidence_run": {
+    "number": 171,
+    "id": 32928214424,
+    "backend": "SUCCESS",
+    "frontend": "SUCCESS",
+    "integration": "SUCCESS",
+    "playwright": "SUCCESS",
+    "screenshots": 17
+  },
   "last_accepted_implementation_sha": "8d64eb9766fd69618960af0b279ae94484618d17",
   "accepted_checkpoints": {
     "B00": "recovery/codex-baseline@e5fafe757bd57f8bdce35a8f8d0f3bbcc0784c2d",
@@ -15,34 +25,42 @@
     "STAGE2_CLOSURE": "b02/stage2-closure@38a1b8d1a03a56f08aa3afdf9404593351e05a87",
     "B03": "b03/adaptive-learning-engine@8d64eb9766fd69618960af0b279ae94484618d17"
   },
-  "p07_infrastructure": {
-    "status": "IMPLEMENTED_PENDING_REMOTE_GATE",
+  "recovery": {
+    "status": "IMPLEMENTED_AND_EVIDENCED_PENDING_DOC_HEAD_GATE",
     "delivered": [
-      "durable speech_analysis_jobs queue schema",
-      "durable speech_analyses result schema",
-      "reversible Alembic migration 0007",
-      "replaceable SpeechProvider protocol with fail-closed unconfigured runtime",
-      "DB-backed worker with uploaded-audio discovery",
-      "retry/backoff/dead-letter states",
-      "reference-guided Arabic word alignment",
-      "correct/deletion/insertion/substitution extraction",
-      "provider timing/confidence fields when available",
-      "researcher queue/status/manual-retry API",
-      "calibration gate that keeps results in human review until threshold/version are explicitly configured",
-      "tests for alignment, provider absence, human-review default, calibrated acceptance and retry/dead-letter"
+      "child-focused landing and student journey redesign",
+      "canonical approved interaction restoration across assessment and activities",
+      "real approved education image/audio media routing with byte-level regression coverage",
+      "read-aloud recording states without uncalibrated ASR claims",
+      "protected supervisor routes and Arabic supervisor terminology",
+      "functional supervisor profile/password/add-supervisor settings",
+      "secure six-digit student access-code create/edit/regenerate flow",
+      "student profile/status management",
+      "manual audio review lifecycle",
+      "adaptive reinforcement mapping-gap hold state",
+      "audited supervisor reinforcement resolution using approved same-level unused content",
+      "student reinforcement resume after supervisor resolution",
+      "dashboard and live reports end-to-end evidence"
     ]
+  },
+  "p07_infrastructure": {
+    "status": "IMPLEMENTED_BUT_STAGE_NOT_ACCEPTED",
+    "boundary": "provider-neutral infrastructure is preserved; real provider/calibration remains external-blocked"
   },
   "blockers": [
     "OI-02 production ASR provider/privacy/cost/recording-transfer decision is not yet approved",
     "Representative recordings from the client are pending",
-    "OI-03 confidence threshold must be calibrated from those representative recordings",
-    "No automatic academic speech scoring may be enabled before the provider and calibration gates are satisfied"
+    "OI-03 confidence threshold must be calibrated from representative recordings",
+    "OI-05 retention policy must be approved before real child audio is stored in production",
+    "OI-10 approved audio remains missing for موز and سَا; affected rounds must stay neutral until approved assets arrive"
   ],
   "safety_rules": [
     "No fake production ASR adapter",
     "No academic penalty for provider failure or unresolved/low-confidence speech",
     "No phoneme/haraka claim without calibration evidence",
-    "Accepted B03 adaptation rules remain unchanged"
+    "No invented replacement media for declared approved-content gaps",
+    "Accepted Stage-2 and Stage-3 branches remain unchanged",
+    "Legacy internal researcher identifier may remain for compatibility while UI terminology is المشرف"
   ],
-  "next_step": "Finish the remote CI gate for the provider-neutral P07 infrastructure. When representative recordings arrive, evaluate and approve a real ASR provider, calibrate confidence, add the real adapter, then run the private MinIO -> worker -> ASR -> alignment -> researcher-review integration gate."
+  "next_step": "Close the corrective recovery branch after its documentation-head Quality Gate is green. Resume P07 only after representative recordings and the provider/privacy/calibration decisions are supplied."
 }
