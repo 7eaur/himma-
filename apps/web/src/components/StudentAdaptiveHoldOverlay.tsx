@@ -16,10 +16,9 @@ export default function StudentAdaptiveHoldOverlay() {
   const [checking, setChecking] = useState(false);
   const checkingRef = useRef(false);
 
-  const check = useCallback(async () => {
+  const poll = useCallback(async () => {
     if (checkingRef.current) return;
     checkingRef.current = true;
-    setChecking(true);
     try {
       const response = await fetch("/api/adaptation/status", { cache: "no-store" });
       if (!response.ok) return;
@@ -29,15 +28,26 @@ export default function StudentAdaptiveHoldOverlay() {
       // The activity page keeps its own recoverable network handling.
     } finally {
       checkingRef.current = false;
-      setChecking(false);
     }
   }, []);
 
+  const manualCheck = async () => {
+    setChecking(true);
+    try {
+      await poll();
+    } finally {
+      setChecking(false);
+    }
+  };
+
   useEffect(() => {
-    void check();
-    const timer = window.setInterval(() => void check(), 1800);
-    return () => window.clearInterval(timer);
-  }, [check]);
+    const first = window.setTimeout(() => void poll(), 0);
+    const timer = window.setInterval(() => void poll(), 1800);
+    return () => {
+      window.clearTimeout(first);
+      window.clearInterval(timer);
+    };
+  }, [poll]);
 
   if (!held) return null;
 
@@ -58,7 +68,7 @@ export default function StudentAdaptiveHoldOverlay() {
               </div>
               <div className="mt-7 flex flex-wrap gap-3">
                 <button className="btn-primary" onClick={() => router.push("/student")}>العودة إلى مساري</button>
-                <button className="btn-secondary" disabled={checking} onClick={() => void check()}><RefreshCw size={17} /> {checking ? "جاري الفحص..." : "تحقق من الخطوة"}</button>
+                <button className="btn-secondary" disabled={checking} onClick={() => void manualCheck()}><RefreshCw size={17} /> {checking ? "جاري الفحص..." : "تحقق من الخطوة"}</button>
               </div>
             </div>
             <div className="relative flex min-h-72 items-end justify-center bg-gradient-to-b from-[#EDF5FF] to-[#F4FBF8] px-6 pt-8">
