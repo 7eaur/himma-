@@ -99,11 +99,14 @@ def _ensure_recommended_attempt(
         return existing.id if existing.status == "in_progress" else None
 
     attempt = Attempt(session_id=session.id, item_id=item.id, status="in_progress")
-    db.add(attempt)
     try:
-        db.flush()
+        # A concurrent browser request can race to create the same durable attempt.
+        # Use a savepoint so resolving that race never rolls back the already-made
+        # adaptive level/explanation changes in the outer transaction.
+        with db.begin_nested():
+            db.add(attempt)
+            db.flush()
     except IntegrityError:
-        db.rollback()
         existing = db.query(Attempt).filter(
             Attempt.session_id == session.id,
             Attempt.item_id == item.id,
