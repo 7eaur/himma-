@@ -321,11 +321,20 @@ test.describe("Himma recovered vertical slice", () => {
 
     let activityInteractions = 0;
     let capturedRichActivity = false;
+    let adaptiveReviewHold = false;
     while ((await activityRoot.getAttribute("data-phase")) !== "done") {
       activityInteractions += 1;
       expect(activityInteractions, "Adaptive learning path should terminate").toBeLessThan(100);
 
       const currentResponse = await request.get(`${API_URL}/activities/session/${learningSessionId}/next`);
+      if (currentResponse.status() === 409) {
+        const blocked = await currentResponse.json();
+        expect(String(blocked?.detail || "")).toContain("ربط نشاط تقوية");
+        adaptiveReviewHold = true;
+        await expect(page.getByText(/ربط نشاط تقوية/)).toBeVisible({ timeout: 7000 });
+        await shot(page, "13-adaptive-review-hold");
+        break;
+      }
       expect(currentResponse.status()).toBe(200);
       const current: ActivityPayload | null = await currentResponse.json();
       if (!current) break;
@@ -340,8 +349,10 @@ test.describe("Himma recovered vertical slice", () => {
       await expect(activityRoot).toHaveAttribute("data-phase", /^(active|done)$/, { timeout: 20000 });
     }
 
-    await expect(page.getByText("أحسنت، أكملت أنشطة مستواك")).toBeVisible({ timeout: 15000 });
-    await shot(page, "13-learning-complete");
+    if (!adaptiveReviewHold) {
+      await expect(page.getByText("أحسنت، أكملت أنشطة مستواك")).toBeVisible({ timeout: 15000 });
+      await shot(page, "13-learning-complete");
+    }
 
     await context.clearCookies();
     await loginAsSupervisor(request, context);
@@ -349,7 +360,11 @@ test.describe("Himma recovered vertical slice", () => {
     await expect(page.getByText("10 من 10")).toBeVisible({ timeout: 12000 });
     await expect(page.getByText("تعديل المشرف")).toBeVisible();
     const posttestButton = page.getByRole("button", { name: "فتح الاختبار" });
-    await expect(posttestButton).toBeEnabled();
+    if (adaptiveReviewHold) {
+      await expect(posttestButton).toBeDisabled();
+    } else {
+      await expect(posttestButton).toBeEnabled();
+    }
     await shot(page, "14-supervisor-student-management-10-of-10");
 
     await page.goto("/admin/reports");
