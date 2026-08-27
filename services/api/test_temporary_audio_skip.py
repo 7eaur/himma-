@@ -5,6 +5,7 @@ from decimal import Decimal
 import seed
 from adaptation import _attempt_signal, ensure_rewards
 from content_runtime import canonical_interaction
+from db.adaptation_models import RewardEvent
 from db.database import SessionLocal
 from db.models import (
     AssessmentSession,
@@ -13,7 +14,6 @@ from db.models import (
     AudioSubmission,
     ContentItem,
     OperationIdempotency,
-    RewardEvent,
     Student,
 )
 
