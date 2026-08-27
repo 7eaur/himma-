@@ -40,10 +40,7 @@ export default function TemporaryAudioSkipControl({ mode }: { mode: Mode }) {
   }, []);
 
   useEffect(() => {
-    if (!enabled) {
-      setPortalTarget(null);
-      return;
-    }
+    if (!enabled) return;
 
     const selector = mode === "assessment"
       ? '[data-testid="reading-text"]'
@@ -56,10 +53,13 @@ export default function TemporaryAudioSkipControl({ mode }: { mode: Mode }) {
       if (!candidate) setTask(null);
     };
 
-    syncTarget();
+    const kickoff = window.setTimeout(syncTarget, 0);
     const observer = new MutationObserver(syncTarget);
     observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
+    return () => {
+      window.clearTimeout(kickoff);
+      observer.disconnect();
+    };
   }, [enabled, mode]);
 
   useEffect(() => {
