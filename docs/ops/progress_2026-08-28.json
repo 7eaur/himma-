@@ -1,97 +1,128 @@
 {
-  "schema_version": 3,
-  "plan_version": "HIMMA-MAINTENANCE-2026-08-28",
+  "schema_version": 4,
+  "plan_version": "HIMMA-MAINTENANCE-2026-08-28-M06",
+  "repository": "7eaur/himma-",
   "branch": "recovery/ui-media-admin-overhaul",
-  "m00_green_implementation_head": "beec2d38a32c499c483372f4d329b26d929fb4d8",
+  "implementation_head_before_latest_docs": "98fdc638737bdb8ab9be4937cff6155865998d1f",
   "current_program": "FULL_MAINTENANCE",
-  "current_slice": "M01_PLACEMENT_SCORING_AND_GATES",
+  "current_slice": "M06_RESPONSIVE_ACCESSIBILITY_DESIGN_QA",
   "status": "IN_PROGRESS",
-  "last_green_ci": {
-    "run_number": 221,
-    "run_id": 33141084000,
-    "head_sha": "beec2d38a32c499c483372f4d329b26d929fb4d8",
+  "latest_main_quality_gate": {
+    "run_number": 298,
+    "run_id": 33202256449,
+    "head_sha": "98fdc638737bdb8ab9be4937cff6155865998d1f",
     "frontend": "SUCCESS",
     "backend": "SUCCESS",
-    "integration": "SUCCESS",
-    "playwright": "SUCCESS"
+    "integration": "FAILURE",
+    "vertical_slice": "SUCCESS",
+    "failure": "M06 mobile supervisor navigation accessibility test: dialog is visible but locator a.sidebar-nav-item inside it finds no element"
   },
-  "m00": {
-    "status": "CLOSED",
-    "closure_report": "docs/ops/M00_CLOSURE_2026-08-28_AR.md",
-    "failed_runs_preserved": [
-      33139416128,
-      33140701035
-    ],
-    "fix_commits": [
-      "98bc121108a343697aa60e45bc853689fbeedc08",
-      "beec2d38a32c499c483372f4d329b26d929fb4d8"
-    ]
+  "latest_responsive_visual_gate": {
+    "run_number": 18,
+    "run_id": 33202256450,
+    "head_sha": "98fdc638737bdb8ab9be4937cff6155865998d1f",
+    "status": "SUCCESS",
+    "viewports": ["360x800", "390x844", "768x1024", "1024x768", "1440x900"]
   },
-  "recent_code_changes_preserved": [
-    "Tailwind/PostCSS enabled for real responsive utilities",
-    "adaptation policy reworked",
-    "level promotion requires 10/10 core completion",
-    "separate core session per level transition",
-    "immediate sub-70 reinforcement signal",
-    "temporary audio skip reworked",
-    "adaptation recovery regression tests added"
-  ],
-  "approved_maintenance_decisions": [
-    "placement determines starting level only",
-    "journey ascends from start level to L3 before posttest",
-    "pretest score uses section weights 20/40/40",
-    "readiness below 12/20 forces level 1",
-    "activity score >=80 passes",
-    "activity score 70-79 uses guided retry",
-    "activity score <70 creates weakness and targeted reinforcement",
-    "no level promotion before 10 core activities are complete",
-    "reinforcement returns to core for verification",
-    "skill-family reinforcement mapping replaces exact-only target design",
-    "18 additional reinforcement activities approved over the original 15",
-    "missing reinforcement images will be generated later using Himma identity",
-    "temporary audio skip remains neutral and feature-flagged",
-    "Reference-Guided Arabic Reading Analysis is the target speech architecture",
-    "visible role terminology is supervisor / المشرف",
-    "no Docker for local Himma development"
-  ],
-  "m01_constraints": [
-    "do not keep equal-weight 30-question scoring",
-    "use readiness 20 points, word-building/reading 40 points, fluency/comprehension 40 points",
-    "force L1 when readiness is below 12/20 even if total score is higher",
-    "do not invent numeric L2/L3 gate thresholds absent from approved source",
-    "if required L3 gate thresholds are not configured/approved, record placement as provisional rather than fabricating a threshold",
-    "neutral or unresolved required audio evidence must not be converted into an academic error"
-  ],
-  "proposed_decisions_pending_final_approval": [
-    "remove automatic demotion from the normal journey and reserve exceptional level changes for documented supervisor override"
-  ],
+  "maintenance_stages": {
+    "M00": "CLOSED",
+    "M01": "CLOSED",
+    "M02": "CLOSED",
+    "M03": "IMPLEMENTED_WITH_3_EXPLICIT_CONTENT_GAPS",
+    "M04": "REBUILT_ACCEPTED_BASELINE",
+    "M05": "REBUILT_ACCEPTED_BASELINE",
+    "M06": "ACTIVE",
+    "M07": "PENDING",
+    "M08": "PENDING_EXTERNAL_GATES",
+    "M09": "PENDING"
+  },
+  "academic_contract": {
+    "placement_is_starting_level_only": true,
+    "journey": {
+      "start_L1": ["pretest", "L1", "L2", "L3", "posttest"],
+      "start_L2": ["pretest", "L2", "L3", "posttest"],
+      "start_L3": ["pretest", "L3", "posttest"]
+    },
+    "pretest_section_weights": [20, 40, 40],
+    "readiness_force_L1_below": 12,
+    "activity_bands": {
+      "pass": ">=80",
+      "guided_retry": "70..<80",
+      "reinforcement": "<70"
+    },
+    "skill_mastery_recent_attempt_weights": [50, 30, 20],
+    "level_completion_requires_10_core": true,
+    "posttest_before_L3_complete": false,
+    "automatic_demotion": "OPEN_DECISION_DO_NOT_CHANGE_SILENTLY"
+  },
   "content": {
     "original_items": 105,
-    "original_pretest_questions": 30,
-    "original_posttest_questions": 30,
-    "original_core_activities": 30,
-    "original_reinforcement_activities": 15,
-    "new_reinforcement_additions_approved": 18,
-    "target_reinforcement_total": 33
+    "pretest_questions": 30,
+    "posttest_questions": 30,
+    "core_activities": 30,
+    "original_reinforcement": 15,
+    "m03_reinforcement_additions": 18,
+    "reinforcement_total": 33,
+    "runtime_total_with_additions": 123,
+    "skills": 44,
+    "residual_reinforcement_gaps": [
+      "L2 sukoon word reading",
+      "L3 literal comprehension",
+      "L3 sentence building"
+    ]
+  },
+  "reinforcement_runtime": {
+    "mapping": "skill -> skill_family -> approved reinforcement candidates",
+    "random_fallback": false,
+    "cross_level_random_fallback": false,
+    "cycle": ["weakness", "reinforcement", "return_to_core", "verification", "continue"],
+    "bounded_retry_then_supervisor": true,
+    "migration": "0008_reinforcement_cycles"
   },
   "audio": {
     "existing_static_assets": 50,
     "missing_confirmed": ["موز", "سَا"],
     "target_static_assets": 52,
-    "temporary_skip_flag": "HIMMA_TEMP_AUDIO_SKIP"
+    "temporary_skip_flag": "HIMMA_TEMP_AUDIO_SKIP",
+    "temporary_skip_is_academically_neutral": true
   },
-  "maintenance_sequence": [
-    "M00 restore green CI — CLOSED",
-    "M01 placement scoring and gates — IN_PROGRESS",
-    "M02 adaptation state machine",
-    "M03 reinforcement mapping and 18 additions",
-    "M04 student product UI rebuild",
-    "M05 supervisor product UX rebuild",
-    "M06 responsive and accessibility gate",
-    "M07 research reports",
-    "M08 real speech analysis after external gates",
-    "M09 release and UAT"
+  "speech_analysis": {
+    "target_architecture": "Reference-Guided Arabic Reading Analysis",
+    "infrastructure_present": ["queue", "worker", "retries", "dead-letter", "provider adapter abstraction", "reference alignment", "C/D/I/S", "confidence/manual review fallback"],
+    "real_provider_connected": false,
+    "calibration_complete": false,
+    "privacy_retention_decision_complete": false
+  },
+  "m04_student_ui": {
+    "full_screen_learning_stage": true,
+    "uses_100dvh": true,
+    "assessment_activity_visual_unification": true,
+    "prominent_companion_character": true,
+    "responsive_rules": true,
+    "reduced_motion": true
+  },
+  "m05_supervisor_ui": {
+    "admin_ia_rebuilt": true,
+    "action_center_dashboard": true,
+    "student_profile_tabs": true,
+    "reinforcement_review_expandable": true,
+    "settings_tabs": ["account", "security", "supervisors"]
+  },
+  "m06_passed_checks_on_run_298": [
+    "supervisor RTL keyboard focus overflow",
+    "reduced motion",
+    "200 percent zoom equivalent",
+    "critical palette contrast",
+    "child surfaces hide implementation vocabulary",
+    "full vertical slice"
   ],
+  "m06_current_failure": {
+    "file": "apps/web/tests/e2e/accessibility-integration.spec.ts",
+    "scenario": "mobile supervisor navigation keeps touch targets and layout intact",
+    "observed": "dialog named قائمة لوحة المشرف is visible; a.sidebar-nav-item locator inside it returns no element",
+    "must_preserve": ["touch target >=44px", "semantic mobile navigation", "no horizontal overflow"],
+    "likely_fix_class": "align test selector with actual semantic mobile nav markup or add stable semantic/test identifier; do not weaken assertion"
+  },
   "external_blockers": [
     "representative child-reading recordings",
     "production ASR provider/privacy/cost/recording-transfer decision",
@@ -101,5 +132,5 @@
     "final study duration/session policy",
     "deployment/domain details before release"
   ],
-  "next_action": "Implement and test M01 placement scoring: replace equal-weight 30-item percentage with 20/40/40 section scoring, enforce readiness <12/20 => L1, preserve neutral audio handling, and represent unresolved L3 numeric gates explicitly as provisional/configuration blockers rather than inventing thresholds."
+  "next_action": "Fix M06 mobile supervisor navigation test/markup selector mismatch without weakening >=44px accessibility requirement, rerun Main Quality Gate to full green, complete M06 visual/accessibility sign-off, then start M07 Research Reports."
 }
