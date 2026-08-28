@@ -1,10 +1,10 @@
-"""Runtime bridge for the upward Himma learning journey.
+"""Runtime bridge for the Himma adaptive learning journey.
 
-Each level now owns a durable ``core`` session. Completing L1 closes that session
-and opens a new L2 session; completing L2 does the same for L3. Historical
-sessions are never relabelled. Reinforcement remains inside the current level
-and a missing safe mapping blocks progression rather than selecting unrelated
-content.
+Each level owns a durable ``core`` session. A level transition closes the active
+session and opens a fresh session for the new level without relabelling history.
+Reinforcement remains inside the current level. A missing approved mapping
+blocks progression and delegates selection to the documented supervisor-review
+flow instead of selecting unrelated content.
 """
 
 from datetime import datetime, timezone
@@ -53,11 +53,7 @@ def _ensure_recommended_attempt(
     session: AssessmentSession,
     decision: AdaptationDecision,
 ) -> int | None:
-    """Create only the explicitly mapped reinforcement attempt.
-
-    Promotion no longer injects a consolidation activity into the old session;
-    the next level receives its own session and starts naturally at activity 1.
-    """
+    """Create only the explicitly approved mapped reinforcement attempt."""
     item_id = decision.recommended_item_id
     if item_id is None or decision.action != "support":
         return None
@@ -65,7 +61,11 @@ def _ensure_recommended_attempt(
     item = db.query(ContentItem).filter(ContentItem.id == item_id).first()
     if not item:
         return None
-    if item.kind != "reinforcement_activity" or item.level_id != decision.previous_level:
+    if (
+        item.kind != "reinforcement_activity"
+        or item.level_id != decision.previous_level
+        or item.status != "approved"
+    ):
         raise HTTPException(status_code=409, detail="نشاط التقوية لا يطابق المستوى الحالي")
 
     existing = (
@@ -93,36 +93,41 @@ def _ensure_recommended_attempt(
     return attempt.id
 
 
-def _open_next_level_session(
+def _transition_level_session(
     db: Session,
     student: Student,
     old_session: AssessmentSession,
     new_level: int,
 ) -> AssessmentSession:
-    """Close one level and create the next without rewriting history."""
+    """Close the current level and open a fresh target-level session safely.
+
+    Completed historical target-level sessions are preserved and never reopened.
+    A currently active target-level session may only be reused as an idempotent
+    recovery/race result.
+    """
+    if new_level < 1 or new_level > 3:
+        raise HTTPException(status_code=409, detail="المستوى الجديد غير صالح")
+
     now = datetime.now(timezone.utc)
     old_session.status = "completed"
     old_session.completed_at = old_session.completed_at or now
     old_session.updated_at = now
-    db.flush()  # release the partial unique active-session index
+    db.flush()  # release the partial unique active-session constraint
 
-    existing = (
+    active_target = (
         db.query(AssessmentSession)
         .filter(
             AssessmentSession.student_id == student.id,
             AssessmentSession.session_type == "core",
             AssessmentSession.assigned_level == new_level,
+            AssessmentSession.status == "in_progress",
         )
         .order_by(AssessmentSession.id.desc())
         .first()
     )
-    if existing:
-        if existing.status != "in_progress":
-            # A completed historical next-level session means the student has
-            # already traversed this level; never erase it or silently reopen it.
-            return existing
+    if active_target:
         student.current_level = new_level
-        return existing
+        return active_target
 
     next_session = AssessmentSession(
         student_id=student.id,
@@ -154,12 +159,12 @@ def prepare_next_for_student(db: Session, student: Student, session: AssessmentS
         AdaptationDecision.id == decision_payload["decision_id"],
     ).one()
 
-    # A promotion is a level-boundary operation, never a relabel of the old
-    # session. This gives reports a trustworthy L1/L2/L3 history.
-    if decision.action == "promote" and decision.new_level > decision.previous_level:
-        next_session = _open_next_level_session(db, student, session, decision.new_level)
+    if decision.action in {"promote", "demote"} and decision.new_level != decision.previous_level:
+        next_session = _transition_level_session(db, student, session, decision.new_level)
         explanation = dict(decision.explanation or {})
+        direction = "promotion" if decision.new_level > decision.previous_level else "demotion"
         explanation["journey_transition"] = f"L{decision.previous_level}->L{decision.new_level}"
+        explanation["transition_direction"] = direction
         explanation["previous_session_id"] = session.id
         explanation["next_session_id"] = next_session.id
         decision.explanation = explanation
@@ -173,13 +178,14 @@ def prepare_next_for_student(db: Session, student: Student, session: AssessmentS
             "level_id": decision.new_level,
             "session_id": next_session.id,
             "level_transitioned": True,
+            "transition_direction": direction,
         }
 
-    # L3 completion ends the intervention journey. The posttest is enabled only
-    # by its separate supervisor/eligibility policy.
+    # A strong completed L3 flow ends the adaptive learning journey. Posttest
+    # availability is still controlled separately by supervisor/study policy.
     if (
         decision.previous_level == 3
-        and decision.explanation.get("reason") == "top_level_completed"
+        and decision.explanation.get("reason") == "top_level_mastery"
         and _completed_core_count(db, session.id, 3) >= CORE_ACTIVITY_COUNT
     ):
         now = datetime.now(timezone.utc)
@@ -205,8 +211,9 @@ def prepare_next_for_student(db: Session, student: Student, session: AssessmentS
         recommendation_state_before == "completed" or recommendation_state_after == "completed"
     )
 
-    # A support decision with no approved mapping is always a real hold. Do not
-    # wait until 10/10 and do not silently continue into unrelated core content.
+    # ADR-012: support with no approved exact mapping is a real safe hold. The
+    # supervisor chooses one of the approved same-level reinforcement activities
+    # with a written reason through the dedicated review flow.
     mapping_blocked = (
         decision.action == "support"
         and decision.recommended_item_id is None
