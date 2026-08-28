@@ -1,600 +1,515 @@
-# هِمّة — Master Continuity Handoff
+# هِمّة — Master Continuity Handoff — تحديث شامل 2026-08-28
 
-**التاريخ:** 2026-08-28  
-**الغرض:** تسليم أي منفذ/نموذج جديد كل السياق التنفيذي والقرارات والفجوات والخطة الحالية دون الاعتماد على ذاكرة محادثة سابقة.  
-**المستودع:** `7eaur/himma-`  
-**الفرع العامل:** `recovery/ui-media-admin-overhaul`
-
-> اقرأ هذا الملف أولًا، ثم `RESUME_HERE.md` و`STATUS.md` و`progress.json` و`OPEN_ITEMS.md` و`DECISIONS.md` قبل أي تعديل.
+> هذا الملف هو المرجع التنفيذي الأشمل لاستئناف المشروع في محادثة/مودل جديد. ابدأ أيضًا من `docs/handoff/READ_FIRST_2026-08-28_AR.md`. عند أي تعارض: **المصدر الأكاديمي المعتمد > القرارات الموثقة الأحدث > الكود الحالي > CI الفعلي > هذا النص التاريخي**. وافحص HEAD قبل العمل دائمًا.
 
 ---
 
-## 1) تعريف المنتج ومصدر الحقيقة
+# 1) هوية المشروع والهدف
 
-هِمّة منصة ويب عربية تعليمية تكيفية موجهة لطلبة الصف الثالث من ذوي صعوبات القراءة. المسار البحثي الأساسي:
+هِمّة منصة تعليمية عربية RTL موجهة لطلاب الصف الثالث ممن لديهم صعوبات في القراءة. المسار المنتجّي المستهدف:
 
-`دخول الطالب بكود → اختبار قبلي → تحديد نقطة البداية → أنشطة المستوى → تقوية موجهة عند الحاجة → الصعود للمستويات التالية → اختبار بعدي → تقارير للمشرف`.
+`دخول بكود → اختبار قبلي → تحليل/تصنيف نقطة البداية → أنشطة المستوى → تقوية موجهة عند الضعف → صعود للمستوى التالي → L3 → اختبار بعدي → تقارير المشرف`
 
-المحتوى الأصلي المعتمد من العميل قبل الإضافات الجديدة:
+المستخدم يريد منتجًا حقيقيًا أنيقًا وسلسًا، لا مجرد صفحات تعمل تقنيًا. يجب الحكم على السيناريو، التعليمات، الرسائل، سهولة التنقل، الإدارة، responsive، accessibility، والاتساق البصري.
+
+---
+
+# 2) Git / Branch / قواعد التنفيذ
+
+المستودع: `7eaur/himma-`
+
+الفرع التنفيذي الحالي:
+
+`recovery/ui-media-admin-overhaul`
+
+آخر Implementation HEAD قبل دفعة التوثيق الحالية:
+
+`98fdc638737bdb8ab9be4937cff6155865998d1f`
+
+لا تعدّل الفروع الأساسية. لا تعمل Reset/Hard rollback لإخفاء Regression. لا تنشئ repo/project/folder بديلًا عند الاستئناف. لا تحذف تغييرات موجودة لمجرد أن اختبارًا فشل.
+
+**قيد محلي:** لا Docker في تطوير هِمّة المحلي. GitHub Actions قد يستخدم containers داخل runner؛ هذا لا يغير القيد المحلي.
+
+---
+
+# 3) الحالة التنفيذية المختصرة
+
+- M00 — Restore Green Baseline: CLOSED.
+- M01 — Placement Scoring & Gates: CLOSED.
+- M02 — Adaptation State Machine: CLOSED.
+- M03 — Reinforcement Mapping/Content: IMPLEMENTED، مع 3 فجوات محتوى معلنة.
+- M04 — Student Product UI: REBUILT / accepted baseline.
+- M05 — Supervisor Product UX: REBUILT / accepted baseline.
+- **M06 — Responsive/Accessibility/Design QA: ACTIVE.**
+- M07 — Research Reports: PENDING.
+- M08 — Real Speech Analysis: PENDING / external gates.
+- M09 — Release/UAT: PENDING.
+
+---
+
+# 4) آخر CI حقيقي ونقطة الاستئناف
+
+على Implementation HEAD `98fdc638...`:
+
+## Responsive Visual Gate
+
+Run #18 / ID `33202256450`: **SUCCESS**.
+
+## Main Quality Gate
+
+Run #298 / ID `33202256449`:
+
+- Backend: SUCCESS.
+- Frontend: SUCCESS.
+- Integration/Playwright: FAILURE.
+
+الفشل الحالي الوحيد:
+
+`apps/web/tests/e2e/accessibility-integration.spec.ts`
+
+سيناريو:
+
+`mobile supervisor navigation keeps touch targets and layout intact`
+
+Log يثبت:
+
+- dialog `قائمة لوحة المشرف` visible.
+- الاختبار يبحث عن `a.sidebar-nav-item` داخل dialog.
+- العنصر بهذا selector غير موجود.
+- الفشل يحدث قبل قياس height >=44px.
+- بقية اختبارات M06 نجحت.
+- Vertical Slice الكامل نجح.
+
+**أول مهمة:** أصلح contract بين test selector والـmobile nav markup بطريقة semantic/stable، مع الحفاظ على شرط touch target >=44px وعدم خفض الاختبار، ثم أعد Main Quality Gate حتى يصبح كاملًا أخضر.
+
+---
+
+# 5) المحتوى الأكاديمي الأصلي
+
+المحتوى الأصلي المعتمد لا يُعدل بصمت:
 
 - 30 سؤال اختبار قبلي.
 - 30 سؤال اختبار بعدي.
-- 3 مستويات: الاستعداد للقراءة، بناء الكلمة، الطلاقة والفهم.
-- لكل مستوى 10 أنشطة أساسية + 5 أنشطة تقوية.
-- الإجمالي الأصلي: 105 عنصرًا = 60 سؤالًا + 45 نشاطًا.
+- 3 مستويات.
+- لكل مستوى 10 أنشطة أساسية.
+- لكل مستوى 5 تقويات أصلية.
+- 30 core + 15 reinforcement.
+- الإجمالي الأصلي: **105 عنصرًا**.
+- عدد المهارات في الكتالوج: **44**.
 
-المصادر المرجعية الحاكمة داخل المشروع والملفات الخارجية المرفوعة سابقًا تشمل:
+Full runtime seed بعد M03:
 
-1. المحتوى المعتمد من العميل.
-2. وثيقة فكرة المشروع ومتطلبات العميل للمبرمج.
-3. دليل الهوية البصرية لهِمّة.
-4. حزمة الصوت والأصول المرئية.
-5. خارطة التصحيح الشاملة V2.
-6. قرارات هذه المراجعة بتاريخ 2026-08-28، وهي أحدث عند التعارض مع افتراضات تنفيذية أقدم.
+- baseline 105.
+- +18 reinforcement additions.
+- total = **123**.
+- reinforcement total = **33**.
 
----
+المراجع:
 
-## 2) قواعد ثابتة لا يجوز كسرها
-
-- لا Docker محليًا. التشغيل المحلي يعتمد PostgreSQL كخدمة، MinIO كعملية مستقلة، وRedis عند الحاجة. CI يمكنه تشغيل خدمات مؤقتة خاصة به.
-- لا إعادة بناء المشروع من الصفر؛ نحافظ على النواة الحالية ونصلح فوقها.
-- لا تغيير المحتوى الأصلي أو قواعد القياس بصمت.
-- لا Fake ASR إنتاجي ولا ادعاء تحليل نطق آلي غير مُعاير.
-- لا تعاقب أكاديميًا محاولة صوتية فاشلة/منخفضة الثقة/متخطاة مؤقتًا.
-- لا اختيار تقوية عشوائية لمهارة لا يوجد لها ربط تربوي معتمد.
-- لا تُعرض للطفل مصطلحات تقنية مثل `mapping_gap`, `weakest_skill_id`, ASR أو تفاصيل تشخيصية.
-- المصطلح الظاهر في المنتج هو **المشرف**. يبقى `researcher` داخليًا فقط للتوافق مع schema/JWT/API إذا لزم.
-- كود الطالب 6 أرقام، قابل للتوليد أو الإدخال اليدوي، وفريد.
-- واجهة الطفل: RTL، مهمة واحدة، تعليمة واحدة، إجراء أساسي واحد، خيارات كبيرة، بدون ازدحام.
-- الحروف والكلمات والجمل نص عربي حي، وليست صورًا.
+- `المحتوى المعتمد من العميل.txt` / المصدر المعتمد للمحتوى.
+- `docs/specs/REINFORCEMENT_CONTENT_ADDITIONS_2026-08-28_AR.md`.
 
 ---
 
-## 3) حالة Git الحالية الحقيقية عند كتابة هذا التسليم
+# 6) Placement — العقد الحالي
 
-**HEAD وقت إعداد هذا الملف قبل أي commits توثيقية لاحقة:**
+الاختبار القبلي يحدد **نقطة البداية فقط**.
 
-`0f46e7e9421e7617f72fd03de3199df955084cd0`
+المسارات:
 
-هذا الرأس متقدم 12 commit عن نقطة `7c559948f3f75c19f244b7e8942ab6ee3148c614` التي كانت آخر نقطة خضراء قبل تعديلات Antigravity الأخيرة.
+- placement L1: `Pretest → L1 → L2 → L3 → Posttest`.
+- placement L2: `Pretest → L2 → L3 → Posttest`.
+- placement L3: `Pretest → L3 → Posttest`.
 
-التغييرات المهمة بعد `7c559...` تشمل:
+Scoring المعتمد في الصيانة:
 
-- إضافة Tailwind/PostCSS فعليًا للواجهة (`tailwind.css`, `postcss.config.mjs`) لمعالجة مشكلة الاعتماد على utilities غير موجودة.
-- إعادة عمل أجزاء من `adaptation.py` و`adaptation_runtime.py`.
-- جعل كل مستوى يملك Core Session مستقلة؛ الانتقال يغلق جلسة المستوى ويفتح جلسة جديدة بدل تغيير تاريخ الجلسة القديمة.
-- إضافة قاعدة تمنع الترقية قبل إكمال 10/10 أنشطة أساسية للمستوى.
-- دعم تقوية فورية عند نتيجة نشاط أقل من 70 حتى قبل اكتمال نافذة الثلاث محاولات.
-- تحسين عزل قرارات الانخفاض بحسب المستوى.
-- إعادة عمل `temporary_audio_skip.py` واختبارات regression.
+- readiness = 20.
+- word building/reading = 40.
+- fluency/comprehension = 40.
+- readiness أقل من `12/20` يفرض L1 حتى لو total أعلى.
 
-### آخر CI معروف للرأس `0f46e7...`
-
-GitHub Actions Run **#206**, ID `33139416128`:
-
-- Frontend: **SUCCESS**.
-- Backend: **SUCCESS**.
-- Integration / Playwright: **FAILURE**.
-
-إذن **الرأس الحالي ليس أخضر بالكامل**، ولا يجوز لأي منفذ جديد أن يقول إن الفرع جاهز للإغلاق قبل إصلاح فشل Playwright وإعادة تشغيل Quality Gate.
-
-آخر نقطة خضراء مثبتة قبل سلسلة التعديلات الأخيرة كانت `7c559948f3f75c19f244b7e8942ab6ee3148c614` مع Quality Gate #191، حيث كانت Frontend + Backend + Integration ناجحة. لكن لا يجوز الرجوع إليها تلقائيًا؛ التعديلات اللاحقة تحتوي إصلاحات مهمة ويجب إصلاح الرأس الحالي بدل حذفها.
+L3 لا يجب أن يعتمد على total >=80 وحده إذا كانت بوابة دقة القراءة/النص مطلوبة. لا تختلق threshold صوتي غير معتمد. عند غياب evidence لازم بسبب TEMP Audio Skip، استخدم provisional/neutral contract بدل تحويل الغياب إلى خطأ.
 
 ---
 
-## 4) ما تم بناؤه فعليًا ويجب الحفاظ عليه
+# 7) Learning Adaptation — العقد الحالي
 
-### النواة والأمن
+Performance bands:
 
-- Monorepo Web + API.
-- جلسات آمنة وصلاحيات الطالب/المشرف.
-- PostgreSQL + Alembic.
-- MinIO للتسجيلات والأصول الخاصة.
-- Redis عند الحاجة.
-- GitHub Actions للـfrontend/backend/integration.
-- حماية `/admin` وإعادة غير المسجل إلى صفحة الدخول.
+- `>=80%` = Pass.
+- `70–<80%` = Guided Retry للجزء الضعيف/غير الصحيح.
+- `<70%` = Weakness event + targeted reinforcement candidate.
 
-### المحتوى ومسار الطالب
+Skill mastery profile:
 
-- كتالوج المحتوى الأصلي 105 عنصرًا موجود ومتحقق منه.
-- الاختبار القبلي والبعدي 30+30.
-- قوالب التفاعل الأصلية لم تعد مسطحة إلى Multiple Choice فقط؛ يوجد image/listen/sequence/build-word/read-aloud وغيرها.
-- صور تعليمية وأصوات حقيقية موصولة بالمحتوى.
-- حفظ الإجابات والزمن والاستئناف ومنع الازدواج.
-- تسجيل الصوت والرفع والمراجعة اليدوية.
+- آخر 3 محاولات صالحة: 50% / 30% / 20%.
+- هذا trend/evidence وليس سببًا لتخطي بقية المستوى.
 
-### المشرف
+Level completion:
 
-- Dashboard.
-- الطلاب: إضافة/تعديل/تفعيل/تعطيل/كود دخول.
-- صفحة ملف طالب.
-- مراجعة الصوت.
-- تقارير تشغيلية أولية.
-- الإعدادات: اسم المستخدم، كلمة المرور، قائمة المشرفين، إضافة مشرف.
-- فتح الاختبار البعدي.
-- تجاوز مستوى يدوي بسبب موثق.
-- مسار قرار تقوية يدوي عند غياب ربط آلي آمن.
+- يجب إكمال 10/10 core activities.
+- لا unresolved reinforcement gap.
+- لا detected weakness غير معالج ضمن العقد.
+- Posttest لا يفتح بعد L1 أو L2 فقط.
 
-### استقرار تقني مهم
+### Automatic Demotion
 
-- إصلاح سباق RewardEvent باستخدام savepoint كي لا يسمم outer transaction.
-- إصلاح refresh طابور مراجعة الصوت أثناء وجود مراجعة مفتوحة.
-- MinIO pinned/checksummed في CI.
-- تم اختبار migrations وseed idempotency مرارًا.
+هذا القرار **غير محسوم نهائيًا**. الوثائق القديمة تسمح بالخفض بعد قرارين منخفضين، بينما مراجعة المنتج الجديدة تفضل عدم الهبوط التلقائي بعد placement، واستخدام support داخل المستوى + supervisor override للحالات الاستثنائية. لا تحذف أو تعتمد demotion صامتًا قبل قرار نهائي.
 
 ---
 
-## 5) وضع التسجيل الصوتي المؤقت للتجربة
+# 8) M03 Reinforcement — ما نُفذ
 
-تم اعتماد Feature Flag مؤقت:
+تم الانتقال من exact `skill_id` فقط إلى:
+
+`Skill → Skill Family → Approved Reinforcement Candidates`
+
+ثوابت:
+
+- no random reinforcement.
+- no cross-level random fallback.
+- reinforcement ليست مستوى رابعًا.
+- التقوية تعالج weakness ثم يرجع الطالب إلى core verification.
+
+الدورة:
+
+`Weakness → Reinforcement → Complete → Return to Core → Verification → Continue`
+
+إذا استمر الضعف بعد محاولات bounded: supervisor support required بدل loop لا نهائي.
+
+Database/runtime:
+
+- durable `ReinforcementCycle`.
+- migration: `0008_reinforcement_cycles`.
+- `seed_all.py` يزرع full catalog idempotently.
+
+## 18 إضافة معتمدة
+
+- L1: +7.
+- L2: +6.
+- L3: +5.
+
+## 3 فجوات باقية — لا تختلق لها علاجًا
+
+1. L2 — قراءة كلمات السكون (`sukoon_word_reading`).
+2. L3 — الفهم المباشر (`literal_comprehension`).
+3. L3 — بناء الجملة (`sentence_building`).
+
+حتى اعتماد علاج: Safe Hold + supervisor path موثق.
+
+مرجع: `docs/ops/M03_RESIDUAL_CONTENT_GAPS_2026-08-28_AR.md`.
+
+---
+
+# 9) TEMP Audio Skip
+
+Feature flag:
 
 `HIMMA_TEMP_AUDIO_SKIP=true`
 
-هدفه السماح بتجربة المنصة كاملة قبل اكتمال نموذج الصوت الحقيقي.
+الغرض: تجربة المنصة بينما التسجيل/ASR الحقيقي غير جاهز بالكامل.
 
-السلوك الصحيح للتخطي:
+عند Voice-required task يظهر «تخطي مؤقتًا» مع لغة مناسبة للطالب.
 
-- يظهر زر **«تخطي مؤقتًا»** فقط في `read_aloud` و`timed_read_aloud` وما يحتاج تسجيلًا.
-- لا يطلب الميكروفون.
-- لا ينشئ ملف صوت.
-- لا يرفع إلى MinIO.
+الـskip:
+
+- لا يطلب mic permission.
+- لا ينشئ fake audio.
+- لا يرفع MinIO.
 - لا ينشئ AudioSubmission.
-- لا يدخل Audio Review Queue.
-- لا يعد السؤال صحيحًا ولا خاطئًا.
-- يُستبعد من المقام الأكاديمي ومن Mastery/Adaptation/Rewards.
-- عند `HIMMA_TEMP_AUDIO_SKIP=false` يعود التسجيل الطبيعي إلزاميًا بدون إعادة بناء المنطق.
+- لا يدخل review queue.
+- لا يعطي Correct/Incorrect.
+- لا نجوم/Badge.
+- لا mastery/weakest_skill/adaptation evidence.
+- لا reinforcement بسبب skip.
+- في assessment يستبعد من denominator.
 
-هذا **وضع تجربة فقط** وليس جزءًا دائمًا من المنتج.
-
----
-
-## 6) نموذج الصوت المعتمد تصميميًا — «نموذج الصوت»
-
-قرار التصميم المحفوظ:
-
-المحتوى المقروء محدود ومعروف مسبقًا، لذلك الأنسب **Reference-Guided Arabic Reading Analysis** بدل الاعتماد على Whisper وحده.
-
-الخط:
-
-`Audio Capture → Quality Check → ASR → Alignment to known reference → Correct/Deletion/Insertion/Substitution → confidence → optional phoneme/haraka evidence → supervisor review when low confidence`.
-
-Whisper أو غيره يكون ASR فقط، وليس محرك الحكم الكامل.
-
-الممنوع:
-
-- تدريب نموذج عربي خاص من الصفر ضمن هذا النطاق.
-- نسبة دقة مضمونة 100%.
-- ادعاء الحركات/الشدة/الفونيمات دون معايرة بعينة حقيقية.
-- استخدام تسجيلات الأطفال للتدريب دون موافقات أخلاقية مستقلة.
-
-P07 يبقى غير مقبول حتى وصول تسجيلات ممثلة وحسم المزود والخصوصية والكلفة وحد الثقة.
+إطفاء flag يعيد recording requirement.
 
 ---
 
-## 7) المراجعة الأكاديمية الجديدة: التكيف والتقوية
+# 10) Audio Inventory
 
-هذه أهم فجوة منتج اكتُشفت في 2026-08-28.
+حزمة الصوت الثابت الحالية:
 
-### المشكلة القديمة
+- 50 أصلًا موجودًا، مع WAV master + MP3 web.
+- الفجوتان المؤكدتان فقط: **«موز»** و**«سَا»**.
+- target fixed assets = 52.
+- «موزة» لا تعوض «موز» إذا النشاط يحتاج الكلمة نفسها.
 
-المحرك خلط بين:
+التقويات الـ18 الجديدة تعيد استخدام الأصوات الحالية ولا تضيف gaps ثابتة أخرى معروفة فوق «سَا» الموجودة أصلًا.
 
-1. **Placement**: تحديد نقطة البداية بعد القبلي.
-2. **Learning Adaptation**: قرار ما يحدث أثناء الأنشطة.
-3. **Level Transition**: متى ينتهي المستوى ويبدأ التالي.
+المستخدم سيوفر لاحقًا الصوتين فقط. الصور الناقصة للتقويات ستُولد داخليًا لاحقًا بهوية هِمّة.
 
-كما أن ربط التقوية اعتمد أساسًا على Exact `skill_id`، بينما 5 تقويات فقط لكل مستوى لا تغطي كل مهارات الأنشطة حرفيًا.
-
-### المسار الذي أصبح هدف الصيانة
-
-بعد القبلي يحدد الطالب **نقطة البداية فقط**:
-
-- إذا بدأ L1: `L1 → L2 → L3 → Posttest`.
-- إذا بدأ L2: `L2 → L3 → Posttest`.
-- إذا بدأ L3: `L3 → Posttest`.
-
-لا يجب إظهار البعدي بعد إكمال L1 أو L2.
-
-### نتيجة النشاط الفورية
-
-- `>=80%`: النشاط مجتاز.
-- `70–79%`: Guided Retry للجزء الذي أخطأ فيه، لا تقوية كاملة مباشرة.
-- `<70%`: Weakness Event + تقوية موجهة للمهارة.
-
-بعد التقوية:
-
-`ضعف → تقوية → رجوع للجولة/النشاط الأساسي → تحقق → استمرار`.
-
-لا تقفز مباشرة للنشاط التالي دون Verify.
-
-### آخر ثلاث محاولات 50/30/20
-
-تبقى مفيدة كـSkill Mastery Profile، لكن **لا تسمح بتخطي بقية أنشطة المستوى**.
-
-الترقية تحتاج Level Completion Gate واضحًا:
-
-- 10/10 Core activities مكتملة.
-- لا فجوة تقوية معلقة.
-- المهارات المطلوبة مغطاة.
-
-الكود الحالي بعد تعديلات Antigravity أصبح يمنع الترقية قبل 10/10 ويستخدم جلسة مستقلة لكل مستوى، وهذا تحسن يجب الحفاظ عليه.
-
-### قرار الخفض التلقائي
-
-الوثيقة التاريخية القديمة تسمح بالخفظ بعد قرارين منخفضين متتاليين. لكن المراجعة الجديدة تميل إلى نموذج أكثر استقرارًا: **القبلي يحدد نقطة البداية، ثم الدعم والتقوية داخل المستوى، ولا Automatic Demotion في المسار العادي؛ التدخل الاستثنائي للمشرف يكون يدويًا وموثقًا**.
-
-هذا **قرار صيانة مقترح قوي لكنه يحتاج تثبيت نهائي في Source of Truth قبل حذف demotion من الكود**. حاليًا الكود ما زال يحتوي demotion.
+مرجع: `docs/specs/AUDIO_INVENTORY_AND_GAPS_2026-08-28_AR.md`.
 
 ---
 
-## 8) مشكلة Scoring الاختبار القبلي
+# 11) Real Speech Analysis / ASR
 
-المحتوى المعتمد يحدد 100 درجة موزعة:
+الهدف المعماري:
 
-- الاستعداد: 20.
-- بناء الكلمة وقراءتها: 40.
-- الطلاقة والفهم: 40.
+**Reference-Guided Arabic Reading Analysis**
 
-كما توجد بوابات مهارية، منها:
+وليس Whisper-only generic transcription.
 
-- L1 إذا المجموع <50 **أو** الاستعداد <12/20.
-- L2 إذا 50–79 أو فشل بوابة قراءة/بناء الكلمات.
-- L3 إذا >=80 مع اجتياز بوابات القراءة الأساسية ودقة مناسبة في قراءة النص.
+البنية الموجودة:
 
-التنفيذ التاريخي كان يعتمد نسبة عامة أقرب إلى عدد صحيح/إجمالي قابل للتقييم، وهو غير كافٍ.
+- queue.
+- worker.
+- retries/dead-letter.
+- provider Adapter abstraction.
+- reference-guided alignment.
+- Correct / Deletion / Insertion / Substitution representation.
+- confidence/manual review fallback infrastructure.
+- migrations/tests.
 
-**خطة الصيانة:** بناء Placement Scoring مستقل يطبق 20/40/40 والبوابات، مع جعل القرار في وضع `TEMP_AUDIO_SKIP` مؤقتًا/Provisional إذا كانت بوابة صوتية ضرورية غير متاحة.
+غير المنجز:
 
-لا تختلق عتبة دقة نص غير موجودة. تبقى قابلة للمعايرة/اعتماد المشرف قبل الدراسة.
+- real provider selection/connection.
+- representative-recording evaluation.
+- confidence calibration/version.
+- privacy/cost/transfer decision.
+- recording retention/deletion policy.
 
----
-
-## 9) التقويات الجديدة المعتمدة في مراجعة 2026-08-28
-
-تم اعتماد إضافة **18 Micro-Reinforcement Activity** فوق 15 الأصلية، مع الحفاظ على المحتوى الأصلي.
-
-الإجمالي المستهدف بعد الإضافة: **33 نشاط تقوية**.
-
-### L1 — 7 إضافات
-
-- L1-REIN-06: اسمع واختر الحرف — ربط الصوت بالحرف.
-- L1-REIN-07: اختر شكل الحرف — أشكال الحروف.
-- L1-REIN-08: ما الصوت الأخير؟ — عزل الصوت الأخير.
-- L1-REIN-09: ما هذا؟ — حرف/كلمة/جملة.
-- L1-REIN-10: تذكر الصور — ذاكرة بصرية مخففة.
-- L1-REIN-11: اتبع الاتجاه — Right-to-left path sequence.
-- L1-REIN-12: ماذا حدث أولًا؟ — تسلسل بحدثين ثم زيادة الصعوبة.
-
-### L2 — 6 إضافات
-
-- L2-REIN-06: اسمع الحركة — الحركات القصيرة.
-- L2-REIN-07: اقرأ المقطع ثم الكلمة — قراءة/دمج تدريجي.
-- L2-REIN-08: قصير أم طويل؟ — حركة قصيرة مقابل مد.
-- L2-REIN-09: بطل الشدة — **تقوية الشدة، فجوة أساسية مؤكدة**.
-- L2-REIN-10: ميّز التنوين.
-- L2-REIN-11: اقرأ جملة قصيرة.
-
-### L3 — 5 إضافات
-
-- L3-REIN-06: اقرأ الكلمات بهدوء — دقة.
-- L3-REIN-07: سباق الكلمات الهادئ — سرعة كلمات بزمن داخلي.
-- L3-REIN-08: فقرة أقصر للطلاقة.
-- L3-REIN-09: معنى الكلمة من الجملة — مفردات من السياق.
-- L3-REIN-10: ماذا حدث أولًا؟ — ترتيب أحداث النص.
-
-### Metadata المطلوب لكل تقوية
-
-لا يكفي `skill_id`. نحتاج طبقة Mapping واضحة مثل:
-
-- `target_skill_family`
-- `target_skills`
-- `severity`
-- `requires_audio`
-- `success_threshold`
-- `max_retries`
-- `return_to_core_activity`
-- `verification_required`
-
-ثم يكون الاختيار:
-
-`Weakness Skill → Skill Family → Approved Reinforcement Candidate(s)`.
-
-أي Mapping تربوي غير واضح لا يُخترع تلقائيًا؛ يوثق ويعرض للمشرف حتى اعتماده.
+لا تدعِ أن ASR مكتمل.
 
 ---
 
-## 10) الصور الجديدة
+# 12) M04 Student Product UI — ما تغير
 
-المستخدم اعتمد أن الصور الناقصة للتقويات الجديدة سيتم توليدها لاحقًا داخل هوية هِمّة؛ لا تطلب من العميل البحث عنها الآن.
+المراجعة المنتجية السابقة حكمت أن UI القديمة Functional Recovery Baseline وليست Final Product UI. M04 أعادت بناء منطقة الطالب:
 
-الأهم بصريًا:
+- Learning Stage full-screen باستخدام `100dvh`.
+- مساحة أوسع بدل Card صغيرة وسط فراغ كبير.
+- character/companion بارزة على desktop بدل أيقونة صغيرة.
+- instruction bubble مرتبطة بالمهمة.
+- image/text/sequence/build/read/record controls محسنة.
+- assessment/pre/post shell أقرب لنفس لغة الأنشطة والتقوية.
+- mobile/tablet/desktop breakpoints.
+- short-landscape handling.
+- focus states + reduced motion.
+- result/reward presentation أفضل.
 
-- تسلسل غسل اليدين → الأكل.
-- زرع البذرة → ظهور النبتة.
-- فتح الكتاب → القراءة.
-- سقي الزهرة → نموها.
-- لبس الحذاء → الخروج.
-
-قاعدة الصور:
-
-- نفس style ونسب الشخصيات.
-- صورة خيار واحدة واضحة، خلفية محايدة.
-- لا تجعل الإجابة الصحيحة أجمل/أكبر من الخاطئة.
-- صور التسلسل تحافظ على المكان والشخصية والإضاءة، ويتغير الحدث فقط.
+القاعدة: الطفل يجب أن يشعر أنه داخل **جلسة تعليمية** لا يتصفح موقعًا إداريًا.
 
 ---
 
-## 11) سجل الصوت الكامل
+# 13) M05 Supervisor Product UX — ما تغير
 
-حزمة V1 تحتوي **50 صوتًا ثابتًا فعليًا** (WAV master + MP3 web لكل عنصر).
+أكبر فجوة منتج كانت Admin UI/IA. تم تنفيذ baseline جديد:
 
-الفجوات الصوتية المؤكدة فقط:
+## Admin Shell / IA
 
-1. **«موز»** — مطلوب في `L1-CORE-06-R01`. الموجود هو «موزة»، ولا يعد بديلًا دلاليًا.
-2. **«سَا»** — مطلوب في `L2-CORE-06-R04`.
+- فصل desktop sidebar عن mobile navigation بشكل أوضح.
+- تنظيم navigation إلى مجموعات منطقية بدل قائمة مسطحة مزدحمة.
 
-الهدف بعد إنتاجهما: **52 أصلًا صوتيًا ثابتًا**.
+## Dashboard
 
-التقويات الـ18 الجديدة تعيد استخدام الموجود، ولا تضيف فجوات صوتية جديدة فوق هذين الصوتين.
+تحول من مجرد أرقام ومساحة تحميل إلى اتجاه Action Center:
 
-أنشطة القراءة `read_aloud/timed_read_aloud` هي تسجيلات طالب، وليست ملفات نموذجية ثابتة مطلوبة مسبقًا.
+- ما يحتاج انتباه المشرف أولًا.
+- ثم summary/stats.
+- ثم recent students / navigation actions.
+- Loading أصبح أقرب لـskeleton بدل فراغ/spinner فقط.
 
----
+## Student Profile
 
-## 12) Product/UX Audit — الحكم الحالي
+الصفحة القديمة كانت تجمع الحساب والرمز والتقوية والتكيف والاختبار البعدي والسجل كلها عموديًا.
 
-الحكم بتاريخ 2026-08-28:
+أصبحت Workspace tabs، منها:
 
-**المنصة وظيفيًا جيدة كأساس Recovery، لكنها ليست Final Product UI.**
+- نظرة عامة.
+- المسار والتقدم.
+- الاختبارات.
+- التسجيلات.
+- التقوية والتكيف.
+- الحساب.
+- السجل.
 
-لا يُقبل التسليم النهائي بالشكل الحالي.
+ويستمر دعم:
 
-### نقاط جيدة يجب الحفاظ عليها
+- edit name.
+- access code copy/regenerate/manual set.
+- activate/deactivate.
+- posttest access.
+- manual adaptation override + reason.
+- rewards/stars/badges.
+- adaptation decision history.
 
-- Student journey dashboard اتجاهه صحيح.
-- أسئلة الصور/الاستماع تحسنت كثيرًا.
-- شاشة القراءة والتسجيل لها نواة جيدة.
-- الهوية والألوان والشخصية أصبحت حاضرة.
-- Admin features موجودة وظيفيًا.
+## Reinforcement Review
 
-### فجوات UI/UX الأساسية
+أصبح compact alert: «يحتاج قرار تقوية» + «مراجعة القرار»، ثم expandable details/form بدل block ضخم دائم أعلى ملف الطالب.
 
-1. **Design/CSS architecture:** كان هناك خلط بين Tailwind utilities وPure CSS محدود؛ تمت إضافة Tailwind بعد المراجعة، لكن يجب التحقق بصريًا أن المشكلة حُلت فعليًا ولم تنتج تعارضات جديدة.
-2. **Student Activities:** Card طويلة وفراغات كثيرة؛ الشخصية صغيرة؛ الإرشاد منفصل عن المهمة.
-3. **Student Task Experience:** المطلوب Full-Screen Learning Stage مرن بدل بطاقة صغيرة معلقة وسط صفحة ضخمة.
-4. **Companion Character:** يجب أن تكون 220–300px تقريبًا على desktop في الشاشات التعليمية المهمة، وتشرح المهمة سياقيًا، دون حركة مستمرة.
-5. **UX Writing:** تعليمات قصيرة حسب النشاط، وليس نصًا عامًا مثل «مهمة واحدة في كل مرة».
-6. **Exit:** الأفضل «حفظ والخروج» مع رسالة حفظ واضحة بدل «خروج» فقط.
-7. **Recording states:** جاهز → يسجل → تم → استمع → يرفع → تم الإرسال → انتظار المراجعة، مع حالات خطأ واضحة.
-8. **Admin Dashboard:** يجب أن يكون Action Center، لا مجرد بطاقات أرقام ومساحات فارغة.
-9. **Admin Sidebar/IA:** تنظيم الطلاب/المراجعات/النتائج/إدارة المنصة بدل قائمة سطحية غير مترابطة.
-10. **Student Profile Admin:** أكبر مشكلة؛ الصفحة طويلة ومكدسة. تحتاج Tabs مثل: نظرة عامة / المسار / الاختبارات / التسجيلات / التقوية والتكيف / الحساب / السجل.
-11. **Reinforcement supervisor UI:** تنبيه صغير + Drawer/Modal/Page قرار، بدل كتلة تقنية كبيرة أعلى الملف.
-12. **Settings:** تقسيم الحساب/الأمان/المشرفون؛ وإعدادات الدراسة منفصلة مستقبلًا.
-13. **Reports:** الحالية ملخص تشغيل وليست التقارير البحثية النهائية.
-14. **Loading/Empty/Error:** Skeletons وEmpty states موجهة للعمل، لا Spinner في مساحة فارغة.
-15. **Responsive:** لم يُثبت بصورة كافية؛ يجب CI/Screenshots على 390×844، 768×1024، 1024×768، 1440×900 على الأقل.
-16. **Accessibility:** تحقق Touch >=44px، Focus، Keyboard، 200% zoom، contrast، reduced motion.
-17. **Student UI Kit:** يجب توحيد الاختبار/النشاط/التقوية تحت shell ومكونات مشتركة بدل أن يبدو كل جزء كمنتج منفصل.
+## Settings
 
-### التقييم التقريبي وقت المراجعة
+قسمت إلى:
 
-- الأساس الوظيفي: 8/10.
-- لوحة الطالب: 8/10.
-- أسئلة القبلي: 7/10.
-- التسجيل: 7/10.
-- الأنشطة: 5.5/10.
-- التقوية UX: 6.5/10.
-- Admin UI: 4/10.
-- ملف الطالب: 3.5/10.
-- التقارير: 5/10.
-- Responsive المثبت: 3/10.
-- Design System consistency: 4/10.
-- Final product readiness: حوالي 5.5/10.
+- Account.
+- Security.
+- Supervisors.
 
-هذه الأرقام مرجع ترتيب أولوية وليست معيار قبول آلي.
+## Test updates
+
+Vertical Slice عُدل ليتبع tabs الجديدة، ونجح في Run #298.
 
 ---
 
-## 13) إعادة هندسة الواجهة المطلوبة
+# 14) M06 Responsive / Accessibility — المنجز
 
-لا تغيّر Backend الصحيح من أجل التصميم.
+Commits بارزة:
 
-### أولًا: Frontend Foundation
+- `fafbcbc8...` global accessibility motion/focus safeguards.
+- `0c974aaf...` load safeguards globally.
+- `770df955...` accessible primary/success contrast tokens.
+- `225bff55...` responsive accessibility integration gate.
+- `76baa3f3...` run accessibility gate with vertical slice.
+- `98fdc638...` target visible dashboard heading across responsive layouts.
 
-- تثبيت نظام Styling واحد متماسك؛ Tailwind الجديد يجب التحقق منه وعدم خلطه مع utilities يدوية متناقضة.
-- Design tokens المعتمدة:
-  - `#347FD9`
-  - `#51B985`
-  - `#FFC857`
-  - `#20364D`
-  - `#F7FBFF`
-  - `#DCE8F2`
-- Tajawal للطفل.
-- IBM Plex Sans Arabic للمشرف والتقارير.
+Checks مضافة/ناجحة حاليًا باستثناء الاختبار الواحد:
 
-### Student UI Kit
+- RTL workspace.
+- keyboard/focus.
+- horizontal overflow safety.
+- reduced motion.
+- 200% zoom equivalent usability.
+- contrast token checks.
+- child-facing no implementation vocabulary.
 
-أنشئ/وحّد:
+Responsive Visual Gate يغطي:
 
-- `StudentShell`
-- `StudentTaskShell`
-- `ProgressHeader`
-- `CompanionPanel`
-- `InstructionBubble`
-- `AudioButton`
-- `RecordingControl`
-- `AnswerCard`
-- `ImageAnswerCard`
-- `SequenceBoard`
-- `FeedbackState`
-- `RewardScreen`
-- `WaitingState`
-- `ErrorState`
+- 360×800.
+- 390×844.
+- 768×1024.
+- 1024×768.
+- 1440×900.
 
-ثم اجعل Pretest/Posttest/Core/Reinforcement تستخدم هذه اللبنات نفسها.
+### M06 current failure
 
-### Admin IA
-
-مقترح navigation:
-
-- الرئيسية.
-- الطلاب: جميع الطلاب / إضافة.
-- المراجعات: التسجيلات / قرارات التقوية.
-- النتائج: الاختبارات / التقارير.
-- إدارة المنصة: المشرفون / الإعدادات / سجل العمليات.
+Mobile supervisor dialog visible، لكن test selector `a.sidebar-nav-item` لا يطابق العنصر الحقيقي. أصلح selector/markup semantic contract، لا تحذف check ولا تخفض 44px.
 
 ---
 
-## 14) ما تبقى في المنتج خارج الواجهة والتكيف
+# 15) M07 — ما سيأتي بعد M06
 
-### P07 — ASR الحقيقي
+Research Reports المطلوبة:
 
-خارجي/معلّق حتى:
+- pre/post score comparison.
+- absolute improvement.
+- percentage improvement حيث mathematically valid.
+- skills/errors.
+- reading error categories فقط عندما evidence الصوت صالح.
+- time/attempts.
+- starting/final level.
+- reinforcement history.
+- individual + aggregate views.
+- filters.
+- Excel multi-sheet.
+- PDF individual + aggregate.
+- export audit log.
 
-- وصول تسجيلات أطفال ممثلة.
-- اختيار مزود ASR.
-- قرار الخصوصية ونقل التسجيلات والكلفة.
-- معايرة confidence.
-- سياسة الاحتفاظ بالصوت.
-
-### P08 — التقارير البحثية الكاملة
-
-- Pre vs Post.
-- التحسن المطلق والنسبي.
-- المهارات والأخطاء.
-- زمن ومحاولات.
-- مستوى البداية والنهاية.
-- Excel متعدد الأوراق.
-- PDF فردي وإجمالي.
-- سجل تصدير.
-
-### P09 — الإطلاق
-
-- Mobile/Tablet/Desktop acceptance.
-- RTL/Arabic shaping.
-- Accessibility.
-- Performance.
-- Network/microphone/service failures.
-- Backup + Restore test.
-- HTTPS/domain/hosting.
-- Monitoring/logs.
-- UAT.
-- privacy/retention approval.
+Gate: UI + Excel + PDF تتفق مع DB.
 
 ---
 
-## 15) خطة الصيانة الشاملة المقترحة من الآن
+# 16) M08 — شروط قبل Real Speech sign-off
 
-لا تبدأ تنفيذًا عشوائيًا. الترتيب:
+- representative recordings.
+- provider decision.
+- privacy/cost/transfer.
+- confidence calibration.
+- retention policy.
+- sample accuracy review.
+- low-confidence manual review.
+- لا claims فونيمية/حركية غير مدعومة.
 
-### M00 — تثبيت الحقيقة الحالية
+---
 
-- اقرأ الرأس الحالي.
-- أصلح CI #206 حتى يصبح HEAD الحالي أخضر بالكامل.
-- لا تتراجع إلى `7c559` ولا تحذف commits الأخيرة.
-- سجّل سبب فشل Playwright وإصلاحه.
+# 17) M09 — Release/UAT
 
-### M01 — Placement & Academic Scoring
+- full UC/E2E scenarios.
+- network/microphone/service failure handling.
+- security/privacy pass.
+- backup + restore drill.
+- hosting/domain/HTTPS.
+- monitoring/logging.
+- synthetic-data UAT أولًا.
+- manuals/final handoff.
 
-- 20/40/40.
-- Skill gates.
-- Provisional placement عند TEMP_AUDIO_SKIP إذا كانت evidence الصوتية اللازمة غائبة.
-- Tests للحدود.
+---
 
-### M02 — Adaptation State Machine
+# 18) المنتج — معايير غير قابلة للتنازل
 
-- فصل Placement عن Learning Adaptation.
-- 80 / 70–79 / <70.
-- 10/10 Level completion.
-- Core Session مستقلة لكل مستوى — موجود جزئيًا ويجب تثبيته.
-- حسم Automatic Demotion رسميًا قبل تغييره.
+Student:
 
-### M03 — Reinforcement Architecture & Content
-
-- إدخال 18 تقوية جديدة.
-- Skill Family mapping.
-- Verification return-to-core.
-- حد لمنع loop لا نهائي.
-- Supervisor intervention عند عدم النجاح بعد دورة تقوية.
-
-### M04 — Student Journey UI Rebuild
-
-- Full-screen learning stage.
-- Unified task shell.
-- contextual character/instructions.
-- result/reward/transition screens.
-- L1→L2→L3 visible journey.
-
-### M05 — Supervisor UX Rebuild
-
-- Admin shell/IA.
-- Action Center dashboard.
-- Student profile tabs.
-- Reinforcement review UX.
-- Settings grouping.
-- Arabic messages.
-
-### M06 — Responsive & Accessibility Gate
-
-- 390x844.
-- 768x1024.
-- 1024x768.
-- 1440x900.
+- RTL عربي واضح.
+- مهمة واحدة واضحة في الشاشة.
+- الشخصية التعليمية لها وظيفة وليس زينة.
+- التعليمات contextual.
+- لا مصطلحات تقنية للطفل.
+- لا score fake للصوت.
 - no horizontal overflow.
-- keyboard/focus/zoom/contrast/touch targets.
+- touch targets كبيرة.
 
-### M07 — Reports
+Supervisor:
 
-تنفيذ P08 الكامل.
+- يعرف «ما الذي يحتاج انتباهي؟» بسرعة.
+- navigation وIA منطقية.
+- student state مفهومة بلا raw IDs/technical explanation.
+- technical details قابلة للتوسع للمشرف لا تملأ الشاشة افتراضيًا.
 
-### M08 — ASR
+General:
 
-تنفيذ Reference-Guided pipeline بعد external gates.
-
-### M09 — Release/UAT
-
-اختبارات كاملة، backup/restore، deployment، docs، UAT.
-
----
-
-## 16) البنود التي يجب عدم نسيانها
-
-- الصوتان الناقصان: `موز`, `سَا`.
-- الصور الجديدة للتقويات سيتم توليدها داخليًا لاحقًا.
-- TEMP_AUDIO_SKIP يجب أن يبقى مؤقتًا وقابلًا للإغلاق بالـflag.
-- التقويات الأصلية 15 لا تُحذف؛ الإضافات 18 فوقها.
-- المحتوى الأصلي لا يتغير بصمت.
-- ASR لا يوقف UI/Content/Adaptation maintenance، لكنه يوقف ادعاء التحليل الصوتي الإنتاجي الكامل.
-- الحالي فيه Run #206 أحمر في integration؛ هذه أول حقيقة يجب أن يراها المنفذ الجديد.
+- Touch >=44px.
+- focus visible.
+- contrast >=4.5:1 للنص العادي قدر الإمكان ضمن النظام.
+- reduced motion.
+- keyboard usable.
+- 200% zoom.
+- screenshot review حقيقي قبل sign-off.
 
 ---
 
-## 17) أول إجراء لأي نموذج جديد
+# 19) البنية والخدمات
 
-1. `git status` / branch / HEAD.
-2. اقرأ هذا الملف ثم `RESUME_HERE.md`, `STATUS.md`, `progress.json`, `OPEN_ITEMS.md`, `DECISIONS.md`.
-3. افتح GitHub Actions #206 (`33139416128`).
-4. شخّص فشل Playwright على HEAD الحالي دون حذف الإصلاحات الأخيرة.
-5. اجعل Frontend + Backend + Integration خضراء.
-6. بعدها لا تبدأ UI أو Adaptation مباشرة؛ راجع خطة M00→M09 واكتب slice محددة.
-7. حدّث الذاكرة بعد كل slice.
+Backend: FastAPI / SQLAlchemy / Alembic / PostgreSQL.  
+Storage: MinIO/S3-compatible.  
+Queue/support: Redis.  
+Frontend: Next.js + React/TS، مع Tailwind/PostCSS وتنسيقات CSS الموجودة.  
+Tests: backend pytest + frontend TS/ESLint/unit/build + Playwright integration/visual gates.
+
+لا تستبدل PostgreSQL بـSQLite كحل إنتاجي، ولا MinIO بstorage وهمي.
 
 ---
 
-## 18) معيار الاستلام النهائي
+# 20) ملفات يجب قراءتها مع هذا الملف
 
-لا تعتبر هِمّة جاهزة لأن CI أخضر فقط. القبول النهائي يحتاج:
+- `docs/handoff/READ_FIRST_2026-08-28_AR.md`
+- `docs/ops/CURRENT_STATE_2026-08-28_AR.md`
+- `docs/ops/M05_HANDOFF_2026-08-28_AR.md`
+- `docs/ops/M06_PROGRESS_2026-08-28_AR.md`
+- `docs/ops/FULL_MAINTENANCE_PLAN_2026-08-28_AR.md`
+- `docs/ops/OPEN_ITEMS_2026-08-28_AR.md`
+- `docs/ops/progress_2026-08-28.json`
+- `docs/specs/ADAPTATION_REINFORCEMENT_REDESIGN_2026-08-28_AR.md`
+- `docs/specs/REINFORCEMENT_CONTENT_ADDITIONS_2026-08-28_AR.md`
+- `docs/specs/AUDIO_INVENTORY_AND_GAPS_2026-08-28_AR.md`
+- `docs/design/PRODUCT_UX_REBUILD_PLAN_2026-08-28_AR.md`
+- `docs/ops/M03_RESIDUAL_CONTENT_GAPS_2026-08-28_AR.md`
 
-- صحة أكاديمية لمسار placement/adaptation/reinforcement.
-- رحلة L1→L2→L3 صحيحة حسب نقطة البداية.
-- كل مهارة ضعف لها مسار دعم تربوي واضح أو تدخل مشرف موثق.
-- Student UI كامل ومتماسك وطفولي هادئ.
-- Admin UX واضح ومقسم وقابل للعمل اليومي.
-- Responsive/Accessibility مثبتان.
-- التقارير تطابق DB.
-- ASR الحقيقي مُعاير أو مصرح بوضوح أنه يدوي/معلق.
-- لا Mock/Fake في ادعاء إنتاجي.
-- UAT ناجح.
+---
 
-هذا هو المرجع التنفيذي الجامع حتى تاريخ 2026-08-28.
+# 21) نقطة الاستئناف الدقيقة
+
+**الآن لا تبدأ M07.**
+
+1. افتح HEAD الفعلي على `recovery/ui-media-admin-overhaul`.
+2. استند إلى Implementation HEAD `98fdc638...` عند تشخيص Run #298 حتى لو docs commits أحدث.
+3. أصلح M06 mobile supervisor navigation test/markup mismatch.
+4. حافظ على `>=44px` وعلى dialog semantic behavior وعلى no-horizontal-overflow.
+5. أعد Main Quality Gate حتى الثلاث jobs خضراء.
+6. راجع screenshots/Responsive Visual Gate.
+7. وثق M06 closure.
+8. بعدها ابدأ M07 Research Reports.
+
+أي مودل جديد يتبع هذه النقطة يجب أن يكون قادرًا على المتابعة دون الرجوع إلى المحادثة السابقة.
