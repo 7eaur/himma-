@@ -1,0 +1,84 @@
+{
+  "schema_version": 3,
+  "plan_version": "HIMMA-MAINTENANCE-2026-08-28",
+  "branch": "recovery/ui-media-admin-overhaul",
+  "implementation_head_before_docs": "0f46e7e9421e7617f72fd03de3199df955084cd0",
+  "last_known_green_head_before_recent_changes": "7c559948f3f75c19f244b7e8942ab6ee3148c614",
+  "current_program": "FULL_MAINTENANCE",
+  "current_slice": "M00_RESTORE_GREEN_HEAD",
+  "status": "BLOCKED_BY_INTEGRATION_FAILURE",
+  "last_known_ci": {
+    "run_number": 206,
+    "run_id": 33139416128,
+    "head_sha": "0f46e7e9421e7617f72fd03de3199df955084cd0",
+    "frontend": "SUCCESS",
+    "backend": "SUCCESS",
+    "integration": "FAILURE",
+    "playwright": "FAILURE"
+  },
+  "recent_code_changes_after_green_191": [
+    "Tailwind/PostCSS enabled for real responsive utilities",
+    "adaptation policy reworked",
+    "level promotion requires 10/10 core completion",
+    "separate core session per level transition",
+    "immediate sub-70 reinforcement signal",
+    "temporary audio skip reworked",
+    "adaptation recovery regression tests added"
+  ],
+  "approved_maintenance_decisions": [
+    "placement determines starting level only",
+    "journey ascends from start level to L3 before posttest",
+    "activity score >=80 passes",
+    "activity score 70-79 uses guided retry",
+    "activity score <70 creates weakness and targeted reinforcement",
+    "no level promotion before 10 core activities are complete",
+    "reinforcement returns to core for verification",
+    "skill-family reinforcement mapping replaces exact-only target design",
+    "18 additional reinforcement activities approved over the original 15",
+    "missing reinforcement images will be generated later using Himma identity",
+    "temporary audio skip remains neutral and feature-flagged",
+    "Reference-Guided Arabic Reading Analysis is the target speech architecture",
+    "visible role terminology is supervisor / المشرف",
+    "no Docker for local Himma development"
+  ],
+  "proposed_decisions_pending_final_approval": [
+    "remove automatic demotion from the normal journey and reserve exceptional level changes for documented supervisor override"
+  ],
+  "content": {
+    "original_items": 105,
+    "original_pretest_questions": 30,
+    "original_posttest_questions": 30,
+    "original_core_activities": 30,
+    "original_reinforcement_activities": 15,
+    "new_reinforcement_additions_approved": 18,
+    "target_reinforcement_total": 33
+  },
+  "audio": {
+    "existing_static_assets": 50,
+    "missing_confirmed": ["موز", "سَا"],
+    "target_static_assets": 52,
+    "temporary_skip_flag": "HIMMA_TEMP_AUDIO_SKIP"
+  },
+  "maintenance_sequence": [
+    "M00 restore green CI",
+    "M01 placement scoring and gates",
+    "M02 adaptation state machine",
+    "M03 reinforcement mapping and 18 additions",
+    "M04 student product UI rebuild",
+    "M05 supervisor product UX rebuild",
+    "M06 responsive and accessibility gate",
+    "M07 research reports",
+    "M08 real speech analysis after external gates",
+    "M09 release and UAT"
+  ],
+  "external_blockers": [
+    "representative child-reading recordings",
+    "production ASR provider/privacy/cost/recording-transfer decision",
+    "confidence calibration",
+    "child-audio retention policy",
+    "approved recordings for موز and سَا",
+    "final study duration/session policy",
+    "deployment/domain details before release"
+  ],
+  "next_action": "Diagnose and fix Playwright failure in GitHub Actions run 33139416128 on the current code lineage without resetting recent fixes; rerun the full quality gate until frontend/backend/integration are all green, then update evidence and start M01."
+}
