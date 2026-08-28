@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowUpLeft, BarChart3, CheckCircle2, Clock3, RefreshCw, Sparkles, Users } from "lucide-react";
+import { ArrowUpLeft, BarChart3, CheckCircle2, Clock3, FileSpreadsheet, FileText, RefreshCw, Sparkles, Users } from "lucide-react";
 
 interface ResearchStudentReport {
   student_id: number;
@@ -119,9 +119,17 @@ export default function ReportsPage() {
           <h1 className="text-3xl font-bold text-navy mb-2">التقارير والإحصائيات</h1>
           <p className="text-muted max-w-3xl">مقارنة القبلي والبعدي والزمن والتقوية من القيم المحفوظة في قاعدة البيانات، دون إعادة احتساب التصنيف أو اختراع مؤشرات صوتية غير معايرة.</p>
         </div>
-        <button className="btn-secondary min-h-11" onClick={() => void refresh()} disabled={loading}>
-          <RefreshCw size={17} aria-hidden="true" /> تحديث البيانات
-        </button>
+        <div className="flex gap-2 flex-wrap">
+          <a className="btn-secondary min-h-11" href="/api/researcher/reports/exports/cohort.xlsx">
+            <FileSpreadsheet size={17} aria-hidden="true" /> Excel
+          </a>
+          <a className="btn-secondary min-h-11" href="/api/researcher/reports/exports/cohort.pdf">
+            <FileText size={17} aria-hidden="true" /> PDF إجمالي
+          </a>
+          <button className="btn-secondary min-h-11" onClick={() => void refresh()} disabled={loading}>
+            <RefreshCw size={17} aria-hidden="true" /> تحديث البيانات
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -176,7 +184,7 @@ export default function ReportsPage() {
             ) : (
               <div className="overflow-x-auto">
                 <table className="data-table">
-                  <thead><tr><th>الطالب</th><th>المستوى</th><th>القبلي</th><th>البعدي</th><th>التحسن</th><th>الزمن</th><th>التقوية</th></tr></thead>
+                  <thead><tr><th>الطالب</th><th>المستوى</th><th>القبلي</th><th>البعدي</th><th>التحسن</th><th>الزمن</th><th>التقوية</th><th>تقرير</th></tr></thead>
                   <tbody>
                     {data.students.map((student) => {
                       const improvement = improvementLabel(student);
@@ -189,6 +197,7 @@ export default function ReportsPage() {
                           <td><span className={`badge ${improvement.className}`}>{improvement.text}</span></td>
                           <td><span className="inline-flex items-center gap-1 whitespace-nowrap"><Clock3 size={14} className="text-muted" />{formatSeconds(student.engagement.assessment_seconds + student.engagement.learning_seconds)}</span></td>
                           <td>{student.reinforcement.verified}/{student.reinforcement.total}</td>
+                          <td><a className="text-primary text-sm font-semibold whitespace-nowrap" href={`/api/researcher/reports/students/${student.student_id}/export.pdf`}>PDF فردي</a></td>
                         </tr>
                       );
                     })}
@@ -199,7 +208,7 @@ export default function ReportsPage() {
           </section>
 
           <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-muted leading-7">
-            <strong className="text-navy">ملاحظة منهجية:</strong> التحسن النسبي لا يُحسب عندما تكون نتيجة القبلي صفرًا. كما تبقى مؤشرات أخطاء النطق الآلية غير معروضة حتى اعتماد دليل صوتي معاير.
+            <strong className="text-navy">ملاحظة منهجية:</strong> التحسن النسبي لا يُحسب عندما تكون نتيجة القبلي صفرًا. كما تبقى مؤشرات أخطاء النطق الآلية غير معروضة حتى اعتماد دليل صوتي معاير. جميع عمليات تصدير Excel وPDF تُسجل في سجل العمليات.
           </div>
         </>
       ) : null}
