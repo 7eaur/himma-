@@ -1,77 +1,89 @@
 # STATUS — Himma Platform
 
-**Current branch:** `recovery/ui-media-admin-overhaul`
+**Last updated:** 2026-08-28  
+**Repository:** `7eaur/himma-`  
+**Current branch:** `recovery/ui-media-admin-overhaul`  
+**Current program:** Full Maintenance M00→M09  
+**Current slice:** **M06 — Responsive / Accessibility / Design QA — ACTIVE**
 
-**Current corrective slice:** UI / Media / Supervisor / Student Recovery — `READY_FOR_CLOSURE_GATE`
+## Current implementation evidence
 
-**Recovery implementation checkpoint:** `7dbc52bcc70a5768c81cd04065be00f1949c429d`
+Implementation HEAD before latest documentation commits:
 
-**Recovery evidence run:** GitHub Actions #171 — `32928214424` — backend/frontend/integration all successful.
+`98fdc638737bdb8ab9be4937cff6155865998d1f`
 
-**Underlying roadmap stage:** Stage 4 / P07 Speech Analysis — `IN_PROGRESS / EXTERNALLY BLOCKED`
+Responsive Visual Gate Run #18 / `33202256450`: **SUCCESS**.
 
-**Last accepted roadmap stage:** Stage 3 / B03 at implementation SHA `8d64eb9766fd69618960af0b279ae94484618d17`
+Main Quality Gate #298 / `33202256449`:
 
-**Last verified:** 2026-08-26
+- Backend ✅
+- Frontend ✅
+- Integration / Playwright ❌
 
----
+Current failure is isolated to M06 mobile supervisor navigation accessibility test: the dialog is visible, but the test looks for `a.sidebar-nav-item` inside the mobile dialog and finds no element. The test therefore fails before validating target height >=44px. Other M06 accessibility tests and the full Vertical Slice passed.
 
-## Corrective recovery completed
+## Maintenance stage status
 
-The recovery branch was cut from the existing P07 infrastructure state without changing the accepted Stage-2 or Stage-3 branches. The objective was to repair the real product experience and missing runtime semantics before continuing speech-provider work.
+- M00 Restore Green — CLOSED.
+- M01 Placement Scoring/Gates — CLOSED.
+- M02 Adaptation State Machine — CLOSED.
+- M03 Reinforcement System — IMPLEMENTED with three explicit residual content gaps.
+- M04 Student Product UI — CLOSED baseline.
+- M05 Supervisor Product UX — REBUILT baseline.
+- **M06 Responsive/Accessibility/Design QA — ACTIVE.**
+- M07 Research Reports — PENDING.
+- M08 Real Speech Analysis — PENDING / EXTERNAL-GATED.
+- M09 Release/UAT — PENDING.
 
-### Student experience
+## Current academic/runtime truth
 
-- Rebuilt the child-facing landing page and student journey dashboard using the approved Himma identity and static approved character assets.
-- Restored canonical interaction semantics from the approved 105-item catalog instead of flattening activities into generic multiple-choice buttons.
-- Assessment and learning runtime now support image choice, listen+image, choose-many, sequence/path/memory sequence, build-word and read-aloud/timed-read-aloud interaction families.
-- Approved education images/audio are served from the real asset package; media routing is regression-tested with real bytes.
-- Reading tasks provide recording/re-record/send states without claiming calibrated automatic pronunciation scoring.
-- Declared source media gaps remain explicit and academically neutral; no invented audio is substituted.
-- Adaptive reinforcement gaps now produce a calm student hold state and resume after a documented supervisor assignment.
+- Original approved content remains 105 items.
+- M03 adds 18 versioned reinforcement activities.
+- Full runtime catalog = 123 items.
+- Reinforcement activities = 33 total.
+- Skills = 44.
+- Placement determines starting level only.
+- Journey ascends to L3 before Posttest.
+- Activity bands: >=80 pass; 70–<80 guided retry; <70 reinforcement path.
+- No promotion before 10/10 core and no unresolved reinforcement gap.
+- Recent mastery 50/30/20 is skill evidence, not level-completion bypass.
+- Automatic Demotion remains an OPEN decision; do not change silently.
 
-### Supervisor experience
+## Reinforcement residual gaps
 
-- `/admin` is protected and unauthenticated users are redirected to login before dashboard data is rendered.
-- Product-facing terminology uses **المشرف**; the legacy internal role value `researcher` remains only for schema/JWT/API compatibility.
-- Supervisor settings support username update, password change, listing supervisors and creating an additional supervisor.
-- Student creation supports secure auto-generated six-digit numeric codes or manual six-digit codes.
-- Student management supports name/status edits, access-code change/regeneration, adaptation override, post-test gate and reinforcement resolution.
-- Reinforcement resolution exposes only approved unused same-level reinforcement activities, requires a written reason, and records audit evidence.
-- Dashboard, audio review and reports are wired into the tested end-to-end path.
+No random fallback. Safe Hold/supervisor path remains for:
 
-### Quality evidence
+1. L2 sukoon word reading.
+2. L3 literal comprehension.
+3. L3 sentence building.
 
-GitHub Actions #171 (`32928214424`) passed:
+## Audio / Speech
 
-- frontend TypeScript, ESLint, unit tests and production Next.js build;
-- backend approved catalog validation, reversible migrations/drift check, idempotent seed and backend tests;
-- integration PostgreSQL + Redis + pinned/checksummed MinIO + FastAPI + Next.js + Chromium;
-- Playwright full journey from public page through supervisor/student lifecycle, 30-item pre-test, real image media, recording/manual audio review, adaptive learning, reinforcement review/resume and live reports.
+- Fixed audio assets present: 50.
+- Missing confirmed: `موز`, `سَا`.
+- Target fixed assets: 52.
+- `HIMMA_TEMP_AUDIO_SKIP` is temporary and academically neutral.
+- Reference-Guided Arabic Reading Analysis is the target architecture.
+- Real provider/calibration/privacy/retention are NOT complete.
 
-The Playwright artifact contains 17 screenshots, including real image-choice media, reading/recording UI, adaptive hold, supervisor reinforcement assignment and resumed student reinforcement.
+## Product UI status
 
-## P07 speech analysis remains NOT accepted
+### Student / M04
 
-The recovery work does **not** resolve the real-ASR external gates. The following remain blocked until representative recordings/provider decisions are supplied:
+Full-screen Learning Stage, prominent companion character, contextual instruction layout, assessment/activity visual unification, responsive breakpoints, focus and reduced-motion support.
 
-- production ASR provider selection and approval;
-- privacy/retention/cost/recording-transfer decision;
-- representative Arabic child-reading accuracy evaluation;
-- calibrated confidence threshold/version;
-- real provider adapter through private storage → worker → ASR → alignment;
-- any phoneme/haraka automatic scoring claim not proven by calibration.
+### Supervisor / M05
 
-Manual supervisor audio review remains authoritative. No fake production ASR fallback is enabled.
+Admin IA rebuild, Action Center dashboard, Student Profile tabs, focused expandable reinforcement review, Account/Security/Supervisors settings split.
 
-## Preserved accepted checkpoints
+### M06 evidence
 
-- B00: `recovery/codex-baseline@e5fafe757bd57f8bdce35a8f8d0f3bbcc0784c2d`
-- B01: `b01/content-source-of-truth@26d25e081b0c7c66f5d6b09b8b1750e67c745b41`
-- B02 lifecycle: `b02/student-assessment-lifecycle@6a5293879fb25555dc2992ee0cf2b6f7c7441afa`
-- Stage 2 closure: `b02/stage2-closure@38a1b8d1a03a56f08aa3afdf9404593351e05a87`
-- Stage 3 / B03: `b03/adaptive-learning-engine@8d64eb9766fd69618960af0b279ae94484618d17`
+Passed checks on current implementation lineage include RTL/keyboard/focus/overflow, reduced motion, 200% zoom equivalent, contrast tokens, child technical-vocabulary scan, and Vertical Slice. Responsive Visual Gate is green on 360×800, 390×844, 768×1024, 1024×768, 1440×900.
 
 ## Next action
 
-Run the final closure gate on the documentation head of this recovery branch. After recovery closure, resume P07 only when the external provider/recording/calibration inputs are available; do not represent P07 as accepted before those gates are satisfied.
+Fix the mobile supervisor navigation test/markup semantic selector mismatch **without weakening the >=44px touch-target requirement**, rerun Main Quality Gate to full green, visually review M06 screenshots, close M06, then start M07.
+
+## Mandatory continuity files
+
+Start from `docs/handoff/READ_FIRST_2026-08-28_AR.md` and `docs/ops/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-08-28_AR.md`.
