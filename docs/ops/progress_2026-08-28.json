@@ -2,21 +2,32 @@
   "schema_version": 3,
   "plan_version": "HIMMA-MAINTENANCE-2026-08-28",
   "branch": "recovery/ui-media-admin-overhaul",
-  "implementation_head_before_docs": "0f46e7e9421e7617f72fd03de3199df955084cd0",
-  "last_known_green_head_before_recent_changes": "7c559948f3f75c19f244b7e8942ab6ee3148c614",
+  "m00_green_implementation_head": "beec2d38a32c499c483372f4d329b26d929fb4d8",
   "current_program": "FULL_MAINTENANCE",
-  "current_slice": "M00_RESTORE_GREEN_HEAD",
-  "status": "BLOCKED_BY_INTEGRATION_FAILURE",
-  "last_known_ci": {
-    "run_number": 206,
-    "run_id": 33139416128,
-    "head_sha": "0f46e7e9421e7617f72fd03de3199df955084cd0",
+  "current_slice": "M01_PLACEMENT_SCORING_AND_GATES",
+  "status": "IN_PROGRESS",
+  "last_green_ci": {
+    "run_number": 221,
+    "run_id": 33141084000,
+    "head_sha": "beec2d38a32c499c483372f4d329b26d929fb4d8",
     "frontend": "SUCCESS",
     "backend": "SUCCESS",
-    "integration": "FAILURE",
-    "playwright": "FAILURE"
+    "integration": "SUCCESS",
+    "playwright": "SUCCESS"
   },
-  "recent_code_changes_after_green_191": [
+  "m00": {
+    "status": "CLOSED",
+    "closure_report": "docs/ops/M00_CLOSURE_2026-08-28_AR.md",
+    "failed_runs_preserved": [
+      33139416128,
+      33140701035
+    ],
+    "fix_commits": [
+      "98bc121108a343697aa60e45bc853689fbeedc08",
+      "beec2d38a32c499c483372f4d329b26d929fb4d8"
+    ]
+  },
+  "recent_code_changes_preserved": [
     "Tailwind/PostCSS enabled for real responsive utilities",
     "adaptation policy reworked",
     "level promotion requires 10/10 core completion",
@@ -28,6 +39,8 @@
   "approved_maintenance_decisions": [
     "placement determines starting level only",
     "journey ascends from start level to L3 before posttest",
+    "pretest score uses section weights 20/40/40",
+    "readiness below 12/20 forces level 1",
     "activity score >=80 passes",
     "activity score 70-79 uses guided retry",
     "activity score <70 creates weakness and targeted reinforcement",
@@ -40,6 +53,14 @@
     "Reference-Guided Arabic Reading Analysis is the target speech architecture",
     "visible role terminology is supervisor / المشرف",
     "no Docker for local Himma development"
+  ],
+  "m01_constraints": [
+    "do not keep equal-weight 30-question scoring",
+    "use readiness 20 points, word-building/reading 40 points, fluency/comprehension 40 points",
+    "force L1 when readiness is below 12/20 even if total score is higher",
+    "do not invent numeric L2/L3 gate thresholds absent from approved source",
+    "if required L3 gate thresholds are not configured/approved, record placement as provisional rather than fabricating a threshold",
+    "neutral or unresolved required audio evidence must not be converted into an academic error"
   ],
   "proposed_decisions_pending_final_approval": [
     "remove automatic demotion from the normal journey and reserve exceptional level changes for documented supervisor override"
@@ -60,8 +81,8 @@
     "temporary_skip_flag": "HIMMA_TEMP_AUDIO_SKIP"
   },
   "maintenance_sequence": [
-    "M00 restore green CI",
-    "M01 placement scoring and gates",
+    "M00 restore green CI — CLOSED",
+    "M01 placement scoring and gates — IN_PROGRESS",
     "M02 adaptation state machine",
     "M03 reinforcement mapping and 18 additions",
     "M04 student product UI rebuild",
@@ -80,5 +101,5 @@
     "final study duration/session policy",
     "deployment/domain details before release"
   ],
-  "next_action": "Diagnose and fix Playwright failure in GitHub Actions run 33139416128 on the current code lineage without resetting recent fixes; rerun the full quality gate until frontend/backend/integration are all green, then update evidence and start M01."
+  "next_action": "Implement and test M01 placement scoring: replace equal-weight 30-item percentage with 20/40/40 section scoring, enforce readiness <12/20 => L1, preserve neutral audio handling, and represent unresolved L3 numeric gates explicitly as provisional/configuration blockers rather than inventing thresholds."
 }
