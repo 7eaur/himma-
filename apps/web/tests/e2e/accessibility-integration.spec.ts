@@ -33,6 +33,11 @@ async function expectNoHorizontalOverflow(page: Page) {
   expect(metrics.bodyWidth, JSON.stringify(metrics)).toBeLessThanOrEqual(metrics.innerWidth + 1);
 }
 
+async function expectDashboardReady(page: Page) {
+  await expect(page.getByRole("heading", { name: /مرحبًا،/ })).toBeVisible({ timeout: 10000 });
+  await expect(page.getByRole("heading", { name: "ما الذي يحتاج انتباهك؟" })).toBeVisible();
+}
+
 function channel(value: number) {
   const normalized = value / 255;
   return normalized <= 0.04045 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
@@ -59,7 +64,7 @@ test.describe("M06 responsive and accessibility integration", () => {
     await loginAsSupervisor(request, context);
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/admin");
-    await expect(page.getByText("لوحة المشرف").first()).toBeVisible({ timeout: 10000 });
+    await expectDashboardReady(page);
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
     await expectNoHorizontalOverflow(page);
 
@@ -87,7 +92,7 @@ test.describe("M06 responsive and accessibility integration", () => {
     await loginAsSupervisor(request, context);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/admin");
-    await expect(page.getByText("لوحة المشرف").first()).toBeVisible({ timeout: 10000 });
+    await expectDashboardReady(page);
     await expectNoHorizontalOverflow(page);
 
     const menu = page.getByRole("button", { name: "فتح القائمة" });
@@ -129,7 +134,7 @@ test.describe("M06 responsive and accessibility integration", () => {
     // 1440px desktop at 200% browser zoom exposes roughly 720 CSS px of layout width.
     await page.setViewportSize({ width: 720, height: 900 });
     await page.goto("/admin");
-    await expect(page.getByText("لوحة المشرف").first()).toBeVisible({ timeout: 10000 });
+    await expectDashboardReady(page);
     await expectNoHorizontalOverflow(page);
   });
 
