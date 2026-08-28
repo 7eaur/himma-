@@ -1,16 +1,17 @@
-import os
-
 import speech_lab
 from speech_provider import ProviderResult, ProviderWord
 
 
-def test_speech_lab_rejects_unauthenticated_and_student_clients(client, student_client):
+def test_speech_lab_rejects_unauthenticated_client(client):
     response = client.get("/api/admin/speech-lab/targets")
     assert response.status_code == 401
+    assert response.json()["detail"] == "يرجى تسجيل الدخول أولًا"
 
+
+def test_speech_lab_rejects_student_client(student_client):
     response = student_client.get("/api/admin/speech-lab/targets")
     assert response.status_code == 403
-    assert response.json()["detail"] == "غير مصرح بالوصول إلى مختبر الصوت"
+    assert response.json()["detail"] == "هذه الصفحة متاحة للمشرف فقط"
 
 
 def test_speech_lab_targets_come_from_canonical_catalog(researcher_client):
