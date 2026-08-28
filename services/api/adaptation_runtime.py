@@ -16,7 +16,9 @@ from sqlalchemy.orm import Session
 from adaptation import evaluate_student
 from db.adaptation_models import AdaptationDecision
 from db.models import AssessmentSession, Attempt, ContentItem, Student
+from db.reinforcement_models import ReinforcementCycle
 from dependencies import get_current_student, get_db
+from reinforcement_cycles import ensure_cycle, mark_reinforcement_completed
 
 router = APIRouter(prefix="/adaptation", tags=["Adaptation Runtime"])
 CORE_ACTIVITY_COUNT = 10
@@ -36,15 +38,19 @@ def _completed_core_count(db: Session, session_id: int, level_id: int) -> int:
     )
 
 
-def _recommended_attempt_state(db: Session, session_id: int, item_id: int | None) -> str | None:
+def _recommended_attempt(db: Session, session_id: int, item_id: int | None) -> Attempt | None:
     if item_id is None:
         return None
-    attempt = (
+    return (
         db.query(Attempt)
         .filter(Attempt.session_id == session_id, Attempt.item_id == item_id)
         .order_by(Attempt.id.desc())
         .first()
     )
+
+
+def _recommended_attempt_state(db: Session, session_id: int, item_id: int | None) -> str | None:
+    attempt = _recommended_attempt(db, session_id, item_id)
     return attempt.status if attempt else None
 
 
@@ -68,12 +74,7 @@ def _ensure_recommended_attempt(
     ):
         raise HTTPException(status_code=409, detail="نشاط التقوية لا يطابق المستوى الحالي")
 
-    existing = (
-        db.query(Attempt)
-        .filter(Attempt.session_id == session.id, Attempt.item_id == item.id)
-        .order_by(Attempt.id.desc())
-        .first()
-    )
+    existing = _recommended_attempt(db, session.id, item.id)
     if existing:
         return existing.id if existing.status == "in_progress" else None
 
@@ -83,12 +84,7 @@ def _ensure_recommended_attempt(
             db.add(attempt)
             db.flush()
     except IntegrityError:
-        existing = (
-            db.query(Attempt)
-            .filter(Attempt.session_id == session.id, Attempt.item_id == item.id)
-            .order_by(Attempt.id.desc())
-            .first()
-        )
+        existing = _recommended_attempt(db, session.id, item.id)
         return existing.id if existing and existing.status == "in_progress" else None
     return attempt.id
 
@@ -149,6 +145,7 @@ def prepare_next_for_student(db: Session, student: Student, session: AssessmentS
             "continue_learning": session.status == "in_progress",
             "decision": decision_payload,
             "recommended_attempt_id": None,
+            "verification_attempt_id": None,
             "mapping_blocked": False,
             "recommendation_fulfilled": False,
             "level_id": session.assigned_level,
@@ -173,6 +170,7 @@ def prepare_next_for_student(db: Session, student: Student, session: AssessmentS
             "continue_learning": next_session.status == "in_progress",
             "decision": {**decision_payload, "explanation": decision.explanation},
             "recommended_attempt_id": None,
+            "verification_attempt_id": None,
             "mapping_blocked": False,
             "recommendation_fulfilled": False,
             "level_id": decision.new_level,
@@ -197,6 +195,7 @@ def prepare_next_for_student(db: Session, student: Student, session: AssessmentS
             "continue_learning": False,
             "decision": decision_payload,
             "recommended_attempt_id": None,
+            "verification_attempt_id": None,
             "mapping_blocked": False,
             "recommendation_fulfilled": False,
             "level_id": 3,
@@ -206,14 +205,22 @@ def prepare_next_for_student(db: Session, student: Student, session: AssessmentS
 
     recommendation_state_before = _recommended_attempt_state(db, session.id, decision.recommended_item_id)
     attempt_id = _ensure_recommended_attempt(db, session, decision)
-    recommendation_state_after = _recommended_attempt_state(db, session.id, decision.recommended_item_id)
+    reinforcement_attempt = _recommended_attempt(db, session.id, decision.recommended_item_id)
+    recommendation_state_after = reinforcement_attempt.status if reinforcement_attempt else None
     recommendation_fulfilled = (
         recommendation_state_before == "completed" or recommendation_state_after == "completed"
     )
 
-    # ADR-012: support with no approved exact mapping is a real safe hold. The
-    # supervisor chooses one of the approved same-level reinforcement activities
-    # with a written reason through the dedicated review flow.
+    cycle = ensure_cycle(
+        db,
+        student=student,
+        session_id=session.id,
+        decision=decision,
+        reinforcement_attempt_id=reinforcement_attempt.id if reinforcement_attempt else attempt_id,
+    )
+
+    # ADR-012 / M03: support with no approved mapping is a real safe hold. The
+    # supervisor chooses approved same-level content with a written reason.
     mapping_blocked = (
         decision.action == "support"
         and decision.recommended_item_id is None
@@ -221,6 +228,9 @@ def prepare_next_for_student(db: Session, student: Student, session: AssessmentS
         and not recommendation_fulfilled
     )
     explanation = dict(decision.explanation or {})
+    verification_attempt_id = None
+    verification_escalated = False
+
     if mapping_blocked:
         explanation["mapping_gap"] = "no_approved_reinforcement_selected_for_weakest_skill"
         session.status = "in_progress"
@@ -230,6 +240,17 @@ def prepare_next_for_student(db: Session, student: Student, session: AssessmentS
         explanation["mapping_gap_resolved"] = True
         explanation["reinforcement_fulfilled"] = True
         explanation["return_to_core"] = True
+        if cycle is not None:
+            source_attempt = mark_reinforcement_completed(db, cycle=cycle)
+            if source_attempt is not None:
+                verification_attempt_id = source_attempt.id
+                explanation["reinforcement_cycle_id"] = cycle.id
+                explanation["verification_pending"] = True
+                explanation["return_to_core_attempt_id"] = source_attempt.id
+            elif cycle.status == "escalated":
+                verification_escalated = True
+                explanation["verification_escalated"] = True
+                explanation["verification_escalation_reason"] = cycle.escalation_reason
     decision.explanation = explanation
 
     if attempt_id is not None and session.status == "completed":
@@ -237,17 +258,24 @@ def prepare_next_for_student(db: Session, student: Student, session: AssessmentS
         session.completed_at = None
         session.updated_at = datetime.now(timezone.utc)
 
+    if verification_attempt_id is not None:
+        session.status = "in_progress"
+        session.completed_at = None
+        session.updated_at = datetime.now(timezone.utc)
+
     db.commit()
     return {
-        "continue_learning": session.status == "in_progress",
+        "continue_learning": session.status == "in_progress" and not verification_escalated,
         "decision": {
             **decision_payload,
             "recommended_item_id": decision.recommended_item_id,
             "explanation": decision.explanation,
         },
         "recommended_attempt_id": attempt_id,
+        "verification_attempt_id": verification_attempt_id,
         "mapping_blocked": mapping_blocked,
         "recommendation_fulfilled": recommendation_fulfilled,
+        "verification_escalated": verification_escalated,
         "level_id": session.assigned_level,
         "session_id": session.id,
         "level_transitioned": False,
