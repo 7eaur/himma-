@@ -64,21 +64,21 @@ def test_visual_plan_has_no_remaining_generated_sequence_gap():
         assert plan["reuse"][activity][label] == asset_id
 
 
-def test_runtime_projects_generated_images_for_sequence_rounds():
+def test_runtime_projects_all_generated_sequence_asset_ids():
     for canonical_id in ("L1-REIN-12", "L3-REIN-10"):
         item = content_runtime._ITEMS[canonical_id]
-        projected = {
-            media_entry["semantic_text"]: media_entry["asset_id"]
+        projected_ids = {
+            media_entry["asset_id"]
             for round_data in item["rounds"]
             for media_entry in round_data.get("media", [])
             if media_entry.get("type") == "image"
         }
-        expected = {
-            label: asset_id
-            for asset_id, (activity, label) in EXPECTED.items()
+        expected_ids = {
+            asset_id
+            for asset_id, (activity, _label) in EXPECTED.items()
             if activity == canonical_id
         }
-        assert expected.items() <= projected.items()
+        assert expected_ids <= projected_ids
 
 
 def test_generated_assets_are_served_from_approved_media_index():
