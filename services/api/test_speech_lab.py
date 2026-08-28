@@ -87,7 +87,7 @@ def test_speech_lab_analysis_is_reference_guided_and_academically_neutral(resear
     assert payload["counts"]["substitution"] == 1
     assert payload["counts"]["deletion"] == 0
     assert payload["counts"]["insertion"] == 0
-    assert payload["normalized_transcript"] == "ذهب سامي الي المدرسه"
+    assert payload["normalized_transcript"] == "ذهب سامي الي المدرسة"
 
 
 def test_speech_lab_rejects_empty_recording_without_calling_provider(researcher_client, monkeypatch):
