@@ -1,124 +1,191 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { BarChart3, BookOpenCheck, CheckCircle2, Layers3, Users } from "lucide-react";
+import { ArrowUpLeft, BarChart3, CheckCircle2, Clock3, RefreshCw, Sparkles, Users } from "lucide-react";
 
-interface Student {
-  id: number;
-  full_name: string;
-  current_level: number;
+interface ResearchStudentReport {
+  student_id: number;
+  student_name: string;
   status: "active" | "inactive";
-  core_completed_items: number;
-  core_total_items: number;
-  posttest_enabled: boolean;
-  posttest_eligible: boolean;
+  starting_level: number | null;
+  current_level: number;
+  final_level: number | null;
+  completed_core_levels: number[];
+  pretest: { status: string; score: number | null; elapsed_seconds: number };
+  posttest: { status: string; score: number | null; elapsed_seconds: number };
+  improvement: {
+    absolute_percentage_points: number | null;
+    relative_percent: number | null;
+    relative_percent_defined: boolean;
+  };
+  engagement: {
+    assessment_seconds: number;
+    learning_seconds: number;
+    attempts: number;
+    completed_attempts: number;
+  };
+  reinforcement: { total: number; verified: number; escalated: number; active: number };
+  speech_evidence: { calibrated: boolean; error_categories: unknown | null; note: string };
+}
+
+interface ResearchSummary {
+  cohort: {
+    students: number;
+    active_students: number;
+    completed_pretests: number;
+    completed_posttests: number;
+    paired_pre_post: number;
+    average_pretest_score: number | null;
+    average_posttest_score: number | null;
+    average_absolute_improvement_points: number | null;
+    reinforcement_cycles: number;
+    verified_reinforcement_cycles: number;
+    escalated_reinforcement_cycles: number;
+  };
+  students: ResearchStudentReport[];
+  reporting_notes: {
+    score_source: string;
+    relative_improvement: string;
+    speech_metrics: string;
+  };
+}
+
+function formatScore(value: number | null) {
+  return value == null ? "—" : `${Math.round(value * 10) / 10}%`;
+}
+
+function formatSeconds(value: number) {
+  if (value <= 0) return "—";
+  const minutes = Math.floor(value / 60);
+  const seconds = value % 60;
+  return minutes ? `${minutes} د ${seconds ? `${seconds} ث` : ""}`.trim() : `${seconds} ث`;
+}
+
+function improvementLabel(report: ResearchStudentReport) {
+  const value = report.improvement.absolute_percentage_points;
+  if (value == null) return { text: "بانتظار البعدي", className: "badge-gray" };
+  if (value > 0) return { text: `+${Math.round(value * 10) / 10} نقطة`, className: "badge-green" };
+  if (value < 0) return { text: `${Math.round(value * 10) / 10} نقطة`, className: "badge-yellow" };
+  return { text: "دون تغير", className: "badge-gray" };
 }
 
 export default function ReportsPage() {
-  const [students, setStudents] = useState<Student[]>([]);
+  const [data, setData] = useState<ResearchSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    let cancelled = false;
-    void fetch("/api/researcher/students", { cache: "no-store" })
-      .then(async (response) => {
-        if (!response.ok) throw new Error("تعذر تحميل ملخص العينة");
-        const data: Student[] = await response.json();
-        if (!cancelled) setStudents(data);
-      })
-      .catch((caught: unknown) => {
-        if (!cancelled) setError(caught instanceof Error ? caught.message : "تعذر تحميل الملخص");
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const load = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await fetch("/api/researcher/reports/summary", { cache: "no-store" });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok || !payload) throw new Error(payload?.detail || "تعذر تحميل التقرير البحثي");
+      setData(payload);
+    } catch (caught: unknown) {
+      setError(caught instanceof Error ? caught.message : "تعذر تحميل التقرير البحثي");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const stats = useMemo(() => {
-    const progressValues = students.map((student) => student.core_completed_items / Math.max(1, student.core_total_items));
-    const averageProgress = progressValues.length
-      ? Math.round((progressValues.reduce((sum, value) => sum + value, 0) / progressValues.length) * 100)
-      : 0;
-    return {
-      total: students.length,
-      active: students.filter((student) => student.status === "active").length,
-      averageProgress,
-      ready: students.filter((student) => student.posttest_eligible || student.posttest_enabled).length,
-      levels: [1, 2, 3].map((level) => students.filter((student) => student.current_level === level).length),
-    };
-  }, [students]);
+  useEffect(() => {
+    void load();
+  }, []);
 
   return (
     <div className="flex-1 font-plex max-w-6xl w-full mx-auto" dir="rtl">
-      <div className="mb-7">
-        <p className="text-sm text-primary font-semibold mb-1">ملخص حي للعينة</p>
-        <h1 className="text-3xl font-bold text-navy mb-2">التقارير والإحصائيات</h1>
-        <p className="text-muted">عرض تشغيلي مباشر لتوزيع الطلاب وتقدم الأنشطة. التقارير البحثية المتقدمة تبقى ضمن مرحلتها المخصصة.</p>
+      <div className="mb-7 flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <p className="text-sm text-primary font-semibold mb-1">بيانات البحث الفعلية</p>
+          <h1 className="text-3xl font-bold text-navy mb-2">التقارير والنتائج</h1>
+          <p className="text-muted max-w-3xl">مقارنة القبلي والبعدي والزمن والتقوية من القيم المحفوظة في قاعدة البيانات، دون إعادة احتساب التصنيف أو اختراع مؤشرات صوتية غير معايرة.</p>
+        </div>
+        <button className="btn-secondary min-h-11" onClick={() => void load()} disabled={loading}>
+          <RefreshCw size={17} aria-hidden="true" /> تحديث البيانات
+        </button>
       </div>
 
-      {error && <div className="alert-error mb-5">{error}</div>}
+      {error && (
+        <div className="alert-error mb-5 flex items-center justify-between gap-3 flex-wrap">
+          <span>{error}</span>
+          <button className="btn-secondary" onClick={() => void load()}>إعادة المحاولة</button>
+        </div>
+      )}
 
       {loading ? (
-        <div className="card min-h-64 flex flex-col items-center justify-center gap-3"><div className="spinner w-10 h-10" /><p className="text-muted">جاري حساب المؤشرات...</p></div>
-      ) : (
+        <div aria-label="جاري تجهيز التقرير" className="space-y-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            {[0, 1, 2, 3].map((item) => <div key={item} className="card min-h-28 animate-pulse bg-slate-50" />)}
+          </div>
+          <div className="card min-h-72 animate-pulse bg-slate-50" />
+        </div>
+      ) : data ? (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-            <div className="stat-card"><div className="stat-card-icon blue"><Users size={23} /></div><div><p className="stat-card-value">{stats.total}</p><p className="stat-card-label">إجمالي الطلاب</p></div></div>
-            <div className="stat-card"><div className="stat-card-icon green"><CheckCircle2 size={23} /></div><div><p className="stat-card-value">{stats.active}</p><p className="stat-card-label">حسابات نشطة</p></div></div>
-            <div className="stat-card"><div className="stat-card-icon yellow"><BookOpenCheck size={23} /></div><div><p className="stat-card-value">{stats.averageProgress}%</p><p className="stat-card-label">متوسط تقدم الأنشطة</p></div></div>
-            <div className="stat-card"><div className="stat-card-icon blue"><BarChart3 size={23} /></div><div><p className="stat-card-value">{stats.ready}</p><p className="stat-card-label">جاهزون للاختبار البعدي</p></div></div>
+            <div className="stat-card"><div className="stat-card-icon blue"><Users size={23} /></div><div><p className="stat-card-value">{data.cohort.students}</p><p className="stat-card-label">إجمالي الطلاب</p></div></div>
+            <div className="stat-card"><div className="stat-card-icon green"><CheckCircle2 size={23} /></div><div><p className="stat-card-value">{data.cohort.paired_pre_post}</p><p className="stat-card-label">مقارنات قبلي/بعدي مكتملة</p></div></div>
+            <div className="stat-card"><div className="stat-card-icon yellow"><BarChart3 size={23} /></div><div><p className="stat-card-value">{formatScore(data.cohort.average_absolute_improvement_points)}</p><p className="stat-card-label">متوسط التحسن بالنقاط</p></div></div>
+            <div className="stat-card"><div className="stat-card-icon blue"><Sparkles size={23} /></div><div><p className="stat-card-value">{data.cohort.verified_reinforcement_cycles}/{data.cohort.reinforcement_cycles}</p><p className="stat-card-label">دورات تقوية متحققة</p></div></div>
           </div>
 
-          <div className="grid lg:grid-cols-[320px_1fr] gap-6">
-            <section className="card">
-              <div className="flex items-center gap-2 mb-5"><Layers3 size={20} className="text-primary" /><h2 className="font-bold text-navy text-lg">توزيع المستويات</h2></div>
-              <div className="space-y-5">
-                {stats.levels.map((count, index) => {
-                  const percent = stats.total ? Math.round((count / stats.total) * 100) : 0;
-                  return (
-                    <div key={index}>
-                      <div className="flex items-center justify-between text-sm mb-2"><span className="font-semibold text-navy">المستوى {index + 1}</span><span className="text-muted">{count} طالب · {percent}%</span></div>
-                      <div className="progress-track"><div className="progress-fill" style={{ width: `${percent}%` }} /></div>
-                    </div>
-                  );
-                })}
+          <section className="card mb-6">
+            <div className="flex items-start justify-between gap-4 flex-wrap mb-5">
+              <div>
+                <h2 className="font-bold text-navy text-lg">ملخص الاختبارات</h2>
+                <p className="text-sm text-muted mt-1">القيم التالية مأخوذة من جلسات الاختبار المكتملة والمحفوظة.</p>
               </div>
-            </section>
+              <div className="flex gap-2 flex-wrap">
+                <span className="badge badge-gray">قبلي مكتمل: {data.cohort.completed_pretests}</span>
+                <span className="badge badge-gray">بعدي مكتمل: {data.cohort.completed_posttests}</span>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="rounded-2xl border border-slate-200 p-4"><p className="text-sm text-muted">متوسط القبلي</p><strong className="text-2xl text-navy">{formatScore(data.cohort.average_pretest_score)}</strong></div>
+              <div className="rounded-2xl border border-slate-200 p-4"><p className="text-sm text-muted">متوسط البعدي</p><strong className="text-2xl text-navy">{formatScore(data.cohort.average_posttest_score)}</strong></div>
+              <div className="rounded-2xl border border-slate-200 p-4"><p className="text-sm text-muted">متوسط التحسن المطلق</p><strong className="text-2xl text-navy">{data.cohort.average_absolute_improvement_points == null ? "—" : `${data.cohort.average_absolute_improvement_points > 0 ? "+" : ""}${Math.round(data.cohort.average_absolute_improvement_points * 10) / 10} نقطة`}</strong></div>
+            </div>
+          </section>
 
-            <section className="card">
-              <div className="flex items-center justify-between gap-3 mb-5"><div><h2 className="font-bold text-navy text-lg">تقدم الطلاب</h2><p className="text-sm text-muted mt-1">الأنشطة الأساسية في المستوى الحالي.</p></div><Link href="/admin/students" className="text-primary text-sm font-semibold">إدارة الطلاب</Link></div>
-              {students.length === 0 ? (
-                <div className="empty-state py-10"><h3>لا توجد بيانات بعد</h3><p>تظهر المؤشرات بعد إضافة الطلاب وبدء المسار.</p></div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="data-table">
-                    <thead><tr><th>الطالب</th><th>المستوى</th><th>الأنشطة</th><th>التقدم</th><th>البعدي</th></tr></thead>
-                    <tbody>
-                      {students.map((student) => {
-                        const progress = Math.round((student.core_completed_items / Math.max(1, student.core_total_items)) * 100);
-                        return (
-                          <tr key={student.id}>
-                            <td><Link href={`/admin/students/${student.id}`} className="font-semibold text-navy hover:text-primary">{student.full_name}</Link></td>
-                            <td>{student.current_level}</td>
-                            <td>{student.core_completed_items}/{student.core_total_items}</td>
-                            <td><div className="flex items-center gap-2 min-w-[130px]"><div className="progress-track"><div className="progress-fill" style={{ width: `${progress}%` }} /></div><span className="text-xs text-muted">{progress}%</span></div></td>
-                            <td><span className={`badge ${student.posttest_enabled ? "badge-green" : student.posttest_eligible ? "badge-yellow" : "badge-gray"}`}>{student.posttest_enabled ? "مفتوح" : student.posttest_eligible ? "جاهز" : "غير جاهز"}</span></td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </section>
+          <section className="card">
+            <div className="flex items-center justify-between gap-3 mb-5 flex-wrap">
+              <div><h2 className="font-bold text-navy text-lg">نتائج الطلاب</h2><p className="text-sm text-muted mt-1">المستوى الابتدائي والنهائي والنتائج والزمن والتقوية لكل طالب.</p></div>
+              <Link href="/admin/students" className="text-primary text-sm font-semibold inline-flex items-center gap-1">إدارة الطلاب <ArrowUpLeft size={15} /></Link>
+            </div>
+
+            {data.students.length === 0 ? (
+              <div className="empty-state py-10"><h3>لا توجد بيانات بعد</h3><p>أضف الطلاب وابدأ الاختبار القبلي لتظهر بيانات البحث هنا.</p><Link className="btn-primary mt-4" href="/admin/students/new">إضافة أول طالب</Link></div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="data-table">
+                  <thead><tr><th>الطالب</th><th>المستوى</th><th>القبلي</th><th>البعدي</th><th>التحسن</th><th>الزمن</th><th>التقوية</th></tr></thead>
+                  <tbody>
+                    {data.students.map((student) => {
+                      const improvement = improvementLabel(student);
+                      return (
+                        <tr key={student.student_id}>
+                          <td><Link href={`/admin/students/${student.student_id}`} className="font-semibold text-navy hover:text-primary">{student.student_name}</Link></td>
+                          <td><span className="whitespace-nowrap">{student.starting_level ? `L${student.starting_level}` : "—"} ← {student.final_level ? `L${student.final_level}` : `L${student.current_level}`}</span></td>
+                          <td>{formatScore(student.pretest.score)}</td>
+                          <td>{formatScore(student.posttest.score)}</td>
+                          <td><span className={`badge ${improvement.className}`}>{improvement.text}</span></td>
+                          <td><span className="inline-flex items-center gap-1 whitespace-nowrap"><Clock3 size={14} className="text-muted" />{formatSeconds(student.engagement.assessment_seconds + student.engagement.learning_seconds)}</span></td>
+                          <td>{student.reinforcement.verified}/{student.reinforcement.total}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+
+          <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-muted leading-7">
+            <strong className="text-navy">ملاحظة منهجية:</strong> التحسن النسبي لا يُحسب عندما تكون نتيجة القبلي صفرًا. كما تبقى مؤشرات أخطاء النطق الآلية غير معروضة حتى اعتماد دليل صوتي معاير.
           </div>
         </>
-      )}
+      ) : null}
     </div>
   );
 }
