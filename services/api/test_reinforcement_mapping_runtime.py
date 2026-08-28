@@ -1,5 +1,7 @@
 """Runtime tests for the reviewed skill-family reinforcement resolver."""
 
+import seed
+
 from reinforcement_mapping import mapping_for_skill, recommended_reinforcement_for_skill
 from db.database import SessionLocal
 from db.models import ContentItem, Skill, Student
@@ -19,7 +21,8 @@ def test_uncovered_skill_remains_safe_hold():
     assert sukoon["candidates"] == []
 
 
-def test_resolver_can_use_existing_original_reinforcement_without_exact_skill_id(seed_db):
+def test_resolver_can_use_existing_original_reinforcement_without_exact_skill_id():
+    seed.run_seed()
     db = SessionLocal()
     try:
         student = db.query(Student).filter(Student.access_code == "STU001").one()
@@ -40,7 +43,8 @@ def test_resolver_can_use_existing_original_reinforcement_without_exact_skill_id
         db.close()
 
 
-def test_resolver_does_not_fake_unseeded_new_candidate(seed_db):
+def test_resolver_does_not_fake_unseeded_new_candidate():
+    seed.run_seed()
     db = SessionLocal()
     try:
         student = db.query(Student).filter(Student.access_code == "STU001").one()
