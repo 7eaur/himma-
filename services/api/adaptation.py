@@ -1,10 +1,12 @@
-"""P06 adaptive learning engine and event-backed rewards.
+"""Adaptive learning policy for the Himma student journey.
 
-Academic rules come from the approved Himma requirements: the newest three valid
-attempts are weighted 50/30/20; <50 receives support first and can demote only
-on a second consecutive low decision; >=80 may promote only with skill coverage
-and no required skill below 60. Invalid/incomplete/unresolved audio attempts are
-excluded rather than penalised.
+Product contract (2026-08 recovery): placement happens once in the pretest. From
+that starting point the ordinary learning journey moves upward only (L1 -> L2 ->
+L3). A weak activity is treated inside the current level: >=80 passes, 70-79 is
+a guided-retry band, and <70 requests targeted reinforcement. The historic
+50/30/20 signal remains useful as a mastery trend, but it is never an early
+promotion shortcut. Routine automatic demotion is intentionally disabled; a
+supervisor can still make a documented manual level override.
 """
 
 from __future__ import annotations
@@ -27,22 +29,54 @@ from db.models import (
     AudioSubmission,
     ContentItem,
     ContentStep,
+    Skill,
     Student,
     User,
 )
 from dependencies import get_current_student, get_current_user, get_db
+from runtime_flags import temporary_audio_skip_enabled
 
 router = APIRouter(tags=["Adaptation"])
 WEIGHTS = (0.50, 0.30, 0.20)  # newest -> oldest
-PROMOTION_THRESHOLD = 80.0
-SUPPORT_THRESHOLD = 50.0
-CRITICAL_SKILL_FLOOR = 60.0
+PASS_THRESHOLD = 80.0
+REINFORCEMENT_THRESHOLD = 70.0
+CRITICAL_SKILL_FLOOR = 80.0
+CORE_ACTIVITY_COUNT = 10
 
 BADGE_BY_LEVEL = {
     1: "مستكشف الحروف",
     2: "بطل الكلمات",
     3: "قارئ متميز",
 }
+
+# Ordered, deterministic mappings. Supplemental canonical ids are searched
+# first where they directly address the weakness; existing client-approved
+# activities remain valid fallbacks. A missing target is never replaced at
+# random: the supervisor-review path handles a genuine mapping gap.
+REINFORCEMENT_CANONICAL_BY_SKILL_HINT: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("ربط الصوت بالحرف", ("L1-REIN-06", "L1-REIN-04")),
+    ("أشكال الحرف", ("L1-REIN-07", "L1-REIN-01")),
+    ("الشكل", ("L1-REIN-07", "L1-REIN-01")),
+    ("الصوت الأخير", ("L1-REIN-08",)),
+    ("المادة المطبوعة", ("L1-REIN-09",)),
+    ("الذاكرة البصرية", ("L1-REIN-10",)),
+    ("الاتجاه", ("L1-REIN-11",)),
+    ("التسلسل", ("L1-REIN-12", "L3-REIN-10")),
+    ("بدايات الكلمات", ("L1-REIN-02",)),
+    ("الصوت الأول", ("L1-REIN-02",)),
+    ("الحركات القصيرة", ("L2-REIN-06", "L2-REIN-07")),
+    ("المقاطع", ("L2-REIN-02", "L2-REIN-07")),
+    ("المد", ("L2-REIN-08",)),
+    ("الشدة", ("L2-REIN-09",)),
+    ("التنوين", ("L2-REIN-10",)),
+    ("قراءة الجملة", ("L2-REIN-11", "L2-REIN-05")),
+    ("دقة قراءة الكلمات", ("L3-REIN-06",)),
+    ("سرعة", ("L3-REIN-07",)),
+    ("طلاقة", ("L3-REIN-08", "L3-REIN-03")),
+    ("المفردات", ("L3-REIN-09",)),
+    ("معنى", ("L3-REIN-09",)),
+    ("أحداث النص", ("L3-REIN-10",)),
+)
 
 
 @dataclass(frozen=True)
@@ -69,23 +103,32 @@ def decide_transition(
     mastery: float,
     skill_coverage_ok: bool,
     minimum_required_skill_score: Optional[float],
-    previous_low: bool,
+    previous_low: bool = False,
+    level_complete: Optional[bool] = None,
 ) -> tuple[str, int, str]:
-    if mastery < SUPPORT_THRESHOLD:
-        if previous_low and current_level > 1:
-            return "demote", current_level - 1, "second_consecutive_low_mastery"
-        return "support", current_level, "low_mastery_support_first"
+    """Return the product transition without routine automatic demotion.
 
-    if mastery >= PROMOTION_THRESHOLD:
-        if current_level >= 3:
-            return "stay", current_level, "top_level_mastery"
+    ``level_complete=None`` keeps the function callable by older unit tests and
+    integrations, but production evaluation always supplies an explicit value.
+    ``previous_low`` is retained only for API compatibility and has no automatic
+    demotion effect in the current approved journey.
+    """
+    del previous_low
+    if mastery < REINFORCEMENT_THRESHOLD:
+        return "support", current_level, "activity_below_reinforcement_threshold"
+    if mastery < PASS_THRESHOLD:
+        return "stay", current_level, "guided_retry_band"
+
+    if level_complete:
         if not skill_coverage_ok:
-            return "stay", current_level, "promotion_waiting_for_skill_coverage"
-        if minimum_required_skill_score is None or minimum_required_skill_score < CRITICAL_SKILL_FLOOR:
-            return "stay", current_level, "promotion_blocked_by_skill_floor"
-        return "promote", current_level + 1, "mastery_and_skill_gates_passed"
+            return "stay", current_level, "level_complete_waiting_for_skill_evidence"
+        if minimum_required_skill_score is not None and minimum_required_skill_score < CRITICAL_SKILL_FLOOR:
+            return "support", current_level, "level_complete_has_unresolved_weak_skill"
+        if current_level < 3:
+            return "promote", current_level + 1, "level_completed_next_level"
+        return "stay", current_level, "top_level_completed"
 
-    return "stay", current_level, "mastery_in_stability_band"
+    return "stay", current_level, "activity_passed_continue_level"
 
 
 def _attempt_signal(db: Session, attempt: Attempt, item: ContentItem) -> Optional[AttemptSignal]:
@@ -105,8 +148,7 @@ def _attempt_signal(db: Session, attempt: Attempt, item: ContentItem) -> Optiona
         )
         if structured:
             payload = structured.response_payload or {}
-            if payload.get("declared_media_gap_skip"):
-                # A declared missing source asset is academically neutral.
+            if payload.get("declared_media_gap_skip") or payload.get("temporary_audio_skip"):
                 continue
             scores.append(bool(structured.is_correct))
             continue
@@ -121,8 +163,8 @@ def _attempt_signal(db: Session, attempt: Attempt, item: ContentItem) -> Optiona
         if audio and audio.status == "rerecord_required":
             return None
         if response.is_correct is None:
-            # Includes unresolved / low-confidence audio pending human review.
-            return None
+            # Includes temporary audio skips and unresolved audio awaiting review.
+            continue
         scores.append(bool(response.is_correct))
 
     if not scores:
@@ -157,10 +199,32 @@ def _valid_signals(db: Session, student_id: int, level_id: int) -> list[AttemptS
     return signals
 
 
+def _core_flow_complete(db: Session, student_id: int, level_id: int) -> bool:
+    completed_ids = {
+        row[0]
+        for row in db.query(ContentItem.id)
+        .join(Attempt, Attempt.item_id == ContentItem.id)
+        .join(AssessmentSession, AssessmentSession.id == Attempt.session_id)
+        .filter(
+            AssessmentSession.student_id == student_id,
+            AssessmentSession.assigned_level == level_id,
+            Attempt.status == "completed",
+            ContentItem.kind == "core_activity",
+            ContentItem.level_id == level_id,
+        )
+        .all()
+    }
+    required = {
+        row[0]
+        for row in db.query(ContentItem.id).filter(
+            ContentItem.kind == "core_activity",
+            ContentItem.level_id == level_id,
+        ).all()
+    }
+    return len(required) == CORE_ACTIVITY_COUNT and required.issubset(completed_ids)
+
+
 def _skill_gate_state(db: Session, level_id: int, signals: list[AttemptSignal]) -> tuple[bool, Optional[float], Optional[int]]:
-    # The approved source does not mark a smaller critical-skill subset in the
-    # executable catalog. Conservatively, every core skill is treated as required;
-    # this prevents a false promotion and can be relaxed only by an explicit map.
     required_skill_ids = {
         row[0]
         for row in db.query(ContentItem.skill_id)
@@ -180,6 +244,20 @@ def _skill_gate_state(db: Session, level_id: int, signals: list[AttemptSignal]) 
     return coverage_ok, minimum, weakest_skill_id
 
 
+def _candidate_canonical_ids(db: Session, weakest_skill_id: int) -> tuple[str, ...]:
+    skill = db.query(Skill).filter(Skill.id == weakest_skill_id).first()
+    if not skill:
+        return ()
+    haystack = " ".join(filter(None, [skill.name, skill.description, skill.canonical_skill_id])).casefold()
+    candidates: list[str] = []
+    for hint, canonical_ids in REINFORCEMENT_CANONICAL_BY_SKILL_HINT:
+        if hint.casefold() in haystack:
+            for canonical in canonical_ids:
+                if canonical not in candidates:
+                    candidates.append(canonical)
+    return tuple(candidates)
+
+
 def _recommended_reinforcement(db: Session, student_id: int, level_id: int, weakest_skill_id: Optional[int]) -> Optional[int]:
     if weakest_skill_id is None:
         return None
@@ -195,15 +273,27 @@ def _recommended_reinforcement(db: Session, student_id: int, level_id: int, weak
         )
         .all()
     }
-    query = db.query(ContentItem).filter(
+
+    reinforcement_items = db.query(ContentItem).filter(
         ContentItem.kind == "reinforcement_activity",
         ContentItem.level_id == level_id,
-        ContentItem.skill_id == weakest_skill_id,
-    )
-    if used:
-        query = query.filter(ContentItem.id.notin_(used))
-    item = query.order_by(ContentItem.order_index).first()
-    return item.id if item else None
+    ).order_by(ContentItem.order_index, ContentItem.id).all()
+    available = [item for item in reinforcement_items if item.id not in used]
+
+    # Exact mapping remains highest priority for the original approved catalog.
+    exact = next((item for item in available if item.skill_id == weakest_skill_id), None)
+    if exact:
+        return exact.id
+
+    canonical_candidates = _candidate_canonical_ids(db, weakest_skill_id)
+    for canonical in canonical_candidates:
+        item = next(
+            (candidate for candidate in available if (candidate.template_data or {}).get("canonical_id") == canonical),
+            None,
+        )
+        if item:
+            return item.id
+    return None
 
 
 def _stars_for_attempt(db: Session, attempt: Attempt) -> tuple[int, dict]:
@@ -217,27 +307,15 @@ def _stars_for_attempt(db: Session, attempt: Attempt) -> tuple[int, dict]:
     retries = any(len(rows) > 1 for rows in by_step.values())
 
     if not retries and not hints:
-        stars = 3
-        reason = "completed_without_help"
+        stars, reason = 3, "completed_without_help"
     elif retries:
-        stars = 1
-        reason = "completed_after_retries"
+        stars, reason = 1, "completed_after_retries"
     else:
-        # The client source line for the two-star wording is incomplete. This
-        # middle bucket is intentionally limited to a completed activity that
-        # used help but did not require a repeated submitted attempt.
-        stars = 2
-        reason = "completed_with_help_without_retry"
+        stars, reason = 2, "completed_with_help_without_retry"
     return stars, {"reason": reason, "retry_used": retries, "hint_used": hints}
 
 
 def _add_reward_once(db: Session, reward: RewardEvent) -> bool:
-    """Insert a reward without allowing a concurrent duplicate to abort the outer transaction.
-
-    Reward generation is called by several student endpoints (status, next activity,
-    rewards) and those requests can overlap in a browser. The database unique key is
-    the final authority; a savepoint contains the expected loser of that race.
-    """
     try:
         with db.begin_nested():
             db.add(reward)
@@ -262,9 +340,6 @@ def ensure_rewards(db: Session, student_id: int) -> list[RewardEvent]:
     )
     changed = False
     for attempt, item, session in completed:
-        # Rewards must represent a real, academically valid completion. A
-        # gap-only round, unresolved/low-confidence recording, rerecord request,
-        # or otherwise incomplete evidence is neutral and earns no stars yet.
         if _attempt_signal(db, attempt, item) is None:
             continue
         key = f"activity:{attempt.id}:stars"
@@ -288,23 +363,13 @@ def ensure_rewards(db: Session, student_id: int) -> list[RewardEvent]:
             ) or changed
 
     for level_id, label in BADGE_BY_LEVEL.items():
-        completed_core = (
-            db.query(Attempt, ContentItem)
-            .join(ContentItem, ContentItem.id == Attempt.item_id)
-            .join(AssessmentSession, AssessmentSession.id == Attempt.session_id)
-            .filter(
-                AssessmentSession.student_id == student_id,
-                Attempt.status == "completed",
-                ContentItem.kind == "core_activity",
-                ContentItem.level_id == level_id,
-            )
-            .all()
-        )
-        valid_completed_core = sum(
-            1 for attempt, item in completed_core if _attempt_signal(db, attempt, item) is not None
-        )
+        # A badge is a level-completion event. During temporary audio-skip testing
+        # the flow may be complete with neutral voice evidence; do not fabricate
+        # stars, but the completion badge is still useful for journey testing.
+        if not _core_flow_complete(db, student_id, level_id):
+            continue
         key = f"level:{level_id}:core-complete"
-        if valid_completed_core >= 10 and not db.query(RewardEvent.id).filter(
+        if not db.query(RewardEvent.id).filter(
             RewardEvent.student_id == student_id,
             RewardEvent.reward_key == key,
         ).first():
@@ -317,7 +382,7 @@ def ensure_rewards(db: Session, student_id: int) -> list[RewardEvent]:
                     reward_key=key,
                     stars=None,
                     label=label,
-                    details={"event": "ten_valid_core_activities_completed", "level_id": level_id},
+                    details={"event": "level_core_flow_completed", "level_id": level_id},
                 ),
             ) or changed
 
@@ -332,18 +397,22 @@ def evaluate_student(db: Session, student: Student) -> dict:
     ensure_rewards(db, student.id)
     level_id = student.current_level
     signals = _valid_signals(db, student.id, level_id)
-    if len(signals) < 3:
+    flow_complete = _core_flow_complete(db, student.id, level_id)
+
+    if not signals:
         return {
             "ready": False,
             "action": "hold",
             "current_level": level_id,
-            "valid_attempt_count": len(signals),
-            "required_attempt_count": 3,
-            "reason": "waiting_for_three_valid_attempts",
+            "valid_attempt_count": 0,
+            "required_attempt_count": 1,
+            "reason": "waiting_for_valid_learning_evidence",
+            "level_complete": flow_complete,
         }
 
-    latest = list(reversed(signals[-3:]))
-    snapshot_key = ":".join(str(signal.attempt_id) for signal in latest)
+    latest_signal = signals[-1]
+    trend_signals = list(reversed(signals[-3:]))
+    snapshot_key = ":".join(str(signal.attempt_id) for signal in trend_signals)
     existing = db.query(AdaptationDecision).filter(
         AdaptationDecision.student_id == student.id,
         AdaptationDecision.decision_source == "automatic",
@@ -352,41 +421,65 @@ def evaluate_student(db: Session, student: Student) -> dict:
     if existing:
         return _decision_payload(existing)
 
-    mastery = weighted_mastery([signal.score for signal in latest])
+    mastery = (
+        weighted_mastery([signal.score for signal in trend_signals])
+        if len(trend_signals) == 3
+        else latest_signal.score
+    )
     coverage_ok, minimum_skill_score, weakest_skill_id = _skill_gate_state(db, level_id, signals)
-    previous = (
-        db.query(AdaptationDecision)
-        .filter(
-            AdaptationDecision.student_id == student.id,
-            AdaptationDecision.decision_source == "automatic",
+
+    # Temporary voice skips are deliberately neutral. They may remove a skill
+    # from coverage while the tester still needs to traverse the whole product.
+    # Only that test mode may relax missing evidence; known scored weaknesses
+    # remain blocking and are still reinforced.
+    provisional_testing = bool(temporary_audio_skip_enabled() and flow_complete)
+    effective_coverage = coverage_ok or provisional_testing
+    effective_minimum = minimum_skill_score
+
+    if latest_signal.score < REINFORCEMENT_THRESHOLD:
+        action, new_level, reason = "support", level_id, "activity_below_reinforcement_threshold"
+        weakest_skill_id = latest_signal.skill_id
+    elif flow_complete:
+        action, new_level, reason = decide_transition(
+            current_level=level_id,
+            mastery=max(PASS_THRESHOLD, latest_signal.score),
+            skill_coverage_ok=effective_coverage,
+            minimum_required_skill_score=effective_minimum,
+            level_complete=True,
         )
-        .order_by(AdaptationDecision.id.desc())
-        .first()
-    )
-    previous_low = bool(previous and previous.mastery_score is not None and float(previous.mastery_score) < SUPPORT_THRESHOLD)
-    action, new_level, reason = decide_transition(
-        current_level=level_id,
-        mastery=mastery,
-        skill_coverage_ok=coverage_ok,
-        minimum_required_skill_score=minimum_skill_score,
-        previous_low=previous_low,
-    )
-    low_count = (int(previous.consecutive_low_count) + 1 if previous_low else 1) if mastery < SUPPORT_THRESHOLD else 0
+    else:
+        action, new_level, reason = decide_transition(
+            current_level=level_id,
+            mastery=latest_signal.score,
+            skill_coverage_ok=coverage_ok,
+            minimum_required_skill_score=minimum_skill_score,
+            level_complete=False,
+        )
+
+    # Do not let a historical low score force reinforcement after a later
+    # successful activity. Weakness intervention is attached to the current
+    # activity snapshot only.
     recommended_item_id = None
-    if action in {"support", "stay"} and reason != "top_level_mastery":
+    if action == "support":
         recommended_item_id = _recommended_reinforcement(db, student.id, level_id, weakest_skill_id)
+
     explanation = {
+        "policy_version": "UPWARD_JOURNEY_V2",
         "weights_newest_to_oldest": list(WEIGHTS),
         "attempts_newest_to_oldest": [
             {"attempt_id": signal.attempt_id, "skill_id": signal.skill_id, "score": signal.score}
-            for signal in latest
+            for signal in trend_signals
         ],
+        "latest_activity_score": latest_signal.score,
+        "level_complete": flow_complete,
         "skill_coverage_ok": coverage_ok,
         "minimum_required_skill_score": minimum_skill_score,
         "required_skill_floor": CRITICAL_SKILL_FLOOR,
-        "promotion_threshold": PROMOTION_THRESHOLD,
-        "support_threshold": SUPPORT_THRESHOLD,
-        "reinforcement_assignment": "exact_weakest_skill_match" if recommended_item_id else None,
+        "pass_threshold": PASS_THRESHOLD,
+        "guided_retry_threshold": REINFORCEMENT_THRESHOLD,
+        "routine_automatic_demotion": False,
+        "temporary_audio_test_provisional": provisional_testing,
+        "reinforcement_assignment": "deterministic_skill_mapping" if recommended_item_id else None,
         "reason": reason,
     }
     decision = AdaptationDecision(
@@ -399,13 +492,13 @@ def evaluate_student(db: Session, student: Student) -> dict:
         weakest_skill_id=weakest_skill_id,
         recommended_item_id=recommended_item_id,
         valid_attempt_count=len(signals),
-        consecutive_low_count=low_count,
+        consecutive_low_count=1 if latest_signal.score < REINFORCEMENT_THRESHOLD else 0,
         snapshot_key=snapshot_key,
         explanation=explanation,
     )
     db.add(decision)
-    if new_level != level_id:
-        student.current_level = new_level
+    # Level mutation is deliberately performed by adaptation_runtime only after
+    # it has closed the old level session and created the next level session.
     db.commit()
     db.refresh(decision)
     return _decision_payload(decision)
@@ -511,7 +604,7 @@ def manual_override(
         valid_attempt_count=0,
         consecutive_low_count=0,
         snapshot_key=None,
-        explanation={"reason": "researcher_manual_override"},
+        explanation={"reason": "supervisor_manual_override"},
         manual_reason=body.reason.strip(),
         actor_id=user.id,
     )
