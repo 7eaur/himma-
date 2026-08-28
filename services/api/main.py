@@ -13,6 +13,7 @@ from adaptation_runtime import router as adaptation_runtime_router
 from reinforcement_review import router as reinforcement_review_router
 from media import router as media_router
 from speech_analysis import router as speech_analysis_router
+from journey import router as journey_router
 
 app = FastAPI(
     title="Himma API Service",
@@ -32,6 +33,7 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(protected_router)
+app.include_router(journey_router)
 # TEMPORARY: this router must precede assessment_router so its finish endpoint
 # can apply a neutral denominator only when explicit audio-skip markers exist.
 app.include_router(temporary_audio_skip_router)
