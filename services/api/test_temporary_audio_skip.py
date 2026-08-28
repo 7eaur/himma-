@@ -192,7 +192,12 @@ def test_pretest_scoring_excludes_temporary_audio_skips_from_denominator(student
     assert finished.status_code == 200, finished.text
     result = finished.json()
     assert Decimal(str(result["final_score"])) == Decimal("100")
-    assert result["assigned_level"] == 3
+    # The source requires word-reading and text-accuracy gates for L3 but does
+    # not approve their numeric thresholds.  A perfect test/demo score therefore
+    # remains academically provisional at L2 instead of fabricating a gate.
+    assert result["assigned_level"] == 2
+    assert result["placement_provisional"] is True
+    assert result["placement_reason"] == "l3_gate_thresholds_not_approved_or_configured"
     assert result["temporary_audio_skips"] == skipped_count
     assert result["scorable_units"] == 30 - skipped_count
 
