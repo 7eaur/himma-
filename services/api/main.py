@@ -14,6 +14,7 @@ from reinforcement_review import router as reinforcement_review_router
 from media import router as media_router
 from speech_analysis import router as speech_analysis_router
 from journey import router as journey_router
+from reports import router as reports_router
 
 app = FastAPI(
     title="Himma API Service",
@@ -46,6 +47,7 @@ app.include_router(media_router)
 app.include_router(review_router)
 app.include_router(recordings_router)
 app.include_router(speech_analysis_router)
+app.include_router(reports_router)
 
 
 @app.get("/health")
