@@ -71,7 +71,7 @@ function SidebarContent({ pathname, supervisorName, onNavigate, onLogout }: Side
                     key={item.href}
                     href={item.href}
                     onClick={onNavigate}
-                    className={`${styles.navItem} ${isActive ? styles.navItemActive : ""}`}
+                    className={`sidebar-nav-item ${styles.navItem} ${isActive ? styles.navItemActive : ""}`}
                     aria-current={isActive ? "page" : undefined}
                   >
                     <Icon size={19} className={styles.navIcon} aria-hidden="true" />
