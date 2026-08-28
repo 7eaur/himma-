@@ -38,6 +38,9 @@ test.describe("M04 responsive product smoke", () => {
       for (const route of ROUTES) {
         await page.goto(route.url);
         await expect(page.locator("body")).toBeVisible();
+        // Entry animations intentionally start from opacity 0. Capture the stable
+        // product state, not an intermediate animation frame.
+        await page.waitForTimeout(650);
         await expectNoHorizontalOverflow(page);
 
         await page.screenshot({
@@ -51,6 +54,7 @@ test.describe("M04 responsive product smoke", () => {
   test("mobile student login keeps its primary input and action touch-friendly", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/student/login");
+    await page.waitForTimeout(650);
 
     const input = page.getByTestId("input-access-code");
     await expect(input).toBeVisible();
