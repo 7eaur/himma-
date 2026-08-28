@@ -1,125 +1,31 @@
 {
   "schema_version": 1,
-  "plan_version": "HIMMA-VISUAL-GAPS-2026-08-29-v1",
+  "plan_version": "HIMMA-VISUAL-GAPS-2026-08-29-v2",
   "source": {
     "reinforcement_catalog": "packages/content/src/reinforcement_additions_v1.json",
     "image_kit": "Himma_Educational_Images_Kit_v1.0",
-    "rule": "Reuse approved image-kit assets first. Generate only scenes that have no semantically correct approved asset. Never substitute a merely similar scene when sequence meaning changes."
+    "rule": "Reuse approved image-kit assets first. Generated sequence scenes are now approved by exact semantic label. Never substitute a merely similar scene when sequence meaning changes."
   },
   "reuse": {
-    "L1-REIN-10": {
-      "قلم": "VOC-04",
-      "كرة": "VOC-10",
-      "باب": "VOC-03",
-      "شمس": "VOC-06",
-      "كتاب": "VOC-02",
-      "موزة": "VOC-01",
-      "سمكة": "VOC-05",
-      "نخلة": "VOC-09",
-      "قمر": "VOC-07"
-    },
-    "L1-REIN-12": {
-      "زرع البذرة": "SEQ-01",
-      "ظهور النبتة": "SEQ-03",
-      "القراءة": "SEQ-08",
-      "نمو الزهرة": "SEQ-03"
-    },
-    "L3-REIN-10": {
-      "أخذ الكتاب": "SEQ-07",
-      "قرأ الكتاب": "SEQ-08",
-      "زرعت البذرة": "SEQ-01",
-      "سقتها": "SEQ-02",
-      "القراءة": "SEQ-08",
-      "إعادة الكتاب": "SEQ-09",
-      "غسلت": "SEQ-04",
-      "قطعت": "SEQ-05",
-      "أكلت": "SEQ-06"
-    }
+    "L1-REIN-10": {"قلم":"VOC-04","كرة":"VOC-10","باب":"VOC-03","شمس":"VOC-06","كتاب":"VOC-02","موزة":"VOC-01","سمكة":"VOC-05","نخلة":"VOC-09","قمر":"VOC-07"},
+    "L1-REIN-12": {"غسل اليدين":"HIMMA-GEN-SEQ-001","الأكل":"HIMMA-GEN-SEQ-002","زرع البذرة":"SEQ-01","ظهور النبتة":"SEQ-03","فتح الكتاب":"HIMMA-GEN-SEQ-003","القراءة":"SEQ-08","سقي الزهرة":"HIMMA-GEN-SEQ-004","نمو الزهرة":"SEQ-03","لبس الحذاء":"HIMMA-GEN-SEQ-005","الخروج من المنزل":"HIMMA-GEN-SEQ-006"},
+    "L3-REIN-10": {"دخول المكتبة":"HIMMA-GEN-SEQ-007","أخذ الكتاب":"SEQ-07","قرأ الكتاب":"SEQ-08","زرعت البذرة":"SEQ-01","سقتها":"SEQ-02","القراءة":"SEQ-08","إعادة الكتاب":"SEQ-09","الذهاب إلى الشاطئ":"HIMMA-GEN-SEQ-008","اللعب بالرمل":"HIMMA-GEN-SEQ-009","تنظيف المكان":"HIMMA-GEN-SEQ-010","غسلت":"SEQ-04","قطعت":"SEQ-05","أكلت":"SEQ-06"}
   },
-  "generate": [
-    {
-      "id": "HIMMA-GEN-SEQ-001",
-      "activity": "L1-REIN-12",
-      "label_ar": "غسل اليدين",
-      "aspect_ratio": "4:3",
-      "scene": "طفل يغسل يديه بالماء والصابون أمام المغسلة، لقطة تعليمية واضحة، دون نص داخل الصورة"
-    },
-    {
-      "id": "HIMMA-GEN-SEQ-002",
-      "activity": "L1-REIN-12",
-      "label_ar": "الأكل",
-      "aspect_ratio": "4:3",
-      "scene": "الطفل نفسه يجلس لتناول وجبة بسيطة بعد غسل اليدين، لقطة تعليمية واضحة، دون نص داخل الصورة"
-    },
-    {
-      "id": "HIMMA-GEN-SEQ-003",
-      "activity": "L1-REIN-12",
-      "label_ar": "فتح الكتاب",
-      "aspect_ratio": "4:3",
-      "scene": "طفل يفتح كتابًا على الطاولة استعدادًا للقراءة، دون أن يكون قد بدأ القراءة، دون نص داخل الصورة"
-    },
-    {
-      "id": "HIMMA-GEN-SEQ-004",
-      "activity": "L1-REIN-12",
-      "label_ar": "سقي الزهرة",
-      "aspect_ratio": "4:3",
-      "scene": "طفلة تسقي زهرة صغيرة بمرش ماء، المشهد يركز على فعل السقي لا على نمو الزهرة، دون نص داخل الصورة"
-    },
-    {
-      "id": "HIMMA-GEN-SEQ-005",
-      "activity": "L1-REIN-12",
-      "label_ar": "لبس الحذاء",
-      "aspect_ratio": "4:3",
-      "scene": "طفل يجلس قرب باب المنزل ويلبس حذاءه استعدادًا للخروج، دون نص داخل الصورة"
-    },
-    {
-      "id": "HIMMA-GEN-SEQ-006",
-      "activity": "L1-REIN-12",
-      "label_ar": "الخروج من المنزل",
-      "aspect_ratio": "4:3",
-      "scene": "الطفل نفسه يخرج من باب المنزل بعد ارتداء الحذاء، دون نص داخل الصورة"
-    },
-    {
-      "id": "HIMMA-GEN-SEQ-007",
-      "activity": "L3-REIN-10",
-      "label_ar": "دخول المكتبة",
-      "aspect_ratio": "4:3",
-      "scene": "طفل يدخل مكتبة مدرسية واضحة الرفوف قبل اختيار الكتاب، دون نص داخل الصورة"
-    },
-    {
-      "id": "HIMMA-GEN-SEQ-008",
-      "activity": "L3-REIN-10",
-      "label_ar": "الذهاب إلى الشاطئ",
-      "aspect_ratio": "4:3",
-      "scene": "طفل يصل إلى الشاطئ وهو يحمل أدوات لعب بسيطة بالرمل، قبل بدء اللعب، دون نص داخل الصورة"
-    },
-    {
-      "id": "HIMMA-GEN-SEQ-009",
-      "activity": "L3-REIN-10",
-      "label_ar": "اللعب بالرمل",
-      "aspect_ratio": "4:3",
-      "scene": "الطفل نفسه يلعب بالرمل على الشاطئ، دون نص داخل الصورة"
-    },
-    {
-      "id": "HIMMA-GEN-SEQ-010",
-      "activity": "L3-REIN-10",
-      "label_ar": "تنظيف المكان",
-      "aspect_ratio": "4:3",
-      "scene": "الطفل نفسه يجمع ما خلفه وينظف مكان اللعب على الشاطئ بعد الانتهاء، دون نص داخل الصورة"
-    }
+  "generate": [],
+  "generated_assets": [
+    {"id":"HIMMA-GEN-SEQ-001","activity":"L1-REIN-12","label_ar":"غسل اليدين","aspect_ratio":"4:3","status":"approved_generated"},
+    {"id":"HIMMA-GEN-SEQ-002","activity":"L1-REIN-12","label_ar":"الأكل","aspect_ratio":"4:3","status":"approved_generated"},
+    {"id":"HIMMA-GEN-SEQ-003","activity":"L1-REIN-12","label_ar":"فتح الكتاب","aspect_ratio":"4:3","status":"approved_generated"},
+    {"id":"HIMMA-GEN-SEQ-004","activity":"L1-REIN-12","label_ar":"سقي الزهرة","aspect_ratio":"4:3","status":"approved_generated"},
+    {"id":"HIMMA-GEN-SEQ-005","activity":"L1-REIN-12","label_ar":"لبس الحذاء","aspect_ratio":"4:3","status":"approved_generated"},
+    {"id":"HIMMA-GEN-SEQ-006","activity":"L1-REIN-12","label_ar":"الخروج من المنزل","aspect_ratio":"4:3","status":"approved_generated"},
+    {"id":"HIMMA-GEN-SEQ-007","activity":"L3-REIN-10","label_ar":"دخول المكتبة","aspect_ratio":"4:3","status":"approved_generated"},
+    {"id":"HIMMA-GEN-SEQ-008","activity":"L3-REIN-10","label_ar":"الذهاب إلى الشاطئ","aspect_ratio":"4:3","status":"approved_generated"},
+    {"id":"HIMMA-GEN-SEQ-009","activity":"L3-REIN-10","label_ar":"اللعب بالرمل","aspect_ratio":"4:3","status":"approved_generated"},
+    {"id":"HIMMA-GEN-SEQ-010","activity":"L3-REIN-10","label_ar":"تنظيف المكان","aspect_ratio":"4:3","status":"approved_generated"}
   ],
   "programmatic_visuals": {
-    "L1-REIN-11": {
-      "interaction": "path_sequence",
-      "asset_policy": "Render paths as accessible UI/SVG geometry instead of raster illustrations.",
-      "paths": [
-        "3_points_horizontal_rtl",
-        "4_points_horizontal_rtl",
-        "3_points_simple_curve_rtl",
-        "4_points_simple_path_rtl",
-        "5_points_short_zigzag_rtl"
-      ]
-    }
+    "L1-REIN-11": {"interaction":"path_sequence","asset_policy":"Render paths as accessible UI/SVG geometry instead of raster illustrations.","paths":["3_points_horizontal_rtl","4_points_horizontal_rtl","3_points_simple_curve_rtl","4_points_simple_path_rtl","5_points_short_zigzag_rtl"]}
   },
   "acceptance": [
     "Same visual style as the approved Himma Educational Images Kit.",

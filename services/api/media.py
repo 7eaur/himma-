@@ -20,7 +20,19 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 AUDIO_ROOT = REPO_ROOT / "assets" / "audio" / "HIMMA_AUDIO_V1"
 AUDIO_MANIFEST = AUDIO_ROOT / "manifest.csv"
 EDUCATION_ROOT = REPO_ROOT / "assets" / "education"
-IMAGE_MAP = EDUCATION_ROOT / "developer" / "asset-map.json"
+IMAGE_MAPS = (
+    EDUCATION_ROOT / "developer" / "asset-map.json",
+    EDUCATION_ROOT / "developer" / "generated-sequence-map.json",
+)
+
+
+def _iter_image_assets():
+    for image_map in IMAGE_MAPS:
+        try:
+            data = json.loads(image_map.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        yield from data.get("assets", [])
 
 
 def _build_asset_index() -> dict[str, tuple[Path, str]]:
@@ -41,22 +53,16 @@ def _build_asset_index() -> dict[str, tuple[Path, str]]:
     except OSError:
         pass
 
-    try:
-        data = json.loads(IMAGE_MAP.read_text(encoding="utf-8"))
-        for asset in data.get("assets", []):
-            asset_id = str(asset.get("id") or "").strip()
-            files = asset.get("files") or {}
-            relative = files.get("webp_small") or files.get("webp") or files.get("png")
-            if not asset_id or not relative:
-                continue
-            # asset-map paths are relative to the educational image package root
-            # (for example assets/vocabulary/webp/...), not to developer/.
-            path = (EDUCATION_ROOT / relative).resolve()
-            if path.is_file() and EDUCATION_ROOT.resolve() in path.parents:
-                content_type = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
-                index[asset_id] = (path, content_type)
-    except (OSError, json.JSONDecodeError):
-        pass
+    for asset in _iter_image_assets():
+        asset_id = str(asset.get("id") or "").strip()
+        files = asset.get("files") or {}
+        relative = files.get("webp_small") or files.get("webp") or files.get("png")
+        if not asset_id or not relative:
+            continue
+        path = (EDUCATION_ROOT / relative).resolve()
+        if path.is_file() and EDUCATION_ROOT.resolve() in path.parents:
+            content_type = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
+            index[asset_id] = (path, content_type)
 
     return index
 
