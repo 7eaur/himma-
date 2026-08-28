@@ -64,6 +64,13 @@ def extension_stable_keys() -> set[str]:
     return {extension_stable_key(item["canonical_id"]) for item in _load()["items"]}
 
 
+def _canonical_order(canonical_id: str) -> int:
+    try:
+        return int(canonical_id.rsplit("-", 1)[1])
+    except (IndexError, ValueError) as exc:
+        raise RuntimeError(f"Invalid reinforcement canonical id: {canonical_id}") from exc
+
+
 def _checksum(item: dict[str, Any]) -> str:
     raw = json.dumps(item, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
@@ -138,8 +145,9 @@ def run_seed() -> int:
     db: Session = SessionLocal()
     created = 0
     try:
-        for order_index, item in enumerate(data["items"], start=1):
+        for item in data["items"]:
             stable_key = extension_stable_key(item["canonical_id"])
+            order_index = _canonical_order(item["canonical_id"])
             checksum = _checksum(item)
             existing = db.query(ContentItem).filter(ContentItem.stable_key == stable_key).first()
             if existing:
@@ -147,6 +155,10 @@ def run_seed() -> int:
                     raise RuntimeError(
                         f"Versioned reinforcement {item['canonical_id']} changed; create a new content version"
                     )
+                # Ordering is operational metadata, not academic content; repair
+                # an early M03 seed that used a global enumerate order.
+                if existing.order_index != order_index:
+                    existing.order_index = order_index
                 continue
 
             skill = _representative_skill(db, item)
