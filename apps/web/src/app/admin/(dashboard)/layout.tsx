@@ -8,14 +8,39 @@ import { LayoutDashboard, Users, UserPlus, Mic, BarChart2, Settings, LogOut, Men
 import ReinforcementReviewPanel from "@/components/ReinforcementReviewPanel";
 import styles from "./dashboard-layout.module.css";
 
-const navItems = [
-  { href: "/admin", label: "نظرة عامة", icon: LayoutDashboard },
-  { href: "/admin/students", label: "الطلاب", icon: Users },
-  { href: "/admin/students/new", label: "إضافة طالب", icon: UserPlus },
-  { href: "/admin/audio-review", label: "مراجعة الصوت", icon: Mic },
-  { href: "/admin/reports", label: "التقارير", icon: BarChart2 },
-  { href: "/admin/settings", label: "الإعدادات", icon: Settings },
-];
+const navSections = [
+  {
+    label: "الرئيسية",
+    items: [
+      { href: "/admin", label: "نظرة عامة", icon: LayoutDashboard },
+    ],
+  },
+  {
+    label: "الطلاب",
+    items: [
+      { href: "/admin/students", label: "جميع الطلاب", icon: Users },
+      { href: "/admin/students/new", label: "إضافة طالب", icon: UserPlus },
+    ],
+  },
+  {
+    label: "المراجعات",
+    items: [
+      { href: "/admin/audio-review", label: "التسجيلات الصوتية", icon: Mic },
+    ],
+  },
+  {
+    label: "النتائج",
+    items: [
+      { href: "/admin/reports", label: "التقارير", icon: BarChart2 },
+    ],
+  },
+  {
+    label: "إدارة المنصة",
+    items: [
+      { href: "/admin/settings", label: "الإعدادات والمشرفون", icon: Settings },
+    ],
+  },
+] as const;
 
 interface SidebarContentProps {
   pathname: string;
@@ -30,33 +55,41 @@ function SidebarContent({ pathname, supervisorName, onNavigate, onLogout }: Side
     <>
       <div className={styles.brand}>
         <Image src="/brand/logo-navy.svg" alt="هِمّة" width={120} height={40} priority />
+        <span className={styles.brandLabel}>لوحة المشرف</span>
       </div>
 
-      <nav className="sidebar-nav" aria-label="التنقل في لوحة المشرف">
-        {navItems.map((item) => {
-          const isActive = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(`${item.href}/`));
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onNavigate}
-              className={`sidebar-nav-item ${isActive ? "active" : ""}`}
-              aria-current={isActive ? "page" : undefined}
-            >
-              <Icon size={20} className={styles.navIcon} aria-hidden="true" />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
+      <nav className={styles.nav} aria-label="التنقل في لوحة المشرف">
+        {navSections.map((section) => (
+          <div className={styles.navSection} key={section.label}>
+            <div className={styles.navSectionTitle}>{section.label}</div>
+            <div className={styles.navSectionItems}>
+              {section.items.map((item) => {
+                const isActive = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(`${item.href}/`));
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={onNavigate}
+                    className={`${styles.navItem} ${isActive ? styles.navItemActive : ""}`}
+                    aria-current={isActive ? "page" : undefined}
+                  >
+                    <Icon size={19} className={styles.navIcon} aria-hidden="true" />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
-      <div className="sidebar-footer">
+      <div className={styles.sidebarFooter}>
         <div className={styles.user}>
           <div className={styles.avatar} aria-hidden="true">{initial}</div>
-          <div className="min-w-0">
+          <div className={styles.userMeta}>
             <div className={styles.userName}>{supervisorName || "المشرف"}</div>
-            <div className="text-xs text-muted">مشرف المنصة</div>
+            <div className={styles.userRole}>مشرف المنصة</div>
           </div>
         </div>
         <button onClick={onLogout} className={styles.logout}>
@@ -126,14 +159,14 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
   };
 
   return (
-    <div className="sidebar-layout" dir="rtl">
-      <aside className="sidebar hidden md:flex">
+    <div className={styles.dashboardShell} dir="rtl">
+      <aside className={styles.sidebarDesktop}>
         <SidebarContent {...sidebarProps} />
       </aside>
 
       {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-50 flex">
-          <div className="fixed inset-0 bg-black/50" onClick={() => setMobileMenuOpen(false)} aria-hidden="true" />
+        <div className={styles.mobileOverlay}>
+          <button className={styles.mobileBackdrop} onClick={() => setMobileMenuOpen(false)} aria-label="إغلاق القائمة" />
           <div className={styles.mobilePanel} role="dialog" aria-modal="true" aria-label="قائمة لوحة المشرف">
             <button onClick={() => setMobileMenuOpen(false)} className={styles.mobileClose} aria-label="إغلاق القائمة"><X size={24} /></button>
             <SidebarContent {...sidebarProps} />
@@ -141,9 +174,10 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
         </div>
       )}
 
-      <main className="sidebar-content">
-        <div className={`md:hidden ${styles.mobileBar}`}>
+      <main className={styles.content}>
+        <div className={styles.mobileBar}>
           <Image src="/brand/logo-navy.svg" alt="هِمّة" width={100} height={32} />
+          <div className={styles.mobileBarText}>لوحة المشرف</div>
           <button onClick={() => setMobileMenuOpen(true)} className={styles.menuButton} aria-label="فتح القائمة"><Menu size={24} /></button>
         </div>
         <ReinforcementReviewPanel />
