@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./tailwind.css";
 import "./globals.css";
+import "./accessibility.css";
 import { ScrollAnimator } from "@/components/ScrollAnimator";
 
 export const metadata: Metadata = {
