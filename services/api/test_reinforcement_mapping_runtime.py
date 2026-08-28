@@ -14,11 +14,11 @@ def test_mapping_lookup_uses_skill_family_contract():
     assert shadda["candidates"] == ["L2-REIN-09"]
 
 
-def test_uncovered_skill_remains_safe_hold():
+def test_sukoon_uses_approved_existing_supporting_reinforcement():
     sukoon = mapping_for_skill(level_id=2, skill_code="sukoon_word_reading")
     assert sukoon is not None
-    assert sukoon["coverage"] == "uncovered"
-    assert sukoon["candidates"] == []
+    assert sukoon["coverage"] == "supporting"
+    assert sukoon["candidates"] == ["L2-REIN-02"]
 
 
 def test_resolver_can_use_existing_original_reinforcement_without_exact_skill_id():
