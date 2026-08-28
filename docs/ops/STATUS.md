@@ -4,23 +4,31 @@
 **Repository:** `7eaur/himma-`  
 **Current branch:** `recovery/ui-media-admin-overhaul`  
 **Current program:** Full Maintenance M00→M09  
-**Current slice:** **M06 — Responsive / Accessibility / Design QA — ACTIVE**
+**Current slice:** **M07 — Research Reports — ACTIVE**
 
-## Current implementation evidence
+## Latest accepted implementation evidence
 
-Implementation HEAD before latest documentation commits:
+Accepted M06 implementation HEAD:
 
-`98fdc638737bdb8ab9be4937cff6155865998d1f`
+`cdb02c75ad33d1b002ee1fdb84ecf1fee3dc57d4`
 
-Responsive Visual Gate Run #18 / `33202256450`: **SUCCESS**.
-
-Main Quality Gate #298 / `33202256449`:
+Main Quality Gate #314 / `33211325199`:
 
 - Backend ✅
 - Frontend ✅
-- Integration / Playwright ❌
+- Integration / Playwright ✅
 
-Current failure is isolated to M06 mobile supervisor navigation accessibility test: the dialog is visible, but the test looks for `a.sidebar-nav-item` inside the mobile dialog and finds no element. The test therefore fails before validating target height >=44px. Other M06 accessibility tests and the full Vertical Slice passed.
+Responsive Visual Gate #22 / `33211325207`: **SUCCESS**.
+
+Required responsive matrix remains covered:
+
+- 360×800.
+- 390×844.
+- 768×1024.
+- 1024×768.
+- 1440×900.
+
+The previous mobile supervisor navigation regression is closed. The final test uses semantic link lookup inside the dialog, preserves the >=44px requirement, verifies no horizontal overflow, and captures `18-mobile-supervisor-menu.png` in the Playwright artifact. The mobile close control is also 44×44.
 
 ## Maintenance stage status
 
@@ -29,9 +37,9 @@ Current failure is isolated to M06 mobile supervisor navigation accessibility te
 - M02 Adaptation State Machine — CLOSED.
 - M03 Reinforcement System — IMPLEMENTED with three explicit residual content gaps.
 - M04 Student Product UI — CLOSED baseline.
-- M05 Supervisor Product UX — REBUILT baseline.
-- **M06 Responsive/Accessibility/Design QA — ACTIVE.**
-- M07 Research Reports — PENDING.
+- M05 Supervisor Product UX — CLOSED baseline.
+- **M06 Responsive/Accessibility/Design QA — CLOSED.**
+- **M07 Research Reports — ACTIVE.**
 - M08 Real Speech Analysis — PENDING / EXTERNAL-GATED.
 - M09 Release/UAT — PENDING.
 
@@ -76,13 +84,32 @@ Full-screen Learning Stage, prominent companion character, contextual instructio
 
 Admin IA rebuild, Action Center dashboard, Student Profile tabs, focused expandable reinforcement review, Account/Security/Supervisors settings split.
 
-### M06 evidence
+### M06 closure evidence
 
-Passed checks on current implementation lineage include RTL/keyboard/focus/overflow, reduced motion, 200% zoom equivalent, contrast tokens, child technical-vocabulary scan, and Vertical Slice. Responsive Visual Gate is green on 360×800, 390×844, 768×1024, 1024×768, 1440×900.
+- Main Quality Gate #314 is fully green.
+- Responsive Visual Gate #22 is green.
+- RTL/keyboard/focus/overflow, reduced motion, 200% zoom equivalent, contrast tokens, child technical-vocabulary scan, mobile touch targets and full Vertical Slice are covered by the accepted gate.
+- Responsive screenshots and the explicit mobile supervisor menu screenshot were visually reviewed.
+
+## M07 objective
+
+Build the research-reporting layer so the UI and exports agree with persisted data, including:
+
+- Pre/Post comparison.
+- absolute and percentage improvement where mathematically defined.
+- skill/error summaries from supported evidence.
+- time and attempts.
+- start/final level.
+- reinforcement history.
+- Excel multi-sheet export.
+- PDF individual and aggregate reporting.
+- export audit logging.
+
+Do not invent speech-derived categories when evidence is unavailable, and do not silently alter academic scoring while building reports.
 
 ## Next action
 
-Fix the mobile supervisor navigation test/markup semantic selector mismatch **without weakening the >=44px touch-target requirement**, rerun Main Quality Gate to full green, visually review M06 screenshots, close M06, then start M07.
+Audit the existing report API/UI/export code and persisted models against the M07 contract, then implement the smallest complete M07 slice with tests before extending exports.
 
 ## Mandatory continuity files
 
