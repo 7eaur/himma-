@@ -1,6 +1,6 @@
 """End-to-end backend contract for the M03 remediation loop.
 
-This test deliberately stays below the HTTP/UI layer.  It proves that the
+This test deliberately stays below the HTTP/UI layer. It proves that the
 complete approved runtime catalog can seed, a concrete failed core step can be
 mapped to an approved same-level reinforcement, completion reopens the exact
 source attempt for verification, and successful verification closes the cycle.
@@ -30,8 +30,8 @@ def _canonical_item(db, canonical_id: str) -> ContentItem:
 def test_failed_core_to_reinforcement_to_verified_return_path():
     seeded = seed_all.run_seed_all()
     assert seeded["baseline_items"] == 105
-    assert seeded["reinforcement_items"] == 33
-    assert seeded["total_items"] == 123
+    assert seeded["reinforcement_items"] == 35
+    assert seeded["total_items"] == 125
 
     db = TestingSessionLocal()
     try:
