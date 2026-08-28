@@ -207,11 +207,11 @@ export default function StudentHomePage() {
       <main className={styles.container}>
         <section className={styles.welcome}>
           <div>
-            <span className={styles.eyebrow}><Star size={14} fill="currentColor" /> صباح التقدم</span>
+            <span className={styles.eyebrow}><Star size={14} fill="currentColor" /> جاهز للتقدم</span>
             <h1>مرحبًا يا {firstName}</h1>
-            <p>خطوتك التالية جاهزة، وهِمّة تحفظ تقدمك تلقائيًا.</p>
+            <p>خطوتك التالية واضحة أمامك، وهِمّة تحفظ تقدمك تلقائيًا.</p>
           </div>
-          <div className={styles.stars}><strong>{totalStars} ⭐</strong><span>نجومك حتى الآن</span></div>
+          <div className={styles.stars} aria-label={`لديك ${totalStars} نجمة`}><strong>{totalStars} ⭐</strong><span>نجومك حتى الآن</span></div>
         </section>
 
         <div className={styles.grid}>
@@ -235,7 +235,7 @@ export default function StudentHomePage() {
             <div className={styles.tipCard}>
               <div className={styles.tipIcon}><Headphones size={21} /></div>
               <h3>قبل أن تبدأ</h3>
-              <p>اختر مكانًا هادئًا، وارفع صوت الجهاز بدرجة مريحة، واسمح باستخدام الميكروفون عند القراءة.</p>
+              <p>اختر مكانًا هادئًا، وارفع صوت الجهاز بدرجة مريحة، ثم اتبع تعليمات كل مهمة كما تظهر لك.</p>
             </div>
             <div className={styles.progressCard}>
               <div className={styles.tipIcon}><Map size={21} /></div>
@@ -255,7 +255,7 @@ export default function StudentHomePage() {
               const done = phaseIndex > index || student.next_action === "completed";
               const current = phaseIndex === index;
               return (
-                <div key={entry.label} className={`${styles.step} ${done ? styles.stepDone : ""} ${current ? styles.stepCurrent : ""}`}>
+                <div key={entry.label} className={`${styles.step} ${done ? styles.stepDone : ""} ${current ? styles.stepCurrent : ""}`} aria-current={current ? "step" : undefined}>
                   <div className={styles.stepIcon}>{done ? <Check size={20} /> : index + 1}</div>
                   <strong>{entry.label}</strong><span>{entry.sub}</span>
                 </div>
