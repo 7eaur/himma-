@@ -45,12 +45,20 @@ app.dependency_overrides[get_db] = override_get_db
 
 
 @pytest.fixture(autouse=True)
-def setup_database():
-    """Seed test data before each test."""
+def setup_database(request):
+    """Seed test data before each test.
+
+    The legacy lifecycle test predates the explicit upward L1→L2→L3 journey.
+    Its historical shape completes one core level and then opens the posttest,
+    which is valid only for a learner whose pretest placement starts at L3.
+    Dedicated journey regression tests cover the L1/L2 blocking cases, so the
+    fixture makes that legacy scenario explicit instead of weakening runtime
+    posttest gates or skipping the test.
+    """
     if TEST_DATABASE_URL.startswith("sqlite"):
         Base.metadata.drop_all(bind=engine)
         Base.metadata.create_all(bind=engine)
-        
+
     db = TestingSessionLocal()
     if not db.query(User).filter(User.username == "researcher1").first():
         hashed = bcrypt.hashpw(b"test-only-researcher-password", bcrypt.gensalt()).decode("utf-8")
@@ -60,7 +68,12 @@ def setup_database():
             role="researcher",
         ))
     if not db.query(Student).filter(Student.access_code == "STU001").first():
-        db.add(Student(access_code="STU001", name="طالب 1"))
+        start_level = (
+            3
+            if request.node.name == "test_posttest_requires_completed_pretest_core_path_and_researcher_enable"
+            else 1
+        )
+        db.add(Student(access_code="STU001", name="طالب 1", current_level=start_level))
     db.commit()
     db.close()
     yield
