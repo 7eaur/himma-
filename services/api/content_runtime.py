@@ -1,12 +1,14 @@
 """Canonical Himma content projection for student-facing runtimes.
 
-The approved catalog is the semantic source of truth. Database rows remain
-stable for accepted historical stages, while this module restores the richer
-interaction type and the approved media metadata needed by the current UI.
+The approved baseline catalog remains the semantic source of truth for the
+original 105 items. Maintenance-approved reinforcement additions are projected
+additively so their canonical interactions and approved/reused media behave like
+baseline content without rewriting the client source catalog.
 """
 
 from __future__ import annotations
 
+import csv
 import json
 import re
 import unicodedata
@@ -17,22 +19,19 @@ from db.models import ContentItem, ContentStep
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CATALOG_PATH = REPO_ROOT / "packages" / "content" / "src" / "catalog.json"
+ADDITIONS_PATH = REPO_ROOT / "packages" / "content" / "src" / "reinforcement_additions_v1.json"
+VISUAL_PLAN_PATH = REPO_ROOT / "packages" / "content" / "src" / "visual_asset_plan_v1.json"
+AUDIO_MANIFEST = REPO_ROOT / "assets" / "audio" / "HIMMA_AUDIO_V1" / "manifest.csv"
+IMAGE_MAP = REPO_ROOT / "assets" / "education" / "developer" / "asset-map.json"
 
 
-def _load_catalog() -> dict[str, Any]:
+def _read_json(path: Path, *, required: bool = True) -> dict[str, Any]:
     try:
-        return json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
+        return json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
-        raise RuntimeError("Approved content catalog is unavailable") from exc
-
-
-_CATALOG = _load_catalog()
-_ITEMS = {item["canonical_id"]: item for item in _CATALOG.get("items", [])}
-_ROUNDS = {
-    (item["canonical_id"], int(round_data["order_index"])): round_data
-    for item in _CATALOG.get("items", [])
-    for round_data in item.get("rounds", [])
-}
+        if required:
+            raise RuntimeError(f"Approved content metadata is unavailable: {path.name}") from exc
+        return {}
 
 
 def semantic_key(value: str) -> str:
@@ -43,6 +42,124 @@ def semantic_key(value: str) -> str:
     if value.startswith("ال"):
         value = value[2:]
     return value.casefold()
+
+
+def _audio_index() -> dict[str, str]:
+    index: dict[str, str] = {}
+    try:
+        with AUDIO_MANIFEST.open("r", encoding="utf-8-sig", newline="") as handle:
+            for row in csv.DictReader(handle):
+                if row.get("status") != "approved":
+                    continue
+                asset_id = str(row.get("id") or "").strip()
+                if not asset_id:
+                    continue
+                for value in (row.get("text_ar"), row.get("spoken_input")):
+                    key = semantic_key(str(value or ""))
+                    if key:
+                        index.setdefault(key, asset_id)
+    except OSError:
+        pass
+    return index
+
+
+def _image_index() -> dict[str, str]:
+    index: dict[str, str] = {}
+    payload = _read_json(IMAGE_MAP, required=False)
+    for asset in payload.get("assets", []):
+        asset_id = str(asset.get("id") or "").strip()
+        if not asset_id:
+            continue
+        for value in (asset.get("label_ar"), asset.get("alt_ar")):
+            key = semantic_key(str(value or ""))
+            if key:
+                index.setdefault(key, asset_id)
+    return index
+
+
+_AUDIO_BY_TEXT = _audio_index()
+_IMAGE_BY_TEXT = _image_index()
+_VISUAL_PLAN = _read_json(VISUAL_PLAN_PATH, required=False)
+
+
+def _project_addition(item: dict[str, Any]) -> dict[str, Any]:
+    projected = dict(item)
+    canonical = str(item.get("canonical_id") or "")
+    interaction = str(item.get("interaction") or "")
+    explicit_reuse = (_VISUAL_PLAN.get("reuse") or {}).get(canonical, {})
+    new_audio_required = {
+        semantic_key(str(value))
+        for value in (item.get("media") or {}).get("new_audio_required", [])
+    }
+
+    rounds: list[dict[str, Any]] = []
+    for order_index, source_round in enumerate(item.get("rounds", []), start=1):
+        round_data = dict(source_round)
+        round_data["order_index"] = order_index
+        media: list[dict[str, Any]] = []
+        media_gaps: list[dict[str, Any]] = []
+
+        audio_text = str(round_data.get("audio_text") or "").strip()
+        if audio_text:
+            asset_id = _AUDIO_BY_TEXT.get(semantic_key(audio_text))
+            if asset_id:
+                media.append({
+                    "asset_id": asset_id,
+                    "type": "audio",
+                    "usage": "prompt",
+                    "semantic_text": audio_text,
+                })
+            elif semantic_key(audio_text) in new_audio_required:
+                media_gaps.append({
+                    "asset_type": "audio",
+                    "usage": "prompt",
+                    "semantic_text": audio_text,
+                    "status": "missing_approved_asset",
+                    "reason": "approved reinforcement explicitly requires this new fixed audio asset",
+                })
+
+        sequence = round_data.get("sequence")
+        if isinstance(sequence, list):
+            for value in sequence:
+                semantic_text = str(value)
+                asset_id = str(explicit_reuse.get(semantic_text) or "").strip()
+                if not asset_id and interaction == "memory_sequence":
+                    asset_id = _IMAGE_BY_TEXT.get(semantic_key(semantic_text), "")
+                if asset_id:
+                    media.append({
+                        "asset_id": asset_id,
+                        "type": "image",
+                        "usage": "illustration",
+                        "semantic_text": semantic_text,
+                    })
+
+        if media:
+            round_data["media"] = media
+        if media_gaps:
+            round_data["media_gaps"] = media_gaps
+        rounds.append(round_data)
+
+    projected["rounds"] = rounds
+    return projected
+
+
+def _load_runtime_catalog() -> dict[str, Any]:
+    baseline = _read_json(CATALOG_PATH)
+    items = list(baseline.get("items", []))
+    additions = _read_json(ADDITIONS_PATH, required=False)
+    for item in additions.get("items", []):
+        items.append(_project_addition(item))
+    return {**baseline, "items": items}
+
+
+_CATALOG = _load_runtime_catalog()
+_ITEMS = {item["canonical_id"]: item for item in _CATALOG.get("items", [])}
+_ROUNDS = {
+    (item["canonical_id"], int(round_data["order_index"])): round_data
+    for item in _CATALOG.get("items", [])
+    for round_data in item.get("rounds", [])
+    if round_data.get("order_index") is not None
+}
 
 
 def canonical_id(item: ContentItem) -> str:
@@ -122,6 +239,39 @@ def _option_for_semantic(step: ContentStep, semantic_text: str | None, position:
     return None
 
 
+def _project_approved_media_without_links(item: ContentItem, step: ContentStep) -> list[dict[str, Any]]:
+    """Project maintenance-approved additive media without mutating baseline DB rows.
+
+    The 18 reinforcement additions are versioned content already checked into the
+    repository. Their reused static media is therefore safe to expose directly
+    from the approved manifests even when the additive seed has no historical
+    ContentAssetLink rows.
+    """
+    if not (item.template_data or {}).get("maintenance_addition"):
+        return []
+    result: list[dict[str, Any]] = []
+    image_position = 0
+    for media in round_data(item, step).get("media", []):
+        asset_id = str(media.get("asset_id") or "").strip()
+        asset_type = str(media.get("type") or "").strip()
+        if not asset_id or not asset_type:
+            continue
+        semantic_text = media.get("semantic_text")
+        option_id = None
+        if asset_type == "image" and media.get("usage") in {"choice", "illustration"}:
+            option_id = _option_for_semantic(step, semantic_text, image_position)
+            image_position += 1
+        result.append({
+            "asset_id": asset_id,
+            "asset_type": asset_type,
+            "usage": media.get("usage"),
+            "semantic_text": semantic_text,
+            "url": f"/api/media/{asset_id}",
+            "option_id": option_id,
+        })
+    return result
+
+
 def step_assets(item: ContentItem, step: ContentStep) -> list[dict[str, Any]]:
     approved = round_data(item, step).get("media", [])
     by_id: dict[str, list[dict[str, Any]]] = {}
@@ -147,6 +297,8 @@ def step_assets(item: ContentItem, step: ContentStep) -> list[dict[str, Any]]:
                 "option_id": option_id,
             }
         )
+    if not result:
+        result = _project_approved_media_without_links(item, step)
     return result
 
 
