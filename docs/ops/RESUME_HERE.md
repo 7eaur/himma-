@@ -1,16 +1,28 @@
-# RESUME HERE — Stage 4 / P07 Infrastructure
+# RESUME HERE — Stage 4 / P07 Speech Analysis
 
-**Last updated:** 2026-08-25
+**Last updated:** 2026-08-28
 
 **Current branch:** `b04/asr-pipeline`
 
-**Base checkpoint:** `53666a0a67d19586ed1ea792b93d5c102dcb7883`
+**Current implementation checkpoint before this documentation update:** `d4bf7fff33bacf7ac02f4e0e81a72c659bf1a2ce`
 
 **Last accepted stage:** Stage 3 / B03, implementation SHA `8d64eb9766fd69618960af0b279ae94484618d17`
 
-## Current status: P07 IN_PROGRESS
+## Current status: P07 IN_PROGRESS — infrastructure gate green, external ASR decision pending
 
-The provider-neutral speech-analysis infrastructure is implemented on the Stage-4 branch. P07 must not be marked accepted until a real ASR provider and representative recordings satisfy OI-02/OI-03.
+The provider-neutral speech-analysis infrastructure is implemented and its remote GitHub Actions gate is green. P07 must not be marked accepted until a real ASR provider and representative recordings satisfy OI-02/OI-03.
+
+## Remote gate verified
+
+GitHub Actions **Himma CI — Quality Gate**, run **#102** (`32806215309`) on `b04/asr-pipeline` at SHA `d4bf7fff33bacf7ac02f4e0e81a72c659bf1a2ce` completed successfully.
+
+All three jobs passed:
+
+- `backend` — success
+- `frontend` — success
+- `integration` — success, including Playwright E2E
+
+The CI gate used PostgreSQL, MinIO and the required integration services remotely. No local Docker requirement is introduced by this result.
 
 ## Implemented now
 
@@ -23,7 +35,7 @@ The provider-neutral speech-analysis infrastructure is implemented on the Stage-
 7. Optional provider word timing/confidence preservation.
 8. Researcher speech queue/status/retry endpoints.
 9. Calibration gate: no configured threshold/version => `review_required`.
-10. Added unit tests for Arabic alignment, provider absence, calibration behavior, retry and dead-letter.
+10. Unit tests for Arabic alignment, provider absence, calibration behavior, retry and dead-letter.
 
 ## Hard safety/academic boundaries
 
@@ -35,13 +47,15 @@ The provider-neutral speech-analysis infrastructure is implemented on the Stage-
 
 ## Pending from client / external decision
 
-- Representative Arabic reading recordings.
-- OI-02: production provider, contract/privacy, cost and recording-transfer policy.
+- Representative Arabic child-reading recordings on known Himma reference texts.
+- OI-02: production ASR provider, contract/privacy, cost and recording-transfer policy.
 - OI-03: confidence threshold calibrated from representative samples.
 - OI-05 retention policy before real child data is stored in production.
 
+Static platform audio inventory is a separate matter from representative child-reading recordings. The current content/audio review confirms the fixed audio library is nearly complete, but those fixed prompts cannot replace the calibration sample required for P07.
+
 ## Next action
 
-Complete the remote GitHub Actions gate for the provider-neutral infrastructure. After recordings arrive: benchmark candidate provider(s) on the supplied known reference texts, document the decision, add the real adapter, calibrate confidence, then run an integration gate covering private MinIO audio -> worker -> ASR -> alignment -> persisted result -> researcher review.
+Do **not** repeat the infrastructure CI gate; it is already green. The next executable P07 action starts when representative reading recordings are available: benchmark candidate ASR provider(s) against the exact known reference texts, document OI-02, add the approved real adapter, calibrate OI-03, then run the private MinIO -> worker -> ASR -> alignment -> persisted result -> researcher review integration gate.
 
-P08 reports/exports and P09 release hardening remain separate later stages.
+P08 reports/exports and P09 release hardening remain separate later stages unless P07 is explicitly deferred by a documented decision while manual review remains authoritative.
