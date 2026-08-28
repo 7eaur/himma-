@@ -116,7 +116,7 @@ export default function ReportsPage() {
       <div className="mb-7 flex items-start justify-between gap-4 flex-wrap">
         <div>
           <p className="text-sm text-primary font-semibold mb-1">بيانات البحث الفعلية</p>
-          <h1 className="text-3xl font-bold text-navy mb-2">التقارير والنتائج</h1>
+          <h1 className="text-3xl font-bold text-navy mb-2">التقارير والإحصائيات</h1>
           <p className="text-muted max-w-3xl">مقارنة القبلي والبعدي والزمن والتقوية من القيم المحفوظة في قاعدة البيانات، دون إعادة احتساب التصنيف أو اختراع مؤشرات صوتية غير معايرة.</p>
         </div>
         <button className="btn-secondary min-h-11" onClick={() => void refresh()} disabled={loading}>
