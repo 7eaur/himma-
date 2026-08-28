@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Activity, ArrowLeft, BookOpenCheck, Plus, ShieldCheck, Users } from "lucide-react";
+import { Activity, ArrowLeft, BarChart3, BookOpenCheck, Headphones, Plus, ShieldCheck, Users } from "lucide-react";
+import styles from "./admin.module.css";
 
 interface Supervisor {
   id: number;
@@ -60,53 +61,89 @@ export default function AdminDashboard() {
   const activeStudents = useMemo(() => students.filter((student) => student.status === "active").length, [students]);
   const learningStudents = useMemo(() => students.filter((student) => student.core_completed_items > 0 && student.core_completed_items < student.core_total_items).length, [students]);
   const readyForPosttest = useMemo(() => students.filter((student) => student.posttest_eligible || student.posttest_enabled).length, [students]);
+  const inactiveStudents = useMemo(() => students.filter((student) => student.status !== "active").length, [students]);
   const recentStudents = useMemo(() => [...students].sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at)).slice(0, 6), [students]);
   const supervisorName = supervisor?.full_name || supervisor?.username || "المشرف";
 
   if (loading) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center min-h-[60vh] gap-3" dir="rtl">
-        <div className="spinner w-10 h-10 border-4" />
-        <p className="text-muted">جاري تجهيز لوحة المشرف...</p>
+      <div className={styles.loading} dir="rtl" data-testid="admin-dashboard-loading">
+        <div className={styles.loadingHeader} />
+        <div className={styles.loadingStats}>
+          <span /><span /><span /><span />
+        </div>
+        <div className={styles.loadingPanel} />
       </div>
     );
   }
 
   return (
-    <div className="flex-1 w-full max-w-6xl mx-auto space-y-7 pb-10" dir="rtl">
-      <div className="rounded-3xl bg-gradient-to-l from-[#edf6ff] to-white border border-border p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-5">
+    <div className={styles.dashboard} dir="rtl">
+      <header className={styles.hero}>
         <div>
-          <div className="inline-flex items-center gap-2 text-primary text-sm font-semibold mb-2"><ShieldCheck size={17} /> لوحة المشرف</div>
-          <h1 className="text-3xl font-bold text-navy mb-2">مرحبًا، {supervisorName}</h1>
-          <p className="text-muted">تابع الطلاب، الأنشطة، نتائج التكيف، والتجهيز للاختبار البعدي من مكان واحد.</p>
+          <div className={styles.eyebrow}><ShieldCheck size={17} /> مركز متابعة المنصة</div>
+          <h1>مرحبًا، {supervisorName}</h1>
+          <p>ابدأ بما يحتاج انتباهك، ثم تابع تقدم الطلاب والاختبارات والتسجيلات من مكان واحد.</p>
         </div>
-        <Link href="/admin/students/new" className="btn-primary w-fit"><Plus size={19} /> إضافة طالب</Link>
-      </div>
+        <Link href="/admin/students/new" className={styles.primaryAction}><Plus size={19} /> إضافة طالب</Link>
+      </header>
 
       {error && <div className="alert-error">{error}</div>}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <div className="stat-card"><div className="stat-card-icon blue"><Users size={23} /></div><div><p className="stat-card-value">{students.length}</p><p className="stat-card-label">إجمالي الطلاب</p></div></div>
-        <div className="stat-card"><div className="stat-card-icon green"><Activity size={23} /></div><div><p className="stat-card-value">{activeStudents}</p><p className="stat-card-label">حسابات نشطة</p></div></div>
-        <div className="stat-card"><div className="stat-card-icon yellow"><BookOpenCheck size={23} /></div><div><p className="stat-card-value">{learningStudents}</p><p className="stat-card-label">في المسار التعليمي</p></div></div>
-        <div className="stat-card"><div className="stat-card-icon blue"><ShieldCheck size={23} /></div><div><p className="stat-card-value">{readyForPosttest}</p><p className="stat-card-label">جاهزون للاختبار البعدي</p></div></div>
-      </div>
+      <section className={styles.actionCenter} aria-labelledby="attention-title">
+        <div className={styles.sectionHeading}>
+          <div>
+            <span className={styles.sectionKicker}>الأولوية الآن</span>
+            <h2 id="attention-title">ما الذي يحتاج انتباهك؟</h2>
+          </div>
+          <p>إجراءات مباشرة بدل البحث بين الصفحات.</p>
+        </div>
 
-      <section className="card">
-        <div className="flex justify-between items-center gap-3 mb-6 flex-wrap">
-          <div><h2 className="text-lg font-bold text-navy">أحدث الطلاب</h2><p className="text-sm text-muted mt-1">آخر الحسابات المضافة وحالة تقدمها الحالية.</p></div>
-          <Link href="/admin/students" className="text-primary text-sm font-semibold inline-flex items-center gap-1">عرض جميع الطلاب <ArrowLeft size={16} /></Link>
+        <div className={styles.actionGrid}>
+          <Link href="/admin/audio-review" className={styles.actionCard}>
+            <span className={`${styles.actionIcon} ${styles.blue}`}><Headphones size={22} /></span>
+            <span className={styles.actionBody}><strong>مراجعة التسجيلات</strong><small>افتح قائمة تسجيلات القراءة وراجع ما ينتظر القرار.</small></span>
+            <ArrowLeft size={18} className={styles.actionArrow} />
+          </Link>
+          <Link href="/admin/students" className={styles.actionCard}>
+            <span className={`${styles.actionIcon} ${styles.green}`}><BookOpenCheck size={22} /></span>
+            <span className={styles.actionBody}><strong>{learningStudents} في المسار التعليمي</strong><small>تابع مستوى كل طالب وتقدمه والتقوية عند الحاجة.</small></span>
+            <ArrowLeft size={18} className={styles.actionArrow} />
+          </Link>
+          <Link href="/admin/students" className={styles.actionCard}>
+            <span className={`${styles.actionIcon} ${styles.yellow}`}><ShieldCheck size={22} /></span>
+            <span className={styles.actionBody}><strong>{readyForPosttest} جاهزون للبعدي</strong><small>تحقق من اكتمال رحلة L3 قبل فتح الاختبار البعدي.</small></span>
+            <ArrowLeft size={18} className={styles.actionArrow} />
+          </Link>
+          <Link href="/admin/reports" className={styles.actionCard}>
+            <span className={`${styles.actionIcon} ${styles.slate}`}><BarChart3 size={22} /></span>
+            <span className={styles.actionBody}><strong>عرض التقارير</strong><small>راجع الصورة العامة للمستويات والتقدم والنتائج الحالية.</small></span>
+            <ArrowLeft size={18} className={styles.actionArrow} />
+          </Link>
+        </div>
+      </section>
+
+      <section className={styles.statsGrid} aria-label="ملخص المنصة">
+        <div className={styles.statCard}><span className={`${styles.statIcon} ${styles.blue}`}><Users size={22} /></span><div><strong>{students.length}</strong><span>إجمالي الطلاب</span></div></div>
+        <div className={styles.statCard}><span className={`${styles.statIcon} ${styles.green}`}><Activity size={22} /></span><div><strong>{activeStudents}</strong><span>حسابات نشطة</span></div></div>
+        <div className={styles.statCard}><span className={`${styles.statIcon} ${styles.yellow}`}><BookOpenCheck size={22} /></span><div><strong>{learningStudents}</strong><span>يتعلمون الآن</span></div></div>
+        <div className={styles.statCard}><span className={`${styles.statIcon} ${styles.slate}`}><ShieldCheck size={22} /></span><div><strong>{inactiveStudents}</strong><span>حسابات موقوفة</span></div></div>
+      </section>
+
+      <section className={styles.studentsPanel}>
+        <div className={styles.panelHeading}>
+          <div><h2>أحدث الطلاب</h2><p>آخر الحسابات المضافة مع مستوى الطالب وتقدمه الحالي.</p></div>
+          <Link href="/admin/students" className={styles.textLink}>عرض جميع الطلاب <ArrowLeft size={16} /></Link>
         </div>
 
         {recentStudents.length === 0 ? (
-          <div className="empty-state">
-            <Image src="/characters/girl/welcome.png" alt="شخصية هِمّة" width={105} height={140} className="mb-6" />
-            <h3>لا يوجد طلاب حتى الآن</h3>
-            <p className="mb-6">أضف أول طالب ليبدأ مساره في هِمّة.</p>
-            <Link href="/admin/students/new" className="btn-primary"><Plus size={19} /> إضافة طالب جديد</Link>
+          <div className={styles.emptyState}>
+            <Image src="/characters/girl/welcome.png" alt="شخصية هِمّة" width={112} height={145} />
+            <div><h3>لا يوجد طلاب حتى الآن</h3><p>أضف أول طالب ليبدأ مساره في هِمّة.</p></div>
+            <Link href="/admin/students/new" className={styles.primaryAction}><Plus size={18} /> إضافة أول طالب</Link>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className={styles.tableWrap}>
             <table className="data-table">
               <thead><tr><th>الطالب</th><th>رمز الدخول</th><th>المستوى</th><th>تقدم الأنشطة</th><th>الحالة</th></tr></thead>
               <tbody>
@@ -114,10 +151,10 @@ export default function AdminDashboard() {
                   const progress = Math.round((student.core_completed_items / Math.max(1, student.core_total_items)) * 100);
                   return (
                     <tr key={student.id}>
-                      <td><Link href={`/admin/students/${student.id}`} className="font-semibold text-navy hover:text-primary">{student.full_name}</Link></td>
+                      <td><Link href={`/admin/students/${student.id}`} className={styles.studentLink}>{student.full_name}</Link></td>
                       <td><span className="badge badge-gray border border-border tracking-widest px-3 py-1 font-mono" dir="ltr">{student.access_code}</span></td>
                       <td>المستوى {student.current_level}</td>
-                      <td><div className="flex items-center gap-2 min-w-[130px]"><div className="progress-track"><div className="progress-fill" style={{ width: `${progress}%` }} /></div><span className="text-xs text-muted">{student.core_completed_items}/{student.core_total_items}</span></div></td>
+                      <td><div className={styles.progressCell}><div className="progress-track"><div className="progress-fill" style={{ width: `${progress}%` }} /></div><span>{student.core_completed_items}/{student.core_total_items}</span></div></td>
                       <td><span className={`badge ${student.status === "active" ? "badge-green" : "badge-gray"}`}>{student.status === "active" ? "نشط" : "موقوف"}</span></td>
                     </tr>
                   );
