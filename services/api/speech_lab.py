@@ -30,6 +30,13 @@ _READ_INTERACTIONS = {"read_aloud", "timed_read_aloud"}
 _READ_PREFIX = re.compile(r"^\s*(?:اقرأ|يقرأ|قراءة)\s*[:：]\s*", re.UNICODE)
 
 
+def _require_supervisor(user: dict[str, Any] = Depends(get_current_user)) -> dict[str, Any]:
+    """Fail closed for non-supervisors even if they know the admin API URL."""
+    if user.get("role") != "researcher":
+        raise HTTPException(status_code=403, detail="غير مصرح بالوصول إلى مختبر الصوت")
+    return user
+
+
 def _reference_text(item: dict[str, Any], round_data: dict[str, Any]) -> str:
     """Extract the canonical text that is actually intended to be read aloud."""
     for key in ("expected_reading_text", "reference_text", "reading_text", "target_text", "text"):
@@ -84,7 +91,7 @@ def canonical_reading_targets() -> list[dict[str, Any]]:
 
 
 @router.get("/targets")
-def get_targets(_: Any = Depends(get_current_user)):
+def get_targets(_: dict[str, Any] = Depends(_require_supervisor)):
     targets = canonical_reading_targets()
     return {
         "catalog_version": _CATALOG.get("catalog_version"),
@@ -94,7 +101,7 @@ def get_targets(_: Any = Depends(get_current_user)):
 
 
 @router.get("/provider")
-def provider_status(_: Any = Depends(get_current_user)):
+def provider_status(_: dict[str, Any] = Depends(_require_supervisor)):
     try:
         provider = build_provider()
         return {"configured": provider.name != "unconfigured", "provider": provider.name}
@@ -108,7 +115,7 @@ async def analyze_recording(
     target_id: str | None = Form(default=None),
     adaptation_mode: str = Form(default="reference"),
     audio: UploadFile = File(...),
-    _: Any = Depends(get_current_user),
+    _: dict[str, Any] = Depends(_require_supervisor),
 ):
     reference_text = reference_text.strip()
     if not reference_text:
