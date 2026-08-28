@@ -73,6 +73,30 @@ def test_previous_low_is_scoped_to_the_same_level():
         db.close()
 
 
+def test_high_mastery_cannot_promote_before_ten_core_activities_are_complete():
+    action, level, reason = decide_transition(
+        current_level=1,
+        mastery=95,
+        skill_coverage_ok=True,
+        minimum_required_skill_score=95,
+        previous_low=False,
+        level_complete=False,
+    )
+    assert (action, level) == ("stay", 1)
+    assert reason == "promotion_waiting_for_core_completion"
+
+    action, level, reason = decide_transition(
+        current_level=1,
+        mastery=95,
+        skill_coverage_ok=True,
+        minimum_required_skill_score=95,
+        previous_low=False,
+        level_complete=True,
+    )
+    assert (action, level) == ("promote", 2)
+    assert reason == "mastery_and_skill_gates_passed"
+
+
 def test_reward_duplicate_uses_savepoint_and_keeps_outer_transaction_usable():
     """Duplicate reward races must not abort the caller's outer transaction."""
     seed.run_seed()
