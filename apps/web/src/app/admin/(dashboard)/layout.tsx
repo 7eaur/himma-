@@ -26,6 +26,7 @@ const navSections = [
     label: "المراجعات",
     items: [
       { href: "/admin/audio-review", label: "التسجيلات الصوتية", icon: Mic },
+      { href: "/admin/speech-lab", label: "مختبر الصوت", icon: Mic },
     ],
   },
   {
