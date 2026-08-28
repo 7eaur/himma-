@@ -180,7 +180,7 @@ test.describe("M06 responsive and accessibility integration", () => {
       await expect(page.getByText("المزود غير مهيأ", { exact: true })).toBeVisible();
       await expect(page.getByText(/Google STT V2 بانتظار بيانات الاتصال/)).toBeVisible();
       await expect(page.getByText(/هدف$/).first()).toBeVisible();
-      await expect(page.getByText("هذه النتيجة تجريبية ولا تغيّر درجات الطلاب أو قرارات التكيف.")).toBeVisible();
+      await expect(page.getByText(/نتائج هذه الصفحة تجريبية ولا تغيّر درجات الطلاب أو قرارات التكيف/)).toBeVisible();
 
       const groupSelect = page.getByLabel("القسم");
       await expect(groupSelect).toBeVisible();
