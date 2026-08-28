@@ -107,7 +107,9 @@ def get_targets(_: User = Depends(_require_supervisor)):
 def provider_status(_: User = Depends(_require_supervisor)):
     try:
         provider = build_provider()
-        return {"configured": provider.name != "unconfigured", "provider": provider.name}
+        if provider.name == "unconfigured":
+            return {"configured": False, "provider": None}
+        return {"configured": True, "provider": provider.name}
     except ProviderNotConfigured as exc:
         return {"configured": False, "provider": None, "detail": str(exc)}
 
