@@ -1,78 +1,68 @@
-# قرارات المراجعة والصيانة — 2026-08-28
+# قرارات المراجعة والصيانة — هِمّة — 2026-08-28
 
-هذا الملف يسجل أحدث القرارات. لا يحذف ADR التاريخي؛ عند التعارض الزمني يكون القرار الأحدث هو المرجع ما لم يكن موسومًا Proposed.
+هذا الملف يسجل أحدث القرارات. لا يحذف ADR التاريخي؛ عند التعارض الزمني يكون القرار الأحدث هو المرجع ما لم يكن موسومًا **PROPOSED**.
 
 ## D-2026-08-28-01 — المسار بعد القبلي
 
-**معتمد.**
-
-الاختبار القبلي يحدد نقطة البداية فقط. بعد ذلك يسير الطالب صعودًا حتى L3:
+**معتمد.** القبلي يحدد نقطة البداية فقط، ثم المسار يصعد حتى L3:
 
 - L1→L2→L3.
 - L2→L3.
 - L3.
 
-Posttest بعد اكتمال مسار التدخل المطلوب، لا بعد L1/L2 مباشرة.
+Posttest بعد اكتمال L3 المطلوبة، لا بعد L1/L2 مباشرة.
 
 ## D-2026-08-28-02 — نتيجة النشاط
 
 **معتمد.**
 
 - >=80 pass.
-- 70–79 guided retry للجزء الخاطئ.
+- 70–<80 guided retry للجزء الضعيف/الخاطئ.
 - <70 weakness + targeted reinforcement.
 
 ## D-2026-08-28-03 — الترقية
 
-**معتمد.**
-
-50/30/20 لا يسمح بتخطي بقية Core. لا ترقية قبل إكمال 10/10 Core وعبور gates المطلوبة.
+**معتمد.** 50/30/20 هو recent skill mastery profile ولا يسمح بتخطي Core. لا ترقية قبل 10/10 Core وعدم وجود gap علاجي غير محسوم.
 
 ## D-2026-08-28-04 — Level Session history
 
-**معتمد.**
-
-كل مستوى يملك Core Session مستقلة. الانتقال يغلق القديمة ويفتح الجديدة؛ لا يعاد وسم التاريخ.
+**معتمد.** كل مستوى يحتفظ بسياقه/تاريخه؛ الانتقال لا يعيد وسم التاريخ القديم.
 
 ## D-2026-08-28-05 — التقوية
 
 **معتمد.**
 
-المسار:
+`weakness → reinforcement → return to core → verification → continue`
 
-`weakness → reinforcement → return to core → verification → continue`.
-
-لا random fallback.
+لا random fallback ولا cross-level random fallback. verification bounded؛ عند التعثر ينتقل للمشرف.
 
 ## D-2026-08-28-06 — Reinforcement Mapping
 
-**معتمد.**
+**معتمد ومنفذ.**
 
-الربط المستهدف `Skill → Skill Family → Approved candidates` بدل exact skill-only.
+`Skill → Skill Family → Approved candidates`
+
+بدل exact skill-only كخيار وحيد.
 
 ## D-2026-08-28-07 — محتوى التقوية
 
-**معتمد.**
+**معتمد ومنفذ كإضافات Versioned.**
 
-إضافة 18 Micro-Reinforcement فوق 15 الأصلية؛ الإجمالي 33. التفاصيل في `REINFORCEMENT_CONTENT_ADDITIONS_2026-08-28_AR.md`.
+18 Micro-Reinforcement فوق 15 الأصلية؛ الإجمالي 33، وFull runtime catalog = 123 عنصرًا مع بقاء baseline الـ105 محفوظة.
 
 ## D-2026-08-28-08 — الصور الجديدة
 
-**معتمد.**
-
-الصور الناقصة للتقويات الجديدة سيتم توليدها داخليًا لاحقًا وفق هوية هِمّة؛ لا تطلب من العميل البحث عنها حاليًا.
+**معتمد.** الصور الناقصة للتقويات ستُولد داخليًا لاحقًا وفق هوية هِمّة؛ لا يطلب من العميل البحث عنها حاليًا.
 
 ## D-2026-08-28-09 — الصوت الثابت
 
-**معتمد.**
-
-50 موجود + «موز» + «سَا» = 52 هدفًا. لا فجوات جديدة بسبب التقويات الـ18.
+**معتمد.** 50 موجود + «موز» + «سَا» = 52 هدفًا. لا فجوات ثابتة جديدة معروفة بسبب التقويات الـ18.
 
 ## D-2026-08-28-10 — TEMP audio skip
 
 **معتمد كمؤقت فقط.**
 
-`HIMMA_TEMP_AUDIO_SKIP=true` يسمح بتجاوز recording tasks محايدًا دون AudioSubmission/score/mastery/reward. عند false يعود النظام الطبيعي.
+`HIMMA_TEMP_AUDIO_SKIP=true` يسمح بتجاوز recording tasks محايدًا دون fake file/AudioSubmission/score/mastery/reward/weakness/reinforcement evidence. عند false يعود recording requirement.
 
 ## D-2026-08-28-11 — نموذج الصوت
 
@@ -82,32 +72,81 @@ Reference-Guided Arabic Reading Analysis:
 
 ASR → alignment to known text → Correct/Deletion/Insertion/Substitution → confidence → optional calibrated phoneme/haraka evidence → human review.
 
-Whisper alone ليس النظام الكامل.
+Whisper وحده ليس النظام الكامل. Real provider/calibration غير مكتملين.
 
-## D-2026-08-28-12 — Product UI
+## D-2026-08-28-12 — Student Product UI
 
-**معتمد.**
+**معتمد ومنفذ إلى baseline M04 الحالي.**
 
-الحالة الحالية Recovery Baseline، وليست Final Product UI. مطلوب Student full-screen learning stage + unified task kit + Admin IA rebuild + responsive/accessibility gate.
+- Full-screen Learning Stage (`100dvh`).
+- task-first hierarchy.
+- companion character بارزة وذات تعليمات contextual.
+- assessment/activity/reinforcement أقرب لنظام بصري موحد.
+- responsive/reduced-motion/focus support.
 
-## D-2026-08-28-13 — المصطلح
+لا يُرجع التصميم إلى Card صغيرة وسط فراغات كبيرة دون سبب منتجي واضح.
 
-**معتمد.**
+## D-2026-08-28-13 — Supervisor Product UX
 
-الظاهر: «المشرف». `researcher` داخلي فقط.
+**معتمد ومنفذ إلى baseline M05 الحالي.**
 
-## D-2026-08-28-14 — Local infrastructure
+- Admin IA منظمة.
+- Dashboard Action Center قبل الأرقام الثانوية.
+- Student Profile Workspace Tabs بدل صفحة طويلة مزدحمة.
+- reinforcement review مختصر expandable.
+- Settings = Account / Security / Supervisors.
 
-**معتمد.**
+## D-2026-08-28-14 — المصطلح
 
-لا Docker محليًا.
+**معتمد.** الظاهر للمستخدم «المشرف». `researcher` داخلي فقط حيث يلزم للتوافق البرمجي.
 
-## D-2026-08-28-15 — Automatic Demotion
+## D-2026-08-28-15 — Local infrastructure
+
+**معتمد.** لا Docker محليًا لهِمّة. استخدام containers في CI لا يغير هذا القرار.
+
+## D-2026-08-28-16 — Automatic Demotion
 
 **PROPOSED — غير مثبت نهائيًا.**
 
-التوصية الحالية: إلغاء الخفض الآلي من المسار العادي؛ الدعم والتقوية داخل المستوى، والتغيير الاستثنائي يدوي للمشرف بسبب موثق.
+التوصية الحالية: لا automatic demotion في normal journey بعد placement؛ يعالج الضعف داخل المستوى بالتقوية/الدعم، والتغيير الاستثنائي للمستوى يكون supervisor override بسبب موثق.
 
-السبب: Placement يحدد نقطة البداية، والتقلب بين المستويات أثناء التدخل يضعف وضوح الرحلة والتفسير البحثي.
+**ممنوع حذف demotion من الكود قبل Final/ADR.**
 
-**ممنوع حذف demotion من الكود قبل تحويل هذا القرار إلى Final/ADR.**
+## D-2026-08-28-17 — Residual Reinforcement Gaps
+
+**معتمد كسلوك أمان حتى اعتماد محتوى جديد.**
+
+للثلاث فجوات:
+
+- L2 sukoon word reading.
+- L3 literal comprehension.
+- L3 sentence building.
+
+لا يختار النظام نشاطًا «قريبًا» بالحدس. السلوك الصحيح: explicit Safe Hold / supervisor path حتى اعتماد mapping أو Micro-Reinforcement.
+
+## D-2026-08-28-18 — Accessibility Acceptance
+
+**معتمد.**
+
+لا تُعتبر الواجهة جاهزة لأن Desktop screenshot جميل أو لأن build أخضر فقط. M06 يجب أن يثبت:
+
+- touch targets >=44px.
+- visible focus / keyboard admin.
+- no horizontal overflow.
+- RTL صحيح.
+- 200% zoom usable.
+- accessible contrast للنص العادي.
+- reduced motion.
+- no implementation vocabulary child-facing.
+- visual review عبر 360×800، 390×844، 768×1024، 1024×768، 1440×900.
+
+لا يجوز خفض test expectation لمجرد إخضرار CI.
+
+## D-2026-08-28-19 — Source Preservation
+
+**معتمد.**
+
+- baseline المحتوى الأصلي 105 يبقى محفوظًا.
+- إضافات الصيانة منفصلة/versioned قدر الإمكان.
+- لا وسائط مختلقة بدل gap معلن.
+- لا قواعد أكاديمية تُغير بصمت أثناء أعمال UI/CI.
