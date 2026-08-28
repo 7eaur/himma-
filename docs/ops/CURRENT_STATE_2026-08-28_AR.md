@@ -1,95 +1,205 @@
-# الحالة الحالية لمنصة هِمّة — 2026-08-28
+# الحالة الحالية لمنصة هِمّة — 2026-08-28 — تحديث M06
 
 ## 1. Git
 
-الفرع: `recovery/ui-media-admin-overhaul`.
+المستودع: `7eaur/himma-`  
+الفرع التنفيذي: `recovery/ui-media-admin-overhaul`
 
-Implementation head قبل commits التوثيق الجديدة:
+آخر **Implementation HEAD** قبل commits التوثيق الحالية:
 
-`0f46e7e9421e7617f72fd03de3199df955084cd0`
+`98fdc638737bdb8ab9be4937cff6155865998d1f`
 
-بعده أضيفت ملفات توثيق الصيانة فقط على نفس الفرع؛ أي منفذ يجب أن يقرأ HEAD الحالي الفعلي قبل العمل.
+Commit:
 
-## 2. CI
+`test(M06): target visible dashboard heading across responsive layouts`
 
-Quality Gate #206 / Run ID `33139416128` على `0f46e7e...`:
+> ملاحظة: commits التوثيق بعد هذا السطر ستدفع HEAD للأمام. عند الاستئناف افحص HEAD الفعلي، ولا تعتبر SHA التوثيقية تغييرًا في منطق المنتج.
 
-- Frontend: SUCCESS.
-- Backend: SUCCESS.
-- Integration/Playwright: FAILURE.
+## 2. CI الفعلي الحالي
 
-لا تعتبر الفرع أخضر حاليًا اعتمادًا على Run #191 القديم.
+### Responsive Visual Gate
 
-Quality Gate #191 كان آخر مرجع أخضر مثبت عند `7c559948f3f75c19f244b7e8942ab6ee3148c614` قبل 12 commit لاحقة.
+Run #18 / ID `33202256450` على `98fdc638...`: **SUCCESS**.
 
-## 3. التغييرات اللاحقة المهمة
+### Main Quality Gate
 
-المقارنة من `7c559...` إلى `0f46e7...` أظهرت تغييرات في:
+Run #298 / ID `33202256449` على `98fdc638...`:
 
-- `apps/web/postcss.config.mjs` — جديد.
-- `apps/web/src/app/tailwind.css` — جديد.
-- `apps/web/src/app/layout.tsx` — تحميل styling الجديد.
-- `services/api/adaptation.py` — تغييرات كبيرة.
-- `services/api/adaptation_runtime.py` — تغييرات كبيرة.
-- `services/api/temporary_audio_skip.py` — تغييرات كبيرة.
-- `services/api/test_adaptation_recovery_regressions.py` — جديد/موسع.
+- Backend: **SUCCESS**.
+- Frontend: **SUCCESS**.
+- Integration/Playwright: **FAILURE**.
 
-هذه التغييرات لا تُحذف لمجرد أن Playwright فشل.
+الفشل الوحيد الموثق حاليًا داخل:
 
-## 4. ما يعمل كقاعدة
+`tests/e2e/accessibility-integration.spec.ts`
 
-- auth/session/roles.
-- PostgreSQL/Alembic.
-- MinIO + Redis infrastructure.
-- student codes.
-- pre/post test lifecycle.
-- approved content runtime.
-- images/audio routing.
-- recording/manual review.
-- admin settings/supervisors.
-- dashboard/students/reports baseline.
-- adaptation/rewards foundation.
+الاختبار:
 
-## 5. ما ليس نهائيًا
+`mobile supervisor navigation keeps touch targets and layout intact`
 
-- Placement scoring لا يزال يحتاج مراجعة 20/40/40 + skill gates.
-- adaptation يحتاج تثبيت state machine النهائي.
-- reinforcement mapping يحتاج Skill Family + 18 additions.
-- Automatic Demotion قرار غير محسوم نهائيًا.
-- Admin UX غير جاهز للتسليم.
-- student activities UI تحتاج full-screen rebuild.
-- responsive/accessibility غير مثبتين كقبول نهائي.
-- reports الحالية ليست reports البحثية النهائية.
-- ASR الحقيقي غير مكتمل/غير معتمد.
+الوقائع من log:
+
+- dialog «قائمة لوحة المشرف» يظهر بنجاح.
+- الاختبار يبحث عن `a.sidebar-nav-item` داخل الـdialog.
+- لا يجد العنصر بهذا المحدد.
+- الاختبار يفشل قبل قياس ارتفاع Touch Target.
+- بقية اختبارات M06 في نفس التشغيل نجحت.
+- الـVertical Slice الكامل نجح.
+
+إذن الحالة الأقرب: **selector/markup contract mismatch في اختبار M06 للجوال**، وليس انهيارًا في الـBackend أو المحتوى أو رحلة الطالب.
+
+## 3. برنامج الصيانة
+
+| المرحلة | الحالة الحالية |
+|---|---|
+| M00 — Restore green baseline | CLOSED |
+| M01 — Placement scoring & gates | CLOSED |
+| M02 — Adaptation state machine | CLOSED |
+| M03 — Reinforcement mapping/content | IMPLEMENTED؛ 3 residual content gaps موثقة |
+| M04 — Student Product UI | REBUILT / baseline accepted |
+| M05 — Supervisor Product UX | REBUILT / baseline accepted |
+| M06 — Responsive/Accessibility/Design QA | **ACTIVE** |
+| M07 — Research Reports | PENDING |
+| M08 — Real Speech Analysis | PENDING / external gates |
+| M09 — Release/UAT | PENDING |
+
+## 4. المحتوى
+
+المحتوى الأصلي المعتمد محفوظ:
+
+- 30 سؤال قبلي.
+- 30 سؤال بعدي.
+- 30 نشاط أساسي.
+- 15 نشاط تقوية أصلي.
+- الإجمالي الأصلي: **105**.
+
+إضافات M03 المعتمدة:
+
+- L1: +7.
+- L2: +6.
+- L3: +5.
+- الإجمالي الجديد: +18 تقوية.
+
+Full runtime catalog بعد `seed_all.py`:
+
+- baseline = 105.
+- reinforcement total = 33.
+- total items = **123**.
+- skills = 44.
+
+### فجوات التقوية المتبقية
+
+موثقة في `M03_RESIDUAL_CONTENT_GAPS_2026-08-28_AR.md` ولا يجوز عمل random/cross-level fallback لها:
+
+1. L2 قراءة كلمات السكون.
+2. L3 الفهم المباشر.
+3. L3 بناء الجملة.
+
+إلى أن تعتمد معالجة تربوية: Safe Hold / supervisor path.
+
+## 5. المنطق الأكاديمي الحالي
+
+### Placement
+
+- القبلي يحدد **نقطة البداية** وليس نهاية المسار.
+- scoring مبني على أقسام 20/40/40.
+- readiness أقل من 12/20 يفرض L1.
+- أي بوابة L3 تعتمد دليل قراءة/صوت غير معاير لا يجوز اختراع threshold لها.
+- عند غياب دليل صوتي لازم بسبب TEMP skip يكون القرار provisional/neutral حيث يلزم.
+
+### Learning journey
+
+- بداية L1 → L1 ثم L2 ثم L3 ثم Posttest.
+- بداية L2 → L2 ثم L3 ثم Posttest.
+- بداية L3 → L3 ثم Posttest.
+- لا Posttest بعد L1/L2 فقط.
+
+### Activity adaptation
+
+- `>=80%` pass.
+- `70–<80%` guided retry.
+- `<70%` weakness + targeted reinforcement.
+- mastery trend: آخر 3 محاولات صالحة بأوزان 50/30/20.
+- mastery لا يلغي شرط 10/10 core.
+- Level completion يحتاج إكمال الأنشطة وعدم وجود تقوية/ضعف غير محسوم.
+
+### Reinforcement cycle
+
+ضعف → reinforcement mapped by skill/family → completion → return-to-core verification → continue.  
+محاولات التحقق bounded؛ عند التعثر ينتقل للمشرف بدل loop لا نهائي.
+
+**Automatic Demotion:** لم يُحسم نهائيًا. لا تحذف policy القديمة صامتًا؛ الاتجاه المنتجّي الحالي يفضل support داخل المستوى + manual override للحالات الاستثنائية.
 
 ## 6. الصوت
 
-- 50 أصلًا ثابتًا موجودًا.
-- ينقص «موز» و«سَا» فقط.
-- TEMP audio skip مفعل للتجربة عند `HIMMA_TEMP_AUDIO_SKIP=true`.
+- fixed audio assets الموجودة: 50.
+- الفجوتان المؤكدتان فقط: «موز» و«سَا».
+- الهدف بعد التسجيل: 52.
+- التقويات الـ18 الجديدة تعيد استخدام المكتبة الحالية ولا تضيف فجوات ثابتة أخرى معروفة.
+- `HIMMA_TEMP_AUDIO_SKIP=true` وضع تجريبي مؤقت:
+  - لا mic permission.
+  - لا ملف وهمي.
+  - لا MinIO upload.
+  - لا score/reward/mastery/weakness/adaptation evidence.
+  - assessment denominator يستبعد skipped voice items.
 
-## 7. التقوية
+## 7. ASR
 
-- 15 أصلية محفوظة.
-- 18 إضافة جديدة معتمدة ضمن الصيانة.
-- الإجمالي المستهدف 33.
-- أهم فجوة أكاديمية مؤكدة: تقوية الشدة في L2.
+الموجود تقنيًا:
 
-## 8. Product UI
+- queue/worker/retries/dead-letter.
+- provider adapter abstraction.
+- reference-guided alignment.
+- C/D/I/S representation.
+- confidence/manual-review fallback infrastructure.
 
-المنصة الحالية Functional Recovery Baseline، وليست Final Product UI.
+غير المنجز/غير المعتمد:
 
-أبرز المشاكل:
+- real provider selection/connection.
+- calibration على تسجيلات ممثلة.
+- confidence thresholds.
+- privacy/transfer/cost decision.
+- child-audio retention policy.
 
-- عدم اتساق styling التاريخي؛ أضيف Tailwind مؤخرًا ويجب التحقق من أثره.
-- student task/activity layout غير مستغل للشاشة بالكامل.
-- الشخصية صغيرة في بعض الأنشطة.
-- instructions غير contextual بما يكفي.
-- Admin dashboard/IA ضعيفان.
-- Student Profile admin مكدس ويحتاج tabs.
-- loading/empty/error states غير ناضجة.
-- mobile/tablet coverage غير كافٍ.
+لا يُقال إن ASR مكتمل.
 
-## 9. أول مهمة
+## 8. Student UX بعد M04
 
-افتح Run #206، شخّص Playwright، أصلحه، ثم أعد Quality Gate حتى يصبح كاملًا SUCCESS. بعد ذلك ابدأ M01 من `FULL_MAINTENANCE_PLAN_2026-08-28_AR.md`.
+- Learning Stage ممتدة باستخدام `100dvh`.
+- assessment + activities + reinforcement أقرب لنظام موحد.
+- الشخصية التعليمية أصبحت بارزة وتعليماتها contextual أكثر.
+- responsive rules مضافة للهاتف/تابلت/desktop.
+- reduced motion مدعوم.
+- five-size responsive visual workflow موجود.
+
+## 9. Supervisor UX بعد M05
+
+- Admin shell وSidebar أُعيدا تنظيمهما.
+- Dashboard أصبح Action Center ثم summary/stats.
+- ملف الطالب تحول من صفحة طويلة إلى Workspace tabs.
+- reinforcement review أصبح alert مختصرًا expandable بدل form ضخم دائم.
+- Settings قسمت إلى account/security/supervisors.
+- Vertical Slice عُدل ليتعامل مع tabs الجديدة ونجح في Run #298.
+
+## 10. M06 المنجز حتى الآن
+
+- global focus safeguards.
+- reduced-motion safeguards.
+- accessible primary/success contrast tokens.
+- integration accessibility suite.
+- checks نجحت لـ:
+  - RTL/keyboard/focus/overflow.
+  - reduced motion.
+  - 200% zoom equivalent.
+  - contrast tokens.
+  - عدم كشف implementation vocabulary للطفل.
+- Responsive Visual Gate على المقاسات الإلزامية أصبح أخضر.
+
+## 11. المهمة التالية الدقيقة
+
+1. افحص markup الخاص بـMobile Admin Sidebar/Dialog واختبار `accessibility-integration.spec.ts`.
+2. وحّد selector بعقد semantic ثابت (يفضل role/link أو data-testid واضح) بدل الاعتماد على class غير موجودة.
+3. أبقِ شرط touch target `>=44px` كما هو؛ لا تخفض الاختبار لإخضاره.
+4. أعد Main Quality Gate حتى Backend + Frontend + Integration كلها SUCCESS.
+5. بعدها أكمل M06: keyboard/focus/zoom/contrast/RTL/mobile screenshots النهائية ثم وثق closure.
+6. ثم M07.
