@@ -39,6 +39,7 @@ from db.models import (
     User,
 )
 from dependencies import get_current_student, get_current_user, get_db
+from reinforcement_mapping import recommended_reinforcement_for_skill
 
 router = APIRouter(tags=["Adaptation"])
 WEIGHTS = (0.50, 0.30, 0.20)  # newest -> oldest
@@ -230,12 +231,21 @@ def _recommended_reinforcement(
     level_id: int,
     weakest_skill_id: Optional[int],
 ) -> Optional[int]:
-    """Return only an exact approved same-level skill mapping.
+    """Return only a reviewed or exact approved same-level mapping.
 
-    The approved catalog contains fewer reinforcement activities than possible
-    weakness skills. If there is no exact mapping, ADR-012 requires a safe hold
-    and explicit supervisor assignment; no heuristic or random fallback is used.
+    M03 first consults the versioned Skill → Skill Family → Candidate map. During
+    migration, legacy exact-skill matching is retained only as a conservative
+    compatibility fallback. Neither path can select random or cross-level
+    content. If both fail, the supervisor-review safe hold remains authoritative.
     """
+    reviewed = recommended_reinforcement_for_skill(
+        db,
+        student_id=student_id,
+        level_id=level_id,
+        weakest_skill_id=weakest_skill_id,
+    )
+    if reviewed is not None:
+        return reviewed
     if weakest_skill_id is None:
         return None
 
@@ -417,7 +427,7 @@ def evaluate_student(db: Session, student: Student) -> dict:
                     "decision_scope": "immediate_activity_reinforcement",
                     "latest_activity_score": latest.score,
                     "reinforcement_threshold": REINFORCEMENT_THRESHOLD,
-                    "reinforcement_assignment": "exact_approved_skill_mapping" if recommended_item_id else None,
+                    "reinforcement_assignment": "reviewed_or_exact_approved_mapping" if recommended_item_id else None,
                     "reason": "activity_below_reinforcement_threshold",
                 },
             )
@@ -504,7 +514,7 @@ def evaluate_student(db: Session, student: Student) -> dict:
         "support_threshold": SUPPORT_THRESHOLD,
         "reinforcement_threshold": REINFORCEMENT_THRESHOLD,
         "previous_low_same_level": previous_low,
-        "reinforcement_assignment": "exact_approved_skill_mapping" if recommended_item_id else None,
+        "reinforcement_assignment": "reviewed_or_exact_approved_mapping" if recommended_item_id else None,
         "reason": reason,
     }
     decision = AdaptationDecision(
