@@ -214,11 +214,11 @@ jobs:
           sys.exit(1)
           EOF
 
-      - name: Run migrations and seed
+      - name: Run migrations and seed full runtime catalog
         working-directory: services/api
         run: |
           alembic upgrade head
-          python seed.py
+          python seed_all.py
           python -m db.seed
 
       - name: Start FastAPI in background
