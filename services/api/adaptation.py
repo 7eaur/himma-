@@ -6,8 +6,9 @@ Academic rules are kept aligned with the approved Himma contract:
 - an activity below 70 is eligible for targeted reinforcement;
 - continuous mastery below 50 receives support first and may demote only after
   a second consecutive low decision in the *same level*;
-- continuous mastery at 80 or above may promote only with required-skill
-  coverage and no required skill below 60;
+- continuous mastery at 80 or above may promote only after the 10 approved core
+  activities for the level are complete, with required-skill coverage and no
+  required skill below 60;
 - invalid, incomplete, declared-media-gap and unresolved-audio evidence is
   academically neutral and excluded;
 - a missing approved reinforcement mapping never falls back to random content;
@@ -83,12 +84,10 @@ def decide_transition(
 ) -> tuple[str, int, str]:
     """Return the continuous level decision.
 
-    ``level_complete`` is retained for compatibility with recovery callers; the
-    approved continuous decision is governed by mastery + skill gates. The
-    runtime still preserves level-session boundaries when a transition occurs.
+    ``level_complete`` is optional for pure policy callers, but the production
+    runtime passes it explicitly. A student is never promoted out of a level
+    before completing its ten approved core activities.
     """
-    del level_complete
-
     if mastery < SUPPORT_THRESHOLD:
         if previous_low and current_level > 1:
             return "demote", current_level - 1, "second_consecutive_low_mastery_same_level"
@@ -97,6 +96,8 @@ def decide_transition(
     if mastery >= PROMOTION_THRESHOLD:
         if current_level >= 3:
             return "stay", current_level, "top_level_mastery"
+        if level_complete is False:
+            return "stay", current_level, "promotion_waiting_for_core_completion"
         if not skill_coverage_ok:
             return "stay", current_level, "promotion_waiting_for_skill_coverage"
         if minimum_required_skill_score is None or minimum_required_skill_score < CRITICAL_SKILL_FLOOR:
