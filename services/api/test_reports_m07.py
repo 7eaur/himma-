@@ -66,6 +66,7 @@ def test_report_summary_uses_persisted_scores_without_recalculating(researcher_c
 def test_relative_improvement_is_null_when_pretest_score_is_zero(researcher_client):
     db = TestingSessionLocal()
     student = _student(db)
+    student_id = student.id
     db.add_all([
         AssessmentSession(
             student_id=student.id,
@@ -85,7 +86,7 @@ def test_relative_improvement_is_null_when_pretest_score_is_zero(researcher_clie
     db.commit()
     db.close()
 
-    response = researcher_client.get("/researcher/reports/students/1")
+    response = researcher_client.get(f"/researcher/reports/students/{student_id}")
     assert response.status_code == 200
     improvement = response.json()["improvement"]
     assert improvement["absolute_percentage_points"] == 50.0
