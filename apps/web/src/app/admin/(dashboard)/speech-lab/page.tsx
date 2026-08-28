@@ -123,15 +123,10 @@ export default function SpeechLabPage() {
     });
   }, [targets, group, query]);
 
-  useEffect(() => {
-    if (filtered.length && !filtered.some((target) => target.target_id === selectedId)) {
-      setSelectedId(filtered[0].target_id);
-      setAudioBlob(null);
-      setAnalysis(null);
-    }
-  }, [filtered, selectedId]);
-
-  const selected = targets.find((target) => target.target_id === selectedId) || null;
+  const effectiveSelectedId = filtered.some((target) => target.target_id === selectedId)
+    ? selectedId
+    : filtered[0]?.target_id || "";
+  const selected = filtered.find((target) => target.target_id === effectiveSelectedId) || null;
 
   const replaceAudio = (blob: Blob | null) => {
     setAnalysis(null);
@@ -140,6 +135,12 @@ export default function SpeechLabPage() {
       if (previous) URL.revokeObjectURL(previous);
       return blob ? URL.createObjectURL(blob) : null;
     });
+  };
+
+  const resetForCatalogChange = () => {
+    setSelectedId("");
+    replaceAudio(null);
+    setMessage("");
   };
 
   const startRecording = async () => {
@@ -217,10 +218,10 @@ export default function SpeechLabPage() {
       <section className={styles.workspace}>
         <aside className={styles.catalogPanel}>
           <div className={styles.panelTitle}><h2>محتوى القراءة</h2><span>{filtered.length} هدف</span></div>
-          <label className={styles.field}><span>القسم</span><select value={group} onChange={(event) => setGroup(event.target.value)}>{groups.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-          <label className={styles.field}><span>بحث</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="كلمة، مهارة، أو رمز المحتوى" /></label>
+          <label className={styles.field}><span>القسم</span><select value={group} onChange={(event) => { setGroup(event.target.value); resetForCatalogChange(); }}>{groups.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+          <label className={styles.field}><span>بحث</span><input value={query} onChange={(event) => { setQuery(event.target.value); resetForCatalogChange(); }} placeholder="كلمة، مهارة، أو رمز المحتوى" /></label>
           <div className={styles.targetList}>
-            {filtered.map((target) => <button key={target.target_id} className={`${styles.targetButton} ${target.target_id === selectedId ? styles.targetActive : ""}`} onClick={() => { setSelectedId(target.target_id); replaceAudio(null); }}><span className={styles.targetCode}>{target.canonical_id} · {target.round_index}</span><strong>{target.reference_text}</strong><small>{target.skill_name || target.title}</small></button>)}
+            {filtered.map((target) => <button key={target.target_id} className={`${styles.targetButton} ${target.target_id === effectiveSelectedId ? styles.targetActive : ""}`} onClick={() => { setSelectedId(target.target_id); replaceAudio(null); }}><span className={styles.targetCode}>{target.canonical_id} · {target.round_index}</span><strong>{target.reference_text}</strong><small>{target.skill_name || target.title}</small></button>)}
             {!filtered.length && <div className={styles.empty}>لا توجد أهداف تطابق التصفية الحالية.</div>}
           </div>
         </aside>
