@@ -155,6 +155,7 @@ export default function StudentActivityPage() {
   const playbackRef = useRef<HTMLAudioElement | null>(null);
 
   const interaction = activity?.item.interaction_type;
+  const isReinforcement = activity?.item.kind === "reinforcement_activity";
   const options = useMemo(() => stableOptionOrder(activity?.step.options ?? []), [activity]);
   const audioAssets = useMemo(() => activity?.step.assets.filter((asset) => asset.asset_type === "audio") ?? [], [activity]);
   const imageAssets = useMemo(() => activity?.step.assets.filter((asset) => asset.asset_type === "image") ?? [], [activity]);
@@ -293,11 +294,13 @@ export default function StudentActivityPage() {
       if (result.is_correct || result.step_complete) {
         setFeedback({
           ok: result.is_correct,
-          text: result.is_correct ? "أحسنت! إجابة صحيحة." : "أكملت المحاولة، ننتقل للخطوة التالية.",
+          text: result.is_correct
+            ? (isReinforcement ? "رائع! أنهيت هذه الخطوة من تدريب التقوية." : "أحسنت! إجابة صحيحة.")
+            : "أكملت المحاولة، ننتقل للخطوة التالية.",
         });
         window.setTimeout(() => void fetchNext(), 620);
       } else {
-        setFeedback({ ok: false, text: "قريب جدًا. جرّب مرة أخرى بهدوء." });
+        setFeedback({ ok: false, text: isReinforcement ? "قريب جدًا. هذا تدريب مساعد، جرّب مرة أخرى بهدوء." : "قريب جدًا. جرّب مرة أخرى بهدوء." });
         await fetchNext();
       }
     } catch (err) {
@@ -379,7 +382,7 @@ export default function StudentActivityPage() {
       const result = await submit.json().catch(() => null);
       if (!submit.ok) throw new Error(result?.detail || "تعذر حفظ القراءة");
       clearIdempotency();
-      setFeedback({ ok: true, text: "تم حفظ قراءتك. أحسنت!" });
+      setFeedback({ ok: true, text: isReinforcement ? "تم حفظ قراءتك في تدريب التقوية." : "تم حفظ قراءتك. أحسنت!" });
       window.setTimeout(() => void fetchNext(), 620);
     } catch (err) {
       setError(err instanceof Error ? err.message : "تعذر حفظ القراءة");
@@ -415,15 +418,22 @@ export default function StudentActivityPage() {
   );
 
   if (done) {
+    const completedLevel = progress?.level_id ?? 1;
+    const hasNextLevel = completedLevel < 3;
+    const nextLevelName = LEVEL_NAMES[completedLevel + 1];
     return (
       <div className={styles.page} dir="rtl" data-testid="activity-session" data-phase="done">
         <main className={styles.main}>
           <section className={`${styles.card} ${styles.done}`}>
             <CheckCircle2 size={50} color="#51B985" aria-hidden="true" />
-            <h1>أحسنت، أكملت أنشطة مستواك</h1>
-            <p>أنجزت تقدمًا جميلًا. سيظهر الاختبار البعدي عندما يفتحه المشرف.</p>
+            <h1>{hasNextLevel ? `أحسنت، أكملت ${LEVEL_NAMES[completedLevel]}` : "أحسنت، أكملت المستوى الثالث"}</h1>
+            <p>
+              {hasNextLevel
+                ? `أنهيت أنشطة هذا المستوى بنجاح. خطوتك التالية هي ${nextLevelName}.`
+                : "أنهيت رحلة التعلم حتى المستوى الثالث. سيظهر الاختبار البعدي عندما يفتحه المشرف."}
+            </p>
             <Image className={styles.character} src="/characters/girl/success.png" alt="شخصية هِمّة تحتفل بالإنجاز" width={180} height={220} />
-            <button className={styles.primary} onClick={() => router.push("/student")}>العودة إلى مساري</button>
+            <button className={styles.primary} onClick={() => router.push("/student")}>{hasNextLevel ? "الانتقال إلى خطوتي التالية" : "العودة إلى مساري"}</button>
           </section>
         </main>
       </div>
@@ -466,7 +476,7 @@ export default function StudentActivityPage() {
   const imageOptions = imageAssets.filter((asset) => asset.option_id);
 
   return (
-    <div className={styles.page} dir="rtl" data-testid="activity-session" data-phase="active">
+    <div className={styles.page} dir="rtl" data-testid="activity-session" data-phase="active" data-activity-kind={isReinforcement ? "reinforcement" : "core"}>
       <header className={styles.header}>
         <button className={styles.back} onClick={() => router.push("/student")} aria-label="العودة إلى مسار الطالب">
           <ArrowRight size={18} aria-hidden="true" /><span>رجوع</span>
@@ -483,15 +493,22 @@ export default function StudentActivityPage() {
         <section className={styles.card}>
           <div className={styles.activityMeta}>
             <span className={styles.levelPill}>{LEVEL_NAMES[activity.item.level_id]}</span>
-            <span className={styles.roundPill}>النشاط {activity.item.order_index} · الجولة {activity.step.order_index}</span>
+            <span className={styles.roundPill}>
+              {isReinforcement ? `تدريب تقوية · الجولة ${activity.step.order_index}` : `النشاط ${activity.item.order_index} · الجولة ${activity.step.order_index}`}
+            </span>
           </div>
 
-          <span className={styles.taskBadge}>
+          <span className={styles.taskBadge} data-testid={isReinforcement ? "reinforcement-badge" : "core-activity-badge"}>
             {LISTEN_INTERACTIONS.has(interaction) ? <Headphones size={15} /> : AUDIO_INTERACTIONS.has(interaction) ? <Mic size={15} /> : <Check size={15} />}
-            مهمة واحدة في كل مرة
+            {isReinforcement ? "تدريب تقوية قصير" : "مهمة واحدة في كل مرة"}
           </span>
           <h1 className={styles.title}>{activity.step.instruction_text || shortActivityTitle(activity.item.title)}</h1>
           <p className={styles.method}>{shortActivityTitle(activity.item.title)}</p>
+          {isReinforcement && (
+            <p className={styles.reinforcementIntro} data-testid="reinforcement-intro">
+              هذا التدريب يساعدك في المهارة الحالية، وبعده نعود إلى الجزء الذي كنت تتعلمه في مسارك.
+            </p>
+          )}
           {displayPrompt && <div className={styles.prompt}>{displayPrompt}</div>}
 
           {contextAssets[0] && (
@@ -607,7 +624,11 @@ export default function StudentActivityPage() {
 
           {feedback && <p className={`${styles.feedback} ${feedback.ok ? styles.success : styles.retry}`}>{feedback.text}</p>}
           {error && <p className={`${styles.feedback} ${styles.errorMessage}`}>{error}</p>}
-          {activity.retry && !feedback && !error && <p className={`${styles.feedback} ${styles.retry}`}>حاول مرة أخرى. لديك محاولة ثانية، ويمكنك الاستفادة من التعليمة.</p>}
+          {activity.retry && !feedback && !error && (
+            <p className={`${styles.feedback} ${styles.retry}`}>
+              {isReinforcement ? "جرّب مرة أخرى. هذا التدريب موجود لمساعدتك، وخذ وقتك في المحاولة الثانية." : "حاول مرة أخرى. لديك محاولة ثانية، ويمكنك الاستفادة من التعليمة."}
+            </p>
+          )}
 
           {!hasMediaGap && !AUDIO_INTERACTIONS.has(interaction) && (
             <div className={styles.actions}>
@@ -618,7 +639,11 @@ export default function StudentActivityPage() {
 
           <div className={styles.helperRow}>
             <Image src={activity.retry ? "/characters/girl/encourage.png" : "/characters/girl/explain.png"} alt="شخصية هِمّة المساعدة" width={95} height={120} />
-            <p>{activity.retry ? "لا بأس، ركّز في الصوت أو الصورة وجرب مرة ثانية." : "خذ وقتك. يمكنك الاستماع مرة أخرى قبل الإجابة عندما يظهر زر الصوت."}</p>
+            <p>
+              {isReinforcement
+                ? (activity.retry ? "لا بأس، هذا تدريب تقوية. ركّز وحاول مرة أخرى، وبعده نعود إلى مسارك." : "هذا تدريب قصير على المهارة التي تحتاج دعمًا فيها، ثم تعود إلى نشاطك الأساسي.")
+                : (activity.retry ? "لا بأس، ركّز في الصوت أو الصورة وجرب مرة ثانية." : "خذ وقتك. يمكنك الاستماع مرة أخرى قبل الإجابة عندما يظهر زر الصوت.")}
+            </p>
           </div>
         </section>
       </main>
