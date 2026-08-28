@@ -1,8 +1,9 @@
-"""Temporary neutral bypass for voice-recording tasks.
+"""Temporary neutral bypass and authoritative pre/post completion policy.
 
-This module exists only so the current recovery build can be tested end-to-end
-before the production Arabic speech pipeline is activated. It deliberately
-keeps the real upload/review path intact and never creates fake audio or scores.
+Voice skipping remains a testing-only feature. The finish endpoint also owns the
+recovered assessment scoring contract so normal and temporary-skip sessions use
+one placement rule: readiness 20 points, word-building/reading 40, and fluency/
+comprehension 40. Posttest results never rewrite the student's learning level.
 """
 
 from __future__ import annotations
@@ -32,6 +33,12 @@ from runtime_flags import temporary_audio_skip_enabled
 
 router = APIRouter(tags=["Temporary audio testing"])
 
+SECTION_WEIGHTS = {
+    "readiness": Decimal("20"),
+    "word_building": Decimal("40"),
+    "fluency_comprehension": Decimal("40"),
+}
+
 
 class TemporaryAudioSkipRequest(BaseModel):
     step_id: int
@@ -60,14 +67,6 @@ def _temporary_skip_markers(db: Session, student_id: int, session_id: int) -> se
     return markers
 
 
-def _has_temporary_skips(db: Session, student_id: int, session_id: int) -> bool:
-    return db.query(OperationIdempotency.id).filter(
-        OperationIdempotency.actor_role == "student",
-        OperationIdempotency.actor_id == student_id,
-        OperationIdempotency.operation.like(f"temporary_audio_skip:{session_id}:%"),
-    ).first() is not None
-
-
 @router.get("/runtime-flags")
 def runtime_flags():
     return {
@@ -85,21 +84,13 @@ def skip_recording_task(
     db: Session = Depends(get_db),
     student: Student = Depends(get_current_student),
 ):
-    """Complete one recording step as neutral evidence without creating audio."""
-
     if not temporary_audio_skip_enabled():
         raise HTTPException(status_code=403, detail="التخطي المؤقت للتسجيل غير مفعّل")
 
     idempotency_key = assessment._validate_idempotency_key(idempotency_key)
     operation = _operation(session_id, item_id, body.step_id)
     request_hash = assessment._request_hash(body.model_dump(mode="json"))
-    replay = assessment._idempotency_replay(
-        db,
-        student.id,
-        operation,
-        idempotency_key,
-        request_hash,
-    )
+    replay = assessment._idempotency_replay(db, student.id, operation, idempotency_key, request_hash)
     if replay is not None:
         return replay
 
@@ -130,11 +121,9 @@ def skip_recording_task(
     if existing_response or existing_structured:
         raise HTTPException(status_code=409, detail="تم إكمال هذه المهمة مسبقًا")
 
-    # Reserved neutral sentinel for the temporary demo path:
-    # is_correct=None + no AudioSubmission. This makes the existing activity
-    # runner treat the step as flow-complete while adaptation/rewards correctly
-    # reject it as unresolved academic evidence. The durable idempotency record
-    # below carries the explicit temporary_audio_skip marker.
+    # TEMPORARY — remove/disable when production audio pipeline is activated.
+    # None is a neutral sentinel; no fake recording, score, MinIO object, review,
+    # reward or mastery evidence is created.
     db.add(AttemptResponse(
         attempt_id=attempt.id,
         step_id=step.id,
@@ -157,119 +146,188 @@ def skip_recording_task(
         "temporary_audio_skip": True,
         "academically_neutral": True,
     }
-    assessment._store_idempotency(
-        db,
-        student.id,
-        operation,
-        idempotency_key,
-        request_hash,
-        response_json,
-    )
+    assessment._store_idempotency(db, student.id, operation, idempotency_key, request_hash, response_json)
     return assessment._commit_idempotent(
-        db,
-        student.id,
-        operation,
-        idempotency_key,
-        request_hash,
-        response_json,
+        db, student.id, operation, idempotency_key, request_hash, response_json
     )
 
 
-def _finish_session_with_neutral_skips(db: Session, student: Student, session: AssessmentSession) -> dict:
-    """Finish pre/post tests with temporary recording skips excluded from score."""
+def _section_name(order_index: int) -> str:
+    if order_index <= 10:
+        return "readiness"
+    if order_index <= 22:
+        return "word_building"
+    return "fluency_comprehension"
 
-    rerecord_exists = db.query(AudioSubmission).join(
-        AttemptResponse, AttemptResponse.id == AudioSubmission.response_id,
-    ).join(Attempt, Attempt.id == AttemptResponse.attempt_id).filter(
-        Attempt.session_id == session.id,
-        AudioSubmission.status == "rerecord_required",
-    ).first()
-    if rerecord_exists:
-        raise HTTPException(status_code=409, detail="يوجد تسجيل يحتاج إلى إعادة قبل إنهاء الاختبار")
 
-    required_items = db.query(ContentItem).filter(
-        ContentItem.kind == assessment.KIND_BY_SESSION_TYPE[session.session_type],
-    ).count()
+def _attempt_score(
+    db: Session,
+    attempt: Attempt,
+    temporary_markers: set[tuple[int, int]],
+) -> tuple[Decimal | None, bool, int]:
+    """Return (0..1 score, has_real_audio_evidence, neutral_skip_count)."""
+    earned = Decimal("0")
+    units = Decimal("0")
+    has_audio_evidence = False
+    neutral_skips = 0
+
+    for response in db.query(AttemptResponse).filter(AttemptResponse.attempt_id == attempt.id).all():
+        audio_sub = db.query(AudioSubmission).filter(AudioSubmission.response_id == response.id).first()
+        if audio_sub:
+            if audio_sub.status == "rerecord_required":
+                raise HTTPException(status_code=409, detail="يوجد تسجيل يحتاج إلى إعادة قبل إنهاء الاختبار")
+            if audio_sub.status == "uploaded":
+                raise HTTPException(status_code=409, detail="يوجد تسجيل صوتي في انتظار المراجعة")
+            if audio_sub.status == "graded":
+                review = db.query(AudioReview).filter(
+                    AudioReview.submission_id == audio_sub.id,
+                ).order_by(AudioReview.id.desc()).first()
+                if not review:
+                    raise HTTPException(status_code=409, detail="تقييم التسجيل الصوتي غير مكتمل")
+                units += Decimal("1")
+                earned += Decimal(str(review.rubric_score))
+                has_audio_evidence = True
+                continue
+
+        if (attempt.item_id, response.step_id) in temporary_markers and response.is_correct is None:
+            neutral_skips += 1
+            continue
+        if response.is_correct is None:
+            raise HTTPException(status_code=409, detail="يوجد سؤال غير مكتمل التقييم")
+        units += Decimal("1")
+        if response.is_correct:
+            earned += Decimal("1")
+
+    for response in db.query(ActivityStepResponse).filter(
+        ActivityStepResponse.attempt_id == attempt.id,
+    ).all():
+        payload = response.response_payload or {}
+        if payload.get("declared_media_gap_skip") or payload.get("temporary_audio_skip"):
+            neutral_skips += 1
+            continue
+        units += Decimal("1")
+        if response.is_correct:
+            earned += Decimal("1")
+
+    if units <= 0:
+        return None, has_audio_evidence, neutral_skips
+    return earned / units, has_audio_evidence, neutral_skips
+
+
+def _score_assessment(
+    db: Session,
+    student: Student,
+    session: AssessmentSession,
+) -> dict:
+    required_kind = assessment.KIND_BY_SESSION_TYPE[session.session_type]
+    required_items = db.query(ContentItem).filter(ContentItem.kind == required_kind).count()
     attempts = db.query(Attempt).filter(Attempt.session_id == session.id).all()
-    if required_items != 30 or len(attempts) != required_items or any(attempt.status != "completed" for attempt in attempts):
+    if required_items != 30 or len(attempts) != required_items or any(a.status != "completed" for a in attempts):
         raise HTTPException(status_code=400, detail="أكمل الأسئلة الثلاثين قبل إنهاء الاختبار")
 
-    temporary_markers = _temporary_skip_markers(db, student.id, session.id)
-    total_score = Decimal("0.0")
-    scorable_units = Decimal("0.0")
+    markers = _temporary_skip_markers(db, student.id, session.id)
+    section_scores: dict[str, list[Decimal]] = {key: [] for key in SECTION_WEIGHTS}
+    real_audio_evidence = 0
+    neutral_skip_count = 0
 
     for attempt in attempts:
-        responses = db.query(AttemptResponse).filter(AttemptResponse.attempt_id == attempt.id).all()
-        for response in responses:
-            audio_sub = db.query(AudioSubmission).filter(AudioSubmission.response_id == response.id).first()
-            if audio_sub:
-                if audio_sub.status == "uploaded":
-                    raise HTTPException(status_code=409, detail="يوجد تسجيل صوتي في انتظار المراجعة")
-                if audio_sub.status == "graded":
-                    review = db.query(AudioReview).filter(
-                        AudioReview.submission_id == audio_sub.id,
-                    ).order_by(AudioReview.id.desc()).first()
-                    if not review:
-                        raise HTTPException(status_code=409, detail="تقييم التسجيل الصوتي غير مكتمل")
-                    scorable_units += Decimal("1.0")
-                    total_score += review.rubric_score
-                continue
+        item = db.query(ContentItem).filter(ContentItem.id == attempt.item_id).first()
+        if not item:
+            raise HTTPException(status_code=409, detail="تعذر تحميل أحد أسئلة الاختبار")
+        score, has_audio, skips = _attempt_score(db, attempt, markers)
+        real_audio_evidence += int(has_audio)
+        neutral_skip_count += skips
+        if score is not None:
+            section_scores[_section_name(item.order_index)].append(score)
 
-            marker = (attempt.item_id, response.step_id) in temporary_markers
-            if marker and response.is_correct is None:
-                # TEMPORARY — intentionally excluded from both numerator and denominator.
-                continue
-            if response.is_correct is None:
-                raise HTTPException(status_code=409, detail="يوجد سؤال غير مكتمل التقييم")
-            scorable_units += Decimal("1.0")
-            if response.is_correct:
-                total_score += Decimal("1.0")
+    section_points: dict[str, Decimal] = {}
+    for section, weight in SECTION_WEIGHTS.items():
+        values = section_scores[section]
+        if not values:
+            # No evidence must never be silently promoted into full credit.
+            section_points[section] = Decimal("0")
+        else:
+            section_points[section] = (sum(values, Decimal("0")) / Decimal(len(values))) * weight
 
-        structured = db.query(ActivityStepResponse).filter(
-            ActivityStepResponse.attempt_id == attempt.id,
-        ).all()
-        for response in structured:
-            payload = response.response_payload or {}
-            if payload.get("declared_media_gap_skip") or payload.get("temporary_audio_skip"):
-                continue
-            scorable_units += Decimal("1.0")
-            if response.is_correct:
-                total_score += Decimal("1.0")
+    final_percentage = sum(section_points.values(), Decimal("0"))
+    readiness_points = section_points["readiness"]
+    return {
+        "final_percentage": final_percentage,
+        "section_points": section_points,
+        "readiness_points": readiness_points,
+        "real_audio_evidence": real_audio_evidence,
+        "neutral_skip_count": neutral_skip_count,
+        "scorable_items": sum(len(values) for values in section_scores.values()),
+    }
 
-    if scorable_units <= 0:
-        raise HTTPException(status_code=409, detail="لا توجد أسئلة قابلة للتقييم في هذه المحاولة")
 
-    final_percentage = (total_score / scorable_units) * Decimal("100.0")
-    if final_percentage < Decimal("50.0"):
-        assigned_level = 1
-    elif final_percentage < Decimal("80.0"):
-        assigned_level = 2
+def _pretest_placement(scored: dict) -> tuple[int, str, bool]:
+    final_percentage: Decimal = scored["final_percentage"]
+    readiness_points: Decimal = scored["readiness_points"]
+    if readiness_points < Decimal("12"):
+        return 1, "readiness_gate_below_12_of_20", False
+    if final_percentage < Decimal("50"):
+        return 1, "overall_below_50", False
+    if final_percentage < Decimal("80"):
+        return 2, "overall_50_to_below_80", False
+
+    # The source requires reading evidence for L3, but a calibrated numeric ASR
+    # threshold is not approved yet. We therefore require real reviewed audio
+    # evidence and do not invent a pronunciation threshold. Temporary skips make
+    # an otherwise-high placement provisional at L2; the supervisor can still
+    # exercise a documented override for testing.
+    if scored["real_audio_evidence"] <= 0:
+        return 2, "l3_waiting_for_real_reading_evidence", True
+    return 3, "overall_80_plus_with_reading_evidence", False
+
+
+def _finish_session_with_journey_scoring(db: Session, student: Student, session: AssessmentSession) -> dict:
+    if session.session_type not in {"pretest", "posttest"}:
+        return assessment.finish_session(session_id=session.id, db=db, student=student)
+
+    scored = _score_assessment(db, student, session)
+    final_percentage: Decimal = scored["final_percentage"]
+    now = datetime.now(timezone.utc)
+
+    placement_reason = None
+    provisional = False
+    result_band = 1 if final_percentage < 50 else 2 if final_percentage < 80 else 3
+
+    if session.session_type == "pretest":
+        assigned_level, placement_reason, provisional = _pretest_placement(scored)
+        student.current_level = assigned_level
+        session.assigned_level = assigned_level
     else:
-        assigned_level = 3
-
-    session.final_score = final_percentage
-    session.assigned_level = assigned_level
-    session.status = "completed"
-    session.completed_at = datetime.now(timezone.utc)
-    session.updated_at = datetime.now(timezone.utc)
-    student.current_level = assigned_level
-    if session.session_type == "posttest":
+        # Posttest measures outcome; it must never move the student backwards or
+        # rewrite the learning journey. Keep assigned_level as journey context.
+        assigned_level = student.current_level
+        session.assigned_level = student.current_level
         student.posttest_enabled = False
         student.posttest_enabled_at = None
         student.posttest_enabled_by = None
+
+    session.final_score = final_percentage
+    session.status = "completed"
+    session.completed_at = now
+    session.updated_at = now
     db.commit()
+
     return {
         "id": session.id,
         "final_score": final_percentage,
         "assigned_level": assigned_level,
-        "temporary_audio_skips": len(temporary_markers),
-        "scorable_units": int(scorable_units),
+        "result_band": result_band,
+        "section_points": {key: float(value) for key, value in scored["section_points"].items()},
+        "placement_reason": placement_reason,
+        "placement_provisional": provisional,
+        "temporary_audio_skips": scored["neutral_skip_count"],
+        "scorable_items": scored["scorable_items"],
     }
 
 
-# This route is registered before assessment.router in main.py. Normal sessions
-# delegate untouched to the accepted implementation; only sessions containing
-# explicit temporary skip markers use the neutral denominator calculation.
+# Registered before assessment.router in main.py, making this the single
+# authoritative pre/post completion endpoint for both normal and temporary-skip
+# runs. Other assessment routes remain unchanged.
 @router.post("/assessment/session/{session_id}/finish")
 def finish_assessment_with_optional_temporary_skips(
     session_id: int,
@@ -282,8 +340,4 @@ def finish_assessment_with_optional_temporary_skips(
     ).first()
     if not session or session.status != "in_progress":
         raise HTTPException(status_code=400, detail="الجلسة غير صالحة أو مكتملة")
-
-    if session.session_type not in {"pretest", "posttest"} or not _has_temporary_skips(db, student.id, session.id):
-        return assessment.finish_session(session_id=session_id, db=db, student=student)
-
-    return _finish_session_with_neutral_skips(db, student, session)
+    return _finish_session_with_journey_scoring(db, student, session)
