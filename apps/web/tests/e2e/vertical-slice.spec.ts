@@ -373,7 +373,9 @@ test.describe("Himma recovered vertical slice", () => {
     await expect(
       page.getByText(`${studentState.core_completed_items} من ${studentState.core_total_items}`),
     ).toBeVisible({ timeout: 12000 });
-    await expect(page.getByText(`المستوى ${studentState.current_level}`)).toBeVisible();
+    await expect(
+      page.getByRole("paragraph").filter({ hasText: new RegExp(`^المستوى ${studentState.current_level}$`) }),
+    ).toBeVisible();
     await expect(page.getByText("تعديل المشرف")).toBeVisible();
 
     // Academic contract: placement chooses a starting level, then the journey
