@@ -44,14 +44,14 @@ export default function ReinforcementReviewPanel() {
   const [selectedItem, setSelectedItem] = useState("");
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
-  const [expanded, setExpanded] = useState(false);
+  const [expandedStudentId, setExpandedStudentId] = useState<string | null>(null);
   const [message, setMessage] = useState<PanelMessage | null>(null);
+  const expanded = Boolean(studentId && expandedStudentId === studentId);
 
   useEffect(() => {
     let cancelled = false;
     if (!studentId) return;
 
-    setExpanded(false);
     void fetch(`/api/researcher/students/${studentId}/adaptation/reinforcement-options`, { cache: "no-store" })
       .then(async (response) => {
         const data = await response.json().catch(() => null);
@@ -119,6 +119,7 @@ export default function ReinforcementReviewPanel() {
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(apiError(data, "تعذر إسناد نشاط التقوية"));
       setReview(null);
+      setExpandedStudentId(null);
       setMessage({ kind: "success", text: "تم إسناد نشاط التقوية. يستطيع الطالب الآن متابعة مساره.", studentId });
       window.setTimeout(() => window.location.reload(), 900);
     } catch (error) {
@@ -138,7 +139,11 @@ export default function ReinforcementReviewPanel() {
             <p className="mt-1 text-sm text-slate-600">يوجد قرار تقوية يحتاج مراجعة المشرف قبل متابعة المسار.</p>
           </div>
         </div>
-        <button className="btn-secondary" onClick={() => setExpanded((value) => !value)} aria-expanded={expanded}>
+        <button
+          className="btn-secondary"
+          onClick={() => setExpandedStudentId((current) => current === studentId ? null : studentId)}
+          aria-expanded={expanded}
+        >
           {expanded ? <ChevronUp size={17} /> : <ChevronDown size={17} />}
           {expanded ? "إخفاء التفاصيل" : "مراجعة القرار"}
         </button>
