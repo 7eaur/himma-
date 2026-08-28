@@ -33,16 +33,45 @@ interface RewardEvent {
   label: string;
 }
 
+interface JourneyLevel {
+  level_id: number;
+  name: string;
+  state: "locked" | "skipped" | "ready" | "active" | "completed";
+  completed_items: number;
+  total_items: number;
+  session_id: number | null;
+}
+
+interface JourneySummary {
+  pretest_completed: boolean;
+  starting_level: number | null;
+  current_level: number;
+  levels: JourneyLevel[];
+  learning_journey_completed: boolean;
+  posttest_enabled: boolean;
+  posttest_completed: boolean;
+  posttest_ready: boolean;
+}
+
 const LEVEL_NAMES: Record<number, string> = {
   1: "الاستعداد للقراءة",
   2: "بناء الكلمة",
   3: "الطلاقة والفهم",
 };
 
+const LEVEL_STATE_LABELS: Record<JourneyLevel["state"], string> = {
+  locked: "لاحقًا",
+  skipped: "تجاوزته في الاختبار القبلي",
+  ready: "جاهز للبدء",
+  active: "أنت هنا",
+  completed: "مكتمل",
+};
+
 export default function StudentHomePage() {
   const router = useRouter();
   const [student, setStudent] = useState<StudentMe | null>(null);
   const [learning, setLearning] = useState<LearningStatus | null>(null);
+  const [journey, setJourney] = useState<JourneySummary | null>(null);
   const [rewards, setRewards] = useState<RewardEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
@@ -65,6 +94,11 @@ export default function StudentHomePage() {
             }),
           );
         }
+        requests.push(
+          fetch("/api/journey", { cache: "no-store" }).then(async (response) => {
+            if (response.ok) setJourney(await response.json());
+          }),
+        );
         requests.push(
           fetch("/api/rewards", { cache: "no-store" }).then(async (response) => {
             if (response.ok) setRewards(await response.json());
@@ -171,10 +205,14 @@ export default function StudentHomePage() {
   if (isLearning) {
     phaseIndex = 1;
     heroTitle = `مستواك: ${LEVEL_NAMES[student.current_level] || `المستوى ${student.current_level}`}`;
-    heroDescription = learningCompleted
-      ? "أكملت أنشطة مستواك. سيظهر الاختبار البعدي عندما يفتحه المشرف."
-      : "أنشطة قصيرة بالصوت والصورة والقراءة، تتكيف مع تقدمك خطوة بخطوة.";
-    primaryLabel = learningCompleted ? "أكملت هذا المستوى" : (student.active_session?.session_type === "core" || learning?.session_id ? "متابعة الأنشطة" : "ابدأ أنشطة مستواك");
+    if (learningCompleted && student.current_level < 3) {
+      heroDescription = `أكملت ${LEVEL_NAMES[student.current_level]}. خطوتك التالية هي ${LEVEL_NAMES[student.current_level + 1]}.`;
+    } else if (learningCompleted) {
+      heroDescription = "أكملت المستوى الثالث. بقيت خطوة القياس البعدي عندما تصبح متاحة لك.";
+    } else {
+      heroDescription = "أنشطة قصيرة بالصوت والصورة والقراءة، وتتدخل التقوية عند الحاجة ثم تعيدك إلى مسارك.";
+    }
+    primaryLabel = learningCompleted ? "اكتمل هذا المستوى" : (student.active_session?.session_type === "core" || learning?.session_id ? "متابعة الأنشطة" : "ابدأ أنشطة مستواك");
     character = learningCompleted ? "/characters/girl/success.png" : "/characters/girl/explain.png";
   }
   if (student.next_action === "posttest" || student.active_session?.session_type === "posttest") {
@@ -187,7 +225,7 @@ export default function StudentHomePage() {
   if (student.next_action === "completed") {
     phaseIndex = 3;
     heroTitle = "أكملت رحلتك";
-    heroDescription = "أنهيت الاختبارين والأنشطة التعليمية. أحسنت التقدم!";
+    heroDescription = "أنهيت الاختبارين ومسار التعلم. أحسنت التقدم!";
     primaryLabel = "اكتمل المسار";
     character = "/characters/girl/success.png";
   }
@@ -248,10 +286,46 @@ export default function StudentHomePage() {
           </aside>
         </div>
 
+        {journey?.pretest_completed && (
+          <section className={styles.levelJourney} aria-label="مستويات رحلة التعلم" data-testid="level-journey">
+            <div className={styles.journeyHeader}>
+              <div>
+                <h3>مستويات رحلتك</h3>
+                <p>تتقدم للأعلى بعد إكمال المستوى، والتقوية تساعدك داخل مسارك دون إعادته من البداية.</p>
+              </div>
+              <span>{journey.starting_level ? `بدأت من المستوى ${journey.starting_level}` : "مسارك التعليمي"}</span>
+            </div>
+            <div className={styles.levelCards}>
+              {journey.levels.map((level) => {
+                const levelPercent = Math.min(100, Math.round((level.completed_items / Math.max(1, level.total_items)) * 100));
+                return (
+                  <article key={level.level_id} className={`${styles.levelCard} ${styles[`levelState${level.state.charAt(0).toUpperCase()}${level.state.slice(1)}`]}`} data-level-state={level.state}>
+                    <div className={styles.levelTopline}>
+                      <div className={styles.levelNumber}>{level.state === "completed" ? <Check size={20} /> : level.level_id}</div>
+                      <span>{LEVEL_STATE_LABELS[level.state]}</span>
+                    </div>
+                    <h4>{level.name}</h4>
+                    {level.state === "skipped" ? (
+                      <p>نتيجة الاختبار القبلي وضعتك في مستوى أعلى، لذلك لا تحتاج لإعادة هذا المستوى.</p>
+                    ) : (
+                      <>
+                        <div className={styles.levelProgressTrack} aria-label={`تقدم المستوى ${level.level_id}: ${level.completed_items} من ${level.total_items}`}>
+                          <span style={{ width: `${level.state === "completed" ? 100 : levelPercent}%` }} />
+                        </div>
+                        <p>{level.state === "locked" ? "يفتح بعد إكمال المستوى السابق." : `${level.completed_items} من ${level.total_items} أنشطة أساسية`}</p>
+                      </>
+                    )}
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         <section className={styles.journey} aria-label="رحلة الطالب">
           <div className={styles.journeyHeader}><h3>رحلتك في هِمّة</h3><span>نبني على مستواك الحقيقي</span></div>
           <div className={styles.steps}>
-            {[{label:"نكتشف بدايتك",sub:"الاختبار القبلي"},{label:"نتعلم ونتطور",sub:"أنشطة متكيفة"},{label:"نقيس تقدمك",sub:"الاختبار البعدي"}].map((entry,index) => {
+            {[{label:"نكتشف بدايتك",sub:"الاختبار القبلي"},{label:"نتعلم ونتطور",sub:"من مستوى البداية حتى الثالث"},{label:"نقيس تقدمك",sub:"الاختبار البعدي"}].map((entry,index) => {
               const done = phaseIndex > index || student.next_action === "completed";
               const current = phaseIndex === index;
               return (
