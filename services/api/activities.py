@@ -42,6 +42,11 @@ from db.models import (
     Student,
 )
 from dependencies import get_current_student, get_db
+from reinforcement_cycles import (
+    active_verification_cycle,
+    finish_verification_step,
+    verification_response_count,
+)
 
 router = APIRouter(prefix="/activities", tags=["Activities"])
 
@@ -107,10 +112,40 @@ def _step_gap(item: ContentItem, step: ContentStep) -> list[dict[str, Any]]:
 
 
 def _step_state(db: Session, attempt: Attempt, step: ContentStep) -> dict[str, Any]:
+    cycle = active_verification_cycle(
+        db,
+        source_attempt_id=attempt.id,
+        step_id=step.id,
+    )
     structured = db.query(ActivityStepResponse).filter(
         ActivityStepResponse.attempt_id == attempt.id,
         ActivityStepResponse.step_id == step.id,
     ).order_by(ActivityStepResponse.attempt_no).all()
+
+    if cycle is not None:
+        verification_rows = [
+            row
+            for row in structured
+            if (row.response_payload or {}).get("reinforcement_cycle_id") == cycle.id
+            and (row.response_payload or {}).get("reinforcement_verification") is True
+        ]
+        if verification_rows:
+            latest = verification_rows[-1]
+            return {
+                "done": bool(latest.is_correct),
+                "attempts_used": len(verification_rows),
+                "last_correct": latest.is_correct,
+                "reinforcement_verification": True,
+                "reinforcement_cycle_id": cycle.id,
+            }
+        return {
+            "done": False,
+            "attempts_used": 0,
+            "last_correct": None,
+            "reinforcement_verification": True,
+            "reinforcement_cycle_id": cycle.id,
+        }
+
     if structured:
         latest = structured[-1]
         done = bool(latest.is_correct or len(structured) >= MAX_STEP_ATTEMPTS)
@@ -118,6 +153,8 @@ def _step_state(db: Session, attempt: Attempt, step: ContentStep) -> dict[str, A
             "done": done,
             "attempts_used": len(structured),
             "last_correct": latest.is_correct,
+            "reinforcement_verification": False,
+            "reinforcement_cycle_id": None,
         }
 
     response = db.query(AttemptResponse).filter(
@@ -129,10 +166,28 @@ def _step_state(db: Session, attempt: Attempt, step: ContentStep) -> dict[str, A
             AudioSubmission.response_id == response.id,
         ).first()
         if audio and audio.status == "rerecord_required":
-            return {"done": False, "attempts_used": 1, "last_correct": None}
-        return {"done": True, "attempts_used": 1, "last_correct": response.is_correct}
+            return {
+                "done": False,
+                "attempts_used": 1,
+                "last_correct": None,
+                "reinforcement_verification": False,
+                "reinforcement_cycle_id": None,
+            }
+        return {
+            "done": True,
+            "attempts_used": 1,
+            "last_correct": response.is_correct,
+            "reinforcement_verification": False,
+            "reinforcement_cycle_id": None,
+        }
 
-    return {"done": False, "attempts_used": 0, "last_correct": None}
+    return {
+        "done": False,
+        "attempts_used": 0,
+        "last_correct": None,
+        "reinforcement_verification": False,
+        "reinforcement_cycle_id": None,
+    }
 
 
 def _step_payload(db: Session, item: ContentItem, attempt: Attempt, step: ContentStep) -> dict[str, Any]:
@@ -169,6 +224,8 @@ def _step_payload(db: Session, item: ContentItem, attempt: Attempt, step: Conten
         "max_attempts": MAX_STEP_ATTEMPTS,
         "retry": state["attempts_used"] > 0 and not state["done"],
         "hint_available": state["attempts_used"] > 0 and not state["done"],
+        "reinforcement_verification": state.get("reinforcement_verification", False),
+        "reinforcement_cycle_id": state.get("reinforcement_cycle_id"),
     }
 
 
@@ -364,6 +421,11 @@ def next_activity_step(
             status_code=409,
             detail="يحتاج المسار إلى ربط نشاط تقوية معتمد للمهارة الأضعف قبل المتابعة.",
         )
+    if prepared.get("verification_escalated"):
+        raise HTTPException(
+            status_code=409,
+            detail="يحتاج هذا الضعف إلى مراجعة المشرف بعد محاولات التقوية والتحقق.",
+        )
 
     db.refresh(session)
     db.refresh(student)
@@ -373,7 +435,7 @@ def next_activity_step(
     if pending_attempt:
         item = _load_item(db, pending_attempt.item_id)
         if not item:
-            raise HTTPException(status_code=409, detail="تعذر تحميل نشاط التقوية الموصى به")
+            raise HTTPException(status_code=409, detail="تعذر تحميل نشاط التقوية أو التحقق")
         first_pending = next(
             (step for step in item.steps if not _step_state(db, pending_attempt, step)["done"]),
             None,
@@ -484,12 +546,32 @@ def submit_activity_step(
     if interaction in {"read_aloud", "timed_read_aloud"}:
         raise HTTPException(status_code=400, detail="استخدم مسار التسجيل الصوتي لجولة القراءة الجهرية")
 
+    verification_cycle = active_verification_cycle(
+        db,
+        source_attempt_id=attempt.id,
+        step_id=step.id,
+    )
     previous = db.query(ActivityStepResponse).filter(
         ActivityStepResponse.attempt_id == attempt.id,
         ActivityStepResponse.step_id == step.id,
     ).order_by(ActivityStepResponse.attempt_no).all()
-    if previous and (previous[-1].is_correct or len(previous) >= MAX_STEP_ATTEMPTS):
-        raise HTTPException(status_code=409, detail="هذه الجولة مكتملة بالفعل؛ أعد تحميل الصفحة للمتابعة")
+
+    if verification_cycle is None:
+        if previous and (previous[-1].is_correct or len(previous) >= MAX_STEP_ATTEMPTS):
+            raise HTTPException(status_code=409, detail="هذه الجولة مكتملة بالفعل؛ أعد تحميل الصفحة للمتابعة")
+    else:
+        verification_used = verification_response_count(
+            db,
+            cycle=verification_cycle,
+            step_id=step.id,
+        )
+        if verification_used >= verification_cycle.max_verification_rounds:
+            raise HTTPException(status_code=409, detail="اكتملت محاولات التحقق لهذه المهارة")
+        if body.declared_media_gap_skip:
+            raise HTTPException(
+                status_code=409,
+                detail="لا يمكن اعتماد تخطي وسائط كدليل تحقق بعد نشاط التقوية",
+            )
 
     gaps = _step_gap(item, step)
     if body.declared_media_gap_skip:
@@ -500,6 +582,13 @@ def submit_activity_step(
     else:
         is_correct = _score_submission(item, step, body.selected_option_ids)
         payload = {"selected_option_ids": body.selected_option_ids}
+
+    if verification_cycle is not None:
+        payload = {
+            **payload,
+            "reinforcement_verification": True,
+            "reinforcement_cycle_id": verification_cycle.id,
+        }
 
     response = ActivityStepResponse(
         attempt_id=attempt.id,
@@ -516,17 +605,38 @@ def submit_activity_step(
     session.updated_at = datetime.now(timezone.utc)
     db.flush()
 
+    if verification_cycle is not None:
+        verification_status = finish_verification_step(
+            db,
+            cycle=verification_cycle,
+            step_id=step.id,
+            is_correct=is_correct,
+        )
+        verification_used = verification_response_count(
+            db,
+            cycle=verification_cycle,
+            step_id=step.id,
+        )
+        complete = bool(is_correct or verification_status == "escalated")
+        show_hint = bool(not is_correct and verification_status == "verification_pending")
+        attempts_used = verification_used
+    else:
+        verification_status = None
+        attempts_used = len(previous) + 1
+        complete = bool(is_correct or attempts_used >= MAX_STEP_ATTEMPTS)
+        show_hint = bool(not is_correct and attempts_used < MAX_STEP_ATTEMPTS)
+
     _finalize_attempt_if_done(db, attempt, item)
 
-    attempts_used = len(previous) + 1
-    complete = bool(is_correct or attempts_used >= MAX_STEP_ATTEMPTS)
     response_json = {
         "status": "ok",
         "is_correct": is_correct,
         "attempts_used": attempts_used,
         "step_complete": complete,
-        "show_hint": (not is_correct and attempts_used < MAX_STEP_ATTEMPTS),
+        "show_hint": show_hint,
         "activity_complete": attempt.status == "completed",
+        "reinforcement_verification": verification_cycle is not None,
+        "verification_status": verification_status,
         # Session completion is deliberately finalized by GET /next after P06
         # evaluates the newly completed attempt. This prevents false posttest
         # unlocks before support/transition logic runs.
