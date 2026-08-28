@@ -1,9 +1,8 @@
-"""Replaceable ASR provider boundary for Himma P07.
+"""Replaceable ASR provider boundary for Himma speech analysis.
 
-No fake production adapter is supplied. Until OI-02 (provider, contract,
-privacy, cost and recording-transfer policy) is approved, provider creation
-fails closed with ProviderNotConfigured. Tests may inject a deterministic
-in-memory adapter explicitly; runtime never silently falls back to it.
+Runtime fails closed when no provider is configured. Tests may inject a
+deterministic in-memory adapter explicitly; production never silently falls
+back to fake recognition.
 """
 
 from __future__ import annotations
@@ -64,22 +63,26 @@ class UnconfiguredSpeechProvider:
 
     def transcribe_reference_guided(self, **_: Any) -> ProviderResult:
         raise ProviderNotConfigured(
-            "ASR provider is not approved/configured. Resolve OI-02 before real speech scoring."
+            "ASR provider is not configured. Configure an approved provider before real speech scoring."
         )
 
 
 def build_provider() -> SpeechProvider:
-    """Return the approved production provider.
+    """Build the explicitly configured production provider.
 
-    The environment variable exists now so deployment configuration has a
-    stable contract. Actual provider implementations are added only after the
-    vendor/data-processing decision is approved and tested with representative
-    recordings.
+    Google STT V2 is an evaluation candidate for M08. Its presence here does not
+    mean that automatic academic acceptance is calibrated; the existing
+    calibration guard and supervisor review policy remain authoritative.
     """
 
     provider = os.getenv("HIMMA_ASR_PROVIDER", "").strip().lower()
     if not provider:
         return UnconfiguredSpeechProvider()
-    raise ProviderNotConfigured(
-        f"HIMMA_ASR_PROVIDER={provider!r} has no approved runtime adapter yet"
-    )
+    if provider in {"google", "google-stt-v2", "google_cloud_stt_v2"}:
+        try:
+            from google_speech_provider import GoogleSpeechV2Provider
+
+            return GoogleSpeechV2Provider()
+        except ProviderPermanentError as exc:
+            raise ProviderNotConfigured(str(exc)) from exc
+    raise ProviderNotConfigured(f"Unsupported HIMMA_ASR_PROVIDER={provider!r}")
