@@ -70,19 +70,23 @@ function improvementLabel(report: ResearchStudentReport) {
   return { text: "دون تغير", className: "badge-gray" };
 }
 
+async function fetchResearchSummary(): Promise<ResearchSummary> {
+  const response = await fetch("/api/researcher/reports/summary", { cache: "no-store" });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok || !payload) throw new Error(payload?.detail || "تعذر تحميل التقرير البحثي");
+  return payload as ResearchSummary;
+}
+
 export default function ReportsPage() {
   const [data, setData] = useState<ResearchSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const load = async () => {
+  const refresh = async () => {
     setLoading(true);
     setError("");
     try {
-      const response = await fetch("/api/researcher/reports/summary", { cache: "no-store" });
-      const payload = await response.json().catch(() => null);
-      if (!response.ok || !payload) throw new Error(payload?.detail || "تعذر تحميل التقرير البحثي");
-      setData(payload);
+      setData(await fetchResearchSummary());
     } catch (caught: unknown) {
       setError(caught instanceof Error ? caught.message : "تعذر تحميل التقرير البحثي");
     } finally {
@@ -91,7 +95,20 @@ export default function ReportsPage() {
   };
 
   useEffect(() => {
-    void load();
+    let cancelled = false;
+    fetchResearchSummary()
+      .then((payload) => {
+        if (!cancelled) setData(payload);
+      })
+      .catch((caught: unknown) => {
+        if (!cancelled) setError(caught instanceof Error ? caught.message : "تعذر تحميل التقرير البحثي");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
@@ -102,7 +119,7 @@ export default function ReportsPage() {
           <h1 className="text-3xl font-bold text-navy mb-2">التقارير والنتائج</h1>
           <p className="text-muted max-w-3xl">مقارنة القبلي والبعدي والزمن والتقوية من القيم المحفوظة في قاعدة البيانات، دون إعادة احتساب التصنيف أو اختراع مؤشرات صوتية غير معايرة.</p>
         </div>
-        <button className="btn-secondary min-h-11" onClick={() => void load()} disabled={loading}>
+        <button className="btn-secondary min-h-11" onClick={() => void refresh()} disabled={loading}>
           <RefreshCw size={17} aria-hidden="true" /> تحديث البيانات
         </button>
       </div>
@@ -110,7 +127,7 @@ export default function ReportsPage() {
       {error && (
         <div className="alert-error mb-5 flex items-center justify-between gap-3 flex-wrap">
           <span>{error}</span>
-          <button className="btn-secondary" onClick={() => void load()}>إعادة المحاولة</button>
+          <button className="btn-secondary" onClick={() => void refresh()}>إعادة المحاولة</button>
         </div>
       )}
 
