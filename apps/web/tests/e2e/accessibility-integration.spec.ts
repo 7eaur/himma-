@@ -164,4 +164,36 @@ test.describe("M06 responsive and accessibility integration", () => {
       }
     }
   });
+
+  test("speech lab exposes canonical reading targets safely on desktop and mobile", async ({ page, context, request }) => {
+    await loginAsSupervisor(request, context);
+
+    for (const viewport of [
+      { name: "desktop", width: 1440, height: 900 },
+      { name: "mobile", width: 390, height: 844 },
+    ]) {
+      await page.setViewportSize({ width: viewport.width, height: viewport.height });
+      await page.goto("/admin/speech-lab");
+      const lab = page.getByTestId("speech-lab-page");
+      await expect(lab).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole("heading", { name: "مختبر تحليل القراءة" })).toBeVisible();
+      await expect(page.getByText("المزود غير مهيأ", { exact: true })).toBeVisible();
+      await expect(page.getByText(/Google STT V2 بانتظار بيانات الاتصال/)).toBeVisible();
+      await expect(page.getByText(/هدف$/).first()).toBeVisible();
+      await expect(page.getByText("هذه النتيجة تجريبية ولا تغيّر درجات الطلاب أو قرارات التكيف.")).toBeVisible();
+
+      const groupSelect = page.getByLabel("القسم");
+      await expect(groupSelect).toBeVisible();
+      await groupSelect.selectOption("pretest");
+      await expect(page.getByText(/هدف$/).first()).toBeVisible();
+
+      const analyzeButton = page.getByRole("button", { name: "تحليل القراءة" });
+      await expect(analyzeButton).toBeDisabled();
+      await expectNoHorizontalOverflow(page);
+      await page.screenshot({
+        path: `playwright-report/screenshots/speech-lab-${viewport.name}.png`,
+        fullPage: true,
+      });
+    }
+  });
 });
