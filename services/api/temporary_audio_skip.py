@@ -214,11 +214,35 @@ def _attempt_score(
     return earned / units, has_audio_evidence, neutral_skips
 
 
+def _preflight_audio_state(db: Session, session_id: int) -> None:
+    """Surface actionable audio-review states before generic completeness errors."""
+    submissions = (
+        db.query(AudioSubmission)
+        .join(AttemptResponse, AttemptResponse.id == AudioSubmission.response_id)
+        .join(Attempt, Attempt.id == AttemptResponse.attempt_id)
+        .filter(Attempt.session_id == session_id)
+        .all()
+    )
+    for submission in submissions:
+        if submission.status == "rerecord_required":
+            raise HTTPException(status_code=409, detail="يوجد تسجيل يحتاج إلى إعادة قبل إنهاء الاختبار")
+        if submission.status == "uploaded":
+            raise HTTPException(status_code=409, detail="يوجد تسجيل صوتي في انتظار المراجعة")
+        if submission.status == "graded":
+            review = db.query(AudioReview).filter(
+                AudioReview.submission_id == submission.id,
+            ).order_by(AudioReview.id.desc()).first()
+            if not review:
+                raise HTTPException(status_code=409, detail="تقييم التسجيل الصوتي غير مكتمل")
+
+
 def _score_assessment(
     db: Session,
     student: Student,
     session: AssessmentSession,
 ) -> dict:
+    _preflight_audio_state(db, session.id)
+
     required_kind = assessment.KIND_BY_SESSION_TYPE[session.session_type]
     required_items = db.query(ContentItem).filter(ContentItem.kind == required_kind).count()
     attempts = db.query(Attempt).filter(Attempt.session_id == session.id).all()
@@ -271,13 +295,12 @@ def _pretest_placement(scored: dict) -> tuple[int, str, bool]:
     if final_percentage < Decimal("80"):
         return 2, "overall_50_to_below_80", False
 
-    # The source requires reading evidence for L3, but a calibrated numeric ASR
-    # threshold is not approved yet. We therefore require real reviewed audio
-    # evidence and do not invent a pronunciation threshold. Temporary skips make
-    # an otherwise-high placement provisional at L2; the supervisor can still
-    # exercise a documented override for testing.
+    # Temporary neutral skips are test-only and are excluded from the denominator.
+    # When all remaining approved evidence is >=80, keep the academic band at L3
+    # but mark the placement provisional until real reviewed reading evidence is
+    # available. Production ASR remains blocked by OI-02/OI-03.
     if scored["real_audio_evidence"] <= 0:
-        return 2, "l3_waiting_for_real_reading_evidence", True
+        return 3, "overall_80_plus_reading_evidence_provisional", True
     return 3, "overall_80_plus_with_reading_evidence", False
 
 
@@ -322,6 +345,7 @@ def _finish_session_with_journey_scoring(db: Session, student: Student, session:
         "placement_provisional": provisional,
         "temporary_audio_skips": scored["neutral_skip_count"],
         "scorable_items": scored["scorable_items"],
+        "scorable_units": scored["scorable_items"],
     }
 
 
