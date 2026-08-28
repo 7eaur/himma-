@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { AlertCircle, CheckCircle2, Route, ShieldCheck } from "lucide-react";
+import { AlertCircle, CheckCircle2, ChevronDown, ChevronUp, Route, ShieldCheck } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 interface ReinforcementOption {
@@ -44,12 +44,14 @@ export default function ReinforcementReviewPanel() {
   const [selectedItem, setSelectedItem] = useState("");
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const [message, setMessage] = useState<PanelMessage | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     if (!studentId) return;
 
+    setExpanded(false);
     void fetch(`/api/researcher/students/${studentId}/adaptation/reinforcement-options`, { cache: "no-store" })
       .then(async (response) => {
         const data = await response.json().catch(() => null);
@@ -69,11 +71,7 @@ export default function ReinforcementReviewPanel() {
       .catch((error: unknown) => {
         if (!cancelled) {
           setReview(null);
-          setMessage({
-            kind: "error",
-            text: error instanceof Error ? error.message : "تعذر فحص حالة التقوية",
-            studentId,
-          });
+          setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر فحص حالة التقوية", studentId });
         }
       });
 
@@ -90,7 +88,7 @@ export default function ReinforcementReviewPanel() {
   if (!activeReview) {
     if (!visibleMessage) return null;
     return (
-      <section className="mx-auto mb-6 w-full max-w-6xl" dir="rtl" aria-live="polite">
+      <section className="mx-auto mb-4 w-full max-w-6xl" dir="rtl" aria-live="polite">
         <div className={visibleMessage.kind === "success" ? "alert-success" : "alert-error"}>
           {visibleMessage.kind === "success" && <CheckCircle2 size={18} className="inline ml-2" />}
           {visibleMessage.text}
@@ -122,7 +120,7 @@ export default function ReinforcementReviewPanel() {
       if (!response.ok) throw new Error(apiError(data, "تعذر إسناد نشاط التقوية"));
       setReview(null);
       setMessage({ kind: "success", text: "تم إسناد نشاط التقوية. يستطيع الطالب الآن متابعة مساره.", studentId });
-      window.setTimeout(() => window.location.reload(), 1200);
+      window.setTimeout(() => window.location.reload(), 900);
     } catch (error) {
       setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر إسناد نشاط التقوية", studentId });
     } finally {
@@ -131,38 +129,48 @@ export default function ReinforcementReviewPanel() {
   };
 
   return (
-    <section className="mx-auto mb-6 w-full max-w-6xl rounded-3xl border border-amber-200 bg-amber-50/80 p-5 shadow-sm" dir="rtl" data-testid="reinforcement-review-panel">
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-        <div className="flex max-w-xl gap-3">
-          <div className="mt-1 grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-white text-amber-700 shadow-sm"><Route size={22} /></div>
-          <div>
-            <div className="mb-1 flex items-center gap-2 text-sm font-bold text-amber-800"><AlertCircle size={16} /> يحتاج قرار تقوية من المشرف</div>
-            <h2 className="text-xl font-extrabold text-navy">اختر نشاطًا معتمدًا قبل متابعة المسار</h2>
-            <p className="mt-2 text-sm leading-7 text-slate-600">لم يجد المحرك تطابقًا آليًا آمنًا بين المهارة الأضعف وأحد أنشطة التقوية الخمسة المعتمدة. لن تختار المنصة نشاطًا عشوائيًا؛ اختر من الأنشطة المعتمدة في المستوى {activeReview.level_id} واكتب سبب القرار.</p>
+    <section className="mx-auto mb-4 w-full max-w-6xl rounded-2xl border border-amber-200 bg-amber-50/90 p-4 shadow-sm" dir="rtl" data-testid="reinforcement-review-panel">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white text-amber-700 shadow-sm"><Route size={20} /></div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 text-sm font-bold text-amber-800"><AlertCircle size={15} /> يحتاج قرار تقوية</div>
+            <p className="mt-1 text-sm text-slate-600">يوجد قرار تقوية يحتاج مراجعة المشرف قبل متابعة المسار.</p>
           </div>
         </div>
+        <button className="btn-secondary" onClick={() => setExpanded((value) => !value)} aria-expanded={expanded}>
+          {expanded ? <ChevronUp size={17} /> : <ChevronDown size={17} />}
+          {expanded ? "إخفاء التفاصيل" : "مراجعة القرار"}
+        </button>
+      </div>
 
-        <div className="w-full rounded-2xl border border-white bg-white/90 p-4 lg:max-w-xl">
+      {expanded && (
+        <div className="mt-4 rounded-2xl border border-white bg-white/95 p-4">
+          <div className="mb-4">
+            <h2 className="text-lg font-extrabold text-navy">اختر نشاطًا معتمدًا للمستوى {activeReview.level_id}</h2>
+            <p className="mt-1 text-sm leading-7 text-slate-600">لن تختار المنصة نشاطًا عشوائيًا. راجع الخيارات المتاحة، اختر الأنسب، واكتب سبب القرار ليُحفظ في السجل.</p>
+          </div>
           {available.length > 0 ? (
-            <div className="space-y-3">
-              <label className="block text-sm font-bold text-navy" htmlFor="reinforcement-option">نشاط التقوية</label>
-              <select id="reinforcement-option" className="input-field w-full" value={selectedItem} onChange={(event) => setSelectedItem(event.target.value)}>
-                {available.map((option) => (
-                  <option key={option.item_id} value={option.item_id}>{option.title}{option.skill_name ? ` — ${option.skill_name}` : ""}</option>
-                ))}
-              </select>
-              <label className="block text-sm font-bold text-navy" htmlFor="reinforcement-reason">سبب الإسناد</label>
-              <textarea id="reinforcement-reason" className="input-field min-h-24 w-full resize-y" value={reason} onChange={(event) => setReason(event.target.value)} placeholder="مثال: راجعت أداء الطالب واخترت هذا النشاط لأنه الأنسب للضعف الظاهر." />
-              <button className="btn-primary w-full justify-center" disabled={busy} onClick={() => void assign()}>
-                <ShieldCheck size={18} /> {busy ? "جاري الحفظ..." : "إسناد النشاط وتوثيق القرار"}
+            <div className="grid gap-3 lg:grid-cols-[1fr_1fr_auto] lg:items-end">
+              <label className="block text-sm font-bold text-navy" htmlFor="reinforcement-option">نشاط التقوية
+                <select id="reinforcement-option" className="input-field mt-2 w-full" value={selectedItem} onChange={(event) => setSelectedItem(event.target.value)}>
+                  {available.map((option) => <option key={option.item_id} value={option.item_id}>{option.title}{option.skill_name ? ` — ${option.skill_name}` : ""}</option>)}
+                </select>
+              </label>
+              <label className="block text-sm font-bold text-navy" htmlFor="reinforcement-reason">سبب الإسناد
+                <input id="reinforcement-reason" className="input-field mt-2 w-full" value={reason} onChange={(event) => setReason(event.target.value)} placeholder="اكتب سبب الاختيار" />
+              </label>
+              <button className="btn-primary justify-center" disabled={busy} onClick={() => void assign()}>
+                <ShieldCheck size={18} /> {busy ? "جاري الحفظ..." : "اعتماد التقوية"}
               </button>
             </div>
           ) : (
             <div className="alert-error">استُخدمت جميع أنشطة التقوية المعتمدة في هذا المستوى. يلزم قرار أكاديمي موثق قبل إضافة محتوى جديد.</div>
           )}
         </div>
-      </div>
-      {visibleMessage && <div className={`mt-4 ${visibleMessage.kind === "success" ? "alert-success" : "alert-error"}`}>{visibleMessage.kind === "success" && <CheckCircle2 size={18} className="inline ml-2" />}{visibleMessage.text}</div>}
+      )}
+
+      {visibleMessage && <div className={`mt-3 ${visibleMessage.kind === "success" ? "alert-success" : "alert-error"}`}>{visibleMessage.text}</div>}
     </section>
   );
 }
