@@ -137,8 +137,58 @@ def _transition_level_session(
     return next_session
 
 
+def _existing_cycle_hold(db: Session, session: AssessmentSession) -> dict | None:
+    """Keep bounded verification/escalation authoritative over fresh adaptation."""
+    cycle = (
+        db.query(ReinforcementCycle)
+        .filter(
+            ReinforcementCycle.session_id == session.id,
+            ReinforcementCycle.status.in_(["verification_pending", "escalated"]),
+        )
+        .order_by(ReinforcementCycle.id.desc())
+        .first()
+    )
+    if cycle is None:
+        return None
+    if cycle.status == "verification_pending":
+        return {
+            "continue_learning": True,
+            "decision": {"ready": True, "action": "verify_core_after_reinforcement"},
+            "recommended_attempt_id": None,
+            "verification_attempt_id": cycle.source_attempt_id,
+            "mapping_blocked": False,
+            "recommendation_fulfilled": True,
+            "verification_escalated": False,
+            "reinforcement_cycle_id": cycle.id,
+            "level_id": session.assigned_level,
+            "session_id": session.id,
+            "level_transitioned": False,
+        }
+    return {
+        "continue_learning": False,
+        "decision": {
+            "ready": True,
+            "action": "supervisor_hold",
+            "reason": cycle.escalation_reason or "reinforcement_verification_escalated",
+        },
+        "recommended_attempt_id": None,
+        "verification_attempt_id": None,
+        "mapping_blocked": False,
+        "recommendation_fulfilled": True,
+        "verification_escalated": True,
+        "reinforcement_cycle_id": cycle.id,
+        "level_id": session.assigned_level,
+        "session_id": session.id,
+        "level_transitioned": False,
+    }
+
+
 def prepare_next_for_student(db: Session, student: Student, session: AssessmentSession) -> dict:
     """Evaluate the latest evidence and prepare the next safe learning action."""
+    existing_hold = _existing_cycle_hold(db, session)
+    if existing_hold is not None:
+        return existing_hold
+
     decision_payload = evaluate_student(db, student)
     if not decision_payload.get("ready"):
         return {
