@@ -11,6 +11,7 @@ from db.models import Base
 # the production schema rather than silently ignoring them.
 import db.activity_models  # noqa: F401,E402
 import db.adaptation_models  # noqa: F401,E402
+import db.reinforcement_models  # noqa: F401,E402
 import db.speech_models  # noqa: F401,E402
 from db.database import SQLALCHEMY_DATABASE_URL
 
@@ -23,7 +24,6 @@ target_metadata = Base.metadata
 def run_migrations_offline() -> None:
     context.configure(
         url=SQLALCHEMY_DATABASE_URL,
-        target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
     )
