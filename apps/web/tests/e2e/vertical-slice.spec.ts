@@ -370,13 +370,17 @@ test.describe("Himma recovered vertical slice", () => {
     } = await studentStateResponse.json();
 
     await page.goto(`/admin/students/${studentId}`);
+    await expect(page.getByRole("heading", { name: studentName })).toBeVisible({ timeout: 12000 });
+
+    await page.getByRole("button", { name: "المسار والتقدم" }).click();
     await expect(
       page.getByText(`${studentState.core_completed_items} من ${studentState.core_total_items}`),
     ).toBeVisible({ timeout: 12000 });
-    await expect(
-      page.getByRole("paragraph").filter({ hasText: new RegExp(`^المستوى ${studentState.current_level}$`) }),
-    ).toBeVisible();
-    await expect(page.getByText("تعديل المشرف")).toBeVisible();
+    await expect(page.getByText(`المستوى ${studentState.current_level}`, { exact: true }).first()).toBeVisible();
+
+    await page.getByRole("button", { name: "التقوية والتكيف" }).click();
+    await expect(page.getByTestId("adaptation-panel")).toBeVisible();
+    await expect(page.getByText("التعديل اليدوي لا يحذف القرار الآلي")).toBeVisible();
 
     // Academic contract: placement chooses a starting level, then the journey
     // continues through later levels before posttest. Promotion therefore opens
@@ -385,7 +389,8 @@ test.describe("Himma recovered vertical slice", () => {
       expect(studentState.posttest_eligible).toBe(false);
     }
 
-    const posttestButton = page.getByRole("button", { name: "فتح الاختبار" });
+    await page.getByRole("button", { name: "الاختبارات" }).click();
+    const posttestButton = page.getByRole("button", { name: /فتح الاختبار البعدي|إيقاف الإتاحة/ });
     if (studentState.posttest_eligible) {
       await expect(posttestButton).toBeEnabled();
     } else {
@@ -396,8 +401,9 @@ test.describe("Himma recovered vertical slice", () => {
     if (adaptiveReviewHold) {
       const panel = page.getByTestId("reinforcement-review-panel");
       await expect(panel).toBeVisible({ timeout: 10000 });
+      await panel.getByRole("button", { name: "مراجعة القرار" }).click();
       await panel.getByLabel("سبب الإسناد").fill("اختيار نشاط تقوية معتمد لاستكمال المسار بعد مراجعة الأداء.");
-      await panel.getByRole("button", { name: "إسناد النشاط وتوثيق القرار" }).click();
+      await panel.getByRole("button", { name: "اعتماد التقوية" }).click();
       await expect(page.getByText("تم إسناد نشاط التقوية. يستطيع الطالب الآن متابعة مساره.")).toBeVisible({ timeout: 8000 });
       await shot(page, "15-supervisor-reinforcement-assigned");
 
