@@ -1,268 +1,228 @@
-# خطة الصيانة والتحسين الشاملة — هِمّة
+# خطة الصيانة والتحسين الشاملة — هِمّة — حالة تنفيذية 2026-08-28
 
-**التاريخ:** 2026-08-28  
-**الحالة:** الخطة التنفيذية الحالية بعد المراجعة الأكاديمية والمنتجية
+**الحالة:** ACTIVE MAINTENANCE PROGRAM  
+**الفرع:** `recovery/ui-media-admin-overhaul`
 
 ## المبدأ
 
-لا ننفذ إصلاحات مشتتة. نثبت الحقيقة، ثم نصلح القلب الأكاديمي، ثم المحتوى/التقوية، ثم تجربة الطالب والمشرف، ثم التقارير والصوت والإطلاق.
+نثبت الحقيقة بالكود والاختبارات، ثم الأكاديمي، ثم المحتوى والتقوية، ثم تجربة الطالب والمشرف، ثم responsive/accessibility، ثم التقارير والصوت والإطلاق. لا نغلق مرحلة بمجرد جمال الواجهة، ولا نغير قاعدة أكاديمية لتمرير اختبار.
 
 ---
 
-## M00 — استعادة HEAD أخضر
+## M00 — استعادة HEAD أخضر — ✅ CLOSED
 
-**الأولوية:** P0/P1
-
-الحالة عند إنشاء الخطة:
-
-- HEAD الأساسي قبل commits التوثيقية: `0f46e7e9421e7617f72fd03de3199df955084cd0`.
-- Run #206 / `33139416128`: frontend SUCCESS، backend SUCCESS، integration/Playwright FAILURE.
-
-المطلوب:
-
-1. فحص Playwright report/logs للرأس الحالي.
-2. إصلاح السبب دون reset أو حذف سلسلة الإصلاحات الأخيرة.
-3. إعادة تشغيل Quality Gate.
-4. تحديث `STATUS.md` و`progress.json` بالدليل الجديد.
-
-Gate: الثلاثة Frontend/Backend/Integration = SUCCESS.
+أُصلح lineage الأحمر القديم واستعيد Quality Gate أخضر. تقرير الإغلاق: `docs/ops/M00_CLOSURE_2026-08-28_AR.md`.
 
 ---
 
-## M01 — Placement Scoring & Gates
+## M01 — Placement Scoring & Gates — ✅ CLOSED
 
-**الأولوية:** P1 أكاديمي
+نُفذ/ثُبت:
 
-المطلوب:
+- scoring section-based 20/40/40 بدل equal-weight 30-item percentage.
+- readiness gate: أقل من 12/20 ⇒ L1.
+- عدم اختراع threshold غير معتمد لبوابات القراءة/الصوت.
+- TEMP_AUDIO_SKIP لا يتحول إلى خطأ أكاديمي.
+- placement الذي يعتمد دليلًا غير متاح يمكن أن يكون provisional بدل اختلاق evidence.
 
-- Scoring 20/40/40.
-- L1 gate: الاستعداد <12/20.
-- L2 reading/word gate.
-- L3 basic reading/text accuracy gate.
-- لا اختراع threshold غير معتمد؛ ضع setting أو blocker واضحًا.
-- TEMP_AUDIO_SKIP يجعل القرار Provisional إذا غاب دليل صوتي لازم.
-
-Tests:
-
-- boundary values.
-- section weights.
-- gate overrides total score.
-- neutral skipped audio.
+تقرير: `docs/ops/M01_CLOSURE_2026-08-28_AR.md`.
 
 ---
 
-## M02 — Adaptation State Machine
+## M02 — Adaptation State Machine — ✅ CLOSED
 
-**الأولوية:** P1
+ثُبت:
 
-المطلوب:
+- Placement منفصل مفهوميًا عن ongoing learning adaptation.
+- `>=80` pass.
+- `70–<80` guided retry.
+- `<70` weakness + reinforcement path.
+- mastery 50/30/20 كـtrend/profile وليس shortcut لإكمال المستوى.
+- 10/10 core gate.
+- upward journey من starting level إلى L3.
+- Posttest بعد L3 فقط.
+- level transitions تحتفظ بتاريخ المستويات بدل مسحها.
 
-- Placement منفصل عن adaptation.
-- 80+ pass.
-- 70–79 guided retry.
-- <70 weakness + reinforcement.
-- 50/30/20 كـtrend/mastery.
-- 10/10 core gate للترقية.
-- Core Session مستقلة لكل مستوى.
-- L1→L2→L3→journey complete.
-- لا Posttest بعد L1/L2.
+تقرير: `docs/ops/M02_CLOSURE_2026-08-28_AR.md`.
 
-قرار يجب حسمه قبل إزالة الكود القديم:
-
-- Automatic Demotion: المراجعة توصي بإلغائه من المسار العادي واعتماد support داخل المستوى + manual supervisor override فقط.
-
-Gate:
-
-- property/boundary tests.
-- E2E لطلاب يبدأون L1/L2/L3.
+**قرار ما يزال مفتوحًا:** Automatic Demotion في المسار العادي. لا يُحذف صامتًا؛ الاتجاه المقترح support داخل المستوى + documented supervisor override.
 
 ---
 
-## M03 — Reinforcement Content & Mapping
+## M03 — Reinforcement Content & Mapping — 🟡 IMPLEMENTED WITH EXPLICIT RESIDUAL GAPS
 
-**الأولوية:** P1/P2
+تم:
 
-المطلوب:
+- الحفاظ على 15 تقوية أصلية.
+- إضافة 18 تقوية versioned معتمدة: L1 +7، L2 +6، L3 +5.
+- total reinforcement = 33.
+- full seed = 123 items.
+- Skill → Skill Family → Reinforcement mapping.
+- no random fallback / no cross-level fallback.
+- durable `ReinforcementCycle` + migration `0008_reinforcement_cycles`.
+- ضعف → تقوية → رجوع للنشاط الأساسي → verification → continue.
+- bounded verification attempts ثم supervisor intervention.
 
-- إضافة 18 تقوية جديدة فوق 15 الأصلية.
-- Skill Family mapping.
-- metadata للتقوية.
-- return-to-core verification.
-- max retry policy.
-- supervisor intervention عند التعثر.
-- no random fallback.
+### 3 فجوات باقية لا يجوز إخفاؤها
 
-المراجع:
+1. L2 قراءة كلمات السكون.
+2. L3 الفهم المباشر.
+3. L3 بناء الجملة.
 
-- `docs/specs/REINFORCEMENT_CONTENT_ADDITIONS_2026-08-28_AR.md`
-- `docs/specs/ADAPTATION_REINFORCEMENT_REDESIGN_2026-08-28_AR.md`
+مرجع: `docs/ops/M03_RESIDUAL_CONTENT_GAPS_2026-08-28_AR.md`.
 
-Gate:
-
-- كل core skill له mapping معتمد أو explicit supervisor path.
-- لا skill gap صامت.
-
----
-
-## M04 — Student Product UI
-
-**الأولوية:** P2 لكن شرط تسليم المنتج
-
-المطلوب:
-
-- Full-screen learning stage.
-- Unified Student Task Shell.
-- Companion character 220–300px تقريبًا على desktop عند الحاجة.
-- contextual instructions.
-- حفظ والخروج.
-- recording state machine.
-- result/reward screen.
-- L1/L2/L3 journey visibility.
-- same system for pre/post/core/reinforcement.
-
-Gate:
-
-- desktop/mobile/tablet screenshots.
-- no horizontal overflow.
-- all interaction templates coherent.
+**Gate المتبقي أكاديميًا لهذه الثلاث:** اعتماد mapping مباشر أو Micro-Reinforcement جديد. إلى ذلك الحين Safe Hold للمشرف.
 
 ---
 
-## M05 — Supervisor Product UX
+## M04 — Student Product UI — ✅ REBUILT / ACCEPTED BASELINE
 
-**الأولوية:** P2
+تم:
 
-المطلوب:
+- Full-screen / `100dvh` Learning Stage.
+- إعادة بناء نشاط الطالب لاستغلال الشاشة بدل Card ضيقة وفراغات كبيرة.
+- إبراز الشخصية التعليمية + instruction bubble.
+- تحسين image/text/sequence/read/record interactions.
+- توحيد assessment shell بصريًا مع learning stage.
+- responsive phone/tablet/desktop rules.
+- reduced-motion support.
+- five-size Responsive Visual Gate.
+- visual/runtime regression coverage مع vertical slice.
 
-- Admin IA جديدة.
-- Action Center dashboard.
-- student list/search/filter.
-- Student Profile tabs.
-- reinforcement review drawer/page.
-- audio review robust flow.
-- account/security/supervisors settings grouping.
-- audit/history surfaces.
-
-Gate:
-
-- supervisor can understand current student state without reading raw technical fields.
-- common actions <= few clicks and clearly named.
+**مبدأ ثابت:** لا نعدل الـ105 الأصلية أثناء UI work.
 
 ---
 
-## M06 — Responsive / Accessibility / Design QA
+## M05 — Supervisor Product UX — ✅ REBUILT / ACCEPTED BASELINE
 
-المقاسات الإلزامية:
+تم:
 
-- 390×844.
-- 768×1024.
-- 1024×768.
-- 1440×900.
+- Admin IA / Shell جديدان.
+- إصلاح ظهور mobile/desktop navigation المتداخل تاريخيًا.
+- Dashboard نحو Action Center: ما يحتاج انتباه المشرف أولًا ثم الإحصاءات.
+- Student Profile تحول إلى workspace tabs بدل صفحة واحدة طويلة.
+- reinforcement review أصبح focused expandable alert.
+- settings قسمت إلى Account / Security / Supervisors.
+- vertical slice عُدل للتنقل الجديد ونجح على آخر implementation run حتى نقطة M06.
 
-Checks:
+مرجع جديد: `docs/ops/M05_HANDOFF_2026-08-28_AR.md`.
 
+---
+
+## M06 — Responsive / Accessibility / Design QA — 🔵 ACTIVE
+
+### المنجز
+
+- global focus-visible safeguards.
+- reduced-motion safeguards.
+- contrast tokens محسنة.
+- Responsive Visual Gate على:
+  - 360×800.
+  - 390×844.
+  - 768×1024.
+  - 1024×768.
+  - 1440×900.
+- Accessibility integration checks لـRTL/keyboard/overflow/zoom/contrast/technical-language.
+
+### آخر دليل
+
+Implementation HEAD: `98fdc638737bdb8ab9be4937cff6155865998d1f`.
+
+Responsive Visual Gate Run `33202256450`: **SUCCESS**.
+
+Main Quality Gate #298 / `33202256449`:
+
+- Backend SUCCESS.
+- Frontend SUCCESS.
+- Integration FAILURE.
+
+الفشل الحالي الوحيد: mobile supervisor navigation test يبحث داخل dialog عن class `a.sidebar-nav-item` ولا يجدها. الـdialog نفسه visible، وVertical Slice وبقية accessibility tests نجحت.
+
+### المهمة الحالية
+
+إصلاح selector/markup contract بشكل semantic دون خفض شرط touch target 44px، ثم إعادة Quality Gate حتى الأخضر الكامل.
+
+### Gate M06 النهائي
+
+- no horizontal overflow على المقاسات الخمسة.
 - Touch >=44px.
 - Focus visible.
-- Keyboard admin.
-- 200% zoom.
-- contrast.
-- RTL/shaping.
+- Keyboard admin navigation.
+- 200% zoom usable.
+- normal-text contrast acceptable.
+- RTL/shaping صحيح.
 - reduced motion.
-- no technical text to child.
+- no implementation vocabulary child-facing.
+- screenshots reviewed visually، لا automation فقط.
+
+مرجع: `docs/ops/M06_PROGRESS_2026-08-28_AR.md`.
 
 ---
 
-## M07 — Research Reports
+## M07 — Research Reports — ⏳ PENDING
 
 المطلوب:
 
-- Pre/Post.
-- absolute improvement.
-- percentage improvement.
-- skill errors.
-- reading error categories where valid.
+- Pre/Post comparison.
+- absolute + percentage improvement.
+- per-skill errors.
+- reading C/D/I/S حيث يوجد valid evidence.
 - time/attempts.
-- start/final level.
+- starting/final level.
 - reinforcement history.
+- filters + individual/aggregate views.
 - Excel multi-sheet.
 - PDF individual + aggregate.
 - export audit log.
 
-Gate: UI/Excel/PDF agree with DB.
+Gate: UI/Excel/PDF تتفق مع DB ولا تختلق metric من صوت غير محلل.
 
 ---
 
-## M08 — Real Speech Analysis
+## M08 — Real Speech Analysis — ⏳ PENDING / EXTERNAL-GATED
 
-لا يبدأ كإغلاق نهائي قبل:
+الهدف: **Reference-Guided Arabic Reading Analysis**.
+
+البنية الأساسية موجودة، لكن لا إغلاق حقيقي قبل:
 
 - representative recordings.
-- provider selection.
+- provider selection/connection.
 - privacy/cost/transfer decision.
-- confidence calibration.
+- confidence calibration/versioning.
 - retention policy.
+- sample evaluation + manual review fallback.
 
-Architecture:
-
-Reference-guided Arabic reading analysis.
-
-Gate:
-
-- real adapter.
-- sample evaluation.
-- manual review for low confidence.
-- no unsupported phoneme/haraka claims.
+لا تدعِ أن ASR مكتمل.
 
 ---
 
-## M09 — Release / UAT
+## M09 — Release / UAT — ⏳ PENDING
 
-- E2E UC scenarios.
-- service failure/network/microphone cases.
-- security/privacy.
-- backup + restore.
-- HTTPS/domain.
+- complete E2E scenarios.
+- network/microphone/service failure cases.
+- security/privacy review.
+- backup + restore drill.
+- production domain/HTTPS.
 - monitoring/logging.
-- synthetic-data UAT first.
-- final manuals.
+- synthetic-data UAT أولًا.
+- final manuals/handoff.
 
-Gate: accepted ACs or written exemptions only.
-
----
-
-## الأولويات
-
-### P0
-
-- current red CI.
-- security/data loss/permission problems if discovered.
-
-### P1
-
-- scoring/placement correctness.
-- adaptation state machine.
-- reinforcement correctness.
-- broken student journey.
-
-### P2
-
-- UI architecture.
-- admin IA.
-- responsive/accessibility.
-- reports completeness.
-
-### P3
-
-- cosmetic polish after correctness.
+Gate: accepted ACs أو written exemptions فقط.
 
 ---
 
-## ممنوعات أثناء الصيانة
+## ثوابت البرنامج
 
-- لا reset/hard rollback للتخلص من المشكلة بدل إصلاحها.
+- لا reset/hard rollback للتخلص من Regression.
 - لا تعديل tests لتخفيض التوقعات.
-- لا mocks في مسار يقال إنه إنتاجي.
 - لا fake score للصوت.
-- لا تعويض وسائط مفقودة بأصول غير معتمدة.
-- لا تغيير قواعد أكاديمية بصمت.
-- لا مزج تطوير P3 قبل حل P1.
+- لا وسائط مختلقة بدل gap معلن.
+- لا random reinforcement.
+- لا قواعد أكاديمية بصمت.
+- لا Posttest بعد L1/L2 فقط.
+- لا خلط بين نجاح CI واكتمال المنتج.
+- لا Docker محليًا لهِمّة.
+
+## ترتيب الاستئناف الآن
+
+**M06 current red integration test → Green Quality Gate → M06 closure → M07 → M08 (بعد external gates) → M09.**
