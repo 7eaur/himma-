@@ -1,26 +1,25 @@
 {
-  "schema_version": 4,
-  "plan_version": "HIMMA-MAINTENANCE-2026-08-28-M06",
+  "schema_version": 5,
+  "plan_version": "HIMMA-MAINTENANCE-2026-08-28-M07",
   "repository": "7eaur/himma-",
   "branch": "recovery/ui-media-admin-overhaul",
-  "implementation_head_before_latest_docs": "98fdc638737bdb8ab9be4937cff6155865998d1f",
+  "accepted_m06_implementation_head": "cdb02c75ad33d1b002ee1fdb84ecf1fee3dc57d4",
   "current_program": "FULL_MAINTENANCE",
-  "current_slice": "M06_RESPONSIVE_ACCESSIBILITY_DESIGN_QA",
+  "current_slice": "M07_RESEARCH_REPORTS",
   "status": "IN_PROGRESS",
   "latest_main_quality_gate": {
-    "run_number": 298,
-    "run_id": 33202256449,
-    "head_sha": "98fdc638737bdb8ab9be4937cff6155865998d1f",
+    "run_number": 314,
+    "run_id": 33211325199,
+    "head_sha": "cdb02c75ad33d1b002ee1fdb84ecf1fee3dc57d4",
     "frontend": "SUCCESS",
     "backend": "SUCCESS",
-    "integration": "FAILURE",
-    "vertical_slice": "SUCCESS",
-    "failure": "M06 mobile supervisor navigation accessibility test: dialog is visible but locator a.sidebar-nav-item inside it finds no element"
+    "integration": "SUCCESS",
+    "playwright": "SUCCESS"
   },
   "latest_responsive_visual_gate": {
-    "run_number": 18,
-    "run_id": 33202256450,
-    "head_sha": "98fdc638737bdb8ab9be4937cff6155865998d1f",
+    "run_number": 22,
+    "run_id": 33211325207,
+    "head_sha": "cdb02c75ad33d1b002ee1fdb84ecf1fee3dc57d4",
     "status": "SUCCESS",
     "viewports": ["360x800", "390x844", "768x1024", "1024x768", "1440x900"]
   },
@@ -31,8 +30,8 @@
     "M03": "IMPLEMENTED_WITH_3_EXPLICIT_CONTENT_GAPS",
     "M04": "REBUILT_ACCEPTED_BASELINE",
     "M05": "REBUILT_ACCEPTED_BASELINE",
-    "M06": "ACTIVE",
-    "M07": "PENDING",
+    "M06": "CLOSED",
+    "M07": "ACTIVE",
     "M08": "PENDING_EXTERNAL_GATES",
     "M09": "PENDING"
   },
@@ -108,21 +107,35 @@
     "reinforcement_review_expandable": true,
     "settings_tabs": ["account", "security", "supervisors"]
   },
-  "m06_passed_checks_on_run_298": [
-    "supervisor RTL keyboard focus overflow",
-    "reduced motion",
-    "200 percent zoom equivalent",
-    "critical palette contrast",
-    "child surfaces hide implementation vocabulary",
-    "full vertical slice"
-  ],
-  "m06_current_failure": {
-    "file": "apps/web/tests/e2e/accessibility-integration.spec.ts",
-    "scenario": "mobile supervisor navigation keeps touch targets and layout intact",
-    "observed": "dialog named قائمة لوحة المشرف is visible; a.sidebar-nav-item locator inside it returns no element",
-    "must_preserve": ["touch target >=44px", "semantic mobile navigation", "no horizontal overflow"],
-    "likely_fix_class": "align test selector with actual semantic mobile nav markup or add stable semantic/test identifier; do not weaken assertion"
+  "m06_closure": {
+    "main_quality_gate": "SUCCESS",
+    "responsive_visual_gate": "SUCCESS",
+    "semantic_mobile_nav_locator": true,
+    "mobile_menu_button_min_44": true,
+    "mobile_nav_link_min_44": true,
+    "mobile_close_min_44": true,
+    "no_horizontal_overflow": true,
+    "rtl_keyboard_focus": true,
+    "zoom_200_equivalent": true,
+    "contrast_gate": true,
+    "reduced_motion": true,
+    "child_technical_vocabulary_scan": true,
+    "mobile_menu_screenshot": "playwright-report/screenshots/18-mobile-supervisor-menu.png",
+    "visual_review_completed": true
   },
+  "m07_contract": [
+    "pre/post comparison",
+    "absolute improvement",
+    "percentage improvement when defined",
+    "supported skill/error summaries",
+    "time and attempts",
+    "start/final level",
+    "reinforcement history",
+    "Excel multi-sheet export",
+    "PDF individual and aggregate export",
+    "export audit log",
+    "UI/exports agree with persisted data"
+  ],
   "external_blockers": [
     "representative child-reading recordings",
     "production ASR provider/privacy/cost/recording-transfer decision",
@@ -132,5 +145,5 @@
     "final study duration/session policy",
     "deployment/domain details before release"
   ],
-  "next_action": "Fix M06 mobile supervisor navigation test/markup selector mismatch without weakening >=44px accessibility requirement, rerun Main Quality Gate to full green, complete M06 visual/accessibility sign-off, then start M07 Research Reports."
+  "next_action": "Audit existing report API, UI, persistence models, and export capabilities against the M07 contract; implement the next smallest complete M07 slice with tests without changing academic rules silently."
 }
