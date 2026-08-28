@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Mic, Play, RotateCcw, Square, Upload, Volume2 } from "lucide-react";
+import { Mic, Square, Upload } from "lucide-react";
 import styles from "./speech-lab.module.css";
 
 type Target = {
