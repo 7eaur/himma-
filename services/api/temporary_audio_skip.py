@@ -1,9 +1,23 @@
 """Temporary neutral bypass and authoritative pre/post completion policy.
 
-Voice skipping remains a testing-only feature. The finish endpoint also owns the
-recovered assessment scoring contract so normal and temporary-skip sessions use
-one placement rule: readiness 20 points, word-building/reading 40, and fluency/
-comprehension 40. Posttest results never rewrite the student's learning level.
+Voice skipping remains a testing-only feature.  This router is registered before
+the legacy assessment finish route and therefore owns the current pre/post
+completion contract.
+
+M01 source-of-truth rules:
+
+* readiness = 10 items / 20 points;
+* word building and reading = 12 items / 40 points;
+* fluency and comprehension = 8 items / 40 points;
+* readiness below 12/20 forces L1;
+* 50..79.99 is L2;
+* L3 additionally requires approved word-reading and text-accuracy gates.
+
+The approved client source does not currently provide numeric thresholds for the
+last two L3 gates.  The runtime therefore records a provisional L2 placement for
+an otherwise >=80 result instead of inventing thresholds.  Neutral audio/media
+evidence is excluded from the academic denominator and makes the result
+provisional rather than wrong.
 """
 
 from __future__ import annotations
@@ -29,6 +43,7 @@ from db.models import (
     Student,
 )
 from dependencies import get_current_student, get_db
+from placement_scoring import AssessmentEvidence, decide_initial_placement, score_assessment
 from runtime_flags import temporary_audio_skip_enabled
 
 router = APIRouter(tags=["Temporary audio testing"])
@@ -37,6 +52,11 @@ SECTION_WEIGHTS = {
     "readiness": Decimal("20"),
     "word_building": Decimal("40"),
     "fluency_comprehension": Decimal("40"),
+}
+SECTION_ID_BY_NAME = {
+    "readiness": 1,
+    "word_building": 2,
+    "fluency_comprehension": 3,
 }
 
 
@@ -160,6 +180,13 @@ def _section_name(order_index: int) -> str:
     return "fluency_comprehension"
 
 
+def _section_id(item: ContentItem) -> int:
+    """Prefer catalog level_id because it is the authoritative assessment section."""
+    if item.level_id in {1, 2, 3}:
+        return int(item.level_id)
+    return SECTION_ID_BY_NAME[_section_name(item.order_index)]
+
+
 def _attempt_score(
     db: Session,
     attempt: Attempt,
@@ -250,7 +277,7 @@ def _score_assessment(
         raise HTTPException(status_code=400, detail="أكمل الأسئلة الثلاثين قبل إنهاء الاختبار")
 
     markers = _temporary_skip_markers(db, student.id, session.id)
-    section_scores: dict[str, list[Decimal]] = {key: [] for key in SECTION_WEIGHTS}
+    evidence: list[AssessmentEvidence] = []
     real_audio_evidence = 0
     neutral_skip_count = 0
 
@@ -258,50 +285,33 @@ def _score_assessment(
         item = db.query(ContentItem).filter(ContentItem.id == attempt.item_id).first()
         if not item:
             raise HTTPException(status_code=409, detail="تعذر تحميل أحد أسئلة الاختبار")
-        score, has_audio, skips = _attempt_score(db, attempt, markers)
+        item_score, has_audio, skips = _attempt_score(db, attempt, markers)
         real_audio_evidence += int(has_audio)
         neutral_skip_count += skips
-        if score is not None:
-            section_scores[_section_name(item.order_index)].append(score)
+        evidence.append(AssessmentEvidence(section_id=_section_id(item), score=item_score))
 
-    section_points: dict[str, Decimal] = {}
-    for section, weight in SECTION_WEIGHTS.items():
-        values = section_scores[section]
-        if not values:
-            # No evidence must never be silently promoted into full credit.
-            section_points[section] = Decimal("0")
-        else:
-            section_points[section] = (sum(values, Decimal("0")) / Decimal(len(values))) * weight
-
-    final_percentage = sum(section_points.values(), Decimal("0"))
-    readiness_points = section_points["readiness"]
+    assessment_score = score_assessment(evidence)
+    section_points = {
+        "readiness": assessment_score.sections[1].points,
+        "word_building": assessment_score.sections[2].points,
+        "fluency_comprehension": assessment_score.sections[3].points,
+    }
     return {
-        "final_percentage": final_percentage,
+        "assessment_score": assessment_score,
+        "final_percentage": assessment_score.total_points,
         "section_points": section_points,
-        "readiness_points": readiness_points,
+        "readiness_points": assessment_score.sections[1].points,
         "real_audio_evidence": real_audio_evidence,
         "neutral_skip_count": neutral_skip_count,
-        "scorable_items": sum(len(values) for values in section_scores.values()),
+        "scorable_items": sum(section.valid_items for section in assessment_score.sections.values()),
+        "provisional_reasons": list(assessment_score.provisional_reasons),
     }
 
 
 def _pretest_placement(scored: dict) -> tuple[int, str, bool]:
-    final_percentage: Decimal = scored["final_percentage"]
-    readiness_points: Decimal = scored["readiness_points"]
-    if readiness_points < Decimal("12"):
-        return 1, "readiness_gate_below_12_of_20", False
-    if final_percentage < Decimal("50"):
-        return 1, "overall_below_50", False
-    if final_percentage < Decimal("80"):
-        return 2, "overall_50_to_below_80", False
-
-    # Temporary neutral skips are test-only and are excluded from the denominator.
-    # When all remaining approved evidence is >=80, keep the academic band at L3
-    # but mark the placement provisional until real reviewed reading evidence is
-    # available. Production ASR remains blocked by OI-02/OI-03.
-    if scored["real_audio_evidence"] <= 0:
-        return 3, "overall_80_plus_reading_evidence_provisional", True
-    return 3, "overall_80_plus_with_reading_evidence", False
+    """Return the source-grounded placement without manufacturing L3 gates."""
+    decision = decide_initial_placement(scored["assessment_score"])
+    return decision.assigned_level, decision.reason, decision.status == "provisional"
 
 
 def _finish_session_with_journey_scoring(db: Session, student: Student, session: AssessmentSession) -> dict:
@@ -313,7 +323,7 @@ def _finish_session_with_journey_scoring(db: Session, student: Student, session:
     now = datetime.now(timezone.utc)
 
     placement_reason = None
-    provisional = False
+    provisional = bool(scored["assessment_score"].provisional)
     result_band = 1 if final_percentage < 50 else 2 if final_percentage < 80 else 3
 
     if session.session_type == "pretest":
@@ -343,6 +353,7 @@ def _finish_session_with_journey_scoring(db: Session, student: Student, session:
         "section_points": {key: float(value) for key, value in scored["section_points"].items()},
         "placement_reason": placement_reason,
         "placement_provisional": provisional,
+        "placement_provisional_reasons": scored["provisional_reasons"],
         "temporary_audio_skips": scored["neutral_skip_count"],
         "scorable_items": scored["scorable_items"],
         "scorable_units": scored["scorable_items"],
