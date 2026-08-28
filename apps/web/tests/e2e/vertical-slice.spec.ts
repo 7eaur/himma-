@@ -358,16 +358,38 @@ test.describe("Himma recovered vertical slice", () => {
 
     await context.clearCookies();
     await loginAsSupervisor(request, context);
+
+    const studentStateResponse = await request.get(`${API_URL}/researcher/students/${studentId}`);
+    expect(studentStateResponse.status()).toBe(200);
+    const studentState: {
+      current_level: number;
+      core_completed_items: number;
+      core_total_items: number;
+      core_completed: boolean;
+      posttest_eligible: boolean;
+    } = await studentStateResponse.json();
+
     await page.goto(`/admin/students/${studentId}`);
-    await expect(page.getByText("10 من 10")).toBeVisible({ timeout: 12000 });
+    await expect(
+      page.getByText(`${studentState.core_completed_items} من ${studentState.core_total_items}`),
+    ).toBeVisible({ timeout: 12000 });
+    await expect(page.getByText(`المستوى ${studentState.current_level}`)).toBeVisible();
     await expect(page.getByText("تعديل المشرف")).toBeVisible();
-    const posttestButton = page.getByRole("button", { name: "فتح الاختبار" });
-    if (adaptiveReviewHold) {
-      await expect(posttestButton).toBeDisabled();
-    } else {
-      await expect(posttestButton).toBeEnabled();
+
+    // Academic contract: placement chooses a starting level, then the journey
+    // continues through later levels before posttest. Promotion therefore opens
+    // a fresh core session and current-level progress may correctly reset to 0/10.
+    if (studentState.current_level < 3 || !studentState.core_completed) {
+      expect(studentState.posttest_eligible).toBe(false);
     }
-    await shot(page, "14-supervisor-student-management-10-of-10");
+
+    const posttestButton = page.getByRole("button", { name: "فتح الاختبار" });
+    if (studentState.posttest_eligible) {
+      await expect(posttestButton).toBeEnabled();
+    } else {
+      await expect(posttestButton).toBeDisabled();
+    }
+    await shot(page, "14-supervisor-student-management-current-level");
 
     if (adaptiveReviewHold) {
       const panel = page.getByTestId("reinforcement-review-panel");
