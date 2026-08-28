@@ -5,7 +5,7 @@
   "phase": "STAGE-4-P07-SPEECH-ANALYSIS",
   "slice": "P07-PROVIDER-NEUTRAL-INFRASTRUCTURE",
   "gate_status": "IN_PROGRESS",
-  "last_verified": "2026-08-25",
+  "last_verified": "2026-08-28",
   "base_checkpoint": "53666a0a67d19586ed1ea792b93d5c102dcb7883",
   "last_accepted_implementation_sha": "8d64eb9766fd69618960af0b279ae94484618d17",
   "accepted_checkpoints": {
@@ -16,7 +16,19 @@
     "B03": "b03/adaptive-learning-engine@8d64eb9766fd69618960af0b279ae94484618d17"
   },
   "p07_infrastructure": {
-    "status": "IMPLEMENTED_PENDING_REMOTE_GATE",
+    "status": "IMPLEMENTED_REMOTE_GATE_GREEN",
+    "implementation_sha": "d4bf7fff33bacf7ac02f4e0e81a72c659bf1a2ce",
+    "github_actions": {
+      "workflow": "Himma CI — Quality Gate",
+      "run_number": 102,
+      "run_id": 32806215309,
+      "conclusion": "success",
+      "jobs": {
+        "backend": "success",
+        "frontend": "success",
+        "integration": "success"
+      }
+    },
     "delivered": [
       "durable speech_analysis_jobs queue schema",
       "durable speech_analyses result schema",
@@ -34,15 +46,17 @@
   },
   "blockers": [
     "OI-02 production ASR provider/privacy/cost/recording-transfer decision is not yet approved",
-    "Representative recordings from the client are pending",
-    "OI-03 confidence threshold must be calibrated from those representative recordings",
+    "Representative Arabic child-reading recordings on known Himma texts are pending",
+    "OI-03 confidence threshold must be calibrated from representative recordings",
+    "OI-05 retention policy is required before real child data is stored in production",
     "No automatic academic speech scoring may be enabled before the provider and calibration gates are satisfied"
   ],
   "safety_rules": [
     "No fake production ASR adapter",
     "No academic penalty for provider failure or unresolved/low-confidence speech",
     "No phoneme/haraka claim without calibration evidence",
-    "Accepted B03 adaptation rules remain unchanged"
+    "Accepted B03 adaptation rules remain unchanged",
+    "Static instruction/prompt audio is not a substitute for representative child-reading calibration recordings"
   ],
-  "next_step": "Finish the remote CI gate for the provider-neutral P07 infrastructure. When representative recordings arrive, evaluate and approve a real ASR provider, calibrate confidence, add the real adapter, then run the private MinIO -> worker -> ASR -> alignment -> researcher-review integration gate."
+  "next_step": "Do not repeat the green infrastructure CI gate. Obtain representative Arabic child-reading recordings on known Himma reference texts, benchmark candidate ASR providers, approve OI-02, calibrate OI-03, add the real provider adapter, then run the private MinIO -> worker -> ASR -> alignment -> persisted result -> researcher-review integration gate."
 }
