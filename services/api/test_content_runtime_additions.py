@@ -69,19 +69,21 @@ def test_missing_saa_audio_is_explicit_neutral_gap_not_fake_asset():
         db.close()
 
 
-def test_sequence_reuses_only_semantically_approved_existing_images():
+def test_sequence_reuses_only_semantically_approved_images():
     _seed_full_catalog()
     db = SessionLocal()
     try:
         item = _item(db, "L1-REIN-12")
-        # Existing seed/growth scene is approved and can be reused.
+        first_round_assets = step_assets(item, item.steps[0])
+        assert [(asset["asset_id"], asset["semantic_text"]) for asset in first_round_assets] == [
+            ("HIMMA-GEN-SEQ-001", "غسل اليدين"),
+            ("HIMMA-GEN-SEQ-002", "الأكل"),
+        ]
         second_round_assets = step_assets(item, item.steps[1])
         assert [(asset["asset_id"], asset["semantic_text"]) for asset in second_round_assets] == [
             ("SEQ-01", "زرع البذرة"),
             ("SEQ-03", "ظهور النبتة"),
         ]
-        # Hand-washing/eating needs newly generated scene art; until then we
-        # expose no broken or semantically wrong image links.
-        assert step_assets(item, item.steps[0]) == []
+        assert all(asset["url"].startswith("/api/media/") for asset in first_round_assets + second_round_assets)
     finally:
         db.close()
