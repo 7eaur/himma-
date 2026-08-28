@@ -15,6 +15,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 
 from content_runtime import _CATALOG
+from db.models import User
 from dependencies import get_current_user
 from speech_alignment import align_reference, alignment_counts, normalize_arabic
 from speech_provider import (
@@ -30,9 +31,11 @@ _READ_INTERACTIONS = {"read_aloud", "timed_read_aloud"}
 _READ_PREFIX = re.compile(r"^\s*(?:اقرأ|يقرأ|قراءة)\s*[:：]\s*", re.UNICODE)
 
 
-def _require_supervisor(user: dict[str, Any] = Depends(get_current_user)) -> dict[str, Any]:
+def _require_supervisor(user: User = Depends(get_current_user)) -> User:
     """Fail closed for non-supervisors even if they know the admin API URL."""
-    if user.get("role") != "researcher":
+    # get_current_user already resolves only an active legacy researcher role,
+    # but keep this local guard as defence in depth for the lab boundary.
+    if user.role != "researcher" or not user.is_active:
         raise HTTPException(status_code=403, detail="غير مصرح بالوصول إلى مختبر الصوت")
     return user
 
@@ -91,7 +94,7 @@ def canonical_reading_targets() -> list[dict[str, Any]]:
 
 
 @router.get("/targets")
-def get_targets(_: dict[str, Any] = Depends(_require_supervisor)):
+def get_targets(_: User = Depends(_require_supervisor)):
     targets = canonical_reading_targets()
     return {
         "catalog_version": _CATALOG.get("catalog_version"),
@@ -101,7 +104,7 @@ def get_targets(_: dict[str, Any] = Depends(_require_supervisor)):
 
 
 @router.get("/provider")
-def provider_status(_: dict[str, Any] = Depends(_require_supervisor)):
+def provider_status(_: User = Depends(_require_supervisor)):
     try:
         provider = build_provider()
         return {"configured": provider.name != "unconfigured", "provider": provider.name}
@@ -115,7 +118,7 @@ async def analyze_recording(
     target_id: str | None = Form(default=None),
     adaptation_mode: str = Form(default="reference"),
     audio: UploadFile = File(...),
-    _: dict[str, Any] = Depends(_require_supervisor),
+    _: User = Depends(_require_supervisor),
 ):
     reference_text = reference_text.strip()
     if not reference_text:
