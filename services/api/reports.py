@@ -7,17 +7,38 @@ metrics when calibrated speech evidence is unavailable.
 
 from __future__ import annotations
 
-from decimal import Decimal
+from datetime import datetime, timezone
+from io import BytesIO
+import json
+import os
+from pathlib import Path
 
+import arabic_reshaper
+from bidi.algorithm import get_display
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
+from openpyxl import Workbook
+from openpyxl.styles import Alignment, Font, PatternFill
+from openpyxl.utils import get_column_letter
+from reportlab.lib import colors
+from reportlab.lib.enums import TA_RIGHT
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.lib.units import mm
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from db.models import AssessmentSession, Attempt, Student, User
+from db.models import AssessmentSession, Attempt, AuditLog, Student, User
 from db.reinforcement_models import ReinforcementCycle
 from dependencies import get_current_user, get_db
 
 router = APIRouter(prefix="/researcher/reports", tags=["Research Reports"])
+
+
+REPORT_FONT_NAME = "HimmaArabicReport"
 
 
 def _number(value) -> float | None:
@@ -163,6 +184,281 @@ def build_cohort_research_report(db: Session) -> dict:
     }
 
 
+def _audit_export(db: Session, user: User, *, entity_type: str, entity_id: str, export_format: str) -> None:
+    db.add(AuditLog(
+        actor_role="researcher",
+        actor_id=user.id,
+        action="research_report_export",
+        entity_type=entity_type,
+        entity_id=entity_id,
+        details=json.dumps({
+            "format": export_format,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "policy": "persisted_evidence_only",
+        }, ensure_ascii=False),
+    ))
+    db.commit()
+
+
+def _score_text(value: float | None) -> str:
+    return "—" if value is None else f"{round(value, 1)}%"
+
+
+def _xlsx_bytes(report: dict) -> bytes:
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "ملخص"
+    ws.sheet_view.rightToLeft = True
+    header_fill = PatternFill("solid", fgColor="347FD9")
+    header_font = Font(color="FFFFFF", bold=True)
+
+    cohort = report["cohort"]
+    summary_rows = [
+        ("المؤشر", "القيمة"),
+        ("إجمالي الطلاب", cohort["students"]),
+        ("الطلاب النشطون", cohort["active_students"]),
+        ("الاختبارات القبلية المكتملة", cohort["completed_pretests"]),
+        ("الاختبارات البعدية المكتملة", cohort["completed_posttests"]),
+        ("مقارنات قبلي/بعدي مكتملة", cohort["paired_pre_post"]),
+        ("متوسط القبلي", cohort["average_pretest_score"]),
+        ("متوسط البعدي", cohort["average_posttest_score"]),
+        ("متوسط التحسن بالنقاط", cohort["average_absolute_improvement_points"]),
+        ("دورات التقوية", cohort["reinforcement_cycles"]),
+        ("دورات التقوية المتحققة", cohort["verified_reinforcement_cycles"]),
+        ("دورات التقوية المصعّدة", cohort["escalated_reinforcement_cycles"]),
+    ]
+    for row in summary_rows:
+        ws.append(row)
+    for cell in ws[1]:
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal="right")
+    ws.column_dimensions["A"].width = 34
+    ws.column_dimensions["B"].width = 24
+
+    students_ws = wb.create_sheet("الطلاب")
+    students_ws.sheet_view.rightToLeft = True
+    headers = [
+        "الطالب", "الحالة", "مستوى البداية", "المستوى الحالي", "المستوى النهائي",
+        "القبلي", "البعدي", "التحسن بالنقاط", "التحسن النسبي %", "زمن الاختبارات ث",
+        "زمن التعلم ث", "المحاولات", "المحاولات المكتملة", "التقويات", "المتحقق منها", "المصعّد",
+    ]
+    students_ws.append(headers)
+    for student in report["students"]:
+        students_ws.append([
+            student["student_name"],
+            "نشط" if student["status"] == "active" else "غير نشط",
+            student["starting_level"],
+            student["current_level"],
+            student["final_level"],
+            student["pretest"]["score"],
+            student["posttest"]["score"],
+            student["improvement"]["absolute_percentage_points"],
+            student["improvement"]["relative_percent"],
+            student["engagement"]["assessment_seconds"],
+            student["engagement"]["learning_seconds"],
+            student["engagement"]["attempts"],
+            student["engagement"]["completed_attempts"],
+            student["reinforcement"]["total"],
+            student["reinforcement"]["verified"],
+            student["reinforcement"]["escalated"],
+        ])
+    for cell in students_ws[1]:
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal="right", wrap_text=True)
+    students_ws.freeze_panes = "A2"
+    students_ws.auto_filter.ref = students_ws.dimensions
+    for column_index in range(1, len(headers) + 1):
+        students_ws.column_dimensions[get_column_letter(column_index)].width = 18 if column_index > 1 else 28
+
+    reinforcement_ws = wb.create_sheet("التقوية")
+    reinforcement_ws.sheet_view.rightToLeft = True
+    reinforcement_ws.append(["الطالب", "إجمالي الدورات", "متحقق", "مصعّد", "نشط"])
+    for student in report["students"]:
+        reinforcement_ws.append([
+            student["student_name"],
+            student["reinforcement"]["total"],
+            student["reinforcement"]["verified"],
+            student["reinforcement"]["escalated"],
+            student["reinforcement"]["active"],
+        ])
+    for cell in reinforcement_ws[1]:
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal="right")
+    reinforcement_ws.column_dimensions["A"].width = 28
+    for column in "BCDE":
+        reinforcement_ws.column_dimensions[column].width = 18
+
+    notes_ws = wb.create_sheet("ملاحظات منهجية")
+    notes_ws.sheet_view.rightToLeft = True
+    notes_ws.append(["البند", "الملاحظة"])
+    notes_ws.append(["مصدر الدرجات", report["reporting_notes"]["score_source"]])
+    notes_ws.append(["التحسن النسبي", report["reporting_notes"]["relative_improvement"]])
+    notes_ws.append(["الصوت", report["reporting_notes"]["speech_metrics"]])
+    for cell in notes_ws[1]:
+        cell.fill = header_fill
+        cell.font = header_font
+    notes_ws.column_dimensions["A"].width = 24
+    notes_ws.column_dimensions["B"].width = 90
+
+    buffer = BytesIO()
+    wb.save(buffer)
+    return buffer.getvalue()
+
+
+def _find_report_font() -> Path | None:
+    configured = os.getenv("HIMMA_REPORT_FONT_PATH")
+    candidates = [
+        configured,
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/noto/NotoSansArabic-Regular.ttf",
+        "C:/Windows/Fonts/arial.ttf",
+    ]
+    for candidate in candidates:
+        if candidate and Path(candidate).is_file():
+            return Path(candidate)
+    return None
+
+
+def _rtl(value: object) -> str:
+    text = str(value if value is not None else "—")
+    return get_display(arabic_reshaper.reshape(text))
+
+
+def _ensure_pdf_font() -> str:
+    if REPORT_FONT_NAME in pdfmetrics.getRegisteredFontNames():
+        return REPORT_FONT_NAME
+    path = _find_report_font()
+    if path is None:
+        raise HTTPException(
+            status_code=503,
+            detail="خط التقارير العربية غير متوفر على الخادم. اضبط HIMMA_REPORT_FONT_PATH قبل تفعيل تصدير PDF.",
+        )
+    pdfmetrics.registerFont(TTFont(REPORT_FONT_NAME, str(path)))
+    return REPORT_FONT_NAME
+
+
+def _pdf_styles():
+    font = _ensure_pdf_font()
+    base = getSampleStyleSheet()
+    title = ParagraphStyle(
+        "HimmaTitle", parent=base["Title"], fontName=font, fontSize=17,
+        leading=24, alignment=TA_RIGHT, textColor=colors.HexColor("#20364D"),
+    )
+    body = ParagraphStyle(
+        "HimmaBody", parent=base["BodyText"], fontName=font, fontSize=10,
+        leading=16, alignment=TA_RIGHT,
+    )
+    small = ParagraphStyle(
+        "HimmaSmall", parent=body, fontSize=8.5, leading=13,
+    )
+    return font, title, body, small
+
+
+def _student_pdf_bytes(student: dict) -> bytes:
+    font, title_style, body_style, _ = _pdf_styles()
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer, pagesize=A4, rightMargin=18 * mm, leftMargin=18 * mm,
+        topMargin=18 * mm, bottomMargin=18 * mm,
+        title=f"Himma student report {student['student_id']}",
+    )
+    story = [
+        Paragraph(_rtl("تقرير الطالب - منصة هِمّة"), title_style),
+        Spacer(1, 8 * mm),
+        Paragraph(_rtl(f"الطالب: {student['student_name']}"), body_style),
+        Paragraph(_rtl(f"مستوى البداية: {student['starting_level'] or '—'} | المستوى الحالي: {student['current_level']} | المستوى النهائي: {student['final_level'] or '—'}"), body_style),
+        Spacer(1, 5 * mm),
+    ]
+    rows = [
+        [_rtl("المؤشر"), _rtl("القيمة")],
+        [_rtl("الاختبار القبلي"), _rtl(_score_text(student["pretest"]["score"]))],
+        [_rtl("الاختبار البعدي"), _rtl(_score_text(student["posttest"]["score"]))],
+        [_rtl("التحسن بالنقاط"), _rtl(student["improvement"]["absolute_percentage_points"])],
+        [_rtl("التحسن النسبي"), _rtl(student["improvement"]["relative_percent"])],
+        [_rtl("زمن الاختبارات (ث)"), _rtl(student["engagement"]["assessment_seconds"])],
+        [_rtl("زمن التعلم (ث)"), _rtl(student["engagement"]["learning_seconds"])],
+        [_rtl("المحاولات"), _rtl(student["engagement"]["attempts"])],
+        [_rtl("دورات التقوية"), _rtl(student["reinforcement"]["total"])],
+        [_rtl("التقويات المتحققة"), _rtl(student["reinforcement"]["verified"])],
+    ]
+    table = Table(rows, colWidths=[95 * mm, 75 * mm], hAlign="RIGHT")
+    table.setStyle(TableStyle([
+        ("FONTNAME", (0, 0), (-1, -1), font),
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#347FD9")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("ALIGN", (0, 0), (-1, -1), "RIGHT"),
+        ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#DCE8F2")),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+        ("TOPPADDING", (0, 0), (-1, -1), 7),
+    ]))
+    story.append(table)
+    story.append(Spacer(1, 7 * mm))
+    story.append(Paragraph(_rtl("ملاحظة: لا تُعرض مؤشرات أخطاء النطق الآلية قبل اعتماد دليل صوتي مُعاير."), body_style))
+    doc.build(story)
+    return buffer.getvalue()
+
+
+def _cohort_pdf_bytes(report: dict) -> bytes:
+    font, title_style, body_style, small_style = _pdf_styles()
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer, pagesize=landscape(A4), rightMargin=12 * mm, leftMargin=12 * mm,
+        topMargin=14 * mm, bottomMargin=14 * mm, title="Himma cohort research report",
+    )
+    cohort = report["cohort"]
+    story = [
+        Paragraph(_rtl("التقرير الإجمالي - منصة هِمّة"), title_style),
+        Paragraph(_rtl(
+            f"الطلاب: {cohort['students']} | قبلي مكتمل: {cohort['completed_pretests']} | "
+            f"بعدي مكتمل: {cohort['completed_posttests']} | مقارنات مكتملة: {cohort['paired_pre_post']}"
+        ), body_style),
+        Spacer(1, 5 * mm),
+    ]
+    rows = [[
+        _rtl("الطالب"), _rtl("البداية"), _rtl("الحالي"), _rtl("النهائي"),
+        _rtl("القبلي"), _rtl("البعدي"), _rtl("التحسن"), _rtl("المحاولات"), _rtl("التقوية"),
+    ]]
+    for student in report["students"]:
+        rows.append([
+            _rtl(student["student_name"]),
+            _rtl(student["starting_level"]),
+            _rtl(student["current_level"]),
+            _rtl(student["final_level"]),
+            _rtl(_score_text(student["pretest"]["score"])),
+            _rtl(_score_text(student["posttest"]["score"])),
+            _rtl(student["improvement"]["absolute_percentage_points"]),
+            _rtl(student["engagement"]["attempts"]),
+            _rtl(f"{student['reinforcement']['verified']}/{student['reinforcement']['total']}"),
+        ])
+    table = Table(rows, repeatRows=1, colWidths=[50 * mm, 20 * mm, 20 * mm, 20 * mm, 25 * mm, 25 * mm, 25 * mm, 22 * mm, 25 * mm])
+    table.setStyle(TableStyle([
+        ("FONTNAME", (0, 0), (-1, -1), font),
+        ("FONTSIZE", (0, 0), (-1, -1), 8),
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#347FD9")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("ALIGN", (0, 0), (-1, -1), "RIGHT"),
+        ("GRID", (0, 0), (-1, -1), 0.35, colors.HexColor("#DCE8F2")),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+        ("TOPPADDING", (0, 0), (-1, -1), 5),
+    ]))
+    story.append(table)
+    story.append(Spacer(1, 5 * mm))
+    story.append(Paragraph(_rtl("المؤشرات مبنية على القيم المحفوظة فقط، ولا يعاد احتساب التصنيف داخل التقرير."), small_style))
+    doc.build(story)
+    return buffer.getvalue()
+
+
+def _stream_bytes(content: bytes, *, media_type: str, filename: str) -> StreamingResponse:
+    return StreamingResponse(
+        BytesIO(content),
+        media_type=media_type,
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
 @router.get("/summary")
 def research_report_summary(
     user: User = Depends(get_current_user),
@@ -183,3 +479,48 @@ def research_report_student(
     if not student:
         raise HTTPException(status_code=404, detail="الطالب غير موجود")
     return build_student_research_report(db, student)
+
+
+@router.get("/exports/cohort.xlsx")
+def export_cohort_xlsx(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    report = build_cohort_research_report(db)
+    content = _xlsx_bytes(report)
+    _audit_export(db, user, entity_type="research_cohort", entity_id="all", export_format="xlsx")
+    return _stream_bytes(
+        content,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        filename="himma-research-cohort.xlsx",
+    )
+
+
+@router.get("/exports/cohort.pdf")
+def export_cohort_pdf(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    report = build_cohort_research_report(db)
+    content = _cohort_pdf_bytes(report)
+    _audit_export(db, user, entity_type="research_cohort", entity_id="all", export_format="pdf")
+    return _stream_bytes(content, media_type="application/pdf", filename="himma-research-cohort.pdf")
+
+
+@router.get("/students/{student_id}/export.pdf")
+def export_student_pdf(
+    student_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    student = db.query(Student).filter(Student.id == student_id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="الطالب غير موجود")
+    report = build_student_research_report(db, student)
+    content = _student_pdf_bytes(report)
+    _audit_export(db, user, entity_type="student", entity_id=str(student_id), export_format="pdf")
+    return _stream_bytes(
+        content,
+        media_type="application/pdf",
+        filename=f"himma-student-{student_id}.pdf",
+    )
