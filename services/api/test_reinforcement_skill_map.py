@@ -31,17 +31,13 @@ def test_mapping_never_allows_random_or_cross_level_fallback():
     assert rules["verification_after_reinforcement"] is True
 
 
-def test_current_residual_gaps_are_explicit_not_hidden():
+def test_approved_2026_08_29_gap_closure_leaves_no_uncovered_skills():
     uncovered = [
         (row["level"], row["skill_code"], row["skill_name"])
         for row in _load()["skills"]
         if row["coverage"] == "uncovered"
     ]
-    assert uncovered == [
-        (2, "sukoon_word_reading", "قراءة كلمات السكون"),
-        (3, "literal_comprehension", "الفهم المباشر"),
-        (3, "sentence_building", "بناء الجملة"),
-    ]
+    assert uncovered == []
 
 
 def test_shadda_has_a_direct_dedicated_candidate():
