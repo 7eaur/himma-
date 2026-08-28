@@ -62,7 +62,6 @@ def get_me(auth=Depends(get_any_authenticated)):
     return {"id": entity.id, "full_name": entity.name, "role": "student"}
 
 
-# ─── Supervisor account management ───────────────────────────────────────────
 @router.get("/researcher/account", response_model=schemas.SupervisorResponse)
 def get_supervisor_account(user: User = Depends(get_current_user)):
     return user
@@ -74,22 +73,12 @@ def update_supervisor_account(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    duplicate = db.query(User).filter(
-        User.username == body.username,
-        User.id != user.id,
-    ).first()
+    duplicate = db.query(User).filter(User.username == body.username, User.id != user.id).first()
     if duplicate:
         raise HTTPException(status_code=409, detail="اسم المستخدم مستخدم بالفعل")
     old_username = user.username
     user.username = body.username
-    _audit(
-        db,
-        actor_id=user.id,
-        action="supervisor.profile.update",
-        entity_type="user",
-        entity_id=str(user.id),
-        details={"old_username": old_username, "new_username": body.username},
-    )
+    _audit(db, actor_id=user.id, action="supervisor.profile.update", entity_type="user", entity_id=str(user.id), details={"old_username": old_username, "new_username": body.username})
     db.commit()
     db.refresh(user)
     return user
@@ -106,30 +95,17 @@ def change_supervisor_password(
     if body.current_password == body.new_password:
         raise HTTPException(status_code=400, detail="اختر كلمة مرور جديدة مختلفة عن الحالية")
     user.password_hash = _hash_password(body.new_password)
-    _audit(
-        db,
-        actor_id=user.id,
-        action="supervisor.password.update",
-        entity_type="user",
-        entity_id=str(user.id),
-    )
+    _audit(db, actor_id=user.id, action="supervisor.password.update", entity_type="user", entity_id=str(user.id))
     db.commit()
     return {"message": "تم تغيير كلمة المرور بنجاح"}
 
 
 @router.get("/researcher/supervisors", response_model=list[schemas.SupervisorResponse])
-def list_supervisors(
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
+def list_supervisors(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     return db.query(User).filter(User.role == "researcher").order_by(User.created_at, User.id).all()
 
 
-@router.post(
-    "/researcher/supervisors",
-    status_code=status.HTTP_201_CREATED,
-    response_model=schemas.SupervisorResponse,
-)
+@router.post("/researcher/supervisors", status_code=status.HTTP_201_CREATED, response_model=schemas.SupervisorResponse)
 def create_supervisor(
     body: schemas.SupervisorCreateRequest,
     user: User = Depends(get_current_user),
@@ -137,32 +113,19 @@ def create_supervisor(
 ):
     if db.query(User).filter(User.username == body.username).first():
         raise HTTPException(status_code=409, detail="اسم المستخدم مستخدم بالفعل")
-    created = User(
-        username=body.username,
-        password_hash=_hash_password(body.password),
-        role="researcher",
-        is_active=True,
-    )
+    created = User(username=body.username, password_hash=_hash_password(body.password), role="researcher", is_active=True)
     db.add(created)
     try:
         db.flush()
     except IntegrityError:
         db.rollback()
         raise HTTPException(status_code=409, detail="تعذر إنشاء المشرف بهذا الاسم")
-    _audit(
-        db,
-        actor_id=user.id,
-        action="supervisor.create",
-        entity_type="user",
-        entity_id=str(created.id),
-        details={"username": created.username},
-    )
+    _audit(db, actor_id=user.id, action="supervisor.create", entity_type="user", entity_id=str(created.id), details={"username": created.username})
     db.commit()
     db.refresh(created)
     return created
 
 
-# ─── Student lifecycle helpers ────────────────────────────────────────────────
 def _completed_session(db: Session, student_id: int, session_type: str) -> bool:
     return db.query(AssessmentSession.id).filter(
         AssessmentSession.student_id == student_id,
@@ -178,17 +141,12 @@ def _core_progress(db: Session, student_id: int) -> tuple[int, bool]:
     ).order_by(AssessmentSession.id.desc()).first()
     if not session:
         return 0, False
-    completed = (
-        db.query(Attempt.id)
-        .join(ContentItem, ContentItem.id == Attempt.item_id)
-        .filter(
-            Attempt.session_id == session.id,
-            Attempt.status == "completed",
-            ContentItem.kind == "core_activity",
-            ContentItem.level_id == session.assigned_level,
-        )
-        .count()
-    )
+    completed = db.query(Attempt.id).join(ContentItem, ContentItem.id == Attempt.item_id).filter(
+        Attempt.session_id == session.id,
+        Attempt.status == "completed",
+        ContentItem.kind == "core_activity",
+        ContentItem.level_id == session.assigned_level,
+    ).count()
     return completed, session.status == "completed" and completed >= 10
 
 
@@ -205,11 +163,7 @@ def _student_payload(db: Session, student: Student) -> dict:
         "current_level": student.current_level,
         "status": "active" if student.is_active else "inactive",
         "posttest_enabled": student.posttest_enabled,
-        "posttest_eligible": (
-            pretest_completed
-            and journey["learning_journey_completed"]
-            and not posttest_completed
-        ),
+        "posttest_eligible": pretest_completed and journey["learning_journey_completed"] and not posttest_completed,
         "core_completed_items": core_completed_items,
         "core_total_items": 10,
         "core_completed": core_completed,
@@ -218,7 +172,6 @@ def _student_payload(db: Session, student: Student) -> dict:
 
 
 def _generate_access_code(db: Session) -> str:
-    """Generate a memorable six-digit code without leading zero."""
     for _ in range(50):
         code = str(secrets.randbelow(900000) + 100000)
         if not db.query(Student).filter(Student.access_code == code).first():
@@ -235,10 +188,7 @@ def _ensure_unique_access_code(db: Session, code: str, *, excluding_student_id: 
 
 
 @router.get("/profile", response_model=schemas.StudentProfileResponse)
-def student_profile(
-    student: Student = Depends(get_current_student),
-    db: Session = Depends(get_db),
-):
+def student_profile(student: Student = Depends(get_current_student), db: Session = Depends(get_db)):
     active_session = db.query(AssessmentSession).filter(
         AssessmentSession.student_id == student.id,
         AssessmentSession.status == "in_progress",
@@ -271,31 +221,20 @@ def student_profile(
 
 
 @router.get("/researcher/students", response_model=list[schemas.StudentResponse])
-def list_students(
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
+def list_students(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     students = db.query(Student).order_by(Student.created_at, Student.id).all()
     return [_student_payload(db, student) for student in students]
 
 
 @router.get("/researcher/students/{student_id}", response_model=schemas.StudentResponse)
-def get_student(
-    student_id: int,
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
+def get_student(student_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     student = db.query(Student).filter(Student.id == student_id).first()
     if not student:
         raise HTTPException(status_code=404, detail="الطالب غير موجود")
     return _student_payload(db, student)
 
 
-@router.post(
-    "/researcher/students",
-    status_code=status.HTTP_201_CREATED,
-    response_model=schemas.StudentResponse,
-)
+@router.post("/researcher/students", status_code=status.HTTP_201_CREATED, response_model=schemas.StudentResponse)
 def create_student(
     body: schemas.StudentCreateRequest,
     user: User = Depends(get_current_user),
@@ -304,20 +243,12 @@ def create_student(
     db.query(User).filter(User.id == user.id).with_for_update().one()
     if db.query(Student).count() >= 15:
         raise HTTPException(status_code=409, detail="وصلت الدراسة إلى الحد الأقصى وهو 15 طالبًا")
-
     requested_code = body.access_code
     if requested_code:
         _ensure_unique_access_code(db, requested_code)
-
     for _ in range(5):
         code = requested_code or _generate_access_code(db)
-        student = Student(
-            access_code=code,
-            name=body.full_name,
-            grade_level=body.grade_level,
-            current_level=1,
-            is_active=True,
-        )
+        student = Student(access_code=code, name=body.full_name, grade_level=body.grade_level, current_level=1, is_active=True)
         try:
             with db.begin_nested():
                 db.add(student)
@@ -326,19 +257,10 @@ def create_student(
             if requested_code:
                 raise HTTPException(status_code=409, detail="رمز الدخول مستخدم لطالب آخر")
             continue
-
-        _audit(
-            db,
-            actor_id=user.id,
-            action="student.create",
-            entity_type="student",
-            entity_id=str(student.id),
-            details={"grade_level": 3, "access_code_mode": "manual" if requested_code else "generated"},
-        )
+        _audit(db, actor_id=user.id, action="student.create", entity_type="student", entity_id=str(student.id), details={"grade_level": 3, "access_code_mode": "manual" if requested_code else "generated"})
         db.commit()
         db.refresh(student)
         return _student_payload(db, student)
-
     raise HTTPException(status_code=503, detail="تعذر إنشاء رمز دخول للطالب، حاول مرة أخرى")
 
 
@@ -360,14 +282,7 @@ def update_student(
         changes["is_active"] = {"from": student.is_active, "to": body.is_active}
         student.is_active = body.is_active
     if changes:
-        _audit(
-            db,
-            actor_id=user.id,
-            action="student.update",
-            entity_type="student",
-            entity_id=str(student.id),
-            details=changes,
-        )
+        _audit(db, actor_id=user.id, action="student.update", entity_type="student", entity_id=str(student.id), details=changes)
         db.commit()
         db.refresh(student)
     return _student_payload(db, student)
@@ -387,23 +302,13 @@ def update_student_access_code(
     _ensure_unique_access_code(db, new_code, excluding_student_id=student.id)
     old_code = student.access_code
     student.access_code = new_code
-    _audit(
-        db,
-        actor_id=user.id,
-        action="student.access_code.update",
-        entity_type="student",
-        entity_id=str(student.id),
-        details={"mode": "manual" if body.access_code else "generated", "changed": old_code != new_code},
-    )
+    _audit(db, actor_id=user.id, action="student.access_code.update", entity_type="student", entity_id=str(student.id), details={"mode": "manual" if body.access_code else "generated", "changed": old_code != new_code})
     db.commit()
     db.refresh(student)
     return _student_payload(db, student)
 
 
-@router.post(
-    "/researcher/students/{student_id}/posttest-access",
-    response_model=schemas.StudentResponse,
-)
+@router.post("/researcher/students/{student_id}/posttest-access", response_model=schemas.StudentResponse)
 def set_posttest_access(
     student_id: int,
     body: schemas.StudentPosttestAccessRequest,
@@ -413,7 +318,6 @@ def set_posttest_access(
     student = db.query(Student).filter(Student.id == student_id).with_for_update().first()
     if not student:
         raise HTTPException(status_code=404, detail="الطالب غير موجود")
-
     pretest_completed = _completed_session(db, student.id, "pretest")
     journey = build_journey_summary(db, student)
     posttest_completed = _completed_session(db, student.id, "posttest")
@@ -431,20 +335,12 @@ def set_posttest_access(
     if body.enabled and not journey["learning_journey_completed"]:
         raise HTTPException(
             status_code=409,
-            detail="يجب إكمال رحلة التعلم حتى المستوى الثالث قبل فتح الاختبار البعدي",
+            detail="يجب إكمال الأنشطة التعليمية العشرة لكل مستوى في رحلة التعلم حتى المستوى الثالث قبل فتح الاختبار البعدي",
         )
-
     student.posttest_enabled = body.enabled
     student.posttest_enabled_at = datetime.now(timezone.utc) if body.enabled else None
     student.posttest_enabled_by = user.id if body.enabled else None
-    _audit(
-        db,
-        actor_id=user.id,
-        action="student.posttest_access.update",
-        entity_type="student",
-        entity_id=str(student.id),
-        details={"enabled": body.enabled},
-    )
+    _audit(db, actor_id=user.id, action="student.posttest_access.update", entity_type="student", entity_id=str(student.id), details={"enabled": body.enabled})
     db.commit()
     db.refresh(student)
     return _student_payload(db, student)
