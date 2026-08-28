@@ -104,12 +104,12 @@ test.describe("M06 responsive and accessibility integration", () => {
     await menu.click();
     const dialog = page.getByRole("dialog", { name: "قائمة لوحة المشرف" });
     await expect(dialog).toBeVisible();
-    const firstNav = dialog.locator("a.sidebar-nav-item").first();
+    const firstNav = dialog.getByRole("link", { name: "نظرة عامة" });
     await expect(firstNav).toBeVisible();
     const navBox = await firstNav.boundingBox();
     expect(navBox?.height ?? 0).toBeGreaterThanOrEqual(44);
     await expectNoHorizontalOverflow(page);
-    await page.screenshot({ path: "screenshots/18-mobile-supervisor-menu.png", fullPage: true });
+    await page.screenshot({ path: "playwright-report/screenshots/18-mobile-supervisor-menu.png", fullPage: true });
   });
 
   test("reduced-motion preference suppresses decorative entry motion", async ({ page }) => {
