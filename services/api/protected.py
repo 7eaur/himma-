@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 
 from db.models import AssessmentSession, AuditLog, Attempt, ContentItem, Student, User
 from dependencies import get_db, get_current_user, get_current_student, get_any_authenticated
+from journey import build_journey_summary
 import schemas
 
 router = APIRouter(tags=["Protected"])
@@ -195,6 +196,7 @@ def _student_payload(db: Session, student: Student) -> dict:
     pretest_completed = _completed_session(db, student.id, "pretest")
     posttest_completed = _completed_session(db, student.id, "posttest")
     core_completed_items, core_completed = _core_progress(db, student.id)
+    journey = build_journey_summary(db, student)
     return {
         "id": student.id,
         "full_name": student.name,
@@ -203,7 +205,11 @@ def _student_payload(db: Session, student: Student) -> dict:
         "current_level": student.current_level,
         "status": "active" if student.is_active else "inactive",
         "posttest_enabled": student.posttest_enabled,
-        "posttest_eligible": pretest_completed and core_completed and not posttest_completed,
+        "posttest_eligible": (
+            pretest_completed
+            and journey["learning_journey_completed"]
+            and not posttest_completed
+        ),
         "core_completed_items": core_completed_items,
         "core_total_items": 10,
         "core_completed": core_completed,
@@ -239,7 +245,7 @@ def student_profile(
     ).order_by(AssessmentSession.id.desc()).first()
     pretest_completed = _completed_session(db, student.id, "pretest")
     posttest_completed = _completed_session(db, student.id, "posttest")
-    _, core_completed = _core_progress(db, student.id)
+    journey = build_journey_summary(db, student)
 
     if active_session and active_session.session_type in {"pretest", "posttest"}:
         next_action = "resume"
@@ -247,7 +253,7 @@ def student_profile(
         next_action = "pretest"
     elif posttest_completed:
         next_action = "completed"
-    elif core_completed and student.posttest_enabled:
+    elif journey["learning_journey_completed"] and student.posttest_enabled:
         next_action = "posttest"
     else:
         next_action = "learning"
@@ -409,7 +415,7 @@ def set_posttest_access(
         raise HTTPException(status_code=404, detail="الطالب غير موجود")
 
     pretest_completed = _completed_session(db, student.id, "pretest")
-    _, core_completed = _core_progress(db, student.id)
+    journey = build_journey_summary(db, student)
     posttest_completed = _completed_session(db, student.id, "posttest")
     if posttest_completed:
         raise HTTPException(status_code=409, detail="الاختبار البعدي مكتمل بالفعل")
@@ -422,8 +428,11 @@ def set_posttest_access(
         raise HTTPException(status_code=409, detail="الاختبار البعدي قيد التنفيذ حاليًا")
     if body.enabled and not pretest_completed:
         raise HTTPException(status_code=409, detail="يجب إكمال الاختبار القبلي أولًا")
-    if body.enabled and not core_completed:
-        raise HTTPException(status_code=409, detail="يجب إكمال الأنشطة التعليمية العشرة قبل فتح الاختبار البعدي")
+    if body.enabled and not journey["learning_journey_completed"]:
+        raise HTTPException(
+            status_code=409,
+            detail="يجب إكمال رحلة التعلم حتى المستوى الثالث قبل فتح الاختبار البعدي",
+        )
 
     student.posttest_enabled = body.enabled
     student.posttest_enabled_at = datetime.now(timezone.utc) if body.enabled else None
