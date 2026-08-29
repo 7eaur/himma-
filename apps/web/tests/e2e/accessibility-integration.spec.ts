@@ -182,7 +182,7 @@ test.describe("M06 responsive and accessibility integration", () => {
       await expect(page.getByText(/هدف$/).first()).toBeVisible();
       await expect(page.getByText(/نتائج هذه الصفحة تجريبية ولا تغيّر درجات الطلاب أو قرارات التكيف/)).toBeVisible();
 
-      const analyzeButton = page.getByRole("button", { name: "تحليل القراءة" });
+      const analyzeButton = page.locator("button").filter({ hasText: "تحليل القراءة" }).first();
       await expect(analyzeButton).toBeVisible();
       await expect(analyzeButton).toBeDisabled();
       await expectNoHorizontalOverflow(page);
