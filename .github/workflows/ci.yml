@@ -12,7 +12,7 @@ on:
 jobs:
   # ─── Backend: migrations + tests on real PostgreSQL ───────────────────────
   backend:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     services:
       postgres:
@@ -83,7 +83,7 @@ jobs:
 
   # ─── Frontend: type-check + lint + build ──────────────────────────────────
   frontend:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     defaults:
       run:
@@ -115,7 +115,7 @@ jobs:
 
   # ─── Integration: full E2E with real services ─────────────────────────────
   integration:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [backend, frontend]
 
     services:
@@ -268,7 +268,7 @@ jobs:
         env:
           PLAYWRIGHT_BASE_URL: http://localhost:3000
           CI: true
-        run: npx playwright test tests/e2e/vertical-slice.spec.ts tests/e2e/accessibility-integration.spec.ts --reporter=list
+        run: npx playwright test tests/e2e/vertical-slice.spec.ts tests/e2e/accessibility-integration.spec.ts tests/e2e/media-fidelity.spec.ts --reporter=list
 
       - name: Upload Playwright report
         if: always()
