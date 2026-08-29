@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowRight, Check, CheckCircle2, Headphones, Mic, MicOff, RotateCcw, Volume2 } from "lucide-react";
+import { ArrowRight, Check, CheckCircle2, Mic, MicOff, RotateCcw, Volume2 } from "lucide-react";
 import styles from "../activity.module.css";
 
 type Interaction =
@@ -20,12 +20,7 @@ type Interaction =
   | "read_aloud"
   | "timed_read_aloud";
 
-interface ActivityOption {
-  id: number;
-  text: string;
-  order_index: number;
-}
-
+interface ActivityOption { id: number; text: string; order_index: number; }
 interface ActivityAsset {
   asset_id: string;
   asset_type: "audio" | "image" | string;
@@ -34,7 +29,6 @@ interface ActivityAsset {
   url: string;
   option_id?: number | null;
 }
-
 interface MediaGap {
   asset_type: string;
   usage: string;
@@ -42,7 +36,6 @@ interface MediaGap {
   status: string;
   reason?: string;
 }
-
 interface ActivityPayload {
   session_id: number;
   item: {
@@ -72,7 +65,6 @@ interface ActivityPayload {
   retry: boolean;
   hint_available: boolean;
 }
-
 interface LearningProgress {
   session_id: number;
   status: "in_progress" | "completed";
@@ -81,7 +73,6 @@ interface LearningProgress {
   total_items: number;
   elapsed_seconds: number;
 }
-
 interface SubmitResult {
   is_correct: boolean;
   attempts_used: number;
@@ -96,33 +87,14 @@ const LEVEL_NAMES: Record<number, string> = {
   2: "بناء الكلمة",
   3: "الطلاقة والفهم",
 };
-
-const SINGLE_INTERACTIONS = new Set<Interaction>([
-  "choose_one",
-  "listen_choose_one",
-  "choose_image",
-  "listen_choose_image",
-]);
+const SINGLE_INTERACTIONS = new Set<Interaction>(["choose_one", "listen_choose_one", "choose_image", "listen_choose_image"]);
 const MULTI_INTERACTIONS = new Set<Interaction>(["choose_many", "listen_choose_many"]);
-const ORDER_INTERACTIONS = new Set<Interaction>([
-  "sequence",
-  "memory_sequence",
-  "path_sequence",
-  "build_word",
-]);
+const ORDER_INTERACTIONS = new Set<Interaction>(["sequence", "memory_sequence", "path_sequence", "build_word"]);
 const AUDIO_INTERACTIONS = new Set<Interaction>(["read_aloud", "timed_read_aloud"]);
-const LISTEN_INTERACTIONS = new Set<Interaction>([
-  "listen_choose_one",
-  "listen_choose_image",
-  "listen_choose_many",
-]);
+const LISTEN_INTERACTIONS = new Set<Interaction>(["listen_choose_one", "listen_choose_image", "listen_choose_many"]);
 
 function stableOptionOrder(values: ActivityOption[]) {
   return [...values].sort((a, b) => ((a.id * 19) % 101) - ((b.id * 19) % 101));
-}
-
-function shortActivityTitle(title: string) {
-  return title.includes(":") ? title.split(":").slice(1).join(":").trim() : title;
 }
 
 function cleanPrompt(value: string, interaction: Interaction) {
@@ -130,6 +102,59 @@ function cleanPrompt(value: string, interaction: Interaction) {
   let prompt = value.replace(/^التعليمات:\s*/u, "");
   prompt = prompt.split(/الخيارات:|الصور:/u)[0].trim();
   return prompt;
+}
+
+function contextualHint(instruction: string, interaction: Interaction) {
+  if (/آخرها|الأخير/u.test(instruction)) return "استمع مرة أخرى، وركّز على آخر صوت تسمعه في الكلمة.";
+  if (/بدايتها|أول حرف/u.test(instruction) && /متشابهان|مختلفان|قارن/u.test(instruction)) return "استمع إلى الصوت أولًا، ثم انظر إلى أول حرف في الكلمة وقارن بينهما.";
+  if (/بدايتها|يبدأ اسمها|أول صوت/u.test(instruction)) return "استمع مرة أخرى، وركّز على أول صوت تسمعه.";
+  if (/الشكل الآخر|الحرف نفسه/u.test(instruction)) return "دقّق في شكل الحرف ونقاطه، ثم اختر الشكل الذي يمثل الحرف نفسه.";
+  if (/الصورة/u.test(instruction) && LISTEN_INTERACTIONS.has(interaction)) return "استمع إلى الصوت مرة أخرى، ثم قل اسم كل صورة في ذهنك وركّز على بدايتها.";
+  if (interaction === "build_word") return "ابدأ بالحرف الأول في الكلمة، ثم أكمل الحروف واحدًا بعد الآخر.";
+  if (interaction === "sequence" || interaction === "memory_sequence" || interaction === "path_sequence") return "فكّر فيما يأتي أولًا، ثم أكمل الترتيب خطوةً خطوة.";
+  if (/النص|السؤال|الإجابة/u.test(instruction)) return "ارجع إلى النص وابحث عن الجزء الذي يساعدك على الإجابة.";
+  return "اقرأ التعليمة مرة أخرى بهدوء، ثم جرّب من جديد.";
+}
+
+function successMessage(instruction: string, interaction: Interaction) {
+  if (/آخرها|الأخير/u.test(instruction)) return "أحسنت! عرفت الصوت الأخير في الكلمة.";
+  if (/بدايتها|أول حرف/u.test(instruction)) return "رائع! ركّزت على بداية الكلمة بشكل صحيح.";
+  if (/الشكل الآخر|الحرف نفسه/u.test(instruction)) return "ممتاز! عرفت شكل الحرف الصحيح.";
+  if (interaction === "sequence" || interaction === "memory_sequence" || interaction === "path_sequence") return "أحسنت! رتّبت العناصر بشكل صحيح.";
+  if (interaction === "build_word") return "رائع! كوّنت الكلمة بالترتيب الصحيح.";
+  return "أحسنت! إجابتك صحيحة.";
+}
+
+function PathSequenceBoard({ options, selected, onSelect }: { options: ActivityOption[]; selected: number[]; onSelect: (id: number) => void }) {
+  const ordered = stableOptionOrder(options);
+  const width = 720;
+  const height = 210;
+  const points = ordered.map((_, index) => {
+    const x = 85 + (index * (width - 170)) / Math.max(1, ordered.length - 1);
+    const y = index % 2 === 0 ? 72 : 142;
+    return { x, y };
+  });
+  return (
+    <div className="mx-auto mb-5 w-full max-w-3xl rounded-[22px] border border-[#DCE8F2] bg-[#F7FBFF] p-3" data-testid="path-sequence-board">
+      <svg viewBox={`0 0 ${width} ${height}`} className="h-auto w-full" role="img" aria-label="مسار ترتيب تفاعلي يبدأ من اليمين">
+        {points.slice(0, -1).map((point, index) => (
+          <line key={`line-${index}`} x1={point.x} y1={point.y} x2={points[index + 1].x} y2={points[index + 1].y} stroke="#BFD4E7" strokeWidth="6" strokeLinecap="round" />
+        ))}
+        {points.map((point, index) => {
+          const option = ordered[index];
+          const chosenIndex = selected.indexOf(option.id);
+          const chosen = chosenIndex >= 0;
+          return (
+            <g key={option.id} role="button" tabIndex={0} aria-label={option.text} onClick={() => onSelect(option.id)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") onSelect(option.id); }} style={{ cursor: "pointer" }}>
+              <circle cx={point.x} cy={point.y} r="35" fill={chosen ? "#347FD9" : "#FFFFFF"} stroke={chosen ? "#347FD9" : "#8FB7D9"} strokeWidth="4" />
+              <text x={point.x} y={point.y + 6} textAnchor="middle" fontSize="18" fontWeight="800" fill={chosen ? "#FFFFFF" : "#20364D"}>{chosen ? chosenIndex + 1 : option.text}</text>
+            </g>
+          );
+        })}
+      </svg>
+      <p className="m-0 text-center text-sm font-bold text-[#667D91]">ابدأ من النقطة الأولى، ثم اضغط نقاط المسار بالترتيب الصحيح.</p>
+    </div>
+  );
 }
 
 export default function StudentActivityPage() {
@@ -160,9 +185,7 @@ export default function StudentActivityPage() {
   const audioAssets = useMemo(() => activity?.step.assets.filter((asset) => asset.asset_type === "audio") ?? [], [activity]);
   const imageAssets = useMemo(() => activity?.step.assets.filter((asset) => asset.asset_type === "image") ?? [], [activity]);
   const contextAssets = useMemo(() => activity?.item.assets?.filter((asset) => asset.asset_type === "image") ?? [], [activity]);
-  const percent = progress
-    ? Math.min(100, Math.round((progress.completed_items / Math.max(1, progress.total_items)) * 100))
-    : 0;
+  const percent = progress ? Math.min(100, Math.round((progress.completed_items / Math.max(1, progress.total_items)) * 100)) : 0;
 
   const fetchProgress = useCallback(async () => {
     const response = await fetch(`/api/activities/session/${sessionId}/progress`, { cache: "no-store" });
@@ -172,10 +195,7 @@ export default function StudentActivityPage() {
   const resetQuestionState = () => {
     setSelected([]);
     setAudioBlob(null);
-    setAudioUrl((current) => {
-      if (current) URL.revokeObjectURL(current);
-      return null;
-    });
+    setAudioUrl((current) => { if (current) URL.revokeObjectURL(current); return null; });
     setRecordingSeconds(0);
     setFeedback(null);
   };
@@ -195,10 +215,7 @@ export default function StudentActivityPage() {
       setActivity(data);
       setSelected([]);
       setAudioBlob(null);
-      setAudioUrl((current) => {
-        if (current) URL.revokeObjectURL(current);
-        return null;
-      });
+      setAudioUrl((current) => { if (current) URL.revokeObjectURL(current); return null; });
       setFeedback(null);
       setRecordingSeconds(0);
       startedAtRef.current = Date.now();
@@ -232,9 +249,7 @@ export default function StudentActivityPage() {
   const clearIdempotency = () => {
     if (!activity) return;
     const attempt = activity.attempts_used + 1;
-    for (const kind of ["answer", "upload"] as const) {
-      window.sessionStorage.removeItem(`himma:activity:${sessionId}:${activity.step.id}:${attempt}:${kind}`);
-    }
+    for (const kind of ["answer", "upload"] as const) window.sessionStorage.removeItem(`himma:activity:${sessionId}:${activity.step.id}:${attempt}:${kind}`);
   };
 
   const playPrompt = async () => {
@@ -265,26 +280,15 @@ export default function StudentActivityPage() {
     setError("");
     const elapsedSeconds = Math.min(3600, Math.max(0, Math.floor((Date.now() - startedAtRef.current) / 1000)));
     try {
-      const response = await fetch(
-        `/api/activities/session/${sessionId}/attempt/${activity.item.id}/submit`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Idempotency-Key": makeIdempotencyKey("answer"),
-          },
-          body: JSON.stringify({
-            step_id: activity.step.id,
-            selected_option_ids: selected,
-            hint_used: activity.retry,
-            elapsed_seconds: elapsedSeconds,
-            declared_media_gap_skip: mediaGapSkip,
-          }),
-        },
-      );
+      const response = await fetch(`/api/activities/session/${sessionId}/attempt/${activity.item.id}/submit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Idempotency-Key": makeIdempotencyKey("answer") },
+        body: JSON.stringify({ step_id: activity.step.id, selected_option_ids: selected, hint_used: activity.retry, elapsed_seconds: elapsedSeconds, declared_media_gap_skip: mediaGapSkip }),
+      });
       const result: SubmitResult & { detail?: string } = await response.json().catch(() => ({} as SubmitResult));
       if (!response.ok) throw new Error(result.detail || "تعذر حفظ الإجابة");
       clearIdempotency();
+      const instruction = activity.step.instruction_text || "";
       if (result.learning_complete) {
         setDone(true);
         setFeedback({ ok: true, text: "أحسنت، أكملت أنشطة مستواك." });
@@ -292,15 +296,10 @@ export default function StudentActivityPage() {
         return;
       }
       if (result.is_correct || result.step_complete) {
-        setFeedback({
-          ok: result.is_correct,
-          text: result.is_correct
-            ? (isReinforcement ? "رائع! أنهيت هذه الخطوة من تدريب التقوية." : "أحسنت! إجابة صحيحة.")
-            : "أكملت المحاولة، ننتقل للخطوة التالية.",
-        });
-        window.setTimeout(() => void fetchNext(), 620);
+        setFeedback({ ok: result.is_correct, text: result.is_correct ? successMessage(instruction, interaction) : "أكملت المحاولة، وسننتقل إلى الخطوة التالية." });
+        window.setTimeout(() => void fetchNext(), 720);
       } else {
-        setFeedback({ ok: false, text: isReinforcement ? "قريب جدًا. هذا تدريب مساعد، جرّب مرة أخرى بهدوء." : "قريب جدًا. جرّب مرة أخرى بهدوء." });
+        setFeedback({ ok: false, text: contextualHint(instruction, interaction) });
         await fetchNext();
       }
     } catch (err) {
@@ -316,19 +315,12 @@ export default function StudentActivityPage() {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       chunksRef.current = [];
       const preferred = "audio/webm;codecs=opus";
-      const recorder = MediaRecorder.isTypeSupported(preferred)
-        ? new MediaRecorder(stream, { mimeType: preferred })
-        : new MediaRecorder(stream);
-      recorder.ondataavailable = (event) => {
-        if (event.data.size > 0) chunksRef.current.push(event.data);
-      };
+      const recorder = MediaRecorder.isTypeSupported(preferred) ? new MediaRecorder(stream, { mimeType: preferred }) : new MediaRecorder(stream);
+      recorder.ondataavailable = (event) => { if (event.data.size > 0) chunksRef.current.push(event.data); };
       recorder.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
         setAudioBlob(blob);
-        setAudioUrl((current) => {
-          if (current) URL.revokeObjectURL(current);
-          return URL.createObjectURL(blob);
-        });
+        setAudioUrl((current) => { if (current) URL.revokeObjectURL(current); return URL.createObjectURL(blob); });
         stream.getTracks().forEach((track) => track.stop());
       };
       recorder.start();
@@ -355,35 +347,20 @@ export default function StudentActivityPage() {
     try {
       const form = new FormData();
       form.append("file", audioBlob, "activity-reading.webm");
-      const upload = await fetch(`/api/assessment/session/${sessionId}/upload-audio`, {
-        method: "POST",
-        headers: { "Idempotency-Key": makeIdempotencyKey("upload") },
-        body: form,
-      });
+      const upload = await fetch(`/api/assessment/session/${sessionId}/upload-audio`, { method: "POST", headers: { "Idempotency-Key": makeIdempotencyKey("upload") }, body: form });
       const uploaded = await upload.json().catch(() => null);
       if (!upload.ok) throw new Error(uploaded?.detail || "تعذر رفع التسجيل");
-
       const elapsedSeconds = Math.min(3600, Math.max(0, Math.floor((Date.now() - startedAtRef.current) / 1000)));
-      const submit = await fetch(`/api/assessment/session/${sessionId}/attempt/${activity.item.id}/submit`, {
+      const submit = await fetch(`/api/activities/session/${sessionId}/attempt/${activity.item.id}/submit`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Idempotency-Key": makeIdempotencyKey("answer"),
-        },
-        body: JSON.stringify({
-          step_id: activity.step.id,
-          audio_storage_key: uploaded.audio_storage_key,
-          audio_file_size: uploaded.audio_file_size,
-          audio_mime_type: uploaded.audio_mime_type,
-          audio_duration_seconds: recordingSeconds,
-          elapsed_seconds: elapsedSeconds,
-        }),
+        headers: { "Content-Type": "application/json", "Idempotency-Key": makeIdempotencyKey("answer") },
+        body: JSON.stringify({ step_id: activity.step.id, audio_storage_key: uploaded.audio_storage_key, audio_file_size: uploaded.audio_file_size, audio_mime_type: uploaded.audio_mime_type, audio_duration_seconds: recordingSeconds, elapsed_seconds: elapsedSeconds }),
       });
       const result = await submit.json().catch(() => null);
       if (!submit.ok) throw new Error(result?.detail || "تعذر حفظ القراءة");
       clearIdempotency();
-      setFeedback({ ok: true, text: isReinforcement ? "تم حفظ قراءتك في تدريب التقوية." : "تم حفظ قراءتك. أحسنت!" });
-      window.setTimeout(() => void fetchNext(), 620);
+      setFeedback({ ok: true, text: "تم حفظ قراءتك. أحسنت!" });
+      window.setTimeout(() => void fetchNext(), 720);
     } catch (err) {
       setError(err instanceof Error ? err.message : "تعذر حفظ القراءة");
     } finally {
@@ -394,28 +371,19 @@ export default function StudentActivityPage() {
   const toggleOption = (optionId: number) => {
     if (!interaction || submitting) return;
     setFeedback(null);
-    if (SINGLE_INTERACTIONS.has(interaction)) {
-      setSelected([optionId]);
-      return;
-    }
+    if (SINGLE_INTERACTIONS.has(interaction)) { setSelected([optionId]); return; }
     if (MULTI_INTERACTIONS.has(interaction)) {
-      setSelected((current) => current.includes(optionId)
-        ? current.filter((id) => id !== optionId)
-        : [...current, optionId]);
+      setSelected((current) => current.includes(optionId) ? current.filter((id) => id !== optionId) : [...current, optionId]);
       return;
     }
-    if (ORDER_INTERACTIONS.has(interaction)) {
-      setSelected((current) => current.includes(optionId) ? current : [...current, optionId]);
-    }
+    if (ORDER_INTERACTIONS.has(interaction)) setSelected((current) => current.includes(optionId) ? current : [...current, optionId]);
   };
 
-  const readyToSubmit = Boolean(
-    interaction && (
-      (SINGLE_INTERACTIONS.has(interaction) && selected.length === 1)
-      || (MULTI_INTERACTIONS.has(interaction) && selected.length >= 2)
-      || (ORDER_INTERACTIONS.has(interaction) && selected.length === options.length)
-    ),
-  );
+  const readyToSubmit = Boolean(interaction && (
+    (SINGLE_INTERACTIONS.has(interaction) && selected.length === 1)
+    || (MULTI_INTERACTIONS.has(interaction) && selected.length >= 2)
+    || (ORDER_INTERACTIONS.has(interaction) && selected.length === options.length)
+  ));
 
   if (done) {
     const completedLevel = progress?.level_id ?? 1;
@@ -423,228 +391,119 @@ export default function StudentActivityPage() {
     const nextLevelName = LEVEL_NAMES[completedLevel + 1];
     return (
       <div className={styles.page} dir="rtl" data-testid="activity-session" data-phase="done">
-        <main className={styles.main}>
-          <section className={`${styles.card} ${styles.done}`}>
-            <CheckCircle2 size={50} color="#51B985" aria-hidden="true" />
-            <h1>{hasNextLevel ? `أحسنت، أكملت ${LEVEL_NAMES[completedLevel]}` : "أحسنت، أكملت المستوى الثالث"}</h1>
-            <p>
-              {hasNextLevel
-                ? `أنهيت أنشطة هذا المستوى بنجاح. خطوتك التالية هي ${nextLevelName}.`
-                : "أنهيت رحلة التعلم حتى المستوى الثالث. سيظهر الاختبار البعدي عندما يفتحه المشرف."}
-            </p>
-            <Image className={styles.character} src="/characters/girl/success.png" alt="شخصية هِمّة تحتفل بالإنجاز" width={180} height={220} />
-            <button className={styles.primary} onClick={() => router.push("/student")}>{hasNextLevel ? "الانتقال إلى خطوتي التالية" : "العودة إلى مساري"}</button>
-          </section>
-        </main>
+        <main className={styles.main}><section className={`${styles.card} ${styles.done}`}>
+          <CheckCircle2 size={50} color="#51B985" aria-hidden="true" />
+          <h1>{hasNextLevel ? `أحسنت، أكملت ${LEVEL_NAMES[completedLevel]}` : "أحسنت، أكملت المستوى الثالث"}</h1>
+          <p>{hasNextLevel ? `أنهيت أنشطة هذا المستوى بنجاح. خطوتك التالية هي ${nextLevelName}.` : "أنهيت رحلة التعلم حتى المستوى الثالث. سيظهر الاختبار البعدي عندما يفتحه المشرف."}</p>
+          <Image className={styles.character} src="/characters/girl/success.png" alt="شخصية هِمّة تحتفل بالإنجاز" width={180} height={220} />
+          <button className={styles.primary} onClick={() => router.push("/student")}>{hasNextLevel ? "الانتقال إلى خطوتي التالية" : "العودة إلى مساري"}</button>
+        </section></main>
       </div>
     );
   }
 
   if (error && !activity) {
-    return (
-      <div className={styles.page} dir="rtl" data-testid="activity-session" data-phase="error">
-        <main className={styles.main}>
-          <section className={`${styles.card} ${styles.error}`}>
-            <h1>تعذر فتح النشاط</h1>
-            <p className={styles.errorMessage}>{error}</p>
-            <button className={styles.primary} onClick={() => void fetchNext()}>حاول مرة أخرى</button>
-          </section>
-        </main>
-      </div>
-    );
+    return <div className={styles.page} dir="rtl" data-testid="activity-session" data-phase="error"><main className={styles.main}><section className={`${styles.card} ${styles.error}`}><h1>تعذر فتح النشاط</h1><p className={styles.errorMessage}>{error}</p><button className={styles.primary} onClick={() => void fetchNext()}>حاول مرة أخرى</button></section></main></div>;
   }
 
   if (!activity || !interaction) {
-    return (
-      <div className={styles.page} dir="rtl" data-testid="activity-session" data-phase="loading">
-        <main className={styles.main}>
-          <section className={`${styles.card} ${styles.loading}`}>
-            <Image src="/brand/logo-navy.svg" alt="هِمّة" width={112} height={38} />
-            <div className="spinner w-12 h-12 border-4" />
-            <p>جاري تجهيز النشاط...</p>
-          </section>
-        </main>
-      </div>
-    );
+    return <div className={styles.page} dir="rtl" data-testid="activity-session" data-phase="loading"><main className={styles.main}><section className={`${styles.card} ${styles.loading}`}><Image src="/brand/logo-navy.svg" alt="هِمّة" width={112} height={38} /><div className="spinner w-12 h-12 border-4" /><p>جاري تجهيز النشاط...</p></section></main></div>;
   }
 
   const hasMediaGap = activity.step.media_gaps.length > 0;
   const imageChoice = interaction === "choose_image" || interaction === "listen_choose_image";
   const multiImageChoice = interaction === "choose_many" || interaction === "listen_choose_many";
-  const sequenceWithImages = ORDER_INTERACTIONS.has(interaction) && imageAssets.some((asset) => asset.option_id);
   const displayPrompt = cleanPrompt(activity.step.prompt_text, interaction);
   const imageOptions = imageAssets.filter((asset) => asset.option_id);
+  const imageOptionIds = new Set(imageOptions.map((asset) => Number(asset.option_id)));
+  const sequenceHasCompleteImageCoverage = options.length > 0 && options.every((option) => imageOptionIds.has(option.id));
+  const instruction = activity.step.instruction_text || "اقرأ المطلوب، ثم أكمل النشاط.";
+  const retryHint = contextualHint(instruction, interaction);
 
   return (
     <div className={styles.page} dir="rtl" data-testid="activity-session" data-phase="active" data-activity-kind={isReinforcement ? "reinforcement" : "core"}>
       <header className={styles.header}>
-        <button className={styles.back} onClick={() => router.push("/student")} aria-label="العودة إلى مسار الطالب">
-          <ArrowRight size={18} aria-hidden="true" /><span>رجوع</span>
-        </button>
-        <div className={styles.progress} aria-label={`أكملت ${progress?.completed_items ?? 0} من ${progress?.total_items ?? 10} أنشطة`}>
-          <span style={{ width: `${percent}%` }} />
-        </div>
-        <span className={styles.counter} data-testid="activity-progress">
-          {progress?.completed_items ?? 0} من {progress?.total_items ?? 10}
-        </span>
+        <button className={styles.back} onClick={() => router.push("/student")} aria-label="العودة إلى مسار الطالب"><ArrowRight size={18} aria-hidden="true" /><span>رجوع</span></button>
+        <div className={styles.progress} aria-label={`أكملت ${progress?.completed_items ?? 0} من ${progress?.total_items ?? 10} أنشطة`}><span style={{ width: `${percent}%` }} /></div>
+        <span className={styles.counter} data-testid="activity-progress">{progress?.completed_items ?? 0} من {progress?.total_items ?? 10}</span>
       </header>
 
       <main className={styles.main}>
         <section className={styles.card}>
           <div className={styles.activityMeta}>
             <span className={styles.levelPill}>{LEVEL_NAMES[activity.item.level_id]}</span>
-            <span className={styles.roundPill}>
-              {isReinforcement ? `تدريب تقوية · الجولة ${activity.step.order_index}` : `النشاط ${activity.item.order_index} · الجولة ${activity.step.order_index}`}
-            </span>
+            <span className={styles.roundPill}>{isReinforcement ? `تدريب تقوية · الجولة ${activity.step.order_index}` : `النشاط ${activity.item.order_index} · الجولة ${activity.step.order_index}`}</span>
           </div>
 
-          <span className={styles.taskBadge} data-testid={isReinforcement ? "reinforcement-badge" : "core-activity-badge"}>
-            {LISTEN_INTERACTIONS.has(interaction) ? <Headphones size={15} /> : AUDIO_INTERACTIONS.has(interaction) ? <Mic size={15} /> : <Check size={15} />}
-            {isReinforcement ? "تدريب تقوية قصير" : "مهمة واحدة في كل مرة"}
-          </span>
-          <h1 className={styles.title}>{activity.step.instruction_text || shortActivityTitle(activity.item.title)}</h1>
-          <p className={styles.method}>{shortActivityTitle(activity.item.title)}</p>
-          {isReinforcement && (
-            <p className={styles.reinforcementIntro} data-testid="reinforcement-intro">
-              هذا التدريب يساعدك في المهارة الحالية، وبعده نعود إلى الجزء الذي كنت تتعلمه في مسارك.
-            </p>
-          )}
-          {displayPrompt && <div className={styles.prompt}>{displayPrompt}</div>}
+          <h1 className={styles.title} data-testid="student-task-instruction">{instruction}</h1>
+          {isReinforcement && <p className={styles.reinforcementIntro} data-testid="reinforcement-intro">تدريب قصير يساعدك على إتقان هذه المهارة، ثم تعود إلى مسارك.</p>}
+          {displayPrompt && <div className={styles.prompt} data-testid="student-task-prompt">{displayPrompt}</div>}
 
-          {contextAssets[0] && (
-            <div className={styles.contextImage}>
-              <Image src={contextAssets[0].url} alt={contextAssets[0].semantic_text || "صورة توضيحية للنشاط"} width={460} height={260} unoptimized />
-            </div>
-          )}
+          {contextAssets[0] && <div className={styles.contextImage}><Image src={contextAssets[0].url} alt={contextAssets[0].semantic_text || "صورة توضيحية للنشاط"} width={460} height={260} unoptimized /></div>}
 
           {LISTEN_INTERACTIONS.has(interaction) && (
             <button className={`${styles.listenButton} ${isListening ? styles.listening : ""}`} onClick={() => void playPrompt()} disabled={isListening || !audioAssets.length} data-testid="activity-listen">
-              <Volume2 size={27} /><span>استمع</span>
+              <Volume2 size={27} aria-hidden="true" /><span>{isListening ? "يتم التشغيل" : "استمع"}</span>
             </button>
           )}
 
-          {hasMediaGap && (
-            <div className={styles.gapNotice}>
-              <p>هذا الملف الصوتي غير متوفر ضمن الملفات المعتمدة حاليًا، لذلك لن تُحسب هذه الجولة عليك.</p>
-              <button className={styles.secondary} disabled={submitting} onClick={() => void submitStructured(true)}>متابعة دون احتساب الجولة</button>
-            </div>
-          )}
+          {hasMediaGap && <div className={styles.gapNotice}><p>هذا الملف الصوتي غير متوفر ضمن الملفات المعتمدة حاليًا، لذلك لن تُحسب هذه الجولة عليك.</p><button className={styles.secondary} disabled={submitting} onClick={() => void submitStructured(true)}>متابعة دون احتساب الجولة</button></div>}
 
           {!hasMediaGap && (imageChoice || (multiImageChoice && imageOptions.length > 0)) && (
             <div className={styles.imageOptions} data-testid="activity-image-options">
               {imageOptions.map((asset) => {
                 const optionId = Number(asset.option_id);
                 const isSelected = selected.includes(optionId);
-                return (
-                  <button key={`${asset.asset_id}-${optionId}`} className={`${styles.imageOption} ${isSelected ? styles.imageOptionSelected : ""}`} onClick={() => toggleOption(optionId)} aria-pressed={isSelected}>
-                    {isSelected && <span className={styles.selectedMark}><Check size={16} /></span>}
-                    <Image src={asset.url} alt={asset.semantic_text || "خيار مصور"} width={220} height={150} unoptimized />
-                    <span>{asset.semantic_text || activity.step.options.find((option) => option.id === optionId)?.text}</span>
-                  </button>
-                );
+                return <button key={`${asset.asset_id}-${optionId}`} className={`${styles.imageOption} ${isSelected ? styles.imageOptionSelected : ""}`} onClick={() => toggleOption(optionId)} aria-pressed={isSelected}>{isSelected && <span className={styles.selectedMark}><Check size={16} /></span>}<Image src={asset.url} alt={asset.semantic_text || "خيار مصور"} width={220} height={150} unoptimized /><span>{asset.semantic_text || activity.step.options.find((option) => option.id === optionId)?.text}</span></button>;
               })}
             </div>
           )}
 
           {!hasMediaGap && ORDER_INTERACTIONS.has(interaction) && (
             <>
-              <div className={styles.sequenceChosen} aria-label="ترتيبك الحالي">
-                {selected.length === 0 && <span className={styles.sequenceHint}>{interaction === "build_word" ? "اضغط الحروف بالترتيب لتكوين الكلمة" : "اضغط العناصر بالترتيب الصحيح"}</span>}
-                {selected.map((id, index) => {
-                  const option = activity.step.options.find((candidate) => candidate.id === id);
-                  return <span className={styles.sequenceChip} key={`${id}-${index}`}><b>{index + 1}</b>{option?.text}</span>;
-                })}
-              </div>
-
-              {interaction === "build_word" && imageAssets[0] && (
-                <div className={styles.contextImage}>
-                  <Image src={imageAssets[0].url} alt={imageAssets[0].semantic_text || "صورة الكلمة"} width={360} height={220} unoptimized />
-                </div>
-              )}
-
-              {sequenceWithImages && interaction !== "build_word" ? (
-                <div className={styles.imageOptions}>
-                  {imageOptions.filter((asset) => !selected.includes(Number(asset.option_id))).map((asset) => (
-                    <button key={asset.asset_id} className={styles.imageOption} onClick={() => toggleOption(Number(asset.option_id))}>
-                      <Image src={asset.url} alt={asset.semantic_text || "عنصر ترتيب"} width={220} height={150} unoptimized />
-                      <span>{asset.semantic_text}</span>
-                    </button>
-                  ))}
-                </div>
+              {interaction === "path_sequence" ? (
+                <PathSequenceBoard options={options} selected={selected} onSelect={toggleOption} />
               ) : (
-                <div className={styles.options}>
-                  {options.filter((option) => !selected.includes(option.id)).map((option) => (
-                    <button key={option.id} className={styles.option} onClick={() => toggleOption(option.id)}>{option.text}</button>
-                  ))}
+                <div className={styles.sequenceChosen} aria-label="ترتيبك الحالي">
+                  {selected.length === 0 && <span className={styles.sequenceHint}>{interaction === "build_word" ? "ابدأ بالحرف الأول، ثم أكمل الكلمة." : "ابدأ بما يحدث أولًا، ثم أكمل الترتيب."}</span>}
+                  {selected.map((id, index) => { const option = activity.step.options.find((candidate) => candidate.id === id); return <span className={styles.sequenceChip} key={`${id}-${index}`}><b>{index + 1}</b>{option?.text}</span>; })}
                 </div>
               )}
+
+              {interaction === "build_word" && imageAssets[0] && <div className={styles.contextImage}><Image src={imageAssets[0].url} alt={imageAssets[0].semantic_text || "صورة الكلمة"} width={360} height={220} unoptimized /></div>}
+
+              {interaction !== "path_sequence" && sequenceHasCompleteImageCoverage && interaction !== "build_word" ? (
+                <div className={styles.imageOptions} data-testid="sequence-image-options">
+                  {imageOptions.filter((asset) => !selected.includes(Number(asset.option_id))).map((asset) => <button key={asset.asset_id} className={styles.imageOption} onClick={() => toggleOption(Number(asset.option_id))}><Image src={asset.url} alt={asset.semantic_text || "عنصر ترتيب"} width={220} height={150} unoptimized /><span>{asset.semantic_text}</span></button>)}
+                </div>
+              ) : interaction !== "path_sequence" ? (
+                <div className={styles.options}>{options.filter((option) => !selected.includes(option.id)).map((option) => <button key={option.id} className={styles.option} onClick={() => toggleOption(option.id)}>{option.text}</button>)}</div>
+              ) : null}
             </>
           )}
 
           {!hasMediaGap && !AUDIO_INTERACTIONS.has(interaction) && !ORDER_INTERACTIONS.has(interaction) && !(imageChoice || (multiImageChoice && imageOptions.length > 0)) && (
-            <div className={styles.options}>
-              {options.map((option) => {
-                const isSelected = selected.includes(option.id);
-                return (
-                  <button key={option.id} className={`${styles.option} ${isSelected ? styles.optionSelected : ""}`} onClick={() => toggleOption(option.id)} aria-pressed={isSelected}>
-                    {option.text}
-                  </button>
-                );
-              })}
-            </div>
+            <div className={styles.options}>{options.map((option) => { const isSelected = selected.includes(option.id); return <button key={option.id} className={`${styles.option} ${isSelected ? styles.optionSelected : ""}`} onClick={() => toggleOption(option.id)} aria-pressed={isSelected}>{option.text}</button>; })}</div>
           )}
 
           {!hasMediaGap && AUDIO_INTERACTIONS.has(interaction) && (
             <>
-              <div className={`${styles.readingText} ${(activity.step.expected_reading_text?.length || 0) > 55 ? styles.readingTextLong : ""}`} data-testid="activity-reading-text">
-                {activity.step.expected_reading_text || "اقرأ النص الظاهر بصوت واضح"}
-              </div>
+              <div className={`${styles.readingText} ${(activity.step.expected_reading_text?.length || 0) > 55 ? styles.readingTextLong : ""}`} data-testid="activity-reading-text">{activity.step.expected_reading_text || "اقرأ النص الظاهر بصوت واضح"}</div>
               <div className={styles.recordPanel}>
-                {!audioBlob ? (
-                  <>
-                    <button className={`${styles.recordCircle} ${isRecording ? styles.recording : ""}`} onClick={isRecording ? stopRecording : () => void startRecording()} aria-label={isRecording ? "إيقاف التسجيل" : "بدء التسجيل"}>
-                      {isRecording ? <MicOff size={30} /> : <Mic size={30} />}
-                    </button>
-                    <strong>{isRecording ? "جاري التسجيل... اضغط للإيقاف" : "اضغط لبدء التسجيل"}</strong>
-                    {isRecording && <span className={styles.timer}>{String(Math.floor(recordingSeconds / 60)).padStart(2, "0")}:{String(recordingSeconds % 60).padStart(2, "0")}</span>}
-                  </>
-                ) : (
-                  <>
-                    {audioUrl && <audio className={styles.audioPreview} src={audioUrl} controls />}
-                    <p>استمع إلى تسجيلك، ثم أرسله أو أعد المحاولة.</p>
-                    <div className={styles.actions}>
-                      <button className={styles.secondary} onClick={() => { resetQuestionState(); startedAtRef.current = Date.now(); }}><RotateCcw size={17} /> إعادة التسجيل</button>
-                      <button className={styles.primary} disabled={submitting} onClick={() => void uploadReading()}>{submitting ? "جاري الحفظ..." : "إرسال التسجيل"}</button>
-                    </div>
-                  </>
-                )}
+                {!audioBlob ? <><button className={`${styles.recordCircle} ${isRecording ? styles.recording : ""}`} onClick={isRecording ? stopRecording : () => void startRecording()} aria-label={isRecording ? "إيقاف التسجيل" : "بدء التسجيل"}>{isRecording ? <MicOff size={30} /> : <Mic size={30} />}</button><strong>{isRecording ? "جاري التسجيل... اضغط للإيقاف" : "اضغط لبدء التسجيل"}</strong>{isRecording && <span className={styles.timer}>{String(Math.floor(recordingSeconds / 60)).padStart(2, "0")}:{String(recordingSeconds % 60).padStart(2, "0")}</span>}</> : <>{audioUrl && <audio className={styles.audioPreview} src={audioUrl} controls />}<p>استمع إلى تسجيلك، ثم أرسله أو أعد المحاولة.</p><div className={styles.actions}><button className={styles.secondary} onClick={() => { resetQuestionState(); startedAtRef.current = Date.now(); }}><RotateCcw size={17} /> إعادة التسجيل</button><button className={styles.primary} disabled={submitting} onClick={() => void uploadReading()}>{submitting ? "جاري الحفظ..." : "إرسال التسجيل"}</button></div></>}
               </div>
             </>
           )}
 
-          {feedback && <p className={`${styles.feedback} ${feedback.ok ? styles.success : styles.retry}`}>{feedback.text}</p>}
-          {error && <p className={`${styles.feedback} ${styles.errorMessage}`}>{error}</p>}
+          {feedback && <p className={`${styles.feedback} ${feedback.ok ? styles.success : styles.retry}`} role="status">{feedback.text}</p>}
+          {error && <p className={`${styles.feedback} ${styles.errorMessage}`} role="alert">{error}</p>}
           {activity.retry && !feedback && !error && (
-            <p className={`${styles.feedback} ${styles.retry}`}>
-              {isReinforcement ? "جرّب مرة أخرى. هذا التدريب موجود لمساعدتك، وخذ وقتك في المحاولة الثانية." : "حاول مرة أخرى. لديك محاولة ثانية، ويمكنك الاستفادة من التعليمة."}
-            </p>
+            <div className={styles.helperRow} data-testid="contextual-hint"><Image src="/characters/girl/encourage.png" alt="شخصية هِمّة تساعد الطالب" width={95} height={120} /><p>{retryHint}</p></div>
           )}
 
           {!hasMediaGap && !AUDIO_INTERACTIONS.has(interaction) && (
-            <div className={styles.actions}>
-              {ORDER_INTERACTIONS.has(interaction) && selected.length > 0 && <button className={styles.secondary} disabled={submitting} onClick={() => setSelected([])}><RotateCcw size={17} /> إعادة الترتيب</button>}
-              <button className={styles.primary} disabled={submitting || !readyToSubmit} onClick={() => void submitStructured(false)}>{submitting ? "جاري الحفظ..." : "تأكيد والمتابعة"}</button>
-            </div>
+            <div className={styles.actions}>{ORDER_INTERACTIONS.has(interaction) && selected.length > 0 && <button className={styles.secondary} disabled={submitting} onClick={() => setSelected([])}><RotateCcw size={17} /> إعادة الترتيب</button>}<button className={styles.primary} disabled={submitting || !readyToSubmit} onClick={() => void submitStructured(false)}>{submitting ? "جاري الحفظ..." : "تأكيد والمتابعة"}</button></div>
           )}
-
-          <div className={styles.helperRow}>
-            <Image src={activity.retry ? "/characters/girl/encourage.png" : "/characters/girl/explain.png"} alt="شخصية هِمّة المساعدة" width={95} height={120} />
-            <p>
-              {isReinforcement
-                ? (activity.retry ? "لا بأس، هذا تدريب تقوية. ركّز وحاول مرة أخرى، وبعده نعود إلى مسارك." : "هذا تدريب قصير على المهارة التي تحتاج دعمًا فيها، ثم تعود إلى نشاطك الأساسي.")
-                : (activity.retry ? "لا بأس، ركّز في الصوت أو الصورة وجرب مرة ثانية." : "خذ وقتك. يمكنك الاستماع مرة أخرى قبل الإجابة عندما يظهر زر الصوت.")}
-            </p>
-          </div>
         </section>
       </main>
     </div>
