@@ -4,8 +4,12 @@ These corrections repair import/runtime presentation gaps without rewriting the
 immutable approved catalog. They keep each canonical item, correct answer,
 scoring rule, skill, and activity order unchanged.
 
-Every distractor in this file comes from the client-approved content source;
-none is authored by the runtime.
+Most distractors below are copied verbatim from the client-approved source.
+L3-REIN-01 is the one documented exception: the source explicitly requires the
+same sentence to be shown in three segmentations but lists only the correct
+segmentation. Its two distractors are therefore presentation-only boundary
+variants generated from the exact same approved words; no word, answer, skill,
+or semantic content is added.
 """
 
 from __future__ import annotations
@@ -25,8 +29,6 @@ L2_WORD_IMAGE_POOL = ["بَاب", "قَلَم", "شَمْس", "قِطَّة", "�
 POST_WORD_ELEMENT_ITEM = "POST-Q09"
 POST_WORD_ELEMENT_POOL = ["ك", "نَخْلَة", "ذَهَبَ مَاجِدٌ إِلَى الْبَحْرِ"]
 
-# Client-approved multiple-choice sets. The historical parser retained the
-# correct answer but dropped the two distractors from these L3 activities.
 L3_APPROVED_ROUND_CHOICES = {
     "L3-CORE-07": [
         ["المكتبة", "الحديقة", "الساحة"],
@@ -49,7 +51,48 @@ L3_APPROVED_ROUND_CHOICES = {
         ["نظيفة وواضحة", "مظلمة", "بعيدة"],
         ["بجانب", "فوق", "بعيدًا عن"],
     ],
+    "L3-REIN-02": [
+        ["حمل سالم مظلته وخرج من المنزل", "لعب سالم بالكرة", "قرأ سالم كتابًا"],
+        ["كانت تسقيها كل صباح", "كانت تنظر إلى السماء", "كانت تلعب في الساحة"],
+        ["أعاد الكتاب إلى مكانه", "دخل المكتبة", "جلس على الكرسي"],
+    ],
+    "L3-REIN-05": [
+        ["في المكتبة", "في الملعب", "رحلة إلى البحر"],
+        ["شاطئ نظيف", "يوم في المدرسة", "زيارة الطبيب"],
+        ["النبتة الصغيرة", "السيارة الجديدة", "الطائر السريع"],
+    ],
 }
+
+# The approved source requires *three displays* for each sentence but provides
+# only the correct segmentation. These distractors change slash boundaries only.
+# They deliberately preserve every approved word and word order.
+L3_SEGMENTATION_ROUNDS = [
+    [
+        "ذَهَبَ سَالِمٌ / إِلَى الْمَدْرَسَةِ / فِي الصَّبَاحِ",
+        "ذَهَبَ / سَالِمٌ إِلَى الْمَدْرَسَةِ / فِي الصَّبَاحِ",
+        "ذَهَبَ سَالِمٌ إِلَى / الْمَدْرَسَةِ فِي / الصَّبَاحِ",
+    ],
+    [
+        "جَلَسَتْ مَرْيَمُ / تَحْتَ الشَّجَرَةِ / وَقَرَأَتْ كِتَابًا",
+        "جَلَسَتْ / مَرْيَمُ تَحْتَ الشَّجَرَةِ / وَقَرَأَتْ كِتَابًا",
+        "جَلَسَتْ مَرْيَمُ تَحْتَ / الشَّجَرَةِ وَقَرَأَتْ / كِتَابًا",
+    ],
+    [
+        "لَعِبَ الْأَطْفَالُ / فِي السَّاحَةِ / بَعْدَ الدَّرْسِ",
+        "لَعِبَ / الْأَطْفَالُ فِي السَّاحَةِ / بَعْدَ الدَّرْسِ",
+        "لَعِبَ الْأَطْفَالُ فِي / السَّاحَةِ بَعْدَ / الدَّرْسِ",
+    ],
+    [
+        "وَقَفَ الْعُصْفُورُ / فَوْقَ النَّخْلَةِ / ثُمَّ طَارَ",
+        "وَقَفَ / الْعُصْفُورُ فَوْقَ النَّخْلَةِ / ثُمَّ طَارَ",
+        "وَقَفَ الْعُصْفُورُ فَوْقَ / النَّخْلَةِ ثُمَّ / طَارَ",
+    ],
+    [
+        "عَادَ مَاجِدٌ / إِلَى الْبَيْتِ / مَعَ وَالِدِهِ",
+        "عَادَ / مَاجِدٌ إِلَى الْبَيْتِ / مَعَ وَالِدِهِ",
+        "عَادَ مَاجِدٌ إِلَى / الْبَيْتِ مَعَ / وَالِدِهِ",
+    ],
+]
 
 WORD_IMAGE_ASSETS = {
     "باب": "VOC-03",
@@ -217,6 +260,7 @@ def run_seed() -> int:
         )
         for canonical, approved_rounds in L3_APPROVED_ROUND_CHOICES.items():
             created += _repair_round_choices(db, canonical, approved_rounds)
+        created += _repair_round_choices(db, "L3-REIN-01", L3_SEGMENTATION_ROUNDS)
 
         db.commit()
         return created
