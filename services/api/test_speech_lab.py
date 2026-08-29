@@ -109,6 +109,9 @@ def test_speech_lab_analysis_is_reference_guided_and_academically_neutral(resear
     assert payload["academic_effect"] == "none"
     assert payload["pronunciation_status"] == "not_calibrated"
     assert payload["provider"] == "lab-test-provider"
+    assert payload["recording_quality"]["input"]["status"] == "input_accepted"
+    assert payload["recording_quality"]["provider_output"]["status"] == "provider_output_accepted"
+    assert payload["recording_quality"]["rerecord_required"] is False
     assert payload["counts"]["substitution"] == 1
     assert payload["counts"]["deletion"] == 0
     assert payload["counts"]["insertion"] == 0
@@ -136,3 +139,46 @@ def test_speech_lab_rejects_empty_recording_without_calling_provider(researcher_
     assert response.status_code == 422
     assert response.json()["detail"] == "ملف التسجيل فارغ"
     assert called is False
+
+
+def test_speech_lab_rejects_too_short_recording_before_provider(researcher_client, monkeypatch):
+    called = False
+
+    def provider_factory():
+        nonlocal called
+        called = True
+        raise AssertionError("provider must not be built for too-short audio")
+
+    monkeypatch.setattr(speech_lab, "build_provider", provider_factory)
+    response = researcher_client.post(
+        "/admin/speech-lab/analyze",
+        data={"reference_text": "بَ", "adaptation_mode": "reference"},
+        files={"audio": ("short.webm", b"tiny", "audio/webm")},
+    )
+    assert response.status_code == 422
+    assert response.json()["detail"] == "التسجيل قصير جدًا؛ أعد التسجيل بصوت واضح"
+    assert called is False
+
+
+def test_speech_lab_requests_rerecord_when_provider_detects_no_speech(researcher_client, monkeypatch):
+    class SilentProvider:
+        name = "silent-test-provider"
+
+        def transcribe_reference_guided(self, *, audio_bytes, mime_type, reference_text, language="ar-OM"):
+            return ProviderResult(
+                provider_name=self.name,
+                model="silent-model",
+                transcript="",
+                confidence=None,
+                request_id="silent-request",
+                raw_metadata={"reason": "no_match"},
+            )
+
+    monkeypatch.setattr(speech_lab, "build_provider", lambda: SilentProvider())
+    response = researcher_client.post(
+        "/admin/speech-lab/analyze",
+        data={"reference_text": "بَ", "adaptation_mode": "reference"},
+        files={"audio": ("silence.webm", b"x" * 64, "audio/webm")},
+    )
+    assert response.status_code == 422
+    assert response.json()["detail"] == "لم يتم اكتشاف كلام واضح؛ أعد التسجيل"
