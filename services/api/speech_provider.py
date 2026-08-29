@@ -68,16 +68,24 @@ class UnconfiguredSpeechProvider:
 
 
 def build_provider() -> SpeechProvider:
-    """Build the explicitly configured production provider.
+    """Build the explicitly configured production/evaluation provider.
 
-    Google STT V2 is an evaluation candidate for M08. Its presence here does not
-    mean that automatic academic acceptance is calibrated; the existing
-    calibration guard and supervisor review policy remain authoritative.
+    Azure Speech is the primary M08 evaluation candidate. Google STT V2 remains
+    available only as a secondary benchmark so we can replay the same recordings
+    later without redesigning the pipeline. Neither provider bypasses Himma's
+    calibration guard or supervisor-review policy.
     """
 
     provider = os.getenv("HIMMA_ASR_PROVIDER", "").strip().lower()
     if not provider:
         return UnconfiguredSpeechProvider()
+    if provider in {"azure", "azure-speech", "azure_speech"}:
+        try:
+            from azure_speech_provider import AzureSpeechProvider
+
+            return AzureSpeechProvider()
+        except ProviderPermanentError as exc:
+            raise ProviderNotConfigured(str(exc)) from exc
     if provider in {"google", "google-stt-v2", "google_cloud_stt_v2"}:
         try:
             from google_speech_provider import GoogleSpeechV2Provider
