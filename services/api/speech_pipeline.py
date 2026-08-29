@@ -18,6 +18,7 @@ from speech_provider import (
     SpeechProvider,
     build_provider,
 )
+from speech_quality import RecordingQualityError, validate_provider_output, validate_recording_input
 import storage
 
 
@@ -30,9 +31,7 @@ def enqueue_submission(db: Session, submission_id: int) -> SpeechAnalysisJob:
     if not submission:
         raise ValueError("Audio submission not found")
 
-    existing = db.query(SpeechAnalysisJob).filter(
-        SpeechAnalysisJob.submission_id == submission_id
-    ).first()
+    existing = db.query(SpeechAnalysisJob).filter(SpeechAnalysisJob.submission_id == submission_id).first()
     if existing:
         return existing
 
@@ -56,12 +55,9 @@ def _reference_for_submission(db: Session, submission: AudioSubmission) -> str:
 
 def _audio_bytes(submission: AudioSubmission) -> bytes:
     try:
-        response = storage.s3_client.get_object(
-            Bucket=storage.S3_BUCKET_NAME,
-            Key=submission.storage_key,
-        )
+        response = storage.s3_client.get_object(Bucket=storage.S3_BUCKET_NAME, Key=submission.storage_key)
         payload = response["Body"].read(storage.MAX_AUDIO_BYTES + 1)
-    except Exception as exc:  # boto errors are retryable infrastructure failures
+    except Exception as exc:
         raise ProviderTemporaryError("Private audio storage is unavailable") from exc
     if not payload or len(payload) > storage.MAX_AUDIO_BYTES:
         raise ProviderPermanentError("Stored audio is empty or outside the allowed size")
@@ -69,12 +65,7 @@ def _audio_bytes(submission: AudioSubmission) -> bytes:
 
 
 def _calibrated_decision(confidence: float | None) -> tuple[str, str | None]:
-    """Return a conservative machine decision.
-
-    The project source requires the confidence threshold to be calibrated on
-    representative samples. Until both a threshold and calibration version are
-    explicitly configured, every valid ASR result remains review_required.
-    """
+    """Return a conservative machine decision only after explicit calibration."""
     raw_threshold = os.getenv("HIMMA_ASR_CONFIDENCE_THRESHOLD", "").strip()
     calibration_version = os.getenv("HIMMA_ASR_CALIBRATION_VERSION", "").strip() or None
     if not raw_threshold or not calibration_version or confidence is None:
@@ -115,12 +106,7 @@ def process_job(
     provider: SpeechProvider | None = None,
     now: datetime | None = None,
 ) -> SpeechAnalysisJob:
-    """Process exactly one job; safe to call repeatedly.
-
-    Runtime provider absence is an explicit blocked state, not a fake result.
-    Temporary failures back off and eventually dead-letter. Permanent failures
-    fail closed. No student score is mutated here.
-    """
+    """Process exactly one job; invalid recordings fail closed without academic mutation."""
     now = now or datetime.now(timezone.utc)
     job = db.query(SpeechAnalysisJob).filter(SpeechAnalysisJob.id == job_id).first()
     if not job:
@@ -154,6 +140,12 @@ def process_job(
     try:
         reference = _reference_for_submission(db, submission)
         payload = _audio_bytes(submission)
+        validate_recording_input(
+            audio_bytes=payload,
+            mime_type=submission.mime_type,
+            duration_seconds=float(submission.duration_seconds) if submission.duration_seconds is not None else None,
+            max_bytes=storage.MAX_AUDIO_BYTES,
+        )
         runtime_provider = provider or build_provider()
         result = runtime_provider.transcribe_reference_guided(
             audio_bytes=payload,
@@ -161,6 +153,7 @@ def process_job(
             reference_text=reference,
             language="ar",
         )
+        validate_provider_output(transcript=result.transcript, duration_seconds=result.duration_seconds)
         aligned = align_reference(reference, result.transcript)
         counts = alignment_counts(aligned)
         decision, calibration_version = _calibrated_decision(result.confidence)
@@ -190,6 +183,15 @@ def process_job(
         job.last_error_message = None
         job.next_attempt_at = None
         job.completed_at = now
+        job.updated_at = now
+        db.flush()
+        return job
+    except RecordingQualityError as exc:
+        job.attempt_count += 1
+        job.status = "failed"
+        job.last_error_code = f"quality_{exc.code}"
+        job.last_error_message = exc.message
+        job.next_attempt_at = None
         job.updated_at = now
         db.flush()
         return job
