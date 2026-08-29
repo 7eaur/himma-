@@ -5,13 +5,11 @@ immutable approved catalog. They keep each canonical item, correct answer,
 scoring rule, skill, and activity order unchanged.
 
 Covered source-grounded corrections:
-- L1-CORE-03: the approved client content requires the correct connected letter
-  form plus three forms of other letters in every round.
-- L1-REIN-03: the approved client content says the learner HEARS one of five
-  approved words and chooses its picture from THREE images in every round. The
-  legacy parser persisted only the correct option and flattened the interaction
-  to text choice, so this repair restores two same-activity distractors, the
-  approved listen+image presentation, and manifest-backed image links.
+- L1-CORE-03: correct connected letter form + three other forms per round.
+- L1-REIN-03: hear an approved word and choose its picture from THREE images.
+- L2-REIN-04: see an approved word and choose its matching picture from THREE
+  images. The approved source names five target words but the legacy parser
+  persisted only the correct image option.
 """
 
 from __future__ import annotations
@@ -22,14 +20,24 @@ from db.models import ContentAssetLink, ContentItem, ContentOption
 LETTER_FORM_ITEM = "L1-CORE-03"
 LETTER_FORM_POOL = ["بـ", "مـ", "سـ", "كـ", "لـ"]
 
-WORD_IMAGE_ITEM = "L1-REIN-03"
-WORD_IMAGE_POOL = ["باب", "قلم", "شمس", "سمكة", "كرة"]
+L1_WORD_IMAGE_ITEM = "L1-REIN-03"
+L1_WORD_IMAGE_POOL = ["باب", "قلم", "شمس", "سمكة", "كرة"]
+
+L2_WORD_IMAGE_ITEM = "L2-REIN-04"
+L2_WORD_IMAGE_POOL = ["بَاب", "قَلَم", "شَمْس", "قِطَّة", "كِتَاب"]
+
 WORD_IMAGE_ASSETS = {
     "باب": "VOC-03",
+    "بَاب": "VOC-03",
     "قلم": "VOC-04",
-    "سمكة": "VOC-05",
+    "قَلَم": "VOC-04",
     "شمس": "VOC-06",
+    "شَمْس": "VOC-06",
+    "سمكة": "VOC-05",
     "كرة": "VOC-10",
+    "قِطَّة": "VOC-16",
+    "كتاب": "VOC-02",
+    "كِتَاب": "VOC-02",
 }
 
 
@@ -56,6 +64,10 @@ def _ensure_option_count(step, *, pool: list[str], total: int) -> int:
     current_texts = {option.text for option in existing}
     distractors = [value for value in pool if value != correct.text]
     if len(distractors) < total - 1:
+        # Diacritics in imported source can differ while the word is the same.
+        normalized_correct = _plain(correct.text)
+        distractors = [value for value in pool if _plain(value) != normalized_correct]
+    if len(distractors) < total - 1:
         raise RuntimeError(f"Not enough approved distractors for step {step.id}")
 
     offset = max(0, int(step.order_index) - 1) % len(distractors)
@@ -64,7 +76,7 @@ def _ensure_option_count(step, *, pool: list[str], total: int) -> int:
     for value in rotated:
         if len(current_texts) >= total:
             break
-        if value in current_texts:
+        if value in current_texts or _plain(value) in {_plain(text) for text in current_texts}:
             continue
         step.options.append(ContentOption(
             text=value,
@@ -76,6 +88,22 @@ def _ensure_option_count(step, *, pool: list[str], total: int) -> int:
     return created
 
 
+def _plain(value: str) -> str:
+    import re
+    return re.sub(r"[\u0610-\u061a\u064b-\u065f\u0670\u06d6-\u06ed]", "", value or "").replace("ـ", "")
+
+
+def _asset_for_word(value: str) -> str | None:
+    direct = WORD_IMAGE_ASSETS.get(value)
+    if direct:
+        return direct
+    plain = _plain(value)
+    for label, asset_id in WORD_IMAGE_ASSETS.items():
+        if _plain(label) == plain:
+            return asset_id
+    return None
+
+
 def _ensure_word_image_assets(step) -> int:
     created = 0
     existing_ids = {
@@ -84,7 +112,7 @@ def _ensure_word_image_assets(step) -> int:
         if link.asset_type == "image" and link.usage_context == "choice"
     }
     for option in sorted(step.options, key=lambda value: value.order_index):
-        asset_id = WORD_IMAGE_ASSETS.get(option.text)
+        asset_id = _asset_for_word(option.text)
         if not asset_id or asset_id in existing_ids:
             continue
         step.assets.append(ContentAssetLink(
@@ -97,6 +125,21 @@ def _ensure_word_image_assets(step) -> int:
     return created
 
 
+def _repair_image_choice(db, canonical: str, pool: list[str], *, interaction: str) -> int:
+    item = _find_item(db, canonical)
+    if item is None:
+        return 0
+    data = dict(item.template_data or {})
+    if data.get("canonical_interaction_type") != interaction:
+        data["canonical_interaction_type"] = interaction
+        item.template_data = data
+    created = 0
+    for step in sorted(item.steps, key=lambda value: value.order_index):
+        created += _ensure_option_count(step, pool=pool, total=3)
+        created += _ensure_word_image_assets(step)
+    return created
+
+
 def run_seed() -> int:
     db = SessionLocal()
     created = 0
@@ -106,15 +149,18 @@ def run_seed() -> int:
             for step in sorted(letter_forms.steps, key=lambda value: value.order_index):
                 created += _ensure_option_count(step, pool=LETTER_FORM_POOL, total=4)
 
-        word_images = _find_item(db, WORD_IMAGE_ITEM)
-        if word_images is not None:
-            data = dict(word_images.template_data or {})
-            if data.get("canonical_interaction_type") != "listen_choose_image":
-                data["canonical_interaction_type"] = "listen_choose_image"
-                word_images.template_data = data
-            for step in sorted(word_images.steps, key=lambda value: value.order_index):
-                created += _ensure_option_count(step, pool=WORD_IMAGE_POOL, total=3)
-                created += _ensure_word_image_assets(step)
+        created += _repair_image_choice(
+            db,
+            L1_WORD_IMAGE_ITEM,
+            L1_WORD_IMAGE_POOL,
+            interaction="listen_choose_image",
+        )
+        created += _repair_image_choice(
+            db,
+            L2_WORD_IMAGE_ITEM,
+            L2_WORD_IMAGE_POOL,
+            interaction="choose_image",
+        )
 
         db.commit()
         return created
