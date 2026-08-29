@@ -32,6 +32,7 @@ const navSections = [
     label: "النتائج",
     items: [
       { href: "/admin/reports", label: "التقارير", icon: BarChart2 },
+      { href: "/admin/skill-reports", label: "ملخص المهارات", icon: BarChart2 },
     ],
   },
   {
