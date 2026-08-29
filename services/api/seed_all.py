@@ -2,8 +2,8 @@
 
 Use this entrypoint for fresh/repeatable environments after M03. It preserves
 `seed.py` as the immutable 105-item baseline seeder while adding the accepted
-v1 maintenance extension and the explicitly approved 2026-08-29 v2 gap release
-without causing the baseline legacy guard to misclassify versioned additions.
+maintenance extensions and narrowly scoped presentation corrections that are
+already stated in the approved client content.
 """
 
 from __future__ import annotations
@@ -14,6 +14,7 @@ from pathlib import Path
 import seed
 import seed_reinforcement_additions
 import seed_reinforcement_additions_v2
+import seed_student_choice_corrections
 from db.database import SessionLocal
 from db.models import ContentItem
 
@@ -48,6 +49,7 @@ def run_seed_all() -> dict[str, int]:
 
     v1_created = seed_reinforcement_additions.run_seed()
     v2_created = seed_reinforcement_additions_v2.run_seed()
+    choice_corrections_created = seed_student_choice_corrections.run_seed()
 
     db = SessionLocal()
     try:
@@ -74,6 +76,7 @@ def run_seed_all() -> dict[str, int]:
         "total_items": total,
         "v1_additions_created": v1_created,
         "v2_additions_created": v2_created,
+        "choice_corrections_created": choice_corrections_created,
         "additions_created": v1_created + v2_created,
     }
     print(f"Himma full content seed OK: {result}")
