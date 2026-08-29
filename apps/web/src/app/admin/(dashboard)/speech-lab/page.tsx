@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Mic, Square, Upload } from "lucide-react";
 import styles from "./speech-lab.module.css";
+import { PcmWavRecorder } from "./wav-recorder";
 
 type TargetType = "single_letter" | "letter_with_haraka" | "syllable" | "word" | "sentence" | "passage";
 
@@ -69,6 +70,46 @@ type Analysis = {
   pronunciation_status: string;
 };
 
+type ProviderStatus = {
+  configured: boolean;
+  provider: string | null;
+  detail?: string;
+};
+
+type PronunciationProviderStatus = ProviderStatus & {
+  locale: string | null;
+  calibration_status: "not_calibrated";
+  academic_effect: "none";
+};
+
+type PronunciationWordResult = {
+  word: string;
+  accuracy_score_raw: number | null;
+  error_type: string | null;
+  offset_seconds: number | null;
+  duration_seconds: number | null;
+  phoneme_scores_raw: number[];
+};
+
+type PronunciationAssessment = {
+  lab_only: true;
+  target_id: string | null;
+  provider: string;
+  locale: string;
+  recognition_status: string;
+  transcript: string;
+  confidence: number | null;
+  accuracy_score_raw: number | null;
+  fluency_score_raw: number | null;
+  completeness_score_raw: number | null;
+  pronunciation_score_raw: number | null;
+  words: PronunciationWordResult[];
+  request_id: string | null;
+  calibration_status: "not_calibrated";
+  interpretation: "raw_provider_evidence_only";
+  academic_effect: "none";
+};
+
 const groups = [
   ["all", "كل المحتوى"],
   ["pretest", "الاختبار القبلي"],
@@ -98,6 +139,11 @@ const targetTypeLabel: Record<TargetType, string> = {
 function percent(value: number | null | undefined) {
   if (value === null || value === undefined || Number.isNaN(value)) return "—";
   return `${Math.round(value * 1000) / 10}%`;
+}
+
+function rawScore(value: number | null | undefined) {
+  if (value === null || value === undefined || Number.isNaN(value)) return "—";
+  return `${Math.round(value * 10) / 10}/100`;
 }
 
 function PronunciationPanel({ reference }: { reference: PronunciationReference | null }) {
@@ -136,7 +182,8 @@ export default function SpeechLabPage() {
   const [selectedId, setSelectedId] = useState("");
   const [group, setGroup] = useState("all");
   const [query, setQuery] = useState("");
-  const [provider, setProvider] = useState<{ configured: boolean; provider: string | null; detail?: string } | null>(null);
+  const [provider, setProvider] = useState<ProviderStatus | null>(null);
+  const [pronunciationProvider, setPronunciationProvider] = useState<PronunciationProviderStatus | null>(null);
   const [pronunciationReference, setPronunciationReference] = useState<PronunciationReference | null>(null);
   const [loading, setLoading] = useState(true);
   const [recording, setRecording] = useState(false);
@@ -144,26 +191,31 @@ export default function SpeechLabPage() {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
+  const [pronunciationAssessment, setPronunciationAssessment] = useState<PronunciationAssessment | null>(null);
   const [message, setMessage] = useState("");
-  const recorderRef = useRef<MediaRecorder | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
+  const [pronunciationMessage, setPronunciationMessage] = useState("");
+  const recorderRef = useRef<PcmWavRecorder | null>(null);
 
   useEffect(() => {
     let active = true;
     const load = async () => {
       try {
-        const [targetsResponse, providerResponse] = await Promise.all([
+        const [targetsResponse, providerResponse, pronunciationProviderResponse] = await Promise.all([
           fetch("/api/admin/speech-lab/targets", { cache: "no-store" }),
           fetch("/api/admin/speech-lab/provider", { cache: "no-store" }),
+          fetch("/api/admin/speech-lab/pronunciation-provider", { cache: "no-store" }),
         ]);
         const targetData = await targetsResponse.json();
         const providerData = await providerResponse.json();
+        const pronunciationProviderData = await pronunciationProviderResponse.json();
         if (!targetsResponse.ok) throw new Error(targetData?.detail || "تعذر تحميل محتوى القراءة");
-        if (!providerResponse.ok) throw new Error(providerData?.detail || "تعذر قراءة حالة المزود");
+        if (!providerResponse.ok) throw new Error(providerData?.detail || "تعذر قراءة حالة مزود التعرف النصي");
+        if (!pronunciationProviderResponse.ok) throw new Error(pronunciationProviderData?.detail || "تعذر قراءة حالة مزود النطق");
         if (!active) return;
         setTargets(targetData.targets || []);
         setSelectedId(targetData.targets?.[0]?.target_id || "");
         setProvider(providerData);
+        setPronunciationProvider(pronunciationProviderData);
       } catch (error) {
         if (active) setMessage(error instanceof Error ? error.message : "تعذر تجهيز مختبر الصوت");
       } finally {
@@ -173,6 +225,7 @@ export default function SpeechLabPage() {
     void load();
     return () => {
       active = false;
+      recorderRef.current?.cancel();
     };
   }, []);
 
@@ -216,6 +269,8 @@ export default function SpeechLabPage() {
 
   const replaceAudio = (blob: Blob | null) => {
     setAnalysis(null);
+    setPronunciationAssessment(null);
+    setPronunciationMessage("");
     setAudioBlob(blob);
     setAudioUrl((previous) => {
       if (previous) URL.revokeObjectURL(previous);
@@ -231,52 +286,78 @@ export default function SpeechLabPage() {
 
   const startRecording = async () => {
     setMessage("");
+    setPronunciationMessage("");
     if (!selected) return;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
-      chunksRef.current = [];
-      recorder.ondataavailable = (event) => {
-        if (event.data.size > 0) chunksRef.current.push(event.data);
-      };
-      recorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
-        replaceAudio(blob);
-        stream.getTracks().forEach((track) => track.stop());
-      };
+      const recorder = new PcmWavRecorder();
+      await recorder.start();
       recorderRef.current = recorder;
-      recorder.start();
       setRecording(true);
     } catch {
+      recorderRef.current?.cancel();
+      recorderRef.current = null;
       setMessage("لم نتمكن من استخدام الميكروفون. تحقق من إذن المتصفح ثم حاول مرة أخرى.");
     }
   };
 
-  const stopRecording = () => {
+  const stopRecording = async () => {
     const recorder = recorderRef.current;
-    if (recorder && recorder.state !== "inactive") recorder.stop();
+    if (!recorder) return;
     recorderRef.current = null;
     setRecording(false);
+    try {
+      const blob = await recorder.stop();
+      replaceAudio(blob);
+    } catch {
+      recorder.cancel();
+      setMessage("لم يلتقط المتصفح صوتًا صالحًا. أعد التسجيل وحاول مرة أخرى.");
+    }
+  };
+
+  const runLexicalAnalysis = async () => {
+    if (!selected || !audioBlob || !provider?.configured) return;
+    const form = new FormData();
+    form.append("reference_text", selected.reference_text);
+    form.append("target_id", selected.target_id);
+    form.append("adaptation_mode", "reference");
+    form.append("audio", audioBlob, `speech-lab-${selected.target_id}.wav`);
+    const response = await fetch("/api/admin/speech-lab/analyze", { method: "POST", body: form });
+    const data = await response.json().catch(() => null);
+    if (!response.ok) throw new Error(data?.detail || "تعذر تحليل التسجيل نصيًا");
+    setAnalysis(data);
+    if (data?.pronunciation_reference) setPronunciationReference(data.pronunciation_reference);
+  };
+
+  const runPronunciationAssessment = async () => {
+    if (!selected || !audioBlob || !pronunciationProvider?.configured) return;
+    const form = new FormData();
+    form.append("reference_text", selected.reference_text);
+    form.append("target_id", selected.target_id);
+    form.append("audio", audioBlob, `speech-lab-${selected.target_id}.wav`);
+    const response = await fetch("/api/admin/speech-lab/assess-pronunciation", { method: "POST", body: form });
+    const data = await response.json().catch(() => null);
+    if (!response.ok) throw new Error(data?.detail || "تعذر تشغيل التقييم النطقي");
+    setPronunciationAssessment(data);
   };
 
   const analyze = async () => {
     if (!selected || !audioBlob) return;
     setAnalyzing(true);
     setMessage("");
+    setPronunciationMessage("");
     setAnalysis(null);
+    setPronunciationAssessment(null);
     try {
-      const form = new FormData();
-      form.append("reference_text", selected.reference_text);
-      form.append("target_id", selected.target_id);
-      form.append("adaptation_mode", "reference");
-      form.append("audio", audioBlob, `speech-lab-${selected.target_id}.webm`);
-      const response = await fetch("/api/admin/speech-lab/analyze", { method: "POST", body: form });
-      const data = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(data?.detail || "تعذر تحليل التسجيل");
-      setAnalysis(data);
-      if (data?.pronunciation_reference) setPronunciationReference(data.pronunciation_reference);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "تعذر تحليل التسجيل");
+      const [lexicalResult, pronunciationResult] = await Promise.allSettled([
+        runLexicalAnalysis(),
+        runPronunciationAssessment(),
+      ]);
+      if (lexicalResult.status === "rejected") {
+        setMessage(lexicalResult.reason instanceof Error ? lexicalResult.reason.message : "تعذر التحليل النصي");
+      }
+      if (pronunciationResult.status === "rejected") {
+        setPronunciationMessage(pronunciationResult.reason instanceof Error ? pronunciationResult.reason.message : "تعذر التقييم النطقي");
+      }
     } finally {
       setAnalyzing(false);
     }
@@ -285,6 +366,8 @@ export default function SpeechLabPage() {
   if (loading) {
     return <div className={styles.loading}>جاري تجهيز محتوى مختبر الصوت...</div>;
   }
+
+  const anyProviderConfigured = Boolean(provider?.configured || pronunciationProvider?.configured);
 
   return (
     <div className={styles.page} data-testid="speech-lab-page">
@@ -296,11 +379,12 @@ export default function SpeechLabPage() {
         </div>
         <div className={`${styles.providerBadge} ${provider?.configured ? styles.ready : styles.notReady}`}>
           <span className={styles.statusDot} aria-hidden="true" />
-          <div><strong>{provider?.configured ? "المزود متصل" : "المزود غير مهيأ"}</strong><small>{provider?.provider || "Azure Speech بانتظار بيانات الاتصال"}</small></div>
+          <div><strong>{provider?.configured ? "التعرف النصي متصل" : "المزود غير مهيأ"}</strong><small>{provider?.provider || "Azure Speech بانتظار بيانات الاتصال"}</small></div>
         </div>
       </header>
 
       {message && <div className={styles.notice} role="status">{message}</div>}
+      {pronunciationMessage && <div className={styles.notice} role="status">التقييم النطقي: {pronunciationMessage}</div>}
 
       <section className={styles.workspace}>
         <aside className={styles.catalogPanel}>
@@ -319,13 +403,14 @@ export default function SpeechLabPage() {
             <div className={styles.referenceCard}><span>النص المرجعي</span><p>{selected.reference_text}</p><div className={styles.referenceBadges}><span>{targetTypeLabel[selected.pronunciation_target_type]}</span>{selected.has_diacritics && <span>يحتوي حركات</span>}</div></div>
             <PronunciationPanel reference={pronunciationReference} />
             <div className={styles.recorderCard}>
-              <div className={styles.recorderText}><h2>{recording ? "جاري التسجيل" : audioBlob ? "التسجيل جاهز" : "سجّل القراءة"}</h2><p>{recording ? "اقرأ النص كما هو ظاهر، ثم أوقف التسجيل." : "يمكنك إعادة التسجيل في أي وقت قبل التحليل."}</p></div>
+              <div className={styles.recorderText}><h2>{recording ? "جاري التسجيل" : audioBlob ? "التسجيل جاهز بصيغة WAV" : "سجّل القراءة"}</h2><p>{recording ? "اقرأ النص كما هو ظاهر، ثم أوقف التسجيل." : "يسجل المختبر PCM mono 16kHz ليستخدم الملف نفسه في التحليل النصي والنطقي."}</p></div>
               <div className={styles.actions}>
-                {!recording ? <button className={styles.primaryButton} onClick={startRecording}><Mic size={20} />{audioBlob ? "إعادة التسجيل" : "بدء التسجيل"}</button> : <button className={styles.stopButton} onClick={stopRecording}><Square size={19} />إيقاف التسجيل</button>}
+                {!recording ? <button className={styles.primaryButton} onClick={startRecording}><Mic size={20} />{audioBlob ? "إعادة التسجيل" : "بدء التسجيل"}</button> : <button className={styles.stopButton} onClick={() => { void stopRecording(); }}><Square size={19} />إيقاف التسجيل</button>}
                 {audioUrl && <audio className={styles.audio} controls src={audioUrl} />}
-                <button className={styles.analyzeButton} data-testid="speech-lab-analyze" disabled={!audioBlob || analyzing || recording || !provider?.configured} onClick={analyze}><Upload size={19} />{analyzing ? "جاري التحليل..." : "تحليل القراءة"}</button>
+                <button className={styles.analyzeButton} data-testid="speech-lab-analyze" disabled={!audioBlob || analyzing || recording || !anyProviderConfigured} onClick={() => { void analyze(); }}><Upload size={19} />{analyzing ? "جاري التحليل..." : "تشغيل التحليلين"}</button>
               </div>
-              {!provider?.configured && <p className={styles.providerHint}>واجهة المختبر جاهزة. يلزم تهيئة Azure Speech على الخادم لتشغيل التحليل الحقيقي.</p>}
+              <p className={styles.providerHint}>التعرف النصي: {provider?.configured ? "جاهز ar-OM" : "غير مهيأ"} · التقييم النطقي: {pronunciationProvider?.configured ? `تجريبي ${pronunciationProvider.locale}` : "غير مهيأ"}</p>
+              {!anyProviderConfigured && <p className={styles.providerHint}>واجهة المختبر جاهزة. يلزم تهيئة Azure Speech على الخادم لتشغيل التحليل الحقيقي.</p>}
             </div>
 
             {analysis && <section className={styles.results} aria-live="polite">
@@ -340,7 +425,20 @@ export default function SpeechLabPage() {
               </div>
               <div className={styles.transcripts}><div><span>النص الخام من Azure</span><p>{analysis.raw_transcript || "لم يرجع المزود نصًا."}</p></div><div><span>بعد التطبيع للمحاذاة</span><p>{analysis.normalized_transcript || "—"}</p></div></div>
               <div className={styles.alignmentWrap}><h3>المحاذاة مع النص المرجعي</h3><div className={styles.alignmentTable} role="table"><div className={styles.tableHead} role="row"><span>المرجع</span><span>المسموع</span><span>التصنيف</span></div>{analysis.alignment.map((row, index) => <div className={styles.tableRow} role="row" key={`${index}-${row.kind}`}><span>{row.reference || "—"}</span><span>{row.hypothesis || "—"}</span><span className={`${styles.tokenKind} ${styles[row.kind]}`}>{kindLabel[row.kind]}</span></div>)}</div></div>
-              <div className={styles.safetyNote}>نتيجة Azure هنا تقيس التعرف النصي والمحاذاة فقط. تقييم الحرف والحركة والشدة والسكون صوتيًا غير معتمد حتى تتم المعايرة، ولا يوجد أي أثر أكاديمي لهذه التجربة.</div>
+              <div className={styles.safetyNote}>نتيجة Azure هنا تقيس التعرف النصي والمحاذاة فقط. لا تتحول هذه النتيجة تلقائيًا إلى حكم على الحركات.</div>
+            </section>}
+
+            {pronunciationAssessment && <section className={styles.results} data-testid="pronunciation-assessment-results" aria-live="polite">
+              <div className={styles.resultHeader}><div><span>التقييم النطقي التجريبي</span><h2>{pronunciationAssessment.provider} · {pronunciationAssessment.locale}</h2></div><div className={styles.accuracy}><strong>{rawScore(pronunciationAssessment.pronunciation_score_raw)}</strong><span>درجة مزود خام</span></div></div>
+              <div className={styles.metrics}>
+                <div><span>الدقة النطقية الخام</span><strong>{rawScore(pronunciationAssessment.accuracy_score_raw)}</strong></div>
+                <div><span>الطلاقة الخام</span><strong>{rawScore(pronunciationAssessment.fluency_score_raw)}</strong></div>
+                <div><span>الاكتمال الخام</span><strong>{rawScore(pronunciationAssessment.completeness_score_raw)}</strong></div>
+                <div><span>ثقة التعرف</span><strong>{percent(pronunciationAssessment.confidence)}</strong></div>
+              </div>
+              <div className={styles.transcripts}><div><span>النص الذي قيّمه Azure</span><p>{pronunciationAssessment.transcript || "—"}</p></div><div><span>حالة المعايرة</span><p>غير معاير — لا أثر أكاديمي</p></div></div>
+              {pronunciationAssessment.words.length > 0 && <div className={styles.alignmentWrap}><h3>أدلة النطق على مستوى الكلمات</h3><div className={styles.alignmentTable} role="table"><div className={styles.tableHead} role="row"><span>الكلمة</span><span>دقة خام</span><span>فونيمات خام</span></div>{pronunciationAssessment.words.map((word, index) => <div className={styles.tableRow} role="row" key={`${word.word}-${index}`}><span>{word.word || "—"}</span><span>{rawScore(word.accuracy_score_raw)}</span><span dir="ltr">{word.phoneme_scores_raw.length ? word.phoneme_scores_raw.map((score) => Math.round(score * 10) / 10).join(" · ") : "—"}</span></div>)}</div></div>}
+              <div className={styles.safetyNote}>هذه قيم Azure الخام للمعايرة فقط. لا نربط ترتيب درجات الفونيمات بحرف أو فتحة أو كسرة أو ضمة لأن أسماء الفونيمات العربية لا تُعاد هنا؛ الربط بالحركة سيعتمد فقط بعد مقارنة تسجيلات معلّمة بشريًا.</div>
             </section>}
           </> : <div className={styles.empty}>اختر هدف قراءة لبدء الاختبار.</div>}
         </main>
