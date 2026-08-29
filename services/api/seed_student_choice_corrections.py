@@ -26,6 +26,8 @@ L1_WORD_IMAGE_POOL = ["باب", "قلم", "شمس", "سمكة", "كرة"]
 L2_WORD_IMAGE_ITEM = "L2-REIN-04"
 L2_WORD_IMAGE_POOL = ["بَاب", "قَلَم", "شَمْس", "قِطَّة", "كِتَاب"]
 
+POST_LETTER_ELEMENT_ITEM = "POST-Q08"
+POST_LETTER_ELEMENT_POOL = ["ل", "كِتَاب", "قَرَأَ خَالِدٌ الْكِتَابَ."]
 POST_WORD_ELEMENT_ITEM = "POST-Q09"
 POST_WORD_ELEMENT_POOL = ["ك", "نَخْلَة", "ذَهَبَ مَاجِدٌ إِلَى الْبَحْرِ"]
 
@@ -251,6 +253,12 @@ def run_seed() -> int:
             L2_WORD_IMAGE_ITEM,
             L2_WORD_IMAGE_POOL,
             interaction="choose_image",
+        )
+        created += _repair_text_choice(
+            db,
+            POST_LETTER_ELEMENT_ITEM,
+            POST_LETTER_ELEMENT_POOL,
+            total=3,
         )
         created += _repair_text_choice(
             db,
