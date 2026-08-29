@@ -37,16 +37,31 @@ async function loginStudent(request: APIRequestContext, context: BrowserContext,
   await context.addCookies([{ name: "access_token", value: cookie!, domain: "localhost", path: "/", httpOnly: true, sameSite: "Lax", secure: false }]);
 }
 
+function answerCandidates(page: Page) {
+  return page.locator("main section button").filter({
+    hasNotText: /^(استمع|تأكيد والمتابعة|إعادة الترتيب|إعادة التسجيل|إرسال التسجيل)$/u,
+  });
+}
+
 async function answerVisibleChoice(page: Page) {
   const imageGroup = page.getByTestId("image-options");
+  const confirm = page.getByRole("button", { name: "تأكيد والمتابعة" });
   if (await imageGroup.count()) {
     await imageGroup.getByRole("button").first().click();
   } else {
-    const option = page.locator('button[aria-pressed="false"]').first();
-    await expect(option).toBeVisible();
-    await option.click();
+    const pressedOptions = page.locator('button[aria-pressed="false"]');
+    if (await pressedOptions.count()) {
+      await pressedOptions.first().click();
+    } else {
+      const candidates = answerCandidates(page);
+      await expect(candidates.first()).toBeVisible();
+      for (let index = 0; index < await candidates.count(); index += 1) {
+        if (await confirm.isEnabled()) break;
+        const candidate = candidates.nth(index);
+        if (await candidate.isVisible() && await candidate.isEnabled()) await candidate.click();
+      }
+    }
   }
-  const confirm = page.getByRole("button", { name: "تأكيد والمتابعة" });
   await expect(confirm).toBeEnabled();
   await confirm.click();
 }
@@ -65,9 +80,12 @@ async function assertQuestionHierarchy(page: Page) {
 
   const headingBox = await heading.boundingBox();
   const imageGroup = page.getByTestId("image-options");
+  const pressedOptions = page.locator('button[aria-pressed="false"]');
   const firstAnswer = (await imageGroup.count())
     ? imageGroup.getByRole("button").first()
-    : page.locator('button[aria-pressed="false"]').first();
+    : (await pressedOptions.count())
+      ? pressedOptions.first()
+      : answerCandidates(page).first();
   await expect(firstAnswer).toBeVisible();
   const answerBox = await firstAnswer.boundingBox();
   expect(headingBox).toBeTruthy();
