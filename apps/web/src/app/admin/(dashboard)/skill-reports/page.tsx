@@ -51,7 +51,20 @@ export default function SkillReportsPage() {
   };
 
   useEffect(() => {
-    void refresh();
+    let cancelled = false;
+    fetchSkillEvidence()
+      .then((payload) => {
+        if (!cancelled) setData(payload);
+      })
+      .catch((caught: unknown) => {
+        if (!cancelled) setError(caught instanceof Error ? caught.message : "تعذر تحميل ملخص المهارات");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const totalObservations = data?.cohort_skills.reduce((sum, row) => sum + row.graded_responses, 0) ?? 0;
