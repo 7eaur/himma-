@@ -21,7 +21,7 @@ beforeEach(() => {
 });
 
 describe("Student activity page", () => {
-  it("labels reinforcement as a short support task and explains return to the core path", async () => {
+  it("keeps reinforcement context without exposing internal task-design labels", async () => {
     global.fetch = jest
       .fn()
       .mockResolvedValueOnce(response({
@@ -66,8 +66,10 @@ describe("Student activity page", () => {
 
     render(<StudentActivityPage />);
 
-    expect(await screen.findByTestId("reinforcement-badge")).toHaveTextContent("تدريب تقوية قصير");
-    expect(screen.getByTestId("reinforcement-intro")).toHaveTextContent("وبعده نعود إلى الجزء الذي كنت تتعلمه");
+    expect(await screen.findByTestId("student-task-instruction")).toHaveTextContent("اختر الكلمة التي تحتوي على شدة");
+    expect(screen.getByTestId("reinforcement-intro")).toHaveTextContent("ثم تعود إلى مسارك");
+    expect(screen.queryByText("مهمة واحدة في كل مرة", { exact: true })).not.toBeInTheDocument();
+    expect(screen.queryByTestId("reinforcement-badge")).not.toBeInTheDocument();
     expect(screen.getByTestId("activity-session")).toHaveAttribute("data-activity-kind", "reinforcement");
   });
 
