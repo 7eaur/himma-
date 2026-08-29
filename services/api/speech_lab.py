@@ -2,9 +2,9 @@
 
 This module deliberately stays outside the academic scoring/adaptation path.
 It exposes canonical read-aloud targets and lets a supervisor run the configured
-ASR provider against an ad-hoc recording, then inspect the reference-guided
-alignment. Lab runs never mutate student scores, attempts, rewards, adaptation
-or reinforcement evidence.
+ASR provider against an ad-hoc recording, then inspect reference-guided lexical
+alignment plus an experimental pronunciation reference. Lab runs never mutate
+student scores, attempts, rewards, adaptation or reinforcement evidence.
 """
 
 from __future__ import annotations
@@ -14,6 +14,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 
+from arabic_pronunciation import build_pronunciation_reference
 from content_runtime import _CATALOG
 from db.models import User
 from dependencies import get_current_user
@@ -33,8 +34,6 @@ _READ_PREFIX = re.compile(r"^\s*(?:اقرأ|يقرأ|قراءة)\s*[:：]\s*", r
 
 def _require_supervisor(user: User = Depends(get_current_user)) -> User:
     """Fail closed for non-supervisors even if they know the admin API URL."""
-    # get_current_user already resolves only an active legacy researcher role,
-    # but keep this local guard as defence in depth for the lab boundary.
     if user.role != "researcher" or not user.is_active:
         raise HTTPException(status_code=403, detail="غير مصرح بالوصول إلى مختبر الصوت")
     return user
@@ -75,6 +74,7 @@ def canonical_reading_targets() -> list[dict[str, Any]]:
             reference_text = _reference_text(item, round_data)
             if not reference_text:
                 continue
+            pronunciation = build_pronunciation_reference(reference_text)
             targets.append(
                 {
                     "target_id": str(round_data.get("round_id") or f"{item.get('canonical_id')}-R{index:02d}"),
@@ -88,6 +88,8 @@ def canonical_reading_targets() -> list[dict[str, Any]]:
                     "interaction_type": interaction,
                     "round_index": int(round_data.get("order_index") or index),
                     "reference_text": reference_text,
+                    "pronunciation_target_type": pronunciation["target_type"],
+                    "has_diacritics": pronunciation["has_diacritics"],
                 }
             )
     return targets
@@ -101,6 +103,17 @@ def get_targets(_: User = Depends(_require_supervisor)):
         "count": len(targets),
         "targets": targets,
     }
+
+
+@router.get("/pronunciation-reference")
+def pronunciation_reference(
+    reference_text: str,
+    _: User = Depends(_require_supervisor),
+):
+    reference_text = reference_text.strip()
+    if not reference_text:
+        raise HTTPException(status_code=422, detail="النص المرجعي مطلوب")
+    return build_pronunciation_reference(reference_text)
 
 
 @router.get("/provider")
@@ -155,6 +168,7 @@ async def analyze_recording(
     errors = counts["deletion"] + counts["insertion"] + counts["substitution"]
     wer = errors / ref_words
     lexical_accuracy = max(0.0, 1.0 - wer)
+    pronunciation = build_pronunciation_reference(reference_text)
 
     return {
         "lab_only": True,
@@ -191,7 +205,8 @@ async def analyze_recording(
             }
             for word in result.words
         ],
+        "pronunciation_reference": pronunciation,
+        "pronunciation_status": "experimental_reference_only",
         "raw_metadata": result.raw_metadata,
         "academic_effect": "none",
-        "pronunciation_status": "not_calibrated",
     }
