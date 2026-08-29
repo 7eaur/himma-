@@ -1,3 +1,4 @@
+import { mkdirSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 
 test.describe("approved media fidelity", () => {
@@ -12,6 +13,7 @@ test.describe("approved media fidelity", () => {
     expect(audioResponse.headers()["content-type"]).toContain("audio/");
     expect((await audioResponse.body()).byteLength).toBeGreaterThan(500);
 
+    await page.goto("/");
     await page.setContent(`
       <main dir="rtl">
         <img id="approved-image" src="/api/media/VOC-01" alt="موزة" />
@@ -49,6 +51,7 @@ test.describe("approved media fidelity", () => {
     }
 
     await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/");
     await page.setContent(`
       <main dir="rtl" style="font-family: sans-serif; padding: 24px; background: #F7FBFF; color: #20364D">
         <h1 style="margin:0 0 20px">صور التسلسل المعتمدة — هِمّة</h1>
@@ -70,6 +73,7 @@ test.describe("approved media fidelity", () => {
       await expect.poll(async () => image.evaluate((element) => (element as HTMLImageElement).naturalHeight)).toBeGreaterThan(0);
     }
 
+    mkdirSync("playwright-report/screenshots", { recursive: true });
     await page.screenshot({
       path: "playwright-report/screenshots/generated-sequence-assets.png",
       fullPage: true,
