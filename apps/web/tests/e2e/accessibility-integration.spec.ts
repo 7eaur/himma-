@@ -178,7 +178,7 @@ test.describe("M06 responsive and accessibility integration", () => {
       await expect(lab).toBeVisible({ timeout: 10000 });
       await expect(page.getByRole("heading", { name: "مختبر تحليل القراءة" })).toBeVisible();
       await expect(page.getByText("المزود غير مهيأ", { exact: true })).toBeVisible();
-      await expect(page.getByText(/Google STT V2 بانتظار بيانات الاتصال/)).toBeVisible();
+      await expect(page.getByText(/Azure Speech بانتظار بيانات الاتصال/)).toBeVisible();
       await expect(page.getByText(/هدف$/).first()).toBeVisible();
       await expect(page.getByText(/نتائج هذه الصفحة تجريبية ولا تغيّر درجات الطلاب أو قرارات التكيف/)).toBeVisible();
 
