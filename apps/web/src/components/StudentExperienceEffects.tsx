@@ -5,10 +5,14 @@ import { Award, Star, Volume2, VolumeX } from "lucide-react";
 import styles from "./StudentExperienceEffects.module.css";
 
 type Tone = "select" | "listen" | "success" | "retry" | "transition" | "award";
-
 type Reward = { kind: "star" | "award"; text: string } | null;
 
 const STORAGE_KEY = "himma:student-ui-sounds";
+
+function initialSoundPreference() {
+  if (typeof window === "undefined") return true;
+  return window.localStorage.getItem(STORAGE_KEY) !== "off";
+}
 
 function tonePattern(kind: Tone) {
   switch (kind) {
@@ -48,16 +52,11 @@ function playTone(kind: Tone, enabled: boolean) {
 }
 
 export default function StudentExperienceEffects() {
-  const [enabled, setEnabled] = useState(true);
+  const [enabled, setEnabled] = useState(initialSoundPreference);
   const [taskVisible, setTaskVisible] = useState(false);
   const [reward, setReward] = useState<Reward>(null);
   const lastSignalRef = useRef("");
   const rewardTimerRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (stored === "off") setEnabled(false);
-  }, []);
 
   useEffect(() => {
     const rootSelector = '[data-testid="activity-session"], [data-testid="assessment-session"]';
