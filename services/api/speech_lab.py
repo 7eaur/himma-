@@ -206,7 +206,7 @@ async def analyze_recording(
             for word in result.words
         ],
         "pronunciation_reference": pronunciation,
-        "pronunciation_status": "experimental_reference_only",
+        "pronunciation_status": "not_calibrated",
         "raw_metadata": result.raw_metadata,
         "academic_effect": "none",
     }
