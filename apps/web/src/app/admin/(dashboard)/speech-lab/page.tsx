@@ -4,6 +4,30 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Mic, Square, Upload } from "lucide-react";
 import styles from "./speech-lab.module.css";
 
+type TargetType = "single_letter" | "letter_with_haraka" | "syllable" | "word" | "sentence" | "passage";
+
+type PronunciationUnit = {
+  grapheme: string;
+  base: string;
+  vowel: string | null;
+  vowel_name: string | null;
+  vowel_symbol: string | null;
+  geminated: boolean;
+  sukun: boolean;
+  tanween: string | null;
+  tanween_name: string | null;
+  phonetic_hint: string;
+};
+
+type PronunciationReference = {
+  target_type: TargetType;
+  reference_text: string;
+  units: PronunciationUnit[];
+  has_diacritics: boolean;
+  acoustic_status: "not_calibrated";
+  academic_effect: "none";
+};
+
 type Target = {
   target_id: string;
   canonical_id: string;
@@ -15,6 +39,8 @@ type Target = {
   interaction_type: string;
   round_index: number;
   reference_text: string;
+  pronunciation_target_type: TargetType;
+  has_diacritics: boolean;
 };
 
 type AlignmentRow = {
@@ -38,6 +64,7 @@ type Analysis = {
   wer: number;
   lexical_accuracy: number;
   alignment: AlignmentRow[];
+  pronunciation_reference: PronunciationReference;
   academic_effect: "none";
   pronunciation_status: string;
 };
@@ -59,9 +86,49 @@ const kindLabel: Record<AlignmentRow["kind"], string> = {
   substitution: "استبدال",
 };
 
+const targetTypeLabel: Record<TargetType, string> = {
+  single_letter: "حرف",
+  letter_with_haraka: "حرف مع حركة",
+  syllable: "مقطع",
+  word: "كلمة",
+  sentence: "جملة",
+  passage: "نص",
+};
+
 function percent(value: number | null | undefined) {
   if (value === null || value === undefined || Number.isNaN(value)) return "—";
   return `${Math.round(value * 1000) / 10}%`;
+}
+
+function PronunciationPanel({ reference }: { reference: PronunciationReference | null }) {
+  if (!reference) return <div className={styles.pronunciationLoading}>جاري تجهيز المرجع النطقي...</div>;
+  return (
+    <section className={styles.pronunciationPanel} data-testid="pronunciation-reference-panel">
+      <div className={styles.pronunciationHeader}>
+        <div>
+          <span>المرجع النطقي التجريبي</span>
+          <h2>{targetTypeLabel[reference.target_type]}</h2>
+        </div>
+        <span className={styles.calibrationBadge}>الحكم الصوتي على الحركة: غير معاير بعد</span>
+      </div>
+      <p className={styles.pronunciationExplain}>
+        هذا التفكيك مستخرج من النص المشكول نفسه، وليس حكمًا على تسجيلك. نستخدمه لاحقًا لمقارنة الحرف والحركة صوتيًا بعد المعايرة.
+      </p>
+      <div className={styles.pronunciationUnits}>
+        {reference.units.map((unit, index) => (
+          <div className={styles.pronunciationUnit} key={`${unit.grapheme}-${index}`}>
+            <strong>{unit.grapheme}</strong>
+            <span>الحرف: {unit.base}</span>
+            <span>الحركة: {unit.vowel_name || (unit.sukun ? "سكون" : "—")}</span>
+            {unit.geminated && <span>الشدة: موجودة</span>}
+            {unit.tanween_name && <span>{unit.tanween_name}</span>}
+            <small dir="ltr">{unit.phonetic_hint}</small>
+          </div>
+        ))}
+      </div>
+      <div className={styles.pronunciationSafety}>لا توجد درجة للحرف أو الحركة في هذه المرحلة، ولا يؤثر هذا المرجع في نتيجة الطالب.</div>
+    </section>
+  );
 }
 
 export default function SpeechLabPage() {
@@ -70,6 +137,7 @@ export default function SpeechLabPage() {
   const [group, setGroup] = useState("all");
   const [query, setQuery] = useState("");
   const [provider, setProvider] = useState<{ configured: boolean; provider: string | null; detail?: string } | null>(null);
+  const [pronunciationReference, setPronunciationReference] = useState<PronunciationReference | null>(null);
   const [loading, setLoading] = useState(true);
   const [recording, setRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
@@ -127,6 +195,24 @@ export default function SpeechLabPage() {
     ? selectedId
     : filtered[0]?.target_id || "";
   const selected = filtered.find((target) => target.target_id === effectiveSelectedId) || null;
+
+  useEffect(() => {
+    let active = true;
+    const referenceText = selected?.reference_text;
+    if (!referenceText) return () => { active = false; };
+    const loadPronunciation = async () => {
+      try {
+        const response = await fetch(`/api/admin/speech-lab/pronunciation-reference?reference_text=${encodeURIComponent(referenceText)}`, { cache: "no-store" });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data?.detail || "تعذر تجهيز المرجع النطقي");
+        if (active) setPronunciationReference(data);
+      } catch (error) {
+        if (active) setMessage(error instanceof Error ? error.message : "تعذر تجهيز المرجع النطقي");
+      }
+    };
+    void loadPronunciation();
+    return () => { active = false; };
+  }, [selected?.target_id, selected?.reference_text]);
 
   const replaceAudio = (blob: Blob | null) => {
     setAnalysis(null);
@@ -188,6 +274,7 @@ export default function SpeechLabPage() {
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(data?.detail || "تعذر تحليل التسجيل");
       setAnalysis(data);
+      if (data?.pronunciation_reference) setPronunciationReference(data.pronunciation_reference);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "تعذر تحليل التسجيل");
     } finally {
@@ -209,7 +296,7 @@ export default function SpeechLabPage() {
         </div>
         <div className={`${styles.providerBadge} ${provider?.configured ? styles.ready : styles.notReady}`}>
           <span className={styles.statusDot} aria-hidden="true" />
-          <div><strong>{provider?.configured ? "المزود متصل" : "المزود غير مهيأ"}</strong><small>{provider?.provider || "Google STT V2 بانتظار بيانات الاتصال"}</small></div>
+          <div><strong>{provider?.configured ? "المزود متصل" : "المزود غير مهيأ"}</strong><small>{provider?.provider || "Azure Speech بانتظار بيانات الاتصال"}</small></div>
         </div>
       </header>
 
@@ -221,7 +308,7 @@ export default function SpeechLabPage() {
           <label className={styles.field}><span>القسم</span><select value={group} onChange={(event) => { setGroup(event.target.value); resetForCatalogChange(); }}>{groups.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
           <label className={styles.field}><span>بحث</span><input value={query} onChange={(event) => { setQuery(event.target.value); resetForCatalogChange(); }} placeholder="كلمة، مهارة، أو رمز المحتوى" /></label>
           <div className={styles.targetList}>
-            {filtered.map((target) => <button key={target.target_id} className={`${styles.targetButton} ${target.target_id === effectiveSelectedId ? styles.targetActive : ""}`} onClick={() => { setSelectedId(target.target_id); replaceAudio(null); }}><span className={styles.targetCode}>{target.canonical_id} · {target.round_index}</span><strong>{target.reference_text}</strong><small>{target.skill_name || target.title}</small></button>)}
+            {filtered.map((target) => <button key={target.target_id} className={`${styles.targetButton} ${target.target_id === effectiveSelectedId ? styles.targetActive : ""}`} onClick={() => { setSelectedId(target.target_id); replaceAudio(null); }}><span className={styles.targetCode}>{target.canonical_id} · {target.round_index}</span><strong>{target.reference_text}</strong><small>{target.skill_name || target.title}</small><span className={styles.targetBadges}><span>{targetTypeLabel[target.pronunciation_target_type]}</span>{target.has_diacritics && <span>مشكول</span>}</span></button>)}
             {!filtered.length && <div className={styles.empty}>لا توجد أهداف تطابق التصفية الحالية.</div>}
           </div>
         </aside>
@@ -229,19 +316,20 @@ export default function SpeechLabPage() {
         <main className={styles.testPanel}>
           {selected ? <>
             <div className={styles.testMeta}><div><span>{selected.canonical_id}</span><span>{selected.skill_name}</span></div><span className={styles.interaction}>{selected.interaction_type === "timed_read_aloud" ? "قراءة مؤقتة" : "قراءة جهرية"}</span></div>
-            <div className={styles.referenceCard}><span>النص المرجعي</span><p>{selected.reference_text}</p></div>
+            <div className={styles.referenceCard}><span>النص المرجعي</span><p>{selected.reference_text}</p><div className={styles.referenceBadges}><span>{targetTypeLabel[selected.pronunciation_target_type]}</span>{selected.has_diacritics && <span>يحتوي حركات</span>}</div></div>
+            <PronunciationPanel reference={pronunciationReference} />
             <div className={styles.recorderCard}>
               <div className={styles.recorderText}><h2>{recording ? "جاري التسجيل" : audioBlob ? "التسجيل جاهز" : "سجّل القراءة"}</h2><p>{recording ? "اقرأ النص كما هو ظاهر، ثم أوقف التسجيل." : "يمكنك إعادة التسجيل في أي وقت قبل التحليل."}</p></div>
               <div className={styles.actions}>
                 {!recording ? <button className={styles.primaryButton} onClick={startRecording}><Mic size={20} />{audioBlob ? "إعادة التسجيل" : "بدء التسجيل"}</button> : <button className={styles.stopButton} onClick={stopRecording}><Square size={19} />إيقاف التسجيل</button>}
                 {audioUrl && <audio className={styles.audio} controls src={audioUrl} />}
-                <button className={styles.analyzeButton} disabled={!audioBlob || analyzing || recording || !provider?.configured} onClick={analyze}><Upload size={19} />{analyzing ? "جاري التحليل..." : "تحليل القراءة"}</button>
+                <button className={styles.analyzeButton} data-testid="speech-lab-analyze" disabled={!audioBlob || analyzing || recording || !provider?.configured} onClick={analyze}><Upload size={19} />{analyzing ? "جاري التحليل..." : "تحليل القراءة"}</button>
               </div>
-              {!provider?.configured && <p className={styles.providerHint}>واجهة المختبر جاهزة. يلزم تهيئة Google Cloud STT V2 على الخادم لتشغيل التحليل الحقيقي.</p>}
+              {!provider?.configured && <p className={styles.providerHint}>واجهة المختبر جاهزة. يلزم تهيئة Azure Speech على الخادم لتشغيل التحليل الحقيقي.</p>}
             </div>
 
             {analysis && <section className={styles.results} aria-live="polite">
-              <div className={styles.resultHeader}><div><span>نتيجة المختبر</span><h2>{analysis.provider} {analysis.model ? `· ${analysis.model}` : ""}</h2></div><div className={styles.accuracy}><strong>{percent(analysis.lexical_accuracy)}</strong><span>تطابق لفظي</span></div></div>
+              <div className={styles.resultHeader}><div><span>نتيجة التعرف النصي</span><h2>{analysis.provider} {analysis.model ? `· ${analysis.model}` : ""}</h2></div><div className={styles.accuracy}><strong>{percent(analysis.lexical_accuracy)}</strong><span>تطابق لفظي</span></div></div>
               <div className={styles.metrics}>
                 <div><span>ثقة المزود</span><strong>{percent(analysis.provider_confidence)}</strong></div>
                 <div><span>صحيح</span><strong>{analysis.counts.correct || 0}</strong></div>
@@ -250,9 +338,9 @@ export default function SpeechLabPage() {
                 <div><span>استبدال</span><strong>{analysis.counts.substitution || 0}</strong></div>
                 <div><span>WER</span><strong>{percent(analysis.wer)}</strong></div>
               </div>
-              <div className={styles.transcripts}><div><span>النص الخام من المزود</span><p>{analysis.raw_transcript || "لم يرجع المزود نصًا."}</p></div><div><span>بعد التطبيع للمحاذاة</span><p>{analysis.normalized_transcript || "—"}</p></div></div>
+              <div className={styles.transcripts}><div><span>النص الخام من Azure</span><p>{analysis.raw_transcript || "لم يرجع المزود نصًا."}</p></div><div><span>بعد التطبيع للمحاذاة</span><p>{analysis.normalized_transcript || "—"}</p></div></div>
               <div className={styles.alignmentWrap}><h3>المحاذاة مع النص المرجعي</h3><div className={styles.alignmentTable} role="table"><div className={styles.tableHead} role="row"><span>المرجع</span><span>المسموع</span><span>التصنيف</span></div>{analysis.alignment.map((row, index) => <div className={styles.tableRow} role="row" key={`${index}-${row.kind}`}><span>{row.reference || "—"}</span><span>{row.hypothesis || "—"}</span><span className={`${styles.tokenKind} ${styles[row.kind]}`}>{kindLabel[row.kind]}</span></div>)}</div></div>
-              <div className={styles.safetyNote}>هذه النتيجة دليل مختبري فقط. تقييم الحركات والنطق الدقيق غير معتمد حتى تتم المعايرة، ولا يوجد أي أثر أكاديمي لهذه التجربة.</div>
+              <div className={styles.safetyNote}>نتيجة Azure هنا تقيس التعرف النصي والمحاذاة فقط. تقييم الحرف والحركة والشدة والسكون صوتيًا غير معتمد حتى تتم المعايرة، ولا يوجد أي أثر أكاديمي لهذه التجربة.</div>
             </section>}
           </> : <div className={styles.empty}>اختر هدف قراءة لبدء الاختبار.</div>}
         </main>
