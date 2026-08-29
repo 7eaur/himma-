@@ -182,8 +182,9 @@ test.describe("M06 responsive and accessibility integration", () => {
       await expect(page.getByText(/هدف$/).first()).toBeVisible();
       await expect(page.getByText(/نتائج هذه الصفحة تجريبية ولا تغيّر درجات الطلاب أو قرارات التكيف/)).toBeVisible();
 
-      const analyzeButton = page.locator("button").filter({ hasText: "تحليل القراءة" }).first();
+      const analyzeButton = page.getByTestId("speech-lab-analyze");
       await expect(analyzeButton).toBeVisible();
+      await expect(analyzeButton).toHaveText(/تشغيل التحليلين/);
       await expect(analyzeButton).toBeDisabled();
       await expectNoHorizontalOverflow(page);
       await page.screenshot({
