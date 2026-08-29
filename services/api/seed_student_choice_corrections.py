@@ -10,6 +10,9 @@ Covered source-grounded corrections:
 - L2-REIN-04: see an approved word and choose its matching picture from THREE
   images. The approved source names five target words but the legacy parser
   persisted only the correct image option.
+- POST-Q09: the approved source presents three visible elements (letter, word,
+  sentence) and asks the learner to choose the word. The legacy import retained
+  only the correct criterion as an option.
 """
 
 from __future__ import annotations
@@ -25,6 +28,9 @@ L1_WORD_IMAGE_POOL = ["باب", "قلم", "شمس", "سمكة", "كرة"]
 
 L2_WORD_IMAGE_ITEM = "L2-REIN-04"
 L2_WORD_IMAGE_POOL = ["بَاب", "قَلَم", "شَمْس", "قِطَّة", "كِتَاب"]
+
+POST_WORD_ELEMENT_ITEM = "POST-Q09"
+POST_WORD_ELEMENT_POOL = ["ك", "نَخْلَة", "ذَهَبَ مَاجِدٌ إِلَى الْبَحْرِ"]
 
 WORD_IMAGE_ASSETS = {
     "باب": "VOC-03",
@@ -55,6 +61,11 @@ def _find_item(db, canonical: str) -> ContentItem | None:
     )
 
 
+def _plain(value: str) -> str:
+    import re
+    return re.sub(r"[\u0610-\u061a\u064b-\u065f\u0670\u06d6-\u06ed]", "", value or "").replace("ـ", "")
+
+
 def _ensure_option_count(step, *, pool: list[str], total: int) -> int:
     existing = sorted(step.options, key=lambda value: value.order_index)
     if not existing:
@@ -62,11 +73,8 @@ def _ensure_option_count(step, *, pool: list[str], total: int) -> int:
 
     correct = next((option for option in existing if option.is_correct), existing[0])
     current_texts = {option.text for option in existing}
-    distractors = [value for value in pool if value != correct.text]
-    if len(distractors) < total - 1:
-        # Diacritics in imported source can differ while the word is the same.
-        normalized_correct = _plain(correct.text)
-        distractors = [value for value in pool if _plain(value) != normalized_correct]
+    normalized_correct = _plain(correct.text)
+    distractors = [value for value in pool if _plain(value) != normalized_correct]
     if len(distractors) < total - 1:
         raise RuntimeError(f"Not enough approved distractors for step {step.id}")
 
@@ -86,11 +94,6 @@ def _ensure_option_count(step, *, pool: list[str], total: int) -> int:
         current_texts.add(value)
         created += 1
     return created
-
-
-def _plain(value: str) -> str:
-    import re
-    return re.sub(r"[\u0610-\u061a\u064b-\u065f\u0670\u06d6-\u06ed]", "", value or "").replace("ـ", "")
 
 
 def _asset_for_word(value: str) -> str | None:
@@ -140,6 +143,16 @@ def _repair_image_choice(db, canonical: str, pool: list[str], *, interaction: st
     return created
 
 
+def _repair_text_choice(db, canonical: str, pool: list[str], *, total: int) -> int:
+    item = _find_item(db, canonical)
+    if item is None:
+        return 0
+    created = 0
+    for step in sorted(item.steps, key=lambda value: value.order_index):
+        created += _ensure_option_count(step, pool=pool, total=total)
+    return created
+
+
 def run_seed() -> int:
     db = SessionLocal()
     created = 0
@@ -160,6 +173,12 @@ def run_seed() -> int:
             L2_WORD_IMAGE_ITEM,
             L2_WORD_IMAGE_POOL,
             interaction="choose_image",
+        )
+        created += _repair_text_choice(
+            db,
+            POST_WORD_ELEMENT_ITEM,
+            POST_WORD_ELEMENT_POOL,
+            total=3,
         )
 
         db.commit()
