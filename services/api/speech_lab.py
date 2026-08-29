@@ -25,7 +25,7 @@ from speech_provider import (
     build_provider,
 )
 
-router = APIRouter(prefix="/api/admin/speech-lab", tags=["speech-lab"])
+router = APIRouter(prefix="/admin/speech-lab", tags=["speech-lab"])
 
 _READ_INTERACTIONS = {"read_aloud", "timed_read_aloud"}
 _READ_PREFIX = re.compile(r"^\s*(?:اقرأ|يقرأ|قراءة)\s*[:：]\s*", re.UNICODE)
