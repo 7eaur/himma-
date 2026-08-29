@@ -39,12 +39,6 @@ def test_speech_lab_reports_provider_as_unconfigured_without_credentials(researc
 
 
 def test_speech_lab_acoustic_plan_is_supervisor_only_and_never_scores(researcher_client, student_client):
-    denied = student_client.get(
-        "/admin/speech-lab/acoustic-plan",
-        params={"reference_text": "بُ"},
-    )
-    assert denied.status_code == 403
-
     response = researcher_client.get(
         "/admin/speech-lab/acoustic-plan",
         params={"reference_text": "بُ"},
@@ -59,6 +53,12 @@ def test_speech_lab_acoustic_plan_is_supervisor_only_and_never_scores(researcher
     assert payload["units"][0]["expected_vowel_class"] == "damma"
     assert payload["units"][0]["acoustic_score"] is None
     assert payload["units"][0]["acoustic_label"] is None
+
+    denied = student_client.get(
+        "/admin/speech-lab/acoustic-plan",
+        params={"reference_text": "بُ"},
+    )
+    assert denied.status_code == 403
 
 
 def test_speech_lab_analysis_is_reference_guided_and_academically_neutral(researcher_client, monkeypatch):
