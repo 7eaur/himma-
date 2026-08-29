@@ -26,11 +26,13 @@ from speech_provider import (
     ProviderTemporaryError,
     build_provider,
 )
+from speech_quality import RecordingQualityError, validate_provider_output, validate_recording_input
 
 router = APIRouter(prefix="/admin/speech-lab", tags=["speech-lab"])
 
 _READ_INTERACTIONS = {"read_aloud", "timed_read_aloud"}
 _READ_PREFIX = re.compile(r"^\s*(?:اقرأ|يقرأ|قراءة)\s*[:：]\s*", re.UNICODE)
+_MAX_LAB_AUDIO_BYTES = 15 * 1024 * 1024
 
 
 def _require_supervisor(user: User = Depends(get_current_user)) -> User:
@@ -46,7 +48,6 @@ def _reference_text(item: dict[str, Any], round_data: dict[str, Any]) -> str:
         value = round_data.get(key)
         if isinstance(value, str) and value.strip():
             return value.strip()
-
     source_text = str(round_data.get("source_text") or "").strip()
     if source_text:
         return _READ_PREFIX.sub("", source_text).strip()
@@ -76,41 +77,32 @@ def canonical_reading_targets() -> list[dict[str, Any]]:
             if not reference_text:
                 continue
             pronunciation = build_pronunciation_reference(reference_text)
-            targets.append(
-                {
-                    "target_id": str(round_data.get("round_id") or f"{item.get('canonical_id')}-R{index:02d}"),
-                    "canonical_id": item.get("canonical_id"),
-                    "title": item.get("title"),
-                    "group": _group_for(item),
-                    "kind": item.get("kind"),
-                    "level_id": item.get("level_id"),
-                    "skill_id": item.get("skill_id"),
-                    "skill_name": item.get("skill_name"),
-                    "interaction_type": interaction,
-                    "round_index": int(round_data.get("order_index") or index),
-                    "reference_text": reference_text,
-                    "pronunciation_target_type": pronunciation["target_type"],
-                    "has_diacritics": pronunciation["has_diacritics"],
-                }
-            )
+            targets.append({
+                "target_id": str(round_data.get("round_id") or f"{item.get('canonical_id')}-R{index:02d}"),
+                "canonical_id": item.get("canonical_id"),
+                "title": item.get("title"),
+                "group": _group_for(item),
+                "kind": item.get("kind"),
+                "level_id": item.get("level_id"),
+                "skill_id": item.get("skill_id"),
+                "skill_name": item.get("skill_name"),
+                "interaction_type": interaction,
+                "round_index": int(round_data.get("order_index") or index),
+                "reference_text": reference_text,
+                "pronunciation_target_type": pronunciation["target_type"],
+                "has_diacritics": pronunciation["has_diacritics"],
+            })
     return targets
 
 
 @router.get("/targets")
 def get_targets(_: User = Depends(_require_supervisor)):
     targets = canonical_reading_targets()
-    return {
-        "catalog_version": _CATALOG.get("catalog_version"),
-        "count": len(targets),
-        "targets": targets,
-    }
+    return {"catalog_version": _CATALOG.get("catalog_version"), "count": len(targets), "targets": targets}
 
 
 @router.get("/pronunciation-reference")
-def pronunciation_reference(
-    reference_text: str,
-    _: User = Depends(_require_supervisor),
-):
+def pronunciation_reference(reference_text: str, _: User = Depends(_require_supervisor)):
     reference_text = reference_text.strip()
     if not reference_text:
         raise HTTPException(status_code=422, detail="النص المرجعي مطلوب")
@@ -118,10 +110,7 @@ def pronunciation_reference(
 
 
 @router.get("/acoustic-plan")
-def acoustic_plan(
-    reference_text: str,
-    _: User = Depends(_require_supervisor),
-):
+def acoustic_plan(reference_text: str, _: User = Depends(_require_supervisor)):
     """Expose the calibration/collection contract without producing a score."""
     reference_text = reference_text.strip()
     if not reference_text:
@@ -145,6 +134,7 @@ async def analyze_recording(
     reference_text: str = Form(...),
     target_id: str | None = Form(default=None),
     adaptation_mode: str = Form(default="reference"),
+    client_duration_seconds: float | None = Form(default=None),
     audio: UploadFile = File(...),
     _: User = Depends(_require_supervisor),
 ):
@@ -155,10 +145,16 @@ async def analyze_recording(
         raise HTTPException(status_code=422, detail="وضع التكييف غير مدعوم")
 
     audio_bytes = await audio.read()
-    if not audio_bytes:
-        raise HTTPException(status_code=422, detail="ملف التسجيل فارغ")
-    if len(audio_bytes) > 15 * 1024 * 1024:
-        raise HTTPException(status_code=413, detail="ملف التسجيل أكبر من الحد المسموح للمختبر")
+    try:
+        input_quality = validate_recording_input(
+            audio_bytes=audio_bytes,
+            mime_type=audio.content_type,
+            duration_seconds=client_duration_seconds,
+            max_bytes=_MAX_LAB_AUDIO_BYTES,
+        )
+    except RecordingQualityError as exc:
+        status_code = 413 if exc.code == "audio_too_large" else 422
+        raise HTTPException(status_code=status_code, detail=exc.message) from exc
 
     try:
         provider = build_provider()
@@ -168,6 +164,12 @@ async def analyze_recording(
             reference_text=reference_text if adaptation_mode == "reference" else "",
             language="ar-OM",
         )
+        output_quality = validate_provider_output(
+            transcript=result.transcript,
+            duration_seconds=result.duration_seconds,
+        )
+    except RecordingQualityError as exc:
+        raise HTTPException(status_code=422, detail=exc.message) from exc
     except ProviderNotConfigured as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     except ProviderTemporaryError as exc:
@@ -197,26 +199,17 @@ async def analyze_recording(
         "normalized_transcript": normalize_arabic(result.transcript),
         "provider_confidence": result.confidence,
         "duration_seconds": result.duration_seconds,
+        "recording_quality": {"input": input_quality, "provider_output": output_quality, "rerecord_required": False},
         "counts": counts,
         "wer": wer,
         "lexical_accuracy": lexical_accuracy,
         "alignment": [
-            {
-                "kind": token.kind,
-                "reference": token.reference,
-                "hypothesis": token.hypothesis,
-                "reference_index": token.reference_index,
-                "hypothesis_index": token.hypothesis_index,
-            }
+            {"kind": token.kind, "reference": token.reference, "hypothesis": token.hypothesis,
+             "reference_index": token.reference_index, "hypothesis_index": token.hypothesis_index}
             for token in aligned
         ],
         "words": [
-            {
-                "text": word.text,
-                "start_seconds": word.start_seconds,
-                "end_seconds": word.end_seconds,
-                "confidence": word.confidence,
-            }
+            {"text": word.text, "start_seconds": word.start_seconds, "end_seconds": word.end_seconds, "confidence": word.confidence}
             for word in result.words
         ],
         "pronunciation_reference": pronunciation,
