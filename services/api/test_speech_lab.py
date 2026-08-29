@@ -3,19 +3,19 @@ from speech_provider import ProviderResult, ProviderWord
 
 
 def test_speech_lab_rejects_unauthenticated_client(client):
-    response = client.get("/api/admin/speech-lab/targets")
+    response = client.get("/admin/speech-lab/targets")
     assert response.status_code == 401
     assert response.json()["detail"] == "يرجى تسجيل الدخول أولًا"
 
 
 def test_speech_lab_rejects_student_client(student_client):
-    response = student_client.get("/api/admin/speech-lab/targets")
+    response = student_client.get("/admin/speech-lab/targets")
     assert response.status_code == 403
     assert response.json()["detail"] == "هذه الصفحة متاحة للمشرف فقط"
 
 
 def test_speech_lab_targets_come_from_canonical_catalog(researcher_client):
-    response = researcher_client.get("/api/admin/speech-lab/targets")
+    response = researcher_client.get("/admin/speech-lab/targets")
     assert response.status_code == 200
     payload = response.json()
     assert payload["count"] == len(payload["targets"])
@@ -32,7 +32,7 @@ def test_speech_lab_reports_provider_as_unconfigured_without_credentials(researc
     monkeypatch.delenv("HIMMA_ASR_PROVIDER", raising=False)
     monkeypatch.delenv("HIMMA_GOOGLE_CLOUD_PROJECT", raising=False)
 
-    response = researcher_client.get("/api/admin/speech-lab/provider")
+    response = researcher_client.get("/admin/speech-lab/provider")
     assert response.status_code == 200
     assert response.json()["configured"] is False
     assert response.json()["provider"] is None
@@ -65,7 +65,7 @@ def test_speech_lab_analysis_is_reference_guided_and_academically_neutral(resear
 
     reference = "ذَهَبَ سَالِمٌ إِلَى الْمَدْرَسَةِ"
     response = researcher_client.post(
-        "/api/admin/speech-lab/analyze",
+        "/admin/speech-lab/analyze",
         data={
             "reference_text": reference,
             "target_id": "LAB-TARGET-1",
@@ -100,7 +100,7 @@ def test_speech_lab_rejects_empty_recording_without_calling_provider(researcher_
 
     monkeypatch.setattr(speech_lab, "build_provider", provider_factory)
     response = researcher_client.post(
-        "/api/admin/speech-lab/analyze",
+        "/admin/speech-lab/analyze",
         data={"reference_text": "قَلَم", "adaptation_mode": "reference"},
         files={"audio": ("empty.webm", b"", "audio/webm")},
     )
