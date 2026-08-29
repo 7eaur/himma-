@@ -323,7 +323,7 @@ export default function AudioReviewPage() {
           <h1 className="text-3xl font-bold text-navy mb-2">التسجيلات الصوتية</h1>
           <p className="text-muted">استمع إلى قراءة الطالب مع النص المرجعي والأدلة الآلية المساعدة، ثم اتخذ قرار المراجعة بنفسك.</p>
         </div>
-        <button className="btn-secondary w-fit" onClick={() => void refreshQueue()} disabled={refreshing || editingId !== null}><RefreshCw size={17} /> {refreshing ? "جاري التحديث..." : "تحديث القائمة"}</button>
+        <button type="button" className="btn-secondary w-fit" onClick={() => void refreshQueue()} disabled={refreshing || editingId !== null}><RefreshCw size={17} /> {refreshing ? "جاري التحديث..." : "تحديث القائمة"}</button>
       </div>
 
       {message.text && <div className={`${message.kind === "success" ? "alert-success" : "alert-error"} mb-5`}>{message.text}</div>}
@@ -366,15 +366,15 @@ export default function AudioReviewPage() {
               <MachineEvidenceCard analysis={submission.machine_analysis} />
 
               {editingId !== submission.id ? (
-                <button className="btn-primary" onClick={() => openReview(submission.id)} disabled={editingId !== null}>بدء المراجعة</button>
+                <button type="button" className="btn-primary" onClick={() => openReview(submission.id)} disabled={editingId !== null}>بدء المراجعة</button>
               ) : (
                 <div className="rounded-2xl bg-bg border border-border p-5 space-y-5" data-testid={`audio-review-editor-${submission.id}`}>
                   <div>
                     <p className="font-bold text-navy mb-3">قرار المشرف</p>
                     <p className="text-xs text-muted mb-3">الأرقام أدناه لا تُملأ تلقائيًا من التحليل الآلي. راجع التسجيل بنفسك ثم أدخل قرارك.</p>
                     <div className="flex gap-3 flex-wrap">
-                      <button className={`btn-secondary ${isValid ? "border-green text-green" : ""}`} onClick={() => setIsValid(true)}><CheckCircle2 size={17} /> تسجيل صالح</button>
-                      <button className={`btn-secondary ${!isValid ? "border-red-300 text-red-600" : ""}`} onClick={() => setIsValid(false)}><XCircle size={17} /> يحتاج إعادة تسجيل</button>
+                      <button type="button" className={`btn-secondary ${isValid ? "border-green text-green" : ""}`} onClick={() => setIsValid(true)}><CheckCircle2 size={17} /> تسجيل صالح</button>
+                      <button type="button" className={`btn-secondary ${!isValid ? "border-red-300 text-red-600" : ""}`} onClick={() => setIsValid(false)}><XCircle size={17} /> يحتاج إعادة تسجيل</button>
                     </div>
                   </div>
 
@@ -396,8 +396,8 @@ export default function AudioReviewPage() {
                   )}
 
                   <div className="flex justify-end gap-3 flex-wrap">
-                    <button className="btn-ghost" onClick={closeReview} disabled={gradingId === submission.id}>إلغاء</button>
-                    <button className="btn-primary" onClick={() => void handleGrade(submission.id)} disabled={gradingId === submission.id}>{gradingId === submission.id ? "جاري الحفظ..." : isValid ? "حفظ تقييم المشرف" : "طلب إعادة التسجيل"}</button>
+                    <button type="button" className="btn-ghost" onClick={closeReview} disabled={gradingId === submission.id}>إلغاء</button>
+                    <button type="button" data-testid="save-audio-review" className="btn-primary" onClick={() => void handleGrade(submission.id)} disabled={gradingId === submission.id}>{gradingId === submission.id ? "جاري الحفظ..." : isValid ? "حفظ التقييم" : "طلب إعادة التسجيل"}</button>
                   </div>
                 </div>
               )}
