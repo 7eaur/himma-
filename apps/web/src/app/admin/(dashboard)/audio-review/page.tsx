@@ -2,7 +2,37 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, Headphones, Play, RefreshCw, RotateCcw, UserRound, XCircle } from "lucide-react";
+import { BrainCircuit, CheckCircle2, Headphones, Play, RefreshCw, RotateCcw, UserRound, XCircle } from "lucide-react";
+
+interface MachineToken {
+  kind: "correct" | "deletion" | "insertion" | "substitution" | string;
+  reference?: string | null;
+  hypothesis?: string | null;
+  start_seconds?: number | null;
+  end_seconds?: number | null;
+  confidence?: number | null;
+}
+
+interface MachineAnalysis {
+  available: boolean;
+  job_status?: string | null;
+  provider_name?: string | null;
+  provider_model?: string | null;
+  reference_text?: string | null;
+  transcript_text?: string | null;
+  normalized_transcript?: string | null;
+  overall_confidence?: number | null;
+  decision?: string | null;
+  correct_count?: number;
+  deletion_count?: number;
+  insertion_count?: number;
+  substitution_count?: number;
+  duration_seconds?: number | null;
+  tokens?: MachineToken[];
+  calibration_state?: "calibrated" | "not_calibrated" | string;
+  calibration_version?: string | null;
+  academic_effect?: "none" | string;
+}
 
 interface AudioSubmission {
   id: number;
@@ -14,6 +44,7 @@ interface AudioSubmission {
   session_type?: string | null;
   item_title?: string | null;
   expected_reading_text?: string | null;
+  machine_analysis?: MachineAnalysis | null;
 }
 
 function AudioPlayer({ storageKey }: { storageKey: string }) {
@@ -55,6 +86,121 @@ function sessionLabel(value?: string | null) {
   return "قراءة مسجلة";
 }
 
+function decisionLabel(value?: string | null) {
+  if (value === "auto_accepted") return "اجتاز حد المعايرة";
+  if (value === "rerecord_required") return "اقتراح إعادة تسجيل";
+  if (value === "review_required") return "يحتاج مراجعة بشرية";
+  return "لا يوجد قرار آلي";
+}
+
+function jobStatusLabel(value?: string | null) {
+  if (value === "queued") return "بانتظار التحليل";
+  if (value === "processing") return "جاري التحليل";
+  if (value === "retry_wait") return "سيعاد التحليل";
+  if (value === "blocked_provider") return "المزوّد غير مهيأ";
+  if (value === "failed" || value === "dead_letter") return "تعذر التحليل";
+  return "لا توجد نتيجة تحليل بعد";
+}
+
+function tokenKindLabel(value: string) {
+  if (value === "correct") return "صحيح";
+  if (value === "deletion") return "حذف";
+  if (value === "insertion") return "إضافة";
+  if (value === "substitution") return "استبدال";
+  return value;
+}
+
+function MachineEvidenceCard({ analysis }: { analysis?: MachineAnalysis | null }) {
+  if (!analysis) {
+    return (
+      <div className="rounded-2xl border border-border bg-bg p-4 mb-5 text-sm text-muted">
+        لا توجد أدلة تحليل آلي لهذا التسجيل حتى الآن. أكمل المراجعة اليدوية كالمعتاد.
+      </div>
+    );
+  }
+
+  if (!analysis.available) {
+    return (
+      <div className="rounded-2xl border border-border bg-bg p-4 mb-5">
+        <div className="flex items-start gap-3">
+          <BrainCircuit size={20} className="text-primary mt-0.5" />
+          <div>
+            <p className="font-bold text-navy">مساعد التحليل الصوتي</p>
+            <p className="text-sm text-muted mt-1">{jobStatusLabel(analysis.job_status)}. لا تغيّر هذه الحالة درجة الطالب أو قرار المشرف.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const confidence = analysis.overall_confidence;
+  const tokens = analysis.tokens || [];
+
+  return (
+    <div className="rounded-2xl border border-border bg-bg p-5 mb-5 space-y-4" data-testid="machine-speech-evidence">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+        <div className="flex items-start gap-3">
+          <BrainCircuit size={22} className="text-primary mt-0.5" />
+          <div>
+            <p className="font-bold text-navy">أدلة مساعدة من التحليل الصوتي</p>
+            <p className="text-sm text-muted mt-1">للاسترشاد فقط. لا تُحوَّل ثقة المزوّد أو الأخطاء الآلية إلى درجة للطالب تلقائيًا.</p>
+          </div>
+        </div>
+        <span className="text-xs rounded-full border border-border bg-white px-3 py-1.5 text-muted w-fit">
+          {analysis.calibration_state === "calibrated" ? `معايرة ${analysis.calibration_version || "معتمدة"}` : "غير معاير أكاديميًا"}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <div className="rounded-xl bg-white border border-border p-3"><p className="text-xs text-muted">صحيح</p><p className="font-bold text-navy text-lg">{analysis.correct_count ?? 0}</p></div>
+        <div className="rounded-xl bg-white border border-border p-3"><p className="text-xs text-muted">حذف</p><p className="font-bold text-navy text-lg">{analysis.deletion_count ?? 0}</p></div>
+        <div className="rounded-xl bg-white border border-border p-3"><p className="text-xs text-muted">استبدال</p><p className="font-bold text-navy text-lg">{analysis.substitution_count ?? 0}</p></div>
+        <div className="rounded-xl bg-white border border-border p-3"><p className="text-xs text-muted">إضافة</p><p className="font-bold text-navy text-lg">{analysis.insertion_count ?? 0}</p></div>
+        <div className="rounded-xl bg-white border border-border p-3 col-span-2 md:col-span-1"><p className="text-xs text-muted">ثقة المزوّد</p><p className="font-bold text-navy text-lg">{confidence == null ? "—" : `${Math.round(confidence * 100)}%`}</p></div>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-3">
+        <div className="rounded-xl bg-white border border-border p-4">
+          <p className="text-xs text-muted mb-2">النص الذي التقطه المزوّد</p>
+          <p className="font-semibold text-navy leading-8">{analysis.transcript_text || "لم يلتقط نصًا"}</p>
+        </div>
+        <div className="rounded-xl bg-white border border-border p-4">
+          <p className="text-xs text-muted mb-2">النص بعد التطبيع للمحاذاة فقط</p>
+          <p className="font-semibold text-navy leading-8">{analysis.normalized_transcript || "—"}</p>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2 text-xs">
+        <span className="rounded-full bg-white border border-border px-3 py-1.5 text-muted">{decisionLabel(analysis.decision)}</span>
+        {analysis.provider_name && <span className="rounded-full bg-white border border-border px-3 py-1.5 text-muted">المزوّد: {analysis.provider_name}</span>}
+        {analysis.duration_seconds != null && <span className="rounded-full bg-white border border-border px-3 py-1.5 text-muted">المدة: {analysis.duration_seconds.toFixed(1)} ث</span>}
+      </div>
+
+      {tokens.length > 0 && (
+        <details className="rounded-xl bg-white border border-border p-4">
+          <summary className="cursor-pointer font-semibold text-navy">عرض المحاذاة وتوقيت الكلمات</summary>
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full min-w-[620px] text-sm">
+              <thead><tr className="text-right text-muted border-b border-border"><th className="p-2">الحالة</th><th className="p-2">المرجع</th><th className="p-2">المسموع</th><th className="p-2">الوقت</th><th className="p-2">الثقة</th></tr></thead>
+              <tbody>
+                {tokens.map((token, index) => (
+                  <tr key={`${token.kind}-${index}`} className="border-b border-border/60 last:border-0">
+                    <td className="p-2 font-semibold text-navy">{tokenKindLabel(token.kind)}</td>
+                    <td className="p-2">{token.reference || "—"}</td>
+                    <td className="p-2">{token.hypothesis || "—"}</td>
+                    <td className="p-2 text-muted">{token.start_seconds == null ? "—" : `${token.start_seconds.toFixed(2)}–${(token.end_seconds ?? token.start_seconds).toFixed(2)} ث`}</td>
+                    <td className="p-2 text-muted">{token.confidence == null ? "—" : `${Math.round(token.confidence * 100)}%`}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      )}
+    </div>
+  );
+}
+
 export default function AudioReviewPage() {
   const [submissions, setSubmissions] = useState<AudioSubmission[]>([]);
   const [loading, setLoading] = useState(true);
@@ -79,9 +225,6 @@ export default function AudioReviewPage() {
     let cancelled = false;
 
     const fetchQueue = () => {
-      // Do not replace the queue while a supervisor is actively grading a card.
-      // Periodic refresh previously could detach the live form between pointer
-      // down/up and also discard notes typed by the supervisor.
       if (editingRef.current !== null) return;
       void fetch("/api/review/pending-audio", { cache: "no-store" })
         .then(async (response) => {
@@ -178,7 +321,7 @@ export default function AudioReviewPage() {
         <div>
           <p className="text-sm text-primary font-semibold mb-1">المراجعة اليدوية</p>
           <h1 className="text-3xl font-bold text-navy mb-2">التسجيلات الصوتية</h1>
-          <p className="text-muted">استمع إلى قراءة الطالب مع النص المرجعي، ثم سجّل الأخطاء أو اطلب إعادة التسجيل.</p>
+          <p className="text-muted">استمع إلى قراءة الطالب مع النص المرجعي والأدلة الآلية المساعدة، ثم اتخذ قرار المراجعة بنفسك.</p>
         </div>
         <button className="btn-secondary w-fit" onClick={() => void refreshQueue()} disabled={refreshing || editingId !== null}><RefreshCw size={17} /> {refreshing ? "جاري التحديث..." : "تحديث القائمة"}</button>
       </div>
@@ -220,12 +363,15 @@ export default function AudioReviewPage() {
 
               <div className="rounded-2xl border border-border bg-white p-4 mb-5"><AudioPlayer storageKey={submission.storage_key} /></div>
 
+              <MachineEvidenceCard analysis={submission.machine_analysis} />
+
               {editingId !== submission.id ? (
                 <button className="btn-primary" onClick={() => openReview(submission.id)} disabled={editingId !== null}>بدء المراجعة</button>
               ) : (
                 <div className="rounded-2xl bg-bg border border-border p-5 space-y-5" data-testid={`audio-review-editor-${submission.id}`}>
                   <div>
-                    <p className="font-bold text-navy mb-3">صلاحية التسجيل</p>
+                    <p className="font-bold text-navy mb-3">قرار المشرف</p>
+                    <p className="text-xs text-muted mb-3">الأرقام أدناه لا تُملأ تلقائيًا من التحليل الآلي. راجع التسجيل بنفسك ثم أدخل قرارك.</p>
                     <div className="flex gap-3 flex-wrap">
                       <button className={`btn-secondary ${isValid ? "border-green text-green" : ""}`} onClick={() => setIsValid(true)}><CheckCircle2 size={17} /> تسجيل صالح</button>
                       <button className={`btn-secondary ${!isValid ? "border-red-300 text-red-600" : ""}`} onClick={() => setIsValid(false)}><XCircle size={17} /> يحتاج إعادة تسجيل</button>
@@ -251,7 +397,7 @@ export default function AudioReviewPage() {
 
                   <div className="flex justify-end gap-3 flex-wrap">
                     <button className="btn-ghost" onClick={closeReview} disabled={gradingId === submission.id}>إلغاء</button>
-                    <button className="btn-primary" onClick={() => void handleGrade(submission.id)} disabled={gradingId === submission.id}>{gradingId === submission.id ? "جاري الحفظ..." : isValid ? "حفظ التقييم" : "طلب إعادة التسجيل"}</button>
+                    <button className="btn-primary" onClick={() => void handleGrade(submission.id)} disabled={gradingId === submission.id}>{gradingId === submission.id ? "جاري الحفظ..." : isValid ? "حفظ تقييم المشرف" : "طلب إعادة التسجيل"}</button>
                   </div>
                 </div>
               )}
