@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
-import { Check, Headphones, Mic, MicOff, RotateCcw, Volume2 } from "lucide-react";
+import { Check, Mic, MicOff, RotateCcw, Volume2 } from "lucide-react";
 import styles from "./session.module.css";
 
 type Interaction =
@@ -450,7 +450,6 @@ export default function SessionPage() {
 
       <main className={styles.shell}>
         <section className={styles.card}>
-          <span className={styles.badge}>{LISTEN.has(interaction) ? <Headphones size={15} /> : READ.has(interaction) ? <Mic size={15} /> : <Check size={15} />} مهمة واحدة في كل مرة</span>
           <h1 className={styles.title}>{step.instruction_text || conciseTitle(item.title)}</h1>
           <p className={styles.instruction}>{conciseTitle(item.title)}</p>
           {displayPrompt && <div className={styles.prompt}>{displayPrompt}</div>}
