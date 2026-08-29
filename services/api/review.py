@@ -16,9 +16,71 @@ from db.models import (
     Student,
     User,
 )
+from db.speech_models import SpeechAnalysis, SpeechAnalysisJob
+from speech_alignment import normalize_arabic
 import schemas
 
 router = APIRouter(prefix="/review", tags=["Review"])
+
+
+def _machine_evidence(db: Session, submission_id: int) -> dict | None:
+    """Return read-only machine evidence for supervisor review.
+
+    This payload is intentionally descriptive only. It never mutates an
+    AttemptResponse, AudioReview, score, adaptation state, reinforcement state,
+    or reward. Manual supervisor review remains authoritative until calibration
+    is explicitly approved.
+    """
+    analysis = db.query(SpeechAnalysis).filter(
+        SpeechAnalysis.submission_id == submission_id
+    ).first()
+    job = db.query(SpeechAnalysisJob).filter(
+        SpeechAnalysisJob.submission_id == submission_id
+    ).first()
+
+    if not analysis and not job:
+        return None
+
+    if not analysis:
+        return {
+            "available": False,
+            "job_status": job.status if job else None,
+            "decision": None,
+            "calibration_state": "not_calibrated",
+            "calibration_version": None,
+            "academic_effect": "none",
+        }
+
+    return {
+        "available": True,
+        "job_status": job.status if job else None,
+        "provider_name": analysis.provider_name,
+        "provider_model": analysis.provider_model,
+        "reference_text": analysis.reference_text,
+        "transcript_text": analysis.transcript_text,
+        "normalized_transcript": normalize_arabic(analysis.transcript_text),
+        "overall_confidence": (
+            float(analysis.overall_confidence)
+            if analysis.overall_confidence is not None
+            else None
+        ),
+        "decision": analysis.decision,
+        "correct_count": analysis.correct_count,
+        "deletion_count": analysis.deletion_count,
+        "insertion_count": analysis.insertion_count,
+        "substitution_count": analysis.substitution_count,
+        "duration_seconds": (
+            float(analysis.duration_seconds)
+            if analysis.duration_seconds is not None
+            else None
+        ),
+        "tokens": analysis.tokens_json or [],
+        "calibration_state": (
+            "calibrated" if analysis.calibration_version else "not_calibrated"
+        ),
+        "calibration_version": analysis.calibration_version,
+        "academic_effect": "none",
+    }
 
 
 @router.get("/pending-audio")
@@ -26,7 +88,7 @@ def get_pending_audio(
     db: Session = Depends(get_db),
     supervisor: User = Depends(get_current_user),
 ):
-    """Return pending recordings with enough context for a meaningful review."""
+    """Return pending recordings with context and read-only machine evidence."""
     submissions = db.query(AudioSubmission).filter(
         AudioSubmission.status == "uploaded"
     ).order_by(AudioSubmission.submitted_at, AudioSubmission.id).all()
@@ -53,6 +115,7 @@ def get_pending_audio(
             "session_type": session.session_type if session else None,
             "item_title": (item.template_data or {}).get("title") if item else None,
             "expected_reading_text": step.expected_reading_text if step else None,
+            "machine_analysis": _machine_evidence(db, submission.id),
         })
     return payload
 
