@@ -3,7 +3,7 @@
 This module deliberately stays outside the academic scoring/adaptation path.
 It exposes canonical read-aloud targets and lets a supervisor run the configured
 ASR provider against an ad-hoc recording, then inspect reference-guided lexical
-alignment plus an experimental pronunciation reference. Lab runs never mutate
+alignment plus experimental pronunciation evidence. Lab runs never mutate
 student scores, attempts, rewards, adaptation or reinforcement evidence.
 """
 
@@ -15,6 +15,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 
 from arabic_pronunciation import build_pronunciation_reference
+from azure_pronunciation_provider import AzurePronunciationAssessmentProvider
 from content_runtime import _CATALOG
 from db.models import User
 from dependencies import get_current_user
@@ -30,6 +31,7 @@ router = APIRouter(prefix="/admin/speech-lab", tags=["speech-lab"])
 
 _READ_INTERACTIONS = {"read_aloud", "timed_read_aloud"}
 _READ_PREFIX = re.compile(r"^\s*(?:اقرأ|يقرأ|قراءة)\s*[:：]\s*", re.UNICODE)
+_MAX_LAB_AUDIO_BYTES = 15 * 1024 * 1024
 
 
 def _require_supervisor(user: User = Depends(get_current_user)) -> User:
@@ -95,6 +97,13 @@ def canonical_reading_targets() -> list[dict[str, Any]]:
     return targets
 
 
+def _validate_lab_audio(audio_bytes: bytes) -> None:
+    if not audio_bytes:
+        raise HTTPException(status_code=422, detail="ملف التسجيل فارغ")
+    if len(audio_bytes) > _MAX_LAB_AUDIO_BYTES:
+        raise HTTPException(status_code=413, detail="ملف التسجيل أكبر من الحد المسموح للمختبر")
+
+
 @router.get("/targets")
 def get_targets(_: User = Depends(_require_supervisor)):
     targets = canonical_reading_targets()
@@ -127,6 +136,29 @@ def provider_status(_: User = Depends(_require_supervisor)):
         return {"configured": False, "provider": None, "detail": str(exc)}
 
 
+@router.get("/pronunciation-provider")
+def pronunciation_provider_status(_: User = Depends(_require_supervisor)):
+    """Expose configuration readiness without leaking endpoint/key material."""
+    try:
+        provider = AzurePronunciationAssessmentProvider()
+        return {
+            "configured": True,
+            "provider": provider.name,
+            "locale": provider.locale,
+            "calibration_status": "not_calibrated",
+            "academic_effect": "none",
+        }
+    except ProviderPermanentError as exc:
+        return {
+            "configured": False,
+            "provider": None,
+            "locale": None,
+            "detail": str(exc),
+            "calibration_status": "not_calibrated",
+            "academic_effect": "none",
+        }
+
+
 @router.post("/analyze")
 async def analyze_recording(
     reference_text: str = Form(...),
@@ -142,10 +174,7 @@ async def analyze_recording(
         raise HTTPException(status_code=422, detail="وضع التكييف غير مدعوم")
 
     audio_bytes = await audio.read()
-    if not audio_bytes:
-        raise HTTPException(status_code=422, detail="ملف التسجيل فارغ")
-    if len(audio_bytes) > 15 * 1024 * 1024:
-        raise HTTPException(status_code=413, detail="ملف التسجيل أكبر من الحد المسموح للمختبر")
+    _validate_lab_audio(audio_bytes)
 
     try:
         provider = build_provider()
@@ -208,5 +237,63 @@ async def analyze_recording(
         "pronunciation_reference": pronunciation,
         "pronunciation_status": "not_calibrated",
         "raw_metadata": result.raw_metadata,
+        "academic_effect": "none",
+    }
+
+
+@router.post("/assess-pronunciation")
+async def assess_pronunciation(
+    reference_text: str = Form(...),
+    target_id: str | None = Form(default=None),
+    audio: UploadFile = File(...),
+    _: User = Depends(_require_supervisor),
+):
+    """Return Azure's raw pronunciation evidence without converting it to a grade."""
+    reference_text = reference_text.strip()
+    if not reference_text:
+        raise HTTPException(status_code=422, detail="النص المرجعي مطلوب")
+
+    audio_bytes = await audio.read()
+    _validate_lab_audio(audio_bytes)
+
+    try:
+        provider = AzurePronunciationAssessmentProvider()
+        result = provider.assess(
+            audio_bytes=audio_bytes,
+            mime_type=audio.content_type or "application/octet-stream",
+            reference_text=reference_text,
+        )
+    except ProviderTemporaryError as exc:
+        raise HTTPException(status_code=503, detail=f"تعذر التقييم النطقي مؤقتًا: {exc}") from exc
+    except ProviderPermanentError as exc:
+        raise HTTPException(status_code=422, detail=f"تعذر تقييم هذا التسجيل نطقيًا: {exc}") from exc
+
+    return {
+        "lab_only": True,
+        "target_id": target_id,
+        "provider": result.provider_name,
+        "locale": result.locale,
+        "recognition_status": result.recognition_status,
+        "transcript": result.transcript,
+        "confidence": result.confidence,
+        "accuracy_score_raw": result.accuracy_score,
+        "fluency_score_raw": result.fluency_score,
+        "completeness_score_raw": result.completeness_score,
+        "pronunciation_score_raw": result.pronunciation_score,
+        "words": [
+            {
+                "word": word.word,
+                "accuracy_score_raw": word.accuracy_score,
+                "error_type": word.error_type,
+                "offset_seconds": word.offset_seconds,
+                "duration_seconds": word.duration_seconds,
+                "phoneme_scores_raw": list(word.phoneme_scores),
+            }
+            for word in result.words
+        ],
+        "request_id": result.request_id,
+        "raw_metadata": result.raw_metadata,
+        "calibration_status": "not_calibrated",
+        "interpretation": "raw_provider_evidence_only",
         "academic_effect": "none",
     }
