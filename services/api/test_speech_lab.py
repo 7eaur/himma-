@@ -38,6 +38,29 @@ def test_speech_lab_reports_provider_as_unconfigured_without_credentials(researc
     assert response.json()["provider"] is None
 
 
+def test_speech_lab_acoustic_plan_is_supervisor_only_and_never_scores(researcher_client, student_client):
+    denied = student_client.get(
+        "/admin/speech-lab/acoustic-plan",
+        params={"reference_text": "بُ"},
+    )
+    assert denied.status_code == 403
+
+    response = researcher_client.get(
+        "/admin/speech-lab/acoustic-plan",
+        params={"reference_text": "بُ"},
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "collection_required"
+    assert payload["direct_haraka_judgement"] is False
+    assert payload["requires_ground_truth"] is True
+    assert payload["academic_effect"] == "none"
+    assert payload["stt_locale"] == "ar-OM"
+    assert payload["units"][0]["expected_vowel_class"] == "damma"
+    assert payload["units"][0]["acoustic_score"] is None
+    assert payload["units"][0]["acoustic_label"] is None
+
+
 def test_speech_lab_analysis_is_reference_guided_and_academically_neutral(researcher_client, monkeypatch):
     captured = {}
 
@@ -88,6 +111,10 @@ def test_speech_lab_analysis_is_reference_guided_and_academically_neutral(resear
     assert payload["counts"]["deletion"] == 0
     assert payload["counts"]["insertion"] == 0
     assert payload["normalized_transcript"] == "ذهب سامي الي المدرسة"
+    assert payload["acoustic_evidence"]["status"] == "collection_required"
+    assert payload["acoustic_evidence"]["direct_haraka_judgement"] is False
+    assert payload["acoustic_evidence"]["academic_effect"] == "none"
+    assert all(unit["acoustic_score"] is None for unit in payload["acoustic_evidence"]["units"])
 
 
 def test_speech_lab_rejects_empty_recording_without_calling_provider(researcher_client, monkeypatch):
