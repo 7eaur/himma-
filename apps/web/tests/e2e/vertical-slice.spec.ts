@@ -193,6 +193,10 @@ async function answerActivityVisual(page: Page, payload: ActivityPayload) {
   await page.getByRole("button", { name: "تأكيد والمتابعة" }).click();
 }
 
+function isActivityNextResponse(response: import("@playwright/test").Response, sessionId: string) {
+  return response.request().method() === "GET" && response.url().endsWith(`/activities/session/${sessionId}/next`);
+}
+
 test.describe("Himma recovered vertical slice", () => {
   test("public UX → protected supervisor → rich assessment → adaptive learning → management evidence", async ({ page, context, request }) => {
     test.setTimeout(240000);
@@ -310,10 +314,16 @@ test.describe("Himma recovered vertical slice", () => {
     await page.goto("/student");
     const learningButton = page.getByRole("button", { name: /ابدأ أنشطة مستواك|متابعة الأنشطة/ });
     await expect(learningButton).toBeEnabled({ timeout: 10000 });
+    const firstActivityResponsePromise = page.waitForResponse((response) => response.request().method() === "GET" && /\/activities\/session\/\d+\/next$/.test(response.url()), { timeout: 15000 });
     await learningButton.click();
     await expect(page).toHaveURL(/\/student\/activity\/\d+/, { timeout: 10000 });
     const learningSessionId = page.url().match(/\/student\/activity\/(\d+)/)?.[1];
     expect(learningSessionId).toBeTruthy();
+
+    const firstActivityResponse = await firstActivityResponsePromise;
+    expect(firstActivityResponse.status()).toBe(200);
+    let current: ActivityPayload | null = await firstActivityResponse.json();
+    expect(current).toBeTruthy();
 
     const activityRoot = page.getByTestId("activity-session");
     await expect(activityRoot).toHaveAttribute("data-phase", /^(active|done)$/, { timeout: 15000 });
@@ -322,13 +332,27 @@ test.describe("Himma recovered vertical slice", () => {
     let activityInteractions = 0;
     let capturedRichActivity = false;
     let adaptiveReviewHold = false;
-    while ((await activityRoot.getAttribute("data-phase")) !== "done") {
+    while ((await activityRoot.getAttribute("data-phase")) !== "done" && current) {
       activityInteractions += 1;
       expect(activityInteractions, "Adaptive learning path should terminate").toBeLessThan(100);
 
-      const currentResponse = await request.get(`${API_URL}/activities/session/${learningSessionId}/next`);
-      if (currentResponse.status() === 409) {
-        const blocked = await currentResponse.json();
+      if (!capturedRichActivity && (current.item.interaction_type.includes("image") || (current.step.assets ?? []).some((asset) => asset.asset_type === "image"))) {
+        await shot(page, "12-adaptive-activity-real-media");
+        capturedRichActivity = true;
+      }
+
+      const nextResponsePromise = page.waitForResponse((response) => isActivityNextResponse(response, learningSessionId!), { timeout: 8000 }).catch(() => null);
+      await answerActivityVisual(page, current);
+      await page.waitForTimeout(850);
+
+      if ((await activityRoot.getAttribute("data-phase")) === "done") break;
+      const nextResponse = await nextResponsePromise;
+      if (!nextResponse) {
+        await expect(activityRoot).toHaveAttribute("data-phase", /^(active|done)$/, { timeout: 20000 });
+        continue;
+      }
+      if (nextResponse.status() === 409) {
+        const blocked = await nextResponse.json();
         expect(String(blocked?.detail || "")).toContain("ربط نشاط تقوية");
         adaptiveReviewHold = true;
         const hold = page.getByTestId("student-adaptive-hold");
@@ -337,17 +361,8 @@ test.describe("Himma recovered vertical slice", () => {
         await shot(page, "13-adaptive-review-hold");
         break;
       }
-      expect(currentResponse.status()).toBe(200);
-      const current: ActivityPayload | null = await currentResponse.json();
-      if (!current) break;
-
-      if (!capturedRichActivity && (current.item.interaction_type.includes("image") || (current.step.assets ?? []).some((asset) => asset.asset_type === "image"))) {
-        await shot(page, "12-adaptive-activity-real-media");
-        capturedRichActivity = true;
-      }
-
-      await answerActivityVisual(page, current);
-      await page.waitForTimeout(750);
+      expect(nextResponse.status()).toBe(200);
+      current = await nextResponse.json();
       await expect(activityRoot).toHaveAttribute("data-phase", /^(active|done)$/, { timeout: 20000 });
     }
 
@@ -409,10 +424,11 @@ test.describe("Himma recovered vertical slice", () => {
 
       await context.clearCookies();
       await loginAsStudent(request, context, accessCode);
+      const resumedResponsePromise = page.waitForResponse((response) => response.request().method() === "GET" && /\/activities\/session\/\d+\/next$/.test(response.url()), { timeout: 15000 });
       await page.goto(`/student/activity/${learningSessionId}`);
       await expect(page.getByTestId("student-adaptive-hold")).toHaveCount(0, { timeout: 10000 });
       await expect(page.getByTestId("activity-session")).toHaveAttribute("data-phase", "active", { timeout: 15000 });
-      const resumedResponse = await request.get(`${API_URL}/activities/session/${learningSessionId}/next`);
+      const resumedResponse = await resumedResponsePromise;
       expect(resumedResponse.status()).toBe(200);
       const resumed: ActivityPayload | null = await resumedResponse.json();
       expect(resumed).toBeTruthy();
