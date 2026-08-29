@@ -1,6 +1,33 @@
 import { expect, test, type APIRequestContext, type BrowserContext, type Page } from "@playwright/test";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const SUPERVISOR_USERNAME = process.env.E2E_RESEARCHER_USERNAME ?? "admin";
+const SUPERVISOR_PASSWORD = process.env.E2E_RESEARCHER_PASSWORD;
+
+async function loginSupervisor(request: APIRequestContext, context: BrowserContext) {
+  if (!SUPERVISOR_PASSWORD) throw new Error("E2E_RESEARCHER_PASSWORD is required");
+  const response = await request.post(`${API_URL}/auth/login`, {
+    data: { username: SUPERVISOR_USERNAME, password: SUPERVISOR_PASSWORD },
+  });
+  expect(response.status()).toBe(200);
+  const cookie = response.headers()["set-cookie"]?.match(/access_token=([^;]+)/)?.[1];
+  expect(cookie).toBeTruthy();
+  await context.addCookies([{ name: "access_token", value: cookie!, domain: "localhost", path: "/", httpOnly: true, sameSite: "Lax", secure: false }]);
+}
+
+async function createStudent(page: Page, request: APIRequestContext, context: BrowserContext) {
+  await loginSupervisor(request, context);
+  await page.goto("/admin/students/new");
+  await expect(page.getByTestId("input-student-name")).toBeVisible({ timeout: 10000 });
+  await page.getByTestId("input-student-name").fill(`طالب تجربة الأسئلة ${Date.now()}`);
+  await page.getByTestId("submit-create-student").click();
+  const code = page.getByTestId("student-access-code");
+  await expect(code).toBeVisible({ timeout: 10000 });
+  const accessCode = (await code.textContent())?.trim() ?? "";
+  expect(accessCode).toMatch(/^\d{6}$/);
+  await context.clearCookies();
+  return accessCode;
+}
 
 async function loginStudent(request: APIRequestContext, context: BrowserContext, accessCode: string) {
   const response = await request.post(`${API_URL}/auth/student-login`, { data: { access_code: accessCode } });
@@ -51,7 +78,8 @@ async function assertQuestionHierarchy(page: Page) {
 test.describe("student question experience", () => {
   test("first readiness questions are explicit, complete, and visually ordered", async ({ page, context, request }) => {
     test.setTimeout(120000);
-    await loginStudent(request, context, "STU001");
+    const accessCode = await createStudent(page, request, context);
+    await loginStudent(request, context, accessCode);
 
     const start = await request.post(`${API_URL}/assessment/start`, { data: { session_type: "pretest" } });
     expect([200, 409]).toContain(start.status());
