@@ -29,13 +29,21 @@ async function createStudent(page: Page, request: APIRequestContext, context: Br
   return accessCode;
 }
 
+async function loginStudent(request: APIRequestContext, context: BrowserContext, accessCode: string) {
+  const response = await request.post(`${API_URL}/auth/student-login`, { data: { access_code: accessCode } });
+  expect(response.status()).toBe(200);
+  const cookie = response.headers()["set-cookie"]?.match(/access_token=([^;]+)/)?.[1];
+  expect(cookie).toBeTruthy();
+  await context.addCookies([{ name: "access_token", value: cookie!, domain: "localhost", path: "/", httpOnly: true, sameSite: "Lax", secure: false }]);
+}
+
 async function visibleAnswerButtons(page: Page) {
   const buttons = page.locator("main section button");
   const visible = [];
   for (let index = 0; index < await buttons.count(); index += 1) {
     const button = buttons.nth(index);
     const text = ((await button.textContent()) ?? "").trim();
-    if (!await button.isVisible()) continue;
+    if (!(await button.isVisible()) || !(await button.isEnabled())) continue;
     if (/^(استمع|تأكيد والمتابعة|إعادة الترتيب|إعادة التسجيل|إرسال التسجيل)$/u.test(text)) continue;
     visible.push(button);
   }
@@ -54,9 +62,8 @@ async function answerVisibleChoice(page: Page) {
     } else {
       for (let guard = 0; guard < 12 && !(await confirm.isEnabled()); guard += 1) {
         const candidates = await visibleAnswerButtons(page);
-        const candidate = candidates.find(async (button) => await button.isEnabled());
-        if (!candidate) break;
-        await candidate.click();
+        if (!candidates.length) break;
+        await candidates[0].click();
       }
     }
   }
