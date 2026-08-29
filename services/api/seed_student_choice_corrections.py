@@ -4,15 +4,8 @@ These corrections repair import/runtime presentation gaps without rewriting the
 immutable approved catalog. They keep each canonical item, correct answer,
 scoring rule, skill, and activity order unchanged.
 
-Covered source-grounded corrections:
-- L1-CORE-03: correct connected letter form + three other forms per round.
-- L1-REIN-03: hear an approved word and choose its picture from THREE images.
-- L2-REIN-04: see an approved word and choose its matching picture from THREE
-  images. The approved source names five target words but the legacy parser
-  persisted only the correct image option.
-- POST-Q09: the approved source presents three visible elements (letter, word,
-  sentence) and asks the learner to choose the word. The legacy import retained
-  only the correct criterion as an option.
+Every distractor in this file comes from the client-approved content source;
+none is authored by the runtime.
 """
 
 from __future__ import annotations
@@ -31,6 +24,32 @@ L2_WORD_IMAGE_POOL = ["بَاب", "قَلَم", "شَمْس", "قِطَّة", "�
 
 POST_WORD_ELEMENT_ITEM = "POST-Q09"
 POST_WORD_ELEMENT_POOL = ["ك", "نَخْلَة", "ذَهَبَ مَاجِدٌ إِلَى الْبَحْرِ"]
+
+# Client-approved multiple-choice sets. The historical parser retained the
+# correct answer but dropped the two distractors from these L3 activities.
+L3_APPROVED_ROUND_CHOICES = {
+    "L3-CORE-07": [
+        ["المكتبة", "الحديقة", "الساحة"],
+        ["وقت الفسحة", "في الليل", "بعد العودة إلى البيت"],
+        ["الحيوانات", "السيارات", "الطعام"],
+        ["أمين المكتبة", "صديقه", "والده"],
+        ["أعاده إلى مكانه", "تركه على الأرض", "أخذه إلى البيت"],
+    ],
+    "L3-CORE-08": [
+        ["لأنهم سيقضون وقتًا في الرحلة", "ليغسل السيارة", "ليرويه على الأرض"],
+        ["لوضع حاجاتهم فيها", "لتركها في الوادي", "للعب بها"],
+        ["المحافظة على النظافة", "الرغبة في العودة سريعًا", "الخوف من الطيور"],
+        ["تنظيف المكان قبل المغادرة", "ترك الطعام على الأرض", "قطع الأشجار"],
+        ["رحلة عائلية مع المحافظة على المكان", "يوم دراسي داخل الفصل", "التسوق من السوق"],
+    ],
+    "L3-CORE-09": [
+        ["قليل الضوضاء", "سريع الحركة", "شديد الحرارة"],
+        ["أرجع", "أخذ", "كسر"],
+        ["أشياء متروكة بعد الاستخدام", "أدوات الدراسة", "أنواع النباتات"],
+        ["نظيفة وواضحة", "مظلمة", "بعيدة"],
+        ["بجانب", "فوق", "بعيدًا عن"],
+    ],
+}
 
 WORD_IMAGE_ASSETS = {
     "باب": "VOC-03",
@@ -84,7 +103,8 @@ def _ensure_option_count(step, *, pool: list[str], total: int) -> int:
     for value in rotated:
         if len(current_texts) >= total:
             break
-        if value in current_texts or _plain(value) in {_plain(text) for text in current_texts}:
+        normalized_current = {_plain(text) for text in current_texts}
+        if value in current_texts or _plain(value) in normalized_current:
             continue
         step.options.append(ContentOption(
             text=value,
@@ -153,6 +173,21 @@ def _repair_text_choice(db, canonical: str, pool: list[str], *, total: int) -> i
     return created
 
 
+def _repair_round_choices(db, canonical: str, approved_rounds: list[list[str]]) -> int:
+    item = _find_item(db, canonical)
+    if item is None:
+        return 0
+    steps = sorted(item.steps, key=lambda value: value.order_index)
+    if len(steps) != len(approved_rounds):
+        raise RuntimeError(
+            f"{canonical} round count mismatch: runtime={len(steps)} approved={len(approved_rounds)}"
+        )
+    created = 0
+    for step, choices in zip(steps, approved_rounds, strict=True):
+        created += _ensure_option_count(step, pool=choices, total=len(choices))
+    return created
+
+
 def run_seed() -> int:
     db = SessionLocal()
     created = 0
@@ -180,6 +215,8 @@ def run_seed() -> int:
             POST_WORD_ELEMENT_POOL,
             total=3,
         )
+        for canonical, approved_rounds in L3_APPROVED_ROUND_CHOICES.items():
+            created += _repair_round_choices(db, canonical, approved_rounds)
 
         db.commit()
         return created
