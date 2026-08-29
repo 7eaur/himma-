@@ -3,8 +3,8 @@
 This module deliberately stays outside the academic scoring/adaptation path.
 It exposes canonical read-aloud targets and lets a supervisor run the configured
 ASR provider against an ad-hoc recording, then inspect reference-guided lexical
-alignment plus an experimental pronunciation reference. Lab runs never mutate
-student scores, attempts, rewards, adaptation or reinforcement evidence.
+alignment plus experimental pronunciation/acoustic evidence contracts. Lab runs
+never mutate student scores, attempts, rewards, adaptation or reinforcement evidence.
 """
 
 from __future__ import annotations
@@ -15,6 +15,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 
 from arabic_pronunciation import build_pronunciation_reference
+from pronunciation_evidence import build_acoustic_evidence_plan
 from content_runtime import _CATALOG
 from db.models import User
 from dependencies import get_current_user
@@ -116,6 +117,18 @@ def pronunciation_reference(
     return build_pronunciation_reference(reference_text)
 
 
+@router.get("/acoustic-plan")
+def acoustic_plan(
+    reference_text: str,
+    _: User = Depends(_require_supervisor),
+):
+    """Expose the calibration/collection contract without producing a score."""
+    reference_text = reference_text.strip()
+    if not reference_text:
+        raise HTTPException(status_code=422, detail="النص المرجعي مطلوب")
+    return build_acoustic_evidence_plan(reference_text)
+
+
 @router.get("/provider")
 def provider_status(_: User = Depends(_require_supervisor)):
     try:
@@ -169,6 +182,7 @@ async def analyze_recording(
     wer = errors / ref_words
     lexical_accuracy = max(0.0, 1.0 - wer)
     pronunciation = build_pronunciation_reference(reference_text)
+    acoustic_evidence = build_acoustic_evidence_plan(reference_text)
 
     return {
         "lab_only": True,
@@ -207,6 +221,7 @@ async def analyze_recording(
         ],
         "pronunciation_reference": pronunciation,
         "pronunciation_status": "not_calibrated",
+        "acoustic_evidence": acoustic_evidence,
         "raw_metadata": result.raw_metadata,
         "academic_effect": "none",
     }
