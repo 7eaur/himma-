@@ -29,18 +29,17 @@ async function createStudent(page: Page, request: APIRequestContext, context: Br
   return accessCode;
 }
 
-async function loginStudent(request: APIRequestContext, context: BrowserContext, accessCode: string) {
-  const response = await request.post(`${API_URL}/auth/student-login`, { data: { access_code: accessCode } });
-  expect(response.status()).toBe(200);
-  const cookie = response.headers()["set-cookie"]?.match(/access_token=([^;]+)/)?.[1];
-  expect(cookie).toBeTruthy();
-  await context.addCookies([{ name: "access_token", value: cookie!, domain: "localhost", path: "/", httpOnly: true, sameSite: "Lax", secure: false }]);
-}
-
-function answerCandidates(page: Page) {
-  return page.locator("main section button").filter({
-    hasNotText: /^(استمع|تأكيد والمتابعة|إعادة الترتيب|إعادة التسجيل|إرسال التسجيل)$/u,
-  });
+async function visibleAnswerButtons(page: Page) {
+  const buttons = page.locator("main section button");
+  const visible = [];
+  for (let index = 0; index < await buttons.count(); index += 1) {
+    const button = buttons.nth(index);
+    const text = ((await button.textContent()) ?? "").trim();
+    if (!await button.isVisible()) continue;
+    if (/^(استمع|تأكيد والمتابعة|إعادة الترتيب|إعادة التسجيل|إرسال التسجيل)$/u.test(text)) continue;
+    visible.push(button);
+  }
+  return visible;
 }
 
 async function answerVisibleChoice(page: Page) {
@@ -53,12 +52,11 @@ async function answerVisibleChoice(page: Page) {
     if (await pressedOptions.count()) {
       await pressedOptions.first().click();
     } else {
-      const candidates = answerCandidates(page);
-      await expect(candidates.first()).toBeVisible();
-      for (let index = 0; index < await candidates.count(); index += 1) {
-        if (await confirm.isEnabled()) break;
-        const candidate = candidates.nth(index);
-        if (await candidate.isVisible() && await candidate.isEnabled()) await candidate.click();
+      for (let guard = 0; guard < 12 && !(await confirm.isEnabled()); guard += 1) {
+        const candidates = await visibleAnswerButtons(page);
+        const candidate = candidates.find(async (button) => await button.isEnabled());
+        if (!candidate) break;
+        await candidate.click();
       }
     }
   }
@@ -81,11 +79,16 @@ async function assertQuestionHierarchy(page: Page) {
   const headingBox = await heading.boundingBox();
   const imageGroup = page.getByTestId("image-options");
   const pressedOptions = page.locator('button[aria-pressed="false"]');
-  const firstAnswer = (await imageGroup.count())
-    ? imageGroup.getByRole("button").first()
-    : (await pressedOptions.count())
-      ? pressedOptions.first()
-      : answerCandidates(page).first();
+  let firstAnswer;
+  if (await imageGroup.count()) {
+    firstAnswer = imageGroup.getByRole("button").first();
+  } else if (await pressedOptions.count()) {
+    firstAnswer = pressedOptions.first();
+  } else {
+    const candidates = await visibleAnswerButtons(page);
+    expect(candidates.length).toBeGreaterThan(0);
+    firstAnswer = candidates[0];
+  }
   await expect(firstAnswer).toBeVisible();
   const answerBox = await firstAnswer.boundingBox();
   expect(headingBox).toBeTruthy();
