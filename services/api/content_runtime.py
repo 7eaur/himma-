@@ -4,6 +4,11 @@ The approved baseline catalog remains the semantic source of truth for the
 original 105 items. Maintenance-approved reinforcement additions are projected
 additively so their canonical interactions and approved/reused media behave like
 baseline content without rewriting the client source catalog.
+
+The student-facing presentation layer in this module is intentionally derived
+from the approved semantic intent. It does not change answers, scoring, skill
+mapping, or activity order. Its job is only to turn terse/internal labels into
+clear Arabic instructions that a Grade-3 learner can understand.
 """
 
 from __future__ import annotations
@@ -19,7 +24,10 @@ from db.models import ContentItem, ContentStep
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CATALOG_PATH = REPO_ROOT / "packages" / "content" / "src" / "catalog.json"
-ADDITIONS_PATH = REPO_ROOT / "packages" / "content" / "src" / "reinforcement_additions_v1.json"
+ADDITION_PATHS = (
+    REPO_ROOT / "packages" / "content" / "src" / "reinforcement_additions_v1.json",
+    REPO_ROOT / "packages" / "content" / "src" / "reinforcement_additions_v2.json",
+)
 VISUAL_PLAN_PATH = REPO_ROOT / "packages" / "content" / "src" / "visual_asset_plan_v1.json"
 AUDIO_MANIFEST = REPO_ROOT / "assets" / "audio" / "HIMMA_AUDIO_V1" / "manifest.csv"
 IMAGE_MAP = REPO_ROOT / "assets" / "education" / "developer" / "asset-map.json"
@@ -146,9 +154,10 @@ def _project_addition(item: dict[str, Any]) -> dict[str, Any]:
 def _load_runtime_catalog() -> dict[str, Any]:
     baseline = _read_json(CATALOG_PATH)
     items = list(baseline.get("items", []))
-    additions = _read_json(ADDITIONS_PATH, required=False)
-    for item in additions.get("items", []):
-        items.append(_project_addition(item))
+    for additions_path in ADDITION_PATHS:
+        additions = _read_json(additions_path, required=False)
+        for item in additions.get("items", []):
+            items.append(_project_addition(item))
     return {**baseline, "items": items}
 
 
@@ -159,6 +168,11 @@ _ROUNDS = {
     for item in _CATALOG.get("items", [])
     for round_data in item.get("rounds", [])
     if round_data.get("order_index") is not None
+}
+_SKILL_CODES = {
+    str(skill.get("skill_id")): str(skill.get("skill_code") or "")
+    for skill in _CATALOG.get("skills", [])
+    if skill.get("skill_id")
 }
 
 
@@ -180,39 +194,118 @@ def round_data(item: ContentItem, step: ContentStep) -> dict[str, Any]:
     return _ROUNDS.get((canonical_id(item), int(step.order_index)), {})
 
 
-def _instruction(interaction: str, *, expected_reading_text: str | None = None) -> str:
-    if interaction == "choose_one":
-        return "اختر الإجابة الصحيحة."
-    if interaction == "listen_choose_one":
-        return "استمع جيدًا، ثم اختر الإجابة الصحيحة."
-    if interaction == "choose_image":
-        return "اختر الصورة الصحيحة."
-    if interaction == "listen_choose_image":
-        return "استمع جيدًا، ثم اختر الصورة الصحيحة."
-    if interaction == "choose_many":
-        return "اختر كل الإجابات الصحيحة."
-    if interaction == "listen_choose_many":
-        return "استمع جيدًا، ثم اختر الصور الصحيحة."
-    if interaction == "sequence":
-        return "رتّب العناصر بالترتيب الصحيح."
-    if interaction == "memory_sequence":
-        return "تذكّر الصور، ثم رتّبها كما ظهرت."
-    if interaction == "path_sequence":
-        return "اتبع المسار بالترتيب من اليمين إلى اليسار."
-    if interaction == "build_word":
-        return "كوّن الكلمة بترتيب الحروف الصحيح."
-    if interaction == "timed_read_aloud":
-        return "اقرأ النص بصوت واضح عند بدء التسجيل."
-    if interaction == "read_aloud":
-        return "اقرأ النص الظاهر بصوت واضح."
-    return "أكمل المهمة التالية."
+def _skill_code(item: ContentItem) -> str:
+    data = catalog_item(item)
+    skill_id = str(data.get("skill_id") or "")
+    if skill_id and skill_id in _SKILL_CODES:
+        return _SKILL_CODES[skill_id]
+    return str(data.get("target_skill_family") or data.get("skill_code") or "")
+
+
+def _round_text(item: ContentItem, step: ContentStep) -> str:
+    data = round_data(item, step)
+    for key in ("source_text", "prompt", "question", "instruction"):
+        value = str(data.get(key) or "").strip()
+        if value:
+            return value
+    return str(step.prompt_text or "").strip()
+
+
+def _extract_instruction(source: str) -> str:
+    if not source:
+        return ""
+    match = re.search(r"(?:التعليمات(?: للطالب)?|التعليمة)\s*:\s*(.+?)(?=\s*(?:الخيارات|الصور|الإجابة|طريقة الإجابة|$)\s*:|$)", source, flags=re.S)
+    if match:
+        return " ".join(match.group(1).split()).strip(" .")
+    return ""
+
+
+def _extract_question(source: str) -> str:
+    if not source:
+        return ""
+    match = re.search(r"السؤال\s*:\s*(.+?)(?=\s*(?:الخيارات|الإجابة|طريقة الإجابة|$)\s*:|$)", source, flags=re.S)
+    if match:
+        return " ".join(match.group(1).split()).strip(" .")
+    return ""
+
+
+def _fallback_instruction(interaction: str) -> str:
+    return {
+        "choose_one": "اقرأ المطلوب، ثم اختر إجابة واحدة.",
+        "listen_choose_one": "استمع أولًا، ثم اختر الإجابة التي تطابق ما سمعته.",
+        "choose_image": "انظر جيدًا، ثم اختر الصورة المطلوبة.",
+        "listen_choose_image": "استمع أولًا، ثم اختر الصورة التي تطابق ما سمعته.",
+        "choose_many": "اقرأ المطلوب، ثم اختر كل العناصر الصحيحة.",
+        "listen_choose_many": "استمع أولًا، ثم اختر كل العناصر التي تطابق ما سمعته.",
+        "sequence": "اضغط على العناصر واحدًا بعد الآخر بالترتيب الصحيح.",
+        "memory_sequence": "تذكّر الصور جيدًا، ثم أعد ترتيبها كما ظهرت.",
+        "path_sequence": "ابدأ من اليمين، ثم اتبع المسار نقطةً بعد نقطة.",
+        "build_word": "اضغط على الحروف بالترتيب حتى تكوّن الكلمة المطلوبة.",
+        "timed_read_aloud": "اقرأ النص بصوت واضح وطبيعي عند بدء التسجيل.",
+        "read_aloud": "اقرأ النص الظاهر بصوت واضح، ثم أرسل تسجيلك.",
+    }.get(interaction, "اقرأ المطلوب بهدوء، ثم أكمل المهمة.")
 
 
 def instruction_text(item: ContentItem, step: ContentStep) -> str:
-    return _instruction(
-        canonical_interaction(item),
-        expected_reading_text=step.expected_reading_text,
-    )
+    """Return a child-clear instruction without changing the approved task intent."""
+    interaction = canonical_interaction(item)
+    skill = _skill_code(item)
+    source = _round_text(item, step)
+    explicit_instruction = _extract_instruction(source)
+    explicit_question = _extract_question(source)
+
+    if skill in {"visual_letter_discrimination", "similar_letter_discrimination"}:
+        return explicit_instruction or "انظر إلى الحروف، ثم اضغط على الحرف المطلوب."
+    if skill == "letter_form_recognition":
+        return "انظر إلى الحرف، ثم اختر الشكل الآخر للحرف نفسه."
+    if skill == "sound_symbol_mapping":
+        return "استمع إلى صوت الحرف، ثم اختر الحرف الذي يطابق هذا الصوت."
+    if skill == "initial_sound_isolation":
+        if interaction in {"choose_image", "listen_choose_image"}:
+            return "استمع إلى صوت الحرف، ثم اختر الصورة التي يبدأ اسمها بهذا الصوت."
+        return "استمع إلى الكلمة، ثم اختر الحرف الذي تسمعه في بدايتها."
+    if skill == "final_sound_isolation":
+        return "استمع إلى الكلمة، ثم اختر الحرف الذي تسمعه في آخرها."
+    if skill == "word_onset_comparison":
+        return "استمع إلى الصوت والكلمة، ثم قارن الصوت بأول حرف في الكلمة: هل هما متشابهان أم مختلفان؟"
+    if skill == "print_concepts":
+        return explicit_instruction or "انظر إلى العناصر، ثم اضغط على العنصر المطلوب."
+    if skill in {"logical_sequence", "event_order", "sequence_order"}:
+        return "انظر إلى الصور، ثم اضغط عليها حسب ترتيب حدوثها من البداية إلى النهاية."
+    if skill == "visual_memory":
+        return "انظر إلى الصور وتذكّر ترتيبها، ثم أعد ترتيبها كما ظهرت."
+    if skill in {"auditory_vocabulary", "auditory_word_discrimination"}:
+        if interaction in {"choose_image", "listen_choose_image"}:
+            return "استمع إلى الكلمة، ثم اختر الصورة التي تعبّر عنها."
+        return "استمع إلى الكلمة، ثم اختر الكلمة التي سمعتها."
+    if skill == "short_vowels":
+        return "استمع إلى المقطع، ثم اختر المقطع الذي يحمل الحركة نفسها التي سمعتها."
+    if skill in {"long_vowels", "madd_word_reading"}:
+        return "استمع إلى الصوت، ثم اختر المقطع أو الكلمة التي تطابق صوت المد الذي سمعته."
+    if skill in {"syllable_blending", "syllable_reading"} and interaction in {"choose_many", "listen_choose_many"}:
+        return "اختر المقاطع التي تكوّن الكلمة المطلوبة، واضغط عليها بالترتيب."
+    if skill in {"word_building", "letter_order"} or interaction == "build_word":
+        return explicit_instruction or "اضغط على الحروف بالترتيب حتى تكوّن الكلمة المطلوبة."
+    if skill == "sentence_building":
+        return "رتّب الكلمات حتى تكوّن جملة صحيحة وواضحة."
+    if skill == "word_completion":
+        return "انظر إلى الكلمة الناقصة، ثم اختر الحرف الذي يكملها بشكل صحيح."
+    if skill == "word_image_comprehension":
+        return "اقرأ الكلمة، ثم اختر الصورة التي تطابق معناها."
+    if skill == "tanween":
+        return "استمع أو اقرأ جيدًا، ثم اختر الشكل الذي يحمل التنوين المطلوب."
+    if skill in {"letter_reading", "general_word_reading", "short_vowel_word_reading", "sukoon_word_reading", "shadda_word_reading", "sentence_reading"}:
+        if interaction in {"read_aloud", "timed_read_aloud"}:
+            return "اقرأ النص الظاهر بصوت واضح، ثم أرسل تسجيلك."
+    if skill in {"literal_comprehension", "inferential_comprehension", "main_idea", "text_evidence", "word_meaning"}:
+        if explicit_question:
+            return f"اقرأ السؤال جيدًا، ثم اختر الإجابة: {explicit_question}"
+        return "اقرأ النص والسؤال جيدًا، ثم اختر الإجابة التي يدل عليها النص."
+    if interaction in {"read_aloud", "timed_read_aloud"}:
+        return _fallback_instruction(interaction)
+    if explicit_instruction:
+        return explicit_instruction
+    return _fallback_instruction(interaction)
 
 
 def media_gaps(item: ContentItem, step: ContentStep) -> list[dict[str, Any]]:
@@ -240,13 +333,7 @@ def _option_for_semantic(step: ContentStep, semantic_text: str | None, position:
 
 
 def _project_approved_media_without_links(item: ContentItem, step: ContentStep) -> list[dict[str, Any]]:
-    """Project maintenance-approved additive media without mutating baseline DB rows.
-
-    The 18 reinforcement additions are versioned content already checked into the
-    repository. Their reused static media is therefore safe to expose directly
-    from the approved manifests even when the additive seed has no historical
-    ContentAssetLink rows.
-    """
+    """Project maintenance-approved additive media without mutating baseline DB rows."""
     if not (item.template_data or {}).get("maintenance_addition"):
         return []
     result: list[dict[str, Any]] = []
@@ -287,16 +374,14 @@ def step_assets(item: ContentItem, step: ContentStep) -> list[dict[str, Any]]:
         if link.asset_type == "image" and link.usage_context in {"choice", "illustration"}:
             option_id = _option_for_semantic(step, semantic.get("semantic_text"), image_position)
             image_position += 1
-        result.append(
-            {
-                "asset_id": link.manifest_asset_id,
-                "asset_type": link.asset_type,
-                "usage": link.usage_context,
-                "semantic_text": semantic.get("semantic_text"),
-                "url": f"/api/media/{link.manifest_asset_id}",
-                "option_id": option_id,
-            }
-        )
+        result.append({
+            "asset_id": link.manifest_asset_id,
+            "asset_type": link.asset_type,
+            "usage": link.usage_context,
+            "semantic_text": semantic.get("semantic_text"),
+            "url": f"/api/media/{link.manifest_asset_id}",
+            "option_id": option_id,
+        })
     if not result:
         result = _project_approved_media_without_links(item, step)
     return result
