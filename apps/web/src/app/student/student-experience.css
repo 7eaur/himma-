@@ -1,7 +1,15 @@
-/* Student Question Experience Overhaul
-   Global, route-scoped overrides for assessment/activity screens. These styles
-   deliberately avoid changing academic semantics; they only improve hierarchy,
-   spacing, interaction clarity, responsiveness, and motion. */
+/* Student Experience v2 — shared route-scoped safety styles.
+
+   Activity and assessment layout now live in their route CSS modules.  This
+   file intentionally avoids structural overrides so an old global selector
+   cannot move the mascot, resize the card, or reintroduce a nested layout.
+
+   Important visual contract:
+   - no page-wide blur/frosted overlay during a normal question;
+   - no opacity fade that can make screenshots or fast devices look washed out;
+   - only subtle control transitions;
+   - reduced-motion remains respected.
+*/
 
 [data-testid="activity-session"],
 [data-testid="assessment-session"]{
@@ -13,211 +21,37 @@
   --qx-muted:#667d91;
   --qx-border:#dce8f2;
   --qx-bg:#f7fbff;
+  opacity:1;
+  filter:none;
+  backdrop-filter:none;
 }
 
-/* The learning task itself is the visual focus: no permanent character rail,
-   no nested-card feeling, and no internal-design labels shown to the child. */
-[data-testid="activity-session"][data-phase="active"] main,
-[data-testid="assessment-session"][data-phase="question"] main,
-[data-testid="assessment-session"][data-phase="submitting"] main{
-  width:min(100% - 28px,1040px)!important;
-  margin-inline:auto!important;
-}
-
-[data-testid="activity-session"][data-phase="active"] main>section,
-[data-testid="assessment-session"][data-phase="question"] main>section,
-[data-testid="assessment-session"][data-phase="submitting"] main>section{
-  width:100%!important;
-  max-width:980px!important;
-  min-height:auto!important;
-  margin:0 auto 24px!important;
-  padding:clamp(24px,4vw,46px)!important;
-  border-radius:28px!important;
-  border:1px solid var(--qx-border)!important;
-  background:#fff!important;
-  box-shadow:0 12px 34px rgba(32,54,77,.065)!important;
-  overflow:visible!important;
-  animation:qx-enter .24s ease-out both;
-}
-
-[data-testid="activity-session"][data-phase="active"] main>section::before,
-[data-testid="assessment-session"][data-phase="question"] main>section::before,
-[data-testid="assessment-session"][data-phase="submitting"] main>section::before{
-  display:none!important;
-}
-
-/* Hide internal UX wording. The one-task principle remains in the layout rather
-   than being explained to the child. */
-[data-testid="activity-session"] [data-testid="core-activity-badge"],
-[data-testid="activity-session"] [data-testid="reinforcement-badge"]{
-  display:none!important;
-}
-[data-testid="activity-session"][data-phase="active"] main>section>span[data-testid]+h1+p{
-  display:none!important;
-}
-[data-testid="assessment-session"][data-phase="question"] main>section>span:first-of-type,
-[data-testid="assessment-session"][data-phase="submitting"] main>section>span:first-of-type{
-  display:none!important;
-}
-[data-testid="assessment-session"][data-phase="question"] main>section>h1+p,
-[data-testid="assessment-session"][data-phase="submitting"] main>section>h1+p{
-  display:none!important;
-}
-
-/* Clear question/instruction hierarchy. */
-[data-testid="activity-session"][data-phase="active"] h1,
-[data-testid="assessment-session"][data-phase="question"] main>section>h1,
-[data-testid="assessment-session"][data-phase="submitting"] main>section>h1{
-  max-width:820px!important;
-  margin:8px auto 22px!important;
-  text-align:center!important;
-  color:var(--qx-navy)!important;
-  font-size:clamp(1.7rem,3.2vw,2.45rem)!important;
-  line-height:1.55!important;
-  font-weight:900!important;
-  text-wrap:balance;
-}
-
-/* Prompt/question body stays visually separate from the instruction, especially
-   for comprehension questions and printed-word tasks. */
-[data-testid="activity-session"][data-phase="active"] main>section>div,
-[data-testid="assessment-session"][data-phase="question"] main>section>div,
-[data-testid="assessment-session"][data-phase="submitting"] main>section>div{
-  position:relative;
-}
-
-/* All answer choices are below the question and centered; short letter choices
-   no longer stretch into empty full-width bars. */
-[data-testid="activity-session"] [aria-pressed],
-[data-testid="assessment-session"] [aria-pressed]{
-  min-height:72px!important;
-  border-radius:18px!important;
-  font-size:clamp(1.05rem,2vw,1.25rem)!important;
-  line-height:1.5!important;
-}
-
-[data-testid="activity-session"] button[aria-pressed]:not(:has(img)),
-[data-testid="assessment-session"] button[aria-pressed]:not(:has(img)){
-  width:auto!important;
-  min-width:min(190px,100%)!important;
-  max-width:320px!important;
-  justify-self:center!important;
-  padding-inline:24px!important;
-}
-
-[data-testid="activity-session"] button[aria-pressed]:has(img),
-[data-testid="assessment-session"] button[aria-pressed]:has(img){
-  min-height:210px!important;
-  padding:12px!important;
-}
-
-/* Audio is a clear primary interaction, with enough separation before choices. */
-[data-testid="activity-session"] [data-testid="activity-listen"],
-[data-testid="assessment-session"] [data-testid="listen-prompt"]{
-  width:96px!important;
-  height:96px!important;
-  margin:4px auto 28px!important;
-  box-shadow:0 10px 24px rgba(52,127,217,.22)!important;
-}
-
-/* The companion becomes supporting content, not a permanent side column. */
-[data-testid="activity-session"][data-phase="active"] main>section>div:last-child{
-  position:relative!important;
-  inset:auto!important;
-  width:min(100%,620px)!important;
-  margin:28px auto 0!important;
-  padding:14px 16px!important;
-  border-top:1px solid #edf2f6!important;
-  display:flex!important;
-  flex-direction:row!important;
-  align-items:center!important;
-  justify-content:center!important;
-  gap:14px!important;
-  text-align:right!important;
-}
-[data-testid="activity-session"][data-phase="active"] main>section>div:last-child img{
-  width:74px!important;
-  height:auto!important;
-  max-height:92px!important;
-  flex:0 0 auto!important;
+/* Never dim the entire learning/assessment surface as part of question entry.
+   Modal dialogs, when intentionally introduced, must own their overlay locally. */
+[data-testid="activity-session"][data-phase="active"],
+[data-testid="assessment-session"][data-phase="question"],
+[data-testid="assessment-session"][data-phase="submitting"]{
+  animation:none!important;
+  opacity:1!important;
   filter:none!important;
 }
-[data-testid="activity-session"][data-phase="active"] main>section>div:last-child p{
-  margin:0!important;
-  max-width:480px!important;
-  box-shadow:none!important;
-  text-align:right!important;
+
+[data-testid="activity-session"] button,
+[data-testid="assessment-session"] button,
+[data-testid="activity-session"] img,
+[data-testid="assessment-session"] img{
+  transition:transform .16s ease,border-color .16s ease,background-color .16s ease,box-shadow .16s ease;
 }
 
-/* Feedback is concise and visually connected to the answer. */
-[data-testid="activity-session"] [role="alert"],
-[data-testid="assessment-session"] [role="alert"]{
-  border-radius:16px;
-}
-
-/* Large, calm primary actions. */
 [data-testid="activity-session"] button,
 [data-testid="assessment-session"] button{
   min-height:44px;
   touch-action:manipulation;
 }
 
-/* Keep long reading passages comfortable; avoid overly wide lines. */
-[data-testid="activity-session"] [data-testid="activity-reading-text"],
-[data-testid="assessment-session"] [data-testid="reading-text"]{
-  max-width:780px!important;
-  margin-inline:auto!important;
-  line-height:1.9!important;
-}
-
-/* Selection/feedback transitions are intentionally subtle. */
-[data-testid="activity-session"] button,
-[data-testid="assessment-session"] button,
-[data-testid="activity-session"] img,
-[data-testid="assessment-session"] img{
-  transition:transform .18s ease,border-color .18s ease,background .18s ease,box-shadow .18s ease,opacity .18s ease;
-}
-
-@keyframes qx-enter{
-  from{opacity:0;transform:translateY(7px)}
-  to{opacity:1;transform:translateY(0)}
-}
-
-@media(max-width:720px){
-  [data-testid="activity-session"][data-phase="active"] main,
-  [data-testid="assessment-session"][data-phase="question"] main,
-  [data-testid="assessment-session"][data-phase="submitting"] main{
-    width:100%!important;
-  }
-  [data-testid="activity-session"][data-phase="active"] main>section,
-  [data-testid="assessment-session"][data-phase="question"] main>section,
-  [data-testid="assessment-session"][data-phase="submitting"] main>section{
-    margin-bottom:0!important;
-    border-inline:0!important;
-    border-radius:22px 22px 0 0!important;
-    padding:22px 14px 28px!important;
-  }
-  [data-testid="activity-session"][data-phase="active"] h1,
-  [data-testid="assessment-session"][data-phase="question"] main>section>h1,
-  [data-testid="assessment-session"][data-phase="submitting"] main>section>h1{
-    margin-top:4px!important;
-    margin-bottom:18px!important;
-    font-size:clamp(1.5rem,7vw,2rem)!important;
-    line-height:1.6!important;
-  }
-  [data-testid="activity-session"] button[aria-pressed]:not(:has(img)),
-  [data-testid="assessment-session"] button[aria-pressed]:not(:has(img)){
-    width:100%!important;
-    max-width:none!important;
-    min-width:0!important;
-  }
-  [data-testid="activity-session"][data-phase="active"] main>section>div:last-child{
-    padding:12px 4px 0!important;
-    gap:10px!important;
-  }
-  [data-testid="activity-session"][data-phase="active"] main>section>div:last-child img{
-    width:64px!important;
-  }
+[data-testid="activity-session"] [role="alert"],
+[data-testid="assessment-session"] [role="alert"]{
+  border-radius:16px;
 }
 
 @media(prefers-reduced-motion:reduce){
