@@ -31,7 +31,7 @@ def test_previous_low_is_scoped_to_the_same_level_and_never_demotes():
             valid_attempt_count=3,
             consecutive_low_count=1,
             snapshot_key="regression:l1:first-low",
-            explanation={"reason": "low_mastery_support_first"},
+            explanation={"reason": "low_mastery_same_level_support"},
         ))
         db.commit()
 
@@ -54,7 +54,7 @@ def test_previous_low_is_scoped_to_the_same_level_and_never_demotes():
             valid_attempt_count=3,
             consecutive_low_count=1,
             snapshot_key="regression:l2:first-low",
-            explanation={"reason": "low_mastery_support_first"},
+            explanation={"reason": "low_mastery_same_level_support"},
         )
         db.add(l2_first_low)
         db.commit()
@@ -73,28 +73,26 @@ def test_previous_low_is_scoped_to_the_same_level_and_never_demotes():
         db.close()
 
 
-def test_high_mastery_cannot_promote_before_current_promotion_gate():
+def test_high_mastery_uses_six_core_pilot_gate_not_legacy_ten_core_gate():
     action, level, reason = decide_transition(
         current_level=1,
         mastery=95,
         skill_coverage_ok=True,
         minimum_required_skill_score=95,
-        previous_low=False,
-        level_complete=False,
+        completed_core_count=5,
     )
     assert (action, level) == ("stay", 1)
-    assert reason == "promotion_waiting_for_core_completion"
+    assert reason == "minimum_core_evidence_pending"
 
     action, level, reason = decide_transition(
         current_level=1,
         mastery=95,
         skill_coverage_ok=True,
         minimum_required_skill_score=95,
-        previous_low=False,
-        level_complete=True,
+        completed_core_count=6,
     )
     assert (action, level) == ("promote", 2)
-    assert reason == "mastery_and_skill_gates_passed"
+    assert reason == "early_promotion_gates_passed"
 
 
 def test_reward_duplicate_uses_savepoint_and_keeps_outer_transaction_usable():
