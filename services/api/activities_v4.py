@@ -1,32 +1,35 @@
 """V4 activity routing bridge.
 
-This router is registered ahead of the legacy activity router and owns the
-`GET /activities/session/{id}/next` route. All other activity endpoints remain
-on the proven Stage-2 implementation.
+This router is registered ahead of the legacy activity router. It owns the
+session-sensitive routes that must follow an early promotion safely while all
+other activity endpoints remain on the proven Stage-2 implementation.
 
-Why this bridge exists:
-- early promotion can close the current level session while `/next` is running;
-  the old runner would then accidentally prepare another item in that closed
-  session, making the following submit return 404;
-- normal Core selection should prefer missing/weak critical-skill evidence,
-  using order_index only as a deterministic tie-breaker.
+V4 guarantees:
+- a closed historical level session is never used for a new submission;
+- clients holding the previous level URL are safely bridged to the one active
+  Core session, including refresh/resume after promotion;
+- normal Core selection prioritizes missing/weak critical-skill evidence and
+  uses order_index only as a deterministic tie-breaker.
 """
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from activities import (
+    ActivitySubmitRequest,
     _activity_session_or_404,
     _finalize_attempt_if_done,
     _finalize_session_if_done,
     _load_item,
     _pending_attempt,
+    _progress_payload,
     _rich_item_query,
     _step_payload,
     _step_state,
     router as legacy_activities_router,
+    submit_activity_step as legacy_submit_activity_step,
 )
 from adaptation import _load_policy, _valid_signals
 from adaptation_runtime import prepare_next_for_student
@@ -36,14 +39,46 @@ from dependencies import get_current_student, get_db
 router = APIRouter()
 
 
-def _preferred_core_skill_id(db: Session, *, student_id: int, level_id: int) -> int | None:
-    """Choose a critical skill needing evidence, deterministically.
+def _active_core_session(db: Session, student_id: int) -> AssessmentSession | None:
+    return (
+        db.query(AssessmentSession)
+        .filter(
+            AssessmentSession.student_id == student_id,
+            AssessmentSession.session_type == "core",
+            AssessmentSession.status == "in_progress",
+        )
+        .order_by(AssessmentSession.id.desc())
+        .first()
+    )
 
-    Missing configured critical-skill evidence is prioritized first. Once every
-    configured critical skill has evidence, the weakest latest critical skill is
-    preferred. If the policy is missing/mismatched, return None and let the
-    approved order-index fallback operate rather than inventing a skill rule.
+
+def _resolve_active_session(
+    db: Session,
+    *,
+    requested_session_id: int,
+    student_id: int,
+) -> AssessmentSession:
+    """Resolve a historical route id to the student's current Core session.
+
+    This keeps an already-open browser route usable across an early promotion
+    without mutating or relabelling the completed historical session.
     """
+    requested = _activity_session_or_404(
+        db,
+        requested_session_id,
+        student_id,
+        require_active=False,
+    )
+    if requested.status == "in_progress":
+        return requested
+    active = _active_core_session(db, student_id)
+    if active is None:
+        raise HTTPException(status_code=404, detail="جلسة التعلم غير موجودة أو انتهت")
+    return active
+
+
+def _preferred_core_skill_id(db: Session, *, student_id: int, level_id: int) -> int | None:
+    """Choose a configured critical skill needing evidence, deterministically."""
     policy = _load_policy()
     codes = [
         str(code)
@@ -65,6 +100,8 @@ def _preferred_core_skill_id(db: Session, *, student_id: int, level_id: int) -> 
     for signal in _valid_signals(db, student_id, level_id):
         latest_by_skill[signal.skill_id] = signal.score
 
+    # Under-evidenced critical skills come before repeatedly exercising an
+    # already-observed skill. Config order is deterministic policy order.
     for code in codes:
         skill_id = by_code[code].id
         if skill_id not in latest_by_skill:
@@ -110,13 +147,31 @@ def _next_unused_core_item(
     return base.order_by(ContentItem.order_index, ContentItem.id).first()
 
 
+@router.get("/activities/session/{session_id}/progress")
+def learning_progress_v4(
+    session_id: int,
+    db: Session = Depends(get_db),
+    student: Student = Depends(get_current_student),
+):
+    session = _resolve_active_session(
+        db,
+        requested_session_id=session_id,
+        student_id=student.id,
+    )
+    return _progress_payload(db, session, session.assigned_level or student.current_level)
+
+
 @router.get("/activities/session/{session_id}/next")
 def next_activity_step_v4(
     session_id: int,
     db: Session = Depends(get_db),
     student: Student = Depends(get_current_student),
 ):
-    session = _activity_session_or_404(db, session_id, student.id)
+    session = _resolve_active_session(
+        db,
+        requested_session_id=session_id,
+        student_id=student.id,
+    )
 
     pending_attempt = _pending_attempt(db, session.id)
     if pending_attempt:
@@ -143,9 +198,6 @@ def next_activity_step_v4(
     if prepared.get("journey_completed"):
         return None
 
-    # Early promotion creates a fresh target-level session. Continue this same
-    # request on that session so the response and subsequent submit never point
-    # at the just-closed historical session.
     prepared_session_id = int(prepared.get("session_id") or session.id)
     if prepared_session_id != session.id:
         session = _activity_session_or_404(db, prepared_session_id, student.id)
@@ -198,6 +250,33 @@ def next_activity_step_v4(
     return _step_payload(db, item, attempt, first_step)
 
 
-# Fixed /next is intentionally registered before the legacy router. FastAPI
-# matches routes in registration order; all non-/next endpoints remain unchanged.
+@router.post("/activities/session/{session_id}/attempt/{item_id}/submit")
+def submit_activity_step_v4(
+    session_id: int,
+    item_id: int,
+    body: ActivitySubmitRequest,
+    idempotency_key: str = Header(..., alias="Idempotency-Key"),
+    db: Session = Depends(get_db),
+    student: Student = Depends(get_current_student),
+):
+    session = _resolve_active_session(
+        db,
+        requested_session_id=session_id,
+        student_id=student.id,
+    )
+    # Delegate scoring/idempotency to the proven implementation with the actual
+    # active session id. This also supports an already-open browser route whose
+    # URL still contains the previous level's historical session id.
+    return legacy_submit_activity_step(
+        session_id=session.id,
+        item_id=item_id,
+        body=body,
+        idempotency_key=idempotency_key,
+        db=db,
+        student=student,
+    )
+
+
+# V4 session-sensitive routes are registered before the legacy router. FastAPI
+# matches in registration order; unrelated endpoints retain their old behavior.
 router.include_router(legacy_activities_router)
