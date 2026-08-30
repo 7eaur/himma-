@@ -1,4 +1,4 @@
-"""Stage 2 closure tests for the real learning activity runtime."""
+"""Stage-2 activity runtime regressions plus V4 promotion continuity."""
 
 from datetime import datetime, timezone
 
@@ -16,15 +16,13 @@ def _complete_pretest(access_code: str = "STU001", level: int = 1) -> int:
         AssessmentSession.session_type == "pretest",
     ).first()
     if not existing:
-        db.add(
-            AssessmentSession(
-                student_id=student.id,
-                session_type="pretest",
-                status="completed",
-                assigned_level=level,
-                completed_at=datetime.now(timezone.utc),
-            )
-        )
+        db.add(AssessmentSession(
+            student_id=student.id,
+            session_type="pretest",
+            status="completed",
+            assigned_level=level,
+            completed_at=datetime.now(timezone.utc),
+        ))
     else:
         existing.status = "completed"
         existing.assigned_level = level
@@ -37,13 +35,9 @@ def _complete_pretest(access_code: str = "STU001", level: int = 1) -> int:
 
 def _ordered_option_ids(step_id: int) -> list[int]:
     db = SessionLocal()
-    ids = [
-        row.id
-        for row in db.query(ContentOption)
-        .filter(ContentOption.step_id == step_id)
-        .order_by(ContentOption.order_index)
-        .all()
-    ]
+    ids = [row.id for row in db.query(ContentOption).filter(
+        ContentOption.step_id == step_id
+    ).order_by(ContentOption.order_index).all()]
     db.close()
     return ids
 
@@ -61,11 +55,10 @@ def _correct_option_id(step_id: int) -> int:
 
 
 def _mark_audio_round_reviewed(session_id: int, item_id: int, step_id: int) -> None:
-    """Finish an audio round at the assessment-review boundary for this lifecycle test.
+    """Finish audio evidence for lifecycle routing tests only.
 
-    Audio upload/review itself has dedicated coverage. This helper keeps the older
-    Stage-2 core regression focused on routing/resume and avoids pretending a
-    read-aloud round has a multiple-choice option.
+    Audio upload/review has dedicated tests; this helper does not invent speech
+    metrics and only marks the already-targeted reading step as reviewed/correct.
     """
     db = SessionLocal()
     attempt = db.query(Attempt).filter(
@@ -78,15 +71,13 @@ def _mark_audio_round_reviewed(session_id: int, item_id: int, step_id: int) -> N
         AttemptResponse.step_id == step_id,
     ).first()
     if not existing:
-        db.add(
-            AttemptResponse(
-                attempt_id=attempt.id,
-                step_id=step_id,
-                selected_option_id=None,
-                is_correct=True,
-                elapsed_seconds=1,
-            )
-        )
+        db.add(AttemptResponse(
+            attempt_id=attempt.id,
+            step_id=step_id,
+            selected_option_id=None,
+            is_correct=True,
+            elapsed_seconds=1,
+        ))
         db.commit()
     db.close()
 
@@ -116,35 +107,49 @@ class TestActivityLifecycle:
         assert status.status_code == 200
         assert status.json()["available"] is False
         assert status.json()["reason"] == "pretest_required"
+        assert student_client.post("/activities/start").status_code == 409
 
-        start = student_client.post("/activities/start")
-        assert start.status_code == 409
-
-    def test_level_one_executes_exactly_ten_core_activities_and_resumes(self, student_client):
+    def test_level_one_resumes_and_early_promotion_switches_to_fresh_level_session(self, student_client):
         seed.run_seed()
         _complete_pretest(level=1)
 
         started = student_client.post("/activities/start")
         assert started.status_code == 200
-        session_id = started.json()["session_id"]
+        level_one_session_id = started.json()["session_id"]
+        session_id = level_one_session_id
         assert started.json()["level_id"] == 1
         assert started.json()["total_items"] == 10
 
         resumed = student_client.post("/activities/start")
         assert resumed.status_code == 200
-        assert resumed.json()["session_id"] == session_id
+        assert resumed.json()["session_id"] == level_one_session_id
 
+        seen_level_one: set[str] = set()
+        promoted = False
         safety = 0
-        while len(_completed_core_ids(session_id, 1)) < 10:
+        while not promoted:
             safety += 1
-            assert safety < 120, "Level-one core contract did not complete"
+            assert safety < 100, "V4 level-one promotion did not converge"
             response = student_client.get(f"/activities/session/{session_id}/next")
             assert response.status_code == 200, response.text
             activity = response.json()
-            assert activity is not None, "Adaptive runtime ended before all ten level-one core items completed"
+            assert activity is not None
 
+            # V4 promotion must return a payload belonging to the fresh target
+            # session immediately; the client must never submit into the closed
+            # historical L1 session.
+            if activity["item"]["level_id"] == 2:
+                assert activity["session_id"] != level_one_session_id
+                session_id = activity["session_id"]
+                promoted = True
+                break
+
+            assert activity["item"]["level_id"] == 1
+            assert activity["session_id"] == level_one_session_id
+            seen_level_one.add(activity["item"]["canonical_id"])
             step = activity["step"]
             interaction = activity["item"]["interaction_type"]
+
             if interaction in {"read_aloud", "timed_read_aloud"} and not step["media_gaps"]:
                 _mark_audio_round_reviewed(session_id, activity["item"]["id"], step["id"])
                 continue
@@ -182,22 +187,20 @@ class TestActivityLifecycle:
             )
             assert submitted.status_code == 200, submitted.text
 
-        assert _completed_core_ids(session_id, 1) == [f"L1-CORE-{index:02d}" for index in range(1, 11)]
+        assert len(seen_level_one) >= 6
+        assert len(seen_level_one) < 10
 
-        # B03 may continue the same durable learning session into approved
-        # reinforcement or a new level. The Stage-2 regression remains strict
-        # about its contract: all ten level-one core items must complete once,
-        # while reinforcement never masquerades as an eleventh core item.
         db = SessionLocal()
-        assert db.query(ContentItem).filter(
-            ContentItem.kind == "core_activity",
-            ContentItem.level_id == 1,
-        ).count() == 10
+        old_session = db.query(AssessmentSession).filter(AssessmentSession.id == level_one_session_id).one()
+        new_session = db.query(AssessmentSession).filter(AssessmentSession.id == session_id).one()
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        assert old_session.status == "completed"
+        assert old_session.assigned_level == 1
+        assert new_session.status == "in_progress"
+        assert new_session.assigned_level == 2
+        assert student.current_level == 2
+        assert db.query(ContentItem).filter(ContentItem.kind == "core_activity", ContentItem.level_id == 1).count() == 10
         db.close()
-
-        profile = student_client.get("/profile")
-        assert profile.status_code == 200
-        assert profile.json()["next_action"] == "learning"
 
     def test_structured_activity_submission_is_idempotent(self, student_client):
         seed.run_seed()
@@ -237,8 +240,5 @@ class TestActivityLifecycle:
         assert activity["item"]["interaction_type"] == "read_aloud"
 
         db = SessionLocal()
-        assert db.query(ContentItem).filter(
-            ContentItem.kind == "core_activity",
-            ContentItem.level_id == 3,
-        ).count() == 10
+        assert db.query(ContentItem).filter(ContentItem.kind == "core_activity", ContentItem.level_id == 3).count() == 10
         db.close()
