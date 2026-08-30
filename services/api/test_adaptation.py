@@ -1,4 +1,4 @@
-"""P06 adaptive engine boundary and invariance tests."""
+"""Adaptive engine boundary and invariance tests for V4 pilot policy."""
 
 import pytest
 
@@ -35,7 +35,7 @@ def test_weighted_mastery_stays_inside_input_range_and_is_monotonic_for_newest()
 
 @pytest.mark.parametrize(
     ("mastery", "action"),
-    [(49.9999, "support"), (50.0, "stay"), (79.9999, "stay")],
+    [(49.9999, "support"), (50.0, "stay"), (84.9999, "stay")],
 )
 def test_transition_threshold_boundaries(mastery, action):
     result, level, _ = decide_transition(
@@ -43,77 +43,117 @@ def test_transition_threshold_boundaries(mastery, action):
         mastery=mastery,
         skill_coverage_ok=True,
         minimum_required_skill_score=100,
-        previous_low=False,
+        completed_core_count=6,
     )
     assert result == action
     assert level == 2
 
 
-def test_promotion_requires_80_coverage_and_skill_floor():
+def test_promotion_requires_85_six_core_coverage_and_70_skill_floor():
     assert decide_transition(
         current_level=1,
-        mastery=80,
+        mastery=85,
         skill_coverage_ok=True,
-        minimum_required_skill_score=60,
-        previous_low=False,
+        minimum_required_skill_score=70,
+        completed_core_count=6,
     )[0:2] == ("promote", 2)
 
     assert decide_transition(
         current_level=1,
+        mastery=84.9999,
+        skill_coverage_ok=True,
+        minimum_required_skill_score=100,
+        completed_core_count=10,
+    )[0] == "stay"
+
+    assert decide_transition(
+        current_level=1,
+        mastery=99,
+        skill_coverage_ok=True,
+        minimum_required_skill_score=100,
+        completed_core_count=5,
+    )[0] == "stay"
+
+    assert decide_transition(
+        current_level=1,
         mastery=99,
         skill_coverage_ok=False,
         minimum_required_skill_score=100,
-        previous_low=False,
+        completed_core_count=10,
     )[0] == "stay"
 
     assert decide_transition(
         current_level=1,
         mastery=99,
         skill_coverage_ok=True,
-        minimum_required_skill_score=59.9999,
-        previous_low=False,
+        minimum_required_skill_score=69.9999,
+        completed_core_count=10,
     )[0] == "stay"
 
 
-def test_low_mastery_never_auto_demotes_even_after_repeated_low_evidence():
-    assert decide_transition(
-        current_level=2,
-        mastery=40,
-        skill_coverage_ok=True,
-        minimum_required_skill_score=40,
-        previous_low=False,
-    )[0:2] == ("support", 2)
-    assert decide_transition(
-        current_level=2,
-        mastery=40,
-        skill_coverage_ok=True,
-        minimum_required_skill_score=40,
-        previous_low=True,
-    )[0:2] == ("support", 2)
-    assert decide_transition(
-        current_level=3,
-        mastery=20,
-        skill_coverage_ok=False,
-        minimum_required_skill_score=20,
-        previous_low=True,
-    )[0:2] == ("support", 3)
+def test_promotion_is_blocked_by_reinforcement_or_supervisor_review():
     assert decide_transition(
         current_level=1,
-        mastery=40,
+        mastery=100,
         skill_coverage_ok=True,
-        minimum_required_skill_score=40,
-        previous_low=True,
-    )[0:2] == ("support", 1)
+        minimum_required_skill_score=100,
+        completed_core_count=10,
+        unresolved_reinforcement=True,
+    )[2] == "promotion_blocked_by_reinforcement_cycle"
 
-
-def test_top_level_does_not_promote_above_three():
     assert decide_transition(
+        current_level=1,
+        mastery=100,
+        skill_coverage_ok=True,
+        minimum_required_skill_score=100,
+        completed_core_count=10,
+        supervisor_review_pending=True,
+    )[2] == "promotion_blocked_by_supervisor_review"
+
+
+def test_missing_critical_skill_policy_fails_closed():
+    assert decide_transition(
+        current_level=1,
+        mastery=100,
+        skill_coverage_ok=False,
+        minimum_required_skill_score=None,
+        completed_core_count=10,
+        critical_policy_configured=False,
+    )[2] == "critical_skill_policy_unverified"
+
+
+def test_low_mastery_never_auto_demotes_even_after_repeated_low_evidence():
+    for level in (1, 2, 3):
+        assert decide_transition(
+            current_level=level,
+            mastery=40,
+            skill_coverage_ok=True,
+            minimum_required_skill_score=40,
+            previous_low=True,
+            completed_core_count=10,
+        )[0:2] == ("support", level)
+
+
+def test_top_level_does_not_promote_above_three_and_needs_full_evidence():
+    incomplete = decide_transition(
         current_level=3,
         mastery=100,
         skill_coverage_ok=True,
         minimum_required_skill_score=100,
-        previous_low=False,
-    )[0:2] == ("stay", 3)
+        completed_core_count=6,
+    )
+    assert incomplete[0:2] == ("stay", 3)
+    assert incomplete[2] == "level_three_evidence_incomplete"
+
+    complete = decide_transition(
+        current_level=3,
+        mastery=100,
+        skill_coverage_ok=True,
+        minimum_required_skill_score=100,
+        completed_core_count=10,
+    )
+    assert complete[0:2] == ("stay", 3)
+    assert complete[2] == "top_level_mastery"
 
 
 def test_manual_override_requires_reason_and_preserves_history(researcher_client):
