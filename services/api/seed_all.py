@@ -2,8 +2,7 @@
 
 Use this entrypoint for fresh/repeatable environments after M03. It preserves
 `seed.py` as the immutable 105-item baseline seeder while adding the accepted
-maintenance extensions and narrowly scoped presentation corrections that are
-already stated in the approved client content.
+maintenance extensions and the authoritative Student Experience v2 projection.
 """
 
 from __future__ import annotations
@@ -15,6 +14,7 @@ import seed
 import seed_reinforcement_additions
 import seed_reinforcement_additions_v2
 import seed_student_choice_corrections
+import seed_student_experience_v2
 from db.database import SessionLocal
 from db.models import ContentItem
 
@@ -50,6 +50,7 @@ def run_seed_all() -> dict[str, int]:
     v1_created = seed_reinforcement_additions.run_seed()
     v2_created = seed_reinforcement_additions_v2.run_seed()
     choice_corrections_created = seed_student_choice_corrections.run_seed()
+    student_experience_changes = seed_student_experience_v2.run_seed()
 
     db = SessionLocal()
     try:
@@ -60,6 +61,12 @@ def run_seed_all() -> dict[str, int]:
         reinforcement_count = db.query(ContentItem).filter(
             ContentItem.kind == "reinforcement_activity"
         ).count()
+        v2_marked = sum(
+            1
+            for item in db.query(ContentItem).all()
+            if (item.template_data or {}).get("student_experience_version")
+            == "HIMMA-STUDENT-EXPERIENCE-2.0"
+        )
     finally:
         db.close()
 
@@ -69,6 +76,8 @@ def run_seed_all() -> dict[str, int]:
         raise RuntimeError(f"Expected 35 approved reinforcement items, got {reinforcement_count}")
     if total != 125:
         raise RuntimeError(f"Expected 125 total approved runtime items, got {total}")
+    if v2_marked != 125:
+        raise RuntimeError(f"Expected Student Experience v2 on 125 items, got {v2_marked}")
 
     result = {
         "baseline_items": base_count,
@@ -77,6 +86,8 @@ def run_seed_all() -> dict[str, int]:
         "v1_additions_created": v1_created,
         "v2_additions_created": v2_created,
         "choice_corrections_created": choice_corrections_created,
+        "student_experience_v2_changes": student_experience_changes,
+        "student_experience_v2_items": v2_marked,
         "additions_created": v1_created + v2_created,
     }
     print(f"Himma full content seed OK: {result}")
