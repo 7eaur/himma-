@@ -7,8 +7,10 @@
   width: min(100%, 760px) !important;
   max-width: 760px !important;
   padding-inline: 46px !important;
-  margin-top: 14px !important;
+  margin-top: 78px !important;
+  margin-bottom: 15px !important;
   min-height: 48px;
+  line-height: 1.52 !important;
   text-align: center;
 }
 
@@ -106,6 +108,7 @@
   [data-testid="activity-session"][data-phase="active"] [data-testid="student-task-instruction"] {
     width: min(100%, 620px) !important;
     padding-inline: 42px !important;
+    margin-top: 58px !important;
   }
 }
 
@@ -136,8 +139,17 @@
 
   [data-testid="activity-session"][data-phase="active"] [data-testid="student-task-instruction"] {
     margin-top: 5px !important;
+    margin-bottom: 8px !important;
     width: 100% !important;
     padding-inline: 38px 8px !important;
+  }
+}
+
+@media (max-height: 720px) and (min-width: 881px) {
+  [data-testid="activity-session"][data-phase="active"] [data-testid="student-task-instruction"] {
+    margin-top: 58px !important;
+    margin-bottom: 8px !important;
+    font-size: 1.32rem !important;
   }
 }
 
