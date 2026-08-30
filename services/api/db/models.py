@@ -58,7 +58,7 @@ class AuditLog(Base):
     __tablename__ = "audit_logs"
 
     id = Column(Integer, primary_key=True, index=True)
-    actor_role = Column(String(50), nullable=False)  # "researcher" | "student"
+    actor_role = Column(String(50), nullable=False)
     actor_id = Column(Integer, nullable=False)
     action = Column(String(100), nullable=False)
     entity_type = Column(String(100), nullable=False)
@@ -79,11 +79,11 @@ class Skill(Base):
     __tablename__ = "skills"
 
     id = Column(Integer, primary_key=True, index=True)
-    skill_key = Column(String(100), unique=True, index=True, nullable=False) # UUIDv5
+    skill_key = Column(String(100), unique=True, index=True, nullable=False)
     name = Column(String(100), nullable=False)
     description = Column(String)
     level_id = Column(Integer, nullable=False)
-    canonical_skill_id = Column(String(100), nullable=True) # Awaiting academic taxonomy
+    canonical_skill_id = Column(String(100), nullable=True)
 
 
 class ContentRelease(Base):
@@ -105,12 +105,12 @@ class ContentItem(Base):
     kind = Column(String(50), nullable=False)
     level_id = Column(Integer, nullable=False)
     skill_id = Column(Integer, ForeignKey("skills.id"), nullable=False)
-    interaction_type = Column(String(50), nullable=False) # e.g., 'multiple_choice', 'audio_record'
+    interaction_type = Column(String(50), nullable=False)
     order_index = Column(Integer, nullable=False)
     version = Column(String(50), nullable=False)
     status = Column(String(50), default="draft", nullable=False)
     checksum = Column(String(64), nullable=False)
-    template_data = Column(JSON().with_variant(JSONB, 'postgresql'), nullable=True)
+    template_data = Column(JSON().with_variant(JSONB, "postgresql"), nullable=True)
 
     skill = relationship("Skill")
     steps = relationship("ContentStep", back_populates="item", cascade="all, delete", order_by="ContentStep.order_index")
@@ -166,7 +166,7 @@ class ScoringPolicy(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     version = Column(String(50), unique=True, nullable=False)
-    status = Column(String(50), default="draft", nullable=False) # draft, approved, locked
+    status = Column(String(50), default="draft", nullable=False)
     approved_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     approved_at = Column(DateTime(timezone=True), nullable=True)
     checksum = Column(String(64), nullable=False)
@@ -193,7 +193,7 @@ class AssessmentSession(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     student_id = Column(Integer, ForeignKey("students.id"), nullable=False)
-    session_type = Column(String(50), nullable=False) # pretest, posttest, core
+    session_type = Column(String(50), nullable=False)
     status = Column(String(50), nullable=False, default="in_progress")
     started_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     completed_at = Column(DateTime(timezone=True), nullable=True)
@@ -210,14 +210,8 @@ class AssessmentSession(Base):
     official_for_reporting = Column(Boolean, default=False, server_default="false", nullable=False)
 
     __table_args__ = (
-        CheckConstraint(
-            "session_type IN ('pretest', 'posttest', 'core')",
-            name="ck_assessment_sessions_type",
-        ),
-        CheckConstraint(
-            "status IN ('in_progress', 'completed')",
-            name="ck_assessment_sessions_status",
-        ),
+        CheckConstraint("session_type IN ('pretest', 'posttest', 'core')", name="ck_assessment_sessions_type"),
+        CheckConstraint("status IN ('in_progress', 'completed')", name="ck_assessment_sessions_status"),
         CheckConstraint("elapsed_seconds >= 0", name="ck_assessment_sessions_elapsed"),
         CheckConstraint("assessment_attempt_no >= 1", name="ck_assessment_sessions_attempt_no"),
         Index(
@@ -227,11 +221,14 @@ class AssessmentSession(Base):
             postgresql_where=text("status = 'in_progress'"),
             sqlite_where=text("status = 'in_progress'"),
         ),
-        UniqueConstraint(
+        Index(
+            "uq_assessment_sessions_prepost_attempt_no",
             "student_id",
             "session_type",
             "assessment_attempt_no",
-            name="uq_assessment_sessions_student_type_attempt",
+            unique=True,
+            postgresql_where=text("session_type IN ('pretest', 'posttest')"),
+            sqlite_where=text("session_type IN ('pretest', 'posttest')"),
         ),
     )
 
@@ -279,10 +276,7 @@ class Attempt(Base):
 
     __table_args__ = (
         UniqueConstraint("session_id", "item_id", name="uq_attempts_session_item"),
-        CheckConstraint(
-            "status IN ('in_progress', 'completed')",
-            name="ck_attempts_status",
-        ),
+        CheckConstraint("status IN ('in_progress', 'completed')", name="ck_attempts_status"),
         CheckConstraint("elapsed_seconds >= 0", name="ck_attempts_elapsed"),
     )
 
@@ -295,7 +289,7 @@ class AttemptResponse(Base):
     attempt_id = Column(Integer, ForeignKey("attempts.id"), nullable=False)
     step_id = Column(Integer, ForeignKey("content_steps.id"), nullable=False)
     selected_option_id = Column(Integer, ForeignKey("content_options.id"), nullable=True)
-    is_correct = Column(Boolean, nullable=True) # Null until graded
+    is_correct = Column(Boolean, nullable=True)
     submitted_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     elapsed_seconds = Column(Integer, default=0, server_default="0", nullable=False)
 
@@ -307,7 +301,6 @@ class AttemptResponse(Base):
 
 class OperationIdempotency(Base):
     """Durable replay protection for student write operations."""
-
     __tablename__ = "operation_idempotency"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -321,13 +314,7 @@ class OperationIdempotency(Base):
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     __table_args__ = (
-        UniqueConstraint(
-            "actor_role",
-            "actor_id",
-            "operation",
-            "idempotency_key",
-            name="uq_operation_idempotency_scope_key",
-        ),
+        UniqueConstraint("actor_role", "actor_id", "operation", "idempotency_key", name="uq_operation_idempotency_scope_key"),
     )
 
 
@@ -337,11 +324,11 @@ class AudioSubmission(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     response_id = Column(Integer, ForeignKey("attempt_responses.id"), nullable=False)
-    storage_key = Column(String(255), nullable=False) # MinIO key
+    storage_key = Column(String(255), nullable=False)
     file_size = Column(Integer, nullable=False)
     mime_type = Column(String(100), nullable=False)
     duration_seconds = Column(Numeric(precision=10, scale=2), nullable=True)
-    status = Column(String(50), nullable=False, default="uploaded") # uploaded, graded, rerecord_required
+    status = Column(String(50), nullable=False, default="uploaded")
     submitted_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
 
