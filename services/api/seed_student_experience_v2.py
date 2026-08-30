@@ -1,7 +1,7 @@
 """Idempotent migration for the user-approved Student Experience v2 content contract.
 
 This migration is intentionally separate from the immutable 105-item client
-baseline.  It makes the newly approved student-facing content authoritative in
+baseline. It makes the newly approved student-facing content authoritative in
 runtime while preserving canonical IDs, skill assignments, item order and the
 125-item journey contract.
 
@@ -41,12 +41,12 @@ def _mark(item: ContentItem, *, title: str | None = None, interaction: str | Non
     item.template_data = data
 
 
-def _set_two_choice_step(step, *, prompt: str, first: str, second: str, answer: str) -> None:
+def _set_two_choice_step(db, step, *, prompt: str, first: str, second: str, answer: str) -> None:
     step.prompt_text = prompt
     options = sorted(step.options, key=lambda option: option.order_index)
     while len(options) < 2:
         option = ContentOption(step_id=step.id, text="", is_correct=False, order_index=len(options) + 1)
-        step.options.append(option)
+        db.add(option)
         options.append(option)
     options[0].text = first
     options[0].order_index = 1
@@ -54,14 +54,14 @@ def _set_two_choice_step(step, *, prompt: str, first: str, second: str, answer: 
     options[1].text = second
     options[1].order_index = 2
     options[1].is_correct = second == answer
-    # V2 tasks intentionally expose exactly two choices. Fresh CI/runtime seeds
-    # have no historical responses at this point; remove baseline projection
-    # extras so they cannot leak back into the child UI.
+    # Do not remove through the relationship collection: ContentOption.step_id is
+    # NOT NULL, so relationship disassociation would emit step_id=NULL. Delete
+    # retired projection rows explicitly instead.
     for extra in options[2:]:
-        step.options.remove(extra)
+        db.delete(extra)
 
 
-def _set_prompt_audio(step, asset_id: str, semantic_text: str) -> None:
+def _set_prompt_audio(db, step, asset_id: str, semantic_text: str) -> None:
     prompt_assets = [
         asset for asset in step.assets
         if asset.asset_type == "audio" and asset.usage_context == "prompt"
@@ -69,18 +69,14 @@ def _set_prompt_audio(step, asset_id: str, semantic_text: str) -> None:
     if prompt_assets:
         prompt_assets[0].manifest_asset_id = asset_id
         for extra in prompt_assets[1:]:
-            step.assets.remove(extra)
+            db.delete(extra)
     else:
-        step.assets.append(ContentAssetLink(
+        db.add(ContentAssetLink(
             step_id=step.id,
             manifest_asset_id=asset_id,
             asset_type="audio",
             usage_context="prompt",
         ))
-    data = dict(getattr(step, "template_data", None) or {}) if hasattr(step, "template_data") else None
-    if data is not None:
-        data["audio_semantic_text"] = semantic_text
-        step.template_data = data
 
 
 def _replace_onset_compare(db) -> None:
@@ -98,13 +94,14 @@ def _replace_onset_compare(db) -> None:
         raise RuntimeError("L1-CORE-06 must have five rounds")
     for step, (sound, audio_id, word, answer) in zip(steps, rounds, strict=True):
         _set_two_choice_step(
+            db,
             step,
             prompt=f"الكلمة المعروضة: {word}",
             first="متشابهان",
             second="مختلفان",
             answer=answer,
         )
-        _set_prompt_audio(step, audio_id, sound)
+        _set_prompt_audio(db, step, audio_id, sound)
 
 
 def _replace_direction_item(db, canonical: str, *, title: str, rounds: Iterable[tuple[str, str, str, str]]) -> None:
@@ -115,11 +112,12 @@ def _replace_direction_item(db, canonical: str, *, title: str, rounds: Iterable[
     if len(steps) != len(round_list):
         raise RuntimeError(f"{canonical} round count mismatch")
     for step, (prompt, first, second, answer) in zip(steps, round_list, strict=True):
-        _set_two_choice_step(step, prompt=prompt, first=first, second=second, answer=answer)
-        # The replacement is intentionally non-audio/non-path.
+        _set_two_choice_step(db, step, prompt=prompt, first=first, second=second, answer=answer)
+        # The replacement is intentionally non-audio/non-path. Delete obsolete
+        # links explicitly so no NOT NULL foreign key is nulled by disassociation.
         for asset in list(step.assets):
             if asset.asset_type == "audio" or asset.usage_context in {"path", "prompt"}:
-                step.assets.remove(asset)
+                db.delete(asset)
 
 
 def _replace_direction_tasks(db) -> None:
@@ -161,7 +159,7 @@ def _repair_post_q14(db) -> None:
     options = sorted(step.options, key=lambda option: option.order_index)
     while len(options) < len(wanted):
         option = ContentOption(step_id=step.id, text="", is_correct=False, order_index=len(options) + 1)
-        step.options.append(option)
+        db.add(option)
         options.append(option)
     for index, text in enumerate(wanted, start=1):
         options[index - 1].text = text
