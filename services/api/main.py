@@ -7,7 +7,7 @@ from assessment import router as assessment_router
 from temporary_audio_skip import router as temporary_audio_skip_router
 from review import router as review_router
 from recordings import router as recordings_router
-from activities import router as activities_router
+from activities_v4 import router as activities_router
 from adaptation import router as adaptation_router
 from adaptation_runtime import router as adaptation_runtime_router
 from reinforcement_review import router as reinforcement_review_router
