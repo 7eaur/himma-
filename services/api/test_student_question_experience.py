@@ -88,16 +88,13 @@ def test_known_ambiguous_questions_are_explained_by_their_real_intent():
         final_sound = _by_canonical(db, "PRE-Q07")
         assert "آخرها" in instruction_text(final_sound, final_sound.steps[0])
 
-        # This skill was the confusing UI shown during manual testing: the
-        # comparison is between the heard sound and the word onset, not a vague
-        # comparison of two unrelated words.
-        onset_items = [
-            item for item in db.query(ContentItem).all()
-            if "بدايات" in str((item.template_data or {}).get("title") or "")
-            or "متشابه" in str((item.template_data or {}).get("title") or "")
-        ]
-        if onset_items:
-            rendered = [instruction_text(item, item.steps[0]) for item in onset_items]
-            assert any("أول حرف" in copy and "متشابهان أم مختلفان" in copy for copy in rendered)
+        # Student Experience v2 explicitly defines L1-CORE-06 as a heard letter
+        # sound compared with the first letter of a displayed word. Assert the
+        # canonical task directly rather than guessing by historical title text.
+        onset = _by_canonical(db, "L1-CORE-06")
+        copy = instruction_text(onset, onset.steps[0])
+        assert "أول حرف" in copy
+        assert "متشابهان أم مختلفان" in copy
+        assert canonical_interaction(onset) == "listen_choose_one"
     finally:
         db.close()
