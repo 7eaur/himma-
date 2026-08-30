@@ -5,6 +5,9 @@ session and opens a fresh session for the new level without relabelling history.
 Reinforcement remains inside the current level. A missing approved mapping
 blocks progression and delegates selection to the documented supervisor-review
 flow instead of selecting unrelated content.
+
+Automatic demotion is not a valid runtime transition. Historical demotion rows
+may remain visible in audit history, but this runtime only executes promotion.
 """
 
 from datetime import datetime, timezone
@@ -103,6 +106,8 @@ def _transition_level_session(
     """
     if new_level < 1 or new_level > 3:
         raise HTTPException(status_code=409, detail="المستوى الجديد غير صالح")
+    if new_level <= old_session.assigned_level:
+        raise HTTPException(status_code=409, detail="الانتقال التلقائي يجب أن يكون ترقية فقط")
 
     now = datetime.now(timezone.utc)
     old_session.status = "completed"
@@ -206,12 +211,11 @@ def prepare_next_for_student(db: Session, student: Student, session: AssessmentS
         AdaptationDecision.id == decision_payload["decision_id"],
     ).one()
 
-    if decision.action in {"promote", "demote"} and decision.new_level != decision.previous_level:
+    if decision.action == "promote" and decision.new_level > decision.previous_level:
         next_session = _transition_level_session(db, student, session, decision.new_level)
         explanation = dict(decision.explanation or {})
-        direction = "promotion" if decision.new_level > decision.previous_level else "demotion"
         explanation["journey_transition"] = f"L{decision.previous_level}->L{decision.new_level}"
-        explanation["transition_direction"] = direction
+        explanation["transition_direction"] = "promotion"
         explanation["previous_session_id"] = session.id
         explanation["next_session_id"] = next_session.id
         decision.explanation = explanation
@@ -226,7 +230,28 @@ def prepare_next_for_student(db: Session, student: Student, session: AssessmentS
             "level_id": decision.new_level,
             "session_id": next_session.id,
             "level_transitioned": True,
-            "transition_direction": direction,
+            "transition_direction": "promotion",
+        }
+
+    # Defensive handling for historical V3 demotion decisions: never mutate the
+    # current session/student level from them. Keep them auditable and force a
+    # same-level support/supervisor path instead of silently executing history.
+    if decision.action == "demote":
+        return {
+            "continue_learning": session.status == "in_progress",
+            "decision": {
+                **decision_payload,
+                "action": "support",
+                "new_level": session.assigned_level,
+                "reason": "historical_demotion_blocked_by_current_policy",
+            },
+            "recommended_attempt_id": None,
+            "verification_attempt_id": None,
+            "mapping_blocked": True,
+            "recommendation_fulfilled": False,
+            "level_id": session.assigned_level,
+            "session_id": session.id,
+            "level_transitioned": False,
         }
 
     # A strong completed L3 flow ends the adaptive learning journey. Posttest
