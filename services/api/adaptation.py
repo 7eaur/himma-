@@ -4,8 +4,7 @@ Academic rules are kept aligned with the approved Himma contract:
 
 - the newest three valid attempts are weighted 50/30/20;
 - an activity below 70 is eligible for targeted reinforcement;
-- continuous mastery below 50 receives support first and may demote only after
-  a second consecutive low decision in the *same level*;
+- low mastery receives same-level support and never causes automatic demotion;
 - continuous mastery at 80 or above may promote only after the 10 approved core
   activities for the level are complete, with required-skill coverage and no
   required skill below 60;
@@ -13,6 +12,10 @@ Academic rules are kept aligned with the approved Himma contract:
   academically neutral and excluded;
 - a missing approved reinforcement mapping never falls back to random content;
   the supervisor review flow resolves it explicitly.
+
+R1.1 removes automatic demotion as a safety invariant. The early-promotion
+policy is intentionally handled in the following R1 slice so the change is
+reviewable and testable independently.
 """
 
 from __future__ import annotations
@@ -48,6 +51,7 @@ SUPPORT_THRESHOLD = 50.0
 REINFORCEMENT_THRESHOLD = 70.0
 CRITICAL_SKILL_FLOOR = 60.0
 CORE_ACTIVITY_COUNT = 10
+POLICY_VERSION = "HIMMA_ADAPTIVE_V3_1_NO_DEMOTION"
 
 BADGE_BY_LEVEL = {
     1: "مستكشف الحروف",
@@ -83,16 +87,18 @@ def decide_transition(
     previous_low: bool = False,
     level_complete: Optional[bool] = None,
 ) -> tuple[str, int, str]:
-    """Return the continuous level decision.
+    """Return the continuous level decision without automatic demotion.
 
-    ``level_complete`` is optional for pure policy callers, but the production
-    runtime passes it explicitly. A student is never promoted out of a level
-    before completing its ten approved core activities.
+    ``previous_low`` is retained temporarily for API/test compatibility and for
+    longitudinal low-evidence counting, but it can never lower the student's
+    assigned level. A student with low mastery receives same-level support.
+
+    ``level_complete`` still represents the current V3 promotion completion gate
+    until the separate early-promotion R1 slice replaces it with explicit minimum
+    evidence and critical-skill policy.
     """
     if mastery < SUPPORT_THRESHOLD:
-        if previous_low and current_level > 1:
-            return "demote", current_level - 1, "second_consecutive_low_mastery_same_level"
-        return "support", current_level, "low_mastery_support_first"
+        return "support", current_level, "low_mastery_same_level_support"
 
     if mastery >= PROMOTION_THRESHOLD:
         if current_level >= 3:
@@ -394,8 +400,9 @@ def evaluate_student(db: Session, student: Student) -> dict:
     flow_complete = _core_flow_complete(db, student.id, level_id)
 
     if len(signals) < 3:
-        # Immediate sub-70 support is allowed before the 3-attempt trend exists,
-        # but level promotion/demotion waits for the approved 50/30/20 window.
+        # Immediate sub-70 support is allowed before the 3-attempt trend exists.
+        # Promotion waits for the approved 50/30/20 window; automatic demotion
+        # is never permitted.
         if signals and signals[-1].score < REINFORCEMENT_THRESHOLD:
             latest = signals[-1]
             snapshot_key = f"immediate:{latest.attempt_id}"
@@ -423,10 +430,11 @@ def evaluate_student(db: Session, student: Student) -> dict:
                 consecutive_low_count=0,
                 snapshot_key=snapshot_key,
                 explanation={
-                    "policy_version": "HIMMA_ADAPTIVE_V3",
+                    "policy_version": POLICY_VERSION,
                     "decision_scope": "immediate_activity_reinforcement",
                     "latest_activity_score": latest.score,
                     "reinforcement_threshold": REINFORCEMENT_THRESHOLD,
+                    "automatic_demotion": False,
                     "reinforcement_assignment": "reviewed_or_exact_approved_mapping" if recommended_item_id else None,
                     "reason": "activity_below_reinforcement_threshold",
                 },
@@ -454,7 +462,11 @@ def evaluate_student(db: Session, student: Student) -> dict:
         AdaptationDecision.snapshot_key == snapshot_key,
     ).first()
     if existing:
-        return _decision_payload(existing)
+        # Historical V3 demotion decisions remain in the audit trail, but the
+        # current policy never executes or reuses them as an automatic level
+        # transition.
+        if existing.action != "demote":
+            return _decision_payload(existing)
 
     mastery = weighted_mastery([signal.score for signal in latest])
     coverage_ok, minimum_skill_score, weakest_skill_id = _skill_gate_state(db, level_id, signals)
@@ -478,7 +490,7 @@ def evaluate_student(db: Session, student: Student) -> dict:
 
     # Activity-level <70 intervention is more conservative than the continuous
     # 50-point support boundary. It may request reinforcement, but it never turns
-    # a non-low weighted mastery into an automatic demotion.
+    # a non-low weighted mastery into a level change.
     latest_signal = latest[0]
     if action == "stay" and latest_signal.score < REINFORCEMENT_THRESHOLD:
         action = "support"
@@ -499,7 +511,7 @@ def evaluate_student(db: Session, student: Student) -> dict:
         )
 
     explanation = {
-        "policy_version": "HIMMA_ADAPTIVE_V3",
+        "policy_version": POLICY_VERSION,
         "weights_newest_to_oldest": list(WEIGHTS),
         "attempts_newest_to_oldest": [
             {"attempt_id": signal.attempt_id, "skill_id": signal.skill_id, "score": signal.score}
@@ -514,6 +526,7 @@ def evaluate_student(db: Session, student: Student) -> dict:
         "support_threshold": SUPPORT_THRESHOLD,
         "reinforcement_threshold": REINFORCEMENT_THRESHOLD,
         "previous_low_same_level": previous_low,
+        "automatic_demotion": False,
         "reinforcement_assignment": "reviewed_or_exact_approved_mapping" if recommended_item_id else None,
         "reason": reason,
     }
