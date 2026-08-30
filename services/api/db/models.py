@@ -66,16 +66,18 @@ class AuditLog(Base):
     details = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
+
 class ContentKind(str, enum.Enum):
     pretest_question = "pretest_question"
     posttest_question = "posttest_question"
     core_activity = "core_activity"
     reinforcement_activity = "reinforcement_activity"
 
+
 class Skill(Base):
     """Educational skills and levels."""
     __tablename__ = "skills"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     skill_key = Column(String(100), unique=True, index=True, nullable=False) # UUIDv5
     name = Column(String(100), nullable=False)
@@ -83,14 +85,16 @@ class Skill(Base):
     level_id = Column(Integer, nullable=False)
     canonical_skill_id = Column(String(100), nullable=True) # Awaiting academic taxonomy
 
+
 class ContentRelease(Base):
     """Release tracking to prevent changing published content."""
     __tablename__ = "content_releases"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     version = Column(String(50), unique=True, nullable=False)
     is_active = Column(Boolean, default=False, nullable=False)
     released_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
 
 class ContentItem(Base):
     """Unified content model for pre/post tests and activities."""
@@ -106,51 +110,55 @@ class ContentItem(Base):
     version = Column(String(50), nullable=False)
     status = Column(String(50), default="draft", nullable=False)
     checksum = Column(String(64), nullable=False)
-    template_data = Column(JSON().with_variant(JSONB, 'postgresql'), nullable=True) 
-    
+    template_data = Column(JSON().with_variant(JSONB, 'postgresql'), nullable=True)
+
     skill = relationship("Skill")
     steps = relationship("ContentStep", back_populates="item", cascade="all, delete", order_by="ContentStep.order_index")
     assets = relationship("ContentAssetLink", back_populates="item", cascade="all, delete")
 
+
 class ContentStep(Base):
     """Individual rounds within a content item."""
     __tablename__ = "content_steps"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     item_id = Column(Integer, ForeignKey("content_items.id", ondelete="CASCADE"), nullable=False)
     order_index = Column(Integer, nullable=False)
     prompt_text = Column(String, nullable=False)
     expected_reading_text = Column(String, nullable=True)
-    
+
     item = relationship("ContentItem", back_populates="steps")
     options = relationship("ContentOption", back_populates="step", cascade="all, delete", order_by="ContentOption.order_index")
     assets = relationship("ContentAssetLink", back_populates="step", cascade="all, delete")
 
+
 class ContentOption(Base):
     """Options for multiple choice or similar templates."""
     __tablename__ = "content_options"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     step_id = Column(Integer, ForeignKey("content_steps.id", ondelete="CASCADE"), nullable=False)
     text = Column(String, nullable=False)
     is_correct = Column(Boolean, nullable=False, default=False)
     order_index = Column(Integer, nullable=False)
-    
+
     step = relationship("ContentStep", back_populates="options")
+
 
 class ContentAssetLink(Base):
     """Links content items or steps to manifest assets."""
     __tablename__ = "content_asset_links"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     item_id = Column(Integer, ForeignKey("content_items.id", ondelete="CASCADE"), nullable=True)
     step_id = Column(Integer, ForeignKey("content_steps.id", ondelete="CASCADE"), nullable=True)
     manifest_asset_id = Column(String(200), nullable=False)
     asset_type = Column(String(50), nullable=False)
     usage_context = Column(String(50), nullable=True)
-    
+
     item = relationship("ContentItem", back_populates="assets")
     step = relationship("ContentStep", back_populates="assets")
+
 
 class ScoringPolicy(Base):
     """Academic scoring policies ensuring immutability when locked."""
@@ -164,6 +172,7 @@ class ScoringPolicy(Base):
     checksum = Column(String(64), nullable=False)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
+
 class ScoringRule(Base):
     """Specific scoring rules and rubrics tied to a policy and an item."""
     __tablename__ = "scoring_rules"
@@ -173,12 +182,13 @@ class ScoringRule(Base):
     item_id = Column(Integer, ForeignKey("content_items.id"), nullable=False)
     max_raw_score = Column(Numeric(precision=10, scale=2), nullable=False, default=1.0)
     rubric = Column(String, nullable=True)
-    
+
     policy = relationship("ScoringPolicy")
     item = relationship("ContentItem")
 
+
 class AssessmentSession(Base):
-    """A single session (e.g. Pretest) for a student."""
+    """A durable assessment/learning session for one student."""
     __tablename__ = "assessment_sessions"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -195,6 +205,9 @@ class AssessmentSession(Base):
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
     )
+    assessment_attempt_no = Column(Integer, default=1, server_default="1", nullable=False)
+    supersedes_session_id = Column(Integer, ForeignKey("assessment_sessions.id", ondelete="SET NULL"), nullable=True)
+    official_for_reporting = Column(Boolean, default=False, server_default="false", nullable=False)
 
     __table_args__ = (
         CheckConstraint(
@@ -206,6 +219,7 @@ class AssessmentSession(Base):
             name="ck_assessment_sessions_status",
         ),
         CheckConstraint("elapsed_seconds >= 0", name="ck_assessment_sessions_elapsed"),
+        CheckConstraint("assessment_attempt_no >= 1", name="ck_assessment_sessions_attempt_no"),
         Index(
             "uq_assessment_sessions_active_student",
             "student_id",
@@ -213,15 +227,43 @@ class AssessmentSession(Base):
             postgresql_where=text("status = 'in_progress'"),
             sqlite_where=text("status = 'in_progress'"),
         ),
+        UniqueConstraint(
+            "student_id",
+            "session_type",
+            "assessment_attempt_no",
+            name="uq_assessment_sessions_student_type_attempt",
+        ),
+    )
+
+
+class AssessmentRetakeAuthorization(Base):
+    """Supervisor authorization for one additional pre/post assessment attempt."""
+    __tablename__ = "assessment_retake_authorizations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False, index=True)
+    session_type = Column(String(50), nullable=False)
+    previous_session_id = Column(Integer, ForeignKey("assessment_sessions.id", ondelete="CASCADE"), nullable=False)
+    authorized_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    reason = Column(String, nullable=False)
+    status = Column(String(20), default="pending", server_default="pending", nullable=False)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
+    consumed_at = Column(DateTime(timezone=True), nullable=True)
+    new_session_id = Column(Integer, ForeignKey("assessment_sessions.id", ondelete="SET NULL"), nullable=True)
+
+    __table_args__ = (
+        CheckConstraint("session_type IN ('pretest','posttest')", name="ck_assessment_retake_type"),
+        CheckConstraint("status IN ('pending','consumed','revoked')", name="ck_assessment_retake_status"),
         Index(
-            "uq_assessment_sessions_prepost_once",
+            "uq_assessment_retake_pending",
             "student_id",
             "session_type",
             unique=True,
-            postgresql_where=text("session_type IN ('pretest', 'posttest')"),
-            sqlite_where=text("session_type IN ('pretest', 'posttest')"),
+            postgresql_where=text("status = 'pending'"),
+            sqlite_where=text("status = 'pending'"),
         ),
     )
+
 
 class Attempt(Base):
     """An attempt of a ContentItem within a session."""
@@ -243,6 +285,7 @@ class Attempt(Base):
         ),
         CheckConstraint("elapsed_seconds >= 0", name="ck_attempts_elapsed"),
     )
+
 
 class AttemptResponse(Base):
     """An answer given to a ContentStep."""
@@ -287,6 +330,7 @@ class OperationIdempotency(Base):
         ),
     )
 
+
 class AudioSubmission(Base):
     """Audio recordings submitted for AttemptResponses."""
     __tablename__ = "audio_submissions"
@@ -299,6 +343,7 @@ class AudioSubmission(Base):
     duration_seconds = Column(Numeric(precision=10, scale=2), nullable=True)
     status = Column(String(50), nullable=False, default="uploaded") # uploaded, graded, rerecord_required
     submitted_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
 
 class AudioReview(Base):
     """Manual grading of an audio submission."""
