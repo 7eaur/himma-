@@ -1,27 +1,26 @@
 """Adaptive learning policy for the Himma student journey.
 
-Academic rules are kept aligned with the approved Himma contract:
+V4 pilot invariants:
+- newest three valid evidences are weighted 50/30/20;
+- one activity: >=80 pass, 70..<80 guided retry, <70 targeted reinforcement;
+- automatic demotion is forbidden;
+- L1/L2 early promotion requires >=6 completed Core activities, weighted mastery
+  >=85, explicit critical-skill coverage/floor, no unresolved reinforcement and
+  no pending supervisor review;
+- L3 is a completion level and still requires all ten Core activities;
+- invalid/incomplete/media-gap/unresolved-audio evidence is neutral/excluded;
+- reinforcement never falls back to random or cross-level content.
 
-- the newest three valid attempts are weighted 50/30/20;
-- an activity below 70 is eligible for targeted reinforcement;
-- low mastery receives same-level support and never causes automatic demotion;
-- continuous mastery at 80 or above may promote only after the 10 approved core
-  activities for the level are complete, with required-skill coverage and no
-  required skill below 60;
-- invalid, incomplete, declared-media-gap and unresolved-audio evidence is
-  academically neutral and excluded;
-- a missing approved reinforcement mapping never falls back to random content;
-  the supervisor review flow resolves it explicitly.
-
-R1.1 removes automatic demotion as a safety invariant. The early-promotion
-policy is intentionally handled in the following R1 slice so the change is
-reviewable and testable independently.
+The thresholds/configuration are versioned pilot policy for trial calibration;
+they are not represented as an external diagnostic standard.
 """
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from decimal import Decimal
+from pathlib import Path
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -38,20 +37,26 @@ from db.models import (
     AudioSubmission,
     ContentItem,
     ContentStep,
+    Skill,
     Student,
     User,
 )
+from db.reinforcement_models import ReinforcementCycle
 from dependencies import get_current_student, get_current_user, get_db
 from reinforcement_mapping import recommended_reinforcement_for_skill
 
 router = APIRouter(tags=["Adaptation"])
-WEIGHTS = (0.50, 0.30, 0.20)  # newest -> oldest
-PROMOTION_THRESHOLD = 80.0
+ROOT = Path(__file__).resolve().parents[2]
+POLICY_PATH = ROOT / "packages" / "content" / "src" / "adaptive_policy_v4_pilot.json"
+
+WEIGHTS = (0.50, 0.30, 0.20)
+PROMOTION_THRESHOLD = 85.0
 SUPPORT_THRESHOLD = 50.0
 REINFORCEMENT_THRESHOLD = 70.0
-CRITICAL_SKILL_FLOOR = 60.0
+CRITICAL_SKILL_FLOOR = 70.0
+EARLY_PROMOTION_MIN_CORE = 6
 CORE_ACTIVITY_COUNT = 10
-POLICY_VERSION = "HIMMA_ADAPTIVE_V3_1_NO_DEMOTION"
+POLICY_VERSION = "HIMMA_ADAPTIVE_V4_PILOT"
 
 BADGE_BY_LEVEL = {
     1: "مستكشف الحروف",
@@ -67,9 +72,31 @@ class AttemptSignal:
     score: float
 
 
+@dataclass(frozen=True)
+class PromotionGateState:
+    configured: bool
+    coverage_ok: bool
+    minimum_score: Optional[float]
+    weakest_skill_id: Optional[int]
+    critical_skill_ids: tuple[int, ...]
+    critical_skill_codes: tuple[str, ...]
+
+
 class ManualOverrideRequest(BaseModel):
     new_level: int = Field(ge=1, le=3)
     reason: str = Field(min_length=5, max_length=1000)
+
+
+def _load_policy() -> dict:
+    if not POLICY_PATH.exists():
+        return {}
+    try:
+        payload = json.loads(POLICY_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    if payload.get("policy_version") != POLICY_VERSION:
+        return {}
+    return payload
 
 
 def weighted_mastery(newest_first_scores: list[float]) -> float:
@@ -86,32 +113,56 @@ def decide_transition(
     minimum_required_skill_score: Optional[float],
     previous_low: bool = False,
     level_complete: Optional[bool] = None,
+    completed_core_count: Optional[int] = None,
+    unresolved_reinforcement: bool = False,
+    supervisor_review_pending: bool = False,
+    critical_policy_configured: bool = True,
 ) -> tuple[str, int, str]:
-    """Return the continuous level decision without automatic demotion.
+    """Return the V4 continuous decision without automatic demotion.
 
-    ``previous_low`` is retained temporarily for API/test compatibility and for
-    longitudinal low-evidence counting, but it can never lower the student's
-    assigned level. A student with low mastery receives same-level support.
-
-    ``level_complete`` still represents the current V3 promotion completion gate
-    until the separate early-promotion R1 slice replaces it with explicit minimum
-    evidence and critical-skill policy.
+    ``previous_low`` and ``level_complete`` remain accepted for compatibility
+    with historical callers/tests. Runtime callers pass ``completed_core_count``
+    explicitly. Historical low evidence can increase an audit counter but never
+    lowers the assigned level.
     """
+    if current_level < 1 or current_level > 3:
+        raise ValueError("current_level must be between 1 and 3")
+    if mastery < 0 or mastery > 100:
+        raise ValueError("mastery must be between 0 and 100")
+
     if mastery < SUPPORT_THRESHOLD:
         return "support", current_level, "low_mastery_same_level_support"
 
-    if mastery >= PROMOTION_THRESHOLD:
-        if current_level >= 3:
-            return "stay", current_level, "top_level_mastery"
-        if level_complete is False:
-            return "stay", current_level, "promotion_waiting_for_core_completion"
-        if not skill_coverage_ok:
-            return "stay", current_level, "promotion_waiting_for_skill_coverage"
-        if minimum_required_skill_score is None or minimum_required_skill_score < CRITICAL_SKILL_FLOOR:
-            return "stay", current_level, "promotion_blocked_by_skill_floor"
-        return "promote", current_level + 1, "mastery_and_skill_gates_passed"
+    if unresolved_reinforcement:
+        return "stay", current_level, "promotion_blocked_by_reinforcement_cycle"
+    if supervisor_review_pending:
+        return "stay", current_level, "promotion_blocked_by_supervisor_review"
+    if not critical_policy_configured:
+        return "stay", current_level, "critical_skill_policy_unverified"
+    if not skill_coverage_ok:
+        return "stay", current_level, "promotion_waiting_for_critical_skill_coverage"
+    if minimum_required_skill_score is None:
+        return "stay", current_level, "critical_skill_policy_unverified"
+    if minimum_required_skill_score < CRITICAL_SKILL_FLOOR:
+        return "stay", current_level, "promotion_blocked_by_critical_skill_floor"
 
-    return "stay", current_level, "mastery_in_stability_band"
+    # L3 is not promoted to a fictitious L4. It becomes journey-complete only
+    # after its full ten-Core evidence set; adaptation_runtime owns the closure.
+    if current_level >= 3:
+        if completed_core_count is not None and completed_core_count < CORE_ACTIVITY_COUNT:
+            return "stay", current_level, "level_three_evidence_incomplete"
+        return "stay", current_level, "top_level_mastery"
+
+    if mastery < PROMOTION_THRESHOLD:
+        return "stay", current_level, "promotion_mastery_pending"
+
+    if completed_core_count is None:
+        # Compatibility bridge for old pure callers. Runtime never relies on it.
+        completed_core_count = CORE_ACTIVITY_COUNT if level_complete is True else 0
+    if completed_core_count < EARLY_PROMOTION_MIN_CORE:
+        return "stay", current_level, "minimum_core_evidence_pending"
+
+    return "promote", current_level + 1, "early_promotion_gates_passed"
 
 
 def _attempt_signal(db: Session, attempt: Attempt, item: ContentItem) -> Optional[AttemptSignal]:
@@ -146,7 +197,6 @@ def _attempt_signal(db: Session, attempt: Attempt, item: ContentItem) -> Optiona
         if audio and audio.status in {"rerecord_required", "uploaded"}:
             return None
         if response.is_correct is None:
-            # Includes temporary skips and unresolved / low-confidence audio.
             continue
         scores.append(bool(response.is_correct))
 
@@ -182,10 +232,9 @@ def _valid_signals(db: Session, student_id: int, level_id: int) -> list[AttemptS
     return signals
 
 
-def _core_flow_complete(db: Session, student_id: int, level_id: int) -> bool:
-    completed_ids = {
-        row[0]
-        for row in db.query(ContentItem.id)
+def _completed_core_count(db: Session, student_id: int, level_id: int) -> int:
+    return (
+        db.query(ContentItem.id)
         .join(Attempt, Attempt.item_id == ContentItem.id)
         .join(AssessmentSession, AssessmentSession.id == Attempt.session_id)
         .filter(
@@ -195,40 +244,78 @@ def _core_flow_complete(db: Session, student_id: int, level_id: int) -> bool:
             ContentItem.kind == "core_activity",
             ContentItem.level_id == level_id,
         )
-        .all()
-    }
-    required = {
-        row[0]
-        for row in db.query(ContentItem.id).filter(
-            ContentItem.kind == "core_activity",
-            ContentItem.level_id == level_id,
-        ).all()
-    }
-    return len(required) == CORE_ACTIVITY_COUNT and required.issubset(completed_ids)
+        .distinct()
+        .count()
+    )
 
 
-def _skill_gate_state(
+def _core_flow_complete(db: Session, student_id: int, level_id: int) -> bool:
+    """Full ten-Core completion remains a milestone/reward and L3 close gate."""
+    return _completed_core_count(db, student_id, level_id) >= CORE_ACTIVITY_COUNT
+
+
+def _critical_skill_gate_state(
     db: Session,
     level_id: int,
     signals: list[AttemptSignal],
-) -> tuple[bool, Optional[float], Optional[int]]:
-    required_skill_ids = {
-        row[0]
-        for row in db.query(ContentItem.skill_id)
-        .filter(ContentItem.kind == "core_activity", ContentItem.level_id == level_id)
-        .distinct()
-        .all()
-    }
+) -> PromotionGateState:
+    policy = _load_policy()
+    configured_codes = tuple(
+        str(code)
+        for code in (policy.get("critical_skill_codes_by_level", {}).get(str(level_id), []) or [])
+        if str(code).strip()
+    )
+    if not configured_codes:
+        return PromotionGateState(False, False, None, None, (), ())
+
+    skills = db.query(Skill).filter(
+        Skill.level_id == level_id,
+        Skill.canonical_skill_id.in_(configured_codes),
+    ).all()
+    by_code = {skill.canonical_skill_id: skill for skill in skills}
+    if any(code not in by_code for code in configured_codes):
+        return PromotionGateState(False, False, None, None, tuple(skill.id for skill in skills), configured_codes)
+
+    critical_ids = tuple(by_code[code].id for code in configured_codes)
     latest_by_skill: dict[int, float] = {}
     for signal in signals:
         latest_by_skill[signal.skill_id] = signal.score
-    coverage_ok = bool(required_skill_ids) and required_skill_ids.issubset(latest_by_skill)
-    if not latest_by_skill:
-        return coverage_ok, None, None
-    weakest_skill_id = min(latest_by_skill, key=latest_by_skill.get)
-    required_scores = [latest_by_skill[skill_id] for skill_id in required_skill_ids if skill_id in latest_by_skill]
-    minimum = min(required_scores) if required_scores else None
-    return coverage_ok, minimum, weakest_skill_id
+
+    coverage_ok = all(skill_id in latest_by_skill for skill_id in critical_ids)
+    available_scores = {
+        skill_id: latest_by_skill[skill_id]
+        for skill_id in critical_ids
+        if skill_id in latest_by_skill
+    }
+    weakest_skill_id = min(available_scores, key=available_scores.get) if available_scores else None
+    minimum = min(available_scores.values()) if coverage_ok and available_scores else None
+    return PromotionGateState(True, coverage_ok, minimum, weakest_skill_id, critical_ids, configured_codes)
+
+
+def _reinforcement_gate_state(db: Session, student_id: int, level_id: int) -> tuple[bool, bool]:
+    """Return (unresolved_reinforcement, supervisor_review_pending)."""
+    rows = (
+        db.query(ReinforcementCycle)
+        .join(AssessmentSession, AssessmentSession.id == ReinforcementCycle.session_id)
+        .filter(
+            ReinforcementCycle.student_id == student_id,
+            AssessmentSession.assigned_level == level_id,
+        )
+        .all()
+    )
+    unresolved = any(
+        row.status in {"reinforcement_pending", "reinforcement_in_progress", "verification_pending"}
+        for row in rows
+    )
+    supervisor_review = any(row.status == "escalated" for row in rows)
+    return unresolved, supervisor_review
+
+
+def _weakest_observed_skill(signals: list[AttemptSignal]) -> Optional[int]:
+    latest_by_skill: dict[int, float] = {}
+    for signal in signals:
+        latest_by_skill[signal.skill_id] = signal.score
+    return min(latest_by_skill, key=latest_by_skill.get) if latest_by_skill else None
 
 
 def _recommended_reinforcement(
@@ -237,13 +324,6 @@ def _recommended_reinforcement(
     level_id: int,
     weakest_skill_id: Optional[int],
 ) -> Optional[int]:
-    """Return only a reviewed or exact approved same-level mapping.
-
-    M03 first consults the versioned Skill → Skill Family → Candidate map. During
-    migration, legacy exact-skill matching is retained only as a conservative
-    compatibility fallback. Neither path can select random or cross-level
-    content. If both fail, the supervisor-review safe hold remains authoritative.
-    """
     reviewed = recommended_reinforcement_for_skill(
         db,
         student_id=student_id,
@@ -299,7 +379,6 @@ def _stars_for_attempt(db: Session, attempt: Attempt) -> tuple[int, dict]:
 
 
 def _add_reward_once(db: Session, reward: RewardEvent) -> bool:
-    """Insert one idempotent reward without poisoning the outer transaction."""
     try:
         with db.begin_nested():
             db.add(reward)
@@ -379,7 +458,6 @@ def _previous_automatic_decision_same_level(
     student_id: int,
     level_id: int,
 ) -> Optional[AdaptationDecision]:
-    """Return the latest automatic decision made while the student was in this level."""
     return (
         db.query(AdaptationDecision)
         .filter(
@@ -397,12 +475,9 @@ def evaluate_student(db: Session, student: Student) -> dict:
     ensure_rewards(db, student.id)
     level_id = student.current_level
     signals = _valid_signals(db, student.id, level_id)
-    flow_complete = _core_flow_complete(db, student.id, level_id)
+    completed_core_count = _completed_core_count(db, student.id, level_id)
 
     if len(signals) < 3:
-        # Immediate sub-70 support is allowed before the 3-attempt trend exists.
-        # Promotion waits for the approved 50/30/20 window; automatic demotion
-        # is never permitted.
         if signals and signals[-1].score < REINFORCEMENT_THRESHOLD:
             latest = signals[-1]
             snapshot_key = f"immediate:{latest.attempt_id}"
@@ -411,12 +486,10 @@ def evaluate_student(db: Session, student: Student) -> dict:
                 AdaptationDecision.decision_source == "automatic",
                 AdaptationDecision.snapshot_key == snapshot_key,
             ).first()
-            if existing:
+            if existing and existing.action != "demote":
                 return _decision_payload(existing)
 
-            recommended_item_id = _recommended_reinforcement(
-                db, student.id, level_id, latest.skill_id
-            )
+            recommended_item_id = _recommended_reinforcement(db, student.id, level_id, latest.skill_id)
             decision = AdaptationDecision(
                 student_id=student.id,
                 decision_source="automatic",
@@ -450,8 +523,8 @@ def evaluate_student(db: Session, student: Student) -> dict:
             "current_level": level_id,
             "valid_attempt_count": len(signals),
             "required_attempt_count": 3,
+            "completed_core_count": completed_core_count,
             "reason": "waiting_for_three_valid_attempts",
-            "level_complete": flow_complete,
         }
 
     latest = list(reversed(signals[-3:]))
@@ -461,15 +534,13 @@ def evaluate_student(db: Session, student: Student) -> dict:
         AdaptationDecision.decision_source == "automatic",
         AdaptationDecision.snapshot_key == snapshot_key,
     ).first()
-    if existing:
-        # Historical V3 demotion decisions remain in the audit trail, but the
-        # current policy never executes or reuses them as an automatic level
-        # transition.
-        if existing.action != "demote":
-            return _decision_payload(existing)
+    if existing and existing.action != "demote" and (existing.explanation or {}).get("policy_version") == POLICY_VERSION:
+        return _decision_payload(existing)
 
     mastery = weighted_mastery([signal.score for signal in latest])
-    coverage_ok, minimum_skill_score, weakest_skill_id = _skill_gate_state(db, level_id, signals)
+    gate = _critical_skill_gate_state(db, level_id, signals)
+    unresolved_reinforcement, supervisor_review_pending = _reinforcement_gate_state(db, student.id, level_id)
+    weakest_skill_id = gate.weakest_skill_id or _weakest_observed_skill(signals)
 
     previous = _previous_automatic_decision_same_level(db, student.id, level_id)
     previous_low = bool(
@@ -482,17 +553,17 @@ def evaluate_student(db: Session, student: Student) -> dict:
     action, new_level, reason = decide_transition(
         current_level=level_id,
         mastery=mastery,
-        skill_coverage_ok=coverage_ok,
-        minimum_required_skill_score=minimum_skill_score,
+        skill_coverage_ok=gate.coverage_ok,
+        minimum_required_skill_score=gate.minimum_score,
         previous_low=previous_low,
-        level_complete=flow_complete,
+        completed_core_count=completed_core_count,
+        unresolved_reinforcement=unresolved_reinforcement,
+        supervisor_review_pending=supervisor_review_pending,
+        critical_policy_configured=gate.configured,
     )
 
-    # Activity-level <70 intervention is more conservative than the continuous
-    # 50-point support boundary. It may request reinforcement, but it never turns
-    # a non-low weighted mastery into a level change.
     latest_signal = latest[0]
-    if action == "stay" and latest_signal.score < REINFORCEMENT_THRESHOLD:
+    if action == "stay" and latest_signal.score < REINFORCEMENT_THRESHOLD and not supervisor_review_pending:
         action = "support"
         new_level = level_id
         reason = "activity_below_reinforcement_threshold"
@@ -506,25 +577,29 @@ def evaluate_student(db: Session, student: Student) -> dict:
 
     recommended_item_id = None
     if action == "support":
-        recommended_item_id = _recommended_reinforcement(
-            db, student.id, level_id, weakest_skill_id
-        )
+        recommended_item_id = _recommended_reinforcement(db, student.id, level_id, weakest_skill_id)
 
     explanation = {
         "policy_version": POLICY_VERSION,
+        "pilot_policy": True,
         "weights_newest_to_oldest": list(WEIGHTS),
         "attempts_newest_to_oldest": [
             {"attempt_id": signal.attempt_id, "skill_id": signal.skill_id, "score": signal.score}
             for signal in latest
         ],
         "latest_activity_score": latest_signal.score,
-        "level_complete": flow_complete,
-        "skill_coverage_ok": coverage_ok,
-        "minimum_required_skill_score": minimum_skill_score,
-        "required_skill_floor": CRITICAL_SKILL_FLOOR,
+        "completed_core_count": completed_core_count,
+        "minimum_core_for_early_promotion": EARLY_PROMOTION_MIN_CORE,
+        "critical_skill_policy_configured": gate.configured,
+        "critical_skill_codes": list(gate.critical_skill_codes),
+        "critical_skill_coverage_ok": gate.coverage_ok,
+        "minimum_critical_skill_score": gate.minimum_score,
+        "critical_skill_floor": CRITICAL_SKILL_FLOOR,
         "promotion_threshold": PROMOTION_THRESHOLD,
         "support_threshold": SUPPORT_THRESHOLD,
         "reinforcement_threshold": REINFORCEMENT_THRESHOLD,
+        "unresolved_reinforcement": unresolved_reinforcement,
+        "supervisor_review_pending": supervisor_review_pending,
         "previous_low_same_level": previous_low,
         "automatic_demotion": False,
         "reinforcement_assignment": "reviewed_or_exact_approved_mapping" if recommended_item_id else None,
@@ -545,8 +620,6 @@ def evaluate_student(db: Session, student: Student) -> dict:
         explanation=explanation,
     )
     db.add(decision)
-    # Session/history mutation is performed by adaptation_runtime so an old
-    # level session is never silently relabelled.
     db.commit()
     db.refresh(decision)
     return _decision_payload(decision)
@@ -652,7 +725,11 @@ def manual_override(
         valid_attempt_count=0,
         consecutive_low_count=0,
         snapshot_key=None,
-        explanation={"reason": "supervisor_manual_override"},
+        explanation={
+            "policy_version": POLICY_VERSION,
+            "reason": "supervisor_manual_override",
+            "automatic_demotion": False,
+        },
         manual_reason=body.reason.strip(),
         actor_id=user.id,
     )
