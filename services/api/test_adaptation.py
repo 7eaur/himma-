@@ -75,7 +75,7 @@ def test_promotion_requires_80_coverage_and_skill_floor():
     )[0] == "stay"
 
 
-def test_low_mastery_supports_before_demoting_and_never_below_one():
+def test_low_mastery_never_auto_demotes_even_after_repeated_low_evidence():
     assert decide_transition(
         current_level=2,
         mastery=40,
@@ -89,7 +89,14 @@ def test_low_mastery_supports_before_demoting_and_never_below_one():
         skill_coverage_ok=True,
         minimum_required_skill_score=40,
         previous_low=True,
-    )[0:2] == ("demote", 1)
+    )[0:2] == ("support", 2)
+    assert decide_transition(
+        current_level=3,
+        mastery=20,
+        skill_coverage_ok=False,
+        minimum_required_skill_score=20,
+        previous_low=True,
+    )[0:2] == ("support", 3)
     assert decide_transition(
         current_level=1,
         mastery=40,
