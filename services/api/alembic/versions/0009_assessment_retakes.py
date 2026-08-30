@@ -17,7 +17,9 @@ depends_on = None
 
 def upgrade() -> None:
     # The old schema allowed only one pre/post session per student. Retakes must
-    # preserve history, so uniqueness moves to attempt numbering instead.
+    # preserve history, so uniqueness moves to attempt numbering instead. Core
+    # sessions are deliberately excluded because L1/L2/L3 each own a durable
+    # Core session and all use the neutral default attempt number 1.
     op.drop_index("uq_assessment_sessions_prepost_once", table_name="assessment_sessions")
 
     op.add_column(
@@ -40,10 +42,13 @@ def upgrade() -> None:
         ["id"],
         ondelete="SET NULL",
     )
-    op.create_unique_constraint(
-        "uq_assessment_sessions_student_type_attempt",
+    op.create_index(
+        "uq_assessment_sessions_prepost_attempt_no",
         "assessment_sessions",
         ["student_id", "session_type", "assessment_attempt_no"],
+        unique=True,
+        postgresql_where=sa.text("session_type IN ('pretest', 'posttest')"),
+        sqlite_where=sa.text("session_type IN ('pretest', 'posttest')"),
     )
     op.create_check_constraint(
         "ck_assessment_sessions_attempt_no",
@@ -102,7 +107,7 @@ def downgrade() -> None:
     op.drop_table("assessment_retake_authorizations")
 
     op.drop_constraint("ck_assessment_sessions_attempt_no", "assessment_sessions", type_="check")
-    op.drop_constraint("uq_assessment_sessions_student_type_attempt", "assessment_sessions", type_="unique")
+    op.drop_index("uq_assessment_sessions_prepost_attempt_no", table_name="assessment_sessions")
     op.drop_constraint("fk_assessment_sessions_supersedes_session", "assessment_sessions", type_="foreignkey")
     op.drop_column("assessment_sessions", "official_for_reporting")
     op.drop_column("assessment_sessions", "supersedes_session_id")
