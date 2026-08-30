@@ -13,8 +13,8 @@ from db.adaptation_models import AdaptationDecision, RewardEvent
 from db.models import Student
 
 
-def test_previous_low_is_scoped_to_the_same_level():
-    """A low decision from L1 must not count as the first low decision in L2."""
+def test_previous_low_is_scoped_to_the_same_level_and_never_demotes():
+    """Low history is level-scoped, but repeated weakness never auto-demotes."""
     seed.run_seed()
     db = TestingSessionLocal()
     try:
@@ -68,12 +68,12 @@ def test_previous_low_is_scoped_to_the_same_level():
             skill_coverage_ok=True,
             minimum_required_skill_score=40,
             previous_low=True,
-        )[0:2] == ("demote", 1)
+        )[0:2] == ("support", 2)
     finally:
         db.close()
 
 
-def test_high_mastery_cannot_promote_before_ten_core_activities_are_complete():
+def test_high_mastery_cannot_promote_before_current_promotion_gate():
     action, level, reason = decide_transition(
         current_level=1,
         mastery=95,
@@ -133,7 +133,6 @@ def test_reward_duplicate_uses_savepoint_and_keeps_outer_transaction_usable():
         assert first is True
         assert duplicate is False
 
-        # Prove the outer transaction is still healthy after the unique conflict.
         second_key = "regression:reward-after-conflict"
         assert _add_reward_once(
             db,
