@@ -81,7 +81,7 @@ def _set_prompt_audio(db, step, asset_id: str, semantic_text: str) -> None:
 
 def _replace_onset_compare(db) -> None:
     item = _find_item(db, "L1-CORE-06")
-    _mark(item, title="النشاط الأساسي 6: بدايات الكلمات — متشابهان أم مختلفان؟", interaction="listen_choose_one")
+    _mark(item, title="النشاط الأساسي 6: بداية الكلمة — متشابهان أم مختلفان؟", interaction="listen_choose_one")
     rounds = [
         ("م", "LET-01", "مَوْزَة", "متشابهان"),
         ("ب", "LET-02", "قَلَم", "مختلفان"),
