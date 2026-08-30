@@ -1,9 +1,9 @@
 """Supervisor-authorized pre/post retakes with preserved assessment history.
 
-This router owns ``POST /assessment/start`` ahead of the legacy assessment
-router. Initial assessments keep the existing journey gates. A completed
-assessment can only be started again when a supervisor has created a pending
-retake authorization with a written reason.
+This router owns ``POST /assessment/start`` and the assessment completion bridge
+ahead of the legacy routers. Initial assessments keep the existing journey gates.
+A completed assessment can only be started again when a supervisor has created a
+pending retake authorization with a written reason.
 
 Answer-key review remains separate: authorization does not expose correct
 answers to the student and does not delete or rewrite any prior attempt.
@@ -137,6 +137,18 @@ def _attempt_payload(session: AssessmentSession) -> AssessmentAttemptSummary:
         supersedes_session_id=session.supersedes_session_id,
         official_for_reporting=bool(session.official_for_reporting),
     )
+
+
+def mark_official_completed_attempt(db: Session, session: AssessmentSession) -> None:
+    """Make one completed pre/post attempt authoritative without deleting history."""
+    if session.session_type not in {"pretest", "posttest"} or session.status != "completed":
+        return
+    db.query(AssessmentSession).filter(
+        AssessmentSession.student_id == session.student_id,
+        AssessmentSession.session_type == session.session_type,
+        AssessmentSession.id != session.id,
+    ).update({AssessmentSession.official_for_reporting: False}, synchronize_session=False)
+    session.official_for_reporting = True
 
 
 @router.post(
@@ -287,18 +299,25 @@ def start_assessment_with_retake_policy(
     return new_session
 
 
-def mark_official_completed_attempt(db: Session, session: AssessmentSession) -> None:
-    """Promote one completed pre/post attempt to official reporting status.
+@router.post("/assessment/session/{session_id}/finish")
+def finish_assessment_and_select_official_attempt(
+    session_id: int,
+    db: Session = Depends(get_db),
+    student: Student = Depends(get_current_student),
+):
+    # Import lazily to avoid an import cycle: temporary_audio_skip imports the
+    # legacy assessment module, while this bridge must execute before both routes.
+    from temporary_audio_skip import finish_assessment_with_optional_temporary_skips
 
-    Historical attempts remain stored. Only the completed selected attempt is
-    official for comparison/reporting. This helper is called by the unified
-    completion bridge after scoring succeeds.
-    """
-    if session.session_type not in {"pretest", "posttest"} or session.status != "completed":
-        return
-    db.query(AssessmentSession).filter(
-        AssessmentSession.student_id == session.student_id,
-        AssessmentSession.session_type == session.session_type,
-        AssessmentSession.id != session.id,
-    ).update({AssessmentSession.official_for_reporting: False}, synchronize_session=False)
-    session.official_for_reporting = True
+    result = finish_assessment_with_optional_temporary_skips(
+        session_id=session_id,
+        db=db,
+        student=student,
+    )
+    session = db.query(AssessmentSession).filter(
+        AssessmentSession.id == session_id,
+        AssessmentSession.student_id == student.id,
+    ).one()
+    mark_official_completed_attempt(db, session)
+    db.commit()
+    return result
