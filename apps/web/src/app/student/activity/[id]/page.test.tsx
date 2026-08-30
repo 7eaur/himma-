@@ -67,7 +67,7 @@ describe("Student activity page", () => {
     render(<StudentActivityPage />);
 
     expect(await screen.findByTestId("student-task-instruction")).toHaveTextContent("اختر الكلمة التي تحتوي على شدة");
-    expect(screen.getByTestId("reinforcement-intro")).toHaveTextContent("ثم تعود إلى مسارك");
+    expect(screen.getByTestId("reinforcement-intro")).toHaveTextContent("بعد إتقانها تعود إلى نشاطك الأساسي");
     expect(screen.queryByText("مهمة واحدة في كل مرة", { exact: true })).not.toBeInTheDocument();
     expect(screen.queryByTestId("reinforcement-badge")).not.toBeInTheDocument();
     expect(screen.getByTestId("activity-session")).toHaveAttribute("data-activity-kind", "reinforcement");
