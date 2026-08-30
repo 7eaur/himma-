@@ -86,6 +86,12 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
+        "ix_assessment_retake_authorizations_id",
+        "assessment_retake_authorizations",
+        ["id"],
+        unique=False,
+    )
+    op.create_index(
         "ix_assessment_retake_authorizations_student_id",
         "assessment_retake_authorizations",
         ["student_id"],
@@ -104,6 +110,7 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.drop_index("uq_assessment_retake_pending", table_name="assessment_retake_authorizations")
     op.drop_index("ix_assessment_retake_authorizations_student_id", table_name="assessment_retake_authorizations")
+    op.drop_index("ix_assessment_retake_authorizations_id", table_name="assessment_retake_authorizations")
     op.drop_table("assessment_retake_authorizations")
 
     op.drop_constraint("ck_assessment_sessions_attempt_no", "assessment_sessions", type_="check")
