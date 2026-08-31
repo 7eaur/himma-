@@ -1,115 +1,165 @@
 # STATUS — Himma Platform
 
-**Last updated:** 2026-08-29  
+**Last updated:** 2026-08-31  
 **Repository:** `7eaur/himma-`  
 **Current branch:** `recovery/ui-media-admin-overhaul`  
-**Current program:** Full Maintenance M00→M09  
-**Current slice:** **M07 — Research Reports — ACTIVE**
+**Current program:** Full Maintenance / Recovery + R1→R4 corrections  
+**Current focus:** M09 Release/UAT readiness while M08 remains external-gated
 
-## Latest accepted implementation evidence
+## Read this first
 
-Current accepted implementation HEAD before this documentation-only update:
+Canonical continuity handoff:
 
-`654c9946b4b5b6e254817b2611fdf6494aa2a65e`
+`docs/ops/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-08-31_AR.md`
 
-Main Quality Gate #363 / `33222592452`:
+The handoff is deliberately more detailed than this status file and must be read before continuing in a new conversation.
 
-- Backend ✅
-- Frontend ✅
-- Integration / Playwright ✅
-- Main E2E gate now explicitly includes `media-fidelity.spec.ts` in addition to the vertical slice and accessibility integration suites.
+## Latest verified executable baseline before documentation updates
 
-Responsive Visual Gate #28 / `33222592468`: **SUCCESS**.
+`fbf3e4c835e87c142422db9fe35f7dec60fee090`
 
-Generated-sequence visual evidence is captured in the Quality Gate artifact at:
+Commit:
 
-`playwright-report/screenshots/generated-sequence-assets.png`
+`fix(R3): align retake authorization indexes with ORM`
 
-The screenshot was reviewed after the successful run and confirms the ten approved 4:3 sequence scenes render through the real `/api/media/{asset_id}` path.
+Evidence for the exact SHA:
 
-## Maintenance stage status
+- Main Quality Gate #490 — run `33342958058`: backend ✅ frontend ✅ integration/Playwright ✅
+- Responsive Visual Gate #94 — run `33342958086`: ✅ SUCCESS
+
+Documentation commits after that SHA may move branch HEAD. Do not call a newer documentation HEAD “accepted” until its own workflows finish green.
+
+## Current runtime truth
+
+- Original approved catalog: 105 items.
+- Reinforcement additions: +20 total.
+- Runtime total: **125**.
+- Reinforcement total: **35**.
+- Skills: 44.
+- Original source semantics remain preserved.
+
+## Current academic/adaptive contract
+
+Placement:
+
+- 100 points = 20 readiness + 40 word building/reading + 40 fluency/comprehension.
+- readiness <12/20 forces L1.
+- total <50 → L1.
+- 50..<80 → L2 subject to reading gates.
+- L3 requires total/gates; do not invent an unresolved text-accuracy threshold.
+
+Learning activity bands:
+
+- >=80 PASS.
+- 70..<80 GUIDED_RETRY.
+- <70 WEAKNESS_EVENT / targeted reinforcement.
+
+Mastery evidence: newest three valid attempts only, weighted 50/30/20.
+
+### R1 current promotion policy
+
+The current branch intentionally supports early promotion in L1/L2 when all current gates pass:
+
+- minimum 6 completed Core activities;
+- mastery >=85;
+- critical-skill floor >=70;
+- required critical-skill coverage complete;
+- no unresolved reinforcement/review blockers;
+- promote by one level only.
+
+Automatic demotion remains disabled; repeated low evidence produces support on the same level.
+
+L3 still requires full evidence before journey completion/posttest readiness.
+
+This replaces older documentation that said all promotions must wait for 10/10 Core. Do not silently restore the old rule.
+
+## Reinforcement lifecycle
+
+Durable flow is implemented:
+
+`weakness → mapped reinforcement → reinforcement completion → reopen source core → verify failed source steps → verified/escalated → continue`.
+
+No random/cross-level reinforcement. Neutral media/audio skips are not failure evidence.
+
+## R2 active session transition
+
+`services/api/activities_v4.py` bridges `/activities/session/{id}/next` so early promotion cannot return an item bound to a just-closed session. The response’s active `session_id` is authoritative when a promotion creates a new level session.
+
+## R3 assessment retake history
+
+Supervisor-authorized pre/post retake history/index behavior is implemented on the current lineage. Recent commits scoped assessment uniqueness correctly while keeping Core sessions outside retake uniqueness, then aligned DB indexes with ORM. Regression coverage exists. Inspect migrations/models/tests before extending the behavior.
+
+## Student UX / QX
+
+Closed baseline:
+
+- child-clear non-generic instructions;
+- answers under the question;
+- contextual learning hints/success/error;
+- formal assessment neutral per item;
+- subtle student sound/reward effects with mute/reduced-motion;
+- no permanent side mascot rail;
+- responsive touch targets;
+- source-grounded option repairs;
+- browser E2E question-experience coverage.
+
+QX historical closure SHA: `d6bab135e46ed93de3ac98236c5aa78e804c27ab`.
+
+## Educational media
+
+- Ten generated sequence scenes are checked in and wired.
+- IDs: `HIMMA-GEN-SEQ-001..010`.
+- Visual plan `generate` list is empty.
+- Browser fidelity coverage requests assets through the real media route.
+
+## Audio / M08
+
+Static audio:
+
+- existing: 50;
+- missing: `موز`, `سَا`;
+- target: 52.
+
+`HIMMA_TEMP_AUDIO_SKIP` is testing-only and academically neutral.
+
+Target architecture: Reference-Guided Arabic Reading Analysis = ASR + reference alignment + C/D/I/S + phonemic helper evidence.
+
+M08 remains **PENDING / EXTERNAL-GATED** because provider, calibration, privacy/retention, and production policy are not complete. Do not claim production speech analysis complete.
+
+## Reports / M07
+
+Implemented:
+
+- persisted pre/post summaries and improvement metrics;
+- level/time/attempt/reinforcement summaries;
+- cohort reports;
+- XLSX/PDF exports + audit logging;
+- per-skill descriptive summary from persisted graded evidence;
+- supervisor UI wiring.
+
+Per-skill reporting remains descriptive and must not silently become a mastery/adaptation rule.
+
+## Stage status
 
 - M00 Restore Green — CLOSED.
-- M01 Placement Scoring/Gates — CLOSED.
-- M02 Adaptation State Machine — CLOSED.
-- **M03 Reinforcement System — CLOSED for the previously identified content gaps.**
-- M04 Student Product UI — CLOSED baseline.
+- M01 Placement — CLOSED baseline.
+- M02 Adaptation state machine — CLOSED baseline, later refined by R1.
+- M03 Reinforcement — CLOSED baseline + gap closure.
+- M04 Student Product UI — CLOSED baseline + QX corrections.
 - M05 Supervisor Product UX — CLOSED baseline.
-- M06 Responsive/Accessibility/Design QA — CLOSED.
-- **M07 Research Reports — ACTIVE.**
+- M06 Responsive/Accessibility/Design QA — CLOSED baseline.
+- M07 Research Reports — IMPLEMENTED/CLOSED baseline.
 - M08 Real Speech Analysis — PENDING / EXTERNAL-GATED.
-- M09 Release/UAT — PENDING.
-
-## Current academic/runtime truth
-
-- Original approved content remains 105 items and is not rewritten.
-- Maintenance reinforcement v1 adds 18 activities.
-- The approved 2026-08-29 gap-closure release adds 2 L3 reinforcement activities.
-- Full runtime catalog = **125 items**.
-- Reinforcement activities = **35 total**.
-- Skills = 44.
-- The previous three reinforcement gaps are closed as follows:
-  - L2 `sukoon_word_reading` → approved existing `L2-REIN-02`.
-  - L3 `literal_comprehension` → new `L3-REIN-11` with five rounds.
-  - L3 `sentence_building` → new `L3-REIN-12` with five rounds.
-- Placement determines starting level only.
-- Journey ascends to L3 before Posttest.
-- Activity bands remain: >=80 pass; 70–<80 guided retry; <70 reinforcement path.
-- No promotion before 10/10 core and no unresolved reinforcement cycle.
-- Recent mastery 50/30/20 is skill evidence, not a level-completion bypass.
-- Automatic Demotion remains an OPEN decision; do not change silently.
-
-## Visual educational content
-
-**OI-15 is closed.**
-
-- Existing approved Himma image-kit assets are reused first.
-- Ten previously missing sequence scenes are checked in under the generated educational asset namespace.
-- Generated manifest: `assets/education/developer/generated-sequence-map.json`.
-- Generated IDs: `HIMMA-GEN-SEQ-001..010`.
-- Runtime visual mapping: `packages/content/src/visual_asset_plan_v1.json`.
-- `generate` is now empty in the visual plan.
-- The canonical shorthand values `ذهب / لعب / نظف` in `L3-REIN-10` are explicitly bound to the approved beach sequence scenes rather than relying on fuzzy matching.
-- Backend regression tests verify file presence, WebP signature, dimensions, SHA-256, runtime projection, and media serving.
-- Main Playwright now requests all ten generated assets through the web proxy, verifies browser decode/natural dimensions, and captures a contact-sheet screenshot.
-
-## Audio / Speech
-
-- Fixed audio assets present: 50.
-- Missing confirmed fixed audio: `موز`, `سَا`.
-- Target fixed assets: 52.
-- These two assets remain open and must not be faked or substituted (`موزة` is not `موز`).
-- `HIMMA_TEMP_AUDIO_SKIP` remains temporary and academically neutral.
-- Reference-Guided Arabic Reading Analysis remains the target speech architecture.
-- Real provider/calibration/privacy/retention remain M08 work and are not claimed complete.
-
-## M07 implementation status
-
-Implemented and green on the accepted lineage:
-
-- persisted Pre/Post comparison without recalculating placement;
-- absolute improvement;
-- relative improvement only when mathematically defined;
-- start/current/final level;
-- assessment and learning time;
-- attempts/completed attempts;
-- reinforcement-cycle summary;
-- cohort summary;
-- Excel multi-sheet export;
-- PDF individual export;
-- PDF cohort export;
-- export audit logging;
-- supervisor UI wired to persisted research data and export endpoints;
-- speech-derived metrics remain explicitly unavailable until calibrated evidence exists.
-
-Remaining M07 closure item:
-
-- add a **supported per-skill summary from persisted graded response evidence only** and carry it consistently into the report/export layer. This must remain descriptive evidence and must not become a silent new mastery/scoring rule.
+- M09 Release/UAT — NEXT MAJOR INTERNAL WORKSTREAM.
 
 ## Next action
 
-Complete the supported per-skill M07 evidence summary with regression tests and export/UI consistency, restore a fully green Quality Gate for that HEAD, then close M07 documentation. After M07, continue M09 release/UAT preparation while M08 remains the separate externally gated speech stream.
+1. Verify current branch HEAD and both workflow gates after the latest documentation commits.
+2. If green, begin/continue M09 Release/UAT readiness: full journey UAT, deployment/runbook, environment validation, backup/restore, monitoring, privacy/retention, rollback/support, final release checklist.
+3. Keep M08 separate until the external speech decisions/resources are available.
+4. Acquire/add only the exact missing static audio `موز` and `سَا` from an approved source; do not fake/substitute them.
+5. Run visual review after any substantial UI/runtime content change.
 
-## Mandatory continuity files
+## Governance reminder
 
-Start from `docs/handoff/READ_FIRST_2026-08-28_AR.md` and `docs/ops/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-08-28_AR.md`.
+Do not modify accepted base branches directly, do not force/reset destructively, do not declare PASS without exact SHA/run evidence, and do not launch/merge production without explicit user approval.
