@@ -1,52 +1,77 @@
-# ابدأ من هنا — مستودع هِمّة الموحّد
+# ابدأ من هنا — مستودع هِمّة
 
-هذه هي النسخة النهائية المنظّمة من مواد مشروع هِمّة حتى 6 أغسطس 2026. تضم الكود المرجعي، وثائق التخطيط، الهوية، الصور التعليمية، الشخصيات، الشارات، الأيقونات، الأصوات المعتمدة، وقواعد تشغيل Antigravity.
+هذه نقطة الدخول لأي محادثة أو وكيل جديد يعمل على منصة هِمّة الحالية.
 
-## المحتويات الرئيسية
+## 1) اقرأ هذا أولًا
 
-```text
-.agents/                 قواعد ومهارات وعمليات Antigravity المحلية
-assets/brand/            حزمة الشعار والهوية القابلة للاستخدام البرمجي
-assets/characters/       الشخصيات والشارات ورموز المستويات والأيقونات
-assets/education/        60 صورة تعليمية وخرائط الربط
-assets/audio/            HIMMA_AUDIO_V1: 50 عنصرًا و100 ملف WAV/MP3
-docs/                    المواصفات والحالة والقرارات وخطة المراحل
-reference/original/      ملفات Word/PDF ولوحات العرض الأصلية — قراءة فقط
-reference/derived/       نسخ Markdown للبحث وتقليل استهلاك السياق
-reference/ui-prototype/  الكود الكامل للنموذج المرجعي — ليس منصة إنتاجية
-scripts/                 أدوات تهيئة المستودع
-```
+المرجع التنفيذي الأحدث والأشمل:
 
-المجلدات `apps/` و`services/` و`packages/` ينشئها المطور عند بدء الكود الإنتاجي. لا يوضع الكود الجديد داخل `reference/ui-prototype/`.
+`docs/ops/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-08-31_AR.md`
 
-## مصدر الحقيقة
+ثم اقرأ:
 
-اقرأ `docs/specs/SOURCE_OF_TRUTH.md` قبل الرجوع إلى الوثائق المتشابهة. أهم قاعدة حالية: بيان `assets/audio/HIMMA_AUDIO_V1/manifest.csv` هو المصدر التنفيذي للأصوات، وعدد حزمة V1 المعتمدة 50 عنصرًا؛ عدد 60 في وثائق 02 أقدم ويشمل 10 نصوص تعليمات لم تُسلّم كتسجيلات ضمن V1.
+- `docs/ops/STATUS.md`
+- `docs/ops/progress.json`
+- `HIMMA_CORRECTIVE_EXECUTION_ROADMAP_V2_AR.md`
+- `docs/specs/SOURCE_OF_TRUTH.md`
 
-## التحقق والتهيئة
+**لا تبدأ من وثائق أغسطس القديمة وحدها، ولا تعتمد على ذاكرة المحادثة بدل HEAD/CI الحاليين.**
 
-بعد فك الضغط من جذر المستودع:
+## 2) المستودع الحالي
 
-```bash
-sha256sum -c REPOSITORY_MANIFEST.sha256
-bash scripts/init-git.sh
-```
+- Repository: `7eaur/himma-`
+- Working branch: `recovery/ui-media-admin-overhaul`
+- آخر baseline تنفيذي موثّق أخضر قبل تحديثات التوثيق بتاريخ 2026-08-31:
+  `fbf3e4c835e87c142422db9fe35f7dec60fee090`
 
-ملف التسليم لا يضم مجلد `.git` لتجنب مضاعفة حجم الأصول الثنائية داخل ZIP. السكربت يهيئ Git ويصنع baseline commit مرة واحدة، مع تتبع ملفات الصوت التعليمية الثابتة واستبعاد الأسرار وبيانات الأطفال والملفات المؤقتة.
+بعد فتح جلسة جديدة افحص branch HEAD الحالي وحالة GitHub Actions؛ تحديثات الوثائق نفسها تحرّك HEAD.
 
-## تشغيل Antigravity
+## 3) الحالة المختصرة
 
-1. افتح جذر المستودع، لا مجلد النموذج المرجعي.
-2. استخدم **Review-driven development** للجرد والمعمارية.
-3. أرسل محتوى `MASTER_PROMPT_AR.md` مرة واحدة.
-4. راجع واعتمد `docs/ops/IMPLEMENTATION_PLAN.md` الذي سينشئه الوكيل.
-5. بعد الاعتماد استخدم `/himma-stage` للمرحلة الحالية، و`/himma-resume` في جلسة جديدة، و`/himma-gate` للمراجعة والاختبار.
+- Runtime catalog: **125 item**.
+- Reinforcement: **35**.
+- Skills: **44**.
+- Student QX/UI baseline: منجز.
+- Generated sequence educational assets: 10 ومربوطة بالruntime.
+- Reinforcement lifecycle + verification/escalation: منجز baseline.
+- Reports/exports/per-skill descriptive evidence: منجز baseline.
+- R1 early promotion gates: منجزة ومقفلة بالاختبارات الحالية.
+- R2 active-session handoff بعد promotion: مُصلح.
+- R3 supervisor-authorized assessment retake/index history: مُصلح baseline.
+- M08 real speech production: **غير مكتمل / external-gated**.
+- M09 Release/UAT: **أولوية العمل الداخلية التالية**.
+- Static audio missing: `موز`, `سَا`.
 
-## حدود مهمة
+## 4) قاعدة الاستمرار
 
-- نموذج الواجهة مرجع تصميم وتفاعل فقط؛ تسجيل الدخول والبيانات والصوت والتقارير داخله محاكاة.
-- الملفات داخل `reference/original/` لا تُعدّل؛ تُسجل القرارات الجديدة في `docs/ops/DECISIONS.md`.
-- لا تُرفع بيانات أطفال أو تسجيلاتهم أو أسرار الخدمات إلى أي جهة خارجية دون موافقة صريحة.
-- لا يُعلن اكتمال أي ميزة إذا كانت Mock أو Placeholder أو غير مرتبطة بقاعدة بيانات واختبارات حقيقية.
+قبل أي تعديل:
 
-الحالة المستمرة موجودة في `docs/ops/STATUS.md` و`docs/ops/progress.json`، وهي أهم من ذاكرة المحادثة.
+1. اقرأ handoff الكامل.
+2. افحص HEAD الحالي.
+3. افحص Main Quality Gate وResponsive Visual Gate لنفس SHA.
+4. إذا يوجد failure أصلحه أولًا ولا تتجاوزه.
+5. إن كانت البوابات خضراء، أكمل أول gap حقيقي من handoff؛ افتراضيًا M09، بينما M08 يبقى منفصلًا حتى تتوفر provider/calibration/privacy decisions.
+
+## 5) قيود لا تُكسر
+
+- لا تعدّل `stage/04-production-slice` أو `stage/02-content` مباشرة.
+- لا force push / reset hard / clean destructive.
+- لا تغيّر semantics للمحتوى الأصلي المعتمد بلا مصدر.
+- لا تجعل report evidence قاعدة mastery جديدة.
+- لا تعتبر temporary audio skip حلًا production.
+- لا تعلن PASS دون SHA + CI evidence.
+- لا تطلق production أو تدمج الفروع الأساسية دون موافقة صريحة من المستخدم.
+
+## 6) تشغيل المشروع
+
+اقرأ scripts/README/package metadata الحالية قبل التشغيل ولا تفترض أوامر قديمة. استخدم طريقة التشغيل المحلية الموجودة في المستودع، ولا تجعل Docker المحلي شرطًا على المستخدم. CI قد يستخدم service containers بشكل مستقل.
+
+## 7) المواد المرجعية
+
+- `reference/original/`: المصادر الأصلية — لا تُحرّفها.
+- `reference/derived/`: نسخ مشتقة للبحث.
+- `reference/ui-prototype/`: مرجع تصميم/تفاعل تاريخي، وليس مصدر runtime production.
+- `assets/`: الهوية/الشخصيات/الصور/الصوت.
+- `apps/`, `services/`, `packages/`: الكود الإنتاجي الحالي؛ اقرأه فعليًا ولا تعتمد على أسماء الملفات فقط.
+
+الحالة المستمرة في `docs/ops/STATUS.md` و`docs/ops/progress.json`، لكن عند التعارض تكون وثيقة handoff الأحدث + الكود والاختبارات + CI الحالي هي المرجع التنفيذي.
