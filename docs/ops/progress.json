@@ -1,48 +1,56 @@
 {
-  "schema_version": 3,
-  "plan_version": "HIMMA-FULL-MAINTENANCE-2026-08-28",
+  "schema_version": 4,
+  "plan_version": "HIMMA-FULL-MAINTENANCE-2026-08-31",
   "repository": "7eaur/himma-",
   "branch": "recovery/ui-media-admin-overhaul",
-  "phase": "FULL_MAINTENANCE",
-  "slice": "M06_RESPONSIVE_ACCESSIBILITY_DESIGN_QA",
-  "gate_status": "ACTIVE_RED_INTEGRATION",
-  "last_verified": "2026-08-28",
-  "implementation_head_before_latest_docs": "98fdc638737bdb8ab9be4937cff6155865998d1f",
+  "phase": "FULL_MAINTENANCE_AND_RELEASE_READINESS",
+  "slice": "M09_RELEASE_UAT_READINESS",
+  "gate_status": "DOCS_UPDATED_REVERIFY_CURRENT_HEAD",
+  "last_verified": "2026-08-31",
+  "latest_verified_executable_head": "fbf3e4c835e87c142422db9fe35f7dec60fee090",
+  "continuity_handoff": "docs/ops/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-08-31_AR.md",
   "quality_gate": {
-    "number": 298,
-    "id": 33202256449,
+    "number": 490,
+    "id": 33342958058,
+    "head_sha": "fbf3e4c835e87c142422db9fe35f7dec60fee090",
     "backend": "SUCCESS",
     "frontend": "SUCCESS",
-    "integration": "FAILURE",
-    "vertical_slice": "SUCCESS",
-    "failure": "mobile supervisor accessibility test cannot find a.sidebar-nav-item inside visible mobile navigation dialog"
+    "integration": "SUCCESS",
+    "playwright": "SUCCESS"
   },
   "responsive_visual_gate": {
-    "number": 18,
-    "id": 33202256450,
+    "number": 94,
+    "id": 33342958086,
+    "head_sha": "fbf3e4c835e87c142422db9fe35f7dec60fee090",
     "status": "SUCCESS",
     "viewports": ["360x800", "390x844", "768x1024", "1024x768", "1440x900"]
   },
   "stages": {
     "M00": "CLOSED",
-    "M01": "CLOSED",
-    "M02": "CLOSED",
-    "M03": "IMPLEMENTED_WITH_3_EXPLICIT_CONTENT_GAPS",
-    "M04": "CLOSED_STUDENT_UI_BASELINE",
-    "M05": "REBUILT_SUPERVISOR_UX_BASELINE",
-    "M06": "ACTIVE",
-    "M07": "PENDING",
+    "M01": "CLOSED_BASELINE",
+    "M02": "CLOSED_BASELINE_REFINED_BY_R1",
+    "M03": "CLOSED_WITH_RUNTIME_GAP_CLOSURE",
+    "M04": "CLOSED_STUDENT_UI_AND_QX_BASELINE",
+    "M05": "CLOSED_SUPERVISOR_UX_BASELINE",
+    "M06": "CLOSED_RESPONSIVE_ACCESSIBILITY_BASELINE",
+    "M07": "CLOSED_REPORTING_BASELINE",
     "M08": "PENDING_EXTERNAL_GATES",
-    "M09": "PENDING"
+    "M09": "NEXT_ACTIVE_INTERNAL_WORKSTREAM"
+  },
+  "corrections": {
+    "R1": "EARLY_PROMOTION_POLICY_IMPLEMENTED_AND_TESTED",
+    "R2": "PROMOTION_SESSION_HANDOFF_FIXED",
+    "R3": "SUPERVISOR_AUTHORIZED_RETAKE_HISTORY_INDEXES_ALIGNED",
+    "R4": "RESPONSIVE_PRIMARY_STUDENT_CTA_REGRESSION_COVERAGE_ADDED"
   },
   "content": {
     "original_items": 105,
     "skills": 44,
     "reinforcement_original": 15,
-    "reinforcement_additions": 18,
-    "reinforcement_total": 33,
-    "runtime_total": 123,
-    "residual_gaps": ["L2 sukoon word reading", "L3 literal comprehension", "L3 sentence building"]
+    "reinforcement_additions_total": 20,
+    "reinforcement_total": 35,
+    "runtime_total": 125,
+    "residual_reinforcement_mapping_gaps": []
   },
   "academic_contract": {
     "placement_is_starting_level_only": true,
@@ -51,10 +59,39 @@
     "activity_pass": ">=80",
     "activity_guided_retry": "70..<80",
     "activity_reinforcement": "<70",
-    "skill_mastery_weights": [50, 30, 20],
-    "level_requires_10_core": true,
+    "skill_mastery_weights_newest_to_oldest": [50, 30, 20],
+    "early_promotion_min_core_L1_L2": 6,
+    "early_promotion_mastery_threshold": 85,
+    "critical_skill_floor": 70,
+    "critical_skill_coverage_required": true,
+    "unresolved_reinforcement_blocks_promotion": true,
+    "promotion_step_levels": 1,
+    "level_3_requires_full_evidence_before_journey_completion": true,
     "journey_ends_at_L3_before_posttest": true,
-    "automatic_demotion": "OPEN_DECISION"
+    "automatic_demotion": "DISABLED_OPEN_POLICY_DECISION"
+  },
+  "reinforcement": {
+    "targeted_only": true,
+    "random_fallback": false,
+    "cross_level_fallback": false,
+    "source_core_verification_required": true,
+    "bounded_verification_default_rounds": 2,
+    "escalates_to_supervisor": true
+  },
+  "student_experience": {
+    "qx_closed": true,
+    "formal_assessment_per_item_feedback": false,
+    "contextual_learning_feedback": true,
+    "sound_effects_with_mute": true,
+    "reduced_motion": true,
+    "primary_touch_target_min_px": 44,
+    "responsive_gate_required_for_ui_changes": true
+  },
+  "media": {
+    "generated_sequence_assets": 10,
+    "generated_ids_range": "HIMMA-GEN-SEQ-001..010",
+    "visual_plan_generate_remaining": 0,
+    "browser_media_fidelity_covered": true
   },
   "audio": {
     "fixed_existing": 50,
@@ -65,9 +102,30 @@
   },
   "asr": {
     "architecture": "Reference-Guided Arabic Reading Analysis",
-    "provider_connected": false,
+    "alignment_cdsi_scaffold": true,
+    "provider_connected_for_production": false,
     "calibration_complete": false,
-    "retention_policy_complete": false
+    "privacy_retention_policy_complete": false,
+    "status": "M08_EXTERNAL_GATED"
   },
-  "next_step": "Align mobile supervisor navigation markup/test selector semantically, preserve >=44px touch-target assertion, rerun Main Quality Gate to full green, finish M06 visual review and closure, then begin M07."
+  "reports": {
+    "persisted_pre_post": true,
+    "cohort": true,
+    "xlsx": true,
+    "pdf": true,
+    "audit_logging": true,
+    "per_skill_descriptive_evidence": true,
+    "per_skill_is_mastery_rule": false
+  },
+  "open_work": [
+    "Reverify current documentation HEAD against Main Quality Gate and Responsive Visual Gate",
+    "M09 full journey UAT and release readiness",
+    "Production deployment/environment runbook",
+    "Backup/restore and rollback validation",
+    "Monitoring/support/privacy/data-retention release checklist",
+    "M08 real speech provider and calibration/privacy gates",
+    "Acquire approved exact static audio for موز and سَا",
+    "Final visual review after substantial UI/runtime changes"
+  ],
+  "next_step": "Read HIMMA_MASTER_CONTINUITY_HANDOFF_2026-08-31_AR.md, verify current branch HEAD and both workflows after docs commits, then continue the first real open blocker; default internal priority is M09 Release/UAT while M08 remains external-gated."
 }
