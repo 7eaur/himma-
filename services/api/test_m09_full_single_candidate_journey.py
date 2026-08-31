@@ -18,6 +18,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 import seed_all
+from adaptation import _load_policy
 from adaptation_runtime import prepare_next_for_student
 from conftest import TestingSessionLocal
 from content_runtime import canonical_interaction
@@ -113,6 +114,47 @@ def _complete_learning_item(db, session: AssessmentSession, item: ContentItem, *
     return attempt
 
 
+def _promotion_evidence_order(db, level_id: int) -> list[ContentItem]:
+    """Supply full critical coverage before non-critical evidence.
+
+    The runtime itself already prioritizes configured critical skills. The
+    longitudinal UAT uses the same policy intent so it proves that L1/L2 can
+    promote once *all* gates are satisfied; raw catalog order must not
+    accidentally postpone the last critical skill until item ten and turn this
+    into a false legacy-10/10 regression signal.
+    """
+    core_items = db.query(ContentItem).filter(
+        ContentItem.kind == "core_activity",
+        ContentItem.level_id == level_id,
+    ).order_by(ContentItem.order_index, ContentItem.id).all()
+    assert len(core_items) == 10
+
+    policy = _load_policy()
+    critical_codes = tuple(
+        str(code)
+        for code in (policy.get("critical_skill_codes_by_level", {}).get(str(level_id), []) or [])
+        if str(code).strip()
+    )
+    assert critical_codes, f"L{level_id} critical promotion policy is not configured"
+
+    skill_code_by_id = {
+        skill.id: skill.canonical_skill_id
+        for skill in db.query(Skill).filter(Skill.level_id == level_id).all()
+    }
+    first_core_by_code: dict[str, ContentItem] = {}
+    for item in core_items:
+        code = skill_code_by_id.get(item.skill_id)
+        if code in critical_codes and code not in first_core_by_code:
+            first_core_by_code[code] = item
+
+    missing = [code for code in critical_codes if code not in first_core_by_code]
+    assert not missing, f"L{level_id} cannot satisfy configured critical coverage: {missing}"
+
+    prioritized = [first_core_by_code[code] for code in critical_codes]
+    prioritized_ids = {item.id for item in prioritized}
+    return prioritized + [item for item in core_items if item.id not in prioritized_ids]
+
+
 def _promote_with_strong_core_evidence(db, student: Student, session: AssessmentSession) -> tuple[AssessmentSession, int]:
     level_id = int(session.assigned_level)
     assert level_id in {1, 2}
@@ -120,11 +162,7 @@ def _promote_with_strong_core_evidence(db, student: Student, session: Assessment
         row[0]
         for row in db.query(Attempt.item_id).filter(Attempt.session_id == session.id).all()
     }
-    core_items = db.query(ContentItem).filter(
-        ContentItem.kind == "core_activity",
-        ContentItem.level_id == level_id,
-    ).order_by(ContentItem.order_index).all()
-    assert len(core_items) == 10
+    core_items = _promotion_evidence_order(db, level_id)
 
     last_result = None
     for item in core_items:
@@ -145,7 +183,10 @@ def _promote_with_strong_core_evidence(db, student: Student, session: Assessment
                 ContentItem.kind == "core_activity",
                 ContentItem.level_id == level_id,
             ).count()
-            assert 6 <= completed < 10, f"L{level_id} regressed to legacy full-completion promotion"
+            assert 6 <= completed < 10, (
+                f"L{level_id} should early-promote after minimum evidence plus full critical coverage; "
+                f"got {completed} completed Core items"
+            )
             return next_session, completed
 
     raise AssertionError(f"L{level_id} did not early-promote with approved strong evidence: {last_result}")
