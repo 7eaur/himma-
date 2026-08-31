@@ -4,7 +4,7 @@
 **Repository:** `7eaur/himma-`  
 **Current branch:** `recovery/ui-media-admin-overhaul`  
 **Current program:** Full Maintenance / Recovery + R1→R4 corrections  
-**Current focus:** M09 Release/UAT readiness while M08 remains external-gated
+**Current focus:** M09 full-journey UAT / release closure while M08 remains external-gated
 
 ## Read this first
 
@@ -14,20 +14,26 @@ Canonical continuity handoff:
 
 The handoff is deliberately more detailed than this status file and must be read before continuing in a new conversation.
 
-## Latest verified executable baseline before documentation updates
+## Latest verified executable baseline
 
-`fbf3e4c835e87c142422db9fe35f7dec60fee090`
+`9f4389d83f751910daf605e1c37b4232b5b3ae93`
 
 Commit:
 
-`fix(R3): align retake authorization indexes with ORM`
+`feat(m09): add backup restore release gate`
 
-Evidence for the exact SHA:
+Evidence for this exact implementation SHA:
 
-- Main Quality Gate #490 — run `33342958058`: backend ✅ frontend ✅ integration/Playwright ✅
-- Responsive Visual Gate #94 — run `33342958086`: ✅ SUCCESS
+- Main Quality Gate #496 — run `33344517705`: backend ✅ frontend ✅ integration/Playwright ✅
+- M09 Release Readiness Gate #1 — run `33344517713`: ✅ SUCCESS
+- M09 evidence: `docs/ops/M09_RELEASE_READINESS_EVIDENCE_2026-08-31.md`
 
-Documentation commits after that SHA may move branch HEAD. Do not call a newer documentation HEAD “accepted” until its own workflows finish green.
+Relevant responsive evidence:
+
+- Responsive Visual Gate #95 — run `33344062713` on `a5545a1425cc99891972e2ec55b290198cb98034`: ✅ SUCCESS
+- The following `9f4389d...` commit changes operational scripts/workflow/runbook only; no UI files changed.
+
+Documentation-only commits after the verified executable SHA may move branch HEAD. Inspect the current HEAD and its Actions before starting new code.
 
 ## Current runtime truth
 
@@ -120,7 +126,7 @@ Static audio:
 - missing: `موز`, `سَا`;
 - target: 52.
 
-`HIMMA_TEMP_AUDIO_SKIP` is testing-only and academically neutral.
+`HIMMA_TEMP_AUDIO_SKIP` is testing-only and academically neutral. Trial/production startup now fails closed if that bypass is enabled.
 
 Target architecture: Reference-Guided Arabic Reading Analysis = ASR + reference alignment + C/D/I/S + phonemic helper evidence.
 
@@ -139,6 +145,20 @@ Implemented:
 
 Per-skill reporting remains descriptive and must not silently become a mastery/adaptation rule.
 
+## M09 Release / UAT
+
+Closed internal infrastructure slices:
+
+- `/health` retained as liveness and `/ready` added for critical configuration + PostgreSQL + Redis + private S3/MinIO readiness;
+- sanitized readiness output without raw dependency exceptions/secrets;
+- trial/production fail-closed guard for temporary audio bypass and short API secret;
+- executable PostgreSQL backup/restore + integrity/count verification;
+- executable private object-store backup/isolated restore + SHA-256 verification;
+- dedicated `Himma M09 — Release Readiness Gate` green on run `33344517713`;
+- release/UAT runbook added at `docs/ops/M09_RELEASE_UAT_RUNBOOK.md`.
+
+M09 is **not closed**. Remaining internal work centers on a complete single-candidate UAT journey, monitoring/request correlation/support readiness, final privacy/retention approval, rollback/release checklist, and final acceptance evidence.
+
 ## Stage status
 
 - M00 Restore Green — CLOSED.
@@ -150,15 +170,16 @@ Per-skill reporting remains descriptive and must not silently become a mastery/a
 - M06 Responsive/Accessibility/Design QA — CLOSED baseline.
 - M07 Research Reports — IMPLEMENTED/CLOSED baseline.
 - M08 Real Speech Analysis — PENDING / EXTERNAL-GATED.
-- M09 Release/UAT — NEXT MAJOR INTERNAL WORKSTREAM.
+- M09 Release/UAT — IN PROGRESS; infrastructure readiness/backup slice GREEN, full-journey UAT NEXT.
 
 ## Next action
 
-1. Verify current branch HEAD and both workflow gates after the latest documentation commits.
-2. If green, begin/continue M09 Release/UAT readiness: full journey UAT, deployment/runbook, environment validation, backup/restore, monitoring, privacy/retention, rollback/support, final release checklist.
-3. Keep M08 separate until the external speech decisions/resources are available.
-4. Acquire/add only the exact missing static audio `موز` and `سَا` from an approved source; do not fake/substitute them.
-5. Run visual review after any substantial UI/runtime content change.
+1. Inspect current branch HEAD and Actions after any documentation-only commit.
+2. Continue M09 with the first still-unproven internal requirement: full single-candidate journey UAT from supervisor/student setup through pretest, learning/reinforcement/level transitions, L3 completion, posttest, reports and exports.
+3. Do not duplicate scenarios already proved by the same-SHA Quality Gate; extend coverage only where the end-to-end transition is missing.
+4. Keep M08 separate until external provider/calibration/privacy decisions are available.
+5. Acquire/add only the exact missing static audio `موز` and `سَا` from an approved source; do not fake/substitute them.
+6. Run final visual review after substantial UI/runtime changes.
 
 ## Governance reminder
 

@@ -4,26 +4,40 @@
   "repository": "7eaur/himma-",
   "branch": "recovery/ui-media-admin-overhaul",
   "phase": "FULL_MAINTENANCE_AND_RELEASE_READINESS",
-  "slice": "M09_RELEASE_UAT_READINESS",
-  "gate_status": "DOCS_UPDATED_REVERIFY_CURRENT_HEAD",
+  "slice": "M09_FULL_JOURNEY_UAT_NEXT",
+  "gate_status": "M09_INFRA_READINESS_GREEN_FULL_UAT_OPEN",
   "last_verified": "2026-08-31",
-  "latest_verified_executable_head": "fbf3e4c835e87c142422db9fe35f7dec60fee090",
+  "latest_verified_executable_head": "9f4389d83f751910daf605e1c37b4232b5b3ae93",
   "continuity_handoff": "docs/ops/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-08-31_AR.md",
   "quality_gate": {
-    "number": 490,
-    "id": 33342958058,
-    "head_sha": "fbf3e4c835e87c142422db9fe35f7dec60fee090",
+    "number": 496,
+    "id": 33344517705,
+    "head_sha": "9f4389d83f751910daf605e1c37b4232b5b3ae93",
     "backend": "SUCCESS",
     "frontend": "SUCCESS",
     "integration": "SUCCESS",
     "playwright": "SUCCESS"
   },
   "responsive_visual_gate": {
-    "number": 94,
-    "id": 33342958086,
-    "head_sha": "fbf3e4c835e87c142422db9fe35f7dec60fee090",
+    "number": 95,
+    "id": 33344062713,
+    "head_sha": "a5545a1425cc99891972e2ec55b290198cb98034",
     "status": "SUCCESS",
-    "viewports": ["360x800", "390x844", "768x1024", "1024x768", "1440x900"]
+    "viewports": ["360x800", "390x844", "768x1024", "1024x768", "1440x900"],
+    "note": "No UI files changed in the subsequent 9f4389d M09 backup/runbook commit."
+  },
+  "m09_release_readiness_gate": {
+    "number": 1,
+    "id": 33344517713,
+    "head_sha": "9f4389d83f751910daf605e1c37b4232b5b3ae93",
+    "status": "SUCCESS",
+    "checks": [
+      "TRIAL_FAILS_CLOSED_WITH_TEMP_AUDIO_SKIP",
+      "READY_POSTGRES_REDIS_MINIO",
+      "POSTGRES_BACKUP_RESTORE_VERIFIED",
+      "PRIVATE_OBJECT_STORE_BACKUP_RESTORE_VERIFIED",
+      "CI_BACKUPS_EPHEMERAL_NOT_UPLOADED"
+    ]
   },
   "stages": {
     "M00": "CLOSED",
@@ -35,7 +49,7 @@
     "M06": "CLOSED_RESPONSIVE_ACCESSIBILITY_BASELINE",
     "M07": "CLOSED_REPORTING_BASELINE",
     "M08": "PENDING_EXTERNAL_GATES",
-    "M09": "NEXT_ACTIVE_INTERNAL_WORKSTREAM"
+    "M09": "IN_PROGRESS_INFRA_GREEN_FULL_JOURNEY_UAT_NEXT"
   },
   "corrections": {
     "R1": "EARLY_PROMOTION_POLICY_IMPLEMENTED_AND_TESTED",
@@ -98,7 +112,8 @@
     "missing": ["موز", "سَا"],
     "target": 52,
     "temporary_skip_flag": "HIMMA_TEMP_AUDIO_SKIP",
-    "temporary_skip_neutral": true
+    "temporary_skip_neutral": true,
+    "trial_production_fail_closed_if_skip_enabled": true
   },
   "asr": {
     "architecture": "Reference-Guided Arabic Reading Analysis",
@@ -117,15 +132,24 @@
     "per_skill_descriptive_evidence": true,
     "per_skill_is_mastery_rule": false
   },
+  "m09": {
+    "readiness_endpoint": true,
+    "trial_runtime_safety_guard": true,
+    "postgres_backup_restore_verified": true,
+    "object_store_backup_restore_verified": true,
+    "release_runbook": "docs/ops/M09_RELEASE_UAT_RUNBOOK.md",
+    "evidence": "docs/ops/M09_RELEASE_READINESS_EVIDENCE_2026-08-31.md",
+    "full_single_candidate_uat_complete": false,
+    "monitoring_support_release_closure_complete": false,
+    "privacy_retention_final_approval_complete": false
+  },
   "open_work": [
-    "Reverify current documentation HEAD against Main Quality Gate and Responsive Visual Gate",
-    "M09 full journey UAT and release readiness",
-    "Production deployment/environment runbook",
-    "Backup/restore and rollback validation",
-    "Monitoring/support/privacy/data-retention release checklist",
+    "M09 full single-candidate journey UAT through pretest, learning/reinforcement, L3 completion, posttest, reports and exports",
+    "M09 monitoring/request correlation/support and final rollback/release checklist",
+    "M09 final privacy/data-retention approval for real study data",
     "M08 real speech provider and calibration/privacy gates",
     "Acquire approved exact static audio for موز and سَا",
     "Final visual review after substantial UI/runtime changes"
   ],
-  "next_step": "Read HIMMA_MASTER_CONTINUITY_HANDOFF_2026-08-31_AR.md, verify current branch HEAD and both workflows after docs commits, then continue the first real open blocker; default internal priority is M09 Release/UAT while M08 remains external-gated."
+  "next_step": "Inspect the current docs-only HEAD and Actions, then extend same-SHA UAT evidence only for the still-missing complete single-candidate journey. Do not redo already-green M09 readiness/backup work or accepted M00-M07 behavior."
 }
