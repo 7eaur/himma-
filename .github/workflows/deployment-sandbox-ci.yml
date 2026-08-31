@@ -105,7 +105,7 @@ jobs:
       ADMIN_PASSWORD: ci-only-researcher-password
       E2E_RESEARCHER_USERNAME: admin
       E2E_RESEARCHER_PASSWORD: ci-only-researcher-password
-      SEED_DEMO_STUDENTS: 'true'
+      SEED_DEMO_STUDENTS: 'false'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
