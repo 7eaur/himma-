@@ -4,7 +4,11 @@
 
 ## 1) اقرأ هذا أولًا
 
-المرجع التنفيذي الأحدث والأشمل:
+أحدث تسليم سريع من المحادثة السابقة:
+
+`docs/handoff/CONTINUE_FROM_CHAT_2026-08-31_AR.md`
+
+ثم المرجع التنفيذي الأحدث والأشمل:
 
 `docs/ops/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-08-31_AR.md`
 
@@ -12,6 +16,8 @@
 
 - `docs/ops/STATUS.md`
 - `docs/ops/progress.json`
+- `docs/ops/M09_RELEASE_UAT_RUNBOOK.md`
+- `docs/ops/M09_RELEASE_READINESS_EVIDENCE_2026-08-31.md`
 - `HIMMA_CORRECTIVE_EXECUTION_ROADMAP_V2_AR.md`
 - `docs/specs/SOURCE_OF_TRUTH.md`
 
@@ -21,10 +27,14 @@
 
 - Repository: `7eaur/himma-`
 - Working branch: `recovery/ui-media-admin-overhaul`
-- آخر baseline تنفيذي موثّق أخضر قبل تحديثات التوثيق بتاريخ 2026-08-31:
-  `fbf3e4c835e87c142422db9fe35f7dec60fee090`
+- آخر executable M09 baseline موثّق قبل تحديثات التسليم الحالية:
+  `9f4389d83f751910daf605e1c37b4232b5b3ae93`
+- Main Quality Gate #496 — run `33344517705`: backend/frontend/integration ✅
+- M09 Release Readiness Gate #1 — run `33344517713`: ✅
+- آخر docs HEAD شوهد قبل ملف التسليم: `d1e702558b5a51c55c1c1a3d2fc5691579b4ecd1`
+- Main Quality Gate #497 — run `33344886935`: ✅
 
-بعد فتح جلسة جديدة افحص branch HEAD الحالي وحالة GitHub Actions؛ تحديثات الوثائق نفسها تحرّك HEAD.
+بعد فتح جلسة جديدة افحص branch HEAD الحالي وحالة GitHub Actions؛ ملفات التسليم نفسها تحرّك HEAD.
 
 ## 3) الحالة المختصرة
 
@@ -38,19 +48,22 @@
 - R1 early promotion gates: منجزة ومقفلة بالاختبارات الحالية.
 - R2 active-session handoff بعد promotion: مُصلح.
 - R3 supervisor-authorized assessment retake/index history: مُصلح baseline.
+- R4 responsive primary student CTA regression coverage: موجود.
 - M08 real speech production: **غير مكتمل / external-gated**.
-- M09 Release/UAT: **أولوية العمل الداخلية التالية**.
+- M09 infrastructure/readiness/backup slice: **GREEN**.
+- M09 full single-candidate journey UAT + final release closure: **NEXT / OPEN**.
 - Static audio missing: `موز`, `سَا`.
 
 ## 4) قاعدة الاستمرار
 
 قبل أي تعديل:
 
-1. اقرأ handoff الكامل.
+1. اقرأ ملف التسليم السريع ثم handoff الكامل.
 2. افحص HEAD الحالي.
-3. افحص Main Quality Gate وResponsive Visual Gate لنفس SHA.
+3. افحص Main Quality Gate لنفس HEAD وأي Gate آخر ينطبق على نوع التغيير.
 4. إذا يوجد failure أصلحه أولًا ولا تتجاوزه.
-5. إن كانت البوابات خضراء، أكمل أول gap حقيقي من handoff؛ افتراضيًا M09، بينما M08 يبقى منفصلًا حتى تتوفر provider/calibration/privacy decisions.
+5. إن كانت البوابات خضراء، أكمل أول gap حقيقي من handoff؛ افتراضيًا M09 full-journey UAT، بينما M08 يبقى منفصلًا حتى تتوفر provider/calibration/privacy decisions.
+6. لا تعِد readiness/backup work الذي ثبت أخضر إلا إذا ظهر regression حقيقي.
 
 ## 5) قيود لا تُكسر
 
