@@ -13,4 +13,7 @@ COPY . /app
 
 WORKDIR /app/services/api
 
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Railway may override CMD with a command containing $PORT without shell expansion.
+# Keep a shell ENTRYPOINT so both Railway overrides and the default CMD expand env vars.
+ENTRYPOINT ["/bin/sh", "-c"]
+CMD ["uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]
