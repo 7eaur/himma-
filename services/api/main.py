@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from auth import router as auth_router
 from protected import router as protected_router
@@ -17,6 +17,14 @@ from speech_analysis import router as speech_analysis_router
 from journey import router as journey_router
 from reports import router as reports_router
 from skill_reports import router as skill_reports_router
+from readiness import readiness_report
+from runtime_flags import validate_runtime_safety
+
+
+# Trial/production must fail closed while the temporary audio bypass is enabled.
+# Dependency availability is intentionally handled by /ready rather than here so
+# the process can remain live while an external dependency is recovering.
+validate_runtime_safety()
 
 app = FastAPI(
     title="Himma API Service",
@@ -59,3 +67,11 @@ app.include_router(skill_reports_router)
 @app.get("/health")
 def health_check():
     return {"status": "ok", "service": "himma-api"}
+
+
+@app.get("/ready")
+def readiness_check(response: Response):
+    report = readiness_report()
+    if report["status"] != "ready":
+        response.status_code = 503
+    return report
