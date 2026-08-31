@@ -11,6 +11,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from db.adaptation_models import AdaptationDecision
 from db.models import AssessmentSession, Attempt, ContentItem, Student
 from dependencies import get_current_student, get_db
 
@@ -69,9 +70,40 @@ def _posttest_completed(db: Session, student_id: int) -> bool:
     )
 
 
+def _promotion_closed_session_ids(db: Session, student_id: int) -> set[int]:
+    """Return sessions closed by a persisted one-level automatic promotion.
+
+    L1/L2 may legitimately close after the V4 early-promotion gate (six or more
+    Core activities).  Presentation must use that persisted transition evidence
+    rather than re-imposing the legacy ten-Core requirement.  L3 is deliberately
+    excluded because journey completion still requires all ten Core activities.
+    """
+    session_ids: set[int] = set()
+    decisions = (
+        db.query(AdaptationDecision)
+        .filter(
+            AdaptationDecision.student_id == student_id,
+            AdaptationDecision.decision_source == "automatic",
+            AdaptationDecision.action == "promote",
+        )
+        .order_by(AdaptationDecision.id)
+        .all()
+    )
+    for decision in decisions:
+        if decision.previous_level not in {1, 2} or decision.new_level != decision.previous_level + 1:
+            continue
+        explanation = decision.explanation or {}
+        previous_session_id = explanation.get("previous_session_id")
+        expected_transition = f"L{decision.previous_level}->L{decision.new_level}"
+        if isinstance(previous_session_id, int) and explanation.get("journey_transition") == expected_transition:
+            session_ids.add(previous_session_id)
+    return session_ids
+
+
 def build_journey_summary(db: Session, student: Student) -> dict:
     pretest_completed, placed_level = _pretest_state(db, student.id)
     starting_level = placed_level if placed_level in {1, 2, 3} else (student.current_level if pretest_completed else None)
+    promotion_closed_sessions = _promotion_closed_session_ids(db, student.id)
 
     sessions = (
         db.query(AssessmentSession)
@@ -99,7 +131,9 @@ def build_journey_summary(db: Session, student: Student) -> dict:
             count = _completed_core_count(db, session.id, level_id)
             if session is candidates[-1]:
                 latest_count = count
-            if session.status == "completed" and count >= CORE_ACTIVITY_COUNT:
+            completed_by_full_evidence = count >= CORE_ACTIVITY_COUNT
+            completed_by_early_promotion = level_id in {1, 2} and session.id in promotion_closed_sessions
+            if session.status == "completed" and (completed_by_full_evidence or completed_by_early_promotion):
                 completed_candidates.append((session, count))
 
         completed_entry = completed_candidates[-1] if completed_candidates else None
