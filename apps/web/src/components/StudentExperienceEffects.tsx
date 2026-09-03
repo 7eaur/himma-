@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Award, Star, Volume2, VolumeX } from "lucide-react";
+import { Award } from "lucide-react";
 import styles from "./StudentExperienceEffects.module.css";
 
 type Tone = "select" | "listen" | "success" | "retry" | "transition" | "award";
-type Reward = { kind: "star" | "award"; text: string } | null;
+type Reward = { kind: "award"; text: string } | null;
 
 const STORAGE_KEY = "himma:student-ui-sounds";
 
@@ -52,7 +52,7 @@ function playTone(kind: Tone, enabled: boolean) {
 }
 
 export default function StudentExperienceEffects() {
-  const [enabled, setEnabled] = useState(initialSoundPreference);
+  const [enabled] = useState(initialSoundPreference);
   const [taskVisible, setTaskVisible] = useState(false);
   const [reward, setReward] = useState<Reward>(null);
   const lastSignalRef = useRef("");
@@ -61,7 +61,9 @@ export default function StudentExperienceEffects() {
   useEffect(() => {
     const rootSelector = '[data-testid="activity-session"], [data-testid="assessment-session"]';
 
-    const updateTaskVisibility = () => setTaskVisible(Boolean(document.querySelector(rootSelector)));
+    const updateTaskVisibility = () => {
+      setTaskVisible(Boolean(document.querySelector(rootSelector)));
+    };
     updateTaskVisibility();
 
     const showReward = (next: Reward, sound: Tone) => {
@@ -69,7 +71,7 @@ export default function StudentExperienceEffects() {
       setReward(next);
       playTone(sound, enabled);
       if (rewardTimerRef.current) window.clearTimeout(rewardTimerRef.current);
-      rewardTimerRef.current = window.setTimeout(() => setReward(null), next.kind === "award" ? 1500 : 950);
+      rewardTimerRef.current = window.setTimeout(() => setReward(null), 1500);
     };
 
     const inspect = () => {
@@ -79,15 +81,19 @@ export default function StudentExperienceEffects() {
       const text = root.innerText || "";
       const phase = root.dataset.phase || "";
 
+      if (phase === "waiting_audio_review") {
+        lastSignalRef.current = "waiting_audio_review";
+        setReward(null);
+        return;
+      }
+
       let signal = "";
       if (phase === "done") signal = `done:${text.slice(0, 120)}`;
-      else if (/أحسنت|إجابة صحيحة|رائع/u.test(text)) signal = `success:${text.slice(-180)}`;
       else if (/قريب جدًا|حاول مرة أخرى|جرّب مرة أخرى/u.test(text)) signal = `retry:${text.slice(-180)}`;
 
       if (!signal || signal === lastSignalRef.current) return;
       lastSignalRef.current = signal;
       if (signal.startsWith("done:")) showReward({ kind: "award", text: "إنجاز جديد في رحلتك" }, "award");
-      else if (signal.startsWith("success:")) showReward({ kind: "star", text: "أحسنت، تقدّم رائع" }, "success");
       else if (signal.startsWith("retry:")) playTone("retry", enabled);
     };
 
@@ -112,34 +118,12 @@ export default function StudentExperienceEffects() {
     };
   }, [enabled]);
 
-  if (!taskVisible) return null;
-
-  const toggle = () => {
-    const next = !enabled;
-    setEnabled(next);
-    window.localStorage.setItem(STORAGE_KEY, next ? "on" : "off");
-    if (next) playTone("select", true);
-  };
+  if (!taskVisible || !reward) return null;
 
   return (
-    <>
-      <button
-        type="button"
-        className={styles.soundToggle}
-        onClick={toggle}
-        aria-label={enabled ? "كتم أصوات التفاعل" : "تشغيل أصوات التفاعل"}
-        title={enabled ? "كتم أصوات التفاعل" : "تشغيل أصوات التفاعل"}
-      >
-        {enabled ? <Volume2 size={20} aria-hidden="true" /> : <VolumeX size={20} aria-hidden="true" />}
-      </button>
-      {reward && (
-        <div className={styles.reward} role="status" aria-live="polite">
-          {reward.kind === "star"
-            ? <Star className={styles.star} size={28} aria-hidden="true" />
-            : <Award className={styles.award} size={30} aria-hidden="true" />}
-          <span>{reward.text}</span>
-        </div>
-      )}
-    </>
+    <div className={styles.reward} role="status" aria-live="polite">
+      <Award className={styles.award} size={30} aria-hidden="true" />
+      <span>{reward.text}</span>
+    </div>
   );
 }
