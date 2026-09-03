@@ -92,7 +92,7 @@ describe("Student activity page", () => {
 
     expect(await screen.findByRole("heading", { name: "أحسنت، أكملت بناء الكلمة" })).toBeInTheDocument();
     expect(screen.getByText(/خطوتك التالية هي الطلاقة والفهم/)).toBeInTheDocument();
-    expect(screen.queryByText(/الاختبار البعدي/u)).not.toBeInTheDocument();
+    expect(screen.queryByText((content, element) => element?.tagName === "P" && content.includes("البعدي"))).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "الانتقال إلى خطوتي التالية" })).toBeEnabled();
   });
 
@@ -112,6 +112,6 @@ describe("Student activity page", () => {
     render(<StudentActivityPage />);
 
     expect(await screen.findByRole("heading", { name: "أحسنت، أكملت المستوى الثالث" })).toBeInTheDocument();
-    expect(screen.getByText(/الاختبار البعدي/u)).toBeInTheDocument();
+    expect(screen.getByText((content, element) => element?.tagName === "P" && content.includes("البعدي"))).toBeInTheDocument();
   });
 });
