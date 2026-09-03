@@ -1,9 +1,9 @@
 """Operational readiness checks for trial/release environments.
 
-`/health` remains a cheap liveness probe.  This module backs `/ready`, which
-verifies the external services the API needs before it should receive traffic.
-The public report intentionally exposes only component status, never secrets or
-raw dependency exceptions.
+`/health` remains a cheap liveness probe. This module backs `/ready`, which
+verifies the external services and the approved runtime-content contract the
+API needs before it should receive traffic. The public report intentionally
+exposes only component status, never secrets or raw dependency exceptions.
 """
 
 from __future__ import annotations
@@ -13,7 +13,8 @@ import os
 import redis
 from sqlalchemy import text
 
-from db.database import engine
+from db.database import SessionLocal, engine
+from db.models import ContentItem
 from storage import S3_BUCKET_NAME, s3_client
 
 
@@ -25,6 +26,11 @@ _REQUIRED_CONFIG = (
     "S3_BUCKET_NAME",
     "REDIS_URL",
 )
+_EXPECTED_TOTAL_ITEMS = 125
+_EXPECTED_REINFORCEMENT_ITEMS = 35
+_STUDENT_EXPERIENCE_VERSION = "HIMMA-STUDENT-EXPERIENCE-2.0"
+_DB_RUNTIME_VERSION = "HIMMA-DB-RUNTIME-1.0"
+_PRETEST_VERSION = "HIMMA-PRETEST-2026-09-01"
 
 
 def _config_ready() -> bool:
@@ -38,6 +44,44 @@ def _database_ready() -> bool:
         return True
     except Exception:
         return False
+
+
+def _content_ready() -> bool:
+    """Fail closed when a persistent DB still contains an older content projection."""
+    db = SessionLocal()
+    try:
+        items = db.query(ContentItem).all()
+        if len(items) != _EXPECTED_TOTAL_ITEMS:
+            return False
+        if sum(item.kind == "reinforcement_activity" for item in items) != _EXPECTED_REINFORCEMENT_ITEMS:
+            return False
+
+        for item in items:
+            template = item.template_data or {}
+            if template.get("student_experience_version") != _STUDENT_EXPERIENCE_VERSION:
+                return False
+            if (template.get("db_runtime") or {}).get("version") != _DB_RUNTIME_VERSION:
+                return False
+
+        pretest = [item for item in items if item.kind == "pretest_question"]
+        if len(pretest) != 30:
+            return False
+        if any((item.template_data or {}).get("pretest_experience_version") != _PRETEST_VERSION for item in pretest):
+            return False
+
+        learning = [item for item in items if item.kind in {"core_activity", "reinforcement_activity"}]
+        posttest = [item for item in items if item.kind == "posttest_question"]
+        if len(learning) != 65 or len(posttest) != 30:
+            return False
+        if any(not (item.template_data or {}).get("learning_experience_version") for item in learning):
+            return False
+        if any(not (item.template_data or {}).get("posttest_experience_version") for item in posttest):
+            return False
+        return True
+    except Exception:
+        return False
+    finally:
+        db.close()
 
 
 def _storage_ready() -> bool:
@@ -70,6 +114,7 @@ def readiness_report() -> dict[str, object]:
     checks = {
         "config": _config_ready(),
         "database": _database_ready(),
+        "content": _content_ready(),
         "storage": _storage_ready(),
         "redis": _redis_ready(),
     }
