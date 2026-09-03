@@ -4,11 +4,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from auth import router as auth_router
 from protected import router as protected_router
 from assessment import router as assessment_router
+from assessment_view import router as assessment_view_router
 from assessment_retake import router as assessment_retake_router
 from temporary_audio_skip import router as temporary_audio_skip_router
 from review import router as review_router
 from recordings import router as recordings_router
 from activities_v4 import router as activities_router
+from learning_experience import router as learning_experience_router
 from adaptation import router as adaptation_router
 from adaptation_runtime import router as adaptation_runtime_router
 from reinforcement_review import router as reinforcement_review_router
@@ -32,7 +34,6 @@ app = FastAPI(
     version="0.1.0",
 )
 
-# CORS — allows the Next.js dev server and production URL
 _origins = os.environ.get("CORS_ORIGINS", "http://localhost:3000").split(",")
 app.add_middleware(
     CORSMiddleware,
@@ -45,13 +46,11 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(protected_router)
 app.include_router(journey_router)
-# R3: owns /assessment/start so completed pre/post assessments can only be
-# repeated through a durable supervisor authorization with a written reason.
 app.include_router(assessment_retake_router)
-# TEMPORARY: this router must precede assessment_router so its finish endpoint
-# can apply a neutral denominator only when explicit audio-skip markers exist.
 app.include_router(temporary_audio_skip_router)
 app.include_router(assessment_router)
+app.include_router(assessment_view_router)
+app.include_router(learning_experience_router)
 app.include_router(activities_router)
 app.include_router(adaptation_router)
 app.include_router(adaptation_runtime_router)

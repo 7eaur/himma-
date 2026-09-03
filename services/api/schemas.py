@@ -23,7 +23,6 @@ class UserResponse(BaseModel):
     id: int
     username: str
     role: str
-
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -61,7 +60,6 @@ class SupervisorResponse(BaseModel):
     username: str
     is_active: bool
     created_at: datetime
-
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -130,7 +128,6 @@ class StudentResponse(BaseModel):
     core_total_items: int = 10
     core_completed: bool = False
     created_at: datetime
-
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -151,7 +148,6 @@ class StudentProfileResponse(BaseModel):
 
 
 class MeResponse(BaseModel):
-    """Returned by /auth/me — works for both roles."""
     id: int
     role: str
     display_name: str
@@ -168,7 +164,6 @@ class AssessmentSessionResponse(BaseModel):
     elapsed_seconds: int
     started_at: datetime
     completed_at: Optional[datetime] = None
-
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -185,7 +180,6 @@ class ContentOptionResponse(BaseModel):
     id: int
     text: str
     order_index: int
-
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -207,7 +201,6 @@ class ContentStepResponse(BaseModel):
     options: list[ContentOptionResponse] = Field(default_factory=list)
     assets: list[ContentAssetResponse] = Field(default_factory=list)
     media_gaps: list[dict[str, Any]] = Field(default_factory=list)
-
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -222,8 +215,48 @@ class ContentItemResponse(BaseModel):
     steps: list[ContentStepResponse] = Field(default_factory=list)
     item_assets: list[ContentAssetResponse] = Field(default_factory=list)
     template_data: Optional[dict[str, Any]] = None
-
     model_config = ConfigDict(from_attributes=True)
+
+
+class AssessmentStimulusResponse(BaseModel):
+    kind: str = "none"
+    text: Optional[str] = None
+    audio_target: Optional[str] = None
+
+
+class AssessmentPresentationResponse(BaseModel):
+    version: str
+    question_number: int
+    section: str
+    skill: str
+    encouragement: str
+    question_text: str
+    instruction_text: str
+    interaction_type: str
+    stimulus: AssessmentStimulusResponse = Field(default_factory=AssessmentStimulusResponse)
+    media_semantics: Optional[dict[str, Any]] = None
+
+
+class StudentContentStepResponse(BaseModel):
+    id: int
+    order_index: int
+    expected_reading_text: Optional[str] = None
+    required_selection_count: int = 0
+    options: list[ContentOptionResponse] = Field(default_factory=list)
+    assets: list[ContentAssetResponse] = Field(default_factory=list)
+    media_gaps: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class AssessmentStudentViewResponse(BaseModel):
+    id: int
+    stable_key: str
+    canonical_id: Optional[str] = None
+    kind: str
+    interaction_type: str
+    title: Optional[str] = None
+    steps: list[StudentContentStepResponse] = Field(default_factory=list)
+    item_assets: list[ContentAssetResponse] = Field(default_factory=list)
+    presentation: AssessmentPresentationResponse
 
 
 class AttemptResponseSubmit(BaseModel):
@@ -241,7 +274,6 @@ class AudioSubmissionReviewResponse(BaseModel):
     storage_key: str
     status: str
     submitted_at: datetime
-
     model_config = ConfigDict(from_attributes=True)
 
 
