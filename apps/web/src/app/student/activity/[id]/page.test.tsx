@@ -9,10 +9,7 @@ jest.mock("next/navigation", () => ({
 }));
 
 function response(body: unknown) {
-  return {
-    ok: true,
-    json: async () => body,
-  };
+  return { ok: true, json: async () => body };
 }
 
 beforeEach(() => {
@@ -24,25 +21,33 @@ describe("Student activity page", () => {
   it("keeps reinforcement context without exposing internal task-design labels", async () => {
     global.fetch = jest
       .fn()
+      .mockResolvedValueOnce(response({ id: 99, stable_key: "reinforcement-test" }))
       .mockResolvedValueOnce(response({
+        version: "HIMMA-STUDENT-EXPERIENCE-2.0",
         session_id: 42,
-        item: {
-          id: 99,
-          stable_key: "reinforcement-test",
-          canonical_id: "L2-REIN-09",
-          title: "تقوية: كلمات الشدة",
-          level_id: 2,
-          order_index: 9,
-          interaction_type: "choose_one",
-          kind: "reinforcement_activity",
-          assets: [],
+        level_id: 2,
+        item_id: 99,
+        stable_key: "reinforcement-test",
+        kind: "reinforcement_activity",
+        interaction_type: "choose_one",
+        round: {
+          round_number: 1,
+          round_total: 5,
+          skill: "الشدة",
+          encouragement: "أنت تتقدم بشكل رائع.",
+          hint: "ركّز على الحرف المشدد.",
+          question_text: "أي كلمة تحتوي على شدة؟",
+          instruction_text: "اختر الكلمة التي تحتوي على شدة",
+          stimulus_text: "",
         },
+        retry: false,
+        attempts_used: 0,
+        max_attempts: 2,
         step: {
           id: 7,
           order_index: 1,
-          prompt_text: "اختر الكلمة الصحيحة",
-          instruction_text: "اختر الكلمة التي تحتوي على شدة",
           expected_reading_text: null,
+          required_selection_count: 1,
           options: [
             { id: 1, text: "مُعَلِّم", order_index: 1 },
             { id: 2, text: "كتاب", order_index: 2 },
@@ -50,10 +55,7 @@ describe("Student activity page", () => {
           assets: [],
           media_gaps: [],
         },
-        attempts_used: 0,
-        max_attempts: 2,
-        retry: false,
-        hint_available: false,
+        assets: [],
       }))
       .mockResolvedValueOnce(response({
         session_id: 42,
@@ -90,7 +92,7 @@ describe("Student activity page", () => {
 
     expect(await screen.findByRole("heading", { name: "أحسنت، أكملت بناء الكلمة" })).toBeInTheDocument();
     expect(screen.getByText(/خطوتك التالية هي الطلاقة والفهم/)).toBeInTheDocument();
-    expect(screen.queryByText(/الاختبار البعدي عندما يفتحه المشرف/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/الاختبار البعدي/u)).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "الانتقال إلى خطوتي التالية" })).toBeEnabled();
   });
 
@@ -110,6 +112,6 @@ describe("Student activity page", () => {
     render(<StudentActivityPage />);
 
     expect(await screen.findByRole("heading", { name: "أحسنت، أكملت المستوى الثالث" })).toBeInTheDocument();
-    expect(screen.getByText(/الاختبار البعدي عندما يفتحه المشرف/)).toBeInTheDocument();
+    expect(screen.getByText(/الاختبار البعدي/u)).toBeInTheDocument();
   });
 });
