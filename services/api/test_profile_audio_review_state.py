@@ -6,7 +6,7 @@ review, needs a rerecord, or is ready to finalize.
 """
 
 from db.database import SessionLocal
-from db.models import AssessmentSession, Attempt, AttemptResponse, AudioSubmission, ContentItem
+from db.models import AssessmentSession, Attempt, AttemptResponse, AudioSubmission, ContentItem, Student
 from protected import _assessment_display_status
 import seed
 
@@ -23,7 +23,17 @@ def test_assessment_display_status_tracks_audio_review_without_mutating_session(
         )
         assert len(items) == 30
 
-        session = AssessmentSession(student_id=1, session_type="pretest", status="in_progress")
+        student = Student(
+            access_code="947251",
+            name="طالب مراجعة صوتية",
+            grade_level=3,
+            current_level=1,
+            is_active=True,
+        )
+        db.add(student)
+        db.flush()
+
+        session = AssessmentSession(student_id=student.id, session_type="pretest", status="in_progress")
         db.add(session)
         db.flush()
 
