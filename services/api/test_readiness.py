@@ -52,6 +52,7 @@ def test_trial_runtime_accepts_audio_skip_disabled(monkeypatch):
 def test_readiness_report_is_sanitized_and_requires_all_components(monkeypatch):
     _set_required_env(monkeypatch)
     monkeypatch.setattr(readiness, "_database_ready", lambda: True)
+    monkeypatch.setattr(readiness, "_content_ready", lambda: True)
     monkeypatch.setattr(readiness, "_storage_ready", lambda: False)
     monkeypatch.setattr(readiness, "_redis_ready", lambda: True)
 
@@ -63,12 +64,26 @@ def test_readiness_report_is_sanitized_and_requires_all_components(monkeypatch):
         "checks": {
             "config": "ok",
             "database": "ok",
+            "content": "ok",
             "storage": "unavailable",
             "redis": "ok",
         },
     }
     assert "password" not in str(report).lower()
     assert "secret" not in str(report).lower()
+
+
+def test_readiness_fails_closed_when_content_projection_is_stale(monkeypatch):
+    _set_required_env(monkeypatch)
+    monkeypatch.setattr(readiness, "_database_ready", lambda: True)
+    monkeypatch.setattr(readiness, "_content_ready", lambda: False)
+    monkeypatch.setattr(readiness, "_storage_ready", lambda: True)
+    monkeypatch.setattr(readiness, "_redis_ready", lambda: True)
+
+    report = readiness.readiness_report()
+
+    assert report["status"] == "not_ready"
+    assert report["checks"]["content"] == "unavailable"
 
 
 def test_ready_endpoint_returns_200_or_503_from_readiness_state(client, monkeypatch):
@@ -78,7 +93,7 @@ def test_ready_endpoint_returns_200_or_503_from_readiness_state(client, monkeypa
         lambda: {
             "status": "ready",
             "service": "himma-api",
-            "checks": {"config": "ok", "database": "ok", "storage": "ok", "redis": "ok"},
+            "checks": {"config": "ok", "database": "ok", "content": "ok", "storage": "ok", "redis": "ok"},
         },
     )
     assert client.get("/ready").status_code == 200
@@ -89,9 +104,9 @@ def test_ready_endpoint_returns_200_or_503_from_readiness_state(client, monkeypa
         lambda: {
             "status": "not_ready",
             "service": "himma-api",
-            "checks": {"config": "ok", "database": "unavailable", "storage": "ok", "redis": "ok"},
+            "checks": {"config": "ok", "database": "ok", "content": "unavailable", "storage": "ok", "redis": "ok"},
         },
     )
     response = client.get("/ready")
     assert response.status_code == 503
-    assert response.json()["checks"]["database"] == "unavailable"
+    assert response.json()["checks"]["content"] == "unavailable"
