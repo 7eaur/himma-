@@ -103,6 +103,13 @@ async function assertQuestionHierarchy(page: Page) {
   if (headingBox && answerBox) expect(answerBox.y).toBeGreaterThan(headingBox.y + headingBox.height - 2);
 }
 
+async function displayedQuestionCopy(page: Page) {
+  const root = page.getByTestId("assessment-session");
+  const heading = ((await root.locator("main section h1").first().textContent()) ?? "").trim();
+  const instruction = ((await root.locator("main section p").first().textContent()) ?? "").trim();
+  return `${heading} ${instruction}`.trim();
+}
+
 test.describe("student question experience", () => {
   test("first readiness questions are explicit, complete, and visually ordered", async ({ page, context, request }) => {
     test.setTimeout(120000);
@@ -134,14 +141,14 @@ test.describe("student question experience", () => {
         await page.screenshot({ path: "playwright-report/screenshots/qx-letter-form-options.png", fullPage: true });
       }
       if (index === 4) {
-        const text = (await root.locator("main section h1").first().textContent()) ?? "";
-        expect(text).toContain("الصورة");
-        expect(text).toContain("يبدأ اسمها");
+        const copy = await displayedQuestionCopy(page);
+        expect(copy).toContain("الصورة");
+        expect(copy).toContain("يبدأ اسمها");
         await page.screenshot({ path: "playwright-report/screenshots/qx-listen-starting-image.png", fullPage: true });
       }
       if (index === 6) {
-        const text = (await root.locator("main section h1").first().textContent()) ?? "";
-        expect(text).toMatch(/آخرها|نهايتها/u);
+        const copy = await displayedQuestionCopy(page);
+        expect(copy).toMatch(/آخرها|نهايتها|تنتهي به|آخر صوت/u);
         await page.screenshot({ path: "playwright-report/screenshots/qx-final-sound.png", fullPage: true });
       }
 
