@@ -45,6 +45,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Critical assessment/activity URLs each have one mounted owner; helper modules
+# may be reused as services but never decide behavior by router registration order.
 app.include_router(auth_router)
 app.include_router(protected_router)
 app.include_router(journey_router)
