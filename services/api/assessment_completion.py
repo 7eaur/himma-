@@ -2,7 +2,7 @@
 
 This module owns the permanent completion contract. Development-only audio
 bypass markers can be recognised as neutral evidence, but the academic scoring
-policy no longer lives inside the temporary bypass module.
+policy never lives inside the temporary bypass module.
 
 Source-grounded rules:
 - readiness = 10 items / 20 points;
@@ -163,6 +163,9 @@ def _attempt_score(
 
 def score_session(db: Session, student: Student, session: AssessmentSession) -> dict:
     """Build the source-grounded assessment score from persisted evidence only."""
+    if session.session_type not in {"pretest", "posttest"}:
+        raise HTTPException(status_code=400, detail="هذا المسار مخصص لإنهاء الاختبار القبلي أو البعدي فقط")
+
     _preflight_audio_state(db, session.id)
 
     required_kind = assessment.KIND_BY_SESSION_TYPE[session.session_type]
@@ -210,9 +213,6 @@ def _pretest_placement(scored: dict) -> tuple[int, str, bool]:
 
 def finish_session(db: Session, student: Student, session: AssessmentSession) -> dict:
     """Finalize pre/post without rewriting learning history or inventing evidence."""
-    if session.session_type not in {"pretest", "posttest"}:
-        return assessment.finish_session(session_id=session.id, db=db, student=student)
-
     scored = score_session(db, student, session)
     final_percentage: Decimal = scored["final_percentage"]
     now = datetime.now(timezone.utc)
