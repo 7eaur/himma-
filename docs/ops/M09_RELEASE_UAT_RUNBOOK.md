@@ -103,6 +103,8 @@ M09 is not closed by health checks or backup tests alone. Final UAT evidence mus
 
 Existing CI/E2E evidence may be reused when it proves the exact same contract on the exact candidate SHA. Do not rerun completed work solely for ceremony, but do not claim a missing end-to-end transition is covered by unrelated tests.
 
+For adaptive-learning browser verification, `GET /learning-experience/session/{id}` is the authoritative payload for the interaction currently rendered to the student. `GET /activities/session/{id}/next` advances the session and reports transition status; its response must not be used as a substitute for the visible learning-experience contract.
+
 ## 9. Monitoring and incident minimums
 
 Before a real trial, the deployment owner must have:

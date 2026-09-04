@@ -16,12 +16,10 @@ type RichItem = {
   }>;
 };
 
-type ActivityPayload = {
-  item: {
-    id: number;
-    canonical_id?: string;
-    interaction_type: string;
-  };
+type LearningExperiencePayload = {
+  item_id: number;
+  stable_key: string;
+  interaction_type: string;
   step: {
     id: number;
     options: Array<{ id: number; text: string; order_index: number }>;
@@ -153,7 +151,7 @@ async function answerAssessmentVisual(page: Page, item: RichItem) {
   await page.getByRole("button", { name: "تأكيد والمتابعة" }).click();
 }
 
-async function chooseOrderedActivityItems(page: Page, payload: ActivityPayload) {
+async function chooseOrderedActivityItems(page: Page, payload: LearningExperiencePayload) {
   const confirm = page.getByRole("button", { name: "تأكيد والمتابعة" });
   const imageGroup = page.getByTestId("activity-sequence-image-options");
   if (await imageGroup.count()) {
@@ -174,11 +172,11 @@ async function chooseOrderedActivityItems(page: Page, payload: ActivityPayload) 
   await confirm.click();
 }
 
-async function answerActivityVisual(page: Page, payload: ActivityPayload) {
-  const interaction = payload.item.interaction_type;
+async function answerActivityVisual(page: Page, payload: LearningExperiencePayload) {
+  const interaction = payload.interaction_type;
   expect(
     payload.step.media_gaps ?? [],
-    `Approved journey reached a blocked media gap for item ${payload.item.canonical_id || payload.item.id}`,
+    `Approved journey reached a blocked media gap for item ${payload.stable_key || payload.item_id}`,
   ).toEqual([]);
 
   if (interaction === "read_aloud" || interaction === "timed_read_aloud") {
@@ -203,7 +201,7 @@ async function answerActivityVisual(page: Page, payload: ActivityPayload) {
   }
 
   if (interaction === "path_sequence") {
-    throw new Error(`Retired path_sequence reached student runtime: ${payload.item.canonical_id || payload.item.id}`);
+    throw new Error(`Retired path_sequence reached student runtime: ${payload.stable_key || payload.item_id}`);
   }
 
   const imageGroup = page.getByTestId("activity-image-options");
@@ -226,11 +224,20 @@ function isActivityNextResponse(response: import("@playwright/test").Response, s
   return response.request().method() === "GET" && response.url().endsWith(`/activities/session/${sessionId}/next`);
 }
 
-async function waitForActivityPayload(page: Page, payload: ActivityPayload) {
+async function waitForActivityPayload(page: Page, payload: LearningExperiencePayload) {
   const root = page.getByTestId("activity-session");
   await expect(root).toHaveAttribute("data-phase", "active", { timeout: 20000 });
-  await expect(root).toHaveAttribute("data-item-id", String(payload.item.id), { timeout: 20000 });
+  await expect(root).toHaveAttribute("data-item-id", String(payload.item_id), { timeout: 20000 });
   await expect(root).toHaveAttribute("data-step-id", String(payload.step.id), { timeout: 20000 });
+}
+
+async function fetchLearningExperience(
+  request: APIRequestContext,
+  sessionId: string,
+): Promise<LearningExperiencePayload | null> {
+  const response = await request.get(`${API_URL}/learning-experience/session/${sessionId}`);
+  expect(response.status(), "Authoritative learning-experience payload should return 200").toBe(200);
+  return response.json();
 }
 
 test.describe("Himma recovered vertical slice", () => {
@@ -358,7 +365,7 @@ test.describe("Himma recovered vertical slice", () => {
 
     const firstActivityResponse = await firstActivityResponsePromise;
     expect(firstActivityResponse.status()).toBe(200);
-    let current: ActivityPayload | null = await firstActivityResponse.json();
+    let current = await fetchLearningExperience(request, learningSessionId!);
     expect(current).toBeTruthy();
 
     const activityRoot = page.getByTestId("activity-session");
@@ -374,7 +381,7 @@ test.describe("Himma recovered vertical slice", () => {
       expect(activityInteractions, "Adaptive learning path should terminate").toBeLessThan(100);
       await waitForActivityPayload(page, current);
 
-      if (!capturedRichActivity && (current.item.interaction_type.includes("image") || (current.step.assets ?? []).some((asset) => asset.asset_type === "image"))) {
+      if (!capturedRichActivity && (current.interaction_type.includes("image") || (current.step.assets ?? []).some((asset) => asset.asset_type === "image"))) {
         await shot(page, "12-adaptive-activity-real-media");
         capturedRichActivity = true;
       }
@@ -387,6 +394,9 @@ test.describe("Himma recovered vertical slice", () => {
       const nextResponse = await nextResponsePromise;
       if (!nextResponse) {
         await expect(activityRoot).toHaveAttribute("data-phase", /^(active|done)$/, { timeout: 20000 });
+        if ((await activityRoot.getAttribute("data-phase")) === "active") {
+          current = await fetchLearningExperience(request, learningSessionId!);
+        }
         continue;
       }
       if (nextResponse.status() === 409) {
@@ -400,7 +410,7 @@ test.describe("Himma recovered vertical slice", () => {
         break;
       }
       expect(nextResponse.status()).toBe(200);
-      current = await nextResponse.json();
+      current = await fetchLearningExperience(request, learningSessionId!);
       if (current) await waitForActivityPayload(page, current);
       else await expect(activityRoot).toHaveAttribute("data-phase", "done", { timeout: 20000 });
     }
@@ -469,7 +479,7 @@ test.describe("Himma recovered vertical slice", () => {
       await expect(page.getByTestId("activity-session")).toHaveAttribute("data-phase", "active", { timeout: 15000 });
       const resumedResponse = await resumedResponsePromise;
       expect(resumedResponse.status()).toBe(200);
-      const resumed: ActivityPayload | null = await resumedResponse.json();
+      const resumed = await fetchLearningExperience(request, learningSessionId!);
       expect(resumed).toBeTruthy();
       await shot(page, "16-student-reinforcement-resumed");
 
