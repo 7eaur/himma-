@@ -1,100 +1,321 @@
-/* Student Experience v2 — shared route-scoped safety styles.
+/* Student Experience v2 — shared route-scoped visual system.
 
-   Activity and assessment layout live in their route CSS modules. This file
-   owns only cross-route safety invariants that must survive every viewport.
+   This file owns cross-route student presentation only. It intentionally does
+   not parse, rewrite, or infer academic content. Assessment and learning pages
+   continue to consume their structured APIs and session.module.css layout.
 
-   Important visual contract:
-   - no page-wide blur/frosted overlay during a normal question;
-   - no opacity fade that can make screenshots or fast devices look washed out;
-   - primary actions must never be clipped merely to satisfy a one-screen target;
-   - reduced-motion remains respected.
+   Visual goals carried forward from the approved development branch:
+   - compact progress hierarchy without hiding information;
+   - fluid Arabic typography and option sizing;
+   - one clear in-question audio control;
+   - visible primary CTA labels at every state;
+   - no clipping on short viewports;
+   - mobile/tablet tuning without DOM/content patches;
+   - reduced-motion support.
 */
 
 [data-testid="activity-session"],
-[data-testid="assessment-session"]{
-  --qx-blue:#347fd9;
-  --qx-blue-dark:#2466b8;
-  --qx-green:#51b985;
-  --qx-yellow:#ffc857;
-  --qx-navy:#20364d;
-  --qx-muted:#667d91;
-  --qx-border:#dce8f2;
-  --qx-bg:#f7fbff;
-  opacity:1;
-  filter:none;
-  backdrop-filter:none;
+[data-testid="assessment-session"] {
+  --qx-blue: #347fd9;
+  --qx-blue-dark: #2466b8;
+  --qx-green: #51b985;
+  --qx-yellow: #ffc857;
+  --qx-navy: #20364d;
+  --qx-muted: #667d91;
+  --qx-border: #dce8f2;
+  --qx-bg: #f7fbff;
+  opacity: 1;
+  filter: none;
+  backdrop-filter: none;
+  font-family: var(--font-student);
 }
 
 [data-testid="activity-session"][data-phase="active"],
 [data-testid="assessment-session"][data-phase="question"],
-[data-testid="assessment-session"][data-phase="submitting"]{
-  animation:none!important;
-  opacity:1!important;
-  filter:none!important;
+[data-testid="assessment-session"][data-phase="submitting"] {
+  animation: none !important;
+  opacity: 1 !important;
+  filter: none !important;
+  height: auto !important;
+  min-height: 100dvh !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
 }
 
-/* Full-screen is a target, never a clipping rule. On short desktop/tablet
-   viewports the page may scroll vertically so the primary CTA remains fully
-   reachable. Structural overflow inside the question card is released only in
-   active/question states; ordinary roomy viewports still render as one screen. */
-[data-testid="activity-session"][data-phase="active"],
-[data-testid="assessment-session"][data-phase="question"],
-[data-testid="assessment-session"][data-phase="submitting"]{
-  height:auto!important;
-  min-height:100dvh!important;
-  overflow-x:hidden!important;
-  overflow-y:auto!important;
-}
-
+/* Full-screen is a target, never a clipping rule. */
 [data-testid="activity-session"][data-phase="active"] > main,
 [data-testid="assessment-session"][data-phase="question"] > main,
-[data-testid="assessment-session"][data-phase="submitting"] > main{
-  min-height:calc(100dvh - 72px);
-  height:auto!important;
-  overflow:visible!important;
+[data-testid="assessment-session"][data-phase="submitting"] > main {
+  min-height: calc(100dvh - 72px);
+  height: auto !important;
+  overflow: visible !important;
 }
 
 [data-testid="activity-session"][data-phase="active"] > main > section,
 [data-testid="assessment-session"][data-phase="question"] > main > section,
-[data-testid="assessment-session"][data-phase="submitting"] > main > section{
-  height:auto!important;
-  min-height:calc(100dvh - 88px);
-  overflow:visible!important;
+[data-testid="assessment-session"][data-phase="submitting"] > main > section {
+  height: auto !important;
+  min-height: calc(100dvh - 88px);
+  overflow: visible !important;
 }
 
 [data-testid="activity-session"] button,
 [data-testid="assessment-session"] button,
 [data-testid="activity-session"] img,
-[data-testid="assessment-session"] img{
-  transition:transform .16s ease,border-color .16s ease,background-color .16s ease,box-shadow .16s ease;
+[data-testid="assessment-session"] img {
+  transition: transform .16s ease, border-color .16s ease, background-color .16s ease, box-shadow .16s ease;
 }
 
 [data-testid="activity-session"] button,
-[data-testid="assessment-session"] button{
-  min-height:44px;
-  min-width:44px;
-  touch-action:manipulation;
+[data-testid="assessment-session"] button {
+  min-height: 44px;
+  min-width: 44px;
+  touch-action: manipulation;
 }
 
 [data-testid="activity-session"] [role="alert"],
-[data-testid="assessment-session"] [role="alert"]{
-  border-radius:16px;
+[data-testid="assessment-session"] [role="alert"] {
+  border-radius: 16px;
 }
 
-@media(max-height:760px) and (min-width:641px){
-  [data-testid="activity-session"][data-phase="active"] > main,
-  [data-testid="assessment-session"][data-phase="question"] > main,
-  [data-testid="assessment-session"][data-phase="submitting"] > main{
-    padding-bottom:18px;
+/* Primary CTA labels are content, not decorative wrappers. */
+[data-testid="activity-session"] button[class*="primaryWide"] > span,
+[data-testid="assessment-session"] button[class*="primaryWide"] > span {
+  display: inline !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  color: inherit !important;
+  font: inherit !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+}
+
+/* Compact, calmer progress hierarchy shared by assessment and learning. */
+[data-testid="activity-session"] [class*="progressPanel"],
+[data-testid="assessment-session"] [class*="progressPanel"] {
+  padding: 10px 30px 12px !important;
+  border-radius: 24px !important;
+  margin-bottom: 10px !important;
+}
+
+[data-testid="activity-session"] [class*="progressTop"],
+[data-testid="assessment-session"] [class*="progressTop"] {
+  margin-bottom: 8px !important;
+}
+
+[data-testid="activity-session"] [class*="progressPanel"] [class*="assessmentBadge"],
+[data-testid="assessment-session"] [class*="progressPanel"] [class*="assessmentBadge"] {
+  min-height: 36px !important;
+  padding-inline: 14px !important;
+  font-size: .9rem !important;
+}
+
+[data-testid="activity-session"] [class*="progressPanel"] [class*="progressCount"],
+[data-testid="assessment-session"] [class*="progressPanel"] [class*="progressCount"] {
+  font-size: clamp(.84rem, 1.05vw, .98rem) !important;
+}
+
+[data-testid="activity-session"] [class*="progressPanel"] [class*="progressTrack"],
+[data-testid="assessment-session"] [class*="progressPanel"] [class*="progressTrack"] {
+  height: 10px !important;
+}
+
+/* The global utility sound button is redundant. Listening questions retain
+   the contextual in-question “استمع” action. */
+[data-testid="assessment-session"] button[aria-label="تشغيل صوت السؤال"] {
+  display: none !important;
+}
+
+/* Fluid Arabic hierarchy. Keep short task titles on one line where practical
+   while allowing safe fallback wrapping on very narrow screens below. */
+[data-testid="activity-session"][data-phase="active"] [class*="questionTitle"],
+[data-testid="assessment-session"][data-phase="question"] [class*="questionTitle"],
+[data-testid="assessment-session"][data-phase="submitting"] [class*="questionTitle"] {
+  width: 100% !important;
+  max-width: min(100%, 1080px) !important;
+  margin-top: 8px !important;
+  margin-bottom: 12px !important;
+  padding-inline: 2px;
+  font-size: clamp(.92rem, 2.4vw, 2.55rem) !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  text-wrap: nowrap !important;
+}
+
+[data-testid="activity-session"][data-phase="active"] [class*="stimulusBox"],
+[data-testid="assessment-session"][data-phase="question"] [class*="stimulusBox"],
+[data-testid="assessment-session"][data-phase="submitting"] [class*="stimulusBox"] {
+  width: min(100%, 500px) !important;
+  min-height: clamp(92px, 13vw, 120px) !important;
+  padding: clamp(12px, 1.8vw, 18px) clamp(14px, 2.2vw, 24px) !important;
+  font-size: clamp(1.3rem, 3.8vw, 3.6rem) !important;
+  line-height: 1.1 !important;
+  white-space: nowrap !important;
+  text-wrap: nowrap !important;
+  overflow: hidden !important;
+}
+
+[data-testid="activity-session"][data-phase="active"] [class*="letterStimulus"],
+[data-testid="assessment-session"][data-phase="question"] [class*="letterStimulus"],
+[data-testid="assessment-session"][data-phase="submitting"] [class*="letterStimulus"] {
+  font-size: clamp(3.6rem, 8vw, 6.4rem) !important;
+}
+
+/* Text and image options scale with available width rather than using the old
+   fixed oversized presentation. */
+[data-testid="activity-session"][data-phase="active"] button[class*="option"],
+[data-testid="assessment-session"][data-phase="question"] button[class*="option"],
+[data-testid="assessment-session"][data-phase="submitting"] button[class*="option"] {
+  min-height: clamp(72px, 8vw, 94px) !important;
+  padding: clamp(10px, 1.4vw, 15px) !important;
+  font-size: clamp(.95rem, 2vw, 1.7rem) !important;
+  line-height: 1.18 !important;
+  white-space: nowrap !important;
+  text-wrap: nowrap !important;
+}
+
+[data-testid="activity-session"] [class*="imageOption"],
+[data-testid="assessment-session"] [class*="imageOption"] {
+  font-size: clamp(.8rem, 1.25vw, 1rem) !important;
+}
+
+/* Focused confirmation action: centered, compact and visually primary without
+   the previous oversized full-width treatment. */
+[data-testid="activity-session"] button[class*="primaryWide"],
+[data-testid="assessment-session"] button[class*="primaryWide"] {
+  width: auto !important;
+  min-width: clamp(178px, 19vw, 230px) !important;
+  min-height: clamp(50px, 5vw, 56px) !important;
+  padding: 0 clamp(24px, 2.4vw, 34px) !important;
+  border-radius: clamp(17px, 1.6vw, 21px) !important;
+  justify-content: center !important;
+  gap: 0 !important;
+  font-size: clamp(.95rem, 1.25vw, 1.12rem) !important;
+}
+
+/* Completion and audio-review actions keep the same visual language. */
+[data-testid="assessment-session"][data-phase="done"] button,
+[data-testid="assessment-session"][data-phase="waiting_audio_review"] button {
+  width: auto !important;
+  min-width: clamp(190px, 22vw, 250px) !important;
+  min-height: 54px !important;
+  padding-inline: clamp(26px, 3vw, 38px) !important;
+  border: 0 !important;
+  border-radius: 18px !important;
+  background: linear-gradient(90deg, #1478f2 0%, #2f8cff 100%) !important;
+  color: #fff !important;
+  font-family: inherit !important;
+  font-size: clamp(.95rem, 1.3vw, 1.08rem) !important;
+  font-weight: 900 !important;
+  box-shadow: 0 12px 26px rgba(20, 120, 242, .22) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-inline: auto !important;
+}
+
+[data-testid="assessment-session"][data-phase="done"] button:hover,
+[data-testid="assessment-session"][data-phase="waiting_audio_review"] button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 15px 30px rgba(20, 120, 242, .26) !important;
+}
+
+@media (max-width: 820px) {
+  [data-testid="activity-session"] [class*="progressPanel"],
+  [data-testid="assessment-session"] [class*="progressPanel"] {
+    width: calc(100% - 28px) !important;
+    padding-inline: 18px !important;
+  }
+
+  [data-testid="activity-session"][data-phase="active"] [class*="questionTitle"],
+  [data-testid="assessment-session"][data-phase="question"] [class*="questionTitle"],
+  [data-testid="assessment-session"][data-phase="submitting"] [class*="questionTitle"] {
+    font-size: clamp(.88rem, 3.2vw, 1.8rem) !important;
   }
 }
 
-@media(prefers-reduced-motion:reduce){
+@media (max-width: 640px) {
+  [data-testid="activity-session"] [class*="progressPanel"],
+  [data-testid="assessment-session"] [class*="progressPanel"] {
+    width: calc(100% - 24px) !important;
+    padding: 8px 14px 10px !important;
+    border-radius: 20px !important;
+    margin-bottom: 10px !important;
+  }
+
+  [data-testid="activity-session"][data-phase="active"] [class*="questionTitle"],
+  [data-testid="assessment-session"][data-phase="question"] [class*="questionTitle"],
+  [data-testid="assessment-session"][data-phase="submitting"] [class*="questionTitle"] {
+    font-size: clamp(.82rem, 4vw, 1.18rem) !important;
+    max-width: 100% !important;
+    margin-block: 8px 10px !important;
+  }
+
+  [data-testid="activity-session"][data-phase="active"] [class*="stimulusBox"],
+  [data-testid="assessment-session"][data-phase="question"] [class*="stimulusBox"],
+  [data-testid="assessment-session"][data-phase="submitting"] [class*="stimulusBox"] {
+    width: min(88vw, 360px) !important;
+    min-height: clamp(82px, 24vw, 108px) !important;
+    padding: 12px 14px !important;
+    font-size: clamp(1.15rem, 7.5vw, 2.55rem) !important;
+    margin-bottom: 13px !important;
+  }
+
+  [data-testid="activity-session"][data-phase="active"] button[class*="option"],
+  [data-testid="assessment-session"][data-phase="question"] button[class*="option"],
+  [data-testid="assessment-session"][data-phase="submitting"] button[class*="option"] {
+    min-height: clamp(62px, 18vw, 78px) !important;
+    padding: 9px !important;
+    border-radius: 18px !important;
+    font-size: clamp(.86rem, 4.2vw, 1.18rem) !important;
+  }
+
+  [data-testid="activity-session"] button[class*="primaryWide"],
+  [data-testid="assessment-session"] button[class*="primaryWide"] {
+    min-width: 176px !important;
+    min-height: 50px !important;
+    padding-inline: 24px !important;
+    font-size: .98rem !important;
+  }
+
+  [data-testid="assessment-session"][data-phase="done"] button,
+  [data-testid="assessment-session"][data-phase="waiting_audio_review"] button {
+    width: min(100%, 250px) !important;
+    min-width: 0 !important;
+  }
+}
+
+@media (max-width: 420px) {
+  [data-testid="activity-session"][data-phase="active"] [class*="questionTitle"],
+  [data-testid="assessment-session"][data-phase="question"] [class*="questionTitle"],
+  [data-testid="assessment-session"][data-phase="submitting"] [class*="questionTitle"] {
+    white-space: normal !important;
+    text-wrap: balance !important;
+    line-height: 1.35 !important;
+  }
+
+  [data-testid="activity-session"][data-phase="active"] button[class*="option"],
+  [data-testid="assessment-session"][data-phase="question"] button[class*="option"],
+  [data-testid="assessment-session"][data-phase="submitting"] button[class*="option"] {
+    white-space: normal !important;
+    text-wrap: balance !important;
+  }
+}
+
+@media (max-height: 760px) and (min-width: 641px) {
+  [data-testid="activity-session"][data-phase="active"] > main,
+  [data-testid="assessment-session"][data-phase="question"] > main,
+  [data-testid="assessment-session"][data-phase="submitting"] > main {
+    padding-bottom: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
   [data-testid="activity-session"] *,
-  [data-testid="assessment-session"] *{
-    animation-duration:.001ms!important;
-    animation-iteration-count:1!important;
-    transition-duration:.001ms!important;
-    scroll-behavior:auto!important;
+  [data-testid="assessment-session"] * {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
   }
 }
