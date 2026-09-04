@@ -90,12 +90,14 @@ async function waitForAssessmentQuestion(page: Page) {
 }
 
 async function recordFromVisibleReadingUI(page: Page, submitLabel: RegExp) {
-  const start = page.getByRole("button", { name: "بدء التسجيل" });
+  const start = page.getByTestId("record-reading");
   await expect(start).toBeVisible({ timeout: 5000 });
+  await expect(start).toHaveAttribute("aria-label", "بدء التسجيل");
   await start.click();
   await page.waitForTimeout(850);
-  const stop = page.getByRole("button", { name: "إيقاف التسجيل" });
+  const stop = page.getByTestId("record-reading");
   await expect(stop).toBeVisible({ timeout: 5000 });
+  await expect(stop).toHaveAttribute("aria-label", "إيقاف التسجيل");
   await stop.click();
   const submit = page.getByRole("button", { name: submitLabel });
   await expect(submit).toBeEnabled({ timeout: 7000 });
@@ -229,6 +231,8 @@ async function waitForActivityPayload(page: Page, payload: LearningExperiencePay
   await expect(root).toHaveAttribute("data-phase", "active", { timeout: 20000 });
   await expect(root).toHaveAttribute("data-item-id", String(payload.item_id), { timeout: 20000 });
   await expect(root).toHaveAttribute("data-step-id", String(payload.step.id), { timeout: 20000 });
+  await expect(root).toHaveAttribute("data-interaction-type", payload.interaction_type, { timeout: 20000 });
+  await expect(root).toHaveAttribute("data-media-gap-count", "0", { timeout: 20000 });
 }
 
 async function fetchLearningExperience(

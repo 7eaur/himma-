@@ -8,6 +8,8 @@ on:
     branches: ['recovery/*']
     paths:
       - 'services/api/**'
+      - 'apps/web/src/app/student/activity/**'
+      - 'apps/web/tests/e2e/vertical-slice.spec.ts'
       - 'scripts/ops/**'
       - 'docs/ops/M09_RELEASE_UAT_RUNBOOK.md'
       - '.github/workflows/m09-release-readiness.yml'
