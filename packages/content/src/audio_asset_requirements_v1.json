@@ -1,0 +1,55 @@
+{
+  "version": "HIMMA-AUDIO-REQUIREMENTS-1.0",
+  "updated_at": "2026-09-04",
+  "policy": {
+    "substitution_allowed": false,
+    "placeholder_counts_as_approved": false,
+    "story_text_may_replace_audio_in_student_ui": false
+  },
+  "known_missing_required_assets": [
+    {
+      "gap_id": "GAP-AUDIO-01",
+      "canonical_id": "L1-CORE-06",
+      "round": 1,
+      "asset_type": "audio",
+      "usage": "prompt",
+      "semantic_text": "موز",
+      "status": "external_content_gap",
+      "notes": "موزة ليست بديلًا معتمدًا عن موز."
+    },
+    {
+      "gap_id": "GAP-AUDIO-02",
+      "canonical_id": "L2-CORE-06",
+      "round": 4,
+      "asset_type": "audio",
+      "usage": "prompt",
+      "semantic_text": "سَا",
+      "status": "external_content_gap",
+      "notes": "المطلوب مقطع سَا بمد طبيعي وواضح."
+    },
+    {
+      "gap_id": "GAP-AUDIO-03",
+      "canonical_id": "L1-CORE-09",
+      "rounds": [1, 2, 3, 4, 5],
+      "asset_type": "audio",
+      "usage": "auditory_story_prompt",
+      "semantic_text": "قصة ليان في المزرعة",
+      "recording_text": "ذهبت ليان مع أبيها إلى المزرعة في الصباح. رأت أرنبًا أبيض قرب الشجرة، فأعطته جزرة. ثم ساعدت أباها في سقي النباتات. وقبل أن تعود إلى البيت، قطفت زهرة صفراء لأمها.",
+      "student_visible_text": false,
+      "status": "external_content_gap",
+      "notes": "أصل قصة واحد يعاد استخدامه عبر الأسئلة الخمسة."
+    },
+    {
+      "gap_id": "GAP-AUDIO-04",
+      "canonical_id": "L1-REIN-11",
+      "rounds": [1, 2, 3, 4, 5],
+      "asset_type": "audio",
+      "usage": "auditory_story_prompt",
+      "semantic_text": "قصة نادر في الشاطئ",
+      "recording_text": "ذهب نادر مع أخته إلى الشاطئ. بنيا قلعة من الرمل، ثم جمعا أصدافًا جميلة. وبعد اللعب جلسا تحت المظلة وشربا الماء، ثم عادا إلى البيت.",
+      "student_visible_text": false,
+      "status": "external_content_gap",
+      "notes": "أصل قصة واحد يعاد استخدامه عبر أسئلة التقوية الخمسة."
+    }
+  ]
+}
