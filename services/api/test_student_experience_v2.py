@@ -59,10 +59,12 @@ def test_onset_comparison_uses_approved_two_word_auditory_contract():
         db.close()
 
 
-def test_path_tasks_are_replaced_by_approved_auditory_comprehension():
+def test_path_tasks_are_replaced_by_versioned_auditory_source_without_runtime_patch():
     result = seed_all.run_seed_all()
     assert result["auditory_story_changes"] == 2
-    assert result["auditory_runtime_changes"] == 2
+    assert result["auditory_source_items"] == 2
+    assert "auditory_runtime_changes" not in result
+
     db = SessionLocal()
     try:
         expected = {
@@ -97,7 +99,10 @@ def test_path_tasks_are_replaced_by_approved_auditory_comprehension():
             assert [option.text for option in options] == wanted["first_options"]
             assert sum(1 for option in options if option.is_correct) == 1
             assert all(not step.assets for step in item.steps)
+
             runtime = data.get("db_runtime") or {}
+            assert runtime.get("source_item", {}).get("story_text_internal") == wanted["story"]
+            assert runtime.get("source_item", {}).get("student_visible_story_text") is False
             assert len(runtime.get("rounds") or []) == 5
             for runtime_round in runtime["rounds"]:
                 assert runtime_round.get("assets") == []
@@ -105,6 +110,8 @@ def test_path_tasks_are_replaced_by_approved_auditory_comprehension():
                 assert len(gaps) == 1
                 assert gaps[0]["asset_type"] == "audio"
                 assert gaps[0]["status"] == "pending_audio_asset"
+                assert gaps[0]["semantic_text"] == wanted["story"]
+
             learning = data.get("learning_experience") or {}
             assert len(learning.get("rounds") or []) == 5
             assert all((round_data.get("stimulus_text") or "") == "" for round_data in learning["rounds"])
