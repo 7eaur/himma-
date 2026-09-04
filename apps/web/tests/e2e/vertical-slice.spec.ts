@@ -153,6 +153,27 @@ async function answerAssessmentVisual(page: Page, item: RichItem) {
   await page.getByRole("button", { name: "تأكيد والمتابعة" }).click();
 }
 
+async function chooseOrderedActivityItems(page: Page, payload: ActivityPayload) {
+  const confirm = page.getByRole("button", { name: "تأكيد والمتابعة" });
+  const imageGroup = page.getByTestId("activity-sequence-image-options");
+  if (await imageGroup.count()) {
+    while (!(await confirm.isEnabled())) {
+      const next = imageGroup.getByRole("button").first();
+      if (!(await next.count())) break;
+      await next.click();
+    }
+  } else {
+    const orderedOptions = [...payload.step.options].sort((a, b) => a.order_index - b.order_index);
+    for (const option of orderedOptions) {
+      if (await confirm.isEnabled()) break;
+      const candidate = page.getByRole("button", { name: option.text, exact: true }).first();
+      if (await candidate.count()) await candidate.click();
+    }
+  }
+  await expect(confirm).toBeEnabled({ timeout: 5000 });
+  await confirm.click();
+}
+
 async function answerActivityVisual(page: Page, payload: ActivityPayload) {
   const interaction = payload.item.interaction_type;
 
@@ -167,24 +188,34 @@ async function answerActivityVisual(page: Page, payload: ActivityPayload) {
     return;
   }
 
-  if (interaction === "sequence" || interaction === "memory_sequence" || interaction === "path_sequence" || interaction === "build_word") {
-    const orderedOptions = [...payload.step.options].sort((a, b) => a.order_index - b.order_index);
-    for (const option of orderedOptions) {
-      const candidate = page.getByRole("button", { name: option.text, exact: true }).first();
-      if (await candidate.count()) await candidate.click();
+  if (interaction === "memory_sequence") {
+    const preview = page.getByTestId("activity-memory-preview");
+    if (await preview.count()) {
+      await expect(preview).toBeVisible({ timeout: 5000 });
+      await page.getByRole("button", { name: "التالي", exact: true }).click();
+      await expect(page.getByTestId("activity-sequence-image-options")).toBeVisible({ timeout: 5000 });
     }
-    await page.getByRole("button", { name: "تأكيد والمتابعة" }).click();
+    await chooseOrderedActivityItems(page, payload);
     return;
+  }
+
+  if (interaction === "sequence" || interaction === "build_word") {
+    await chooseOrderedActivityItems(page, payload);
+    return;
+  }
+
+  if (interaction === "path_sequence") {
+    throw new Error(`Retired path_sequence reached student runtime: ${payload.item.canonical_id || payload.item.id}`);
   }
 
   const imageGroup = page.getByTestId("activity-image-options");
   if (await imageGroup.count()) {
-    const buttons = imageGroup.getByRole("button");
+    const buttons = imageGroup.getByTestId("activity-option");
     const count = await buttons.count();
     const selections = interaction === "choose_many" || interaction === "listen_choose_many" ? Math.min(2, count) : 1;
     for (let index = 0; index < selections; index += 1) await buttons.nth(index).click();
   } else {
-    const buttons = page.locator('button[aria-pressed="false"]');
+    const buttons = page.getByTestId("activity-option");
     await expect(buttons.first()).toBeVisible({ timeout: 5000 });
     const count = await buttons.count();
     const selections = interaction === "choose_many" || interaction === "listen_choose_many" ? Math.min(2, count) : 1;
@@ -367,7 +398,7 @@ test.describe("Himma recovered vertical slice", () => {
     }
 
     if (!adaptiveReviewHold) {
-      await expect(page.getByText("أحسنت، أكملت أنشطة مستواك")).toBeVisible({ timeout: 15000 });
+      await expect(activityRoot).toHaveAttribute("data-phase", "done", { timeout: 15000 });
       await shot(page, "13-learning-complete");
     }
 
