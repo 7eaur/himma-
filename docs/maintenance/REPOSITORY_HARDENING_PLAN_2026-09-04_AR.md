@@ -1,235 +1,268 @@
 # خطة التوحيد والتقوية الشاملة — منصة هِمّة
 
 **التاريخ:** 2026-09-04  
-**الحالة:** ACTIVE — وثيقة تنفيذ حيّة  
-**المستودع:** `7eaur/himma-`  
+**الحالة:** ACTIVE — التنفيذ المعماري مغلق، والتحقق النهائي جارٍ على SHA موحد  
+**المستودع الرسمي:** `7eaur/himma-`  
 **الفرع:** `recovery/ui-media-admin-overhaul`
 
 ## 1. الهدف
 
-الوصول إلى مستودع رسمي واحد يمكن الاعتماد عليه دون الرجوع إلى Sandbox لمعرفة «النسخة الأفضل»، مع:
+الوصول إلى مستودع رسمي واحد يمكن الاعتماد عليه دون الرجوع إلى Sandbox لمعرفة «النسخة الأفضل»، وفق المسار التالي:
+
+```text
+Approved versioned source
+  -> deterministic projection/seed
+  -> PostgreSQL runtime snapshot
+  -> structured API
+  -> deterministic renderer
+```
+
+مع القواعد التالية:
 
 - Runtime أكاديمي واحد واضح.
-- Design System واحد للطالب.
-- Admin System موحد.
-- لا DOM/content patches.
-- لا visual override layers.
+- Design System واحد لمهام الطالب.
+- Admin System مشترك بلا page-specific patch architecture.
+- لا DOM/content parser أو MutationObserver لحل حالة التطبيق.
+- لا `*-polish.css` كطبقة ترقيع فوق التصميم الأساسي.
+- لا اعتماد على ترتيب تسجيل FastAPI routers لحسم duplicate routes.
 - لا منطق أكاديمي دائم داخل ملفات Temporary.
-- فجوات الوسائط معلنة ولا تخفى ببدائل.
+- فجوات الوسائط معلنة كأصول ومتعددة الاستخدامات ولا تخفى ببدائل.
 - CI يختبر عقود السلوك لا نصوص copy هشة.
-- توثيق حي يطابق الكود الفعلي.
 
-## 2. ما أُنجز فعليًا في جولة 2026-09-04
+## 2. ما أُنجز فعليًا
 
-### A. توحيد تصميم مهام الطالب
+### A. Design System موحد لمهام الطالب — DONE
 
 تم:
 
-- جعل `session.module.css` القالب المشترك للاختبار والتعلم.
-- إزالة `student-experience.css`.
-- إزالة `activity-polish.css`.
+- جعل `apps/web/src/app/student/session/[id]/session.module.css` القالب المشترك للاختبار والتعلم والتقوية.
+- إزالة `student-experience.css` و`activity-polish.css`.
 - تحويل Coach/CTA من absolute layout إلى Grid طبيعي.
-- توحيد Desktop/Tablet/Mobile داخل نفس القالب.
-- الحفاظ على touch targets وreduced motion.
+- دمج Desktop/Tablet/Mobile داخل القالب نفسه.
+- الحفاظ على touch targets و`prefers-reduced-motion`.
 - إزالة `studentPath.module.css` غير المستخدم.
+- عدم إعادة مكونات Sandbox القديمة التي كانت تعدل DOM بعد render.
 
-المرجع:
+المرجع: `docs/architecture/STUDENT_TASK_DESIGN_SYSTEM_AR.md`.
 
-`docs/architecture/STUDENT_TASK_DESIGN_SYSTEM_AR.md`
-
-### B. إزالة DOM/Portal patch للتخطي الصوتي
+### B. إزالة ترقيع DOM/Portal للتخطي الصوتي — DONE
 
 تم:
 
-- حذف `TemporaryAudioSkipControl.tsx` الذي كان يعتمد `MutationObserver/querySelector/Portal`.
-- إضافة `DevelopmentAudioSkipAction` كعنصر صريح داخل Recording Panel.
+- حذف `TemporaryAudioSkipControl` القائم على `MutationObserver/querySelector/Portal`.
+- جعل Development Audio Skip عنصرًا صريحًا داخل Recording Panel.
 - تمرير `sessionId/itemId/stepId` مباشرة.
-- منع التخطي من إنشاء تسجيل/درجة/Mastery.
-- إزالة التخطي المؤقت من Layout الاختبار.
+- إبقاء التخطي محايدًا أكاديميًا: لا تسجيل وهمي، لا درجة، لا Reward، لا Mastery.
+- Trial/Production يفشلان مغلقين إذا كان bypass مفعّلًا.
 
-### C. تحسين عقد النشاط والاختبارات
-
-تمت إضافة عقود صريحة مثل:
-
-- `aria-pressed` للخيارات القابلة للتحديد.
-- `activity-option`.
-- `activity-image-options`.
-- `activity-text-options`.
-- `activity-sequence-*`.
-- `activity-memory-preview`.
-- `activity-reading-text`.
-- `declared-media-gap`.
-
-الهدف: لا يفترض E2E شكل DOM غير معلن.
-
-### D. إزالة feedback inference من DOM
+### C. إزالة UI state inference من DOM — DONE
 
 تم:
 
-- حذف `MutationObserver` الذي كان يقرأ `innerText` ويبحث عن عبارات مثل «حاول مرة أخرى».
-- إلغاء Popup reward المستنتج من النص/DOM.
-- إبقاء micro audio cue فقط على عقود صريحة: زر الاستماع و`aria-pressed`.
-- حذف CSS الخاص بالـPopup القديم.
+- إزالة قراءة `innerText` والبحث عن عبارات نجاح/إعادة.
+- إزالة reward popup المستنتج من DOM.
+- إبقاء micro audio cues على عقود صريحة فقط مثل زر الاستماع و`aria-pressed`.
+- نتائج الإنجاز والانتظار تعرضها الشاشة نفسها كحالة صريحة.
 
-### E. فصل منطق التقييم الدائم عن Temporary audio bypass
+### D. عقود Student UI/E2E — DONE
 
-تم إنشاء:
+العقود الحالية تشمل:
+
+- `activity-option`
+- `activity-image-options`
+- `activity-text-options`
+- `activity-sequence-image-options`
+- `activity-memory-preview`
+- `activity-reading-text`
+- `declared-media-gap`
+- `aria-pressed`
+- `data-phase`
+
+كما تم تحديث Vertical Slice بحيث:
+
+- الذاكرة تعرض الصور أولًا ثم ينقر الطالب/الاختبار `التالي` قبل الاسترجاع.
+- sequence/image tasks تستخدم العقود الحالية.
+- completion يتحقق من `data-phase=done` بدل copy قديمة.
+- وصول `path_sequence` المتقاعد إلى Runtime يعد فشلًا صريحًا.
+
+### E. Assessment completion — DONE
+
+تم فصل العقد الدائم إلى:
 
 `services/api/assessment_completion.py`
 
-ليحتوي عقد:
+وهو المالك الوحيد لـ:
 
-- pre/post completion.
-- section scoring.
-- audio review preflight.
-- provisional placement.
-- posttest no-backward-rewrite behavior.
+`POST /assessment/session/{session_id}/finish`
 
-وأعيد `temporary_audio_skip.py` إلى وظيفة تطويرية فقط.
+وتم حذف endpoint القديم المكرر من `assessment.py` وإضافة اختبار يثبت وجود مالك واحد فقط.
 
-**ملاحظة تقنية:** ما زال `assessment.py` يحتوي endpoint legacy لـ`finish` للتوافق، بينما `assessment_completion_router` مسجل قبله ويملك العقد الحالي. إزالة الـlegacy duplicate بالكامل خطوة Hardening لاحقة بعد إثبات جميع الاختبارات؛ لا يحذف عميانيًا قبل ذلك.
+`temporary_audio_skip.py` عاد لوظيفته التطويرية فقط ولا يملك placement/scoring الدائم.
 
-### F. تنظيف ملفات خطرة/ميتة
+### F. Activities route ownership — DONE
+
+تم إلغاء نمط:
+
+`V4 routes + include legacy router + الاعتماد على registration order`
+
+وأصبح `activities_v4.py` المالك الوحيد للمسارات العامة:
+
+- `GET /activities/status`
+- `POST /activities/start`
+- `GET /activities/session/{session_id}/progress`
+- `GET /activities/session/{session_id}/next`
+- `POST /activities/session/{session_id}/attempt/{item_id}/submit`
+
+`activities.py` يستخدم حاليًا كمكتبة service/helpers مثبتة ولا يتم Mount للـrouter الخاص به. ويوجد اختبار يمنع duplicate route ownership مستقبلًا.
+
+### G. Source واحد للقصص السمعية — DONE
+
+المصدر المعتمد:
+
+`packages/content/src/l1_auditory_comprehension_v1.json`
+
+ويحتوي:
+
+- `L1-CORE-09` — قصة ليان في المزرعة.
+- `L1-REIN-11` — قصة نادر في الشاطئ.
+
+تم إلغاء `patch_db_runtime()` بالكامل. المسار الحالي:
+
+```text
+l1_auditory_comprehension_v1.json
+  -> seed_l1_auditory_story_replacement.py
+  -> normalized DB rows
+  -> seed_db_runtime_contract.py
+  -> db_runtime snapshot
+```
+
+لا يوجد تعديل لاحق للـRuntime بعد إسقاطه.
+
+### H. تصحيح Skill/Adaptive Mapping للاستبدال السمعي — DONE
+
+كانت فجوة حقيقية: `L1-REIN-11` أصبح قصة سمعية بينما خريطة التقوية ما زالت تربطه بمهارة اتجاه القراءة القديمة.
+
+تمت المصالحة كالتالي:
+
+- Skill الحالي: `auditory_literal_comprehension`.
+- الاسم: `الفهم السمعي المباشر`.
+- الأسرة: `auditory_comprehension`.
+- المرشح المباشر: `L1-REIN-11`.
+- `L1-CORE-09` و`L1-REIN-11` يشيران إلى Skill نفسه.
+- Skill row التاريخي نفسه أعيد توصيفه دون حذف FK/history ودون إنشاء مهارة رقم 45.
+- `visual_motor_direction` لا يظهر في الخريطة الحالية.
+- Reinforcement Map أصبح `HIMMA-REINFORCEMENT-MAP-1.2` ويظل 44 مهارة.
+- اختبار Runtime يثبت عدم بقاء `path_sequence` كـcanonical interaction حالي.
+
+### I. فجوات الصوت — EXTERNAL-GATED ومكتملة التوثيق
+
+عدد الأصول الصوتية المطلوبة المفقودة = **4**:
+
+1. `موز` — `L1-CORE-06/R01`.
+2. `سَا` — أصل واحد يستخدم في:
+   - `L2-CORE-06/R04`
+   - `L2-REIN-08/R04`
+3. قصة ليان/المزرعة — أصل واحد يعاد استخدامه عبر جولات `L1-CORE-09` الخمس.
+4. قصة نادر/الشاطئ — أصل واحد يعاد استخدامه عبر جولات `L1-REIN-11` الخمس.
+
+المصدر machine-readable:
+
+`packages/content/src/audio_asset_requirements_v1.json`
+
+الإصدار: `HIMMA-AUDIO-REQUIREMENTS-1.1`.
+
+السياسة:
+
+- لا substitution.
+- لا placeholder يعد approved.
+- `موزة` ليست بديلًا عن `موز`.
+- نص القصة لا يحل محل الصوت في واجهة الطالب.
+- أصل واحد يمكن أن يخدم عدة usages ويجب ربطها جميعًا عند الاستلام.
+
+M08 يبقى **EXTERNAL-GATED** حتى تصل الملفات الأربعة المعتمدة.
+
+### J. Admin reconciliation — DONE دلاليًا
+
+تمت مقارنة الكود الفعلي في الرسمي مع آخر Sandbox المرجعي في:
+
+- `AdminUI.tsx`
+- `AdminUI.module.css`
+- `AdminNotifications.tsx`
+- `AdminNotifications.module.css`
+
+النتيجة: السلوك والتصميم المشترك متصالحان دلاليًا؛ اختلافات SHA المتبقية كانت تنسيق/أسطر وليست ميزة ناقصة. لم يتم إنشاء commit شكلي لمجرد مطابقة SHA.
+
+### K. تنظيف Legacy/خطر — DONE للـcritical flow
 
 تم حذف:
 
-- `scratch.py`: سكربت قديم بمسار Windows ثابت كان يعدل/يلحق CSS وملفات محلية، وليس Runtime أو build tool معتمدًا.
-- `studentPath.module.css`: ملف Legacy غير مستخدم.
+- `scratch.py` القديم ذي مسار Windows الثابت وكتابة CSS المباشرة.
+- `studentPath.module.css` غير المستخدم.
+- طبقات polish السابقة.
+- DOM enhancer/temporary injection components المرتبطة بالمسار الحرج.
 
-### G. تصحيح سجل الصوت
+البحث الحالي لا يجد `polish.css` أو `TemporaryAudioSkipControl` أو `AssessmentExperienceEnhancer` أو `MutationObserver` في الرسمي.
 
-تم تصحيح الاعتقاد القديم أن الفجوات = 2 فقط.
+## 3. التحقق النهائي
 
-الفجوات المعروفة الآن = **4**:
+### P0-01 — Quality Gate على SHA واحد
 
-1. `موز` — L1-CORE-06.
-2. `سَا` — L2-CORE-06.
-3. قصة ليان/المزرعة — L1-CORE-09.
-4. قصة نادر/الشاطئ — L1-REIN-11.
+الحالة: **VERIFYING**.
 
-المرجع:
-
-`docs/specs/AUDIO_INVENTORY_AND_GAPS_2026-08-28_AR.md`
-
-## 3. P0 — لا اعتماد نهائي قبل إغلاقها
-
-### P0-01 — Quality Gate على SHA موحد
-
-الحالة: **PENDING VERIFY**.
-
-يجب تشغيل والتحقق من:
+يجب تثبيت النتائج على SHA النهائي نفسه لـ:
 
 - Backend tests.
 - Frontend typecheck/lint/unit/build.
-- Integration E2E.
-- M04 responsive visual gate.
-- M09/full journey/release gate حسب workflow الحالي.
+- Integration job حسب شروط workflow.
+- M04 responsive visual gate + artifact screenshots.
+- M09 release readiness.
 
-لا PASS بدون SHA + Run IDs + jobs.
+لا يكتب PASS هنا أو في تقرير التسليم دون Run IDs وjobs/conclusions.
 
-### P0-02 — E2E semantics
-
-تم إصلاح exact copy assertion في Dashboard إلى عقد دلالي.
-
-يجب التأكد من `vertical-slice.spec.ts` بعد التغييرات الحالية، خصوصًا:
-
-- memory preview يحتاج `التالي` قبل recall.
-- sequence/image choices تستخدم test IDs الحالية.
-- completion يجب الاعتماد فيه على `data-phase=done` لا copy قديمة.
-
-إذا فشل الـCI لهذا السبب، يصلح الاختبار ليحاكي UI الحقيقي ولا يعدل المنتج لإرضاء اختبار stale.
-
-### P0-03 — External audio gates
+### P0-02 — External Media Gate
 
 الحالة: **EXTERNAL-GATED**.
 
-لا يمكن للكود إغلاق الأصول الأربعة المطلوبة. لا substitutions ولا fake assets.
+هذه ليست مشكلة كود قابلة للاختلاق. المطلوب الملفات الصوتية الأربعة المذكورة أعلاه، ثم:
 
-M08 يبقى PENDING في النطاق الذي يعتمد عليها.
+1. إضافتها إلى حزمة الصوت المعتمدة.
+2. تحديث manifest/checksum.
+3. ربط جميع usages.
+4. تشغيل seed/projection.
+5. التحقق من عدم بقاء gap المقابل.
+6. إعادة M08 والبوابات المرتبطة.
 
-## 4. P1 — Hardening معماري
+## 4. P2 — تحسينات صيانة مستقبلية غير حاجبة للفرع الحالي
 
-### P1-01 — إزالة legacy duplicate finish route
+### P2-01 — استخراج Activity service module
 
-الوضع الحالي:
+`activities.py` لم يعد Mounted لكنه ما زال يحمل تاريخ Stage-2 ودوال route-decorated تستخدم كخدمات من `activities_v4.py`.
 
-- `assessment_completion.py` = العقد الدائم الصحيح.
-- `assessment.py` ما زال يحتوي `/session/{id}/finish` legacy.
+التنظيف المستقبلي الأفضل:
 
-المطلوب بعد CI:
+- استخراج scoring/state helpers إلى `activity_service.py` بلا `APIRouter`.
+- نقل tests إلى الخدمة الجديدة.
+- إبقاء `activities_v4.py` طبقة HTTP رفيعة.
+- حذف module legacy فقط بعد إثبات عدم وجود imports خارجية.
 
-- نقل أي test/import أخير للعقد الجديد.
-- حذف implementation القديم أو تحويله إلى استدعاء مباشر لخدمة completion واحدة دون duplicate route order dependency.
-- إضافة test يثبت وجود route فعلي واحد للمسار النهائي.
+هذا لا يسبب duplicate Runtime routes حاليًا، لذلك هو P2 لا P0.
 
-### P1-02 — Runtime/seed simplification
+### P2-02 — Dead CSS audit إضافي
 
-الوضع الحالي صحيح وظيفيًا لكنه يحتوي عدة seed مراحل تاريخية.
+بعد استقرار Screenshots:
 
-المطلوب ليس حذف التاريخ، بل فصل:
+- مراجعة selectors غير المستخدمة في `session.module.css` و`globals.css`.
+- إزالة class فقط بدليل consumer/search/build.
+- لا purge آلي أعمى.
 
-- migrations/history؛
-- approved source؛
-- current projection؛
-- orchestration.
+### P2-03 — Visual regression expansion
 
-الهدف النهائي:
-
-```text
-approved versioned content
-  -> one current projection orchestration
-  -> DB snapshot
-  -> readiness contract
-```
-
-أي seed تاريخي يبقى migration/history ولا يكون مصدرًا ثانيًا للحقيقة.
-
-### P1-03 — Media manifest contract
-
-ينبغي تحويل سجل الصوت من Markdown فقط إلى Manifest machine-readable يربط:
-
-- asset_id.
-- semantic_text.
-- canonical item.
-- usage.
-- master/web files.
-- status approved/pending.
-- checksum عند توفر الملفات.
-
-ثم يقرأ validator هذا manifest ويمنع إعلان content ready إذا كان المسار المطلوب يحتاج asset مفقودًا.
-
-### P1-04 — Admin visual reconciliation
-
-الـAdmin الحالي وظيفي وResponsive، لكن يجب عمل مراجعة تصميمية نهائية على:
-
-- Dashboard hierarchy.
-- Students list/detail.
-- Audio Review.
-- Reports.
-- Skill Reports.
-- Notifications.
-- Settings.
-
-القاعدة: التحسين يدخل في `AdminUI`/shared tokens، لا Page-specific patch CSS.
-
-## 5. P2 — جودة وصيانة
-
-### P2-01 — Dead CSS audit
-
-بعد استقرار CI:
-
-- استخراج selectors غير المستخدمة في `session.module.css` و`globals.css`.
-- إزالة أي class لم يعد له consumer.
-- لا تستخدم purge آليًا دون مراجعة لأن CSS Modules/conditional rendering قد لا يظهران في بحث نصي بسيط.
-
-### P2-02 — Visual regression coverage
-
-مصفوفة ثابتة للشاشات الحرجة:
+المصفوفة المستهدفة:
 
 - Landing.
 - Student Login/Home.
 - Assessment text/image/listen/record/sequence.
-- Memory.
+- Memory preview + recall.
 - Reinforcement.
 - Completion/waiting review.
 - Admin Dashboard.
@@ -239,35 +272,34 @@ approved versioned content
 
 Desktop + Tablet + Mobile.
 
-### P2-03 — Documentation hygiene
+## 5. قواعد تمنع عودة الترقيع
 
-- Active docs تبقى قليلة وواضحة.
-- Sandbox handoffs تحفظ في archive إن احتجناها.
-- لا يكون ملف handoff قديم أعلى سلطة من كود/contract أحدث.
+يرفض أي تغيير جديد إذا:
 
-## 6. قواعد تمنع عودة الترقيع
-
-أي PR/commit جديد يخص الطالب يجب رفضه إذا:
-
-- أضاف `*-polish.css` بدل تعديل المصدر.
+- أضاف `*-polish.css` بدل تعديل القالب المصدر.
 - استخدم DOM parser لاستخراج محتوى السؤال.
-- استخدم MutationObserver لحل حالة application state.
-- استخدم selector على CSS Module hashed name من ملف خارجي.
+- استخدم MutationObserver لحل application state.
+- استخدم selector خارجي على CSS Module hashed class.
 - أخفى media gap بصوت/نص بديل.
 - أعاد `path_sequence` دون قرار أكاديمي جديد.
-- غير قواعد promotion/scoring كأثر جانبي لتعديل UI.
+- أعاد duplicate API route يعتمد على registration order.
+- وضع scoring/placement دائمًا داخل Temporary/Dev module.
+- غيّر promotion/scoring كأثر جانبي لتعديل UI.
 
-## 7. Definition of Repository Ready
+## 6. Definition of Repository Ready
 
-لا يسمى الفرع Ready/Closed إلا إذا اجتمعت:
+يسمى **Repository Code Ready** فقط إذا اجتمعت:
 
-1. Runtime counts 125/35/30/65/30 صحيحة.
-2. readiness يمر على DB current projection.
-3. Backend/Frontend/Integration أخضر على نفس SHA.
-4. M04 أخضر وصور من نفس SHA.
-5. رحلة الطالب الأساسية مختبرة.
-6. Admin critical paths مختبرة.
-7. كل media gap معلن، لا مخفي.
-8. أي External Gap مذكور صراحة في قرار الإصدار.
-9. Sandbox لم يعد يحتوي تحسينًا معروفًا مطلوبًا لم تتم مصالحته.
-10. لا Patch architecture معروفة في critical student flow.
+1. Runtime counts `125 / 35 / 30 / 65 / 30` صحيحة.
+2. المهارات الحالية 44 وخريطة التقوية متوافقة مع المحتوى الحالي.
+3. `path_sequence` المتقاعد غير موجود في canonical Runtime.
+4. DB Runtime يبنى من المصادر versioned بلا post-projection patch.
+5. Assessment/Activities critical URLs لها owner واحد.
+6. Backend/Frontend/Integration أخضر على SHA واحد.
+7. M04 أخضر وصور من نفس SHA.
+8. M09 أخضر من نفس SHA.
+9. كل media gap معلن ولا يوجد substitute مخفي.
+10. Sandbox لم يعد يحتوي تحسينًا معروفًا مطلوبًا غير مصالح في الرسمي.
+11. لا Patch architecture معروفة في critical student flow.
+
+حتى بعد تحقق ذلك، **M08/Full Media Release يبقى External-Gated** إلى أن تصل الأصول الصوتية الأربعة وتتم إعادة البوابات المعنية.
