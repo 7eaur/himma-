@@ -176,12 +176,10 @@ async function chooseOrderedActivityItems(page: Page, payload: ActivityPayload) 
 
 async function answerActivityVisual(page: Page, payload: ActivityPayload) {
   const interaction = payload.item.interaction_type;
-
-  const gapButton = page.getByRole("button", { name: "متابعة دون احتساب الجولة" });
-  if (await gapButton.count()) {
-    await gapButton.click();
-    return;
-  }
+  expect(
+    payload.step.media_gaps ?? [],
+    `Approved journey reached a blocked media gap for item ${payload.item.canonical_id || payload.item.id}`,
+  ).toEqual([]);
 
   if (interaction === "read_aloud" || interaction === "timed_read_aloud") {
     await recordFromVisibleReadingUI(page, /إرسال التسجيل/);
@@ -226,6 +224,13 @@ async function answerActivityVisual(page: Page, payload: ActivityPayload) {
 
 function isActivityNextResponse(response: import("@playwright/test").Response, sessionId: string) {
   return response.request().method() === "GET" && response.url().endsWith(`/activities/session/${sessionId}/next`);
+}
+
+async function waitForActivityPayload(page: Page, payload: ActivityPayload) {
+  const root = page.getByTestId("activity-session");
+  await expect(root).toHaveAttribute("data-phase", "active", { timeout: 20000 });
+  await expect(root).toHaveAttribute("data-item-id", String(payload.item.id), { timeout: 20000 });
+  await expect(root).toHaveAttribute("data-step-id", String(payload.step.id), { timeout: 20000 });
 }
 
 test.describe("Himma recovered vertical slice", () => {
@@ -358,6 +363,7 @@ test.describe("Himma recovered vertical slice", () => {
 
     const activityRoot = page.getByTestId("activity-session");
     await expect(activityRoot).toHaveAttribute("data-phase", /^(active|done)$/, { timeout: 15000 });
+    await waitForActivityPayload(page, current!);
     await shot(page, "11-first-adaptive-learning-activity");
 
     let activityInteractions = 0;
@@ -366,6 +372,7 @@ test.describe("Himma recovered vertical slice", () => {
     while ((await activityRoot.getAttribute("data-phase")) !== "done" && current) {
       activityInteractions += 1;
       expect(activityInteractions, "Adaptive learning path should terminate").toBeLessThan(100);
+      await waitForActivityPayload(page, current);
 
       if (!capturedRichActivity && (current.item.interaction_type.includes("image") || (current.step.assets ?? []).some((asset) => asset.asset_type === "image"))) {
         await shot(page, "12-adaptive-activity-real-media");
@@ -394,7 +401,8 @@ test.describe("Himma recovered vertical slice", () => {
       }
       expect(nextResponse.status()).toBe(200);
       current = await nextResponse.json();
-      await expect(activityRoot).toHaveAttribute("data-phase", /^(active|done)$/, { timeout: 20000 });
+      if (current) await waitForActivityPayload(page, current);
+      else await expect(activityRoot).toHaveAttribute("data-phase", "done", { timeout: 20000 });
     }
 
     if (!adaptiveReviewHold) {

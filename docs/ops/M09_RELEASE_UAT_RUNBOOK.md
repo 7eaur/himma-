@@ -13,10 +13,9 @@ This runbook defines the repeatable technical steps for a controlled Himma trial
 A release candidate must not be described as production-complete while any of the following remains unresolved:
 
 - M08 real speech provider / calibration / privacy-retention decisions.
-- Approved exact static audio assets `موز` and `سَا` are still missing.
 - Any client/source decision explicitly recorded as open in the continuity handoff.
 
-The temporary audio bypass is testing-only. `ENV=trial` and `ENV=production` must start with `HIMMA_TEMP_AUDIO_SKIP=false`; startup fails closed otherwise.
+The approved static-audio catalog must validate with no declared media gaps. The former temporary student audio bypass has been deleted from the API and web application; no environment variable may restore it.
 
 ## 3. Environment contract
 
@@ -32,7 +31,6 @@ Required runtime configuration:
 - `CORS_ORIGINS`
 - supervisor credentials only through the deployment secret store
 - `ENV=trial` or `ENV=production`
-- `HIMMA_TEMP_AUDIO_SKIP=false`
 
 Never commit real credentials, child data, recordings, database dumps, or production `.env` files.
 
@@ -149,7 +147,7 @@ No force-reset or destructive branch rewrite is part of the release procedure.
 
 `.github/workflows/m09-release-readiness.yml` verifies on a synthetic environment:
 
-- trial startup rejects the temporary audio bypass;
+- the deleted temporary student audio-bypass route remains absent;
 - `/ready` reaches PostgreSQL, Redis, and MinIO;
 - approved catalog + migrations/seeds build successfully;
 - PostgreSQL dump/restore preserves critical table counts;
