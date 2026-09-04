@@ -20,6 +20,7 @@ ROOT = Path(__file__).resolve().parents[2]
 CONTENT = ROOT / "packages" / "content" / "src"
 CATALOG = CONTENT / "catalog.json"
 ADDITIONS = (CONTENT / "reinforcement_additions_v1.json", CONTENT / "reinforcement_additions_v2.json")
+AUDITORY_STORIES = CONTENT / "l1_auditory_comprehension_v1.json"
 VISUAL_PLAN = CONTENT / "visual_asset_plan_v1.json"
 AUDIO_MANIFEST = ROOT / "assets" / "audio" / "HIMMA_AUDIO_V1" / "manifest.csv"
 IMAGE_MAP = ROOT / "assets" / "education" / "developer" / "asset-map.json"
@@ -132,6 +133,35 @@ def _project_addition(item: dict[str, Any], visual: dict[str, Any]) -> dict[str,
     return projected
 
 
+def _project_auditory_story(item: dict[str, Any]) -> dict[str, Any]:
+    projected = dict(item)
+    story_text = str(item.get("story_text_internal") or "").strip()
+    asset_id = str(item.get("audio_asset_id") or "").strip()
+    audio_status = str(item.get("audio_status") or "pending_audio_asset")
+    rounds: list[dict[str, Any]] = []
+    for order_index, raw in enumerate(item.get("rounds", []), start=1):
+        round_data = dict(raw)
+        round_data["order_index"] = order_index
+        if asset_id:
+            round_data["media"] = [{
+                "asset_id": asset_id,
+                "asset_type": "audio",
+                "usage": "prompt",
+                "semantic_text": story_text,
+            }]
+        else:
+            round_data["media_gaps"] = [{
+                "asset_type": "audio",
+                "usage": "prompt",
+                "semantic_text": story_text,
+                "status": audio_status,
+                "reason": "approved auditory story content is ready; audio file will be linked when supplied",
+            }]
+        rounds.append(round_data)
+    projected["rounds"] = rounds
+    return projected
+
+
 def _sources() -> dict[str, dict[str, Any]]:
     base = _json(CATALOG)
     result = {str(item["canonical_id"]): item for item in base.get("items", [])}
@@ -141,6 +171,11 @@ def _sources() -> dict[str, dict[str, Any]]:
         for item in payload.get("items", []):
             projected = _project_addition(item, visual)
             result[str(projected["canonical_id"])] = projected
+
+    auditory = _json(AUDITORY_STORIES, {"items": []})
+    for item in auditory.get("items", []):
+        projected = _project_auditory_story(item)
+        result[str(projected["canonical_id"])] = projected
     return result
 
 
