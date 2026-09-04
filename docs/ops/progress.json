@@ -1,154 +1,82 @@
 {
-  "schema_version": 4,
-  "plan_version": "HIMMA-FULL-MAINTENANCE-2026-08-31",
+  "schema_version": 5,
+  "plan_version": "HIMMA-FULL-MAINTENANCE-2026-09-04",
   "repository": "7eaur/himma-",
   "branch": "recovery/ui-media-admin-overhaul",
   "phase": "FULL_MAINTENANCE_AND_RELEASE_READINESS",
-  "slice": "APPROVED_STATIC_AUDIO_PAYLOAD_INTEGRATION",
-  "gate_status": "AUDIO_PAYLOAD_LOCAL_GREEN_REMOTE_GATES_REQUIRED",
+  "slice": "POST_AUDIO_RECONCILIATION_FINAL_VERIFICATION",
   "last_verified": "2026-09-04",
-  "latest_verified_executable_head": "9f4389d83f751910daf605e1c37b4232b5b3ae93",
-  "continuity_handoff": "docs/ops/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-08-31_AR.md",
-  "quality_gate": {
-    "number": 496,
-    "id": 33344517705,
-    "head_sha": "9f4389d83f751910daf605e1c37b4232b5b3ae93",
-    "backend": "SUCCESS",
-    "frontend": "SUCCESS",
-    "integration": "SUCCESS",
-    "playwright": "SUCCESS"
+  "current_executable_candidate_before_docs": "b999d85e8df5df41bb9e82bc5a0e7ecdbf6fcfaf",
+  "runtime": {
+    "original_items": 105,
+    "runtime_total": 125,
+    "reinforcement_total": 35,
+    "skills": 44,
+    "architecture": "approved_versioned_source -> deterministic_projection -> postgres_runtime -> structured_api -> deterministic_renderer"
   },
-  "responsive_visual_gate": {
-    "number": 95,
-    "id": 33344062713,
-    "head_sha": "a5545a1425cc99891972e2ec55b290198cb98034",
-    "status": "SUCCESS",
-    "viewports": ["360x800", "390x844", "768x1024", "1024x768", "1440x900"],
-    "note": "No UI files changed in the subsequent 9f4389d M09 backup/runbook commit."
+  "student_experience": {
+    "unified_task_design_system": true,
+    "polish_override_architecture_removed": true,
+    "dom_state_inference_removed": true,
+    "temporary_audio_skip_removed": true,
+    "minimum_touch_target_px": 44
   },
-  "m09_release_readiness_gate": {
-    "number": 1,
-    "id": 33344517713,
-    "head_sha": "9f4389d83f751910daf605e1c37b4232b5b3ae93",
-    "status": "SUCCESS",
-    "checks": [
-      "TRIAL_FAILS_CLOSED_WITH_TEMP_AUDIO_SKIP",
-      "READY_POSTGRES_REDIS_MINIO",
-      "POSTGRES_BACKUP_RESTORE_VERIFIED",
-      "PRIVATE_OBJECT_STORE_BACKUP_RESTORE_VERIFIED",
-      "CI_BACKUPS_EPHEMERAL_NOT_UPLOADED"
-    ]
+  "audio": {
+    "fixed_prompt_story_assets_status": "CLOSED",
+    "fixed_approved_assets": 54,
+    "wav_binaries": 54,
+    "mp3_binaries": 54,
+    "missing_required_static_audio": [],
+    "approved_reconciliation": {
+      "LET-01": "مَ (approved SYL-15 bytes published under stable LET-01 ID)",
+      "SYL-13": "سَا",
+      "WRD-29": "موز",
+      "INS-01": "قصة ليان في المزرعة",
+      "INS-02": "قصة نادر في الشاطئ"
+    },
+    "changed_binary_pairs_physically_verified_on_github": true,
+    "changed_binary_count": 10,
+    "temporary_skip_ui_removed": true,
+    "temporary_skip_api_removed": true,
+    "temporary_skip_feature_flag_removed": true,
+    "temporary_skip_backend_module_removed": true,
+    "supervisor_review_authoritative_until_asr": true,
+    "contract": "docs/maintenance/AUDIO_RUNTIME_AND_REVIEW_CONTRACT_2026-09-04_AR.md"
+  },
+  "asr": {
+    "architecture": "Reference-Guided Arabic Reading Analysis",
+    "provider_connected_for_production": false,
+    "calibration_complete": false,
+    "privacy_retention_policy_complete": false,
+    "human_override_policy_complete": false,
+    "status": "FUTURE_PRODUCTION_GATE_NOT_STATIC_AUDIO_GAP"
   },
   "stages": {
     "M00": "CLOSED",
     "M01": "CLOSED_BASELINE",
-    "M02": "CLOSED_BASELINE_REFINED_BY_R1",
-    "M03": "CLOSED_WITH_RUNTIME_GAP_CLOSURE",
-    "M04": "CLOSED_STUDENT_UI_AND_QX_BASELINE",
-    "M05": "CLOSED_SUPERVISOR_UX_BASELINE",
-    "M06": "CLOSED_RESPONSIVE_ACCESSIBILITY_BASELINE",
-    "M07": "CLOSED_REPORTING_BASELINE",
-    "M08": "PENDING_EXTERNAL_GATES",
-    "M09": "IN_PROGRESS_INFRA_GREEN_FULL_JOURNEY_UAT_NEXT"
+    "M02": "CLOSED_BASELINE_REFINED",
+    "M03": "CLOSED_RECONCILED",
+    "M04": "CLOSED_BASELINE_EXACT_SHA_REGRESSION_GATE_REQUIRED",
+    "M05": "CLOSED_BASELINE",
+    "M06": "CLOSED_BASELINE",
+    "M07": "CLOSED_BASELINE",
+    "M08_FIXED_AUDIO": "CLOSED",
+    "M08_AUTOMATIC_SPEECH_ANALYSIS": "OPEN_FUTURE_GATE",
+    "M09": "IN_PROGRESS"
   },
-  "corrections": {
-    "R1": "EARLY_PROMOTION_POLICY_IMPLEMENTED_AND_TESTED",
-    "R2": "PROMOTION_SESSION_HANDOFF_FIXED",
-    "R3": "SUPERVISOR_AUTHORIZED_RETAKE_HISTORY_INDEXES_ALIGNED",
-    "R4": "RESPONSIVE_PRIMARY_STUDENT_CTA_REGRESSION_COVERAGE_ADDED"
-  },
-  "content": {
-    "original_items": 105,
-    "skills": 44,
-    "reinforcement_original": 15,
-    "reinforcement_additions_total": 20,
-    "reinforcement_total": 35,
-    "runtime_total": 125,
-    "residual_reinforcement_mapping_gaps": []
-  },
-  "academic_contract": {
-    "placement_is_starting_level_only": true,
-    "pretest_weights": [20, 40, 40],
-    "readiness_force_L1_below": 12,
-    "activity_pass": ">=80",
-    "activity_guided_retry": "70..<80",
-    "activity_reinforcement": "<70",
-    "skill_mastery_weights_newest_to_oldest": [50, 30, 20],
-    "early_promotion_min_core_L1_L2": 6,
-    "early_promotion_mastery_threshold": 85,
-    "critical_skill_floor": 70,
-    "critical_skill_coverage_required": true,
-    "unresolved_reinforcement_blocks_promotion": true,
-    "promotion_step_levels": 1,
-    "level_3_requires_full_evidence_before_journey_completion": true,
-    "journey_ends_at_L3_before_posttest": true,
-    "automatic_demotion": "DISABLED_OPEN_POLICY_DECISION"
-  },
-  "reinforcement": {
-    "targeted_only": true,
-    "random_fallback": false,
-    "cross_level_fallback": false,
-    "source_core_verification_required": true,
-    "bounded_verification_default_rounds": 2,
-    "escalates_to_supervisor": true
-  },
-  "student_experience": {
-    "qx_closed": true,
-    "formal_assessment_per_item_feedback": false,
-    "contextual_learning_feedback": true,
-    "sound_effects_with_mute": true,
-    "reduced_motion": true,
-    "primary_touch_target_min_px": 44,
-    "responsive_gate_required_for_ui_changes": true
-  },
-  "media": {
-    "generated_sequence_assets": 10,
-    "generated_ids_range": "HIMMA-GEN-SEQ-001..010",
-    "visual_plan_generate_remaining": 0,
-    "browser_media_fidelity_covered": true
-  },
-  "audio": {
-    "fixed_approved_assets": 54,
-    "wav_binaries": 54,
-    "mp3_binaries": 54,
-    "missing": [],
-    "stable_replacement": "SYL-15 source published as LET-01 for مَ",
-    "temporary_skip_removed": true
-  },
-  "asr": {
-    "architecture": "Reference-Guided Arabic Reading Analysis",
-    "alignment_cdsi_scaffold": true,
-    "provider_connected_for_production": false,
-    "calibration_complete": false,
-    "privacy_retention_policy_complete": false,
-    "status": "M08_EXTERNAL_GATED"
-  },
-  "reports": {
-    "persisted_pre_post": true,
-    "cohort": true,
-    "xlsx": true,
-    "pdf": true,
-    "audit_logging": true,
-    "per_skill_descriptive_evidence": true,
-    "per_skill_is_mastery_rule": false
-  },
-  "m09": {
-    "readiness_endpoint": true,
-    "trial_runtime_safety_guard": true,
-    "postgres_backup_restore_verified": true,
-    "object_store_backup_restore_verified": true,
-    "release_runbook": "docs/ops/M09_RELEASE_UAT_RUNBOOK.md",
-    "evidence": "docs/ops/M09_RELEASE_READINESS_EVIDENCE_2026-08-31.md",
-    "full_single_candidate_uat_complete": false,
-    "monitoring_support_release_closure_complete": false,
-    "privacy_retention_final_approval_complete": false
+  "verification_policy": {
+    "pass_requires_exact_sha_evidence": true,
+    "quality_gate_required": true,
+    "m04_required_for_ui_candidate": true,
+    "m09_required_for_release_candidate": true,
+    "documentation_only_sha_may_be_distinguished_from_executable_candidate": true
   },
   "open_work": [
-    "M09 full single-candidate journey UAT through pretest, learning/reinforcement, L3 completion, posttest, reports and exports",
-    "M09 monitoring/request correlation/support and final rollback/release checklist",
-    "M09 final privacy/data-retention approval for real study data",
-    "M08 real speech provider and calibration/privacy gates",
-    "Final visual review after substantial UI/runtime changes"
+    "Confirm current Quality Gate after audio binaries and latest E2E fixes",
+    "Confirm relevant M04 responsive evidence",
+    "Confirm M09 readiness for current executable candidate",
+    "Complete M09 full single-candidate UAT and monitoring/support/rollback/privacy closure",
+    "Future M08 approved ASR provider integration and calibration"
   ],
-  "next_step": "Push the coherent approved-audio slice, then require Quality, M04, and M09 to pass against its exact commit SHA before closing the static-audio delivery. Keep M08 external provider/calibration/privacy work open."
+  "next_step": "Verify applicable GitHub Actions on the current executable candidate, fix any real failure, then record exact run IDs/conclusions."
 }

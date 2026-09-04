@@ -1,197 +1,97 @@
 # STATUS — Himma Platform
 
-**Last updated:** 2026-09-04
+**Last updated:** 2026-09-04  
 **Repository:** `7eaur/himma-`  
-**Current branch:** `recovery/ui-media-admin-overhaul`  
-**Current program:** Full Maintenance / Recovery + R1→R4 corrections  
-**Current focus:** Approved static-audio payload integration on the recovery branch, then same-SHA Quality/M04/M09 verification
-
-## Active slice — approved static audio payload
-
-- Input: five approved recordings with WAV/MP3 pairs: `SYL-13`, `WRD-29`, source `SYL-15` for the stable `LET-01` replacement, `INS-01`, and `INS-02`.
-- Repository targets: four new stable IDs plus replacement of the existing `LET-01` binaries; the source filename `SYL-15` is not published as a second runtime ID.
-- Acceptance: restore manifest alignment, regenerate the deterministic catalog, remove the four fixed-content media gaps, update affected regression contracts, and obtain green Quality/M04/M09 evidence on one commit SHA.
-- No child recording, secret, placeholder, or synthetic substitute is included.
-- Local evidence: catalog validator PASS with zero media gaps; 195 backend tests PASS; all five WAV sources are PCM 16-bit/44.1 kHz/mono and all five MP3 derivatives are 128 kbps/44.1 kHz/mono.
-- Remote acceptance requires Quality, M04, and M09 to pass against the same final commit SHA; use the workflow runs attached to that SHA as the evidence record.
-
-## Read this first
-
-Canonical continuity handoff:
-
-`docs/ops/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-08-31_AR.md`
-
-The handoff is deliberately more detailed than this status file and must be read before continuing in a new conversation.
-
-## Latest verified executable baseline
-
-`9f4389d83f751910daf605e1c37b4232b5b3ae93`
-
-Commit:
-
-`feat(m09): add backup restore release gate`
-
-Evidence for this exact implementation SHA:
-
-- Main Quality Gate #496 — run `33344517705`: backend ✅ frontend ✅ integration/Playwright ✅
-- M09 Release Readiness Gate #1 — run `33344517713`: ✅ SUCCESS
-- M09 evidence: `docs/ops/M09_RELEASE_READINESS_EVIDENCE_2026-08-31.md`
-
-Relevant responsive evidence:
-
-- Responsive Visual Gate #95 — run `33344062713` on `a5545a1425cc99891972e2ec55b290198cb98034`: ✅ SUCCESS
-- The following `9f4389d...` commit changes operational scripts/workflow/runbook only; no UI files changed.
-
-Documentation-only commits after the verified executable SHA may move branch HEAD. Inspect the current HEAD and its Actions before starting new code.
+**Branch:** `recovery/ui-media-admin-overhaul`  
+**Program:** Full Maintenance / Recovery  
+**Current focus:** final CI/UAT verification after architecture, UI and approved-audio reconciliation.
 
 ## Current runtime truth
 
-- Original approved catalog: 105 items.
-- Reinforcement additions: +20 total.
-- Runtime total: **125**.
-- Reinforcement total: **35**.
+- Original approved content: 105 items.
+- Runtime total: 125.
+- Reinforcement total: 35.
 - Skills: 44.
-- Original source semantics remain preserved.
+- Source path: `Approved versioned source -> deterministic seed/projection -> PostgreSQL runtime -> structured API -> deterministic renderer`.
+- Reports remain descriptive and never create mastery evidence.
 
-## Current academic/adaptive contract
+## Student / architecture
 
-Placement:
-
-- 100 points = 20 readiness + 40 word building/reading + 40 fluency/comprehension.
-- readiness <12/20 forces L1.
-- total <50 → L1.
-- 50..<80 → L2 subject to reading gates.
-- L3 requires total/gates; do not invent an unresolved text-accuracy threshold.
-
-Learning activity bands:
-
-- >=80 PASS.
-- 70..<80 GUIDED_RETRY.
-- <70 WEAKNESS_EVENT / targeted reinforcement.
-
-Mastery evidence: newest three valid attempts only, weighted 50/30/20.
-
-### R1 current promotion policy
-
-The current branch intentionally supports early promotion in L1/L2 when all current gates pass:
-
-- minimum 6 completed Core activities;
-- mastery >=85;
-- critical-skill floor >=70;
-- required critical-skill coverage complete;
-- no unresolved reinforcement/review blockers;
-- promote by one level only.
-
-Automatic demotion remains disabled; repeated low evidence produces support on the same level.
-
-L3 still requires full evidence before journey completion/posttest readiness.
-
-This replaces older documentation that said all promotions must wait for 10/10 Core. Do not silently restore the old rule.
-
-## Reinforcement lifecycle
-
-Durable flow is implemented:
-
-`weakness → mapped reinforcement → reinforcement completion → reopen source core → verify failed source steps → verified/escalated → continue`.
-
-No random/cross-level reinforcement. Neutral media/audio skips are not failure evidence.
-
-## R2 active session transition
-
-`services/api/activities_v4.py` bridges `/activities/session/{id}/next` so early promotion cannot return an item bound to a just-closed session. The response’s active `session_id` is authoritative when a promotion creates a new level session.
-
-## R3 assessment retake history
-
-Supervisor-authorized pre/post retake history/index behavior is implemented on the current lineage. Recent commits scoped assessment uniqueness correctly while keeping Core sessions outside retake uniqueness, then aligned DB indexes with ORM. Regression coverage exists. Inspect migrations/models/tests before extending the behavior.
-
-## Student UX / QX
-
-Closed baseline:
-
-- child-clear non-generic instructions;
-- answers under the question;
-- contextual learning hints/success/error;
-- formal assessment neutral per item;
-- subtle student sound/reward effects with mute/reduced-motion;
-- no permanent side mascot rail;
-- responsive touch targets;
-- source-grounded option repairs;
-- browser E2E question-experience coverage.
-
-QX historical closure SHA: `d6bab135e46ed93de3ac98236c5aa78e804c27ab`.
-
-## Educational media
-
-- Ten generated sequence scenes are checked in and wired.
-- IDs: `HIMMA-GEN-SEQ-001..010`.
-- Visual plan `generate` list is empty.
-- Browser fidelity coverage requests assets through the real media route.
+- Unified task design system is active.
+- `student-experience.css`, `activity-polish.css`, old DOM enhancers and MutationObserver-based state inference were removed.
+- Assessment completion has one canonical owner.
+- Activities public routes have one canonical owner.
+- `patch_db_runtime()` was removed; auditory-story replacement is projected from its versioned source.
+- L1 auditory story replacement maps to `الفهم السمعي المباشر`; old `path_sequence` is not a current canonical runtime interaction.
 
 ## Audio / M08
 
-Static audio:
+### Fixed prompt/story audio — CLOSED
 
-- approved stable assets: 54;
-- binary pairs: 54 WAV + 54 MP3;
-- fixed-content media gaps: none;
-- new assets: `SYL-13`, `WRD-29`, `INS-01`, `INS-02`;
-- stable replacement: source `SYL-15` is published as `LET-01` (`مَ`) without a duplicate runtime ID.
+- Approved fixed assets: **54**.
+- WAV binaries: **54**.
+- MP3 binaries: **54**.
+- Missing required static audio: **0**.
+- `LET-01` now contains the approved **مَ** recording sourced from `SYL-15`, while retaining the stable runtime ID/path.
+- `WRD-29` = `موز`.
+- `SYL-13` = `سَا`.
+- `INS-01` = قصة ليان في المزرعة.
+- `INS-02` = قصة نادر في الشاطئ.
+- The ten changed/new WAV/MP3 binaries were verified as physically present in GitHub and content-matched to the approved payload by file size and Git blob SHA; SHA-256 evidence is recorded in the authoritative audio contract.
 
-The temporary student audio-skip route, UI control, and backend feature flag have been removed. Real student recordings still require their normal capture/upload/review path.
+Authoritative reference:
+`docs/maintenance/AUDIO_RUNTIME_AND_REVIEW_CONTRACT_2026-09-04_AR.md`.
 
-Target architecture: Reference-Guided Arabic Reading Analysis = ASR + reference alignment + C/D/I/S + phonemic helper evidence.
+### Student recording review — ACTIVE
 
-M08 remains **PENDING / EXTERNAL-GATED** because provider, calibration, privacy/retention, and production policy are not complete. Do not claim production speech analysis complete.
+Temporary Audio Skip is fully removed from UI, styles, API router, feature flag and backend module. It cannot be restored by an environment variable.
 
-## Reports / M07
+Until the approved automatic speech model is integrated, student recordings follow:
 
-Implemented:
+`record -> persist/upload -> supervisor review -> accepted or rerecord required -> continue`
 
-- persisted pre/post summaries and improvement metrics;
-- level/time/attempt/reinforcement summaries;
-- cohort reports;
-- XLSX/PDF exports + audit logging;
-- per-skill descriptive summary from persisted graded evidence;
-- supervisor UI wiring.
+Supervisor review is authoritative. Waiting for review is not success, score or mastery evidence.
 
-Per-skill reporting remains descriptive and must not silently become a mastery/adaptation rule.
+### Automated speech analysis — OPEN FUTURE GATE
 
-## M09 Release / UAT
+Target: Reference-Guided Arabic Reading Analysis = ASR + reference alignment + C/D/I/S + phonemic helper evidence.
 
-Closed internal infrastructure slices:
+M08 as **production automatic speech analysis** remains open for provider selection/integration, calibration, confidence policy, privacy/retention and governed human override. This is no longer a static-audio gap.
 
-- `/health` retained as liveness and `/ready` added for critical configuration + PostgreSQL + Redis + private S3/MinIO readiness;
-- sanitized readiness output without raw dependency exceptions/secrets;
-- trial/production fail-closed guard for temporary audio bypass and short API secret;
-- executable PostgreSQL backup/restore + integrity/count verification;
-- executable private object-store backup/isolated restore + SHA-256 verification;
-- dedicated `Himma M09 — Release Readiness Gate` green on run `33344517713`;
-- release/UAT runbook added at `docs/ops/M09_RELEASE_UAT_RUNBOOK.md`.
+## Adaptive contract
 
-M09 is **not closed**. Remaining internal work centers on a complete single-candidate UAT journey, monitoring/request correlation/support readiness, final privacy/retention approval, rollback/release checklist, and final acceptance evidence.
+- Placement remains starting-level placement only.
+- <50% -> L1; 50..<80 -> L2 subject to gates; 80..100 -> L3 subject to gates.
+- L1/L2 early promotion: at least 6 Core, mastery >=85, critical floor >=70, required critical coverage, no unresolved reinforcement/review blocker, one-level promotion only.
+- Automatic demotion is disabled.
+- L3 requires full evidence before journey completion/posttest.
+- Reinforcement is targeted only; no random/cross-level fallback.
 
 ## Stage status
 
 - M00 Restore Green — CLOSED.
 - M01 Placement — CLOSED baseline.
-- M02 Adaptation state machine — CLOSED baseline, later refined by R1.
-- M03 Reinforcement — CLOSED baseline + gap closure.
-- M04 Student Product UI — CLOSED baseline + QX corrections.
-- M05 Supervisor Product UX — CLOSED baseline.
-- M06 Responsive/Accessibility/Design QA — CLOSED baseline.
-- M07 Research Reports — IMPLEMENTED/CLOSED baseline.
-- M08 Real Speech Analysis — PENDING / EXTERNAL-GATED.
-- M09 Release/UAT — IN PROGRESS; infrastructure readiness/backup slice GREEN, full-journey UAT NEXT.
+- M02 Adaptation — CLOSED baseline/refined.
+- M03 Reinforcement — CLOSED baseline + runtime reconciliation.
+- M04 Student Product UI — CLOSED baseline; current branch still requires exact-SHA visual evidence after relevant changes.
+- M05 Supervisor UX — CLOSED baseline.
+- M06 Responsive/Accessibility — CLOSED baseline; regressions remain gate-protected.
+- M07 Research Reports — CLOSED baseline.
+- M08 Fixed audio — CLOSED; automatic speech model integration — OPEN/FUTURE GATE.
+- M09 Release/UAT — IN PROGRESS; no production launch is authorized by this status.
 
-## Next action
+## CI rule
 
-1. Inspect current branch HEAD and Actions after any documentation-only commit.
-2. Continue M09 with the first still-unproven internal requirement: full single-candidate journey UAT from supervisor/student setup through pretest, learning/reinforcement/level transitions, L3 completion, posttest, reports and exports.
-3. Do not duplicate scenarios already proved by the same-SHA Quality Gate; extend coverage only where the end-to-end transition is missing.
-4. Keep M08 separate until external provider/calibration/privacy decisions are available.
-5. Acquire/add only the exact missing static audio `موز` and `سَا` from an approved source; do not fake/substitute them.
-6. Run final visual review after substantial UI/runtime changes.
+Never declare the current branch PASS because an older SHA was green. For the final candidate, inspect current HEAD and require applicable Quality/M04/M09 conclusions for that exact code candidate. Documentation-only commits may move HEAD without changing executable code and must be distinguished accordingly.
 
-## Governance reminder
+## Remaining work
 
-Do not modify accepted base branches directly, do not force/reset destructively, do not declare PASS without exact SHA/run evidence, and do not launch/merge production without explicit user approval.
+1. Obtain/confirm current Quality Gate after the approved binaries and latest E2E fixes.
+2. Confirm M04 on the relevant UI candidate and inspect its artifact where authenticated views are covered.
+3. Confirm M09 readiness on the current executable candidate.
+4. Complete remaining M09 full single-candidate UAT, monitoring/support, rollback and privacy/retention acceptance.
+5. Integrate/calibrate the future speech model only under a separately approved M08 plan.
+
+## Governance
+
+No destructive git, no direct edits to accepted stage branches, no deletion of academic history to make seeds pass, no fabricated media, no production merge/release without explicit user approval.
