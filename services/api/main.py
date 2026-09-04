@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from auth import router as auth_router
 from protected import router as protected_router
 from assessment import router as assessment_router
+from assessment_completion import router as assessment_completion_router
 from assessment_view import router as assessment_view_router
 from assessment_retake import router as assessment_retake_router
 from temporary_audio_skip import router as temporary_audio_skip_router
@@ -24,9 +25,9 @@ from readiness import readiness_report
 from runtime_flags import validate_runtime_safety
 
 
-# Trial/production must fail closed while the temporary audio bypass is enabled.
-# Dependency availability is intentionally handled by /ready rather than here so
-# the process can remain live while an external dependency is recovering.
+# Trial/production must fail closed while the temporary development audio bypass
+# is enabled. Dependency availability is intentionally handled by /ready so the
+# process can remain live while an external dependency is recovering.
 validate_runtime_safety()
 
 app = FastAPI(
@@ -48,6 +49,10 @@ app.include_router(auth_router)
 app.include_router(protected_router)
 app.include_router(journey_router)
 app.include_router(assessment_retake_router)
+# The permanent scoring/finalization contract is registered before the legacy
+# assessment router while the old finish endpoint remains for compatibility.
+app.include_router(assessment_completion_router)
+# Development bypass is deliberately separate from academic completion logic.
 app.include_router(temporary_audio_skip_router)
 app.include_router(assessment_router)
 app.include_router(assessment_view_router)
