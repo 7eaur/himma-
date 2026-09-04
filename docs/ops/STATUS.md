@@ -1,10 +1,42 @@
 # STATUS — Himma Platform
 
-**Last updated:** 2026-09-04  
+**Last updated:** 2026-09-05  
 **Repository:** `7eaur/himma-`  
 **Branch:** `recovery/ui-media-admin-overhaul`  
 **Program:** Full Maintenance / Recovery  
-**Current focus:** final CI/UAT verification after architecture, UI and approved-audio reconciliation.
+**Current focus:** Phase A — recover the learner recording/review vertical slice and restore the exact-SHA Quality Gate without weakening academic evidence rules.
+
+## Active vertical slice — PHASE_A_AUDIO_REVIEW_VERTICAL_SLICE_RECOVERY
+
+**Starting executable HEAD:** `269dcf43e4d8ec1bc9c124a5ef935d6b1c56b1ce`.
+
+**Affected acceptance IDs:** `AC-STD-009`, `AC-ADM-008`, `AC-IMP-004`, `AC-IMP-005`, `AC-IMP-006`, `AC-REL-002`, `AC-REL-007`, `AC-AUD-003`.
+
+### Verified failure/root cause before coding
+
+The current Quality Gate is red in the Playwright vertical slice. The learner UI records and uploads a reading blob, then posts the returned audio metadata to the canonical learning activity submit endpoint. That endpoint currently rejects `read_aloud` / `timed_read_aloud` interactions instead of persisting the recording for supervisor review. In addition, the current activity step-state treats any non-`rerecord_required` `AudioSubmission` as step completion, so a future `pending` recording would incorrectly become completion evidence.
+
+This is a frontend/backend runtime-contract mismatch, not a reason to restore an audio skip or to fake an automatic score.
+
+### Phase A plan
+
+1. Extend the canonical learning activity submission contract to accept validated persisted-audio metadata for reading interactions and create a `pending` `AudioSubmission` with no automatic correctness score.
+2. Make audio step-state explicit: `pending` = waiting and **not complete**; `graded` = supervisor decision may satisfy the step; `rerecord_required` = reopen for a new recording.
+3. Keep the attempt/session/mastery path blocked while review is pending; do not manufacture success/evidence.
+4. Update the native learner renderer to show the pending-review state explicitly rather than trying to advance through it.
+5. Add/adjust regression coverage for pending -> supervisor decision -> continue, and for rerecord.
+6. Run targeted backend/frontend tests first, then the full Quality Gate. Phase A is not closed until the applicable gate is green on the exact final executable candidate.
+
+### Migration impact
+
+**None expected.** Phase A reuses the existing `AttemptResponse` and `AudioSubmission` schema and supervisor-review authority. No destructive migration, reset, reseed of learner history, or data deletion is planned.
+
+### Test plan
+
+- Backend: learning reading submission persists a `pending` `AudioSubmission`; pending is not attempt/activity completion; valid supervisor grading unlocks progression; invalid review reopens rerecord.
+- Frontend: recording submission renders a deterministic waiting-for-supervisor state and does not expose a bypass.
+- E2E: learner recording -> pending review -> supervisor decision -> academic continuation.
+- Final: full Himma CI Quality Gate on the exact final executable SHA.
 
 ## Current runtime truth
 
@@ -86,7 +118,7 @@ Never declare the current branch PASS because an older SHA was green. For the fi
 
 ## Remaining work
 
-1. Obtain/confirm current Quality Gate after the approved binaries and latest E2E fixes.
+1. Complete Phase A learner-recording/review contract recovery and restore the Quality Gate on the exact candidate.
 2. Confirm M04 on the relevant UI candidate and inspect its artifact where authenticated views are covered.
 3. Confirm M09 readiness on the current executable candidate.
 4. Complete remaining M09 full single-candidate UAT, monitoring/support, rollback and privacy/retention acceptance.
