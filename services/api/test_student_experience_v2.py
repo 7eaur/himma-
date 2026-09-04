@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from db.database import SessionLocal
-from db.models import ContentItem
+from db.models import ContentItem, Skill
 import seed_all
 
 
@@ -67,6 +67,13 @@ def test_path_tasks_are_replaced_by_versioned_auditory_source_without_runtime_pa
 
     db = SessionLocal()
     try:
+        auditory_skill = db.query(Skill).filter(
+            Skill.level_id == 1,
+            Skill.canonical_skill_id == "auditory_literal_comprehension",
+        ).one()
+        assert auditory_skill.name == "الفهم السمعي المباشر"
+        assert db.query(Skill).filter(Skill.canonical_skill_id == "visual_motor_direction").count() == 0
+
         expected = {
             "L1-CORE-09": {
                 "title": "النشاط الأساسي 9: استمع إلى القصة ثم أجب",
@@ -85,6 +92,9 @@ def test_path_tasks_are_replaced_by_versioned_auditory_source_without_runtime_pa
             item = _item(db, canonical)
             data = item.template_data or {}
             story = data.get("auditory_story") or {}
+            assert item.skill_id == auditory_skill.id
+            assert item.skill.canonical_skill_id == "auditory_literal_comprehension"
+            assert item.skill.name == "الفهم السمعي المباشر"
             assert data.get("canonical_interaction_type") == "listen_choose_one"
             assert data.get("title") == wanted["title"]
             assert story.get("skill") == "الفهم السمعي المباشر"
@@ -116,6 +126,13 @@ def test_path_tasks_are_replaced_by_versioned_auditory_source_without_runtime_pa
             assert len(learning.get("rounds") or []) == 5
             assert all((round_data.get("stimulus_text") or "") == "" for round_data in learning["rounds"])
             assert learning["rounds"][0]["question_text"] == wanted["first_question"]
+
+        retired = [
+            str((item.template_data or {}).get("canonical_id") or item.stable_key)
+            for item in db.query(ContentItem).all()
+            if (item.template_data or {}).get("canonical_interaction_type") == "path_sequence"
+        ]
+        assert retired == []
     finally:
         db.close()
 
