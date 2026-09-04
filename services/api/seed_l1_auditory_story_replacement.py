@@ -4,6 +4,11 @@ The authoritative source lives in packages/content/src/l1_auditory_comprehension
 This seed projects that source into the normalized content tables only. DB runtime
 projection is owned by seed_db_runtime_contract.py; there is deliberately no
 post-projection patch step here.
+
+The retired visual-motor activity was the only baseline owner of its level-1
+skill row. Because the approved replacement changes the academic construct, the
+same durable Skill row is reconciled in-place to the new construct instead of
+creating a 45th canonical skill or deleting historical foreign-key evidence.
 """
 from __future__ import annotations
 
@@ -11,11 +16,14 @@ import json
 from pathlib import Path
 
 from db.database import SessionLocal
-from db.models import ContentAssetLink, ContentItem, ContentOption
+from db.models import ContentAssetLink, ContentItem, ContentOption, Skill
 
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "packages" / "content" / "src" / "l1_auditory_comprehension_v1.json"
 EXPECTED_VERSION = "HIMMA-L1-AUDITORY-COMPREHENSION-2026-09-02"
+RETIRED_SKILL_CODE = "visual_motor_direction"
+SKILL_CODE = "auditory_literal_comprehension"
+SKILL_NAME = "الفهم السمعي المباشر"
 
 
 def _load_source() -> tuple[str, dict[str, dict]]:
@@ -37,6 +45,30 @@ def _find_item(db, canonical: str) -> ContentItem:
         if item.stable_key == canonical or str((item.template_data or {}).get("canonical_id") or "") == canonical:
             return item
     raise RuntimeError(f"Missing auditory replacement item: {canonical}")
+
+
+def _auditory_skill(db) -> Skill:
+    current = db.query(Skill).filter(
+        Skill.level_id == 1,
+        Skill.canonical_skill_id == SKILL_CODE,
+    ).first()
+    if current:
+        current.name = SKILL_NAME
+        current.description = SKILL_NAME
+        return current
+
+    retired = db.query(Skill).filter(
+        Skill.level_id == 1,
+        Skill.canonical_skill_id == RETIRED_SKILL_CODE,
+    ).first()
+    if not retired:
+        raise RuntimeError(
+            "Cannot reconcile auditory-comprehension skill: retired level-1 skill row is missing"
+        )
+    retired.canonical_skill_id = SKILL_CODE
+    retired.name = SKILL_NAME
+    retired.description = SKILL_NAME
+    return retired
 
 
 def _set_options(db, step, values: list[str], answer: str) -> None:
@@ -70,6 +102,9 @@ def run_seed() -> int:
     db = SessionLocal()
     changed = 0
     try:
+        skill = _auditory_skill(db)
+        db.flush()
+
         for canonical, spec in STORIES.items():
             item = _find_item(db, canonical)
             steps = sorted(item.steps, key=lambda step: step.order_index)
@@ -77,13 +112,14 @@ def run_seed() -> int:
             if len(steps) != 5 or len(rounds) != 5:
                 raise RuntimeError(f"{canonical} must have exactly five rounds")
 
+            item.skill_id = skill.id
             data = dict(item.template_data or {})
             data["title"] = spec["title"]
             data["canonical_interaction_type"] = spec["interaction_type"]
             data["auditory_story_version"] = VERSION
             data["auditory_story"] = {
                 "version": VERSION,
-                "skill": spec["skill_name"],
+                "skill": SKILL_NAME,
                 "story_text_internal": spec["story_text_internal"],
                 "audio_asset_id": spec.get("audio_asset_id"),
                 "audio_status": spec.get("audio_status"),
@@ -110,4 +146,4 @@ def run_seed() -> int:
 
 
 if __name__ == "__main__":
-    print({"content_changed": run_seed(), "source_version": VERSION})
+    print({"content_changed": run_seed(), "source_version": VERSION, "skill": SKILL_CODE})
