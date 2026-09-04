@@ -1,10 +1,19 @@
 # STATUS — Himma Platform
 
-**Last updated:** 2026-08-31  
+**Last updated:** 2026-09-04
 **Repository:** `7eaur/himma-`  
 **Current branch:** `recovery/ui-media-admin-overhaul`  
 **Current program:** Full Maintenance / Recovery + R1→R4 corrections  
-**Current focus:** M09 full-journey UAT / release closure while M08 remains external-gated
+**Current focus:** Approved static-audio payload integration on the recovery branch, then same-SHA Quality/M04/M09 verification
+
+## Active slice — approved static audio payload
+
+- Input: five approved recordings with WAV/MP3 pairs: `SYL-13`, `WRD-29`, source `SYL-15` for the stable `LET-01` replacement, `INS-01`, and `INS-02`.
+- Repository targets: four new stable IDs plus replacement of the existing `LET-01` binaries; the source filename `SYL-15` is not published as a second runtime ID.
+- Acceptance: restore manifest alignment, regenerate the deterministic catalog, remove the four fixed-content media gaps, update affected regression contracts, and obtain green Quality/M04/M09 evidence on one commit SHA.
+- No child recording, secret, placeholder, or synthetic substitute is included.
+- Local evidence: catalog validator PASS with zero media gaps; 195 backend tests PASS; all five WAV sources are PCM 16-bit/44.1 kHz/mono and all five MP3 derivatives are 128 kbps/44.1 kHz/mono.
+- Remote acceptance requires Quality, M04, and M09 to pass against the same final commit SHA; use the workflow runs attached to that SHA as the evidence record.
 
 ## Read this first
 
@@ -122,11 +131,13 @@ QX historical closure SHA: `d6bab135e46ed93de3ac98236c5aa78e804c27ab`.
 
 Static audio:
 
-- existing: 50;
-- missing: `موز`, `سَا`;
-- target: 52.
+- approved stable assets: 54;
+- binary pairs: 54 WAV + 54 MP3;
+- fixed-content media gaps: none;
+- new assets: `SYL-13`, `WRD-29`, `INS-01`, `INS-02`;
+- stable replacement: source `SYL-15` is published as `LET-01` (`مَ`) without a duplicate runtime ID.
 
-`HIMMA_TEMP_AUDIO_SKIP` is testing-only and academically neutral. Trial/production startup now fails closed if that bypass is enabled.
+The temporary student audio-skip route, UI control, and backend feature flag have been removed. Real student recordings still require their normal capture/upload/review path.
 
 Target architecture: Reference-Guided Arabic Reading Analysis = ASR + reference alignment + C/D/I/S + phonemic helper evidence.
 

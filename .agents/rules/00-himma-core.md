@@ -12,8 +12,9 @@
 - Student UI: one instruction, one task, one primary action per screen. Never label a child weak or show research diagnostics.
 - Approved colors: blue `#347FD9`, green `#51B985`, yellow `#FFC857`, navy `#20364D`, light `#F7FBFF`, border `#DCE8F2`.
 - Typography: Tajawal for child UI; IBM Plex Sans Arabic for researcher UI and reports; Noto Sans Arabic fallback.
-- Approved prerecorded audio package: `assets/audio/HIMMA_AUDIO_V1/` with 50 stable content IDs and 100 binaries (50 WAV masters + 50 MP3 web files): 4 feedback, 6 letter sounds, 12 syllables, and 28 words. Its `manifest.csv` is the current audio source of truth.
-- The 10 `INS-*` instruction scripts remain in historical planning references but are not part of the approved HIMMA_AUDIO_V1 binary delivery. Do not synthesize or claim them as delivered without a new recorded package and decision.
+- Approved prerecorded audio package: `assets/audio/HIMMA_AUDIO_V1/` with 54 stable content IDs and 108 binaries (54 WAV masters + 54 MP3 web files): 4 feedback, 6 letter sounds, 13 syllables, 29 words, and 2 auditory stories. Its `manifest.csv` is the current audio source of truth.
+- `INS-01` and `INS-02` are the explicitly approved auditory-story recordings. Historical `INS-03..10` scripts are not delivered assets and must not be synthesized or claimed as delivered without a later approved package and decision.
+- The approved source recording named `SYL-15` is published under the existing stable runtime ID `LET-01` and changes its semantic contract from `مْ` to `مَ`; do not publish a duplicate `SYL-15` runtime asset.
 - `reference/original/` and `reference/ui-prototype/` are read-only. The prototype is visual/interaction reference, not production architecture or domain truth.
 - Resolve reference precedence through `docs/specs/SOURCE_OF_TRUTH.md`; do not choose between same-numbered legacy documents by filename alone.
 - Every content item and asset uses a stable technical ID. Do not rename approved assets after they are linked.

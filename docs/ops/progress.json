@@ -4,9 +4,9 @@
   "repository": "7eaur/himma-",
   "branch": "recovery/ui-media-admin-overhaul",
   "phase": "FULL_MAINTENANCE_AND_RELEASE_READINESS",
-  "slice": "M09_FULL_JOURNEY_UAT_NEXT",
-  "gate_status": "M09_INFRA_READINESS_GREEN_FULL_UAT_OPEN",
-  "last_verified": "2026-08-31",
+  "slice": "APPROVED_STATIC_AUDIO_PAYLOAD_INTEGRATION",
+  "gate_status": "AUDIO_PAYLOAD_LOCAL_GREEN_REMOTE_GATES_REQUIRED",
+  "last_verified": "2026-09-04",
   "latest_verified_executable_head": "9f4389d83f751910daf605e1c37b4232b5b3ae93",
   "continuity_handoff": "docs/ops/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-08-31_AR.md",
   "quality_gate": {
@@ -108,12 +108,12 @@
     "browser_media_fidelity_covered": true
   },
   "audio": {
-    "fixed_existing": 50,
-    "missing": ["موز", "سَا"],
-    "target": 52,
-    "temporary_skip_flag": "HIMMA_TEMP_AUDIO_SKIP",
-    "temporary_skip_neutral": true,
-    "trial_production_fail_closed_if_skip_enabled": true
+    "fixed_approved_assets": 54,
+    "wav_binaries": 54,
+    "mp3_binaries": 54,
+    "missing": [],
+    "stable_replacement": "SYL-15 source published as LET-01 for مَ",
+    "temporary_skip_removed": true
   },
   "asr": {
     "architecture": "Reference-Guided Arabic Reading Analysis",
@@ -148,8 +148,7 @@
     "M09 monitoring/request correlation/support and final rollback/release checklist",
     "M09 final privacy/data-retention approval for real study data",
     "M08 real speech provider and calibration/privacy gates",
-    "Acquire approved exact static audio for موز and سَا",
     "Final visual review after substantial UI/runtime changes"
   ],
-  "next_step": "Inspect the current docs-only HEAD and Actions, then extend same-SHA UAT evidence only for the still-missing complete single-candidate journey. Do not redo already-green M09 readiness/backup work or accepted M00-M07 behavior."
+  "next_step": "Push the coherent approved-audio slice, then require Quality, M04, and M09 to pass against its exact commit SHA before closing the static-audio delivery. Keep M08 external provider/calibration/privacy work open."
 }

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from content_runtime import step_assets
 from db.database import SessionLocal
 from db.models import ContentItem, Skill
 import seed_all
@@ -46,12 +47,17 @@ def test_onset_comparison_uses_approved_two_word_auditory_contract():
         assert [(row["audio_words"], row["answer"]) for row in pair.get("rounds", [])] == expected
         steps = sorted(item.steps, key=lambda step: step.order_index)
         assert len(steps) == 5
-        for step, (_, answer) in zip(steps, expected, strict=True):
+        for step, (audio_words, answer) in zip(steps, expected, strict=True):
             assert step.prompt_text == "مقارنة كلمتين مسموعتين — النص غير معروض للطالب"
             options = sorted(step.options, key=lambda option: option.order_index)
             assert [option.text for option in options] == ["الصوت نفسه", "صوتان مختلفان"]
             assert next(option.text for option in options if option.is_correct) == answer
-            assert not [asset for asset in step.assets if asset.asset_type == "audio" and asset.usage_context == "prompt"]
+            audio_assets = [
+                asset
+                for asset in step_assets(item, step)
+                if asset["asset_type"] == "audio" and asset["usage"] == "prompt"
+            ]
+            assert [asset["semantic_text"] for asset in audio_assets] == audio_words
         learning = data.get("learning_experience") or {}
         assert len(learning.get("rounds") or []) == 5
         assert all((row.get("stimulus_text") or "") == "" for row in learning["rounds"])
@@ -77,12 +83,14 @@ def test_path_tasks_are_replaced_by_versioned_auditory_source_without_runtime_pa
         expected = {
             "L1-CORE-09": {
                 "title": "النشاط الأساسي 9: استمع إلى القصة ثم أجب",
+                "audio_asset_id": "INS-01",
                 "story": "ذهبت ليان مع أبيها إلى المزرعة في الصباح. رأت أرنبًا أبيض قرب الشجرة، فأعطته جزرة. ثم ساعدت أباها في سقي النباتات. وقبل أن تعود إلى البيت، قطفت زهرة صفراء لأمها.",
                 "first_question": "أين ذهبت ليان؟",
                 "first_options": ["إلى المزرعة", "إلى المدرسة", "إلى السوق"],
             },
             "L1-REIN-11": {
                 "title": "استمع واختر الإجابة",
+                "audio_asset_id": "INS-02",
                 "story": "ذهب نادر مع أخته إلى الشاطئ. بنيا قلعة من الرمل، ثم جمعا أصدافًا جميلة. وبعد اللعب جلسا تحت المظلة وشربا الماء، ثم عادا إلى البيت.",
                 "first_question": "أين ذهب نادر؟",
                 "first_options": ["إلى الشاطئ", "إلى المزرعة", "إلى المدرسة"],
@@ -99,8 +107,8 @@ def test_path_tasks_are_replaced_by_versioned_auditory_source_without_runtime_pa
             assert data.get("title") == wanted["title"]
             assert story.get("skill") == "الفهم السمعي المباشر"
             assert story.get("story_text_internal") == wanted["story"]
-            assert story.get("audio_asset_id") is None
-            assert story.get("audio_status") == "pending_audio_asset"
+            assert story.get("audio_asset_id") == wanted["audio_asset_id"]
+            assert story.get("audio_status") == "approved"
             assert story.get("student_visible_story_text") is False
             assert len(item.steps) == 5
             assert len(story.get("rounds") or []) == 5
@@ -108,19 +116,22 @@ def test_path_tasks_are_replaced_by_versioned_auditory_source_without_runtime_pa
             options = sorted(item.steps[0].options, key=lambda option: option.order_index)
             assert [option.text for option in options] == wanted["first_options"]
             assert sum(1 for option in options if option.is_correct) == 1
-            assert all(not step.assets for step in item.steps)
+            for step in item.steps:
+                assets = step_assets(item, step)
+                assert len(assets) == 1
+                assert assets[0]["asset_id"] == wanted["audio_asset_id"]
 
             runtime = data.get("db_runtime") or {}
             assert runtime.get("source_item", {}).get("story_text_internal") == wanted["story"]
             assert runtime.get("source_item", {}).get("student_visible_story_text") is False
             assert len(runtime.get("rounds") or []) == 5
             for runtime_round in runtime["rounds"]:
-                assert runtime_round.get("assets") == []
-                gaps = runtime_round.get("media_gaps") or []
-                assert len(gaps) == 1
-                assert gaps[0]["asset_type"] == "audio"
-                assert gaps[0]["status"] == "pending_audio_asset"
-                assert gaps[0]["semantic_text"] == wanted["story"]
+                assert runtime_round.get("media_gaps") in (None, [])
+                assets = runtime_round.get("assets") or []
+                assert len(assets) == 1
+                assert assets[0]["asset_id"] == wanted["audio_asset_id"]
+                assert assets[0]["asset_type"] == "audio"
+                assert assets[0]["semantic_text"] == wanted["story"]
 
             learning = data.get("learning_experience") or {}
             assert len(learning.get("rounds") or []) == 5

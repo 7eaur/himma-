@@ -22,29 +22,29 @@ def _set_required_env(monkeypatch):
         monkeypatch.setenv(name, value)
 
 
-def test_trial_runtime_rejects_temporary_audio_skip(monkeypatch):
+def test_student_audio_bypass_route_is_absent(monkeypatch):
     _set_required_env(monkeypatch)
     monkeypatch.setenv("ENV", "trial")
+    # A stale deployment setting cannot re-enable the deleted feature.
     monkeypatch.setenv("HIMMA_TEMP_AUDIO_SKIP", "true")
+    validate_runtime_safety()
 
-    with pytest.raises(RuntimeError, match="HIMMA_TEMP_AUDIO_SKIP must be false"):
-        validate_runtime_safety()
+    paths = {getattr(route, "path", "") for route in main.app.routes}
+    assert not any("temporary-audio" in path for path in paths)
 
 
 def test_production_runtime_requires_strong_api_secret(monkeypatch):
     _set_required_env(monkeypatch)
     monkeypatch.setenv("ENV", "production")
-    monkeypatch.setenv("HIMMA_TEMP_AUDIO_SKIP", "false")
     monkeypatch.setenv("API_SECRET_KEY", "too-short")
 
     with pytest.raises(RuntimeError, match="at least 32 characters"):
         validate_runtime_safety()
 
 
-def test_trial_runtime_accepts_audio_skip_disabled(monkeypatch):
+def test_trial_runtime_accepts_strong_secret(monkeypatch):
     _set_required_env(monkeypatch)
     monkeypatch.setenv("ENV", "trial")
-    monkeypatch.setenv("HIMMA_TEMP_AUDIO_SKIP", "false")
 
     validate_runtime_safety()
 
