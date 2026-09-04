@@ -49,8 +49,7 @@ app.include_router(auth_router)
 app.include_router(protected_router)
 app.include_router(journey_router)
 app.include_router(assessment_retake_router)
-# The permanent scoring/finalization contract is registered before the legacy
-# assessment router while the old finish endpoint remains for compatibility.
+# Permanent pre/post scoring and finalization has one dedicated router.
 app.include_router(assessment_completion_router)
 # Development bypass is deliberately separate from academic completion logic.
 app.include_router(temporary_audio_skip_router)
