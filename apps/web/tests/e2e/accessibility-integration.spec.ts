@@ -35,7 +35,8 @@ async function expectNoHorizontalOverflow(page: Page) {
 
 async function expectDashboardReady(page: Page) {
   await expect(page.getByRole("heading", { name: /مرحبًا،/ })).toBeVisible({ timeout: 10000 });
-  await expect(page.getByRole("heading", { name: "ما الذي يحتاج انتباهك؟" })).toBeVisible();
+  // The contract is the attention section itself, not one exact marketing/copy variant.
+  await expect(page.getByRole("heading", { name: /ما الذي يحتاج انتباهك/ })).toBeVisible();
 }
 
 function channel(value: number) {
