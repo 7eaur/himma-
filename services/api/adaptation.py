@@ -9,16 +9,18 @@ V4 pilot invariants:
   no pending supervisor review;
 - L3 is a completion level and still requires all ten Core activities;
 - invalid/incomplete/media-gap/unresolved-audio evidence is neutral/excluded;
+- current progression uses only evidence from the active learning session;
 - reinforcement never falls back to random or cross-level content.
 
-The thresholds/configuration are versioned pilot policy for trial calibration;
-they are not represented as an external diagnostic standard.
+Initial pretest placement is a separate 50/80 policy and must never be mixed
+with these continuous-learning gates.
 """
 
 from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from decimal import Decimal
 from pathlib import Path
 from typing import Optional
@@ -157,7 +159,6 @@ def decide_transition(
         return "stay", current_level, "promotion_mastery_pending"
 
     if completed_core_count is None:
-        # Compatibility bridge for old pure callers. Runtime never relies on it.
         completed_core_count = CORE_ACTIVITY_COUNT if level_complete is True else 0
     if completed_core_count < EARLY_PROMOTION_MIN_CORE:
         return "stay", current_level, "minimum_core_evidence_pending"
@@ -194,7 +195,7 @@ def _attempt_signal(db: Session, attempt: Attempt, item: ContentItem) -> Optiona
         if not response:
             return None
         audio = db.query(AudioSubmission).filter(AudioSubmission.response_id == response.id).first()
-        if audio and audio.status in {"rerecord_required", "uploaded"}:
+        if audio and audio.status in {"pending", "rerecord_required", "uploaded"}:
             return None
         if response.is_correct is None:
             continue
@@ -209,8 +210,14 @@ def _attempt_signal(db: Session, attempt: Attempt, item: ContentItem) -> Optiona
     )
 
 
-def _valid_signals(db: Session, student_id: int, level_id: int) -> list[AttemptSignal]:
-    rows = (
+def _valid_signals(
+    db: Session,
+    student_id: int,
+    level_id: int,
+    session_id: int | None = None,
+) -> list[AttemptSignal]:
+    """Return valid evidence, optionally restricted to one durable core session."""
+    query = (
         db.query(Attempt, ContentItem)
         .join(AssessmentSession, AssessmentSession.id == Attempt.session_id)
         .join(ContentItem, ContentItem.id == Attempt.item_id)
@@ -221,9 +228,11 @@ def _valid_signals(db: Session, student_id: int, level_id: int) -> list[AttemptS
             ContentItem.level_id == level_id,
             ContentItem.kind.in_(["core_activity", "reinforcement_activity"]),
         )
-        .order_by(Attempt.completed_at, Attempt.id)
-        .all()
     )
+    if session_id is not None:
+        query = query.filter(AssessmentSession.id == session_id)
+    rows = query.order_by(Attempt.completed_at, Attempt.id).all()
+
     signals: list[AttemptSignal] = []
     for attempt, item in rows:
         signal = _attempt_signal(db, attempt, item)
@@ -232,8 +241,13 @@ def _valid_signals(db: Session, student_id: int, level_id: int) -> list[AttemptS
     return signals
 
 
-def _completed_core_count(db: Session, student_id: int, level_id: int) -> int:
-    return (
+def _completed_core_count(
+    db: Session,
+    student_id: int,
+    level_id: int,
+    session_id: int | None = None,
+) -> int:
+    query = (
         db.query(ContentItem.id)
         .join(Attempt, Attempt.item_id == ContentItem.id)
         .join(AssessmentSession, AssessmentSession.id == Attempt.session_id)
@@ -244,13 +258,14 @@ def _completed_core_count(db: Session, student_id: int, level_id: int) -> int:
             ContentItem.kind == "core_activity",
             ContentItem.level_id == level_id,
         )
-        .distinct()
-        .count()
     )
+    if session_id is not None:
+        query = query.filter(AssessmentSession.id == session_id)
+    return query.distinct().count()
 
 
 def _core_flow_complete(db: Session, student_id: int, level_id: int) -> bool:
-    """Full ten-Core completion remains a milestone/reward and L3 close gate."""
+    """Full ten-Core history remains a milestone/reward and L3 close signal."""
     return _completed_core_count(db, student_id, level_id) >= CORE_ACTIVITY_COUNT
 
 
@@ -292,17 +307,24 @@ def _critical_skill_gate_state(
     return PromotionGateState(True, coverage_ok, minimum, weakest_skill_id, critical_ids, configured_codes)
 
 
-def _reinforcement_gate_state(db: Session, student_id: int, level_id: int) -> tuple[bool, bool]:
+def _reinforcement_gate_state(
+    db: Session,
+    student_id: int,
+    level_id: int,
+    session_id: int | None = None,
+) -> tuple[bool, bool]:
     """Return (unresolved_reinforcement, supervisor_review_pending)."""
-    rows = (
+    query = (
         db.query(ReinforcementCycle)
         .join(AssessmentSession, AssessmentSession.id == ReinforcementCycle.session_id)
         .filter(
             ReinforcementCycle.student_id == student_id,
             AssessmentSession.assigned_level == level_id,
         )
-        .all()
     )
+    if session_id is not None:
+        query = query.filter(ReinforcementCycle.session_id == session_id)
+    rows = query.all()
     unresolved = any(
         row.status in {"reinforcement_pending", "reinforcement_in_progress", "verification_pending"}
         for row in rows
@@ -471,11 +493,46 @@ def _previous_automatic_decision_same_level(
     )
 
 
-def evaluate_student(db: Session, student: Student) -> dict:
+def evaluate_student(
+    db: Session,
+    student: Student,
+    session_id: int | None = None,
+) -> dict:
+    """Evaluate current learning evidence without leaking closed-session history.
+
+    Runtime callers pass the active core ``session_id``. ``None`` is kept for
+    compatibility/report-style callers that intentionally inspect accumulated
+    history, but it must not drive current progression.
+    """
     ensure_rewards(db, student.id)
     level_id = student.current_level
-    signals = _valid_signals(db, student.id, level_id)
-    completed_core_count = _completed_core_count(db, student.id, level_id)
+
+    if session_id is not None:
+        scoped_session = db.query(AssessmentSession.id).filter(
+            AssessmentSession.id == session_id,
+            AssessmentSession.student_id == student.id,
+            AssessmentSession.session_type == "core",
+            AssessmentSession.assigned_level == level_id,
+        ).first()
+        if scoped_session is None:
+            return {
+                "ready": False,
+                "action": "hold",
+                "current_level": level_id,
+                "valid_attempt_count": 0,
+                "required_attempt_count": 3,
+                "completed_core_count": 0,
+                "evidence_scope_session_id": session_id,
+                "reason": "active_session_level_mismatch",
+            }
+
+    signals = _valid_signals(db, student.id, level_id, session_id=session_id)
+    completed_core_count = _completed_core_count(
+        db,
+        student.id,
+        level_id,
+        session_id=session_id,
+    )
 
     if len(signals) < 3:
         if signals and signals[-1].score < REINFORCEMENT_THRESHOLD:
@@ -505,6 +562,7 @@ def evaluate_student(db: Session, student: Student) -> dict:
                 explanation={
                     "policy_version": POLICY_VERSION,
                     "decision_scope": "immediate_activity_reinforcement",
+                    "evidence_scope_session_id": session_id,
                     "latest_activity_score": latest.score,
                     "reinforcement_threshold": REINFORCEMENT_THRESHOLD,
                     "automatic_demotion": False,
@@ -524,6 +582,7 @@ def evaluate_student(db: Session, student: Student) -> dict:
             "valid_attempt_count": len(signals),
             "required_attempt_count": 3,
             "completed_core_count": completed_core_count,
+            "evidence_scope_session_id": session_id,
             "reason": "waiting_for_three_valid_attempts",
         }
 
@@ -539,7 +598,12 @@ def evaluate_student(db: Session, student: Student) -> dict:
 
     mastery = weighted_mastery([signal.score for signal in latest])
     gate = _critical_skill_gate_state(db, level_id, signals)
-    unresolved_reinforcement, supervisor_review_pending = _reinforcement_gate_state(db, student.id, level_id)
+    unresolved_reinforcement, supervisor_review_pending = _reinforcement_gate_state(
+        db,
+        student.id,
+        level_id,
+        session_id=session_id,
+    )
     weakest_skill_id = gate.weakest_skill_id or _weakest_observed_skill(signals)
 
     previous = _previous_automatic_decision_same_level(db, student.id, level_id)
@@ -582,6 +646,7 @@ def evaluate_student(db: Session, student: Student) -> dict:
     explanation = {
         "policy_version": POLICY_VERSION,
         "pilot_policy": True,
+        "evidence_scope_session_id": session_id,
         "weights_newest_to_oldest": list(WEIGHTS),
         "attempts_newest_to_oldest": [
             {"attempt_id": signal.attempt_id, "skill_id": signal.skill_id, "score": signal.score}
@@ -661,7 +726,18 @@ def adaptation_status(
     db: Session = Depends(get_db),
     student: Student = Depends(get_current_student),
 ):
-    return evaluate_student(db, student)
+    active = (
+        db.query(AssessmentSession)
+        .filter(
+            AssessmentSession.student_id == student.id,
+            AssessmentSession.session_type == "core",
+            AssessmentSession.status == "in_progress",
+            AssessmentSession.assigned_level == student.current_level,
+        )
+        .order_by(AssessmentSession.id.desc())
+        .first()
+    )
+    return evaluate_student(db, student, session_id=active.id if active else None)
 
 
 @router.get("/rewards")
@@ -709,10 +785,91 @@ def manual_override(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Apply a supervisor override without relabelling or deleting learning history."""
     student = db.query(Student).filter(Student.id == student_id).with_for_update().first()
     if not student:
         raise HTTPException(status_code=404, detail="الطالب غير موجود")
+
     previous_level = student.current_level
+    active_session = (
+        db.query(AssessmentSession)
+        .filter(
+            AssessmentSession.student_id == student.id,
+            AssessmentSession.status == "in_progress",
+        )
+        .order_by(AssessmentSession.id.desc())
+        .first()
+    )
+
+    if active_session and active_session.session_type != "core":
+        raise HTTPException(
+            status_code=409,
+            detail="لا يمكن تغيير المستوى أثناء وجود اختبار نشط",
+        )
+    if (
+        active_session
+        and active_session.session_type == "core"
+        and active_session.assigned_level != previous_level
+    ):
+        raise HTTPException(
+            status_code=409,
+            detail="حالة جلسة التعلم لا تطابق المستوى الحالي وتحتاج مراجعة قبل التجاوز",
+        )
+
+    next_session = None
+    if body.new_level != previous_level and active_session is not None:
+        pending_audio = (
+            db.query(AudioSubmission.id)
+            .join(AttemptResponse, AttemptResponse.id == AudioSubmission.response_id)
+            .join(Attempt, Attempt.id == AttemptResponse.attempt_id)
+            .filter(
+                Attempt.session_id == active_session.id,
+                AudioSubmission.status.in_(["pending", "uploaded", "rerecord_required"]),
+            )
+            .first()
+        )
+        unresolved_cycle = db.query(ReinforcementCycle.id).filter(
+            ReinforcementCycle.session_id == active_session.id,
+            ReinforcementCycle.status.in_([
+                "reinforcement_pending",
+                "reinforcement_in_progress",
+                "verification_pending",
+                "escalated",
+            ]),
+        ).first()
+        if pending_audio or unresolved_cycle:
+            raise HTTPException(
+                status_code=409,
+                detail="أكمل مراجعة الصوت أو دورة التقوية المعلقة قبل تغيير المستوى يدويًا",
+            )
+
+        now = datetime.now(timezone.utc)
+        active_session.status = "completed"
+        active_session.completed_at = active_session.completed_at or now
+        active_session.updated_at = now
+        db.flush()
+        next_session = AssessmentSession(
+            student_id=student.id,
+            session_type="core",
+            status="in_progress",
+            assigned_level=body.new_level,
+        )
+        db.add(next_session)
+        db.flush()
+
+    explanation = {
+        "policy_version": POLICY_VERSION,
+        "reason": "supervisor_manual_override",
+        "automatic_demotion": False,
+        "history_preserved": True,
+    }
+    if active_session is not None and next_session is not None:
+        explanation.update({
+            "manual_session_transition": True,
+            "previous_session_id": active_session.id,
+            "next_session_id": next_session.id,
+        })
+
     decision = AdaptationDecision(
         student_id=student.id,
         decision_source="manual",
@@ -725,11 +882,7 @@ def manual_override(
         valid_attempt_count=0,
         consecutive_low_count=0,
         snapshot_key=None,
-        explanation={
-            "policy_version": POLICY_VERSION,
-            "reason": "supervisor_manual_override",
-            "automatic_demotion": False,
-        },
+        explanation=explanation,
         manual_reason=body.reason.strip(),
         actor_id=user.id,
     )
