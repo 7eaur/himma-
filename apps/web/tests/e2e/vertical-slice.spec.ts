@@ -155,6 +155,36 @@ async function answerAssessmentVisual(page: Page, item: RichItem) {
   await page.getByRole("button", { name: "تأكيد والمتابعة" }).click();
 }
 
+async function reviewPendingAssessmentAudio(
+  page: Page,
+  context: import("@playwright/test").BrowserContext,
+  request: APIRequestContext,
+  accessCode: string,
+  assessmentSessionId: string,
+  captureEvidence: boolean,
+) {
+  const root = page.getByTestId("assessment-session");
+  await expect(root).toHaveAttribute("data-phase", "waiting_audio_review", { timeout: 10000 });
+  await expect(page.getByText(/سيُراجع المشرف القراءة/)).toBeVisible();
+  if (captureEvidence) await shot(page, "08-assessment-waiting-audio-review");
+
+  await context.clearCookies();
+  await loginAsSupervisor(request, context);
+  await page.goto("/admin/audio-review");
+  const startReview = page.getByRole("button", { name: "بدء المراجعة" });
+  await expect(startReview.first()).toBeVisible({ timeout: 15000 });
+  await startReview.first().click();
+  const save = page.getByRole("button", { name: "حفظ التقييم" });
+  await expect(save).toBeEnabled({ timeout: 7000 });
+  await save.click();
+  if (captureEvidence) await shot(page, "09-assessment-audio-reviewed-inline");
+
+  await context.clearCookies();
+  await loginAsStudent(request, context, accessCode);
+  await page.goto(`/student/session/${assessmentSessionId}`);
+  return waitForAssessmentQuestion(page);
+}
+
 async function chooseOrderedActivityItems(page: Page, payload: LearningExperiencePayload) {
   const confirm = page.getByRole("button", { name: "تأكيد والمتابعة" });
   const imageGroup = page.getByTestId("activity-sequence-image-options");
@@ -325,11 +355,14 @@ test.describe("Himma recovered vertical slice", () => {
     expect(sessionId).toBeTruthy();
 
     let answered = 0;
+    let reviewedAssessmentAudio = 0;
+    let capturedAssessmentReviewHold = false;
     let capturedImageAssessment = false;
     let capturedReadingAssessment = false;
     while (answered < 30) {
       const phase = await waitForAssessmentQuestion(page);
-      if (phase === "waiting_audio_review" || phase === "done") break;
+      if (phase === "done") break;
+      expect(phase).toBe("question");
 
       const currentResponse = await request.get(`${API_URL}/assessment/session/${sessionId}/next`);
       expect(currentResponse.status()).toBe(200);
@@ -344,7 +377,8 @@ test.describe("Himma recovered vertical slice", () => {
         await shot(page, "06-assessment-real-image-choice");
         capturedImageAssessment = true;
       }
-      if (!capturedReadingAssessment && (currentAssessment.interaction_type === "read_aloud" || currentAssessment.interaction_type === "timed_read_aloud")) {
+      const readingRound = currentAssessment.interaction_type === "read_aloud" || currentAssessment.interaction_type === "timed_read_aloud";
+      if (!capturedReadingAssessment && readingRound) {
         await expect(page.getByTestId("reading-text")).toBeVisible();
         await shot(page, "07-assessment-reading-recording");
         capturedReadingAssessment = true;
@@ -352,6 +386,24 @@ test.describe("Himma recovered vertical slice", () => {
 
       await answerAssessmentVisual(page, currentAssessment);
       answered += 1;
+
+      if (readingRound) {
+        const waitingPhase = await waitForAssessmentQuestion(page);
+        expect(waitingPhase).toBe("waiting_audio_review");
+        const resumedPhase = await reviewPendingAssessmentAudio(
+          page,
+          context,
+          request,
+          accessCode,
+          sessionId!,
+          !capturedAssessmentReviewHold,
+        );
+        capturedAssessmentReviewHold = true;
+        reviewedAssessmentAudio += 1;
+        if (answered < 30) expect(resumedPhase).toBe("question");
+        continue;
+      }
+
       if (answered < 30) await waitForAssessmentQuestion(page);
       if (answered === 1) {
         await page.reload();
@@ -360,30 +412,10 @@ test.describe("Himma recovered vertical slice", () => {
     }
 
     expect(answered).toBe(30);
+    expect(reviewedAssessmentAudio).toBeGreaterThan(0);
+    expect(capturedAssessmentReviewHold).toBe(true);
     expect(capturedImageAssessment).toBe(true);
     expect(capturedReadingAssessment).toBe(true);
-    await expect(page.getByTestId("assessment-session")).toHaveAttribute("data-phase", "waiting_audio_review", { timeout: 20000 });
-    await shot(page, "08-assessment-waiting-audio-review");
-
-    await context.clearCookies();
-    await loginAsSupervisor(request, context);
-    await page.goto("/admin/audio-review");
-    const startReview = page.getByRole("button", { name: "بدء المراجعة" });
-    await expect(startReview.first()).toBeVisible({ timeout: 15000 });
-    let reviewed = 0;
-    while (await startReview.count()) {
-      await startReview.first().click();
-      const save = page.getByRole("button", { name: "حفظ التقييم" });
-      await expect(save).toBeEnabled();
-      await save.click();
-      reviewed += 1;
-    }
-    expect(reviewed).toBeGreaterThan(0);
-    await shot(page, "09-audio-review-queue-cleared");
-
-    await context.clearCookies();
-    await loginAsStudent(request, context, accessCode);
-    await page.goto(`/student/session/${sessionId}`);
     await expect(page.getByTestId("assessment-session")).toHaveAttribute("data-phase", "done", { timeout: 20000 });
     await shot(page, "10-assessment-result");
 
