@@ -8,8 +8,8 @@ Guarantees:
 - a closed historical level session is never used for a new submission;
 - clients holding the previous level URL are safely bridged to the one active
   Core session, including refresh/resume after promotion;
-- normal Core selection prioritizes missing/weak critical-skill evidence and
-  uses order_index only as a deterministic tie-breaker;
+- normal Core selection prioritizes missing/weak critical-skill evidence from
+  the active session only and uses order_index as a deterministic tie-breaker;
 - status/start/progress/next/submit each have a single mounted route.
 """
 from __future__ import annotations
@@ -95,8 +95,14 @@ def _resolve_active_session(
     return active
 
 
-def _preferred_core_skill_id(db: Session, *, student_id: int, level_id: int) -> int | None:
-    """Choose a configured critical skill needing evidence, deterministically."""
+def _preferred_core_skill_id(
+    db: Session,
+    *,
+    student_id: int,
+    session_id: int,
+    level_id: int,
+) -> int | None:
+    """Choose a configured critical skill needing evidence in this session."""
     policy = _load_policy()
     codes = [
         str(code)
@@ -115,7 +121,7 @@ def _preferred_core_skill_id(db: Session, *, student_id: int, level_id: int) -> 
         return None
 
     latest_by_skill: dict[int, float] = {}
-    for signal in _valid_signals(db, student_id, level_id):
+    for signal in _valid_signals(db, student_id, level_id, session_id=session_id):
         latest_by_skill[signal.skill_id] = signal.score
 
     for code in codes:
@@ -151,7 +157,12 @@ def _next_unused_core_item(
     if completed_ids:
         base = base.filter(ContentItem.id.notin_(completed_ids))
 
-    target_skill_id = _preferred_core_skill_id(db, student_id=student_id, level_id=level_id)
+    target_skill_id = _preferred_core_skill_id(
+        db,
+        student_id=student_id,
+        session_id=session_id,
+        level_id=level_id,
+    )
     if target_skill_id is not None:
         preferred = base.filter(ContentItem.skill_id == target_skill_id).order_by(
             ContentItem.order_index,
@@ -280,8 +291,6 @@ def submit_activity_step(
         requested_session_id=session_id,
         student_id=student.id,
     )
-    # Scoring/idempotency stays in the proven Stage-2 service function, but the
-    # HTTP route itself has a single owner and receives the resolved active id.
     return stage2_submit_activity_step(
         session_id=session.id,
         item_id=item_id,
