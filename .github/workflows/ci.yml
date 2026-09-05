@@ -10,6 +10,67 @@ on:
     branches: [main]
 
 jobs:
+  security:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Audit Python dependencies
+        run: |
+          python -m pip install --disable-pip-version-check pip-audit==2.10.1
+          pip-audit -r services/api/requirements.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Audit frontend dependencies
+        working-directory: apps/web
+        run: npm audit --audit-level=high
+      - name: Scan current tree for committed secrets
+        run: |
+          curl -fsSLo /tmp/gitleaks.tar.gz \
+            https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  /tmp/gitleaks.tar.gz" | sha256sum --check -
+          tar -xzf /tmp/gitleaks.tar.gz -C /tmp gitleaks
+          /tmp/gitleaks dir --redact --no-banner --exit-code 1 .
+      - name: Guard production paths from unfinished placeholders
+        shell: bash
+        run: |
+          set -euo pipefail
+          production_paths=(apps/web/src services/api packages/content/scripts)
+          if grep -RInE '(TODO|FIXME)' "${production_paths[@]}" \
+            --include='*.py' --include='*.ts' --include='*.tsx' --include='*.js' --include='*.mjs' \
+            --exclude='test_*.py'; then
+            echo 'Unresolved TODO/FIXME marker found in production paths.' >&2
+            exit 1
+          fi
+          if grep -RInEi '(^|[^[:alnum:]_])(mock|demo)([^[:alnum:]_]|$)' "${production_paths[@]}" \
+            --include='*.py' --include='*.ts' --include='*.tsx' --include='*.js' --include='*.mjs' \
+            --exclude='test_*.py'; then
+            echo 'Mock/demo marker found in production paths.' >&2
+            exit 1
+          fi
+          if grep -RInE 'time\.sleep\(|await[[:space:]]+new[[:space:]]+Promise\([^\n]*setTimeout' "${production_paths[@]}" \
+            --include='*.py' --include='*.ts' --include='*.tsx' --include='*.js' --include='*.mjs' \
+            --exclude='test_*.py'; then
+            echo 'Possible fake delay found in production paths.' >&2
+            exit 1
+          fi
+      - name: Guard disabled or skipped tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -RInE 'pytest\.skip|pytest\.mark\.skip|@unittest\.skip|(^|[^[:alnum:]_])(test|describe)\.skip\(' services/api apps/web/tests \
+            --include='*.py' --include='*.ts' --include='*.tsx'; then
+            echo 'Disabled/skipped test found; document and remove the skip before closing the stage.' >&2
+            exit 1
+          fi
+
   backend:
     runs-on: ubuntu-24.04
     services:
@@ -93,7 +154,7 @@ jobs:
 
   integration:
     runs-on: ubuntu-24.04
-    needs: [backend, frontend]
+    needs: [security, backend, frontend]
     services:
       postgres:
         image: postgres:16-alpine
