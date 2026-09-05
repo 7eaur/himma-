@@ -9,7 +9,7 @@ from assessment_view import router as assessment_view_router
 from assessment_retake import router as assessment_retake_router
 from review import router as review_router
 from recordings import router as recordings_router
-from activities_v4 import router as activities_router
+from activity_runtime import router as activities_router
 from learning_experience import router as learning_experience_router
 from adaptation import router as adaptation_router
 from adaptation_runtime import router as adaptation_runtime_router
