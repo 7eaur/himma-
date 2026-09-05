@@ -10,7 +10,7 @@ from db.models import User, Student
 
 
 def seed():
-    """Seed the initial researcher and optional synthetic demo students.
+    """Seed the initial researcher and optional synthetic sample students.
 
     IMPORTANT: Tables must already exist via `alembic upgrade head`.
     This script does NOT call Base.metadata.create_all().
