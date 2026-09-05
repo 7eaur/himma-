@@ -4,7 +4,7 @@
 **Repository:** `7eaur/himma-`  
 **Branch:** `recovery/ui-media-admin-overhaul`  
 **Program:** Full Maintenance / Recovery  
-**Current focus:** Phase B → I corrective closure, beginning with a fail-closed audit of every remaining student-audio bypass/runtime compatibility path before touching projection/readiness debt.
+**Current focus:** Phase D — deterministic structured projection; remove active raw-prompt/regex inference from the learning/posttest runtime projection without changing approved academic meaning.
 
 ## Phase A — PHASE_A_AUDIO_REVIEW_VERTICAL_SLICE_RECOVERY — CLOSED
 
@@ -35,43 +35,84 @@ All of the following completed successfully on **the same executable SHA** `6ab9
 
 Phase A therefore satisfies the exact-SHA gate rule. The final Playwright fix only scoped duplicate responsive-table evidence locators to the desktop table; it did not weaken product behavior.
 
-## Active vertical slice — PHASE_B_RUNTIME_BYPASS_CLOSURE_AUDIT
+## Phase B — PHASE_B_RUNTIME_BYPASS_CLOSURE_AUDIT — CLOSED / NO EXECUTABLE CHANGE REQUIRED
 
-**Starting executable HEAD:** `6ab969730f99585afa8053e5fece882538c5caaa`.
-
+**Audited executable candidate:** `6ab969730f99585afa8053e5fece882538c5caaa`  
 **Acceptance focus:** `AC-06`, `AC-07`, `AC-13`, `AC-14`, `AC-15`.
 
-### Phase B plan
+Current-branch audit found no reachable student audio/media completion bypass:
 
-1. Re-audit the current target branch for all active and compatibility references to:
-   `temporary_audio_skip`, `TemporaryAudioSkip`, `TEMP_AUDIO_SKIP`, `HIMMA_TEMP_AUDIO_SKIP`, `skip_recording`, `temporary-audio`, `runtime-flags`, and `declared_media_gap_skip`.
-2. Classify every hit as active runtime, historical-data compatibility, docs, test, or dead code.
-3. Require fail-closed behavior: no public/student request may manufacture a completed/correct attempt because media is missing or a recording is skipped.
-4. Preserve historical attempt/assessment records and compatibility markers required to read old data; do not delete learner history.
-5. Add or refine negative regression coverage only where the current suite does not already prove the invariant.
-6. If the active bypass is already absent and the current M09/Quality tests prove it, close Phase B without unnecessary code churn.
+- `/api/runtime-flags` is compatibility-only and always reports `temporary_audio_skip: false`; no environment toggle re-enables it.
+- The canonical activity runtime accepts the old `declared_media_gap_skip` field only to reject it fail-closed with HTTP 409; the value is never forwarded as an active skip.
+- The lower activity submission layer contains no creation branch for `declared_media_gap_skip`.
+- Historical markers `temporary_audio_skip` and `declared_media_gap_skip` remain readable in assessment history only so old records can be interpreted; they are explicitly excluded from correctness/score evidence.
+- Current backend regression tests prove pending uploaded audio does not complete/master activity, reviewed audio advances, rerecord reopens the same round, a declared skip is rejected, and missing required audio fails closed without creating an attempt.
+- M09 on exact SHA `6ab9697...` passed its explicit step `Verify deleted student audio bypass cannot be reached`.
+
+No code deletion was performed because removing historical compatibility would risk breaking stored academic history, while the active runtime invariant is already fail-closed and gate-protected.
+
+**Migration impact:** none. No learner history was rewritten or deleted.
+
+## Phase C — PHASE_C_APPROVED_AUDIO_BINARY_CONTRACT — CLOSED / NO EXECUTABLE CHANGE REQUIRED
+
+**Audited executable candidate:** `6ab969730f99585afa8053e5fece882538c5caaa`  
+**Acceptance focus:** `AC-06`, `AC-07`, `AC-13`, `AC-15`.
+
+Deterministic audio integrity is already enforced by the repository validator and exact-SHA Quality Gate:
+
+- Fixed approved assets: **54**.
+- WAV binaries: **54**.
+- MP3 binaries: **54**.
+- Required static audio missing: **0**.
+- `LET-01` retains its stable ID/path and maps to approved **مَ**, sourced from `SYL-15`.
+- `SYL-13` = `سَا`.
+- `WRD-29` = `موز`.
+- `INS-01` = قصة ليان في المزرعة.
+- `INS-02` = قصة نادر في الشاطئ.
+- `assets/audio/HIMMA_AUDIO_V1/manifest.csv` records the approved identities and SHA-256 checksums for both WAV and MP3 files.
+- `packages/content/scripts/validate_catalog.py` invokes the audio manifest verifier; `compile_catalog.verify_audio_manifest_files` checks file existence, exact manifest membership, and SHA-256 integrity.
+- The exact-SHA Quality Gate on `6ab9697...` passed `Validate approved content catalog`, so the deterministic file/manifest contract is green.
+
+This closes binary/file integrity. It does **not** claim perceptual listening quality or calibrated speech recognition; those require separate evidence/capability.
+
+**Migration impact:** none.
+
+## Active vertical slice — PHASE_D_DETERMINISTIC_STRUCTURED_PROJECTION
+
+**Starting branch HEAD:** documentation commit after green executable candidate `6ab969730f99585afa8053e5fece882538c5caaa`.  
+**Acceptance focus:** `AC-03`, `AC-04`, `AC-05`, `AC-10`, `AC-14`.
+
+### Verified debt
+
+`services/api/seed_learning_posttest_projection_runtime.py` is the active learning/posttest projection owner invoked by `seed_all.py`. It currently uses regex/string parsing of legacy `prompt_text` (`_extract_quoted`, `_single_visible_stimulus`, `_clean_stimulus`) to infer student-visible projection fields. This violates the target structured-source architecture even though the generated runtime currently passes tests.
+
+The repository already provides stronger structured inputs through `template_data.db_runtime`, including stable source metadata, round numbers, persisted step IDs, explicit options/correctness, and media bindings. The projection should consume these structures plus explicit approved overrides instead of interpreting raw prompt prose.
+
+### Phase D implementation plan
+
+1. Remove `re` and all active raw-prompt regex/split inference from `seed_learning_posttest_projection_runtime.py`.
+2. Build generic question/instruction/hint behavior from explicit `interaction_type`, structured round data, explicit option/media data, and approved stable-key overrides.
+3. Preserve all approved special cases already encoded as explicit stable-key/round overrides; do not infer or invent new academic text.
+4. Preserve stable IDs, option IDs, media mappings, correct-answer metadata and seed idempotency.
+5. Do not move prompt parsing into frontend/runtime helpers as a workaround.
+6. Add a regression proving the active projection no longer depends on prompt parsing for its structured display contract.
 
 ### Migration impact
 
-**None planned.** Historical records must remain readable. No destructive migration, reset, reseed of learner history, or data deletion is permitted.
+No schema migration expected. The seed remains version-aware/idempotent and must not delete or reset learner history.
 
-### Phase B test plan
+### Phase D test plan
 
-- Student/public activity submission schema contains no skip control.
-- Missing required media fails closed rather than creating completion evidence.
-- Uploaded/pending review audio cannot count as completion/mastery.
-- Historical skip markers, where still readable for old data, are excluded from score/mastery and are not reachable as a current student action.
-- Exact-SHA Quality Gate + M09 after any executable Phase B change.
+- approved catalog validation
+- seed twice / idempotency
+- projection-specific backend tests including a raw-prompt independence regression
+- existing content/runtime contract tests
+- full backend suite
+- frontend build/tests (projection consumers)
+- Playwright integration/E2E
+- exact-SHA Quality Gate before Phase D closure
 
 ## Planned remaining closure slices
-
-### Phase C — approved audio binary/runtime contract
-
-Verify manifest, committed WAV/MP3 pairs, runtime references and validator coverage for all approved fixed audio, including `LET-01`, `SYL-13`, `WRD-29`, `INS-01`, and `INS-02`. Deterministic file/manifest integrity may be asserted; perceptual waveform quality is not claimed without a listening-capable evidence step.
-
-### Phase D — deterministic structured projection
-
-Remove raw prompt/regex/string inference from `seed_learning_posttest_projection_runtime.py` and any equivalent active projection path. Approved structured source fields must drive the runtime projection while preserving stable IDs and approved content.
 
 ### Phase E — runtime readiness hardening
 
@@ -91,7 +132,7 @@ Search and remove only proven-dead runtime/UI hacks, including forbidden old enh
 
 ### Phase I — final single-candidate closure
 
-Require Quality Gate + M04 + M09 to complete successfully on the same final executable SHA, then record the final evidence in ops docs. A documentation-only commit may be distinguished from its executable candidate under the repository policy.
+Require Quality Gate + M04 + M09 to complete successfully on the same final executable SHA, then record final evidence in ops docs. A documentation-only commit may be distinguished from its executable candidate under repository policy.
 
 ## Current runtime truth
 
@@ -99,7 +140,7 @@ Require Quality Gate + M04 + M09 to complete successfully on the same final exec
 - Runtime total: 125.
 - Reinforcement total: 35.
 - Skills: 44.
-- Source path: `Approved versioned source -> deterministic seed/projection -> PostgreSQL runtime -> structured API -> deterministic renderer`.
+- Target source path: `Approved versioned source -> deterministic structured seed/projection -> PostgreSQL runtime -> structured API -> deterministic renderer`.
 - Reports remain descriptive read models and never create mastery evidence.
 
 ## Student / architecture
@@ -115,21 +156,11 @@ Require Quality Gate + M04 + M09 to complete successfully on the same final exec
 
 ### Fixed prompt/story audio — CLOSED
 
-- Approved fixed assets: **54**.
-- WAV binaries: **54**.
-- MP3 binaries: **54**.
-- Missing required static audio: **0**.
-- `LET-01` contains the approved **مَ** recording sourced from `SYL-15`, while retaining the stable runtime ID/path.
-- `WRD-29` = `موز`.
-- `SYL-13` = `سَا`.
-- `INS-01` = قصة ليان في المزرعة.
-- `INS-02` = قصة نادر في الشاطئ.
-
 Authoritative reference: `docs/maintenance/AUDIO_RUNTIME_AND_REVIEW_CONTRACT_2026-09-04_AR.md`.
 
 ### Student recording review — CLOSED BASE CONTRACT / GATE-PROTECTED
 
-Temporary Audio Skip has been removed from the active learner path. Current reviewed-learning behavior is gate-protected by backend and E2E coverage. Phase B is a fresh current-branch closure audit to ensure no alternative runtime bypass remains.
+Temporary Audio Skip is absent from the active learner path. Current reviewed-learning behavior is gate-protected by backend and E2E coverage.
 
 ### Automated speech analysis — OPEN FUTURE GATE
 
@@ -161,7 +192,7 @@ Production automatic speech analysis remains a separately governed future gate f
 
 ## CI rule
 
-Never declare the current branch PASS because an older SHA was green. For every executable closure candidate, inspect current HEAD and require the applicable Quality/M04/M09 conclusions for that exact SHA. Documentation-only commits may move HEAD without changing executable code and must be distinguished explicitly.
+Never declare the current branch PASS because an older SHA was green. For every executable closure candidate, inspect current HEAD and require applicable Quality/M04/M09 conclusions for that exact SHA. Documentation-only commits may move HEAD without changing executable code and must be distinguished explicitly.
 
 ## Governance
 
