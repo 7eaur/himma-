@@ -1,4 +1,4 @@
-from activities_v4 import router as activity_router
+from activity_runtime import router as activity_router
 
 
 EXPECTED = {
