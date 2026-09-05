@@ -1,82 +1,66 @@
 {
-  "schema_version": 5,
-  "plan_version": "HIMMA-FULL-MAINTENANCE-2026-09-04",
+  "schema_version": 6,
+  "plan_version": "HIMMA-FULL-MAINTENANCE-2026-09-05",
   "repository": "7eaur/himma-",
   "branch": "recovery/ui-media-admin-overhaul",
   "phase": "FULL_MAINTENANCE_AND_RELEASE_READINESS",
-  "slice": "POST_AUDIO_RECONCILIATION_FINAL_VERIFICATION",
-  "last_verified": "2026-09-04",
-  "current_executable_candidate_before_docs": "b999d85e8df5df41bb9e82bc5a0e7ecdbf6fcfaf",
+  "slice": "PHASE_F_STUDENT_PATH_REGRESSION_CLOSURE",
+  "last_verified": "2026-09-05",
+  "current_executable_candidate_before_docs": "07e83ba57244410f160a727b3c50001fbd7451a1",
+  "continuity_handoff": "docs/ops/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-05_AR.md",
   "runtime": {
     "original_items": 105,
     "runtime_total": 125,
+    "pretest_total": 30,
+    "learning_total": 65,
+    "posttest_total": 30,
     "reinforcement_total": 35,
     "skills": 44,
-    "architecture": "approved_versioned_source -> deterministic_projection -> postgres_runtime -> structured_api -> deterministic_renderer"
+    "projection_contract": "structured_db_runtime_v1"
   },
-  "student_experience": {
-    "unified_task_design_system": true,
-    "polish_override_architecture_removed": true,
-    "dom_state_inference_removed": true,
-    "temporary_audio_skip_removed": true,
-    "minimum_touch_target_px": 44
+  "phases": {
+    "A": "CLOSED",
+    "B": "CLOSED",
+    "C": "CLOSED",
+    "D": "CLOSED_EXACT_SHA_GREEN",
+    "E": "CLOSED_EXACT_SHA_GREEN",
+    "F": "NEXT_ACTIVE",
+    "G": "PENDING",
+    "H": "PENDING",
+    "I": "PENDING"
+  },
+  "exact_sha_evidence": {
+    "sha": "07e83ba57244410f160a727b3c50001fbd7451a1",
+    "quality_gate_run": 33958275012,
+    "m04_run": 33958275097,
+    "m09_run": 33958275085,
+    "all_success": true
   },
   "audio": {
-    "fixed_prompt_story_assets_status": "CLOSED",
+    "fixed_assets_status": "CLOSED",
     "fixed_approved_assets": 54,
     "wav_binaries": 54,
     "mp3_binaries": 54,
-    "missing_required_static_audio": [],
-    "approved_reconciliation": {
-      "LET-01": "مَ (approved SYL-15 bytes published under stable LET-01 ID)",
-      "SYL-13": "سَا",
-      "WRD-29": "موز",
-      "INS-01": "قصة ليان في المزرعة",
-      "INS-02": "قصة نادر في الشاطئ"
-    },
-    "changed_binary_pairs_physically_verified_on_github": true,
-    "changed_binary_count": 10,
-    "temporary_skip_ui_removed": true,
-    "temporary_skip_api_removed": true,
-    "temporary_skip_feature_flag_removed": true,
-    "temporary_skip_backend_module_removed": true,
-    "supervisor_review_authoritative_until_asr": true,
-    "contract": "docs/maintenance/AUDIO_RUNTIME_AND_REVIEW_CONTRACT_2026-09-04_AR.md"
+    "pending_review_status": "uploaded",
+    "valid_review_status": "graded",
+    "rerecord_status": "rerecord_required",
+    "supervisor_review_authoritative": true
   },
   "asr": {
     "architecture": "Reference-Guided Arabic Reading Analysis",
-    "provider_connected_for_production": false,
-    "calibration_complete": false,
-    "privacy_retention_policy_complete": false,
-    "human_override_policy_complete": false,
-    "status": "FUTURE_PRODUCTION_GATE_NOT_STATIC_AUDIO_GAP"
-  },
-  "stages": {
-    "M00": "CLOSED",
-    "M01": "CLOSED_BASELINE",
-    "M02": "CLOSED_BASELINE_REFINED",
-    "M03": "CLOSED_RECONCILED",
-    "M04": "CLOSED_BASELINE_EXACT_SHA_REGRESSION_GATE_REQUIRED",
-    "M05": "CLOSED_BASELINE",
-    "M06": "CLOSED_BASELINE",
-    "M07": "CLOSED_BASELINE",
-    "M08_FIXED_AUDIO": "CLOSED",
-    "M08_AUTOMATIC_SPEECH_ANALYSIS": "OPEN_FUTURE_GATE",
-    "M09": "IN_PROGRESS"
+    "status": "FUTURE_PRODUCTION_GATE_NOT_REQUIRED_FOR_CURRENT_CLOSURE"
   },
   "verification_policy": {
     "pass_requires_exact_sha_evidence": true,
-    "quality_gate_required": true,
-    "m04_required_for_ui_candidate": true,
-    "m09_required_for_release_candidate": true,
-    "documentation_only_sha_may_be_distinguished_from_executable_candidate": true
+    "documentation_only_sha_may_be_distinguished_from_executable_candidate": true,
+    "no_release_without_explicit_user_authorization": true
   },
   "open_work": [
-    "Confirm current Quality Gate after audio binaries and latest E2E fixes",
-    "Confirm relevant M04 responsive evidence",
-    "Confirm M09 readiness for current executable candidate",
-    "Complete M09 full single-candidate UAT and monitoring/support/rollback/privacy closure",
-    "Future M08 approved ASR provider integration and calibration"
+    "Phase F complete student-path regression closure",
+    "Phase G supervisor audio/admin UX closure",
+    "Phase H proven-dead legacy cleanup",
+    "Phase I final single-candidate Quality/M04/M09 closure",
+    "Future-only ASR provider integration and calibration"
   ],
-  "next_step": "Verify applicable GitHub Actions on the current executable candidate, fix any real failure, then record exact run IDs/conclusions."
+  "next_step": "Re-fetch branch HEAD and Actions, then continue Phase F using the continuity handoff."
 }
