@@ -11,6 +11,62 @@ from protected import _assessment_display_status
 import seed
 
 
+def test_assessment_display_status_exposes_audio_wait_before_all_questions_are_done():
+    seed.run_seed()
+    db = SessionLocal()
+    try:
+        audio_item = (
+            db.query(ContentItem)
+            .filter(
+                ContentItem.kind == "pretest_question",
+                ContentItem.interaction_type == "read_aloud",
+            )
+            .order_by(ContentItem.order_index, ContentItem.id)
+            .first()
+        )
+        assert audio_item is not None
+
+        student = Student(
+            access_code="947250",
+            name="طالب انتظار مبكر",
+            grade_level=3,
+            current_level=1,
+            is_active=True,
+        )
+        db.add(student)
+        db.flush()
+
+        session = AssessmentSession(student_id=student.id, session_type="pretest", status="in_progress")
+        db.add(session)
+        db.flush()
+
+        attempt = Attempt(session_id=session.id, item_id=audio_item.id, status="completed")
+        db.add(attempt)
+        db.flush()
+        response = AttemptResponse(attempt_id=attempt.id, step_id=audio_item.steps[0].id)
+        db.add(response)
+        db.flush()
+        submission = AudioSubmission(
+            response_id=response.id,
+            storage_key="tests/mid-assessment-pending.webm",
+            file_size=2048,
+            mime_type="audio/webm",
+            status="uploaded",
+        )
+        db.add(submission)
+        db.flush()
+
+        assert _assessment_display_status(db, session) == "waiting_audio_review"
+        assert session.status == "in_progress"
+
+        submission.status = "rerecord_required"
+        db.flush()
+        assert _assessment_display_status(db, session) == "rerecord_required"
+        assert session.status == "in_progress"
+    finally:
+        db.close()
+
+
 def test_assessment_display_status_tracks_audio_review_without_mutating_session():
     seed.run_seed()
     db = SessionLocal()
