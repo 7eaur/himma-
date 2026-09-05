@@ -138,9 +138,20 @@ class TestLearningAudioRuntime:
 
         _student_login(client)
         advanced = client.get(f"/activities/session/{session_id}/next")
-        assert advanced.status_code in {200, 409}, advanced.text
+        assert advanced.status_code == 200, advanced.text
+        assert advanced.json()["item"]["id"] == item_id
+        assert advanced.json()["step"]["id"] != step_id
+        assert advanced.json()["awaiting_audio_review"] is False
+
         db = SessionLocal()
-        assert db.query(Attempt).filter(Attempt.id == attempt_id).one().status == "completed"
+        attempt = db.query(Attempt).filter(Attempt.id == attempt_id).one()
+        response = db.query(AttemptResponse).filter(
+            AttemptResponse.attempt_id == attempt_id,
+            AttemptResponse.step_id == step_id,
+        ).one()
+        audio = db.query(AudioSubmission).filter(AudioSubmission.response_id == response.id).one()
+        assert attempt.status == "in_progress"
+        assert audio.status == "graded"
         db.close()
 
     def test_invalid_review_reopens_same_reading_step_for_rerecord(self, client, monkeypatch):
