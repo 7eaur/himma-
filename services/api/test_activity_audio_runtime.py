@@ -35,7 +35,7 @@ def _complete_pretest(level: int = 1) -> int:
 
 def _create_audio_attempt(student_client):
     seed.run_seed()
-    student_id = _complete_pretest(level=1)
+    student_id = _complete_pretest(level=2)
     started = student_client.post("/activities/start")
     assert started.status_code == 200, started.text
     session_id = started.json()["session_id"]
@@ -43,7 +43,7 @@ def _create_audio_attempt(student_client):
     db = SessionLocal()
     candidates = db.query(ContentItem).filter(
         ContentItem.kind == "core_activity",
-        ContentItem.level_id == 1,
+        ContentItem.level_id == 2,
         ContentItem.status == "approved",
     ).order_by(ContentItem.order_index).all()
     item = next(candidate for candidate in candidates if canonical_interaction(candidate) in activity_runtime.AUDIO_INTERACTIONS)
