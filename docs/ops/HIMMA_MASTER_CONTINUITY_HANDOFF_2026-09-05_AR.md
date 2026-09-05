@@ -1,178 +1,203 @@
 # HIMMA MASTER CONTINUITY HANDOFF — 2026-09-05
 
-> هذا الملف هو مرجع تسليم واستمرارية لمحادثة جديدة حتى تتابع تنفيذ منصة **هِمّة | HIMMA** من النقطة الحالية بدون إعادة اكتشاف المشروع من الصفر وبدون فقد القرارات الأكاديمية أو التقنية أو أدلة التنفيذ الحديثة.
+> هذا الملف هو مرجع التسليم الرئيسي لمحادثة جديدة حتى تتابع تنفيذ منصة **هِمّة | HIMMA** من النقطة الحالية بدون إعادة اكتشاف المشروع من الصفر وبدون فقد القرارات الأكاديمية أو التقنية أو أدلة التنفيذ.
 
 ---
 
-## 0) قاعدة القراءة لهذا الملف
+# 0) نقطة الاستئناف الحالية
 
-هذا الملف يوثق **الحالة التنفيذية الفعلية حتى آخر SHA تنفيذي تحقق منه**:
-
-`07e83ba57244410f160a727b3c50001fbd7451a1`
-
-الفرع الرسمي للعمل:
-
-`recovery/ui-media-admin-overhaul`
-
-المستودع الرسمي الوحيد:
+المستودع الرسمي:
 
 `7eaur/himma-`
 
-مهم: ملف `docs/ops/STATUS.md` الحالي ما زال يحتوي في رأسه على صياغة أقدم تعتبر Phase D هي المرحلة النشطة، و`docs/ops/progress.json` أقدم من آخر تنفيذ. لذلك عند استلام محادثة جديدة يجب اعتبار **هذا Handoff + GitHub HEAD + نتائج Actions الحديثة** المرجع الأحدث للحالة، ثم تحديث `STATUS.md` و`progress.json` أثناء الإغلاق القادم.
+الفرع الرسمي:
 
-قبل أي كتابة جديدة على الفرع: **أعد جلب HEAD وتأكد أنه لم يتحرك**.
+`recovery/ui-media-admin-overhaul`
+
+آخر **Executable SHA** تم التحقق منه بالكامل قبل سلسلة توثيق الاستمرارية:
+
+`07e83ba57244410f160a727b3c50001fbd7451a1`
+
+وعلى نفس هذا الـSHA نجحت جميع البوابات الرئيسية:
+
+- Quality Gate run `33958275012` — SUCCESS.
+- M04 run `33958275097` — SUCCESS.
+- M09 run `33958275085` — SUCCESS.
+
+بعد ذلك أضيفت فقط توثيقات استمرارية/حالة:
+
+- `8daf063994b9c4c8d50030703a5959e3dae33bf5` — إنشاء Handoff.
+- `306367d4fa4e6b77430ca0cf09985db383e818bb` — تحديث `STATUS.md` حتى Phase E.
+- `dbd2ff21613294c648a851ff9e9bb6893ad41036` — تحديث `progress.json` حتى Phase E.
+
+لذلك في أي محادثة جديدة:
+
+1. أعد جلب HEAD الحالي أولًا.
+2. ميّز بين Documentation-only HEAD وبين آخر Executable candidate.
+3. لا تعتبر أي SHA جديد PASS إلا بعد فحص Actions الخاصة به إذا كان يحتوي تغييرًا تنفيذيًا.
+4. ابدأ التنفيذ من **Phase F** ما لم يظهر Regression حقيقيًا يفرض الرجوع.
+
+`docs/ops/STATUS.md` و`docs/ops/progress.json` تم تحديثهما بالفعل ليتوافقا مع هذه الحالة.
 
 ---
 
-# 1) ما هي منصة هِمّة؟
+# 1) تعريف المشروع
 
-منصة تعليمية عربية موجهة لطلاب الصف الثالث الذين لديهم صعوبات في القراءة.
+هِمّة منصة تعليمية عربية لطلاب الصف الثالث الذين لديهم صعوبات في القراءة.
 
-المسار الأساسي للطالب:
+المسار الأساسي:
 
-`دخول بكود -> اختبار قبلي -> تحليل/مراجعة القراءة -> تصنيف مستوى -> أنشطة المستوى -> تقوية موجهة -> متابعة تكيفية -> اختبار بعدي -> تقارير المشرف`
+`دخول بكود -> اختبار قبلي -> مراجعة التسجيلات -> تصنيف مستوى -> أنشطة المستوى -> تقوية موجهة -> متابعة تكيفية -> اختبار بعدي -> تقارير المشرف`
 
-المحتوى الأكاديمي الأساسي المعتمد:
+المحتوى الأكاديمي الأصلي المعتمد:
 
 - 30 سؤال اختبار قبلي.
 - 30 سؤال اختبار بعدي.
 - 3 مستويات.
 - لكل مستوى 10 أنشطة أساسية + 5 أنشطة تقوية في المصدر الأكاديمي الأصلي.
-- المصدر الأكاديمي الأصلي = 105 عناصر.
-- Runtime الحالي = 125 عنصرًا.
-- Reinforcement runtime total = 35.
-- Skills = 44.
+- الإجمالي الأصلي = 105 عنصرًا.
+
+Runtime الحالي:
+
+- total = 125.
+- pretest = 30.
+- learning = 65.
+- posttest = 30.
+- reinforcement total = 35.
+- skills = 44.
 
 التصنيف الأساسي بعد الاختبار القبلي:
 
-- أقل من 50% -> المستوى الأول.
-- 50% إلى أقل من 80% -> المستوى الثاني.
-- 80% إلى 100% -> المستوى الثالث.
+- أقل من 50% -> L1.
+- 50% إلى أقل من 80% -> L2.
+- 80% إلى 100% -> L3.
 
-هذا التصنيف يحدد **مستوى البداية فقط**، ثم تطبق قواعد الأدلة/التكيف والترقية المعتمدة.
+هذا يحدد مستوى البداية فقط؛ بعده تطبق قواعد الأدلة والتكيف والترقية.
 
 ---
 
-# 2) القواعد الأكاديمية والتكيفية غير القابلة للكسر
+# 2) القواعد الأكاديمية غير القابلة للكسر
 
-## L1 / L2 — الترقية المبكرة
+## L1 / L2 promotion
 
-لا ترقية إلا بعد تحقق جميع الشروط التالية:
+لا ترقية مبكرة إلا إذا تحقق كله:
 
-- تنفيذ 6 Core على الأقل.
+- 6 Core على الأقل.
 - Mastery >= 85%.
 - Critical floor >= 70%.
-- تغطية المهارات الحرجة المطلوبة كاملة.
-- لا يوجد Reinforcement blocker غير محلول.
-- لا يوجد Audio Review blocker غير محلول.
-- الترقية مستوى واحد فقط في المرة.
-- لا يوجد Auto-demotion.
+- Full required critical coverage.
+- لا Reinforcement blocker غير محلول.
+- لا Audio Review blocker غير محلول.
+- الترقية مستوى واحد فقط.
+- لا Auto-demotion.
 
 ## L3
 
-المستوى الثالث يحتاج الأدلة الكاملة المطلوبة قبل اكتمال الرحلة/فتح الاختبار البعدي، ويشمل اكتمال الأنشطة والتغطية وعدم وجود blockers حسب العقد الأكاديمي الحالي.
+يحتاج full evidence قبل Journey completion / posttest.
 
 ## Reinforcement
 
-- تقوية مستهدفة حسب الضعف فقط.
-- ممنوع Random fallback.
-- ممنوع Cross-level fallback غير أكاديمي.
+- Targeted only.
+- لا random fallback.
+- لا cross-level fallback غير معتمد.
 
 ## Reports
 
-التقارير **Read Models فقط**.
+التقارير Read Models فقط.
 
-ممنوع على أي endpoint أو read في التقارير أن:
+ممنوع أن تنشئ أو تعدل:
 
-- ينشئ Mastery.
-- يكمل Activity.
-- يغير Student level.
-- ينشئ Academic evidence.
-- يحدد Official attempt.
+- mastery.
+- activity completion.
+- student level.
+- academic evidence.
+- official reporting attempt.
 
-آخر HEAD يحتوي Regression test جديدًا يثبت أن قراءة التقارير لا تعدل الحالة الأكاديمية.
+يوجد Regression test حديث على SHA `07e83...` يثبت أن قراءة التقارير لا تغير academic state.
+
+## Retakes
+
+- تنتهي عبر canonical assessment completion.
+- تحفظ المحاولات القديمة.
+- exactly one `official_for_reporting`.
 
 ---
 
-# 3) القرارات المعتمدة للصوت
+# 3) عقد الصوت المعتمد
 
-## Fixed approved audio
+## Fixed approved assets
 
-الحزمة الثابتة المعتمدة مغلقة من ناحية Binary/manifest integrity:
+الحالة مغلقة من ناحية الملفات والـmanifest:
 
-- Approved assets = 54.
-- WAV = 54.
-- MP3 = 54.
-- Missing required static audio = 0.
+- 54 approved assets.
+- 54 WAV.
+- 54 MP3.
+- missing required static audio = 0.
 
-الربط المصحح المعتمد:
+الربط المصحح:
 
-- `LET-01` = **مَ**، مع الاحتفاظ بالـStable ID القديم، والبايتات المعتمدة مصدرها `SYL-15`.
-- `SYL-13` = **سَا**.
-- `WRD-29` = **موز**.
+- `LET-01` = `مَ` مع الاحتفاظ بالـStable ID، والبايتات مصدرها approved `SYL-15`.
+- `SYL-13` = `سَا`.
+- `WRD-29` = `موز`.
 - `INS-01` = قصة ليان في المزرعة.
 - `INS-02` = قصة نادر في الشاطئ.
 
-المرجع التشغيلي:
-
-`docs/maintenance/AUDIO_RUNTIME_AND_REVIEW_CONTRACT_2026-09-04_AR.md`
-
-والـmanifest:
+Manifest:
 
 `assets/audio/HIMMA_AUDIO_V1/manifest.csv`
 
-التحقق بالـSHA-256 يتم من خلال validator الموجود في مسار المحتوى، ويدخل ضمن Quality Gate.
+العقد المرجعي:
 
-لا تدّع جودة إدراكية/سمعية perceptual quality لمجرد أن checksums صحيحة؛ هذا يحتاج استماعًا/تقييمًا صوتيًا منفصلًا.
+`docs/maintenance/AUDIO_RUNTIME_AND_REVIEW_CONTRACT_2026-09-04_AR.md`
+
+الـvalidator يتحقق من وجود الملفات وعضوية الـmanifest وSHA-256.
+
+لا تعتبر checksum دليلًا على perceptual listening quality.
 
 ---
 
 # 4) عقد تسجيل الطالب ومراجعة المشرف
 
-القرار الحالي والفعلي:
+المسار الحالي:
 
 `record -> persist/upload -> supervisor review -> graded OR rerecord_required -> continue`
 
-حالة التسجيل بعد الرفع وقبل قرار المشرف:
+حالة التسجيل المرفوع قبل المراجعة:
 
 `AudioSubmission.status = "uploaded"`
 
-هذه الحالة تعني **بانتظار المراجعة** ولا تعني:
+`uploaded` تعني Waiting only، ولا تعني:
 
-- نجاح.
-- Correct answer.
+- Correct.
+- Success.
 - Activity completion.
 - Mastery evidence.
 
-المشرف هو صاحب السلطة الحالية لقبول/رفض التسجيل.
+المشرف هو السلطة الحالية.
 
-لا يوجد Fake AI score.
+لا Fake AI scoring.
 
-إذا قرر المشرف:
+- `graded` -> قد يسمح للجولة بالاكتمال وفق قرار المراجعة.
+- `rerecord_required` -> يعيد نفس جولة القراءة.
 
-- `graded` -> قد تصبح الجولة قابلة للاكتمال وفق نتيجة المراجعة.
-- `rerecord_required` -> تعاد نفس جولة القراءة ويطلب تسجيل جديد.
-
-لا تحذف تاريخ المحاولات أو التسجيلات أو المراجعات بهدف تسهيل المنطق.
+لا تحذف history للتسجيلات أو المراجعات أو المحاولات.
 
 ---
 
-# 5) قرار نموذج تحليل القراءة المستقبلي
+# 5) ASR المستقبلي
 
-إذا تم لاحقًا تنفيذ تحليل صوت آلي، فالقرار المعماري المعتمد هو:
+إذا طُلب مستقبلًا تحليل آلي، المعمارية المعتمدة:
 
 **Reference-Guided Arabic Reading Analysis**
 
-يتكون من:
-
 - ASR.
-- Alignment مع النص المرجعي المعروف مسبقًا.
-- تحليل Correct / Deletion / Insertion / Substitution.
+- Reference alignment.
+- Correct / Deletion / Insertion / Substitution.
 - Phonemic helper evidence.
 
-لكن هذا **Future production gate** وليس مطلوبًا لإغلاق الصيانة الحالية.
+هذا Future gate وليس شرطًا لإغلاق الصيانة الحالية.
 
-لا تنفذ Provider أو Automatic scoring أو Calibration الآن إلا إذا طلب المستخدم ذلك صراحة كمرحلة منفصلة.
+لا تنفذ provider/calibration/automatic production score إلا بطلب منفصل صريح.
 
 ---
 
@@ -180,57 +205,49 @@
 
 المسار الصحيح:
 
-`Approved Academic Source -> Versioned Content Source/Projection -> PostgreSQL Runtime -> Structured APIs -> Deterministic Student Renderer`
+`Approved Academic Source -> Versioned Structured Projection -> PostgreSQL Runtime -> Structured API -> Deterministic Renderer`
 
-الهدف هو منع المعمارية القديمة من النوع:
+ممنوع الرجوع إلى:
 
-`raw prompt -> regex/string parsing -> DOM inference/runtime patches`
+`raw prompt -> regex/string parsing -> DOM inference/runtime CSS patch`
 
 القواعد:
 
 - Stable IDs محفوظة.
-- لا تستنتج Correct answer من نص Prompt.
-- لا تستنتج نوع interaction من نص حر إذا كانت البيانات المنظمة موجودة.
-- لا تنقل Prompt parsing من backend إلى frontend كحل التفافي.
-- Seeds يجب أن تكون version-aware + idempotent + non-destructive.
+- لا correct-answer inference من prompt text.
+- لا interaction inference من raw prose إذا structured data موجودة.
+- لا نقل prompt parsing للfrontend كحل التفافي.
+- Seeds version-aware + idempotent + non-destructive.
+
+Projection contract الحالي:
+
+`structured_db_runtime_v1`
 
 ---
 
 # 7) قيود التنفيذ وGitHub
 
-يجب الالتزام بما يلي في كل محادثة جديدة:
-
 - لا Docker محليًا.
-- لا Force push.
-- لا `reset --hard`.
-- لا `git clean`.
-- لا حذف branch/history.
-- لا تعديل الفروع الأساسية المقبولة مباشرة.
-- لا حذف/تصفير البيانات الأكاديمية:
-  - students
-  - sessions
-  - attempts
-  - mastery
-  - recordings
-  - reviews
-  - audits
-  - retakes
-  - notifications
-- قبل كل write: أعد جلب branch HEAD.
-- لا تعتبر أي مرحلة PASS بسبب SHA قديم.
-- PASS = نفس SHA النهائي له Gate مكتمل وناجح.
+- لا force push.
+- لا reset/clean مدمر.
+- لا حذف history أو branches.
+- لا تعديل accepted stage branches مباشرة.
+- لا حذف/تصفير students/sessions/attempts/mastery/recordings/reviews/audits/retakes/notifications.
+- قبل كل write: Fetch branch HEAD من جديد.
+- PASS فقط على exact SHA.
+- لا Merge/Release production بدون موافقة المستخدم الصريحة.
 
-المستودع المرجعي التاريخي:
+المستودع التاريخي:
 
 `7eaur/himma-deployment-sandbox`
 
-يستخدم للمرجعية فقط، وليس مكان التنفيذ الرسمي.
+Reference only.
 
 ---
 
-# 8) الملفات التي يجب قراءتها في بداية أي محادثة جديدة
+# 8) ملفات البداية الإلزامية للمحادثة الجديدة
 
-اقرأ قبل أي تنفيذ:
+اقرأ قبل التنفيذ:
 
 - `AGENTS.md`
 - `.agents/rules/00-himma-core.md`
@@ -243,324 +260,176 @@
 - `docs/ops/DECISIONS.md`
 - `docs/ops/OPEN_ITEMS.md`
 - `docs/maintenance/AUDIO_RUNTIME_AND_REVIEW_CONTRACT_2026-09-04_AR.md`
-- **هذا الملف** `docs/ops/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-05_AR.md`
+- `docs/ops/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-05_AR.md`
 
-ثم:
+ثم اجلب HEAD وActions على الـSHA الحالي.
 
-1. Fetch branch HEAD.
-2. Fetch GitHub Actions على ذلك الـSHA.
-3. قارن الحالة مع هذا الملف.
-4. لا تسأل المستخدم أن يعيد شرح المشروع إذا كانت المعلومات هنا وفي المستودع كافية.
+لا تطلب من المستخدم إعادة شرح المشروع إذا كانت المعلومات في المستودع كافية.
 
 ---
 
-# 9) حالة المراحل A -> I حتى الآن
+# 9) حالة Phases A -> E
 
-## Phase A — Audio Review Vertical Slice Recovery — CLOSED
+## Phase A — CLOSED
 
-الهدف كان إصلاح المسار الحقيقي للتسجيل بدل استخدام Skip أو Fake score.
+Audio Review Vertical Slice Recovery.
 
-الإغلاق التنفيذي المؤكد:
+Closed executable candidate:
 
 `6ab969730f99585afa8053e5fece882538c5caaa`
 
-على نفس SHA نجحت:
+Exact-SHA green evidence:
 
-- Quality Gate run `33954323651`.
-- M04 run `33954323671`.
-- M09 run `33954323649`.
+- Quality `33954323651`.
+- M04 `33954323671`.
+- M09 `33954323649`.
 
-ما تم:
+تم إصلاح المسار الحقيقي للتسجيل/المراجعة بدون bypass أو score مزيف، وإصلاح E2E بحيث يختبر التسجيل ثم انتظار المشرف ثم continuation.
 
-- الطالب يسجل فعليًا.
-- التسجيل يحفظ ويرتبط بالمحاولة.
-- يظهر انتظار مراجعة المشرف.
-- `uploaded` لا يحسب complete/mastery.
-- `graded` يسمح بالاستمرار وفق المراجعة.
-- `rerecord_required` يعيد نفس الجولة.
-- E2E أصبح يختبر السيناريو الحقيقي بدل تجاوز الصوت.
-- إصلاح locator في Responsive admin tables بدون إضعاف سلوك المنتج.
+## Phase B — CLOSED
 
----
+Runtime bypass audit.
 
-## Phase B — Runtime Bypass Closure — CLOSED
+- `temporary_audio_skip` غير reachable للطالب.
+- `/api/runtime-flags` compatibility-only ويرجع false.
+- `declared_media_gap_skip` fail-closed ولا يصنع completion.
+- Historical markers تبقى لقراءة السجل القديم فقط ومُستبعدة من scoring/mastery.
 
-تمت مراجعة bypasses ولم يحتج الإغلاق إلى تغيير تنفيذي جديد فوق Phase A candidate.
+## Phase C — CLOSED
 
-الحالة:
+Approved Audio Binary Contract.
 
-- `temporary_audio_skip` غير قابل للوصول من مسار الطالب.
-- `/api/runtime-flags` Compatibility-only ويعيد `temporary_audio_skip: false`.
-- `declared_media_gap_skip` لا يصنع إكمالًا؛ المسار العام Fail-closed ويرفضه.
-- Historical markers تبقى للقراءة التاريخية فقط.
-- Historical markers مستبعدة من score/mastery evidence.
+تم تثبيت manifest + WAV/MP3 + checksums + corrected assets.
 
-لا تحذف هذه العلامات التاريخية إذا كانت لازمة لقراءة بيانات قديمة.
+## Phase D — CLOSED / EXACT-SHA GREEN
 
----
-
-## Phase C — Approved Audio Binary Contract — CLOSED
-
-تم تأكيد:
-
-- manifest.
-- WAV/MP3 pairs.
-- static references.
-- checksum validator.
-- LET-01/SYL-13/WRD-29/INS-01/INS-02.
-
-لا توجد Migration.
-
----
-
-## Phase D — Deterministic Structured Projection — IMPLEMENTED + EXACT-SHA GREEN
-
-المشكلة القديمة:
-
-`services/api/seed_learning_posttest_projection_runtime.py`
-
-كان يستنتج Student-visible data من `prompt_text` باستخدام regex/string parsing.
-
-التنفيذ الحديث:
-
-### Commit
+Implementation:
 
 `30356bdb2301cf213e9ff257470730693900ceaa`
 
 `refactor(content): make learning projection structured and deterministic`
 
-ما تغير:
-
-- إزالة `import re` من مسار الإسقاط الفعلي.
-- عدم قراءة `step.prompt_text` لبناء stimulus/question/hint/options.
-- الاعتماد على structured DB runtime + explicit approved/source-derived overrides.
-- إضافة contract:
-  - `structured_db_runtime_v1`
-- إبقاء Stable IDs/options/media/correctness metadata.
-- إضافة explicit visible stimuli فقط للحالات القديمة التي يحتاج عرضها learner-visible field واضحًا.
-- منع تسريب correct answer إلى stimulus/question.
-
-### Regression commit
+Regression:
 
 `62136541e7f8fdef0464d9535c7cc1876dae3b48`
 
 `test(content): lock structured learning projection contract`
 
-الاختبار يثبت، من ضمن أمور أخرى:
+النتيجة:
 
-- لا `import re`.
-- لا `step.prompt_text` في owner الحالي.
-- لا `_extract_quoted`.
-- لا `_single_visible_stimulus`.
-- لا `_strip_serialized_choices`.
-- لا `_clean_stimulus`.
-- العقد `structured_db_runtime_v1` موجود.
-- الإجابات لا تتسرب إلى student stimuli.
-- `L1-CORE-06` يحتفظ بالسؤال/التعليمة المعتمدة.
+- لا `import re` في active projection owner.
+- لا `step.prompt_text` لبناء learner structured projection.
+- لا `_extract_quoted` / `_single_visible_stimulus` / `_strip_serialized_choices` / `_clean_stimulus` active inference.
+- structured DB runtime + explicit source-derived overrides.
+- answers لا تتسرب إلى student stimulus/question.
+- `L1-CORE-06` locked by regression.
 
-Phase D لم تعد تحتاج Coding أساسي؛ تحتاج فقط توثيق الإغلاق في `STATUS/progress` ضمن الإغلاق التالي.
+## Phase E — CLOSED / EXACT-SHA GREEN
 
----
-
-## Phase E — Runtime Readiness Hardening — IMPLEMENTED + EXACT-SHA GREEN
-
-### Commit
+Implementation:
 
 `ba8940cff873a1982389a61715cdb5e8b864ff1c`
 
-`feat(readiness): enforce exact content and approved audio contracts`
-
-تم تقوية `/ready` بحيث لا يكتفي بأن API/storage متاحان.
-
-أصبح يتحقق من:
-
-- Config.
-- Database.
-- Redis.
-- Object storage.
-- Content runtime counts.
-- Exact experience versions.
-- Learning rounds count مقابل DB steps.
-- Approved corrective audio contract.
-
-الحسابات التي يجب أن تكون صحيحة:
-
-- pretest = 30.
-- learning = 65.
-- posttest = 30.
-
-كما يتحقق من أصول الصوت المصححة:
-
-- LET-01.
-- SYL-13.
-- WRD-29.
-- INS-01.
-- INS-02.
-
-ومن وجود WAV + MP3 لكل منها.
-
-### Tests
+Tests:
 
 `4e495cbddf9dcfa84fd6caee39a844394bb902f0`
 
-`test(readiness): cover exact projection and approved audio gates`
-
-ثم حصل تصحيح للإصدار الفعلي النشط:
+Version correction:
 
 `1ee0c939eac20b4b9aa2236958010ebbb53c1928`
 
-`fix(readiness): match active structured learning projection version`
+`/ready` أصبح fail-closed على:
 
-مهم: لا توسع `/ready` بطريقة تجعل تشغيل API نفسه يقرأ المحتوى من الملفات بدل DB؛ الـstudent runtime يبقى DB-driven، والـreadiness مجرد fail-closed deployment check.
+- config.
+- PostgreSQL.
+- Redis.
+- object storage.
+- exact pretest/learning/posttest counts.
+- exact experience versions.
+- learning rounds مقابل DB steps.
+- required corrective approved audio WAV/MP3 presence.
 
-Phase E أيضًا تحتاج فقط توثيق الإغلاق في ops docs عند الاستئناف.
-
----
-
-## Additional invariant added after Phase E
-
-### Commit
+ثم أضيف:
 
 `07e83ba57244410f160a727b3c50001fbd7451a1`
 
 `test(reports): prove report reads cannot mutate academic state`
 
-هذا التغيير أضاف Regression يثبت أن report reads لا تغير academic state.
-
-هذا Commit مهم جدًا لكنه **لا يغلق Phase F/G/H تلقائيًا**؛ هو hardening إضافي ضمن الطريق للإغلاق النهائي.
+وعلى هذا الـSHA كانت Quality + M04 + M09 كلها SUCCESS.
 
 ---
 
-# 10) آخر حالة CI مؤكدة — مهمة جدًا
-
-آخر SHA تنفيذي مؤكد قبل إضافة هذا Handoff:
-
-`07e83ba57244410f160a727b3c50001fbd7451a1`
-
-وعليه ثلاث بوابات مكتملة وناجحة على **نفس SHA**:
-
-- Himma CI — Quality Gate
-  - run `33958275012`
-  - run number `601`
-  - **SUCCESS**
-
-- Himma M04 — Responsive Visual Gate
-  - run `33958275097`
-  - run number `185`
-  - **SUCCESS**
-
-- Himma M09 — Release Readiness Gate
-  - run `33958275085`
-  - run number `59`
-  - **SUCCESS**
-
-إذن Phase D + E التنفيذية ومجموعة hardening الحالية **Exact-SHA green** عند هذه النقطة.
-
-إذا أصبح HEAD بعد هذا الملف Documentation-only commit، لا تخلط بين Documentation SHA وExecutable candidate. أعد جلب HEAD وأثبت الفرق.
-
----
-
-# 11) المتبقي الحقيقي الآن
-
-المتبقي ليس A/B/C/D/E من ناحية التنفيذ الأساسي.
+# 10) المتبقي الحقيقي الآن
 
 المتبقي التنفيذي الأساسي:
 
 **Phase F -> Phase G -> Phase H -> Phase I**
 
-إضافة إلى تحديث `STATUS.md` و`progress.json` ليتطابقا مع الواقع الحالي.
+A/B/C/D/E لا تعاد من الصفر إلا إذا ظهر Regression حقيقي على HEAD الحالي.
 
 ---
 
-# 12) Phase F — Student Path Regression Closure — المتبقي
+# 11) Phase F — Student Path Regression Closure
 
-الهدف: إثبات رحلة الطالب كاملة وليس مجرد أجزاء منفصلة.
+ابدأ منها.
 
-يجب اختبار/تدقيق السيناريو التالي End-to-End:
+يجب إثبات End-to-End:
 
-`student login -> pretest -> audio review blockers -> placement -> level activities -> reinforcement -> promotion rules -> L3 completion -> posttest`
+`login -> pretest -> reviewed audio -> placement -> level activities -> reinforcement -> promotion -> L3 completion -> posttest`
 
-Checklist المطلوب:
+Checklist:
 
-- دخول الطالب بالكود يعمل deterministic.
-- الاختبار القبلي = 30 سؤالًا.
-- PRE/POST feedback محايد:
-  - لا revealing correct/wrong.
-  - لا hint يكشف الإجابة.
-  - لا retry يفسد حياد التقييم.
-- PRE-Q03:
-  - target = `م`
-  - other form = `مـ`
+- Student code login.
+- 30 pretest questions.
+- 30 posttest questions.
+- PRE/POST feedback محايد: لا revealing correct/wrong، لا answer-revealing hints، لا retry يفسد assessment neutrality.
+- PRE-Q03 target `م` وother form `مـ`.
 - POST-Q14 = `نَخْلَة`.
-- Read-aloud في assessments:
-  - uploaded لا يصبح تقييمًا نهائيًا.
-  - canonical completion يبقى blocked حتى review.
-- راجع Assessment navigation helpers أيضًا للتأكد أن `uploaded` لا يُعامل كـanswered في أي خطوة UI/next-state حتى لو كان completion preflight نفسه fail-closed.
+- Assessment audio `uploaded` يبقى pending review.
+- Re-audit assessment navigation helpers حتى لا يصبح pending audio "answered" في UI/next-state قبل المراجعة؛ canonical completion preflight أصلًا fail-closed.
 - Placement thresholds صحيحة.
-- L1/L2 promotion gates مطابقة للعقد.
-- لا Auto-demotion.
-- L3 لا يفتح completion/posttest بدون full evidence.
-- Reinforcement target-only.
-- لا cross-level fallback.
-- Memory interaction:
-  - الصور تظهر أولًا.
-  - لا timer auto-hide.
-  - الطالب يضغط `التالي` بنفسه.
-  - بعدها recall/reorder.
-- `L1-CORE-06` exact approved contract:
-  - السؤال: `استمع إلى الكلمتين، ثم حدّد: هل تبدأان بالصوت نفسه أم بصوتين مختلفين؟`
-  - التعليمة: `استمع إلى الكلمتين كاملتين، ثم قارن أول صوت في كل كلمة.`
-  - pair text مخفي إذا flag يطلب ذلك.
-  - `موز` يستخدم `WRD-29`.
-- L1 auditory:
-  - `L1-CORE-09` = قصة ليان / `INS-01` / skill `الفهم السمعي المباشر`.
-  - `L1-REIN-11` = قصة نادر / `INS-02` / skill نفسه.
-  - لا old `path_sequence` runtime fallback.
-- Retakes:
-  - تنتهي عبر canonical assessment completion.
-  - تحافظ على المحاولات القديمة.
-  - exactly one `official_for_reporting`.
+- L1/L2 promotion gates صحيحة.
+- لا auto-demotion.
+- L3 full evidence required.
+- Reinforcement targeted only.
+- Memory: images first -> learner presses `التالي` -> recall/reorder؛ لا timer auto-hide.
+- `L1-CORE-06` exact approved question/instruction، و`موز` يستخدم `WRD-29`.
+- `L1-CORE-09` -> `INS-01` / ليان / `الفهم السمعي المباشر`.
+- `L1-REIN-11` -> `INS-02` / نادر / same skill.
+- لا old `path_sequence` runtime fallback.
+- Retakes preserve history and exactly one official reporting attempt.
 
-المخرجات المطلوبة لـPhase F:
-
-- targeted regression tests عند وجود نقص.
-- E2E أو integration coverage يغطي الرحلة المطلوبة بدون bypass.
-- لا تغييرات أكاديمية غير معتمدة فقط لجعل الاختبارات خضراء.
+لا تغير academic meaning فقط لجعل test أخضر.
 
 ---
 
-# 13) Phase G — Supervisor Audio/Admin UX Closure — المتبقي
+# 12) Phase G — Supervisor Audio/Admin UX Closure
 
-يجب تدقيق/تثبيت تجربة المشرف كاملة:
+Reconfirm:
 
-- Queue التسجيلات pending = `AudioSubmission.status == "uploaded"`.
-- تشغيل التسجيل من الـadmin.
-- عرض معلومات الطالب/النشاط بوضوح.
-- قبول التسجيل عبر supervisor review authority.
-- طلب إعادة التسجيل عبر `rerecord_required`.
-- learner waiting state واضح عند الرجوع/refresh.
-- learner rerecord state واضح بعد الرفض.
-- لا Fake AI scoring.
-- لا hidden auto-grade.
-- لا تخريب review history.
-- لا حذف التسجيل السابق لتسهيل إعادة التسجيل.
-- أي audit/review history يجب أن يبقى durable.
-- بعد `graded` يجب أن يستأنف learner المسار canonical عند reload/next بدون manual DB repair.
+- pending queue = `uploaded`.
+- playback works.
+- accept review path.
+- `rerecord_required` path.
+- learner waiting state survives reload.
+- learner rerecord state clear.
+- no hidden auto-grade.
+- supervisor authority preserved.
+- review/audit history durable.
+- بعد `graded` يعود learner للمسار canonical بدون manual DB repair.
 
-راجع بشكل خاص:
+راجع خصوصًا:
 
 - `services/api/review.py`
-- learner activity renderer.
-- admin review UI/routes.
-- review-history/audit models.
+- learner activity page/renderer.
+- admin audio review UI/routes.
+- review history/audit persistence.
 
-إذا كان السلوك موجودًا أصلًا ويغطيه الاختبار، أغلق المرحلة بدون churn غير لازم.
+إذا كانت كل invariants مثبتة أصلًا، أغلق بدون churn غير ضروري.
 
 ---
 
-# 14) Phase H — Proven-Dead Legacy Cleanup — المتبقي
-
-الهدف ليس حذف كل Legacy؛ الهدف حذف **المثبت أنه ميت فقط**.
+# 13) Phase H — Proven-Dead Legacy Cleanup
 
 ابحث وصنف:
 
@@ -577,219 +446,160 @@ Checklist المطلوب:
 - `MutationObserver`
 - `querySelector`
 - `innerText`
-- portal/runtime DOM injection
-- CSS patches المرتبطة بالـhashed classes
+- portal DOM injection
+- hashed-class CSS patching
 - repeated `!important`
-- absolute positioning used as patch architecture
+- absolute-position patch architecture
 
-التصنيف المطلوب لكل hit:
+لكل hit صنّفه:
 
-- active runtime
-- historical compatibility
-- docs
-- tests
-- dead code
+- active runtime.
+- historical compatibility.
+- docs.
+- tests.
+- dead code.
 
-المسموح بالحذف:
+احذف فقط proven-dead runtime/UI code.
 
-- dead runtime/UI code فقط بعد إثبات أنه غير reachable وغير مطلوب للبيانات التاريخية.
+لا تحذف compatibility المطلوبة لقراءة السجل الأكاديمي القديم.
 
-الممنوع:
+Frontend standard:
 
-- حذف compatibility marker مطلوب لقراءة سجلات قديمة.
-- حذف historical fields من DB لمجرد أنها لم تعد تستخدم في current UI.
-- كسر seeds أو migrations.
+React components + CSS modules/design tokens + explicit state.
 
-القاعدة التصميمية للواجهة:
-
-- React components.
-- CSS modules/design tokens.
-- explicit React state.
-- لا DOM inference لإدارة state.
-
-لا تعيد إدخال:
-
-- `AssessmentExperienceEnhancer`
-- `AssessmentLetterStimulusPreviewFix`
+لا تعيد إدخال `AssessmentExperienceEnhancer` أو `AssessmentLetterStimulusPreviewFix`.
 
 ---
 
-# 15) Phase I — Final Single-Candidate Closure — المتبقي النهائي
+# 14) Phase I — Final Single-Candidate Closure
 
-بعد إغلاق F/G/H:
+بعد F/G/H اختر SHA تنفيذي نهائي واحد.
 
-اختر **SHA تنفيذي نهائي واحد**.
+لا تغلق المشروع حتى ينجح على نفس الـSHA:
 
-لا تعتبر المشروع جاهزًا إلا بعد نجاح جميع ما يلي على نفس SHA:
-
-- approved content catalog validation.
+- approved content validation.
 - audio manifest/binary validation.
-- Alembic upgrade.
-- Alembic downgrade.
-- Alembic upgrade مرة ثانية.
+- Alembic upgrade/downgrade/upgrade.
 - model drift.
-- seed idempotency مرتين.
+- seed idempotency twice.
 - full backend tests.
 - TypeScript.
 - ESLint.
 - frontend unit tests.
-- Next.js production build.
-- MinIO/API/Web integration startup.
+- Next production build.
+- MinIO/API/Web startup.
 - Playwright E2E.
-- M04 responsive visual gate.
-- M09 release readiness gate.
+- M04.
+- M09.
 
-ثم:
+ثم حدّث:
 
-- تحديث `docs/ops/STATUS.md`.
-- تحديث `docs/ops/progress.json`.
-- تحديث DECISIONS/OPEN_ITEMS إذا تغيرت حقيقة تشغيلية.
-- تسجيل Run IDs + conclusions + final executable SHA.
-- التمييز بوضوح بين executable SHA وأي docs-only SHA بعده.
+- `STATUS.md`.
+- `progress.json`.
+- `DECISIONS.md` / `OPEN_ITEMS.md` إذا تغيرت حقيقة تشغيلية.
 
-**لا Merge/Release production بدون موافقة المستخدم الصريحة.**
+وسجل:
+
+- final executable SHA.
+- run IDs.
+- conclusions.
+
+لا production merge/release بدون موافقة المستخدم.
 
 ---
 
-# 16) ملفات/مكونات مهمة تم تحديد مالكيتها
+# 15) Current canonical owners
 
-## Public activity runtime
+## Public activities
 
-`services/api/main.py` يركب `activities_v4` كمسار public canonical للأنشطة.
+`services/api/main.py` يركب `activities_v4` كـpublic canonical activities router.
 
-`services/api/activities_v4.py` هو public owner الحالي ويستخدم بعض service helpers من legacy `activities.py`.
-
-لا تعيد تركيب legacy router بالتوازي بشكل يخلق مالكين للمسار نفسه.
+لا تعيد legacy activities router كمنافس parallel owner.
 
 ## Learning experience
 
 `services/api/learning_experience.py`
 
-هو جزء أساسي في بناء student view deterministic.
+Student deterministic view owner الأساسي.
 
 ## Assessment completion
 
 `services/api/assessment_completion.py`
 
-هو canonical owner لإكمال الاختبارات، وفيه audio preflight يمنع الإكمال مع pending/rerecord blockers.
+Canonical assessment completion، وفيه audio blocker/preflight.
 
-## Review
+## Audio review
 
 `services/api/review.py`
 
-هو supervisor audio review authority الحالي.
+Supervisor review authority.
 
 ## Runtime projection
 
 `services/api/seed_learning_posttest_projection_runtime.py`
 
-بعد Phase D يجب أن يبقى structured/deterministic ولا يعود prompt parser.
+بعد Phase D يجب أن يبقى structured ولا يعود prompt parser.
 
 ## Readiness
 
 `services/api/readiness.py`
 
-بعد Phase E أصبح fail-closed على exact content + approved corrective audio contract.
+بعد Phase E exact/fail-closed runtime readiness owner.
 
 ---
 
-# 17) ملاحظات متعلقة بالـSTATUS/progress الحالية
+# 16) Recent commit trail المهم
 
-`docs/ops/STATUS.md` يوثق A/B/C جيدًا، لكنه عند آخر قراءة ما زال يضع Phase D كـActive vertical slice ولا يحتوي إغلاق D/E الحديث.
-
-`docs/ops/progress.json` أقدم بوضوح، ويحتوي executable candidate قديمًا ومهام open work من 2026-09-04.
-
-أول خطوة توثيقية مناسبة في المحادثة الجديدة:
-
-- لا تغير code لمجرد تحديث الوثائق.
-- Fetch HEAD/Actions أولًا.
-- حدّث STATUS/progress بحيث يسجلا:
-  - D implemented/green.
-  - E implemented/green.
-  - current executable evidence = `07e83...` إذا لم يحدث code جديد.
-  - F/G/H remaining.
-  - I final closure remaining.
-
-إذا كان HEAD قد تحرك، وثق SHA الجديد بدل الافتراض.
+- `6ab969730f99585afa8053e5fece882538c5caaa` — Phase A executable closure candidate.
+- `045c66babf9d88e8887259c9abd7dbaec091ea65` — close A/start bypass audit docs.
+- `7a862fa7c2ef12133687d4dc931c9d6f5f14f623` — close B/C/start D docs.
+- `30356bdb2301cf213e9ff257470730693900ceaa` — structured projection refactor.
+- `62136541e7f8fdef0464d9535c7cc1876dae3b48` — projection regression lock.
+- `ba8940cff873a1982389a61715cdb5e8b864ff1c` — readiness hardening.
+- `4e495cbddf9dcfa84fd6caee39a844394bb902f0` — readiness tests.
+- `1ee0c939eac20b4b9aa2236958010ebbb53c1928` — readiness version fix.
+- `07e83ba57244410f160a727b3c50001fbd7451a1` — report non-mutation regression; exact-SHA green candidate.
+- `8daf063994b9c4c8d50030703a5959e3dae33bf5` — initial continuity handoff docs.
+- `306367d4fa4e6b77430ca0cf09985db383e818bb` — STATUS reconciliation through E.
+- `dbd2ff21613294c648a851ff9e9bb6893ad41036` — progress reconciliation through E.
 
 ---
 
-# 18) قائمة Recent commits المهمة
+# 17) Definition of Done
 
-من Phase A وما بعده:
-
-- `6ab969730f99585afa8053e5fece882538c5caaa`
-  - `test(e2e): scope student evidence to desktop tables`
-  - Phase A exact-SHA closure candidate.
-
-- `045c66babf9d88e8887259c9abd7dbaec091ea65`
-  - `docs(ops): close Phase A and start bypass closure audit`
-
-- `7a862fa7c2ef12133687d4dc931c9d6f5f14f623`
-  - `docs(ops): close bypass and audio audits; start structured projection`
-
-- `30356bdb2301cf213e9ff257470730693900ceaa`
-  - `refactor(content): make learning projection structured and deterministic`
-
-- `62136541e7f8fdef0464d9535c7cc1876dae3b48`
-  - `test(content): lock structured learning projection contract`
-
-- `ba8940cff873a1982389a61715cdb5e8b864ff1c`
-  - `feat(readiness): enforce exact content and approved audio contracts`
-
-- `4e495cbddf9dcfa84fd6caee39a844394bb902f0`
-  - `test(readiness): cover exact projection and approved audio gates`
-
-- `1ee0c939eac20b4b9aa2236958010ebbb53c1928`
-  - `fix(readiness): match active structured learning projection version`
-
-- `07e83ba57244410f160a727b3c50001fbd7451a1`
-  - `test(reports): prove report reads cannot mutate academic state`
-
----
-
-# 19) Definition of Done للمشروع الحالي
-
-لا يكفي أن الصفحات تفتح.
+المشروع لا يعتبر مغلقًا لمجرد أن الصفحات تعمل.
 
 الإغلاق يعني:
 
 - content semantics صحيحة.
-- audio contract صحيح.
-- no bypass.
+- no audio bypass.
 - no fake scoring.
+- static audio contract صحيح.
 - student path كامل.
 - supervisor review كامل.
-- adaptation evidence صحيح.
+- adaptive evidence صحيح.
 - reports read-only.
 - retakes/history محفوظة.
-- seeds idempotent/non-destructive.
+- seeds non-destructive/idempotent.
 - readiness fail-closed.
 - no DOM-state hacks.
-- exact-SHA CI/M04/M09 green.
+- final exact-SHA Quality + M04 + M09 green.
 - ops docs updated.
 - explicit user approval قبل الإنتاج.
 
 ---
 
-# 20) نص جاهز لبدء المحادثة الجديدة
+# 18) برومبت جاهز للمحادثة الجديدة
 
-انسخ للمحادثة الجديدة:
-
-> اقرأ كامل الملف `docs/ops/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-05_AR.md` من الفرع `recovery/ui-media-admin-overhaul` في المستودع `7eaur/himma-`، ثم اقرأ ملفات AGENTS وSOURCE_OF_TRUTH وACCEPTANCE_MATRIX وSTATUS وprogress وDECISIONS وOPEN_ITEMS المذكورة داخله. بعد ذلك اجلب HEAD الحالي ونتائج GitHub Actions لذلك الـSHA. لا تبدأ من الصفر ولا تعيد تحليل ما تم إغلاقه. اعتبر A/B/C مغلقة، وD/E منفذة ومثبتة بالـexact-SHA حسب الأدلة في Handoff ما لم يظهر HEAD أحدث يخالف ذلك. صحح STATUS/progress أولًا حسب الحالة الحالية ثم أكمل Phase F ثم G ثم H ثم I بإتقان. لا Docker، لا destructive git، لا حذف بيانات أكاديمية، لا Fake AI score، ولا تنتقل للإطلاق قبل Quality + M04 + M09 على نفس SHA النهائي وموافقتي الصريحة.
+> اقرأ كامل `docs/ops/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-05_AR.md` من الفرع `recovery/ui-media-admin-overhaul` في المستودع `7eaur/himma-`، ثم اقرأ AGENTS وSOURCE_OF_TRUTH وACCEPTANCE_MATRIX وSTATUS وprogress وDECISIONS وOPEN_ITEMS والعقد الصوتي المذكورة داخله. بعد ذلك اجلب HEAD الحالي ونتائج GitHub Actions لذلك الـSHA. لا تبدأ من الصفر ولا تعيد فتح A/B/C/D/E إلا إذا ظهر Regression فعلي. آخر Executable candidate المثبت في الـHandoff هو `07e83ba57244410f160a727b3c50001fbd7451a1` وكانت Quality/M04/M09 كلها خضراء عليه؛ بعده توجد commits توثيقية فقط حتى لحظة التسليم. ابدأ Phase F ثم G ثم H ثم I بإتقان. لا Docker، لا destructive git، لا حذف بيانات أكاديمية، لا Fake AI score، ولا production release قبل exact-SHA final gates وموافقتي الصريحة.
 
 ---
 
-# 21) نقطة الاستئناف الدقيقة
+# 19) أول عمل للمحادثة الجديدة
 
-**ابدأ من هنا:**
-
-1. Re-fetch branch HEAD.
-2. Confirm latest Quality/M04/M09.
-3. Reconcile `STATUS.md` + `progress.json` مع D/E الحاليين.
-4. نفذ **Phase F — Student Path Regression Closure**.
-5. أغلقها بالأدلة.
-6. انتقل إلى G ثم H.
-7. أخيرًا Phase I على final single candidate.
-
-لا حاجة لإعادة Phase A/B/C/D/E من الصفر إلا إذا كشف فحص HEAD الحالي Regression حقيقيًا.
+1. Fetch current branch HEAD.
+2. Fetch current Actions.
+3. Confirm whether changes since `07e83...` are docs-only or executable.
+4. اقرأ `STATUS.md` و`progress.json` المحدثين.
+5. ابدأ **Phase F** مباشرة.
+6. أغلق F بالأدلة، ثم G، ثم H، ثم I.
