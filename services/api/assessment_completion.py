@@ -1,21 +1,24 @@
 """Authoritative pre/post assessment completion and placement scoring.
 
-This module owns the permanent completion contract. Development-only audio
-bypass markers can be recognised as neutral evidence, but the academic scoring
-policy never lives inside the temporary bypass module.
+This module owns the permanent completion contract. Historical neutral markers
+may still be recognised for compatibility, but there is no active student audio
+bypass route and neutral evidence is never converted into academic failure.
 
-Source-grounded rules:
+Current source-grounded assessment contract:
 - readiness = 10 items / 20 points;
 - word building and reading = 12 items / 40 points;
 - fluency and comprehension = 8 items / 40 points;
-- readiness below 12/20 forces L1;
-- 50..79.99 is L2;
-- L3 additionally requires approved word-reading and text-accuracy gates.
+- final pretest total <50 starts at L1;
+- 50..<80 starts at L2;
+- >=80 starts at L3.
 
-The approved source does not currently provide numeric thresholds for the last
-two L3 gates. An otherwise >=80 pretest therefore remains provisional at L2
-instead of inventing thresholds. Neutral development/media-gap evidence is
-excluded from the academic denominator and makes the result provisional rather
+Continuous-learning adaptation is a separate V4 policy (80/70 per-activity,
+three valid signals weighted 50/30/20, 6-Core/85/70 promotion gates, no
+automatic demotion). It must not be mixed into initial placement.
+
+Any uploaded or rerecord-required assessment audio blocks completion until the
+supervisor review is resolved. Neutral historical/media-gap evidence is
+excluded from the academic denominator and makes the score provisional rather
 than incorrect.
 """
 
@@ -52,7 +55,7 @@ SECTION_ID_BY_NAME = {
 
 
 def _neutral_development_markers(db: Session, student_id: int, session_id: int) -> set[tuple[int, int]]:
-    """Return explicit temporary-skip markers without manufacturing evidence."""
+    """Read historical neutral markers without exposing an active bypass."""
     rows = db.query(OperationIdempotency).filter(
         OperationIdempotency.actor_role == "student",
         OperationIdempotency.actor_id == student_id,
@@ -249,7 +252,7 @@ def finish_session(db: Session, student: Student, session: AssessmentSession) ->
         "placement_reason": placement_reason,
         "placement_provisional": provisional,
         "placement_provisional_reasons": scored["provisional_reasons"],
-        # Kept for API compatibility while the development bypass exists.
+        # Historical response-field compatibility only; there is no active bypass route.
         "temporary_audio_skips": scored["neutral_count"],
         "neutral_evidence_units": scored["neutral_count"],
         "scorable_items": scored["scorable_items"],
