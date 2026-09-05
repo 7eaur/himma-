@@ -42,7 +42,7 @@ jobs:
     env:
       DATABASE_URL: postgresql://himma_test:himma_test_pass@localhost:5432/himma_test_db
       RESTORE_DATABASE_URL: postgresql://himma_test:himma_test_pass@localhost:5432/himma_restore_db
-      API_SECRET_KEY: m09-ci-test-secret-at-least-32-characters
+      API_SECRET_KEY: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
       ADMIN_USERNAME: admin
       ADMIN_PASSWORD: m09-ci-only-researcher-password
       SEED_DEMO_STUDENTS: 'false'
