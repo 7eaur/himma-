@@ -104,7 +104,14 @@ def _normalise_score(value: Decimal) -> Decimal:
 
 
 def score_assessment(evidence: Sequence[AssessmentEvidence]) -> AssessmentScore:
-    """Calculate 20/40/40 section-normalised score without penalising neutral evidence."""
+    """Calculate 20/40/40 section-normalised score without penalising neutral evidence.
+
+    Section points are rounded to two decimals for presentation, but placement
+    must use the mathematically combined score rounded only once at the end.
+    Summing already-rounded section points can incorrectly turn 49.99 into
+    50.00 or 79.99 into 80.00 and therefore move a student across a placement
+    boundary.
+    """
 
     grouped: dict[int, list[Optional[Decimal]]] = {1: [], 2: [], 3: []}
     for signal in evidence:
@@ -116,7 +123,7 @@ def score_assessment(evidence: Sequence[AssessmentEvidence]) -> AssessmentScore:
 
     sections: dict[int, SectionResult] = {}
     reasons: list[str] = []
-    total = Decimal("0")
+    raw_total = Decimal("0")
 
     for section_id in (1, 2, 3):
         values = grouped[section_id]
@@ -135,11 +142,12 @@ def score_assessment(evidence: Sequence[AssessmentEvidence]) -> AssessmentScore:
 
         if valid:
             average = sum(valid, Decimal("0")) / Decimal(len(valid))
-            points = (average * max_points).quantize(SCORE_QUANT, rounding=ROUND_HALF_UP)
+            raw_points = average * max_points
         else:
-            points = Decimal("0.00")
+            raw_points = Decimal("0")
             reasons.append(f"section_{section_id}_has_no_valid_evidence")
 
+        points = raw_points.quantize(SCORE_QUANT, rounding=ROUND_HALF_UP)
         sections[section_id] = SectionResult(
             section_id=section_id,
             expected_items=expected,
@@ -149,9 +157,9 @@ def score_assessment(evidence: Sequence[AssessmentEvidence]) -> AssessmentScore:
             points=points,
             max_points=max_points,
         )
-        total += points
+        raw_total += raw_points
 
-    total = total.quantize(SCORE_QUANT, rounding=ROUND_HALF_UP)
+    total = raw_total.quantize(SCORE_QUANT, rounding=ROUND_HALF_UP)
     return AssessmentScore(
         total_points=total,
         sections=sections,
