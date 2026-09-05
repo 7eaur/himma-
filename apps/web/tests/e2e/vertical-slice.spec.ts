@@ -437,7 +437,6 @@ test.describe("Himma recovered vertical slice", () => {
         else await expect(activityRoot).toHaveAttribute("data-phase", "done", { timeout: 20000 });
         continue;
       }
-
       await page.waitForTimeout(850);
       if ((await activityRoot.getAttribute("data-phase")) === "done") break;
       const nextResponse = await nextResponsePromise;
@@ -531,10 +530,10 @@ test.describe("Himma recovered vertical slice", () => {
 
     await page.goto("/admin/reports");
     await expect(page.getByRole("heading", { name: "التقارير والإحصائيات" })).toBeVisible();
-    await expect(page.getByText(studentName)).toBeVisible();
+    await expect(page.getByRole("table").getByRole("link", { name: studentName, exact: true })).toBeVisible();
     await shot(page, adaptiveReviewHold ? "18-supervisor-live-reports" : "16-supervisor-live-reports");
 
     await page.goto("/admin/students");
-    await expect(page.getByText(studentName)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole("table").getByRole("link", { name: studentName, exact: true })).toBeVisible({ timeout: 5000 });
   });
 });
