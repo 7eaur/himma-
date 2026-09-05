@@ -20,6 +20,8 @@ type LearningExperiencePayload = {
   item_id: number;
   stable_key: string;
   interaction_type: string;
+  audio_review_status?: string | null;
+  awaiting_audio_review?: boolean;
   step: {
     id: number;
     options: Array<{ id: number; text: string; order_index: number }>;
@@ -244,9 +246,36 @@ async function fetchLearningExperience(
   return response.json();
 }
 
+async function reviewPendingLearningAudio(
+  page: Page,
+  context: import("@playwright/test").BrowserContext,
+  request: APIRequestContext,
+  accessCode: string,
+  learningSessionId: string,
+) {
+  const hold = page.getByTestId("student-audio-review-hold");
+  await expect(hold).toBeVisible({ timeout: 10000 });
+  await expect(hold.getByRole("heading", { name: /عند المشرف للمراجعة/ })).toBeVisible();
+
+  await context.clearCookies();
+  await loginAsSupervisor(request, context);
+  await page.goto("/admin/audio-review");
+  const startReview = page.getByRole("button", { name: "بدء المراجعة" });
+  await expect(startReview.first()).toBeVisible({ timeout: 15000 });
+  await startReview.first().click();
+  const save = page.getByRole("button", { name: "حفظ التقييم" });
+  await expect(save).toBeEnabled({ timeout: 7000 });
+  await save.click();
+
+  await context.clearCookies();
+  await loginAsStudent(request, context, accessCode);
+  await page.goto(`/student/activity/${learningSessionId}`);
+  await expect(page.getByTestId("student-audio-review-hold")).toHaveCount(0, { timeout: 10000 });
+}
+
 test.describe("Himma recovered vertical slice", () => {
   test("public UX → protected supervisor → rich assessment → adaptive learning → management evidence", async ({ page, context, request }) => {
-    test.setTimeout(240000);
+    test.setTimeout(300000);
 
     await page.goto("/");
     await expect(page.getByRole("heading", { name: /اقرأ بثقة/ })).toBeVisible();
@@ -304,24 +333,24 @@ test.describe("Himma recovered vertical slice", () => {
 
       const currentResponse = await request.get(`${API_URL}/assessment/session/${sessionId}/next`);
       expect(currentResponse.status()).toBe(200);
-      const current: RichItem | null = await currentResponse.json();
-      expect(current).toBeTruthy();
-      if (!current) break;
+      const currentAssessment: RichItem | null = await currentResponse.json();
+      expect(currentAssessment).toBeTruthy();
+      if (!currentAssessment) break;
 
-      if (!capturedImageAssessment && (current.interaction_type === "choose_image" || current.interaction_type === "listen_choose_image")) {
+      if (!capturedImageAssessment && (currentAssessment.interaction_type === "choose_image" || currentAssessment.interaction_type === "listen_choose_image")) {
         const images = page.getByTestId("image-options").locator("img");
         await expect(images.first()).toBeVisible({ timeout: 7000 });
         expect(await images.count()).toBeGreaterThanOrEqual(2);
         await shot(page, "06-assessment-real-image-choice");
         capturedImageAssessment = true;
       }
-      if (!capturedReadingAssessment && (current.interaction_type === "read_aloud" || current.interaction_type === "timed_read_aloud")) {
+      if (!capturedReadingAssessment && (currentAssessment.interaction_type === "read_aloud" || currentAssessment.interaction_type === "timed_read_aloud")) {
         await expect(page.getByTestId("reading-text")).toBeVisible();
         await shot(page, "07-assessment-reading-recording");
         capturedReadingAssessment = true;
       }
 
-      await answerAssessmentVisual(page, current);
+      await answerAssessmentVisual(page, currentAssessment);
       answered += 1;
       if (answered < 30) await waitForAssessmentQuestion(page);
       if (answered === 1) {
@@ -379,6 +408,7 @@ test.describe("Himma recovered vertical slice", () => {
 
     let activityInteractions = 0;
     let capturedRichActivity = false;
+    let capturedLearningAudioHold = false;
     let adaptiveReviewHold = false;
     while ((await activityRoot.getAttribute("data-phase")) !== "done" && current) {
       activityInteractions += 1;
@@ -390,10 +420,25 @@ test.describe("Himma recovered vertical slice", () => {
         capturedRichActivity = true;
       }
 
+      const readingRound = current.interaction_type === "read_aloud" || current.interaction_type === "timed_read_aloud";
       const nextResponsePromise = page.waitForResponse((response) => isActivityNextResponse(response, learningSessionId!), { timeout: 8000 }).catch(() => null);
       await answerActivityVisual(page, current);
-      await page.waitForTimeout(850);
 
+      if (readingRound) {
+        await expect(page.getByTestId("student-audio-review-hold")).toBeVisible({ timeout: 10000 });
+        if (!capturedLearningAudioHold) {
+          await shot(page, "13-learning-audio-awaiting-supervisor");
+          capturedLearningAudioHold = true;
+        }
+        await reviewPendingLearningAudio(page, context, request, accessCode, learningSessionId!);
+        await page.waitForTimeout(500);
+        current = await fetchLearningExperience(request, learningSessionId!);
+        if (current) await waitForActivityPayload(page, current);
+        else await expect(activityRoot).toHaveAttribute("data-phase", "done", { timeout: 20000 });
+        continue;
+      }
+
+      await page.waitForTimeout(850);
       if ((await activityRoot.getAttribute("data-phase")) === "done") break;
       const nextResponse = await nextResponsePromise;
       if (!nextResponse) {
@@ -410,7 +455,7 @@ test.describe("Himma recovered vertical slice", () => {
         const hold = page.getByTestId("student-adaptive-hold");
         await expect(hold).toBeVisible({ timeout: 7000 });
         await expect(hold.getByRole("heading", { name: /نجهّز لك الخطوة الأنسب/ })).toBeVisible();
-        await shot(page, "13-adaptive-review-hold");
+        await shot(page, "14-adaptive-review-hold");
         break;
       }
       expect(nextResponse.status()).toBe(200);
@@ -419,9 +464,10 @@ test.describe("Himma recovered vertical slice", () => {
       else await expect(activityRoot).toHaveAttribute("data-phase", "done", { timeout: 20000 });
     }
 
+    expect(capturedLearningAudioHold).toBe(true);
     if (!adaptiveReviewHold) {
       await expect(activityRoot).toHaveAttribute("data-phase", "done", { timeout: 15000 });
-      await shot(page, "13-learning-complete");
+      await shot(page, "14-learning-complete");
     }
 
     await context.clearCookies();
@@ -441,30 +487,22 @@ test.describe("Himma recovered vertical slice", () => {
     await expect(page.getByRole("heading", { name: studentName })).toBeVisible({ timeout: 12000 });
 
     await page.getByRole("button", { name: "المسار والتقدم" }).click();
-    await expect(
-      page.getByText(`${studentState.core_completed_items} من ${studentState.core_total_items}`),
-    ).toBeVisible({ timeout: 12000 });
+    await expect(page.getByText(`${studentState.core_completed_items} من ${studentState.core_total_items}`)).toBeVisible({ timeout: 12000 });
     await expect(page.getByText(`المستوى ${studentState.current_level}`, { exact: true }).first()).toBeVisible();
 
     await page.getByRole("button", { name: "التقوية والتكيف" }).click();
     await expect(page.getByTestId("adaptation-panel")).toBeVisible();
     await expect(page.getByText("التعديل اليدوي لا يحذف القرار الآلي")).toBeVisible();
 
-    // Academic contract: placement chooses a starting level, then the journey
-    // continues through later levels before posttest. Promotion therefore opens
-    // a fresh core session and current-level progress may correctly reset to 0/10.
     if (studentState.current_level < 3 || !studentState.core_completed) {
       expect(studentState.posttest_eligible).toBe(false);
     }
 
     await page.getByRole("button", { name: "الاختبارات" }).click();
     const posttestButton = page.getByRole("button", { name: /فتح الاختبار البعدي|إيقاف الإتاحة/ });
-    if (studentState.posttest_eligible) {
-      await expect(posttestButton).toBeEnabled();
-    } else {
-      await expect(posttestButton).toBeDisabled();
-    }
-    await shot(page, "14-supervisor-student-management-current-level");
+    if (studentState.posttest_eligible) await expect(posttestButton).toBeEnabled();
+    else await expect(posttestButton).toBeDisabled();
+    await shot(page, "15-supervisor-student-management-current-level");
 
     if (adaptiveReviewHold) {
       const panel = page.getByTestId("reinforcement-review-panel");
@@ -473,7 +511,7 @@ test.describe("Himma recovered vertical slice", () => {
       await panel.getByLabel("سبب الإسناد").fill("اختيار نشاط تقوية معتمد لاستكمال المسار بعد مراجعة الأداء.");
       await panel.getByRole("button", { name: "اعتماد التقوية" }).click();
       await expect(page.getByText("تم إسناد نشاط التقوية. يستطيع الطالب الآن متابعة مساره.")).toBeVisible({ timeout: 8000 });
-      await shot(page, "15-supervisor-reinforcement-assigned");
+      await shot(page, "16-supervisor-reinforcement-assigned");
 
       await context.clearCookies();
       await loginAsStudent(request, context, accessCode);
@@ -485,7 +523,7 @@ test.describe("Himma recovered vertical slice", () => {
       expect(resumedResponse.status()).toBe(200);
       const resumed = await fetchLearningExperience(request, learningSessionId!);
       expect(resumed).toBeTruthy();
-      await shot(page, "16-student-reinforcement-resumed");
+      await shot(page, "17-student-reinforcement-resumed");
 
       await context.clearCookies();
       await loginAsSupervisor(request, context);
@@ -494,7 +532,7 @@ test.describe("Himma recovered vertical slice", () => {
     await page.goto("/admin/reports");
     await expect(page.getByRole("heading", { name: "التقارير والإحصائيات" })).toBeVisible();
     await expect(page.getByText(studentName)).toBeVisible();
-    await shot(page, adaptiveReviewHold ? "17-supervisor-live-reports" : "15-supervisor-live-reports");
+    await shot(page, adaptiveReviewHold ? "18-supervisor-live-reports" : "16-supervisor-live-reports");
 
     await page.goto("/admin/students");
     await expect(page.getByText(studentName)).toBeVisible({ timeout: 5000 });
