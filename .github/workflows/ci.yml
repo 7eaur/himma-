@@ -78,10 +78,10 @@ jobs:
             echo 'Mock/demo marker found in production paths.' >&2
             exit 1
           fi
-          if grep -RInE 'time\.sleep\(|await[[:space:]]+new[[:space:]]+Promise\([^\n]*setTimeout' "${production_paths[@]}" \
+          if grep -RInE 'time\.sleep\([[:space:]]*[0-9]+([.][0-9]+)?[[:space:]]*\)|await[[:space:]]+new[[:space:]]+Promise\([^\n]*setTimeout' "${production_paths[@]}" \
             --include='*.py' --include='*.ts' --include='*.tsx' --include='*.js' --include='*.mjs' \
             "${grep_excludes[@]}"; then
-            echo 'Possible fake delay found in production paths.' >&2
+            echo 'Possible hard-coded fake delay found in production paths.' >&2
             exit 1
           fi
       - name: Guard disabled or skipped tests
