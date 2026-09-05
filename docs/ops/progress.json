@@ -1,13 +1,16 @@
 {
-  "schema_version": 6,
+  "schema_version": 7,
   "plan_version": "HIMMA-FULL-MAINTENANCE-2026-09-05",
   "repository": "7eaur/himma-",
   "branch": "recovery/ui-media-admin-overhaul",
   "phase": "FULL_MAINTENANCE_AND_RELEASE_READINESS",
-  "slice": "PHASE_F_STUDENT_PATH_REGRESSION_CLOSURE",
+  "slice": "PHASE_I_FINAL_SINGLE_CANDIDATE_CLOSURE",
+  "status": "AWAITING_USER_DECISION",
   "last_verified": "2026-09-05",
-  "current_executable_candidate_before_docs": "07e83ba57244410f160a727b3c50001fbd7451a1",
+  "current_executable_candidate_before_docs": "976b7c2ed8b9c6f1535a22a0b3a94b2c233f75eb",
   "continuity_handoff": "docs/ops/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-05_AR.md",
+  "closure_report": "docs/ops/HIMMA_PHASE_F_I_CLOSURE_2026-09-05_AR.md",
+  "evidence_index": "docs/ops/EVIDENCE_INDEX.md",
   "runtime": {
     "original_items": 105,
     "runtime_total": 125,
@@ -22,19 +25,39 @@
     "A": "CLOSED",
     "B": "CLOSED",
     "C": "CLOSED",
-    "D": "CLOSED_EXACT_SHA_GREEN",
-    "E": "CLOSED_EXACT_SHA_GREEN",
-    "F": "NEXT_ACTIVE",
-    "G": "PENDING",
-    "H": "PENDING",
-    "I": "PENDING"
+    "D": "CLOSED",
+    "E": "CLOSED",
+    "F": "CLOSED",
+    "G": "CLOSED",
+    "H": "CLOSED_CONSERVATIVELY",
+    "I": "CLOSED_EXACT_SHA_GREEN"
   },
   "exact_sha_evidence": {
-    "sha": "07e83ba57244410f160a727b3c50001fbd7451a1",
-    "quality_gate_run": 33958275012,
-    "m04_run": 33958275097,
-    "m09_run": 33958275085,
-    "all_success": true
+    "sha": "976b7c2ed8b9c6f1535a22a0b3a94b2c233f75eb",
+    "quality_gate_run": 33979846641,
+    "m04_run": 33979846639,
+    "m09_run": 33979846640,
+    "all_success": true,
+    "backend_tests_passed": 755,
+    "backend_deprecation_warnings": 2
+  },
+  "placement": {
+    "contract": "ADR-014",
+    "level_1": "score < 50",
+    "level_2": "50 <= score < 80",
+    "level_3": "80 <= score <= 100",
+    "legacy_readiness_gate_active": false,
+    "extra_l3_numeric_gates_active": false
+  },
+  "adaptation": {
+    "activity_pass_threshold": 80,
+    "guided_retry_threshold": 70,
+    "early_promotion_min_core": 6,
+    "early_promotion_mastery": 85,
+    "critical_skill_floor": 70,
+    "automatic_demotion": false,
+    "level_3_completion_core": 10,
+    "evidence_weights_newest_first": [50, 30, 20]
   },
   "audio": {
     "fixed_assets_status": "CLOSED",
@@ -44,23 +67,39 @@
     "pending_review_status": "uploaded",
     "valid_review_status": "graded",
     "rerecord_status": "rerecord_required",
-    "supervisor_review_authoritative": true
+    "supervisor_review_authoritative": true,
+    "active_student_audio_bypass": false
+  },
+  "security": {
+    "jwt_library": "joserfc==1.7.5",
+    "python_dependency_audit": "PASS_NO_KNOWN_VULNERABILITIES",
+    "frontend_dependency_audit": "PASS_NO_KNOWN_VULNERABILITIES_AT_HIGH_THRESHOLD",
+    "gitleaks_current_tree": "PASS",
+    "production_placeholder_guard": "PASS",
+    "fake_delay_guard": "PASS",
+    "disabled_skipped_test_guard": "PASS"
   },
   "asr": {
     "architecture": "Reference-Guided Arabic Reading Analysis",
-    "status": "FUTURE_PRODUCTION_GATE_NOT_REQUIRED_FOR_CURRENT_CLOSURE"
+    "status": "FUTURE_PRODUCTION_GATE_NOT_REQUIRED_FOR_RECOVERY_CLOSURE",
+    "current_academic_authority": "SUPERVISOR_HUMAN_REVIEW"
   },
   "verification_policy": {
     "pass_requires_exact_sha_evidence": true,
     "documentation_only_sha_may_be_distinguished_from_executable_candidate": true,
-    "no_release_without_explicit_user_authorization": true
+    "no_merge_without_explicit_user_authorization": true,
+    "no_release_without_explicit_user_authorization": true,
+    "no_deploy_without_explicit_user_authorization": true
   },
   "open_work": [
-    "Phase F complete student-path regression closure",
-    "Phase G supervisor audio/admin UX closure",
-    "Phase H proven-dead legacy cleanup",
-    "Phase I final single-candidate Quality/M04/M09 closure",
-    "Future-only ASR provider integration and calibration"
+    "User decision on next integration/release step",
+    "OI-02 production ASR provider/module contract if P07 automatic analysis is pursued",
+    "OI-03 calibrated confidence threshold/version before automatic speech decisions",
+    "OI-04 intervention/session duration before study activation",
+    "OI-05 child-recording retention policy before real-child production data",
+    "OI-06 domain/hosting before deployment",
+    "OI-07 supervising organization details/logo before final report signoff",
+    "OI-08 credential rotation before production/deployment"
   ],
-  "next_step": "Re-fetch branch HEAD and Actions, then continue Phase F using the continuity handoff."
+  "next_step": "Wait for explicit owner decision. Do not merge, release, or deploy automatically."
 }
