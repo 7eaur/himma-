@@ -2,9 +2,10 @@
 
 `/health` remains a cheap liveness probe. This module backs `/ready`, which
 verifies the external services and the exact approved runtime-content/media
-contract the API needs before it should receive traffic. The public report
-intentionally exposes only component status, never secrets or raw dependency
-exceptions.
+contract the API needs before it should receive traffic. A failed dependency,
+stale content projection, or missing approved media keeps readiness closed.
+The public report intentionally exposes only component status, never secrets
+or raw dependency exceptions.
 """
 
 from __future__ import annotations
