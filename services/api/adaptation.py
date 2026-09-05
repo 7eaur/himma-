@@ -148,8 +148,6 @@ def decide_transition(
     if minimum_required_skill_score < CRITICAL_SKILL_FLOOR:
         return "stay", current_level, "promotion_blocked_by_critical_skill_floor"
 
-    # L3 is not promoted to a fictitious L4. It becomes journey-complete only
-    # after its full ten-Core evidence set; adaptation_runtime owns the closure.
     if current_level >= 3:
         if completed_core_count is not None and completed_core_count < CORE_ACTIVITY_COUNT:
             return "stay", current_level, "level_three_evidence_incomplete"
@@ -216,7 +214,6 @@ def _valid_signals(
     level_id: int,
     session_id: int | None = None,
 ) -> list[AttemptSignal]:
-    """Return valid evidence, optionally restricted to one durable core session."""
     query = (
         db.query(Attempt, ContentItem)
         .join(AssessmentSession, AssessmentSession.id == Attempt.session_id)
@@ -265,7 +262,6 @@ def _completed_core_count(
 
 
 def _core_flow_complete(db: Session, student_id: int, level_id: int) -> bool:
-    """Full ten-Core history remains a milestone/reward and L3 close signal."""
     return _completed_core_count(db, student_id, level_id) >= CORE_ACTIVITY_COUNT
 
 
@@ -313,7 +309,6 @@ def _reinforcement_gate_state(
     level_id: int,
     session_id: int | None = None,
 ) -> tuple[bool, bool]:
-    """Return (unresolved_reinforcement, supervisor_review_pending)."""
     query = (
         db.query(ReinforcementCycle)
         .join(AssessmentSession, AssessmentSession.id == ReinforcementCycle.session_id)
@@ -498,12 +493,6 @@ def evaluate_student(
     student: Student,
     session_id: int | None = None,
 ) -> dict:
-    """Evaluate current learning evidence without leaking closed-session history.
-
-    Runtime callers pass the active core ``session_id``. ``None`` is kept for
-    compatibility/report-style callers that intentionally inspect accumulated
-    history, but it must not drive current progression.
-    """
     ensure_rewards(db, student.id)
     level_id = student.current_level
 
@@ -527,12 +516,7 @@ def evaluate_student(
             }
 
     signals = _valid_signals(db, student.id, level_id, session_id=session_id)
-    completed_core_count = _completed_core_count(
-        db,
-        student.id,
-        level_id,
-        session_id=session_id,
-    )
+    completed_core_count = _completed_core_count(db, student.id, level_id, session_id=session_id)
 
     if len(signals) < 3:
         if signals and signals[-1].score < REINFORCEMENT_THRESHOLD:
@@ -599,10 +583,7 @@ def evaluate_student(
     mastery = weighted_mastery([signal.score for signal in latest])
     gate = _critical_skill_gate_state(db, level_id, signals)
     unresolved_reinforcement, supervisor_review_pending = _reinforcement_gate_state(
-        db,
-        student.id,
-        level_id,
-        session_id=session_id,
+        db, student.id, level_id, session_id=session_id
     )
     weakest_skill_id = gate.weakest_skill_id or _weakest_observed_skill(signals)
 
@@ -785,51 +766,77 @@ def manual_override(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Apply a supervisor override without relabelling or deleting learning history."""
+    """Apply a supervisor override while preserving the longitudinal study path."""
     student = db.query(Student).filter(Student.id == student_id).with_for_update().first()
     if not student:
         raise HTTPException(status_code=404, detail="الطالب غير موجود")
 
     previous_level = student.current_level
-    active_session = (
-        db.query(AssessmentSession)
-        .filter(
-            AssessmentSession.student_id == student.id,
-            AssessmentSession.status == "in_progress",
-        )
-        .order_by(AssessmentSession.id.desc())
-        .first()
-    )
+    level_changing = body.new_level != previous_level
 
-    if active_session and active_session.session_type != "core":
+    completed_posttest = db.query(AssessmentSession.id).filter(
+        AssessmentSession.student_id == student.id,
+        AssessmentSession.session_type == "posttest",
+        AssessmentSession.status == "completed",
+    ).first()
+    if level_changing and completed_posttest:
+        raise HTTPException(
+            status_code=409,
+            detail="لا يمكن تغيير المستوى بعد اعتماد الاختبار البعدي النهائي",
+        )
+
+    active_assessment = db.query(AssessmentSession.id).filter(
+        AssessmentSession.student_id == student.id,
+        AssessmentSession.session_type.in_(["pretest", "posttest"]),
+        AssessmentSession.status == "in_progress",
+    ).first()
+    if level_changing and active_assessment:
         raise HTTPException(
             status_code=409,
             detail="لا يمكن تغيير المستوى أثناء وجود اختبار نشط",
         )
-    if (
-        active_session
-        and active_session.session_type == "core"
-        and active_session.assigned_level != previous_level
-    ):
+
+    active_core_sessions = (
+        db.query(AssessmentSession)
+        .filter(
+            AssessmentSession.student_id == student.id,
+            AssessmentSession.session_type == "core",
+            AssessmentSession.status == "in_progress",
+        )
+        .order_by(AssessmentSession.id)
+        .all()
+    )
+    if len(active_core_sessions) > 1:
+        raise HTTPException(
+            status_code=409,
+            detail="توجد أكثر من جلسة تعلم نشطة وتحتاج الحالة إلى مراجعة قبل تغيير المستوى",
+        )
+    active_core = active_core_sessions[0] if active_core_sessions else None
+    if active_core and active_core.assigned_level != previous_level:
         raise HTTPException(
             status_code=409,
             detail="حالة جلسة التعلم لا تطابق المستوى الحالي وتحتاج مراجعة قبل التجاوز",
         )
 
+    has_core_history = db.query(AssessmentSession.id).filter(
+        AssessmentSession.student_id == student.id,
+        AssessmentSession.session_type == "core",
+    ).first() is not None
+
     next_session = None
-    if body.new_level != previous_level and active_session is not None:
+    if level_changing and active_core is not None:
         pending_audio = (
             db.query(AudioSubmission.id)
             .join(AttemptResponse, AttemptResponse.id == AudioSubmission.response_id)
             .join(Attempt, Attempt.id == AttemptResponse.attempt_id)
             .filter(
-                Attempt.session_id == active_session.id,
+                Attempt.session_id == active_core.id,
                 AudioSubmission.status.in_(["pending", "uploaded", "rerecord_required"]),
             )
             .first()
         )
         unresolved_cycle = db.query(ReinforcementCycle.id).filter(
-            ReinforcementCycle.session_id == active_session.id,
+            ReinforcementCycle.session_id == active_core.id,
             ReinforcementCycle.status.in_([
                 "reinforcement_pending",
                 "reinforcement_in_progress",
@@ -844,10 +851,12 @@ def manual_override(
             )
 
         now = datetime.now(timezone.utc)
-        active_session.status = "completed"
-        active_session.completed_at = active_session.completed_at or now
-        active_session.updated_at = now
+        active_core.status = "completed"
+        active_core.completed_at = active_core.completed_at or now
+        active_core.updated_at = now
         db.flush()
+
+    if level_changing and has_core_history:
         next_session = AssessmentSession(
             student_id=student.id,
             session_type="core",
@@ -855,6 +864,9 @@ def manual_override(
             assigned_level=body.new_level,
         )
         db.add(next_session)
+        student.posttest_enabled = False
+        student.posttest_enabled_at = None
+        student.posttest_enabled_by = None
         db.flush()
 
     explanation = {
@@ -862,12 +874,15 @@ def manual_override(
         "reason": "supervisor_manual_override",
         "automatic_demotion": False,
         "history_preserved": True,
+        "level_changed": level_changing,
     }
-    if active_session is not None and next_session is not None:
+    if next_session is not None:
         explanation.update({
+            "learning_reopened": True,
             "manual_session_transition": True,
-            "previous_session_id": active_session.id,
+            "previous_session_id": active_core.id if active_core is not None else None,
             "next_session_id": next_session.id,
+            "posttest_access_reset": True,
         })
 
     decision = AdaptationDecision(
