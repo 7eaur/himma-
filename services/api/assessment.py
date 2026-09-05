@@ -200,6 +200,26 @@ def _structured_response_exists(db: Session, attempt_id: int, step_id: int) -> b
     ).first() is not None
 
 
+def _attempt_ids_with_audio_status(
+    db: Session,
+    session_id: int,
+    statuses: set[str],
+) -> set[int]:
+    if not statuses:
+        return set()
+    return {
+        row[0]
+        for row in db.query(Attempt.id)
+        .join(AttemptResponse, AttemptResponse.attempt_id == Attempt.id)
+        .join(AudioSubmission, AudioSubmission.response_id == AttemptResponse.id)
+        .filter(
+            Attempt.session_id == session_id,
+            AudioSubmission.status.in_(tuple(statuses)),
+        )
+        .all()
+    }
+
+
 def _answered_step_ids(db: Session, attempt_id: int) -> set[int]:
     classic = {
         row.step_id
@@ -208,7 +228,7 @@ def _answered_step_ids(db: Session, attempt_id: int) -> set[int]:
             AudioSubmission.response_id == AttemptResponse.id,
         ).filter(
             AttemptResponse.attempt_id == attempt_id,
-            or_(AudioSubmission.id.is_(None), AudioSubmission.status != "rerecord_required"),
+            or_(AudioSubmission.id.is_(None), AudioSubmission.status == "graded"),
         ).all()
     }
     structured = {
@@ -345,6 +365,9 @@ def get_next_item(
 ):
     session = _session_for_student(db, session_id, student.id)
 
+    if _attempt_ids_with_audio_status(db, session_id, {"uploaded"}):
+        raise HTTPException(status_code=409, detail="يوجد تسجيل صوتي في انتظار المراجعة")
+
     pending_attempt = db.query(Attempt).filter(
         Attempt.session_id == session_id,
         Attempt.status == "in_progress",
@@ -402,11 +425,19 @@ def get_session_progress(
     student: Student = Depends(get_current_student),
 ):
     session = _session_for_student(db, session_id, student.id)
-    completed_items = db.query(Attempt).filter(
+    blocked_attempt_ids = _attempt_ids_with_audio_status(
+        db,
+        session_id,
+        {"uploaded", "rerecord_required"},
+    )
+    completed_query = db.query(Attempt).filter(
         Attempt.session_id == session_id,
         Attempt.status == "completed",
-    ).count()
-    has_pending_item = db.query(Attempt.id).filter(
+    )
+    if blocked_attempt_ids:
+        completed_query = completed_query.filter(Attempt.id.notin_(blocked_attempt_ids))
+    completed_items = completed_query.count()
+    has_pending_item = bool(blocked_attempt_ids) or db.query(Attempt.id).filter(
         Attempt.session_id == session_id,
         Attempt.status == "in_progress",
     ).first() is not None
@@ -415,7 +446,13 @@ def get_session_progress(
     ).count()
     classic_steps = db.query(AttemptResponse.id).join(
         Attempt, Attempt.id == AttemptResponse.attempt_id,
-    ).filter(Attempt.session_id == session_id).count()
+    ).outerjoin(
+        AudioSubmission,
+        AudioSubmission.response_id == AttemptResponse.id,
+    ).filter(
+        Attempt.session_id == session_id,
+        or_(AudioSubmission.id.is_(None), AudioSubmission.status == "graded"),
+    ).count()
     structured_steps = db.query(ActivityStepResponse.id).join(
         Attempt, Attempt.id == ActivityStepResponse.attempt_id,
     ).filter(Attempt.session_id == session_id).count()
