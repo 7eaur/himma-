@@ -3,7 +3,7 @@
 from datetime import datetime, timezone
 
 import activity_runtime
-import seed
+import seed_all
 from content_runtime import canonical_interaction
 from db.database import SessionLocal
 from db.models import (
@@ -34,7 +34,7 @@ def _complete_pretest(level: int = 1) -> int:
 
 
 def _create_audio_attempt(student_client):
-    seed.run_seed()
+    seed_all.run_seed_all()
     student_id = _complete_pretest(level=2)
     started = student_client.post("/activities/start")
     assert started.status_code == 200, started.text
