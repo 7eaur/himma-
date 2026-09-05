@@ -57,21 +57,30 @@ jobs:
         run: |
           set -euo pipefail
           production_paths=(apps/web/src services/api packages/content/scripts)
+          grep_excludes=(
+            --exclude='test_*.py'
+            --exclude='*.test.ts'
+            --exclude='*.test.tsx'
+            --exclude='*.spec.ts'
+            --exclude='*.spec.tsx'
+            --exclude-dir='tests'
+            --exclude-dir='__tests__'
+          )
           if grep -RInE '(TODO|FIXME)' "${production_paths[@]}" \
             --include='*.py' --include='*.ts' --include='*.tsx' --include='*.js' --include='*.mjs' \
-            --exclude='test_*.py'; then
+            "${grep_excludes[@]}"; then
             echo 'Unresolved TODO/FIXME marker found in production paths.' >&2
             exit 1
           fi
           if grep -RInEi '(^|[^[:alnum:]_])(mock|demo)([^[:alnum:]_]|$)' "${production_paths[@]}" \
             --include='*.py' --include='*.ts' --include='*.tsx' --include='*.js' --include='*.mjs' \
-            --exclude='test_*.py'; then
+            "${grep_excludes[@]}"; then
             echo 'Mock/demo marker found in production paths.' >&2
             exit 1
           fi
           if grep -RInE 'time\.sleep\(|await[[:space:]]+new[[:space:]]+Promise\([^\n]*setTimeout' "${production_paths[@]}" \
             --include='*.py' --include='*.ts' --include='*.tsx' --include='*.js' --include='*.mjs' \
-            --exclude='test_*.py'; then
+            "${grep_excludes[@]}"; then
             echo 'Possible fake delay found in production paths.' >&2
             exit 1
           fi
@@ -79,7 +88,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if grep -RInE 'pytest\.skip|pytest\.mark\.skip|@unittest\.skip|(^|[^[:alnum:]_])(test|describe)\.skip\(' services/api apps/web/tests \
+          if grep -RInE 'pytest\.skip|pytest\.mark\.skip|@unittest\.skip|(^|[^[:alnum:]_])(test|describe)\.skip\(' services/api apps/web/src apps/web/tests \
             --include='*.py' --include='*.ts' --include='*.tsx'; then
             echo 'Disabled/skipped test found; document and remove the skip before closing the stage.' >&2
             exit 1
