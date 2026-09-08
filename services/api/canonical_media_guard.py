@@ -5,7 +5,9 @@ The guard validates the *final compiled release*, not a hand-maintained list:
 - every declared image file exists and is non-empty;
 - every approved audio row has both WAV master and MP3 web binaries;
 - duplicate stable IDs are rejected;
-- referenced audio must be approved and semantically match its target.
+- referenced audio must be approved and semantically match its target;
+- every selectable image must semantically match the option it represents;
+- selectable images must not contain embedded answer text.
 
 Matching is category-aware. Vowel-sensitive ``syllable`` and vocalized
 ``letter-sound`` targets require exact manifest semantics, so ``مِ`` can never
@@ -14,11 +16,18 @@ its approved letter-sound row by base letter. Word assets may match by the same
 Arabic letters when the manifest label omits optional diacritics (for example
 ``بَاب`` -> manifest ``باب``), but resolution still requires exactly one approved
 asset ID. This keeps lexical labels tolerant without weakening vowel contrasts.
+
+Image-choice matching is deliberately stricter than generic context-image
+matching. A choice image must match the manifest's semantic vocabulary label (or
+an explicitly documented approved alias). Context illustrations may be broader
+scenes and are therefore validated for identity/files, but not forced to equal a
+single option label.
 """
 from __future__ import annotations
 
 import csv
 import json
+import re
 import unicodedata
 from collections import Counter
 from pathlib import Path
@@ -34,6 +43,14 @@ IMAGE_MAPS = (
 AUDIO_ROOT = ROOT / "assets" / "audio" / "HIMMA_AUDIO_V1"
 AUDIO_MANIFEST = AUDIO_ROOT / "manifest.csv"
 
+# These are approved wording aliases where a sequence image intentionally
+# represents the same visual event under a shorter/newer learner-facing label.
+# Keeping them explicit is safer than fuzzy matching arbitrary Arabic phrases.
+IMAGE_SEMANTIC_ALIASES: dict[str, set[str]] = {
+    "SEQ-03": {"نمو الزهرة", "ظهور النبتة"},
+    "SEQ-08": {"قراءة الكتاب", "القراءة"},
+}
+
 
 def _norm(value: object) -> str:
     return unicodedata.normalize("NFKC", str(value or "")).strip()
@@ -48,6 +65,14 @@ def _without_marks(value: object) -> str:
 
 def _has_marks(value: object) -> bool:
     return any(unicodedata.category(char) == "Mn" for char in _norm(value))
+
+
+def _image_semantic_key(value: object) -> str:
+    plain = _without_marks(value)
+    plain = re.sub(r"[^\w\u0600-\u06ff]+", "", plain, flags=re.UNICODE)
+    if plain.startswith("ال"):
+        plain = plain[2:]
+    return plain.casefold()
 
 
 def _image_records() -> tuple[dict[str, dict[str, Any]], list[str], list[str]]:
@@ -123,6 +148,31 @@ def _audio_semantic_matches(row: dict[str, str], semantic: str) -> bool:
     return False
 
 
+def _image_semantic_matches(asset_id: str, row: dict[str, Any], semantic: str) -> bool:
+    target = _image_semantic_key(semantic)
+    if not target:
+        return False
+
+    candidate_values = {
+        _norm(row.get("label_ar")),
+        _norm(row.get("semantic_key")),
+        *IMAGE_SEMANTIC_ALIASES.get(asset_id, set()),
+    } - {""}
+    return target in {_image_semantic_key(value) for value in candidate_values}
+
+
+def _choice_image_contains_text(row: dict[str, Any]) -> bool:
+    if "contains_text" in row:
+        return bool(row.get("contains_text"))
+    qa = row.get("qa") or {}
+    if isinstance(qa, dict) and "no_embedded_text" in qa:
+        return not bool(qa.get("no_embedded_text"))
+    # Unknown is not automatically treated as unsafe here because legacy maps
+    # predate the QA flag. Identity/file checks still apply, and current maps
+    # expose either contains_text or no_embedded_text for selectable assets.
+    return False
+
+
 def resolve_audio_asset(semantic: str) -> str:
     """Resolve one target to exactly one approved manifest ID, never by position."""
     audio, duplicates = _audio_rows()
@@ -145,16 +195,27 @@ def validate_media_contract(release: dict[str, Any]) -> dict[str, list[str]]:
 
     referenced_images: set[str] = set()
     referenced_audio: set[str] = set()
+    image_semantic_mismatches: list[str] = []
+    choice_images_with_embedded_text: list[str] = []
     audio_semantic_mismatches: list[str] = []
     unapproved_referenced_audio: list[str] = []
 
     for canonical, round_number, asset in _release_media(release):
         asset_id = _norm(asset.get("asset_id"))
         asset_type = _norm(asset.get("asset_type"))
+        usage = _norm(asset.get("usage"))
         semantic = _norm(asset.get("semantic_text"))
         location = f"{canonical}/R{round_number:02d}" if round_number else canonical
         if asset_type == "image":
             referenced_images.add(asset_id)
+            row = images.get(asset_id)
+            if row is not None and usage == "choice":
+                if not _image_semantic_matches(asset_id, row, semantic):
+                    image_semantic_mismatches.append(
+                        f"{location}:{asset_id}:target={semantic!r}:manifest={_norm(row.get('label_ar'))!r}"
+                    )
+                if _choice_image_contains_text(row):
+                    choice_images_with_embedded_text.append(f"{location}:{asset_id}")
         elif asset_type == "audio":
             referenced_audio.add(asset_id)
             row = audio.get(asset_id)
@@ -204,6 +265,8 @@ def validate_media_contract(release: dict[str, Any]) -> dict[str, list[str]]:
         "duplicate_audio_ids": duplicate_audio_ids,
         "missing_referenced_images": sorted(referenced_images - set(images)),
         "missing_referenced_audio": sorted(referenced_audio - set(audio)),
+        "image_semantic_mismatches": sorted(set(image_semantic_mismatches)),
+        "choice_images_with_embedded_text": sorted(set(choice_images_with_embedded_text)),
         "unapproved_referenced_audio": sorted(set(unapproved_referenced_audio)),
         "audio_semantic_mismatches": sorted(set(audio_semantic_mismatches)),
         "missing_image_files": missing_image_files,
