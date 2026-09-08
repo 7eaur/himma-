@@ -1,10 +1,18 @@
 """Shared, read-only student presentation contract.
 
 Both live student routes and the researcher content preview consume these exact
-serializers.  This prevents preview-only formatting, positional media inference,
+serializers. This prevents preview-only formatting, positional media inference,
 or accidental exposure of legacy ``source_text`` / answer metadata.
+
+Presentation order is deliberately separate from academic order. Ordered tasks
+must keep the durable DB option order for scoring, while the learner sees the
+same deterministic shuffled order on assessment, learning and preview surfaces.
+Choice-image assets are aligned to that presented option order by option_id; media
+position is never used as academic identity.
 """
 from __future__ import annotations
+
+from typing import Any
 
 from fastapi import HTTPException
 
@@ -24,6 +32,55 @@ from db.models import ContentItem, ContentStep
 SINGLE = {"choose_one", "listen_choose_one", "choose_image", "listen_choose_image"}
 MULTI = {"choose_many", "listen_choose_many"}
 ORDER = {"sequence", "memory_sequence", "path_sequence", "build_word"}
+
+
+def _presentation_rank(option_id: int) -> int:
+    """Preserve the established deterministic learner shuffle contract.
+
+    The assessment UI historically used this exact stable key. Keeping the key
+    here makes the server payload authoritative for every learner/preview surface
+    without changing answer semantics or mutating durable ``order_index`` values.
+    """
+    return (int(option_id) * 17) % 97
+
+
+def presented_options(step: ContentStep) -> list:
+    """Return current options in learner presentation order, never scoring order."""
+    return sorted(
+        active_options(step),
+        key=lambda option: _presentation_rank(int(option.id)),
+    )
+
+
+def _align_choice_assets(assets: list[dict[str, Any]], options: list) -> list[dict[str, Any]]:
+    """Align mapped choice images to presented options while preserving other media slots.
+
+    Audio/context media keep their original semantic order. Only image assets that
+    already carry an explicit ``option_id`` are reordered, and only by that ID.
+    This prevents a sequence image grid from accidentally revealing the canonical
+    answer order while retaining semantic 1:1 mapping.
+    """
+    option_rank = {int(option.id): index for index, option in enumerate(options)}
+    mapped = [
+        asset
+        for asset in assets
+        if str(asset.get("asset_type") or "") == "image"
+        and asset.get("option_id") is not None
+    ]
+    mapped.sort(
+        key=lambda asset: option_rank.get(int(asset["option_id"]), len(option_rank))
+    )
+    iterator = iter(mapped)
+    result: list[dict[str, Any]] = []
+    for asset in assets:
+        if (
+            str(asset.get("asset_type") or "") == "image"
+            and asset.get("option_id") is not None
+        ):
+            result.append(next(iterator))
+        else:
+            result.append(asset)
+    return result
 
 
 def _assessment_presentation(item: ContentItem) -> dict:
@@ -74,7 +131,8 @@ def assessment_student_payload(item: ContentItem, step: ContentStep) -> dict:
     interaction = canonical_interaction(item)
     if str(presentation.get("interaction_type")) != interaction:
         raise HTTPException(status_code=409, detail="نوع التفاعل لا يطابق بيانات عرض السؤال")
-    options = active_options(step)
+    options = presented_options(step)
+    assets = _align_choice_assets(step_assets(item, step), options)
     return {
         "id": item.id,
         "stable_key": item.stable_key,
@@ -98,7 +156,7 @@ def assessment_student_payload(item: ContentItem, step: ContentStep) -> dict:
                     }
                     for option in options
                 ],
-                "assets": step_assets(item, step),
+                "assets": assets,
                 "media_gaps": media_gaps(item, step),
             }
         ],
@@ -109,13 +167,14 @@ def activity_student_content(item: ContentItem, step: ContentStep) -> dict:
     """Return the static content portion of the live learning-step payload.
 
     Session/attempt/retry state is intentionally not part of this function, so
-    researcher preview can call it without creating progress or attempts.  The
+    researcher preview can call it without creating progress or attempts. The
     same result is consumed by the live learning endpoint; this is the single
     serializer for question copy, instructions, options, media and context data.
     """
     interaction = canonical_interaction(item)
     presentation = presentation_data(item, step)
-    options = active_options(step)
+    options = presented_options(step)
+    assets = _align_choice_assets(step_assets(item, step), options)
     skill_name = item.skill.name if item.skill is not None else str((item.template_data or {}).get("canonical_skill_code") or "")
     round_total = len(item.steps)
     stimulus = dict(presentation.get("stimulus") or {})
@@ -162,7 +221,7 @@ def activity_student_content(item: ContentItem, step: ContentStep) -> dict:
                 }
                 for option in options
             ],
-            "assets": step_assets(item, step),
+            "assets": assets,
             "media_gaps": media_gaps(item, step),
         },
     }
