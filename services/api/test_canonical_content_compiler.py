@@ -6,9 +6,16 @@ from pathlib import Path
 
 from canonical_media_guard import validate_media_contract
 from canonical_release import build_canonical_release
-from content_approval_contract_2026_09_08 import VERSION
+from content_approval_contract_2026_09_08 import (
+    LEARNING_QUESTIONS,
+    LEARNING_ROUND_QUESTIONS,
+    POSTTEST_QUESTIONS,
+    PRETEST_QUESTIONS,
+    VERSION,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
+STRUCTURED_STORY_QUESTION_SOURCES = {"L1-CORE-09", "L1-REIN-11"}
 
 
 def _items():
@@ -37,6 +44,39 @@ def test_canonical_release_is_complete_deterministic_and_structured():
             assert step["hint"].strip()
             assert step["encouragement"].strip()
             assert "source_text" not in step
+
+
+def test_every_student_question_is_accounted_for_by_an_approved_structured_source():
+    release = build_canonical_release()
+    pretest = {
+        item["canonical_id"] for item in release["items"]
+        if item["kind"] == "pretest_question"
+    }
+    posttest = {
+        item["canonical_id"] for item in release["items"]
+        if item["kind"] == "posttest_question"
+    }
+    learning = {
+        item["canonical_id"] for item in release["items"]
+        if item["kind"] in {"core_activity", "reinforcement_activity"}
+    }
+
+    assert pretest == set(PRETEST_QUESTIONS)
+    assert posttest == set(POSTTEST_QUESTIONS)
+    assert learning == (
+        set(LEARNING_QUESTIONS)
+        | set(LEARNING_ROUND_QUESTIONS)
+        | STRUCTURED_STORY_QUESTION_SOURCES
+    )
+    assert len(learning) == 65
+
+    by_id = {item["canonical_id"]: item for item in release["items"]}
+    for canonical, questions in LEARNING_ROUND_QUESTIONS.items():
+        assert len(by_id[canonical]["rounds"]) == len(questions)
+        assert [step["question_text"] for step in by_id[canonical]["rounds"]] == questions
+
+    for canonical in STRUCTURED_STORY_QUESTION_SOURCES:
+        assert all(step["question_text"].strip() for step in by_id[canonical]["rounds"])
 
 
 def test_canonical_release_locks_critical_sep8_regressions():
