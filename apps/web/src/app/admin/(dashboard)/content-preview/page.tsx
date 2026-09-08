@@ -47,6 +47,14 @@ interface LearningStep {
   assets: Asset[];
   media_gaps: unknown[];
 }
+interface ContextIntro {
+  kind?: string;
+  title?: string;
+  instruction?: string;
+  text?: string;
+  audio_asset_id?: string;
+  image_asset_id?: string;
+}
 interface LearningPayload {
   item: {
     id: number;
@@ -57,7 +65,7 @@ interface LearningPayload {
     interaction_type: Interaction;
     kind: Kind;
     assets: Asset[];
-    context_intro?: { kind?: string; title?: string; instruction?: string; audio_asset_id?: string } | null;
+    context_intro?: ContextIntro | null;
     layout_hint?: string | null;
   };
   rounds: LearningStep[];
@@ -121,10 +129,37 @@ function AssessmentPreview({ payload }: { payload: AssessmentPayload }) {
 
 function LearningPreview({ payload }: { payload: LearningPayload }) {
   const [round, setRound] = useState(0);
-  useEffect(() => setRound(0), [payload.item.canonical_id]);
+  const [introSeen, setIntroSeen] = useState(false);
+  const [introPlaybackComplete, setIntroPlaybackComplete] = useState(false);
+  useEffect(() => {
+    setRound(0);
+    setIntroSeen(false);
+    setIntroPlaybackComplete(false);
+  }, [payload.item.canonical_id]);
+
   const step = payload.rounds[Math.min(round, Math.max(0, payload.rounds.length - 1))];
   const intro = payload.item.context_intro;
   if (!step) return null;
+
+  if (intro && !introSeen) {
+    const isAudioStory = intro.kind === "audio_story";
+    const audioAvailable = Boolean(intro.audio_asset_id);
+    const imageAsset = intro.image_asset_id
+      ? payload.item.assets.find((asset) => asset.asset_id === intro.image_asset_id)
+      : undefined;
+    return <div className="max-w-4xl mx-auto rounded-[28px] border border-border bg-bg p-4 sm:p-6 lg:p-8 shadow-sm" dir="rtl" data-testid="preview-context-intro">
+      <div className="rounded-3xl bg-white border border-border p-5 sm:p-7 space-y-5">
+        <div className="flex items-center gap-3"><Headphones className="text-primary" /><div><p className="text-xs text-muted">{isAudioStory ? "مرحلة استماع مستقلة قبل الأسئلة" : "سياق مستقل قبل الأسئلة"}</p><h3 className="font-extrabold text-navy text-2xl">{intro.title || "استعد للنشاط"}</h3></div></div>
+        {intro.kind === "reading_context" && intro.text && <div className="rounded-2xl bg-bg border border-border px-5 py-5 text-xl font-bold text-navy leading-loose" data-testid="preview-context-reading-text">{intro.text}</div>}
+        {imageAsset && <div className="flex justify-center"><Image src={imageAsset.url} alt={imageAsset.semantic_text || "صورة تمهيدية"} width={520} height={300} className="max-h-72 w-auto object-contain rounded-2xl" unoptimized /></div>}
+        {isAudioStory && audioAvailable && <audio src={mediaUrl(intro.audio_asset_id!)} controls preload="metadata" className="w-full" data-testid="preview-context-audio" onEnded={() => setIntroPlaybackComplete(true)} />}
+        {isAudioStory && !audioAvailable && <div className="alert-error">الصوت المعتمد لشاشة الاستماع غير مرتبط بهذا النشاط، لذلك لا يمكن تجاوز المقدمة في المعاينة.</div>}
+        {intro.instruction && <div className="rounded-2xl bg-bg border border-border px-4 py-3 text-sm sm:text-base text-navy">{intro.instruction}</div>}
+        <div className="flex justify-end"><button type="button" className="btn-primary" disabled={isAudioStory && !introPlaybackComplete} onClick={() => setIntroSeen(true)}>{isAudioStory && !introPlaybackComplete ? "استمع إلى القصة أولًا" : "ابدأ الأسئلة"}</button></div>
+      </div>
+    </div>;
+  }
+
   const stimulusText = String(step.stimulus_text || "").trim();
   const contextImage = payload.item.assets.find((asset) => asset.asset_type === "image")
     || step.assets.find((asset) => asset.asset_type === "image" && !asset.option_id);
@@ -133,7 +168,6 @@ function LearningPreview({ payload }: { payload: LearningPayload }) {
   const contextNode = contextImage ? <div className="flex justify-center"><Image src={contextImage.url} alt={contextImage.semantic_text || "صورة النشاط"} width={520} height={300} className="max-h-72 w-auto object-contain rounded-2xl" unoptimized /></div> : null;
   const stimulusNode = stimulusText ? <div className="rounded-2xl bg-bg border border-border px-5 py-5 text-center text-2xl font-bold text-navy leading-loose">{stimulusText}</div> : null;
   return <div className="max-w-4xl mx-auto space-y-5" dir="rtl">
-    {intro?.kind === "audio_story" && intro.audio_asset_id && <div className="rounded-3xl border border-border bg-white p-5 sm:p-6"><div className="flex items-center gap-3 mb-3"><Headphones className="text-primary" /><div><p className="text-xs text-muted">مرحلة استماع مستقلة قبل الأسئلة</p><h3 className="font-extrabold text-navy text-xl">{intro.title || "استمع إلى القصة"}</h3></div></div>{intro.instruction && <p className="text-muted mb-4">{intro.instruction}</p>}<audio src={mediaUrl(intro.audio_asset_id)} controls preload="metadata" className="w-full" /><p className="text-xs text-muted mt-3">لا يظهر مشغل القصة داخل جولات الأسئلة التالية.</p></div>}
     <div className="rounded-[28px] border border-border bg-bg p-4 sm:p-6 lg:p-8 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6"><div><p className="text-sm text-primary font-bold">{KIND_LABEL[payload.item.kind]}</p><h2 className="text-xl sm:text-2xl font-extrabold text-navy mt-1">{payload.item.title}</h2></div><span className="rounded-full bg-white border border-border px-4 py-2 text-sm font-bold text-navy">الجولة {round + 1} من {payload.rounds.length}</span></div>
       <div className="rounded-3xl bg-white border border-border p-5 sm:p-7 space-y-5">
