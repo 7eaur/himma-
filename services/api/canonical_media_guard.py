@@ -7,9 +7,13 @@ The guard validates the *final compiled release*, not a hand-maintained list:
 - duplicate stable IDs are rejected;
 - referenced audio must be approved and semantically match its target.
 
-A bare letter target may use the approved letter-sound recording with a vowel or
-sukoon (for example ``م`` -> ``مَ`` or ``ب`` -> ``بْ``). A vocalized target such
-as ``مِ`` must match exactly and cannot silently reuse another vowel.
+Matching is category-aware. Vowel-sensitive ``syllable`` and vocalized
+``letter-sound`` targets require exact manifest semantics, so ``مِ`` can never
+silently become the current ``LET-01 = مَ``. A bare single letter may resolve to
+its approved letter-sound row by base letter. Word assets may match by the same
+Arabic letters when the manifest label omits optional diacritics (for example
+``بَاب`` -> manifest ``باب``), but resolution still requires exactly one approved
+asset ID. This keeps lexical labels tolerant without weakening vowel contrasts.
 """
 from __future__ import annotations
 
@@ -98,22 +102,29 @@ def _audio_semantic_matches(row: dict[str, str], semantic: str) -> bool:
         return True
 
     category = _norm(row.get("category"))
-    if category == "letter-sound" and not _has_marks(target) and len(_without_marks(target)) == 1:
-        return any(_without_marks(candidate) == _without_marks(target) for candidate in candidates)
+    target_plain = _without_marks(target)
+    if category == "letter-sound":
+        # Relax only *bare* letter targets. Once the target carries a vowel,
+        # exact matching above is required so letter-vowel contrasts stay sound.
+        return (
+            not _has_marks(target)
+            and len(target_plain) == 1
+            and any(_without_marks(candidate) == target_plain for candidate in candidates)
+        )
+    if category == "word":
+        # Word labels in the manifest are not uniformly vocalized. Matching by
+        # base letters is safe only because resolve_audio_asset still requires a
+        # unique approved stable ID for this lexical target.
+        return bool(target_plain) and any(_without_marks(candidate) == target_plain for candidate in candidates)
     if category == "auditory-story":
-        target_plain = _without_marks(target)
         return any(target_plain and target_plain in _without_marks(candidate) for candidate in candidates)
+    # ``syllable`` intentionally has no relaxed branch: vowel length/quality is
+    # the academic target and must remain exact.
     return False
 
 
 def resolve_audio_asset(semantic: str) -> str:
-    """Resolve one target to exactly one approved manifest ID, never by position.
-
-    Exact vocalization wins.  The only relaxed rule is for a *bare* single-letter
-    target, which may resolve to the corresponding approved ``letter-sound`` row
-    regardless of whether its spoken form carries fatha/sukoon.  Ambiguous or
-    missing targets fail rather than picking the first manifest row.
-    """
+    """Resolve one target to exactly one approved manifest ID, never by position."""
     audio, duplicates = _audio_rows()
     if duplicates:
         raise RuntimeError(f"Duplicate audio manifest IDs: {duplicates}")
