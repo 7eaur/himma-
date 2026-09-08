@@ -6,6 +6,9 @@ import pytest
 
 import main
 import readiness
+import seed_all
+from db.database import SessionLocal
+from db.models import ContentItem, ContentRelease
 from runtime_flags import validate_runtime_safety
 
 
@@ -91,6 +94,40 @@ def test_readiness_fails_closed_when_content_projection_is_stale(monkeypatch):
     assert report["checks"]["content"] == "unavailable"
 
 
+def test_content_readiness_accepts_canonical_seed_and_detects_semantic_db_drift():
+    result = seed_all.run_seed_all()
+    assert len(result["publication"]["projection_sha256"]) == 64
+    assert readiness._content_ready() is True
+
+    db = SessionLocal()
+    try:
+        item = db.query(ContentItem).order_by(ContentItem.id).first()
+        assert item is not None
+        data = dict(item.template_data or {})
+        data["title"] = str(data.get("title") or "") + " — tampered"
+        item.template_data = data
+        db.commit()
+    finally:
+        db.close()
+
+    assert readiness._content_ready() is False
+
+
+def test_content_readiness_requires_one_current_canonical_release():
+    seed_all.run_seed_all()
+    assert readiness._content_ready() is True
+
+    db = SessionLocal()
+    try:
+        release = db.query(ContentRelease).filter(ContentRelease.is_active.is_(True)).one()
+        release.version = "STALE-CONTENT-RELEASE"
+        db.commit()
+    finally:
+        db.close()
+
+    assert readiness._content_ready() is False
+
+
 def test_readiness_fails_closed_when_approved_audio_contract_is_missing(monkeypatch):
     _set_required_env(monkeypatch)
     _patch_component_checks(monkeypatch, approved_audio=False)
@@ -127,6 +164,7 @@ def test_approved_audio_probe_requires_exact_semantics_and_both_binary_variants(
 
     monkeypatch.setattr(readiness, "_AUDIO_ROOT", audio_root)
     monkeypatch.setattr(readiness, "_AUDIO_MANIFEST", manifest)
+    monkeypatch.setattr(readiness, "_EXPECTED_APPROVED_AUDIO", len(rows))
     assert readiness._approved_audio_ready() is True
 
     (mp3_root / "INS-02.mp3").unlink()
