@@ -6,7 +6,7 @@ resolution. This publisher owns persistence and historical safety:
 - superseded ContentOption rows are retired, never deleted/reinterpreted;
 - current media links are replaced from the explicit semantic contract;
 - the DB-only runtime snapshot contains no raw source text;
-- all writes occur in one transaction after digest/media validation.
+- all writes occur in one transaction after digest/content/media validation.
 
 Legacy baseline/addition seeders may still be used by seed_all as *bootstrap
 importers* on an empty database, but no legacy correction/projection seed is part
@@ -20,7 +20,7 @@ from copy import deepcopy
 from typing import Any
 
 from canonical_media_guard import assert_media_contract
-from canonical_release import build_canonical_release
+from canonical_release import assert_question_contract_coverage, build_canonical_release
 from content_approval_contract_2026_09_08 import (
     LEARNING_VERSION,
     POSTTEST_VERSION,
@@ -308,6 +308,7 @@ def publish_release(release: dict[str, Any] | None = None) -> dict[str, Any]:
     # Never let a caller bypass the canonical builder with a stale/tampered
     # object. Publication is fail-closed before a database transaction begins.
     _assert_release_digest(canonical)
+    assert_question_contract_coverage(canonical)
     assert_media_contract(canonical)
 
     db = SessionLocal()
