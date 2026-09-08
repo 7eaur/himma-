@@ -4,7 +4,8 @@ The release builder owns academic/current presentation truth and complete media
 resolution. This publisher owns persistence and historical safety:
 - existing ContentItem and ContentStep IDs are preserved;
 - superseded ContentOption rows are retired, never deleted/reinterpreted;
-- current media links are replaced from the explicit semantic contract;
+- current media links are reconciled from the explicit semantic contract;
+- unchanged media links keep their durable IDs across repeated publication;
 - the DB-only runtime snapshot contains no raw source text;
 - all writes occur in one transaction after digest/content/media validation.
 
@@ -124,31 +125,65 @@ def _reconcile_skills(db, release: dict[str, Any]) -> dict[str, Skill]:
     return by_code
 
 
-def _replace_assets(db, owner, specs: list[dict[str, Any]]) -> None:
-    # ContentAssetLink rows are presentation metadata and are not referenced by
-    # historical AttemptResponse rows, so replacing the current links is safe.
-    for link in list(owner.assets):
-        db.delete(link)
-    db.flush()
+def _asset_key(asset_id: str, asset_type: str, usage: str | None) -> tuple[str, str, str | None]:
+    return (asset_id, asset_type, usage or None)
+
+
+def _reconcile_assets(db, owner, specs: list[dict[str, Any]]) -> tuple[int, int]:
+    """Reconcile current media links without churn on repeated publication.
+
+    ``db_runtime`` owns the semantic text and option-order relationship. The
+    relational link only proves that the asset is currently attached to the item
+    or step, so its durable identity is keyed by asset/type/usage. Duplicate keys
+    are treated as a multiset to avoid silently dropping intentional repeats.
+    """
+    desired: list[tuple[str, str, str | None]] = []
     for value in specs:
-        asset_id = str(value.get("asset_id") or "")
-        asset_type = str(value.get("asset_type") or "")
+        asset_id = str(value.get("asset_id") or "").strip()
+        asset_type = str(value.get("asset_type") or "").strip()
+        usage = str(value.get("usage") or "").strip() or None
         if not asset_id or not asset_type:
             raise RuntimeError("Canonical media link has no asset_id/asset_type")
+        desired.append(_asset_key(asset_id, asset_type, usage))
+
+    available: dict[tuple[str, str, str | None], list[ContentAssetLink]] = {}
+    for link in list(owner.assets):
+        key = _asset_key(
+            str(link.manifest_asset_id or ""),
+            str(link.asset_type or ""),
+            str(link.usage_context) if link.usage_context else None,
+        )
+        available.setdefault(key, []).append(link)
+
+    created = 0
+    for asset_id, asset_type, usage in desired:
+        key = _asset_key(asset_id, asset_type, usage)
+        bucket = available.get(key) or []
+        if bucket:
+            bucket.pop()
+            continue
         kwargs: dict[str, Any] = {
             "manifest_asset_id": asset_id,
             "asset_type": asset_type,
-            "usage_context": str(value.get("usage") or "") or None,
+            "usage_context": usage,
         }
         if isinstance(owner, ContentStep):
             kwargs["step_id"] = owner.id
         else:
             kwargs["item_id"] = owner.id
         db.add(ContentAssetLink(**kwargs))
-    db.flush()
+        created += 1
+
+    stale = [link for bucket in available.values() for link in bucket]
+    for link in stale:
+        db.delete(link)
+
+    if created or stale:
+        db.flush()
+    return created, len(stale)
 
 
-def _publish_steps(db, item: ContentItem, spec: dict[str, Any]) -> tuple[int, int, int]:
+def _publish_steps(db, item: ContentItem, spec: dict[str, Any]) -> dict[str, int]:
     compiled = list(spec["rounds"])
     existing = sorted(item.steps, key=lambda value: (int(value.order_index), int(value.id or 0)))
     if len(existing) != len(compiled):
@@ -160,7 +195,13 @@ def _publish_steps(db, item: ContentItem, spec: dict[str, Any]) -> tuple[int, in
     if len(by_order) != len(existing):
         raise RuntimeError(f"{spec['canonical_id']}: duplicate durable round order")
 
-    created = reactivated = retired = 0
+    totals = {
+        "option_created": 0,
+        "option_reactivated": 0,
+        "option_retired": 0,
+        "asset_created": 0,
+        "asset_retired": 0,
+    }
     for round_spec in compiled:
         order = int(round_spec["order_index"])
         step = by_order.get(order)
@@ -179,11 +220,13 @@ def _publish_steps(db, item: ContentItem, spec: dict[str, Any]) -> tuple[int, in
             desired,
             allow_repeated=str(spec["interaction_type"]) in ORDER,
         )
-        created += lifecycle["created"]
-        reactivated += lifecycle["reactivated"]
-        retired += lifecycle["retired"]
-        _replace_assets(db, step, list(round_spec.get("media") or []))
-    return created, reactivated, retired
+        totals["option_created"] += int(lifecycle["created"])
+        totals["option_reactivated"] += int(lifecycle["reactivated"])
+        totals["option_retired"] += int(lifecycle["retired"])
+        asset_created, asset_retired = _reconcile_assets(db, step, list(round_spec.get("media") or []))
+        totals["asset_created"] += asset_created
+        totals["asset_retired"] += asset_retired
+    return totals
 
 
 def _assessment_projection(item: ContentItem, spec: dict[str, Any], version: str, section: str) -> dict[str, Any]:
@@ -258,8 +301,10 @@ def _publish_item(db, item: ContentItem, spec: dict[str, Any], skill_map: dict[s
     item.status = "approved"
     item.checksum = _item_checksum(spec)
 
-    created, reactivated, retired = _publish_steps(db, item, spec)
-    _replace_assets(db, item, list(spec.get("item_assets") or []))
+    totals = _publish_steps(db, item, spec)
+    asset_created, asset_retired = _reconcile_assets(db, item, list(spec.get("item_assets") or []))
+    totals["asset_created"] += asset_created
+    totals["asset_retired"] += asset_retired
 
     # Refresh relationships used while constructing the student projection.
     item.skill = skill
@@ -295,7 +340,7 @@ def _publish_item(db, item: ContentItem, spec: dict[str, Any], skill_map: dict[s
         data["learning_experience_version"] = LEARNING_VERSION
         data["learning_experience"] = _learning_projection(item, spec)
     item.template_data = data
-    return {"created": created, "reactivated": reactivated, "retired": retired}
+    return totals
 
 
 def _activate_release(db, release: dict[str, Any]) -> None:
@@ -333,7 +378,13 @@ def publish_release(release: dict[str, Any] | None = None) -> dict[str, Any]:
                 f"found {existing_count}. Run seed_all so import-only bootstrap can create it first."
             )
         skills = _reconcile_skills(db, canonical)
-        totals = {"created": 0, "reactivated": 0, "retired": 0}
+        totals = {
+            "option_created": 0,
+            "option_reactivated": 0,
+            "option_retired": 0,
+            "asset_created": 0,
+            "asset_retired": 0,
+        }
         published_ids: set[int] = set()
         for spec in items:
             item = _find_item(db, spec)
@@ -351,9 +402,11 @@ def publish_release(release: dict[str, Any] | None = None) -> dict[str, Any]:
             "release_version": str(canonical["release_version"]),
             "release_sha256": str(canonical["sha256"]),
             "items": len(published_ids),
-            "option_rows_created": totals["created"],
-            "option_rows_reactivated": totals["reactivated"],
-            "option_rows_retired": totals["retired"],
+            "option_rows_created": totals["option_created"],
+            "option_rows_reactivated": totals["option_reactivated"],
+            "option_rows_retired": totals["option_retired"],
+            "asset_rows_created": totals["asset_created"],
+            "asset_rows_retired": totals["asset_retired"],
         }
     except Exception:
         db.rollback()
