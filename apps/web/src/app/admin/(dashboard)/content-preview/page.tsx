@@ -29,8 +29,39 @@ interface AssessmentPayload {
   presentation: { version: string; question_number: number; section: string; skill: string; encouragement: string; question_text: string; instruction_text: string; interaction_type: Interaction; stimulus?: { kind?: string; text?: string | null; audio_target?: string | null } };
   item_assets: Asset[]; steps: AssessmentStep[];
 }
-interface LearningStep { id: number; order_index: number; prompt_text: string; question_text: string; instruction_text: string; encouragement: string; hint: string; expected_reading_text?: string | null; options: Option[]; assets: Asset[]; media_gaps: unknown[]; }
-interface LearningPayload { item: { id: number; canonical_id: string; title: string; level_id?: number | null; order_index: number; interaction_type: Interaction; kind: Kind; assets: Asset[]; context_intro?: { kind?: string; title?: string; instruction?: string; audio_asset_id?: string } | null }; rounds: LearningStep[]; }
+interface LearningStep {
+  id: number;
+  order_index: number;
+  round_number?: number;
+  round_total?: number;
+  skill?: string;
+  prompt_text: string;
+  question_text: string;
+  instruction_text: string;
+  encouragement: string;
+  hint: string;
+  stimulus_text?: string;
+  expected_reading_text?: string | null;
+  required_selection_count?: number;
+  options: Option[];
+  assets: Asset[];
+  media_gaps: unknown[];
+}
+interface LearningPayload {
+  item: {
+    id: number;
+    canonical_id: string;
+    title: string;
+    level_id?: number | null;
+    order_index: number;
+    interaction_type: Interaction;
+    kind: Kind;
+    assets: Asset[];
+    context_intro?: { kind?: string; title?: string; instruction?: string; audio_asset_id?: string } | null;
+    layout_hint?: string | null;
+  };
+  rounds: LearningStep[];
+}
 interface PreviewDetail { mode: "read_only"; writes_progress: false; surface: "assessment" | "learning"; summary: PreviewSummary; payload: AssessmentPayload | LearningPayload; }
 
 const KIND_LABEL: Record<Kind, string> = {
@@ -39,18 +70,22 @@ const KIND_LABEL: Record<Kind, string> = {
   core_activity: "نشاط أساسي",
   reinforcement_activity: "تقوية",
 };
+const ORDER = new Set<Interaction>(["sequence", "memory_sequence", "path_sequence", "build_word"]);
 
 function mediaUrl(assetId: string) { return `/api/media/${encodeURIComponent(assetId)}`; }
 
 function ReadOnlyOptions({ interaction, options, assets }: { interaction: Interaction; options: Option[]; assets: Asset[] }) {
-  const imageChoice = interaction === "choose_image" || interaction === "listen_choose_image";
   const imageByOption = new Map<number, Asset>();
   for (const asset of assets) if (asset.asset_type === "image" && asset.option_id) imageByOption.set(Number(asset.option_id), asset);
+  const completeImageMapping = options.length > 0 && options.every((option) => imageByOption.has(option.id));
+  const explicitImageChoice = interaction === "choose_image" || interaction === "listen_choose_image";
+  const imageMode = explicitImageChoice
+    || (((interaction === "choose_many" || interaction === "listen_choose_many") || (ORDER.has(interaction) && interaction !== "build_word")) && completeImageMapping);
 
-  if (imageChoice) {
+  if (imageMode) {
     return <div className="grid grid-cols-2 lg:grid-cols-4 gap-3" data-testid="preview-image-options">{options.map((option) => {
       const asset = imageByOption.get(option.id);
-      return <div key={option.id} className="min-h-40 rounded-2xl border border-border bg-white p-3 flex items-center justify-center overflow-hidden">{asset ? <Image src={asset.url} alt={asset.semantic_text || "خيار مصور"} width={220} height={160} className="max-h-40 w-auto object-contain" unoptimized /> : <div className="text-muted text-sm flex flex-col items-center gap-2"><ImageIcon size={26} /><span>صورة غير متاحة</span></div>}</div>;
+      return <div key={option.id} className="min-h-40 rounded-2xl border border-border bg-white p-3 flex items-center justify-center overflow-hidden">{asset ? <Image src={asset.url} alt={asset.semantic_text || option.text || "خيار مصور"} width={220} height={160} className="max-h-40 w-auto object-contain" unoptimized /> : <div className="text-muted text-sm flex flex-col items-center gap-2"><ImageIcon size={26} /><span>صورة غير متاحة</span></div>}</div>;
     })}</div>;
   }
 
@@ -67,7 +102,8 @@ function AssessmentPreview({ payload }: { payload: AssessmentPayload }) {
   const step = payload.steps[0];
   const p = payload.presentation;
   const stimulusText = String(p.stimulus?.text || "");
-  const contextImage = payload.item_assets.find((asset) => asset.asset_type === "image");
+  const contextImage = payload.item_assets.find((asset) => asset.asset_type === "image")
+    || step.assets.find((asset) => asset.asset_type === "image" && !asset.option_id);
   return <div className="max-w-4xl mx-auto rounded-[28px] border border-border bg-bg p-4 sm:p-6 lg:p-8 shadow-sm" dir="rtl">
     <div className="flex flex-wrap items-center justify-between gap-3 mb-6"><div><p className="text-sm text-primary font-bold">{p.section}</p><h2 className="text-xl sm:text-2xl font-extrabold text-navy mt-1">{p.skill}</h2></div><span className="rounded-full bg-white border border-border px-4 py-2 text-sm font-bold text-navy">السؤال {p.question_number}</span></div>
     <div className="rounded-3xl bg-white border border-border p-5 sm:p-7 space-y-5">
@@ -89,13 +125,24 @@ function LearningPreview({ payload }: { payload: LearningPayload }) {
   const step = payload.rounds[Math.min(round, Math.max(0, payload.rounds.length - 1))];
   const intro = payload.item.context_intro;
   if (!step) return null;
+  const stimulusText = String(step.stimulus_text || "").trim();
+  const contextImage = payload.item.assets.find((asset) => asset.asset_type === "image")
+    || step.assets.find((asset) => asset.asset_type === "image" && !asset.option_id);
+  const imageFirst = payload.item.layout_hint === "image_stimulus";
+  const stimulusFirst = payload.item.layout_hint === "stimulus_then_question";
+  const contextNode = contextImage ? <div className="flex justify-center"><Image src={contextImage.url} alt={contextImage.semantic_text || "صورة النشاط"} width={520} height={300} className="max-h-72 w-auto object-contain rounded-2xl" unoptimized /></div> : null;
+  const stimulusNode = stimulusText ? <div className="rounded-2xl bg-bg border border-border px-5 py-5 text-center text-2xl font-bold text-navy leading-loose">{stimulusText}</div> : null;
   return <div className="max-w-4xl mx-auto space-y-5" dir="rtl">
     {intro?.kind === "audio_story" && intro.audio_asset_id && <div className="rounded-3xl border border-border bg-white p-5 sm:p-6"><div className="flex items-center gap-3 mb-3"><Headphones className="text-primary" /><div><p className="text-xs text-muted">مرحلة استماع مستقلة قبل الأسئلة</p><h3 className="font-extrabold text-navy text-xl">{intro.title || "استمع إلى القصة"}</h3></div></div>{intro.instruction && <p className="text-muted mb-4">{intro.instruction}</p>}<audio src={mediaUrl(intro.audio_asset_id)} controls preload="metadata" className="w-full" /><p className="text-xs text-muted mt-3">لا يظهر مشغل القصة داخل جولات الأسئلة التالية.</p></div>}
     <div className="rounded-[28px] border border-border bg-bg p-4 sm:p-6 lg:p-8 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6"><div><p className="text-sm text-primary font-bold">{KIND_LABEL[payload.item.kind]}</p><h2 className="text-xl sm:text-2xl font-extrabold text-navy mt-1">{payload.item.title}</h2></div><span className="rounded-full bg-white border border-border px-4 py-2 text-sm font-bold text-navy">الجولة {round + 1} من {payload.rounds.length}</span></div>
       <div className="rounded-3xl bg-white border border-border p-5 sm:p-7 space-y-5">
         {step.encouragement && <p className="text-primary font-bold">{step.encouragement}</p>}
+        {imageFirst && contextNode}
+        {stimulusFirst && stimulusNode}
         <h3 className="text-2xl sm:text-3xl font-extrabold text-navy leading-relaxed">{step.question_text || step.prompt_text}</h3>
+        {!stimulusFirst && stimulusNode}
+        {!imageFirst && contextNode}
         <PromptAudio assets={step.assets} />
         {step.expected_reading_text && <div className="rounded-2xl bg-bg border border-border px-5 py-5 text-center text-2xl font-bold text-navy leading-loose">{step.expected_reading_text}</div>}
         <div className="rounded-2xl bg-bg border border-border px-4 py-3 text-sm sm:text-base text-navy"><span className="font-bold">التعليمة: </span>{step.instruction_text}</div>
