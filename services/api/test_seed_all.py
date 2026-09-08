@@ -68,6 +68,10 @@ def test_full_seed_creates_125_items_and_is_repeatable():
     assert first["v1_additions_created"] == 18
     assert first["v2_additions_created"] == 2
     assert first["additions_created"] == 20
+    assert first["publication"]["baseline_rows_created"] == 105
+    assert first["publication"]["v1_rows_created"] == 18
+    assert first["publication"]["v2_rows_created"] == 2
+    assert first["publication"]["scoring_rules_created"] == 60
 
     assert second["baseline_items"] == 105
     assert second["reinforcement_items"] == 35
@@ -75,6 +79,10 @@ def test_full_seed_creates_125_items_and_is_repeatable():
     assert second["v1_additions_created"] == 0
     assert second["v2_additions_created"] == 0
     assert second["additions_created"] == 0
+    assert second["publication"]["baseline_rows_created"] == 0
+    assert second["publication"]["v1_rows_created"] == 0
+    assert second["publication"]["v2_rows_created"] == 0
+    assert second["publication"]["scoring_rules_created"] == 0
 
     assert first["canonical_release_sha256"] == second["canonical_release_sha256"]
     assert first["canonical_release_items"] == second["canonical_release_items"] == 125
@@ -83,6 +91,8 @@ def test_full_seed_creates_125_items_and_is_repeatable():
     assert second["publication"]["option_rows_created"] == 0
     assert second["publication"]["option_rows_reactivated"] == 0
     assert second["publication"]["option_rows_retired"] == 0
+    assert second["publication"]["asset_rows_created"] == 0
+    assert second["publication"]["asset_rows_retired"] == 0
 
     # Item IDs, step IDs and active option IDs are durable. Media link row IDs are
     # intentionally not part of the snapshot because current presentation links
