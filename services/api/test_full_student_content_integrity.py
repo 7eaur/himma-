@@ -2,8 +2,9 @@
 
 This scans every seeded pretest, posttest, core and reinforcement round. The gate
 protects presentation separation, option cardinality, DB-only runtime metadata and
-media mapping. Historical inactive options remain in PostgreSQL for response
-integrity but are deliberately excluded from current student-presentation checks.
+semantic media mapping. Historical inactive options remain in PostgreSQL for
+response integrity but are deliberately excluded from current student-presentation
+checks.
 """
 from __future__ import annotations
 
@@ -78,6 +79,7 @@ def test_complete_student_runtime_has_no_presentation_or_choice_overlap():
                 if int(step.order_index) != expected_order:
                     _issue(errors, canonical, int(step.order_index), f"non-consecutive round order; expected {expected_order}")
                 options = active_options(step)
+                option_ids = {option.id for option in options}
                 texts = [str(option.text).strip() for option in options]
                 normalized = [_display_key(text) for text in texts]
                 correct = [option for option in options if option.is_correct]
@@ -85,6 +87,8 @@ def test_complete_student_runtime_has_no_presentation_or_choice_overlap():
                 gaps = media_gaps(item, step)
                 audio_assets = [asset for asset in assets if asset["asset_type"] == "audio"]
                 image_assets = [asset for asset in assets if asset["asset_type"] == "image"]
+                mapped_images = [asset for asset in image_assets if asset.get("option_id") is not None]
+                mapped_ids = [asset["option_id"] for asset in mapped_images]
 
                 if interaction in SINGLE:
                     if not 2 <= len(options) <= 5:
@@ -109,18 +113,27 @@ def test_complete_student_runtime_has_no_presentation_or_choice_overlap():
                     if not str(step.expected_reading_text or "").strip():
                         _issue(errors, canonical, step.order_index, "read-aloud round has no expected reading text")
 
+                invalid_mapped = sorted({value for value in mapped_ids if value not in option_ids})
+                if invalid_mapped:
+                    _issue(errors, canonical, step.order_index, f"image media maps to inactive/foreign option ids: {invalid_mapped}")
+                if len(set(mapped_ids)) != len(mapped_ids):
+                    _issue(errors, canonical, step.order_index, "two image assets map to the same current option")
+
                 if interaction in LISTEN:
                     prompt_audio = [asset for asset in audio_assets if asset.get("usage") == "prompt"]
                     if len(prompt_audio) != 1 and not gaps:
                         _issue(errors, canonical, step.order_index, f"listening round prompt-audio count is {len(prompt_audio)}")
 
                 if interaction in IMAGE_CHOICE and not gaps:
-                    mapped = [asset for asset in image_assets if asset.get("option_id") is not None]
-                    mapped_ids = [asset["option_id"] for asset in mapped]
-                    if len(mapped) != len(options):
-                        _issue(errors, canonical, step.order_index, f"image choices mapped={len(mapped)} but options={len(options)}")
-                    if len(set(mapped_ids)) != len(mapped_ids):
-                        _issue(errors, canonical, step.order_index, "two image assets map to the same current option")
+                    if len(mapped_images) != len(options):
+                        _issue(errors, canonical, step.order_index, f"image choices mapped={len(mapped_images)} but options={len(options)}")
+
+                if interaction == "memory_sequence" and not gaps:
+                    if len(mapped_images) != len(options):
+                        _issue(errors, canonical, step.order_index, f"memory images mapped={len(mapped_images)} but options={len(options)}")
+                elif interaction in ORDER and mapped_images and not gaps:
+                    if len(mapped_images) != len(options):
+                        _issue(errors, canonical, step.order_index, f"ordered image mapping is partial: mapped={len(mapped_images)} options={len(options)}")
 
                 presentation = presentation_data(item, step)
                 if item.kind in {"core_activity", "reinforcement_activity"}:
