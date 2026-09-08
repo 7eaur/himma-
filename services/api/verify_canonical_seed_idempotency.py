@@ -2,7 +2,7 @@
 
 Run after ``alembic upgrade head``. The script publishes the full canonical
 release twice against the same database and proves that the second publication:
-- keeps the same canonical digest;
+- keeps the same canonical source-release digest and DB projection digest;
 - creates/reactivates/retires no option rows;
 - creates/retires no current media-link rows;
 - keeps durable item/step/option/media/skill/release row identities unchanged;
@@ -18,6 +18,7 @@ from collections import Counter
 from typing import Any
 
 from content_approval_contract_2026_09_08 import VERSION
+from content_projection_digest import projection_sha256
 from db.database import SessionLocal
 from db.models import (
     ContentAssetLink,
@@ -134,12 +135,20 @@ def _snapshot() -> dict[str, Any]:
         db.close()
 
 
+def _current_projection_sha() -> str:
+    db = SessionLocal()
+    try:
+        return projection_sha256(db)
+    finally:
+        db.close()
+
+
 def _digest(snapshot: dict[str, Any]) -> str:
     raw = json.dumps(snapshot, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
     return hashlib.sha256(raw).hexdigest()
 
 
-def _assert_structural_contract(snapshot: dict[str, Any], release_sha: str) -> None:
+def _assert_structural_contract(snapshot: dict[str, Any], release_sha: str, projection_sha: str) -> None:
     items = list(snapshot["items"])
     if len(items) != EXPECTED_ITEM_COUNT:
         raise RuntimeError(f"Canonical DB item count mismatch: expected={EXPECTED_ITEM_COUNT} actual={len(items)}")
@@ -166,6 +175,11 @@ def _assert_structural_contract(snapshot: dict[str, Any], release_sha: str) -> N
     if len(active_releases) != 1 or active_releases[0]["version"] != VERSION:
         raise RuntimeError(f"Expected exactly one active release {VERSION}, got {active_releases}")
 
+    if len(release_sha) != 64 or len(projection_sha) != 64:
+        raise RuntimeError(
+            f"Invalid canonical attestation lengths: release={release_sha!r} projection={projection_sha!r}"
+        )
+
     bad_items = []
     for item in items:
         data = dict(item["template_data"] or {})
@@ -173,13 +187,15 @@ def _assert_structural_contract(snapshot: dict[str, Any], release_sha: str) -> N
             item["status"] != "approved"
             or data.get("canonical_release_version") != VERSION
             or data.get("canonical_release_sha256") != release_sha
+            or data.get("canonical_projection_sha256") != projection_sha
         ):
             bad_items.append({
                 "id": item["id"],
                 "stable_key": item["stable_key"],
                 "status": item["status"],
                 "version": data.get("canonical_release_version"),
-                "sha256": data.get("canonical_release_sha256"),
+                "release_sha256": data.get("canonical_release_sha256"),
+                "projection_sha256": data.get("canonical_projection_sha256"),
             })
     if bad_items:
         raise RuntimeError(f"Items not aligned with the active canonical release: {bad_items[:10]}")
@@ -205,21 +221,32 @@ def main() -> None:
     first = run_seed_all()
     first_snapshot = _snapshot()
     first_release_sha = str(first.get("canonical_release_sha256") or "")
-    if not first_release_sha:
-        raise RuntimeError("First canonical publication returned no release digest")
-    _assert_structural_contract(first_snapshot, first_release_sha)
+    first_projection_sha = str((first.get("publication") or {}).get("projection_sha256") or "")
+    if not first_release_sha or not first_projection_sha:
+        raise RuntimeError("First canonical publication returned incomplete release/projection attestation")
+    if _current_projection_sha() != first_projection_sha:
+        raise RuntimeError("First published DB projection does not match its persisted attestation")
+    _assert_structural_contract(first_snapshot, first_release_sha, first_projection_sha)
     first_digest = _digest(first_snapshot)
 
     second = run_seed_all()
     second_snapshot = _snapshot()
     second_release_sha = str(second.get("canonical_release_sha256") or "")
+    second_projection_sha = str((second.get("publication") or {}).get("projection_sha256") or "")
     if first_release_sha != second_release_sha:
         raise RuntimeError(
             "Canonical release digest changed across repeated publication: "
             f"{first_release_sha} != {second_release_sha}"
         )
+    if first_projection_sha != second_projection_sha:
+        raise RuntimeError(
+            "Canonical DB projection digest changed across repeated publication: "
+            f"{first_projection_sha} != {second_projection_sha}"
+        )
+    if _current_projection_sha() != second_projection_sha:
+        raise RuntimeError("Second published DB projection does not match its persisted attestation")
     _assert_second_publication_is_noop(second)
-    _assert_structural_contract(second_snapshot, second_release_sha)
+    _assert_structural_contract(second_snapshot, second_release_sha, second_projection_sha)
     second_digest = _digest(second_snapshot)
 
     if first_digest != second_digest:
@@ -232,6 +259,7 @@ def main() -> None:
     print(json.dumps({
         "status": "ok",
         "canonical_release_sha256": second_release_sha,
+        "canonical_projection_sha256": second_projection_sha,
         "database_snapshot_sha256": second_digest,
         "items": len(second_snapshot["items"]),
         "steps": len(second_snapshot["steps"]),
