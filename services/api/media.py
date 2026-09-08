@@ -23,6 +23,7 @@ EDUCATION_ROOT = REPO_ROOT / "assets" / "education"
 IMAGE_MAPS = (
     EDUCATION_ROOT / "developer" / "asset-map.json",
     EDUCATION_ROOT / "developer" / "generated-sequence-map.json",
+    EDUCATION_ROOT / "developer" / "generated-vocabulary-map.json",
 )
 
 
