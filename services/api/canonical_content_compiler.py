@@ -216,385 +216,315 @@ def _legacy_options(interaction: str, skill_name: str, source_text: str) -> list
                 return ["حرف", "كلمة", "جملة"]
             return [suffix.strip(" .")]
     if "=" in source_text:
-        return [source_text.split("=", 1)[1].strip(" .")]
-    return [source_text.strip(" .")]
+        return [part.strip(" .") for part in source_text.split("=", 1)[0].split("+") if part.strip(" .")]
+    return []
 
 
-def _question_answer(item: dict[str, Any]) -> str | None:
-    criterion = item.get("criterion")
-    if not criterion or str(criterion).startswith("مطابقة") or "الترتيب" in str(criterion):
-        return None
-    if criterion in {
-        "الدقة والاسترسال",
-        "تحليل الكلمات والوقت",
-        "الكلمات الصحيحة والحذف والإضافة والاستبدال والوقت",
-    }:
-        return None
-    return str(criterion)
-
-
-def _round_answer(item: dict[str, Any], source_text: str, options: list[str]) -> str | None:
-    answer = _question_answer(item)
-    if answer:
-        return answer
+def _infer_correct_index(options: list[str], answer: str, criterion: str) -> int | None:
     if not options:
         return None
-    if str(item.get("interaction_type")) in ORDER:
-        return options[0]
-    if ":" in source_text:
-        prefix, suffix = source_text.split(":", 1)
-        if "/" in prefix:
-            return suffix.strip(" .")
-        if len(options) > 1:
-            return prefix.strip(" .")
-        return suffix.strip(" .")
-    if "=" in source_text:
-        return source_text.split("=", 1)[1].strip(" .")
-    return options[0]
+    targets = [_semantic_key(answer), _semantic_key(criterion)]
+    for target in targets:
+        if not target:
+            continue
+        exact = [index for index, option in enumerate(options) if _semantic_key(option) == target]
+        if len(exact) == 1:
+            return exact[0]
+    # Migration fallback only: choose the unique strongest semantic match. The
+    # compiled result is still validated as structured data before publication.
+    target = next((value for value in targets if value), "")
+    if target:
+        scores = [(SequenceMatcher(None, _semantic_key(option), target).ratio(), index) for index, option in enumerate(options)]
+        scores.sort(reverse=True)
+        if scores and scores[0][0] >= 0.72 and (len(scores) == 1 or scores[0][0] > scores[1][0]):
+            return scores[0][1]
+    return None
 
 
-def _correct_index(answer: str | None, options: list[str]) -> int:
-    """Replicate the reviewed legacy importer only while compiling the baseline.
-
-    The result becomes explicit ``is_correct`` data in the canonical release;
-    no runtime path is allowed to perform this inference.
-    """
-    if not options:
-        return -1
-    if not answer:
-        return 0
-    answer_key = _semantic_key(answer)
-    option_keys = [_semantic_key(option) for option in options]
-    for index, key in enumerate(option_keys):
-        if key == answer_key or key in answer_key or answer_key in key:
-            return index
-    return max(range(len(options)), key=lambda index: SequenceMatcher(None, answer_key, option_keys[index]).ratio())
-
-
-def _generic_instruction(interaction: str) -> str:
-    if interaction in LISTEN:
-        return "اضغط زر الاستماع، ثم اختر الإجابة المطابقة."
-    if interaction in READ:
-        return "اضغط زر التسجيل، اقرأ النص المعروض، ثم أرسل التسجيل."
-    if interaction == "memory_sequence":
-        return "شاهد العناصر جيدًا، ثم أعد ترتيبها كما ظهرت."
-    if interaction in ORDER:
-        return "اضغط العناصر بحسب ترتيبها الصحيح."
-    if interaction in {"choose_image", "choose_many"}:
-        return "انظر إلى العناصر المعروضة، ثم اختر المطلوب."
-    return "اقرأ المطلوب، ثم اختر الإجابة المناسبة."
-
-
-def _generic_hint(interaction: str) -> str:
-    if interaction == "memory_sequence":
-        return "تذكّر العنصر الأول، ثم الذي بعده."
-    if interaction in ORDER:
-        return "ابدأ بالعنصر الأول، ثم أكمل الترتيب خطوة خطوة."
-    if interaction in READ:
-        return "اقرأ ببطء ووضوح، وركّز في الحروف والحركات."
-    if interaction in LISTEN:
-        return "استمع مرة أخرى، وركّز في الصوت المطلوب."
-    if interaction in {"choose_image", "choose_many"}:
-        return "انظر إلى كل عنصر بهدوء قبل أن تختار."
-    return "اقرأ المطلوب بهدوء، ثم اختر الإجابة الأنسب."
-
-
-def _encouragement(round_number: int) -> str:
-    values = (
-        "أحسنت، واصل بثقة!", "رائع، أنت تتقدم خطوة خطوة!", "ممتاز، استمر!",
-        "عمل جميل، ركّز وأكمل!", "أنت قادر عليها!",
-    )
-    return values[(max(1, round_number) - 1) % len(values)]
-
-
-def _base_round(item: dict[str, Any], raw: dict[str, Any]) -> dict[str, Any]:
-    source = str(raw.get("source_text") or "")
-    interaction = str(item.get("interaction_type") or "choose_one")
-    order = int(raw["order_index"])
-    if interaction in READ:
-        expected = re.sub(r"^اقرأ(?:\s+النص\s+الآتي)?\s*:\s*", "", source).strip()
-        return {
-            "order_index":order, "question_text":"اقرأ النص الظاهر بصوت واضح.",
-            "instruction_text":_generic_instruction(interaction), "hint":_generic_hint(interaction),
-            "encouragement":_encouragement(order), "stimulus":{},
-            "expected_reading_text":expected, "options":[],
-            "media":deepcopy(raw.get("media") or []), "media_gaps":deepcopy(raw.get("media_gaps") or []),
-        }
+def _base_round(item: dict[str, Any], task: dict[str, Any], round_number: int) -> dict[str, Any]:
+    interaction = str(task.get("interaction_type") or item.get("interaction_type") or "choose_one")
+    source = str(task.get("source_text") or "").strip()
+    expected = str(task.get("expected_response") or "").strip()
+    criterion = str(task.get("criterion") or expected or item.get("criterion") or "").strip()
     options = _legacy_options(interaction, str(item.get("skill_name") or ""), source)
-    answer = _round_answer(item, source, options)
-    correct_index = _correct_index(answer, options)
+    correct_index = _infer_correct_index(options, expected, criterion)
+    if interaction in SINGLE | MULTI and options and correct_index is None:
+        raise RuntimeError(f"{item['stable_key']} r{round_number}: cannot migrate legacy correctness")
+    presentation_source = _strip_embedded_source(source, interaction, options)
     return {
-        "order_index":order, "question_text":source,
-        "instruction_text":_generic_instruction(interaction), "hint":_generic_hint(interaction),
-        "encouragement":_encouragement(order), "stimulus":{}, "expected_reading_text":None,
+        "order_index":round_number,
+        "prompt_text":presentation_source,
+        "question_text":presentation_source or _default_question(interaction, str(item.get("skill_name") or "")),
+        "instruction_text":_generic_instruction(interaction),
+        "hint":_generic_hint(interaction),
+        "encouragement":_encouragement(round_number),
+        "stimulus_text":"",
+        "stimulus":{"kind":"none"},
+        "expected_reading_text":expected if interaction in READ else None,
         "options":[{"text":value,"is_correct":index == correct_index} for index, value in enumerate(options)],
-        "media":deepcopy(raw.get("media") or []), "media_gaps":deepcopy(raw.get("media_gaps") or []),
+        "media":[],
+        "media_gaps":[],
     }
 
 
 def _base_items() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    payload = _json(BASE)
-    skill_by_id = {str(value["skill_id"]):value for value in payload["skills"]}
+    catalog = _json(BASE)
     items: list[dict[str, Any]] = []
-    for item in payload["items"]:
-        skill = skill_by_id[str(item["skill_id"])]
+    for raw in catalog["items"]:
+        interaction = str(raw["interaction_type"])
+        rounds = [_base_round(raw, task, index) for index, task in enumerate(raw["tasks"], 1)]
         items.append({
-            "canonical_id":str(item["canonical_id"]), "stable_key":str(item["stable_key"]),
-            "kind":str(item["kind"]), "level_id":int(item["level_id"]),
-            "skill_key":str(item["skill_id"]), "canonical_skill_code":str(skill["skill_code"]),
-            "interaction_type":str(item["interaction_type"]), "order_index":int(item["order_index"]),
-            "title":str(item.get("title") or item["canonical_id"]), "criterion":item.get("criterion"),
-            "rounds":[_base_round(item, raw) for raw in item.get("rounds", [])],
-            "item_assets":deepcopy(item.get("item_assets") or []), "source_release":"client_catalog_105",
+            "stable_key":str(raw["stable_key"]),
+            "canonical_id":_catalog_canonical(raw),
+            "kind":str(raw["kind"]),
+            "level_id":int(raw["level_id"]),
+            "order_index":int(raw["order_index"]),
+            "interaction_type":interaction,
+            "source_method":str(raw.get("source_method") or ""),
+            "criterion":str(raw.get("criterion") or "").strip(),
+            "canonical_skill_code":str(raw.get("skill_code") or "").strip(),
+            "skill_name":str(raw.get("skill_name") or "").strip(),
+            "title":str(raw.get("title") or raw.get("skill_name") or "مهمة تعليمية").strip(),
+            "item_assets":[],
+            "rounds":rounds,
         })
-    return items, deepcopy(payload["skills"])
+    skills = [dict(value) for value in catalog.get("skills", [])]
+    return items, skills
 
 
-def _addition_round(item: dict[str, Any], raw: dict[str, Any], order: int) -> dict[str, Any]:
-    interaction = str(item["interaction"])
-    expected = raw.get("expected_reading")
-    if isinstance(expected, list):
-        expected = " ".join(str(v) for v in expected)
-    values: list[str] = []
-    if isinstance(raw.get("options"), list):
-        values = [str(v) for v in raw["options"]]
-    elif isinstance(raw.get("sequence"), list):
-        values = [str(v) for v in raw["sequence"]]
-    elif isinstance(raw.get("path"), str):
-        count = int(str(raw["path"]).split("_", 1)[0])
-        values = [str(v) for v in range(1, count + 1)]
-    answer = str(raw.get("answer") or "")
-    if interaction in ORDER:
-        options = [{"text":v,"is_correct":False} for v in values]
-    else:
-        options = [{"text":v,"is_correct":bool(answer and v == answer)} for v in values]
-    prompt = str(raw.get("prompt") or raw.get("text") or "")
-    if not prompt:
-        prompt = "اقرأ النص بصوت واضح." if interaction in READ else ("رتّب العناصر بالترتيب الصحيح." if interaction in ORDER else "اختر الإجابة المناسبة.")
-    return {
-        "order_index":order, "question_text":prompt, "instruction_text":_generic_instruction(interaction),
-        "hint":_generic_hint(interaction), "encouragement":_encouragement(order), "stimulus":{},
-        "expected_reading_text":str(expected) if expected is not None else None,
-        "options":options, "media":[], "media_gaps":[],
-    }
-
-
-def _addition_items(path: Path, skills: dict[str, str], stable_prefix: str) -> list[dict[str, Any]]:
+def _addition_items(path: Path, skill_map: dict[str, str], stable_prefix: str) -> list[dict[str, Any]]:
     payload = _json(path)
     result = []
-    for item in payload["items"]:
-        canonical = str(item["canonical_id"])
+    for raw in payload.get("items", []):
+        canonical = str(raw["id"])
+        interaction = str(raw["interaction_type"])
+        skill_code = skill_map.get(canonical)
+        if not skill_code:
+            raise RuntimeError(f"No canonical skill mapping for {canonical}")
+        rounds = []
+        for index, task in enumerate(raw.get("tasks", []), 1):
+            source = str(task.get("source_text") or "").strip()
+            expected = str(task.get("expected_response") or "").strip()
+            criterion = str(task.get("criterion") or expected or raw.get("criterion") or "").strip()
+            options = _legacy_options(interaction, str(raw.get("skill") or ""), source)
+            correct_index = _infer_correct_index(options, expected, criterion)
+            if interaction in SINGLE | MULTI and options and correct_index is None:
+                raise RuntimeError(f"{canonical} r{index}: cannot migrate reinforcement correctness")
+            presentation_source = _strip_embedded_source(source, interaction, options)
+            rounds.append({
+                "order_index":index,
+                "prompt_text":presentation_source,
+                "question_text":presentation_source or _default_question(interaction, str(raw.get("skill") or "")),
+                "instruction_text":_generic_instruction(interaction),
+                "hint":_generic_hint(interaction),
+                "encouragement":_encouragement(index),
+                "stimulus_text":"",
+                "stimulus":{"kind":"none"},
+                "expected_reading_text":expected if interaction in READ else None,
+                "options":[{"text":value,"is_correct":option_index == correct_index} for option_index, value in enumerate(options)],
+                "media":[],
+                "media_gaps":[],
+            })
         result.append({
-            "canonical_id":canonical, "stable_key":f"{stable_prefix}:{canonical.lower()}",
-            "kind":"reinforcement_activity", "level_id":int(item["level"]),
-            "canonical_skill_code":skills[canonical], "interaction_type":str(item["interaction"]),
-            "order_index":int(canonical.rsplit("-", 1)[1]), "title":str(item["title"]),
-            "criterion":None, "rounds":[_addition_round(item, raw, i) for i, raw in enumerate(item["rounds"], 1)],
-            "item_assets":[], "source_release":str(payload["catalog_version"]),
+            "stable_key":f"{stable_prefix}:{canonical.lower()}",
+            "canonical_id":canonical,
+            "kind":"reinforcement_activity",
+            "level_id":int(raw["level_id"]),
+            "order_index":int(raw["order_index"]),
+            "interaction_type":interaction,
+            "source_method":str(raw.get("source_method") or ""),
+            "criterion":str(raw.get("criterion") or "").strip(),
+            "canonical_skill_code":skill_code,
+            "skill_name":str(raw.get("skill") or "").strip(),
+            "title":str(raw.get("skill") or "تدريب تقوية").strip(),
+            "item_assets":[],
+            "rounds":rounds,
         })
     return result
+
+
+def _replace_options(step: dict[str, Any], options: list[tuple[str, bool]]) -> None:
+    step["options"] = [{"text":str(text), "is_correct":bool(correct)} for text, correct in options]
 
 
 def _apply_pretest(items: dict[str, dict[str, Any]]) -> None:
     payload = _json(PRETEST)
-    for current in payload["items"]:
-        canonical = str(current["canonical_id"])
+    for q in payload.get("questions", []):
+        canonical = str(q["id"])
         item = items[canonical]
         step = item["rounds"][0]
-        step["question_text"] = str(current["question_text"])
-        step["instruction_text"] = str(current["instruction_text"])
-        step["hint"] = str(current.get("hint") or _generic_hint(str(current["interaction_type"])))
-        step["encouragement"] = str(current.get("encouragement") or _encouragement(1))
-        step["stimulus"] = deepcopy(current.get("stimulus") or {})
-        if current.get("options") is not None:
-            answer = current.get("correct_answer")
-            answers = {str(v) for v in answer} if isinstance(answer, list) else {str(answer)}
-            step["options"] = [{"text":str(v),"is_correct":str(v) in answers} for v in current.get("options", [])]
-        item["interaction_type"] = str(current["interaction_type"])
+        item["interaction_type"] = str(q["interaction_type"])
+        item["canonical_skill_code"] = str(q["skill_code"])
+        item["skill_name"] = str(q["skill"])
+        step["question_text"] = str(q["question_text"]).strip()
+        step["instruction_text"] = str(q["instruction_text"]).strip()
+        step["encouragement"] = str(q["encouragement"]).strip()
+        step["stimulus"] = deepcopy(q.get("stimulus") or {"kind":"none"})
+        step["stimulus_text"] = str((step["stimulus"] or {}).get("text") or "")
+        step["expected_reading_text"] = q.get("reading_reference")
+        desired = []
+        for opt in q.get("options") or []:
+            desired.append((str(opt["text"]), bool(opt.get("is_correct"))))
+        if desired:
+            _replace_options(step, desired)
 
 
 def _apply_student_v2(items: dict[str, dict[str, Any]]) -> None:
     payload = _json(STUDENT_V2)
-    for canonical, rounds in (payload.get("replacement_rounds") or {}).items():
+    for raw in payload.get("replacements", []):
+        canonical = str(raw["id"])
         if canonical not in items:
             continue
         item = items[canonical]
-        rebuilt = []
-        for index, raw in enumerate(rounds, 1):
-            values = [str(v) for v in raw.get("options", [])]
-            answer = str(raw.get("answer") or "")
-            rebuilt.append({
-                "order_index":index, "question_text":str(raw.get("prompt") or "اختر الإجابة المناسبة."),
-                "instruction_text":_generic_instruction(str(item["interaction_type"])),
-                "hint":_generic_hint(str(item["interaction_type"])), "encouragement":_encouragement(index),
-                "stimulus":{}, "expected_reading_text":None,
-                "options":[{"text":v,"is_correct":v == answer} for v in values], "media":[], "media_gaps":[],
+        item["interaction_type"] = str(raw.get("interaction_type") or item["interaction_type"])
+        rounds = []
+        for index, source in enumerate(raw.get("tasks") or [], 1):
+            answer = str(source.get("correct_answer") or "").strip()
+            values = [str(value) for value in (source.get("options") or [])]
+            if not values and item["interaction_type"] == "read_aloud":
+                values = []
+            rounds.append({
+                "order_index":index,
+                "prompt_text":str(source.get("prompt_text") or source.get("question_text") or "").strip(),
+                "question_text":str(source.get("question_text") or source.get("prompt_text") or "").strip(),
+                "instruction_text":str(source.get("instruction_text") or _generic_instruction(item["interaction_type"])),
+                "hint":str(source.get("hint") or _generic_hint(item["interaction_type"])),
+                "encouragement":str(source.get("encouragement") or _encouragement(index)),
+                "stimulus_text":str(source.get("stimulus_text") or ""),
+                "stimulus":deepcopy(source.get("stimulus") or {"kind":"none"}),
+                "expected_reading_text":source.get("reading_reference") or source.get("expected_reading_text"),
+                "options":[{"text":value, "is_correct":visible_key(value) == visible_key(answer)} for value in values],
+                "media":[],
+                "media_gaps":[],
             })
-        item["rounds"] = rebuilt
-    for canonical, correction in (payload.get("explicit_corrections") or {}).items():
-        if canonical in items and correction.get("interaction"):
-            items[canonical]["interaction_type"] = str(correction["interaction"])
+        if rounds:
+            item["rounds"] = rounds
 
 
 def _apply_auditory_story_source(items: dict[str, dict[str, Any]]) -> None:
-    """Fold the approved L1 story replacement into the canonical release.
-
-    The durable old visual-motor skill row is deliberately re-used by the
-    publisher and renamed/re-keyed; no 45th academic skill is created.
-    """
     payload = _json(AUDITORY_STORIES)
-    for source_item in payload.get("items", []):
-        canonical = str(source_item["canonical_id"])
+    for raw in payload.get("replacements", []):
+        canonical = str(raw.get("id") or "")
+        if canonical not in items:
+            continue
         item = items[canonical]
-        item["canonical_skill_code"] = "auditory_literal_comprehension"
-        item["interaction_type"] = str(source_item["interaction_type"])
-        source_rounds = list(source_item.get("rounds") or [])
-        if len(source_rounds) != len(item["rounds"]):
-            raise RuntimeError(f"{canonical}: auditory story round count mismatch")
-        for step, raw in zip(item["rounds"], source_rounds, strict=True):
-            step["question_text"] = str(raw.get("prompt") or step["question_text"])
-            step["instruction_text"] = "اختر الإجابة الصحيحة اعتمادًا على ما فهمته من القصة."
-            step["hint"] = str(raw.get("hint") or "تذكّر أحداث القصة التي استمعت إليها.")
-            step["encouragement"] = _encouragement(int(step["order_index"]))
+        item["interaction_type"] = str(raw.get("interaction_type") or item["interaction_type"])
+        if raw.get("criterion"):
+            item["criterion"] = str(raw["criterion"])
 
 
-def _current_correct_text(step: dict[str, Any]) -> str:
-    correct = [str(value["text"]) for value in step.get("options", []) if bool(value.get("is_correct"))]
-    if len(correct) != 1:
-        raise RuntimeError(f"Migration contract requires one current correct option, got {correct}")
-    return correct[0]
-
-
-def _apply_pool(step: dict[str, Any], pool: list[str], total: int) -> None:
-    correct = _current_correct_text(step)
-    correct_plain = _plain(correct)
-    distractors = [value for value in pool if _plain(value) != correct_plain]
-    if len(distractors) < total - 1:
-        raise RuntimeError("Legacy approved pool has too few distractors")
-    offset = max(0, int(step["order_index"]) - 1) % len(distractors)
-    rotated = distractors[offset:] + distractors[:offset]
-    desired = [correct]
-    for value in rotated:
-        if len(desired) >= total:
-            break
-        if _plain(value) not in {_plain(existing) for existing in desired}:
-            desired.append(value)
-    step["options"] = [{"text":value,"is_correct":index == 0} for index, value in enumerate(desired)]
-
-
-def _word_image_asset(value: str) -> str | None:
-    direct = WORD_IMAGE_ASSETS.get(value)
-    if direct:
-        return direct
-    plain = _plain(value)
-    return next((asset for label, asset in WORD_IMAGE_ASSETS.items() if _plain(label) == plain), None)
+def _deterministic_pool_options(pool: list[str], size: int, correct: str, round_index: int) -> list[tuple[str,bool]]:
+    correct_key = visible_key(correct)
+    if correct_key not in {visible_key(value) for value in pool}:
+        raise RuntimeError(f"Legacy pool has no correct value {correct!r}")
+    start = (round_index - 1) % len(pool)
+    ordered = [pool[(start + offset) % len(pool)] for offset in range(len(pool))]
+    chosen = ordered[:size]
+    if correct_key not in {visible_key(value) for value in chosen}:
+        chosen[-1] = next(value for value in pool if visible_key(value) == correct_key)
+    return [(value, visible_key(value) == correct_key) for value in chosen]
 
 
 def _apply_legacy_maintenance(items: dict[str, dict[str, Any]]) -> None:
-    for canonical, (pool, total) in LEGACY_POOLS.items():
-        item = items.get(canonical)
-        if not item:
-            continue
-        for step in item["rounds"]:
-            _apply_pool(step, pool, total)
-
-    for canonical, rounds in LEGACY_EXACT_CHOICES.items():
+    for canonical, (pool, size) in LEGACY_POOLS.items():
         item = items[canonical]
-        if len(item["rounds"]) != len(rounds):
-            raise RuntimeError(f"{canonical}: legacy maintenance round count mismatch")
-        for step, desired in zip(item["rounds"], rounds, strict=True):
-            step["options"] = [{"text":value,"is_correct":index == 0} for index, value in enumerate(desired)]
-
-    segmentation = items["L3-REIN-01"]
-    if len(segmentation["rounds"]) != len(LEGACY_SEGMENTATION):
-        raise RuntimeError("L3-REIN-01: segmentation round count mismatch")
-    for step, desired in zip(segmentation["rounds"], LEGACY_SEGMENTATION, strict=True):
-        step["options"] = [{"text":value,"is_correct":index == 0} for index, value in enumerate(desired)]
-
-    # The prior approved L1 word-image reinforcement already had an explicit
-    # image bank. Keep that mapping in the compiled release instead of relying on
-    # the retired maintenance seed.
-    image_item = items.get("L1-REIN-03")
-    if image_item:
-        for step in image_item["rounds"]:
-            media = []
-            for index, option in enumerate(step["options"], 1):
-                asset = _word_image_asset(str(option["text"]))
-                if not asset:
-                    raise RuntimeError(f"L1-REIN-03: no approved image for {option['text']!r}")
-                media.append({
-                    "asset_id":asset, "asset_type":"image", "usage":"choice",
-                    "semantic_text":str(option["text"]), "option_order_index":index,
-                })
-            step["media"] = media
-
-
-def _semantic_asset(spec: tuple[str, str, str, str], option_order: int | None = None) -> dict[str, Any]:
-    asset_id, asset_type, usage, semantic = spec
-    result = {"asset_id":asset_id,"asset_type":asset_type,"usage":usage,"semantic_text":semantic}
-    if option_order is not None:
-        result["option_order_index"] = option_order
-    return result
+        for index, step in enumerate(item["rounds"], 1):
+            correct = next((str(value["text"]) for value in step["options"] if value["is_correct"]), "")
+            if not correct:
+                criterion = str(item.get("criterion") or "")
+                correct = criterion.split("،")[index - 1].strip() if "،" in criterion else criterion
+            _replace_options(step, _deterministic_pool_options(pool, size, correct, index))
+            if canonical in {"L1-REIN-03", "L2-REIN-04"}:
+                step["media"] = [
+                    _semantic_asset((WORD_IMAGE_ASSETS[text], "image", "choice", text), order)
+                    for order, (text, _) in enumerate(_deterministic_pool_options(pool, size, correct, index), 1)
+                ]
+    for canonical, choices in LEGACY_EXACT_CHOICES.items():
+        item = items[canonical]
+        for index, values in enumerate(choices, 1):
+            step = item["rounds"][index - 1]
+            existing_correct = next((str(value["text"]) for value in step["options"] if value["is_correct"]), "")
+            correct_key = _semantic_key(existing_correct) or _semantic_key(str(item.get("criterion") or ""))
+            exact = next((value for value in values if _semantic_key(value) == correct_key), values[0])
+            _replace_options(step, [(value, value == exact) for value in values])
+    if "L3-REIN-01" in items:
+        item = items["L3-REIN-01"]
+        for index, values in enumerate(LEGACY_SEGMENTATION, 1):
+            _replace_options(item["rounds"][index - 1], [(value, option_index == 0) for option_index, value in enumerate(values)])
 
 
 def _apply_approval(items: dict[str, dict[str, Any]]) -> None:
-    for canonical, question in {**PRETEST_QUESTIONS, **LEARNING_QUESTIONS, **POSTTEST_QUESTIONS}.items():
-        item = items.get(canonical)
-        if not item:
-            raise RuntimeError(f"Approval references missing item {canonical}")
-        for step in item["rounds"]:
-            step["question_text"] = question
-    for canonical, questions in LEARNING_ROUND_QUESTIONS.items():
-        item = items[canonical]
-        if len(item["rounds"]) != len(questions):
-            raise RuntimeError(f"{canonical}: question round count mismatch")
-        for step, question in zip(item["rounds"], questions, strict=True):
-            step["question_text"] = question
-    for canonical, stimuli in LEARNING_ROUND_STIMULI.items():
-        item = items[canonical]
-        if len(item["rounds"]) != len(stimuli):
-            raise RuntimeError(f"{canonical}: stimulus round count mismatch")
-        for step, text in zip(item["rounds"], stimuli, strict=True):
-            step["stimulus"] = {"kind":"text","text":text}
-    for canonical, rounds in OPTION_CONTRACTS.items():
-        item = items[canonical]
-        if len(item["rounds"]) != len(rounds):
-            raise RuntimeError(f"{canonical}: option round count mismatch")
-        for step, desired in zip(item["rounds"], rounds, strict=True):
-            step["options"] = [{"text":text,"is_correct":correct} for text, correct in desired]
     for canonical, value in INTERACTION_OVERRIDES.items():
         items[canonical]["interaction_type"] = value
-    for canonical, values in READING_TEXTS.items():
-        item = items[canonical]
-        if len(item["rounds"]) != len(values):
-            raise RuntimeError(f"{canonical}: reading round count mismatch")
-        for step, value in zip(item["rounds"], values, strict=True):
-            step["expected_reading_text"] = value
+
+    for canonical, question in PRETEST_QUESTIONS.items():
+        items[canonical]["rounds"][0]["question_text"] = question
+    for canonical, question in POSTTEST_QUESTIONS.items():
+        for step in items[canonical]["rounds"]:
+            step["question_text"] = question
+    for canonical, question in LEARNING_QUESTIONS.items():
+        if canonical in LEARNING_ROUND_QUESTIONS:
+            continue
+        for step in items[canonical]["rounds"]:
+            step["question_text"] = question
+    for canonical, by_round in LEARNING_ROUND_QUESTIONS.items():
+        for round_number, question in by_round.items():
+            items[canonical]["rounds"][round_number - 1]["question_text"] = question
+    for canonical, by_round in LEARNING_ROUND_STIMULI.items():
+        for round_number, stimulus in by_round.items():
+            step = items[canonical]["rounds"][round_number - 1]
+            step["stimulus_text"] = stimulus
+            step["stimulus"] = {"kind":"text", "text":stimulus}
+    for canonical, stimulus in PRETEST_STIMULUS_OVERRIDES.items():
+        step = items[canonical]["rounds"][0]
+        step["stimulus"] = deepcopy(stimulus)
+        step["stimulus_text"] = str(stimulus.get("text") or "")
+    for canonical, stimulus in POSTTEST_STIMULUS_OVERRIDES.items():
+        step = items[canonical]["rounds"][0]
+        step["stimulus"] = deepcopy(stimulus)
+        step["stimulus_text"] = str(stimulus.get("text") or "")
+
+    for canonical, by_round in OPTION_CONTRACTS.items():
+        for round_number, desired in by_round.items():
+            _replace_options(items[canonical]["rounds"][round_number - 1], desired)
+    for canonical, criterion in CRITERIA.items():
+        items[canonical]["criterion"] = criterion
+    for canonical, value in READING_TEXTS.items():
+        rounds = items[canonical]["rounds"]
+        if isinstance(value, list):
+            for index, text in enumerate(value, 1):
+                rounds[index - 1]["expected_reading_text"] = text
+                rounds[index - 1]["stimulus_text"] = text
+                rounds[index - 1]["stimulus"] = {"kind":"reading", "text":text}
+        else:
+            for step in rounds:
+                step["expected_reading_text"] = value
+                step["stimulus_text"] = value
+                step["stimulus"] = {"kind":"reading", "text":value}
+    for canonical, by_round in TIMED_WORD_SELECTIONS.items():
+        for round_number, words in by_round.items():
+            step = items[canonical]["rounds"][round_number - 1]
+            text = " ".join(words)
+            step["expected_reading_text"] = text
+            step["stimulus_text"] = text
+            step["stimulus"] = {"kind":"reading", "text":text}
             step["options"] = []
-    for canonical, values in TIMED_WORD_SELECTIONS.items():
-        item = items[canonical]
-        if len(item["rounds"]) != len(values):
-            raise RuntimeError(f"{canonical}: timed-word round count mismatch")
-        for step, value in zip(item["rounds"], values, strict=True):
-            step["expected_reading_text"] = value
-            step["options"] = []
-    for canonical, value in CRITERIA.items():
-        items[canonical]["criterion"] = value
-    for canonical, value in PRETEST_STIMULUS_OVERRIDES.items():
-        items[canonical]["rounds"][0]["stimulus"] = deepcopy(value)
-    for canonical, value in POSTTEST_STIMULUS_OVERRIDES.items():
-        items[canonical]["rounds"][0]["stimulus"] = deepcopy(value)
+
+    # Final owner-approved interaction cleanup: reading tasks have no choice state.
+    for item in items.values():
+        if item["interaction_type"] in READ:
+            for step in item["rounds"]:
+                step["options"] = []
+
     for canonical, intro in CONTEXT_INTROS.items():
         items[canonical]["context_intro"] = deepcopy(intro)
     for canonical, hint in LAYOUT_HINTS.items():
         items[canonical]["layout_hint"] = hint
 
     for canonical, by_round in STEP_MEDIA.items():
-        item = items[canonical]
-        steps = {int(step["order_index"]):step for step in item["rounds"]}
         for round_number, specs in by_round.items():
-            step = steps[round_number]
-            option_index = {visible_key(str(option["text"])):index for index, option in enumerate(step["options"], 1)}
+            step = items[canonical]["rounds"][round_number - 1]
+            option_index = {visible_key(value["text"]):index for index, value in enumerate(step["options"], 1)}
             media = []
             for spec in specs:
                 semantic = spec[3]
@@ -681,9 +611,16 @@ def _validate_round(item: dict[str, Any], step: dict[str, Any]) -> None:
             raise RuntimeError(f"{prefix}: invalid semantic image mapping")
         if any(int(value) < 1 or int(value) > len(options) for value in orders):
             raise RuntimeError(f"{prefix}: image maps outside current option set")
-    if interaction in {"choose_image", "listen_choose_image"} and not step.get("media_gaps"):
+    has_declared_gap = bool(step.get("media_gaps"))
+    if interaction in {"choose_image", "listen_choose_image"} and not has_declared_gap:
         if len(choice_images) != len(options):
             raise RuntimeError(f"{prefix}: image-choice is not 1:1 ({len(choice_images)}/{len(options)})")
+    if interaction == "memory_sequence" and not has_declared_gap:
+        if len(choice_images) != len(options):
+            raise RuntimeError(f"{prefix}: memory image mapping is not 1:1 ({len(choice_images)}/{len(options)})")
+    elif interaction in ORDER and choice_images and not has_declared_gap:
+        if len(choice_images) != len(options):
+            raise RuntimeError(f"{prefix}: ordered image mapping is partial ({len(choice_images)}/{len(options)})")
 
 
 def _validate(items: list[dict[str, Any]]) -> None:
