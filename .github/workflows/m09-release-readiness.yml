@@ -8,7 +8,9 @@ on:
     branches: ['recovery/*', 'integration/*']
     paths:
       - 'services/api/**'
-      - 'apps/web/src/app/student/activity/**'
+      - 'packages/content/**'
+      - 'assets/**'
+      - 'apps/web/src/**'
       - 'apps/web/tests/e2e/vertical-slice.spec.ts'
       - 'scripts/ops/**'
       - 'docs/ops/M09_RELEASE_UAT_RUNBOOK.md'
@@ -66,12 +68,13 @@ jobs:
           sudo apt-get install -y postgresql-client
           pip install -r services/api/requirements.txt
 
-      - name: Validate catalog and build seeded database
+      - name: Validate canonical content and build seeded database twice
         working-directory: services/api
         run: |
           python ../../packages/content/scripts/validate_catalog.py
+          python canonical_release.py
           alembic upgrade head
-          python seed_all.py
+          python verify_canonical_seed_idempotency.py
           python -m db.seed
 
       - name: Start pinned MinIO and initialize private test bucket
