@@ -235,11 +235,12 @@ def _assessment_projection(item: ContentItem, spec: dict[str, Any], version: str
     if len(spec["rounds"]) != 1:
         raise RuntimeError(f"{spec['canonical_id']}: assessment item must have one round")
     step = spec["rounds"][0]
+    default_skill = item.skill.name if item.skill is not None else str(spec["canonical_skill_code"])
     return {
         "version": version,
         "question_number": int(spec["order_index"]),
         "section": section,
-        "skill": item.skill.name if item.skill is not None else str(spec["canonical_skill_code"]),
+        "skill": str(spec.get("presentation_skill") or default_skill),
         "encouragement": str(step["encouragement"]),
         "hint": str(step["hint"]),
         "question_text": str(step["question_text"]),
