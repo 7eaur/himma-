@@ -118,6 +118,7 @@ export default function StudentActivityPage() {
   const [done, setDone] = useState(false);
   const [waitingReview, setWaitingReview] = useState(false);
   const [showContextIntro, setShowContextIntro] = useState(false);
+  const [introPlaybackComplete, setIntroPlaybackComplete] = useState(false);
   const [error, setError] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
@@ -128,7 +129,11 @@ export default function StudentActivityPage() {
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const playback = useAudioQueue(setError);
+  const playback = useAudioQueue(setError, () => {
+    if (showContextIntro && view?.context_intro?.kind === "audio_story") {
+      setIntroPlaybackComplete(true);
+    }
+  });
 
   const interaction = view?.interaction_type;
   const step = view?.step;
@@ -167,10 +172,13 @@ export default function StudentActivityPage() {
   const prepareContextIntro = useCallback((data: ViewPayload) => {
     if (!data.context_intro || !data.item_id) {
       setShowContextIntro(false);
+      setIntroPlaybackComplete(false);
       return;
     }
     const key = `himma:context-intro:${sessionId}:${data.item_id}`;
-    setShowContextIntro(window.sessionStorage.getItem(key) !== "seen");
+    const seen = window.sessionStorage.getItem(key) === "seen";
+    setShowContextIntro(!seen);
+    setIntroPlaybackComplete(seen || data.context_intro.kind !== "audio_story");
   }, [sessionId]);
 
   const loadCurrent = useCallback(async () => {
@@ -183,6 +191,8 @@ export default function StudentActivityPage() {
       if (!advanceData) {
         setDone(true);
         setWaitingReview(false);
+        setShowContextIntro(false);
+        setIntroPlaybackComplete(false);
         setView(null);
         await fetchProgress();
         return;
@@ -191,6 +201,7 @@ export default function StudentActivityPage() {
         setDone(false);
         setWaitingReview(true);
         setShowContextIntro(false);
+        setIntroPlaybackComplete(false);
         setView(null);
         await fetchProgress();
         return;
@@ -203,6 +214,7 @@ export default function StudentActivityPage() {
         setDone(false);
         setWaitingReview(true);
         setShowContextIntro(false);
+        setIntroPlaybackComplete(false);
         setView(null);
         await fetchProgress();
         return;
@@ -210,6 +222,8 @@ export default function StudentActivityPage() {
       if (!data?.step || !data.item_id || !data.interaction_type || !data.round) {
         setDone(true);
         setWaitingReview(false);
+        setShowContextIntro(false);
+        setIntroPlaybackComplete(false);
         setView(null);
         await fetchProgress();
         return;
@@ -260,13 +274,17 @@ export default function StudentActivityPage() {
 
   const playContext = () => {
     const asset = view?.context_intro?.asset;
-    if (!asset || asset.asset_type !== "audio") return;
+    if (!asset || asset.asset_type !== "audio") {
+      setError("الصوت المعتمد لهذه القصة غير متوفر.");
+      return;
+    }
     setError("");
     playback.toggle([asset.url]);
   };
 
   const finishContextIntro = () => {
     if (!view?.item_id) return;
+    if (view.context_intro?.kind === "audio_story" && !introPlaybackComplete) return;
     window.sessionStorage.setItem(`himma:context-intro:${sessionId}:${view.item_id}`, "seen");
     playback.stop();
     setShowContextIntro(false);
@@ -453,17 +471,19 @@ export default function StudentActivityPage() {
   if (showContextIntro && view.context_intro) {
     const intro = view.context_intro;
     const introAsset = intro.asset;
+    const requiresAudioCompletion = intro.kind === "audio_story";
     const audioIntro = introAsset?.asset_type === "audio";
     return <div className={styles.page} dir="rtl" data-testid="activity-session" data-phase="context-intro" data-context-kind={intro.kind || "context"}>
-      <header className={styles.header}><div className={styles.headerInner}><Image src="/brand/logo-navy.svg" alt="هِمّة" width={124} height={44} priority/><button className={styles.exit} type="button" onClick={() => router.push("/student")}><LogOut size={21}/><span>رجوع</span></button></div></header>
+      <header className={styles.header}><div className={styles.headerInner}><Image src="/brand/logo-navy.svg" alt="هِمّة" width={124} height={44} priority/><button className={styles.exit} type="button" onClick={() => { playback.stop(); router.push("/student"); }}><LogOut size={21}/><span>رجوع</span></button></div></header>
       <main className={styles.shell}><section className={styles.card}><div className={styles.contentColumn}>
         <h1 className={styles.questionTitle}>{intro.title || "استعد للنشاط"}</h1>
         {intro.text && <div className={`${styles.readingBox} ${intro.text.length > 120 ? styles.readingBoxLong : ""}`}>{intro.text}</div>}
         {introAsset?.asset_type === "image" && <div className={styles.contextImage}><Image src={introAsset.url} alt={introAsset.semantic_text || "صورة تمهيدية"} width={420} height={260} unoptimized/></div>}
-        {audioIntro && <button type="button" className={styles.listenButton} onClick={playContext} data-testid="context-audio-control">{playback.isPlaying ? <Pause size={34}/> : playback.isPaused ? <Play size={34}/> : <Volume2 size={34}/>}<span>{playback.isPlaying ? "إيقاف مؤقت" : playback.isPaused ? "متابعة الاستماع" : "استمع إلى القصة"}</span></button>}
+        {audioIntro && <button type="button" className={styles.listenButton} onClick={playContext} data-testid="context-audio-control">{playback.isPlaying ? <Pause size={34}/> : playback.isPaused ? <Play size={34}/> : <Volume2 size={34}/>}<span>{playback.isPlaying ? "إيقاف مؤقت" : playback.isPaused ? "متابعة الاستماع" : introPlaybackComplete ? "استمع إلى القصة مرة أخرى" : "استمع إلى القصة"}</span></button>}
+        {requiresAudioCompletion && !audioIntro && <div className={styles.notice} role="alert">هذه القصة متوقفة لأن الصوت المعتمد غير متوفر. لا يمكن تجاوز شاشة الاستماع.</div>}
         <div className={styles.instructionRow}><Info size={21}/><p>{intro.instruction || "ركّز جيدًا قبل بدء الأسئلة."}</p></div>
         {error && <div className={styles.error} role="alert">{error}</div>}
-        <div className={styles.bottomActions}><button className={styles.primaryWide} type="button" onClick={finishContextIntro}>ابدأ الأسئلة</button></div>
+        <div className={styles.bottomActions}><button className={styles.primaryWide} type="button" onClick={finishContextIntro} disabled={requiresAudioCompletion && !introPlaybackComplete}>{requiresAudioCompletion && !introPlaybackComplete ? "استمع إلى القصة أولًا" : "ابدأ الأسئلة"}</button></div>
       </div></section></main>
     </div>;
   }
