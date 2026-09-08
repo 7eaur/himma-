@@ -5,7 +5,8 @@ release twice against the same database and proves that the second publication:
 - keeps the same canonical digest;
 - creates/reactivates/retires no option rows;
 - creates/retires no current media-link rows;
-- keeps durable item/step/option/media/skill/release row identities unchanged.
+- keeps durable item/step/option/media/skill/release row identities unchanged;
+- leaves exactly the 125-item / 44-skill canonical runtime contract active.
 
 This is intentionally stronger than checking only the item count.
 """
@@ -13,8 +14,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections import Counter
 from typing import Any
 
+from content_approval_contract_2026_09_08 import VERSION
 from db.database import SessionLocal
 from db.models import (
     ContentAssetLink,
@@ -25,6 +28,15 @@ from db.models import (
     Skill,
 )
 from seed_all import run_seed_all
+
+EXPECTED_KIND_COUNTS = {
+    "pretest_question": 30,
+    "posttest_question": 30,
+    "core_activity": 30,
+    "reinforcement_activity": 35,
+}
+EXPECTED_ITEM_COUNT = sum(EXPECTED_KIND_COUNTS.values())
+EXPECTED_SKILL_COUNT = 44
 
 
 def _jsonable(value: Any) -> Any:
@@ -127,6 +139,52 @@ def _digest(snapshot: dict[str, Any]) -> str:
     return hashlib.sha256(raw).hexdigest()
 
 
+def _assert_structural_contract(snapshot: dict[str, Any], release_sha: str) -> None:
+    items = list(snapshot["items"])
+    if len(items) != EXPECTED_ITEM_COUNT:
+        raise RuntimeError(f"Canonical DB item count mismatch: expected={EXPECTED_ITEM_COUNT} actual={len(items)}")
+
+    kind_counts = Counter(str(item["kind"]) for item in items)
+    if dict(kind_counts) != EXPECTED_KIND_COUNTS:
+        raise RuntimeError(f"Canonical DB kind counts mismatch: expected={EXPECTED_KIND_COUNTS} actual={dict(kind_counts)}")
+
+    skills = list(snapshot["skills"])
+    if len(skills) != EXPECTED_SKILL_COUNT:
+        raise RuntimeError(f"Canonical skill count mismatch: expected={EXPECTED_SKILL_COUNT} actual={len(skills)}")
+    canonical_skill_keys = {
+        f"{int(skill['level_id'])}:{str(skill['canonical_skill_id'] or '')}"
+        for skill in skills
+        if str(skill["canonical_skill_id"] or "")
+    }
+    if len(canonical_skill_keys) != EXPECTED_SKILL_COUNT:
+        raise RuntimeError(
+            "Canonical skills are missing or duplicated after publication: "
+            f"rows={len(skills)} canonical_keys={len(canonical_skill_keys)}"
+        )
+
+    active_releases = [release for release in snapshot["releases"] if release["is_active"]]
+    if len(active_releases) != 1 or active_releases[0]["version"] != VERSION:
+        raise RuntimeError(f"Expected exactly one active release {VERSION}, got {active_releases}")
+
+    bad_items = []
+    for item in items:
+        data = dict(item["template_data"] or {})
+        if (
+            item["status"] != "approved"
+            or data.get("canonical_release_version") != VERSION
+            or data.get("canonical_release_sha256") != release_sha
+        ):
+            bad_items.append({
+                "id": item["id"],
+                "stable_key": item["stable_key"],
+                "status": item["status"],
+                "version": data.get("canonical_release_version"),
+                "sha256": data.get("canonical_release_sha256"),
+            })
+    if bad_items:
+        raise RuntimeError(f"Items not aligned with the active canonical release: {bad_items[:10]}")
+
+
 def _assert_second_publication_is_noop(result: dict[str, Any]) -> None:
     publication = dict(result.get("publication") or {})
     expected_zero = (
@@ -146,18 +204,23 @@ def _assert_second_publication_is_noop(result: dict[str, Any]) -> None:
 def main() -> None:
     first = run_seed_all()
     first_snapshot = _snapshot()
+    first_release_sha = str(first.get("canonical_release_sha256") or "")
+    if not first_release_sha:
+        raise RuntimeError("First canonical publication returned no release digest")
+    _assert_structural_contract(first_snapshot, first_release_sha)
     first_digest = _digest(first_snapshot)
 
     second = run_seed_all()
     second_snapshot = _snapshot()
-    second_digest = _digest(second_snapshot)
-
-    if first.get("canonical_release_sha256") != second.get("canonical_release_sha256"):
+    second_release_sha = str(second.get("canonical_release_sha256") or "")
+    if first_release_sha != second_release_sha:
         raise RuntimeError(
             "Canonical release digest changed across repeated publication: "
-            f"{first.get('canonical_release_sha256')} != {second.get('canonical_release_sha256')}"
+            f"{first_release_sha} != {second_release_sha}"
         )
     _assert_second_publication_is_noop(second)
+    _assert_structural_contract(second_snapshot, second_release_sha)
+    second_digest = _digest(second_snapshot)
 
     if first_digest != second_digest:
         sections = [name for name in first_snapshot if first_snapshot[name] != second_snapshot[name]]
@@ -168,13 +231,14 @@ def main() -> None:
 
     print(json.dumps({
         "status": "ok",
-        "canonical_release_sha256": second.get("canonical_release_sha256"),
+        "canonical_release_sha256": second_release_sha,
         "database_snapshot_sha256": second_digest,
         "items": len(second_snapshot["items"]),
         "steps": len(second_snapshot["steps"]),
         "options": len(second_snapshot["options"]),
         "asset_links": len(second_snapshot["assets"]),
         "skills": len(second_snapshot["skills"]),
+        "active_release": VERSION,
     }, ensure_ascii=False, indent=2))
 
 
