@@ -2,20 +2,23 @@
 
 The release builder owns academic/current presentation truth and complete media
 resolution. This publisher owns persistence and historical safety:
+- a fresh database is bootstrapped directly from the validated canonical release;
 - existing ContentItem and ContentStep IDs are preserved;
 - superseded ContentOption rows are retired, never deleted/reinterpreted;
 - current media links are reconciled from the explicit semantic contract;
 - unchanged media links keep their durable IDs across repeated publication;
 - the DB-only runtime snapshot contains no raw source text;
 - the final current DB projection receives an independent semantic digest;
-- all writes occur in one transaction after digest/content/media validation.
+- structural bootstrap, current publication, scoring rows and release activation
+  happen in ONE transaction after release/content/media validation.
 
-Legacy baseline/addition seeders may still be used by seed_all as *bootstrap
-importers* on an empty database, but no legacy correction/projection seed is part
-of the current publication path.
+Legacy seed modules are no longer required on the publication path. Historical
+catalog files remain compile-time migration inputs in ``canonical_release`` only;
+student runtime never parses them and no post-publication repair seed exists.
 """
 from __future__ import annotations
 
+import datetime
 import hashlib
 import json
 from copy import deepcopy
@@ -32,12 +35,25 @@ from content_approval_contract_2026_09_08 import (
 from content_option_lifecycle import set_exact_current_options
 from content_projection_digest import projection_sha256
 from db.database import SessionLocal
-from db.models import ContentAssetLink, ContentItem, ContentRelease, ContentStep, Skill
+from db.models import (
+    ContentAssetLink,
+    ContentItem,
+    ContentRelease,
+    ContentStep,
+    ScoringPolicy,
+    ScoringRule,
+    Skill,
+)
 
 DB_RUNTIME_VERSION = "HIMMA-DB-RUNTIME-2.0"
-PUBLISHER_VERSION = "HIMMA-CANONICAL-PUBLISHER-1.0"
+PUBLISHER_VERSION = "HIMMA-CANONICAL-PUBLISHER-2.0"
 ORDER = {"sequence", "memory_sequence", "path_sequence", "build_word"}
 READ = {"read_aloud", "timed_read_aloud"}
+BASE_SOURCE = "client_catalog_105"
+BASE_VERSION = "HIMMA-CONTENT-1.0"
+REINFORCEMENT_V1 = "HIMMA-REINFORCEMENT-ADD-1.0"
+REINFORCEMENT_V2 = "HIMMA-REINFORCEMENT-ADD-2.0"
+SCORING_POLICY_VERSION = "SCORING_POLICY_V1"
 
 
 def _canonical(item: ContentItem) -> str:
@@ -95,8 +111,54 @@ def _find_item(db, spec: dict[str, Any]) -> ContentItem:
     return matches[0]
 
 
-def _reconcile_skills(db, release: dict[str, Any]) -> dict[str, Skill]:
-    """Preserve durable skill rows while applying approved semantic replacement."""
+def _expected_skill_keys(release: dict[str, Any]) -> set[str]:
+    result = {
+        f"{int(value['level_id'])}:{str(value['skill_code'])}"
+        for value in release.get("skills", [])
+    }
+    for value in release.get("skill_reconciliations", []):
+        result.discard(f"{int(value['level_id'])}:{str(value['from_code'])}")
+        result.add(f"{int(value['level_id'])}:{str(value['to_code'])}")
+    return result
+
+
+def _ensure_skills(db, release: dict[str, Any]) -> dict[str, Skill]:
+    """Create only missing durable skill rows, then apply semantic reconciliation."""
+    source_skills = list(release.get("skills") or [])
+    if len(source_skills) != 44:
+        raise RuntimeError(f"Canonical release must carry 44 source skill rows, got {len(source_skills)}")
+
+    source_keys = {str(value["skill_id"]) for value in source_skills}
+    if len(source_keys) != len(source_skills):
+        raise RuntimeError("Canonical release contains duplicate skill_id values")
+
+    existing = {str(skill.skill_key): skill for skill in db.query(Skill).all()}
+    unexpected_keys = sorted(set(existing) - source_keys)
+    if unexpected_keys:
+        raise RuntimeError(f"Database contains non-canonical skill rows: {unexpected_keys}")
+
+    for value in source_skills:
+        skill_key = str(value["skill_id"])
+        skill = existing.get(skill_key)
+        if skill is None:
+            skill = Skill(
+                skill_key=skill_key,
+                canonical_skill_id=str(value["skill_code"]),
+                name=str(value["name"]),
+                description=str(value["name"]),
+                level_id=int(value["level_id"]),
+            )
+            db.add(skill)
+            existing[skill_key] = skill
+        else:
+            # These are the immutable source semantics. A newer approved semantic
+            # replacement is applied immediately below in the same transaction.
+            skill.canonical_skill_id = str(value["skill_code"])
+            skill.name = str(value["name"])
+            skill.description = str(value["name"])
+            skill.level_id = int(value["level_id"])
+    db.flush()
+
     for value in release.get("skill_reconciliations", []):
         level = int(value["level_id"])
         target_code = str(value["to_code"])
@@ -115,16 +177,137 @@ def _reconcile_skills(db, release: dict[str, Any]) -> dict[str, Skill]:
         target.name = str(value["name"])
         target.description = str(value.get("description") or value["name"])
         target.level_id = level
+    db.flush()
 
     by_code: dict[str, Skill] = {}
     for skill in db.query(Skill).all():
         code = str(skill.canonical_skill_id or "")
-        if code:
-            key = f"{int(skill.level_id)}:{code}"
-            if key in by_code and by_code[key].id != skill.id:
-                raise RuntimeError(f"Duplicate canonical skill rows after reconciliation: {key}")
-            by_code[key] = skill
+        if not code:
+            raise RuntimeError(f"Skill row {skill.skill_key!r} has no canonical_skill_id")
+        key = f"{int(skill.level_id)}:{code}"
+        if key in by_code and by_code[key].id != skill.id:
+            raise RuntimeError(f"Duplicate canonical skill rows after reconciliation: {key}")
+        by_code[key] = skill
+
+    expected = _expected_skill_keys(release)
+    if set(by_code) != expected:
+        raise RuntimeError(
+            "Canonical skill projection mismatch after reconciliation: "
+            f"missing={sorted(expected - set(by_code))} extra={sorted(set(by_code) - expected)}"
+        )
     return by_code
+
+
+def _source_version(spec: dict[str, Any]) -> str:
+    source = str(spec.get("source_release") or "")
+    if source == BASE_SOURCE:
+        return BASE_VERSION
+    if source in {REINFORCEMENT_V1, REINFORCEMENT_V2}:
+        return source
+    raise RuntimeError(f"{spec['canonical_id']}: unsupported structural source release {source!r}")
+
+
+def _ensure_item_structures(
+    db,
+    release: dict[str, Any],
+    skills: dict[str, Skill],
+) -> dict[str, int]:
+    """Create only missing item/step structure inside the publication transaction.
+
+    Existing rows are never replaced, so attempts and historical option IDs keep
+    their durable foreign-key targets. New rows are created from the already
+    validated canonical release rather than from a legacy seeder that can commit
+    partial state before the final publication succeeds.
+    """
+    specs = list(release.get("items") or [])
+    expected_stable = {str(spec["stable_key"]) for spec in specs}
+    expected_canonical = {str(spec["canonical_id"]) for spec in specs}
+    if len(expected_stable) != 125 or len(expected_canonical) != 125:
+        raise RuntimeError("Canonical release structural identity is not exactly 125 unique items")
+
+    created = {"baseline": 0, "v1": 0, "v2": 0}
+    resolved_ids: set[int] = set()
+
+    for spec in specs:
+        stable_key = str(spec["stable_key"])
+        canonical = str(spec["canonical_id"])
+        item = db.query(ContentItem).filter(ContentItem.stable_key == stable_key).first()
+        if item is None:
+            canonical_matches = [row for row in db.query(ContentItem).all() if _canonical(row) == canonical]
+            if len(canonical_matches) > 1:
+                raise RuntimeError(f"{canonical}: multiple durable rows exist before publication")
+            item = canonical_matches[0] if canonical_matches else None
+
+        if item is None:
+            skill_key = f"{int(spec['level_id'])}:{str(spec['canonical_skill_code'])}"
+            skill = skills.get(skill_key)
+            if skill is None:
+                raise RuntimeError(f"{canonical}: missing skill {skill_key} during structural bootstrap")
+            item = ContentItem(
+                stable_key=stable_key,
+                kind=str(spec["kind"]),
+                level_id=int(spec["level_id"]),
+                skill_id=int(skill.id),
+                interaction_type=_runtime_interaction(str(spec["interaction_type"])),
+                order_index=int(spec["order_index"]),
+                version=_source_version(spec),
+                status="draft",
+                checksum=_item_checksum(spec),
+                template_data={
+                    "canonical_id": canonical,
+                    "title": str(spec["title"]),
+                },
+            )
+            db.add(item)
+            db.flush()
+            for round_spec in spec["rounds"]:
+                expected = round_spec.get("expected_reading_text")
+                db.add(ContentStep(
+                    item_id=int(item.id),
+                    order_index=int(round_spec["order_index"]),
+                    prompt_text=str(round_spec["question_text"]),
+                    expected_reading_text=str(expected) if expected not in {None, ""} else None,
+                ))
+            db.flush()
+            source = str(spec.get("source_release") or "")
+            if source == BASE_SOURCE:
+                created["baseline"] += 1
+            elif source == REINFORCEMENT_V1:
+                created["v1"] += 1
+            elif source == REINFORCEMENT_V2:
+                created["v2"] += 1
+        else:
+            # Stable identity is immutable. A canonical-ID fallback is accepted
+            # only when it resolves the same logical row; rewriting stable_key on
+            # an existing item would be a separate reviewed migration.
+            if str(item.stable_key) != stable_key:
+                raise RuntimeError(
+                    f"{canonical}: existing stable_key {item.stable_key!r} differs from canonical {stable_key!r}"
+                )
+            if len(item.steps) != len(spec["rounds"]):
+                raise RuntimeError(
+                    f"{canonical}: durable round count differs from canonical release "
+                    f"existing={len(item.steps)} canonical={len(spec['rounds'])}"
+                )
+
+        if int(item.id) in resolved_ids:
+            raise RuntimeError(f"Two canonical specs resolved to ContentItem id={item.id}")
+        resolved_ids.add(int(item.id))
+
+    db.flush()
+    all_rows = db.query(ContentItem).all()
+    actual_stable = {str(item.stable_key) for item in all_rows}
+    actual_canonical = {_canonical(item) for item in all_rows}
+    if len(all_rows) != 125 or actual_stable != expected_stable or actual_canonical != expected_canonical:
+        raise RuntimeError(
+            "Database content structure is not the exact canonical 125-item set: "
+            f"count={len(all_rows)} "
+            f"missing_stable={sorted(expected_stable - actual_stable)} "
+            f"extra_stable={sorted(actual_stable - expected_stable)} "
+            f"missing_canonical={sorted(expected_canonical - actual_canonical)} "
+            f"extra_canonical={sorted(actual_canonical - expected_canonical)}"
+        )
+    return created
 
 
 def _asset_key(asset_id: str, asset_type: str, usage: str | None) -> tuple[str, str, str | None]:
@@ -346,6 +529,48 @@ def _publish_item(db, item: ContentItem, spec: dict[str, Any], skill_map: dict[s
     return totals
 
 
+def _ensure_scoring_policy(db) -> int:
+    """Ensure one historical-compatible scoring rule per assessment item."""
+    policy = db.query(ScoringPolicy).filter(ScoringPolicy.version == SCORING_POLICY_VERSION).first()
+    if policy is None:
+        policy = ScoringPolicy(
+            version=SCORING_POLICY_VERSION,
+            status="approved",
+            approved_by=None,
+            approved_at=datetime.datetime(2026, 8, 11, tzinfo=datetime.timezone.utc),
+            checksum="seeded_by_canonical_publisher",
+        )
+        db.add(policy)
+        db.flush()
+
+    created = 0
+    assessment_items = db.query(ContentItem).filter(
+        ContentItem.kind.in_(("pretest_question", "posttest_question"))
+    ).all()
+    if len(assessment_items) != 60:
+        raise RuntimeError(f"Canonical scoring policy expects 60 assessment items, got {len(assessment_items)}")
+
+    for item in assessment_items:
+        rules = db.query(ScoringRule).filter(
+            ScoringRule.policy_id == policy.id,
+            ScoringRule.item_id == item.id,
+        ).all()
+        if len(rules) > 1:
+            raise RuntimeError(f"Duplicate scoring rules for assessment item {item.id}")
+        if not rules:
+            db.add(ScoringRule(
+                policy_id=int(policy.id),
+                item_id=int(item.id),
+                max_raw_score=1.0,
+                rubric=(
+                    "V1: 1 point for correct non-audio. For audio: "
+                    "max(0, 1 - (errors/target_units))."
+                ),
+            ))
+            created += 1
+    return created
+
+
 def _activate_release(db, release: dict[str, Any]) -> None:
     for row in db.query(ContentRelease).all():
         row.is_active = False
@@ -385,8 +610,9 @@ def publish_release(release: dict[str, Any] | None = None) -> dict[str, Any]:
     if len(items) != 125:
         raise RuntimeError(f"Publisher requires the validated 125-item release, got {len(items)}")
 
-    # Never let a caller bypass the canonical builder with a stale/tampered
-    # object. Publication is fail-closed before a database transaction begins.
+    # No database row is touched until the exact release, complete media package
+    # and digest have already passed. The same transaction then owns bootstrap,
+    # current content projection, scoring compatibility and release activation.
     _assert_release_digest(canonical)
     assert_question_contract_coverage(canonical)
     assert_media_contract(canonical)
@@ -394,13 +620,8 @@ def publish_release(release: dict[str, Any] | None = None) -> dict[str, Any]:
 
     db = SessionLocal()
     try:
-        existing_count = db.query(ContentItem).count()
-        if existing_count != 125:
-            raise RuntimeError(
-                "Canonical publisher expects the structural 125-item bootstrap to exist; "
-                f"found {existing_count}. Run seed_all so import-only bootstrap can create it first."
-            )
-        skills = _reconcile_skills(db, canonical)
+        skills = _ensure_skills(db, canonical)
+        structure_created = _ensure_item_structures(db, canonical, skills)
         totals = {
             "option_created": 0,
             "option_reactivated": 0,
@@ -419,6 +640,8 @@ def publish_release(release: dict[str, Any] | None = None) -> dict[str, Any]:
                 totals[key] += int(result[key])
         if len(published_ids) != 125:
             raise RuntimeError("Canonical publisher did not resolve 125 unique durable item rows")
+
+        scoring_rules_created = _ensure_scoring_policy(db)
         _activate_release(db, canonical)
         projection_digest = _stamp_projection_digest(db)
         db.commit()
@@ -427,6 +650,10 @@ def publish_release(release: dict[str, Any] | None = None) -> dict[str, Any]:
             "release_sha256": str(canonical["sha256"]),
             "projection_sha256": projection_digest,
             "items": len(published_ids),
+            "baseline_rows_created": int(structure_created["baseline"]),
+            "v1_rows_created": int(structure_created["v1"]),
+            "v2_rows_created": int(structure_created["v2"]),
+            "scoring_rules_created": int(scoring_rules_created),
             "option_rows_created": totals["option_created"],
             "option_rows_reactivated": totals["option_reactivated"],
             "option_rows_retired": totals["option_retired"],
