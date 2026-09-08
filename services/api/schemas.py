@@ -214,7 +214,6 @@ class ContentItemResponse(BaseModel):
     source_method: Optional[str] = None
     steps: list[ContentStepResponse] = Field(default_factory=list)
     item_assets: list[ContentAssetResponse] = Field(default_factory=list)
-    template_data: Optional[dict[str, Any]] = None
     model_config = ConfigDict(from_attributes=True)
 
 

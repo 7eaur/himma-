@@ -175,7 +175,6 @@ def _item_step_payload(item: ContentItem, step: ContentStep) -> dict:
         "interaction_type": canonical_interaction(item),
         "title": data.get("title") or "مهمة تعليمية",
         "source_method": data.get("source_method"),
-        "template_data": item.template_data,
         "item_assets": item_assets(item),
         "steps": [{
             "id": step.id,

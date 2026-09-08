@@ -498,11 +498,9 @@ def _score_submission(item: ContentItem, step: ContentStep, option_ids: list[int
         return option_ids[0] == correct
 
     if interaction in {"choose_many", "listen_choose_many"}:
-        if len(ordered) < 2:
+        expected = {option.id for option in ordered if option.is_correct}
+        if not expected:
             raise HTTPException(status_code=409, detail="جولة الاختيار المتعدد المعتمدة غير مكتملة")
-        # Accepted content seeding preserves the two target items in positions
-        # one and two for the multi-select rounds.
-        expected = {ordered[0].id, ordered[1].id}
         return set(option_ids) == expected and len(option_ids) == len(expected)
 
     if interaction in {"sequence", "memory_sequence", "path_sequence", "build_word"}:

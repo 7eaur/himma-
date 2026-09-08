@@ -154,8 +154,9 @@ class TestStudentLifecycle:
     def test_student_cannot_read_researcher_detail(self, student_client):
         assert student_client.get("/researcher/students/1").status_code == 403
 
-    def test_study_cap_is_exactly_fifteen_students(self, researcher_client):
-        for number in range(2, 16):
+    def test_study_cap_defaults_to_fifty_students(self, researcher_client, monkeypatch):
+        monkeypatch.delenv("HIMMA_MAX_STUDENTS", raising=False)
+        for number in range(2, 51):
             created = researcher_client.post(
                 "/researcher/students",
                 json={"full_name": f"طالب رقم {number}", "grade_level": 3},
@@ -167,7 +168,7 @@ class TestStudentLifecycle:
             json={"full_name": "طالب زائد", "grade_level": 3},
         )
         assert rejected.status_code == 409
-        assert "15" in rejected.json()["detail"]
+        assert "50" in rejected.json()["detail"]
 
     def test_posttest_requires_completed_pretest_core_path_and_researcher_enable(self, client):
         from datetime import datetime, timezone

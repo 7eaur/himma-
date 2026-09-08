@@ -5,7 +5,7 @@ permissions:
 
 on:
   push:
-    branches: ['recovery/*']
+    branches: ['recovery/*', 'integration/*']
     paths:
       - 'services/api/**'
       - 'apps/web/src/app/student/activity/**'

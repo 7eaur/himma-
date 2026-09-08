@@ -1,7 +1,7 @@
 # Himma core truth
 
 - Product name: **هِمّة**. Tagline: **أتعلم، أتطور، أصل إلى القمة**.
-- Research web platform for up to 15 grade-three learners with reading difficulties in Oman.
+- Research web platform for grade-three learners with reading difficulties in Oman. The owner-approved default capacity is 50 (HIMMA_MAX_STUDENTS); inactive accounts count toward the study-wide limit.
 - Arabic RTL, responsive on mobile, tablet, and desktop. No native mobile app in scope.
 - Visible roles: student and **المشرف**. The internal value/path name `researcher` remains a compatibility identifier only. Students are created by the supervisor and sign in with a unique simple code; no child self-registration or email.
 - Core flow: pre-test (30) -> initial placement -> adaptive learning from the assigned starting level -> complete the required remaining levels through L3 -> supervisor-enabled post-test (30) -> comparison and reports.

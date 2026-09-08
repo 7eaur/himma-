@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 from db.models import AssessmentSession, AuditLog, Attempt, AttemptResponse, AudioSubmission, ContentItem, Student, User
 from dependencies import get_db, get_current_user, get_current_student, get_any_authenticated
 from journey import build_journey_summary
+from study_capacity import capacity, lock_admissions
 import schemas
 
 router = APIRouter(tags=["Protected"])
@@ -264,6 +265,11 @@ def list_students(user: User = Depends(get_current_user), db: Session = Depends(
     return [_student_payload(db, student) for student in students]
 
 
+@router.get("/researcher/student-capacity")
+def get_student_capacity(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    return capacity(db)
+
+
 @router.get("/researcher/students/{student_id}", response_model=schemas.StudentResponse)
 def get_student(student_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     student = db.query(Student).filter(Student.id == student_id).first()
@@ -278,9 +284,10 @@ def create_student(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    db.query(User).filter(User.id == user.id).with_for_update().one()
-    if db.query(Student).count() >= 15:
-        raise HTTPException(status_code=409, detail="وصلت الدراسة إلى الحد الأقصى وهو 15 طالبًا")
+    lock_admissions(db)
+    available = capacity(db)
+    if not available["remaining"]:
+        raise HTTPException(status_code=409, detail=f"وصلت الدراسة إلى الحد الأقصى وهو {available['limit']} طالبًا")
     requested_code = body.access_code
     if requested_code:
         _ensure_unique_access_code(db, requested_code)

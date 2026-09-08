@@ -65,7 +65,7 @@ def grade_audio_submission(
     supervisor: User = Depends(get_current_user),
 ):
     """Grade an audio submission and preserve the manual review trail."""
-    submission = db.query(AudioSubmission).filter(AudioSubmission.id == submission_id).first()
+    submission = db.query(AudioSubmission).filter(AudioSubmission.id == submission_id).with_for_update().populate_existing().first()
     if not submission:
         raise HTTPException(status_code=404, detail="التسجيل غير موجود")
 
@@ -105,8 +105,7 @@ def grade_audio_submission(
         )
 
     errors = request.deletions + request.substitutions + request.insertions
-    rubric_score_val = max(0.0, 1.0 - (errors / request.target_units))
-    rubric_score = Decimal(str(rubric_score_val))
+    rubric_score = max(Decimal(0), Decimal(1) - Decimal(errors) / Decimal(request.target_units))
 
     submission.status = "graded"
     response.is_correct = rubric_score > 0

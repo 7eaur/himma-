@@ -109,7 +109,7 @@ def get_any_authenticated(request: Request, db: Session = Depends(get_db)):
     except (TypeError, ValueError):
         raise HTTPException(status_code=401, detail="جلسة الدخول غير صالحة")
     if role == "researcher":
-        entity = db.query(User).filter(User.id == entity_id, User.is_active.is_(True)).first()
+        entity = db.query(User).filter(User.id == entity_id, User.is_active.is_(True), User.role == "researcher").first()
     elif role == "student":
         entity = db.query(Student).filter(Student.id == entity_id, Student.is_active.is_(True)).first()
     else:

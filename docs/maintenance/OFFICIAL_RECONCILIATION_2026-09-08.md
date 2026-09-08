@@ -58,3 +58,23 @@ Status: IN_PROGRESS — initial code audit; not an acceptance certificate.
 
 ## Completion policy
 Every finding remains OPEN until code, regression evidence, and (where required) integration evidence are recorded. Draft PR #3 documentation is not evidence of implementation correctness. No merge is authorized by this record.
+
+## Slice 1 — implemented, local targeted verification
+- A05: central default capacity 50 with configuration validation, authenticated capacity endpoint, and common admission transaction lock. Historical inactive accounts remain counted. Cross-worker PostgreSQL concurrency still needs integration evidence.
+- A06: /student and /admin page guards verify /me, not cookie presence. Login routes remain public; invalid/wrong-role sessions redirect; unavailable API fails closed with 503. API role validation rechecks the stored researcher role.
+- A07: removed template_data from both legacy assessment serializer and public response schema; prevents nested criterion/source-answer disclosure.
+- A14: PostgreSQL row lock and refreshed submission state precede grade transition; Decimal arithmetic avoids float detours. Concurrent review integration is still open.
+- A16 (new): multi-select scoring in activities used first two positions. It now uses the explicit is_correct set, matching learning selection-count semantics. Historical response rows are not recalculated.
+- Shared API proxy response and upstream requests explicitly disable caching of authenticated data.
+- Tests added: services/api/test_reconciliation_safety.py and apps/web/src/proxy.test.ts. Capacity regression in test_api.py updated from obsolete 15 to approved 50, not removed.
+- Local run: 49 targeted Backend tests reached 100%, exit 0; frontend 4 suites / 18 tests passed; TypeScript exit 0; changed-file ESLint exit 0; Next.js production build exit 0. These are slice evidence, not full release acceptance.
+- Local Python environment was recreated after runtime renewal; repository lockfiles were preserved.
+- CI branch selectors now include integration/* so existing unweakened Quality/M04/M09 gates can evaluate this independent branch. No workflow test was disabled.
+- No content seed or schema migration executed against production; no merge or deployment.
+
+## Sandbox findings that prevent direct implementation copying
+- PR3 seed_all fails its own 65-learning-items version invariant with 63 marked items; independently committed overlays leave partial state.
+- Candidate option data still contains a serialized arrow answer in L1-CORE-03 and an instruction suffix in POST-Q15.
+- Removing tatweel for duplicate detection would collapse academically distinct contextual letter forms; preserve forms and vowel distinctions, while normalizing only invisible formatting/Unicode representation.
+- The official already contains ten generated sequence images that some Sandbox notes report missing. Preserve their verified approved hashes and inspect semantic fit rather than creating substitutes.
+- Next slice: atomic structured content source and historical-safe option identity, explicit media keys, then shared student/preview rendering. A01–A04 and A08–A13/A15 are not claimed implemented.

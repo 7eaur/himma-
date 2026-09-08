@@ -1,5 +1,17 @@
 # STATUS — Himma Platform
 
+## Reconciliation in progress — 2026-09-08
+
+Active branch: `integration/official-content-reconciliation-2026-09-08`.
+The owner authorized official audit, intent reconciliation and implementation; no merge or deployment.
+Current slice: study-wide configurable capacity (50), authenticated page guards,
+database-role revalidation, non-positional multi-select scoring and serialized audio review.
+No schema migration in this slice. Acceptance: A05/A06/A14 in
+`docs/maintenance/OFFICIAL_RECONCILIATION_2026-09-08.md`, plus newly discovered scoring bug.
+Targeted tests and frontend gates are in progress. Content/option lifecycle and full
+release gates remain open. The September 5 evidence below is historical, NOT a PASS
+for the new branch. No Docker is used locally.
+
 **Last updated:** 2026-09-05  
 **Repository:** `7eaur/himma-`  
 **Branch:** `recovery/ui-media-admin-overhaul`  

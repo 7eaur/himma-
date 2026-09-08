@@ -22,6 +22,7 @@ async function proxy(req: NextRequest, { params }: { params: Promise<{ path: str
 
   const init: RequestInit = {
     method: req.method,
+    cache: "no-store",
     headers,
   };
 
@@ -34,7 +35,7 @@ async function proxy(req: NextRequest, { params }: { params: Promise<{ path: str
 
   const res = new NextResponse(body, {
     status: upstream.status,
-    headers: { "content-type": upstream.headers.get("content-type") ?? "application/json" },
+    headers: { "content-type": upstream.headers.get("content-type") ?? "application/json", "cache-control": "private, no-store" },
   });
 
   // Forward Set-Cookie (critical for auth)
