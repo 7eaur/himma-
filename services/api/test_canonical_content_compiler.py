@@ -1,23 +1,24 @@
-"""Regression coverage for the single canonical Himma content release."""
+"""Regression coverage for the single final Himma canonical release."""
 from __future__ import annotations
 
 import json
 from pathlib import Path
 
-from canonical_content_compiler import compile_release
+from canonical_media_guard import validate_media_contract
+from canonical_release import build_canonical_release
 from content_approval_contract_2026_09_08 import VERSION
 
 ROOT = Path(__file__).resolve().parents[2]
 
 
 def _items():
-    release = compile_release()
-    return release, {item["canonical_id"]:item for item in release["items"]}
+    release = build_canonical_release()
+    return release, {item["canonical_id"]: item for item in release["items"]}
 
 
 def test_canonical_release_is_complete_deterministic_and_structured():
-    first = compile_release()
-    second = compile_release()
+    first = build_canonical_release()
+    second = build_canonical_release()
     assert first["release_version"] == VERSION
     assert first["sha256"] == second["sha256"]
     assert len(first["items"]) == 125
@@ -39,14 +40,14 @@ def test_canonical_release_is_complete_deterministic_and_structured():
 
 
 def test_canonical_release_locks_critical_sep8_regressions():
-    release, items = _items()
+    _release, items = _items()
 
     q11 = items["POST-Q11"]
     step11 = q11["rounds"][0]
     assert q11["criterion"] == "مَ"
     assert [value["text"] for value in step11["options"]] == ["مَ", "مِ", "مُ"]
     assert [value["text"] for value in step11["options"] if value["is_correct"]] == ["مَ"]
-    assert step11["stimulus"] == {"kind":"audio","audio_target":"مَ"}
+    assert step11["stimulus"] == {"kind": "audio", "audio_target": "مَ"}
     assert [(value["asset_id"], value["usage"]) for value in step11["media"] if value["asset_type"] == "audio"] == [("LET-01", "prompt")]
 
     assert [value["text"] for value in items["POST-Q08"]["rounds"][0]["options"]] == [
@@ -62,6 +63,41 @@ def test_canonical_release_locks_critical_sep8_regressions():
     assert [value["expected_reading_text"] for value in items["L3-REIN-07"]["rounds"]] == [
         "باب شمس نخلة", "مدرسة عصفور حقيبة", "يلعب يكتب يذهب"
     ]
+
+
+def test_every_listening_round_has_one_semantic_prompt_audio():
+    _release, items = _items()
+    seen = 0
+    for item in items.values():
+        if not str(item["interaction_type"]).startswith("listen_"):
+            continue
+        for step in item["rounds"]:
+            seen += 1
+            prompt_audio = [
+                value for value in step["media"]
+                if value["asset_type"] == "audio" and value["usage"] == "prompt"
+            ]
+            assert len(prompt_audio) == 1, (item["canonical_id"], step["order_index"])
+            assert step["stimulus"] == {
+                "kind": "audio",
+                "audio_target": prompt_audio[0]["semantic_text"],
+            }
+    assert seen > 0
+
+    # The final audio package changed LET-01 to مَ. A vocalized مِ target must
+    # therefore resolve to its exact syllable asset instead of reusing LET-01.
+    l2_short_vowel = items["L2-CORE-01"]["rounds"][1]
+    assert l2_short_vowel["stimulus"] == {"kind": "audio", "audio_target": "مِ"}
+    assert [
+        value["asset_id"] for value in l2_short_vowel["media"]
+        if value["asset_type"] == "audio" and value["usage"] == "prompt"
+    ] == ["SYL-05"]
+
+    # Bare letter م remains a letter-sound target and intentionally resolves to
+    # stable LET-01, whose approved current recording is مَ.
+    pre_q05 = items["PRE-Q05"]["rounds"][0]
+    assert pre_q05["stimulus"] == {"kind": "audio", "audio_target": "م"}
+    assert [value["asset_id"] for value in pre_q05["media"] if value["asset_type"] == "audio"] == ["LET-01"]
 
 
 def test_story_and_image_contracts_are_explicit_not_positional():
@@ -96,10 +132,10 @@ def test_pre_q17_generated_house_closes_the_last_proven_vocabulary_media_gap():
         if asset["asset_type"] == "image" and asset["usage"] == "choice"
     ]
     assert [(asset["asset_id"], asset["option_order_index"]) for asset in choice_images] == [
-        ("HIMMA-GEN-VOC-001", 1),
-        ("HIMMA-EDU-VOC-017", 2),
-        ("HIMMA-EDU-VOC-018", 3),
-        ("HIMMA-EDU-VOC-019", 4),
+        ("VOC-06", 1),
+        ("VOC-07", 2),
+        ("VOC-08", 3),
+        ("HIMMA-GEN-VOC-001", 4),
     ]
 
     generated_map = ROOT / "assets" / "education" / "developer" / "generated-vocabulary-map.json"
@@ -114,8 +150,8 @@ def test_pre_q17_generated_house_closes_the_last_proven_vocabulary_media_gap():
     assert image_path.stat().st_size > 0
 
 
-def test_compiled_release_contains_no_unresolved_media_gap():
-    release = compile_release()
+def test_compiled_release_contains_no_unresolved_media_gap_or_missing_binary():
+    release = build_canonical_release()
     unresolved = [
         (item["canonical_id"], step["order_index"], gap)
         for item in release["items"]
@@ -123,3 +159,4 @@ def test_compiled_release_contains_no_unresolved_media_gap():
         for gap in step.get("media_gaps") or []
     ]
     assert unresolved == []
+    assert all(values == [] for values in validate_media_contract(release).values())
