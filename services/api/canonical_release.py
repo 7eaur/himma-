@@ -63,7 +63,7 @@ def _assert_exact_ids(label: str, actual: set[str], expected: set[str]) -> None:
         raise RuntimeError(f"{label} structured question coverage mismatch: missing={missing} extra={extra}")
 
 
-def _assert_question_contract_coverage(release: dict[str, Any]) -> None:
+def assert_question_contract_coverage(release: dict[str, Any]) -> None:
     """Refuse publication if any learner question falls back to raw legacy copy.
 
     Historical sources remain legal migration inputs for durable IDs, criteria,
@@ -207,7 +207,7 @@ def _resolve_listening_audio(release: dict[str, Any]) -> None:
 
 def build_canonical_release() -> dict[str, Any]:
     release = deepcopy(compile_release())
-    _assert_question_contract_coverage(release)
+    assert_question_contract_coverage(release)
     _resolve_listening_audio(release)
     release = _rehash(release)
     assert_media_contract(release)
