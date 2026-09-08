@@ -1,8 +1,9 @@
 """DB-only student-facing content helpers.
 
-All academic/display metadata is imported into PostgreSQL by seed_all. Runtime
-requests must never open repository JSON/CSV content files and must never parse
-legacy ContentStep.prompt_text to construct the student experience.
+All academic/display metadata is imported into PostgreSQL by the content
+publisher. Runtime requests never open repository JSON/CSV files, never parse
+legacy prompt/source text, and never infer image-option relationships by
+position.
 """
 from __future__ import annotations
 
@@ -11,7 +12,6 @@ import unicodedata
 from typing import Any
 
 from db.models import ContentItem, ContentStep
-
 
 DB_RUNTIME_VERSION = "HIMMA-DB-RUNTIME-1.0"
 READ = {"read_aloud", "timed_read_aloud"}
@@ -31,6 +31,14 @@ def semantic_key(value: str) -> str:
     if value.startswith("ال"):
         value = value[2:]
     return value.casefold()
+
+
+def active_options(step: ContentStep) -> list:
+    """Return only the current option contract in canonical order."""
+    return sorted(
+        [option for option in step.options if bool(getattr(option, "is_active", True))],
+        key=lambda value: (int(value.order_index), int(value.id or 0)),
+    )
 
 
 def canonical_id(item: ContentItem) -> str:
@@ -125,45 +133,66 @@ def _option_id_by_order(step: ContentStep, order_index: Any) -> int | None:
         wanted = int(order_index)
     except (TypeError, ValueError):
         return None
-    option = next((value for value in step.options if int(value.order_index) == wanted), None)
+    option = next((value for value in active_options(step) if int(value.order_index) == wanted), None)
     return int(option.id) if option is not None else None
+
+
+def _dedupe_assets(assets: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    result: list[dict[str, Any]] = []
+    seen_keys: set[tuple[str, str, int | None]] = set()
+    seen_image_options: set[int] = set()
+    for asset in assets:
+        option_id = asset.get("option_id")
+        normalized_option = int(option_id) if option_id is not None else None
+        key = (str(asset.get("asset_id") or ""), str(asset.get("asset_type") or ""), normalized_option)
+        if key in seen_keys:
+            continue
+        if str(asset.get("asset_type") or "") == "image" and normalized_option is not None:
+            if normalized_option in seen_image_options:
+                continue
+            seen_image_options.add(normalized_option)
+        seen_keys.add(key)
+        result.append(asset)
+    return result
 
 
 def step_assets(item: ContentItem, step: ContentStep) -> list[dict[str, Any]]:
     runtime_assets = list(_runtime_round(item, step).get("assets") or [])
     if runtime_assets:
-        return [
-            {
-                "asset_id": str(value.get("asset_id") or ""),
-                "asset_type": str(value.get("asset_type") or ""),
-                "usage": value.get("usage"),
+        result: list[dict[str, Any]] = []
+        for value in runtime_assets:
+            asset_id = str(value.get("asset_id") or "")
+            asset_type = str(value.get("asset_type") or "")
+            if not asset_id or not asset_type:
+                continue
+            usage = value.get("usage")
+            option_id = None
+            if asset_type == "image" and usage == "choice":
+                option_id = _option_id_by_order(step, value.get("option_order_index"))
+            result.append({
+                "asset_id": asset_id,
+                "asset_type": asset_type,
+                "usage": usage,
                 "semantic_text": value.get("semantic_text"),
-                "url": f"/api/media/{value.get('asset_id')}",
-                "option_id": _option_id_by_order(step, value.get("option_order_index")),
-            }
-            for value in runtime_assets
-            if value.get("asset_id") and value.get("asset_type")
-        ]
+                "url": f"/api/media/{asset_id}",
+                "option_id": option_id,
+            })
+        return _dedupe_assets(result)
 
+    # Missing structured runtime data is never permission to guess an
+    # option-image relation by list position. Legacy links remain visible only
+    # as non-selectable metadata until a semantic mapping is published.
     result: list[dict[str, Any]] = []
-    image_index = 0
-    options = sorted(step.options, key=lambda value: value.order_index)
     for link in sorted(step.assets, key=lambda value: value.id or 0):
-        option_id = None
-        semantic = None
-        if link.asset_type == "image" and link.usage_context in {"choice", "illustration"} and image_index < len(options):
-            option_id = int(options[image_index].id)
-            semantic = options[image_index].text
-            image_index += 1
         result.append({
             "asset_id": link.manifest_asset_id,
             "asset_type": link.asset_type,
             "usage": link.usage_context,
-            "semantic_text": semantic,
+            "semantic_text": None,
             "url": f"/api/media/{link.manifest_asset_id}",
-            "option_id": option_id,
+            "option_id": None,
         })
-    return result
+    return _dedupe_assets(result)
 
 
 def item_assets(item: ContentItem) -> list[dict[str, Any]]:
