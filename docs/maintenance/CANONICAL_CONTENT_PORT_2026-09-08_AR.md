@@ -46,17 +46,22 @@
 3. ينشر Publisher واحد الـ125 عنصرًا داخل transaction واحدة.
 4. `set_exact_current_options` يحافظ على IDs التاريخية ويُقاعد الخيارات التي لم تعد حالية.
 5. media links تُستبدل وفق mapping صريح من العقد النهائي.
-6. لا commit جزئي بين base/reinforcement/presentation/media.
-7. تشغيل seed مرتين يجب أن يعطي نفس digest والصفوف الحالية دون إنشاء/تغيير غير ضروري.
+6. لا commit جزئي بين base/reinforcement/presentation/media في مرحلة النشر الحالية.
+7. importers القديمة لا تُعاد بعد وجود 125 صفًا بنيويًا؛ المصدر الحالي بعد bootstrap هو canonical compiler/publisher فقط.
+8. تشغيل seed مرتين يجب أن يعطي نفس digest والصفوف الحالية دون إنشاء/تغيير غير ضروري.
 
-## الصور بعد الجرد
+## الصور بعد الجرد والتنفيذ
 
 - بنك الصور الرسمي يحتوي 60 أصلًا أساسيًا.
-- المستودع الرسمي يحتوي أيضًا 10 صور sequence مولدة ومعتمدة لـ L1-REIN-12 وL3-REIN-10؛ لذلك ملاحظات Sandbox التي عدتها «ناقصة» أصبحت قديمة بالنسبة لهذه الصور.
-- فجوة مؤكدة حاليًا: PRE-Q17 يحتاج خيار `بيت` كصورة مفردة؛ لا يوجد VOC مستقل للبيت في asset-map الأساسي. SEN-10/STY-05 لا يصلحان كخيار مفردة عادل.
-- لا تُولد أي صورة أخرى قبل أن يفشل الجرد الدلالي الصريح لها.
+- المستودع الرسمي يحتوي أيضًا خريطة صور sequence المولدة والمعتمدة لـ L1-REIN-12 وL3-REIN-10؛ لا تعاد توليدها عشوائيًا.
+- كانت الفجوة المؤكدة الوحيدة في مفردات الاختيار هي PRE-Q17 للخيار `بيت`؛ لا يوجد VOC مستقل للبيت في `asset-map.json` الأساسي، وSEN-10/STY-05 لا يصلحان كخيار مفردة عادل.
+- أُنشئ أصل مستقل جديد `HIMMA-GEN-VOC-001` للـ`بيت`، وسُجل في `generated-vocabulary-map.json` وربط بـPRE-Q17.
+- أضيفت خريطة generated vocabulary إلى `/media/{asset_id}` لكي لا يبقى الأصل موجودًا في العقد وغير قابل للخدمة Runtime.
+- أضيف Regression يثبت أن PRE-Q17 أصبح 1:1 لأربعة خيارات صور وأن ملف البيت موجود فعليًا وغير صفري.
+- أضيف Gate يرفض أي `media_gaps` متبقية في الـ125 عنصرًا المجمعة.
+- لا تُولد أي صورة أخرى إلا إذا أثبت الجرد الدلالي الصريح أنها مفقودة فعلًا.
 
-## الصوت بعد الجرد
+## الصوت بعد الجرد والتحقق
 
 العقد الرسمي الحالي يحتوي 54 ID / 108 binary:
 - `SYL-13 = سَا`
@@ -65,18 +70,44 @@
 - `INS-02 = قصة نادر`
 - `LET-01 = مَ` لتوحيد POST-Q11
 
-هذه الملفات موجودة في المستودع الرسمي الحالي، ولذلك لا تُعاد إضافتها كنسخ مكررة. المطلوب هو ربطها من العقد النهائي والتحقق من manifest/runtime.
+تم التحقق من `manifest.csv` الحالي ومن وجود WAV/MP3 الجديدة داخل المستودع. كما أن `QA_REPORT.md` الحالي يوثق:
+- 54 أصلًا مستقلًا.
+- 54 WAV + 54 MP3.
+- `LET-01` مستبدل فعليًا بصوت `مَ`.
+- المصدر `SYL-15` نُشر تحت `LET-01` بدل إنشاء ID runtime مكرر.
+- فحص WAV/MP3 للتوسعة الجديدة وقراءة المدة نجح.
+- لا توجد ملفات صوتية مفقودة للمراجعة.
+
+المطلوب Runtime ليس دمجها في ملف صوت واحد؛ بل دمجها **وظيفيًا** في manifest/content contract/runtime بالـIDs الثابتة الصحيحة، وهو ما تم اعتماده في العقد الحالي.
+
+## حالة التنفيذ الحالية
+
+تم الآن على الفرع `integration/canonical-content-2026-09-08`:
+
+- compiler واحد DB-free للـ125 عنصرًا.
+- publisher واحد transactional للمحتوى الحالي.
+- إيقاف سلسلة correction/projection القديمة من `seed_all.py`.
+- POST-Q11=`مَ` عبر criterion/options/stimulus/LET-01.
+- POST-Q08/Q13 وL1-CORE-03 وPOST-Q15 محمية باختبارات regression.
+- قصتا ليان ونادر كـ`context_intro` مستقل، بدون صوت قصة داخل جولات الأسئلة.
+- image mapping صريح مع `option_order_index`.
+- أصل البيت المفقود لـPRE-Q17 أُنشئ وسُجل وربط وخُدم من media endpoint.
+- الصوت الحالي 54 ID / 108 binary موثق وموجود في المستودع.
 
 ## بوابات عدم الترقيع
 
 لا يعتبر النقل ناجحًا حتى تتحقق الآتي:
 
-- `seed_all.py` لا يستدعي سلسلة correction/overlay seeds.
-- لا يوجد Runtime parsing لـ`source_text`.
-- 125 عنصرًا نهائيًا، 30 قبلي، 30 core، 35 reinforcement، 30 بعدي.
+- `seed_all.py` لا يستدعي سلسلة correction/overlay seeds. **منجز بنيويًا**.
+- لا يوجد Runtime parsing لـ`source_text` في المسار الكانوني. **منجز في compiler الحالي**.
+- 125 عنصرًا نهائيًا، 30 قبلي، 30 core، 35 reinforcement، 30 بعدي. **مغلق في compiler tests**.
 - جميع options الحالية فريدة بصريًا بعد تطبيع invisible Unicode، مع السماح بالتكرار المقصود في ordered/build.
 - كل image-choice لديه mapping 1:1 صريح.
-- كل media ID موجود فعليًا أو مسجل كـgap مانع، لا fallback ترتيبي.
-- seed مرتين idempotent مع digest ثابت.
+- كل media ID موجود فعليًا ولا توجد `media_gaps` متبقية في العقد المجمّع.
+- seed مرتين idempotent مع digest ثابت على DB فعلية.
 - Admin Preview والطالب يستهلكان نفس payload/rendering contract.
 - Backend/Frontend/Integration/E2E والـsemantic readiness كلها خضراء قبل أي merge.
+
+## ملاحظة GitHub Actions الحالية
+
+آخر Push شغّل `Himma CI — Quality Gate` و`Himma M09 — Release Readiness Gate`، لكن GitHub أنهى jobs الخاصة بـbackend/frontend/security/release-readiness كـ`failure` مع **صفر خطوات قابلة للتنفيذ**، ومحاولة قراءة السجل ترجع `BlobNotFound`. لذلك لا يُصنف هذا كفشل اختبار كود، ولا يجوز اعتباره نجاحًا أيضًا. حالة الإصدار تبقى **NOT RELEASE READY** حتى تصبح البوابات قابلة للتنفيذ ونحصل على نتائج فعلية.
