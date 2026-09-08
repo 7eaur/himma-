@@ -22,8 +22,15 @@ function signature(urls: string[]) {
  * memoized loading/reset callbacks. Playback state is still React state, so the
  * screen re-renders for play/pause icons without causing navigation effects to
  * restart.
+ *
+ * onQueueEnded fires only after natural playback reaches the end of the final
+ * asset. Manual stop, navigation cleanup, and playback errors deliberately do
+ * not count as completion.
  */
-export function useAudioQueue(onError?: (message: string) => void): AudioQueueApi {
+export function useAudioQueue(
+  onError?: (message: string) => void,
+  onQueueEnded?: () => void,
+): AudioQueueApi {
   const [state, setState] = useState<AudioQueueState>("idle");
   const stateRef = useRef<AudioQueueState>("idle");
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -32,9 +39,11 @@ export function useAudioQueue(onError?: (message: string) => void): AudioQueueAp
   const signatureRef = useRef("");
   const disposedRef = useRef(false);
   const onErrorRef = useRef(onError);
+  const onQueueEndedRef = useRef(onQueueEnded);
   const playIndexRef = useRef<(index: number) => void>(() => undefined);
   const apiRef = useRef<AudioQueueApi | null>(null);
   onErrorRef.current = onError;
+  onQueueEndedRef.current = onQueueEnded;
 
   const setPlaybackState = useCallback((next: AudioQueueState) => {
     stateRef.current = next;
@@ -70,7 +79,9 @@ export function useAudioQueue(onError?: (message: string) => void): AudioQueueAp
       if (disposedRef.current) return;
       const next = indexRef.current + 1;
       if (next >= urlsRef.current.length) {
+        const completed = onQueueEndedRef.current;
         stop();
+        completed?.();
         return;
       }
       playIndexRef.current(next);
