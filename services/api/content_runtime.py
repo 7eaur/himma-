@@ -1,8 +1,8 @@
 """DB-only student-facing content helpers.
 
-All academic/display metadata is imported into PostgreSQL by the content
-publisher. Runtime requests never open repository JSON/CSV files, never parse
-legacy prompt/source text, and never infer image-option relationships by
+All academic/display metadata is imported into PostgreSQL by the canonical
+content publisher. Runtime requests never open repository JSON/CSV files, never
+parse legacy prompt/source text, and never infer image-option relationships by
 position.
 """
 from __future__ import annotations
@@ -13,7 +13,7 @@ from typing import Any
 
 from db.models import ContentItem, ContentStep
 
-DB_RUNTIME_VERSION = "HIMMA-DB-RUNTIME-1.0"
+DB_RUNTIME_VERSION = "HIMMA-DB-RUNTIME-2.0"
 READ = {"read_aloud", "timed_read_aloud"}
 LISTEN = {"listen_choose_one", "listen_choose_image", "listen_choose_many"}
 ORDER = {"sequence", "memory_sequence", "path_sequence", "build_word"}
@@ -60,7 +60,8 @@ def _db_runtime(item: ContentItem) -> dict[str, Any]:
 
 
 def catalog_item(item: ContentItem) -> dict[str, Any]:
-    return dict(_db_runtime(item).get("source_item") or {})
+    """Compatibility hook: the canonical runtime intentionally exposes no raw source item."""
+    return {}
 
 
 def _runtime_round(item: ContentItem, step: ContentStep) -> dict[str, Any]:
@@ -71,20 +72,21 @@ def _runtime_round(item: ContentItem, step: ContentStep) -> dict[str, Any]:
 
 
 def round_data(item: ContentItem, step: ContentStep) -> dict[str, Any]:
+    """Return structured runtime media only; never recreate legacy source_text."""
     runtime = _runtime_round(item, step)
-    source = dict(runtime.get("source") or {})
-    source["media"] = [
-        {
-            "asset_id": value.get("asset_id"),
-            "asset_type": value.get("asset_type"),
-            "type": value.get("asset_type"),
-            "usage": value.get("usage"),
-            "semantic_text": value.get("semantic_text"),
-        }
-        for value in runtime.get("assets", [])
-    ]
-    source["media_gaps"] = list(runtime.get("media_gaps") or [])
-    return source
+    return {
+        "media":[
+            {
+                "asset_id":value.get("asset_id"),
+                "asset_type":value.get("asset_type"),
+                "type":value.get("asset_type"),
+                "usage":value.get("usage"),
+                "semantic_text":value.get("semantic_text"),
+            }
+            for value in runtime.get("assets", [])
+        ],
+        "media_gaps":list(runtime.get("media_gaps") or []),
+    }
 
 
 def _presentation(item: ContentItem, step: ContentStep) -> dict[str, Any]:
@@ -170,29 +172,28 @@ def step_assets(item: ContentItem, step: ContentStep) -> list[dict[str, Any]]:
             if asset_type == "image" and usage == "choice":
                 option_id = _option_id_by_order(step, value.get("option_order_index"))
             result.append({
-                "asset_id": asset_id,
-                "asset_type": asset_type,
-                "usage": usage,
-                "semantic_text": value.get("semantic_text"),
-                "url": f"/api/media/{asset_id}",
-                "option_id": option_id,
+                "asset_id":asset_id,
+                "asset_type":asset_type,
+                "usage":usage,
+                "semantic_text":value.get("semantic_text"),
+                "url":f"/api/media/{asset_id}",
+                "option_id":option_id,
             })
         return _dedupe_assets(result)
 
-    # Missing structured runtime data is never permission to guess an
-    # option-image relation by list position. Legacy links remain visible only
-    # as non-selectable metadata until a semantic mapping is published.
-    result: list[dict[str, Any]] = []
-    for link in sorted(step.assets, key=lambda value: value.id or 0):
-        result.append({
-            "asset_id": link.manifest_asset_id,
-            "asset_type": link.asset_type,
-            "usage": link.usage_context,
-            "semantic_text": None,
-            "url": f"/api/media/{link.manifest_asset_id}",
-            "option_id": None,
-        })
-    return _dedupe_assets(result)
+    # Missing canonical DB runtime data is never permission to infer a selectable
+    # image from legacy ContentAssetLink ordering. Links remain non-selectable.
+    return _dedupe_assets([
+        {
+            "asset_id":link.manifest_asset_id,
+            "asset_type":link.asset_type,
+            "usage":link.usage_context,
+            "semantic_text":None,
+            "url":f"/api/media/{link.manifest_asset_id}",
+            "option_id":None,
+        }
+        for link in sorted(step.assets, key=lambda value: value.id or 0)
+    ])
 
 
 def item_assets(item: ContentItem) -> list[dict[str, Any]]:
@@ -200,20 +201,22 @@ def item_assets(item: ContentItem) -> list[dict[str, Any]]:
     if runtime_assets:
         return [
             {
-                "asset_id": str(value.get("asset_id") or ""),
-                "asset_type": str(value.get("asset_type") or ""),
-                "usage": value.get("usage"),
-                "semantic_text": value.get("semantic_text"),
-                "url": f"/api/media/{value.get('asset_id')}",
-                "option_id": None,
+                "asset_id":str(value.get("asset_id") or ""),
+                "asset_type":str(value.get("asset_type") or ""),
+                "usage":value.get("usage"),
+                "semantic_text":value.get("semantic_text"),
+                "url":f"/api/media/{value.get('asset_id')}",
+                "option_id":None,
             }
             for value in runtime_assets
             if value.get("asset_id") and value.get("asset_type")
         ]
 
+    # Compatibility fallback remains non-selectable and is not a source of
+    # current academic semantics.
     data = item.template_data or {}
     stored_assets = {
-        str(value.get("asset_id") or ""): value
+        str(value.get("asset_id") or ""):value
         for value in data.get("item_assets", [])
         if value.get("asset_id")
     }
@@ -227,11 +230,11 @@ def item_assets(item: ContentItem) -> list[dict[str, Any]]:
             or ""
         ).strip()
         result.append({
-            "asset_id": link.manifest_asset_id,
-            "asset_type": link.asset_type,
-            "usage": link.usage_context,
-            "semantic_text": semantic or None,
-            "url": f"/api/media/{link.manifest_asset_id}",
-            "option_id": None,
+            "asset_id":link.manifest_asset_id,
+            "asset_type":link.asset_type,
+            "usage":link.usage_context,
+            "semantic_text":semantic or None,
+            "url":f"/api/media/{link.manifest_asset_id}",
+            "option_id":None,
         })
     return result
