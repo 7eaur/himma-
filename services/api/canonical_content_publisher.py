@@ -56,6 +56,18 @@ def _assert_release_digest(release: dict[str, Any]) -> None:
         raise RuntimeError(f"Canonical release digest mismatch: expected={expected!r} actual={actual!r}")
 
 
+def _assert_exact_canonical_identity(release: dict[str, Any]) -> None:
+    """Reject caller-supplied variants even if they were re-hashed correctly."""
+    expected = build_canonical_release()
+    actual_sha = str(release.get("sha256") or "")
+    expected_sha = str(expected.get("sha256") or "")
+    if actual_sha != expected_sha:
+        raise RuntimeError(
+            "Publisher only accepts the exact release produced by build_canonical_release: "
+            f"expected={expected_sha!r} actual={actual_sha!r}"
+        )
+
+
 def _runtime_interaction(canonical: str) -> str:
     return "read_aloud" if canonical in READ else "multiple_choice"
 
@@ -310,6 +322,7 @@ def publish_release(release: dict[str, Any] | None = None) -> dict[str, Any]:
     _assert_release_digest(canonical)
     assert_question_contract_coverage(canonical)
     assert_media_contract(canonical)
+    _assert_exact_canonical_identity(canonical)
 
     db = SessionLocal()
     try:
