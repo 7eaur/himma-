@@ -56,11 +56,7 @@ def test_generated_house_is_the_semantic_house_choice_not_a_scene_substitute():
     assert not validate_media_contract(release)["image_semantic_mismatches"]
 
 
-def test_vocalized_letter_audio_does_not_collapse_to_another_vowel():
+def test_vocalized_letter_audio_keeps_ma_and_mi_as_distinct_approved_targets():
     assert resolve_audio_asset("مَ") == "LET-01"
-    try:
-        resolve_audio_asset("مِ")
-    except RuntimeError as exc:
-        assert "exactly one approved asset" in str(exc)
-    else:
-        raise AssertionError("مِ must not silently resolve to the approved مَ letter-sound asset")
+    assert resolve_audio_asset("مِ") == "SYL-05"
+    assert resolve_audio_asset("مَ") != resolve_audio_asset("مِ")
