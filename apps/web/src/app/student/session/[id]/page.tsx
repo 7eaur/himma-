@@ -367,18 +367,22 @@ export default function SessionPage() {
   const encouragement = presentation.encouragement;
   const stimulusKind = presentation.stimulus?.kind || "none";
   const stimulusText = String(presentation.stimulus?.text || "");
-  const hasMediaGap = step.media_gaps.length > 0;
   const optionImageAssets = imageAssets.filter((asset) => asset.option_id);
-  const imageChoice = interaction === "choose_image"
-    || interaction === "listen_choose_image"
-    || ((interaction === "choose_many" || interaction === "listen_choose_many") && optionImageAssets.length > 0);
-  const sequenceWithImages = ORDER.has(interaction) && optionImageAssets.length > 0;
+  const completeImageOptionMapping = step.options.length > 0
+    && step.options.every((option) => optionImageAssets.some((asset) => Number(asset.option_id) === option.id));
+  const explicitImageChoice = interaction === "choose_image" || interaction === "listen_choose_image";
+  const partialOrderedImageMapping = ORDER.has(interaction) && optionImageAssets.length > 0 && !completeImageOptionMapping;
+  const hasImageMappingGap = (explicitImageChoice && !completeImageOptionMapping) || partialOrderedImageMapping;
+  const hasMediaGap = step.media_gaps.length > 0 || hasImageMappingGap;
+  const imageChoice = explicitImageChoice
+    || ((interaction === "choose_many" || interaction === "listen_choose_many") && completeImageOptionMapping);
+  const sequenceWithImages = ORDER.has(interaction) && completeImageOptionMapping;
   const canSubmit = Boolean(
     (SINGLE.has(interaction) && selectedIds.length === 1)
     || (MULTI.has(interaction) && targetCount > 0 && selectedIds.length === targetCount)
     || (ORDER.has(interaction) && targetCount > 0 && selectedIds.length === targetCount)
   );
-  const visualAsset = contextAssets[0] || (stimulusKind === "image" ? imageAssets.find((asset) => !asset.option_id) || imageAssets[0] : undefined);
+  const visualAsset = contextAssets[0] || (stimulusKind === "image" ? imageAssets.find((asset) => !asset.option_id) : undefined);
   const sideCharacter = READ.has(interaction) ? "/characters/girl/encourage.png" : "/characters/girl/explain.png";
   const assessmentLabel = item.kind === "pretest_question" ? "الاختبار القبلي" : "الاختبار البعدي";
 
@@ -402,7 +406,7 @@ export default function SessionPage() {
           {READ.has(interaction) && <div className={`${styles.readingBox} ${(step.expected_reading_text?.length || stimulusText.length) > 55 ? styles.readingBoxLong : ""}`} data-testid="reading-text">{step.expected_reading_text || stimulusText}</div>}
 
           <div className={styles.instructionRow}><Info size={21} aria-hidden="true"/><p>{instructionText}</p></div>
-          {hasMediaGap && <div className={styles.notice}>هذه المهمة متوقفة لأن أصلًا تعليميًا معتمدًا غير متوفر. لا يمكن تجاوزها أو احتسابها.</div>}
+          {hasMediaGap && <div className={styles.notice}>هذه المهمة متوقفة لأن أصلًا تعليميًا معتمدًا غير متوفر أو غير مرتبط بكل الخيارات. لا يمكن تجاوزها أو احتسابها.</div>}
 
           {!hasMediaGap && imageChoice && <div className={styles.imageOptions} data-testid="image-options">{optionImageAssets.map((asset) => {
             const optionId = Number(asset.option_id);
@@ -416,7 +420,8 @@ export default function SessionPage() {
               {!selectedIds.length && <span className={styles.sequenceHint}>{interaction === "build_word" ? "اضغط الحروف بالترتيب لتكوين الكلمة" : "اضغط العناصر بالترتيب الصحيح"}</span>}
               {selectedIds.map((id, index) => {
                 const option = step.options.find((candidate) => candidate.id === id);
-                return <span className={styles.sequenceChip} key={`${id}-${index}`}><span className={styles.number}>{index + 1}</span>{sequenceWithImages && interaction !== "build_word" ? null : option?.text}</span>;
+                const asset = optionImageAssets.find((candidate) => Number(candidate.option_id) === id);
+                return <span className={styles.sequenceChip} key={`${id}-${index}`}><span className={styles.number}>{index + 1}</span>{sequenceWithImages && interaction !== "build_word" && asset ? <Image src={asset.url} alt={asset.semantic_text || option?.text || `العنصر ${index + 1}`} width={70} height={50} unoptimized/> : option?.text}</span>;
               })}
             </div>
             {sequenceWithImages && interaction !== "build_word" ? <div className={styles.imageOptions} data-testid="sequence-image-options">{optionImageAssets.filter((asset) => !selectedIds.includes(Number(asset.option_id))).map((asset) => <button key={`${asset.asset_id}-${asset.option_id}`} className={styles.imageOption} onClick={() => toggleOption(Number(asset.option_id))} disabled={targetCount > 0 && selectedIds.length >= targetCount} aria-label={asset.semantic_text || "عنصر ترتيب"} type="button"><Image src={asset.url} alt="" aria-hidden="true" width={220} height={150} unoptimized/></button>)}</div> : <div className={styles.options}>{options.filter((option) => !selectedIds.includes(option.id)).map((option) => <button key={option.id} className={styles.option} onClick={() => toggleOption(option.id)} disabled={targetCount > 0 && selectedIds.length >= targetCount} type="button">{option.text}</button>)}</div>}
