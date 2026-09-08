@@ -14,6 +14,7 @@ def _runtime_identity_snapshot():
                 str(item.stable_key),
                 str(item.checksum),
                 str((item.template_data or {}).get("canonical_release_sha256") or ""),
+                str((item.template_data or {}).get("canonical_projection_sha256") or ""),
             )
             for item in db.query(ContentItem).all()
         ))
@@ -77,6 +78,8 @@ def test_full_seed_creates_125_items_and_is_repeatable():
 
     assert first["canonical_release_sha256"] == second["canonical_release_sha256"]
     assert first["canonical_release_items"] == second["canonical_release_items"] == 125
+    assert first["publication"]["projection_sha256"] == second["publication"]["projection_sha256"]
+    assert len(second["publication"]["projection_sha256"]) == 64
     assert second["publication"]["option_rows_created"] == 0
     assert second["publication"]["option_rows_reactivated"] == 0
     assert second["publication"]["option_rows_retired"] == 0
