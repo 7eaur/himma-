@@ -144,12 +144,26 @@ test.describe("student question experience", () => {
         const copy = await displayedQuestionCopy(page);
         expect(copy).toContain("الصورة");
         expect(copy).toContain("يبدأ اسمها");
+        const imageButtons = page.getByTestId("image-options").getByRole("button");
+        await expect(imageButtons).toHaveCount(4);
+        for (let option = 0; option < 4; option += 1) {
+          expect(((await imageButtons.nth(option).textContent()) ?? "").trim()).toBe("");
+          await expect(imageButtons.nth(option).locator("img")).toHaveCount(1);
+        }
         await page.screenshot({ path: "playwright-report/screenshots/qx-listen-starting-image.png", fullPage: true });
       }
       if (index === 6) {
         const copy = await displayedQuestionCopy(page);
         expect(copy).toMatch(/آخرها|نهايتها|تنتهي به|آخر صوت/u);
         await page.screenshot({ path: "playwright-report/screenshots/qx-final-sound.png", fullPage: true });
+      }
+      if (index === 9) {
+        const sequenceImages = page.getByTestId("sequence-image-options").getByRole("button");
+        expect(await sequenceImages.count()).toBeGreaterThan(0);
+        await sequenceImages.first().click();
+        await expect(page.getByTestId("sequence-board").locator("img")).toHaveCount(1);
+        await page.getByRole("button", { name: "إعادة الترتيب" }).click();
+        await expect(page.getByTestId("sequence-board").locator("img")).toHaveCount(0);
       }
 
       await answerVisibleChoice(page);
