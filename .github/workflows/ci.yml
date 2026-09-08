@@ -127,8 +127,10 @@ jobs:
           python-version: '3.12'
       - name: Install dependencies
         run: pip install -r requirements.txt pytest httpx
-      - name: Validate approved content catalog
-        run: python ../../packages/content/scripts/validate_catalog.py
+      - name: Validate legacy catalog and canonical release
+        run: |
+          python ../../packages/content/scripts/validate_catalog.py
+          python canonical_release.py
       - name: Alembic migrations — upgrade, downgrade, upgrade
         run: |
           alembic upgrade head
@@ -136,19 +138,8 @@ jobs:
           alembic upgrade head
       - name: Alembic model drift check
         run: alembic check
-      - name: Verify seed idempotency (run twice)
-        run: |
-          python seed.py
-          python seed.py
-          python -c "
-          import os
-          from sqlalchemy import create_engine, text
-          e = create_engine(os.environ['DATABASE_URL'])
-          with e.connect() as c:
-              n = c.execute(text('SELECT COUNT(*) FROM content_items')).scalar()
-              assert n > 0, f'Expected content_items > 0, got {n}'
-              print(f'content_items count: {n} (idempotent seed OK)')
-          "
+      - name: Verify canonical seed idempotency on PostgreSQL
+        run: python verify_canonical_seed_idempotency.py
       - name: Run backend tests
         run: pytest -v --tb=short
 
@@ -255,6 +246,7 @@ jobs:
         working-directory: services/api
         run: |
           alembic upgrade head
+          python canonical_release.py
           python seed_all.py
           python -m db.seed
       - name: Start FastAPI in background
