@@ -7,6 +7,7 @@ resolution. This publisher owns persistence and historical safety:
 - current media links are reconciled from the explicit semantic contract;
 - unchanged media links keep their durable IDs across repeated publication;
 - the DB-only runtime snapshot contains no raw source text;
+- the final current DB projection receives an independent semantic digest;
 - all writes occur in one transaction after digest/content/media validation.
 
 Legacy baseline/addition seeders may still be used by seed_all as *bootstrap
@@ -29,6 +30,7 @@ from content_approval_contract_2026_09_08 import (
     VERSION,
 )
 from content_option_lifecycle import set_exact_current_options
+from content_projection_digest import projection_sha256
 from db.database import SessionLocal
 from db.models import ContentAssetLink, ContentItem, ContentRelease, ContentStep, Skill
 
@@ -354,6 +356,26 @@ def _activate_release(db, release: dict[str, Any]) -> None:
         current.is_active = True
 
 
+def _stamp_projection_digest(db) -> str:
+    """Attest the exact current DB learner projection before the transaction commits."""
+    db.flush()
+    db.expire_all()
+    digest = projection_sha256(db)
+    for item in db.query(ContentItem).all():
+        data = dict(item.template_data or {})
+        data["canonical_projection_sha256"] = digest
+        item.template_data = data
+    db.flush()
+    db.expire_all()
+    verified = projection_sha256(db)
+    if verified != digest:
+        raise RuntimeError(
+            "Canonical DB projection changed while being attested: "
+            f"expected={digest!r} actual={verified!r}"
+        )
+    return digest
+
+
 def publish_release(release: dict[str, Any] | None = None) -> dict[str, Any]:
     canonical = release or build_canonical_release()
     if str(canonical.get("release_version")) != VERSION:
@@ -397,10 +419,12 @@ def publish_release(release: dict[str, Any] | None = None) -> dict[str, Any]:
         if len(published_ids) != 125:
             raise RuntimeError("Canonical publisher did not resolve 125 unique durable item rows")
         _activate_release(db, canonical)
+        projection_digest = _stamp_projection_digest(db)
         db.commit()
         return {
             "release_version": str(canonical["release_version"]),
             "release_sha256": str(canonical["sha256"]),
+            "projection_sha256": projection_digest,
             "items": len(published_ids),
             "option_rows_created": totals["option_created"],
             "option_rows_reactivated": totals["option_reactivated"],
