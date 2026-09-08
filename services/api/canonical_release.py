@@ -2,10 +2,10 @@
 
 ``canonical_content_compiler`` converts historical/approved content sources into
 one structured academic release. This module is the final release boundary: it
-verifies that every student question is covered by an approved structured source,
-resolves every listening prompt against the approved audio manifest by semantic
-target, makes the heard target explicit, re-hashes the result, and runs the
-fail-closed media inventory guard.
+projects the already-approved structured posttest presentation, reapplies the
+newer 2026-09-08 overrides, verifies question coverage, resolves every listening
+prompt against the approved audio manifest by semantic target, re-hashes the
+result, and runs the fail-closed media inventory guard.
 
 Nothing here writes to the database. The publisher receives only the returned
 final object, so there is one canonical release and no post-publication repair
@@ -25,8 +25,10 @@ from content_approval_contract_2026_09_08 import (
     LEARNING_QUESTIONS,
     LEARNING_ROUND_QUESTIONS,
     POSTTEST_QUESTIONS,
+    POSTTEST_STIMULUS_OVERRIDES,
     PRETEST_QUESTIONS,
 )
+from posttest_presentation_2026_09_01 import POSTTEST_PRESENTATION
 
 ROOT = Path(__file__).resolve().parents[2]
 BASELINE_SOURCE = ROOT / "packages" / "content" / "src" / "catalog.json"
@@ -34,6 +36,7 @@ ADDITION_SOURCES = (
     ROOT / "packages" / "content" / "src" / "reinforcement_additions_v1.json",
     ROOT / "packages" / "content" / "src" / "reinforcement_additions_v2.json",
 )
+READ = {"read_aloud", "timed_read_aloud"}
 
 # These two story activities use their separately approved structured story
 # sources/replacement rounds. They are intentionally not represented by one
@@ -102,6 +105,48 @@ def assert_question_contract_coverage(release: dict[str, Any]) -> None:
         rounds = list((by_id.get(canonical) or {}).get("rounds") or [])
         if not rounds or any(not str(step.get("question_text") or "").strip() for step in rounds):
             raise RuntimeError(f"{canonical}: approved story source has an empty question round")
+
+
+def _apply_posttest_presentation(release: dict[str, Any]) -> None:
+    """Project the structured Sep-01 posttest without reintroducing an overlay.
+
+    The retired DB seeder used to own stimulus/instruction/encouragement for the
+    posttest. Those values are now a pure source and are folded into the final
+    in-memory release before publication. The newer Sep-08 stimulus corrections
+    are applied last, so POST-Q11 remains ``مَ`` rather than the historical ``مِ``.
+    """
+    by_id = {
+        str(item.get("canonical_id") or ""): item
+        for item in release.get("items") or []
+        if str(item.get("kind") or "") == "posttest_question"
+    }
+    if set(by_id) != set(POSTTEST_PRESENTATION):
+        raise RuntimeError(
+            "Structured posttest presentation coverage mismatch: "
+            f"release={sorted(by_id)} source={sorted(POSTTEST_PRESENTATION)}"
+        )
+
+    for canonical, presentation in POSTTEST_PRESENTATION.items():
+        item = by_id[canonical]
+        rounds = list(item.get("rounds") or [])
+        if len(rounds) != 1:
+            raise RuntimeError(f"{canonical}: posttest presentation expects exactly one round")
+        step = rounds[0]
+        item["presentation_skill"] = str(presentation["skill"])
+        step["instruction_text"] = str(presentation["instruction_text"])
+        step["encouragement"] = str(presentation["encouragement"])
+        step["stimulus"] = deepcopy(presentation["stimulus"])
+
+        expected = presentation.get("expected_reading_text")
+        if expected is not None:
+            if str(item.get("interaction_type") or "") not in READ:
+                raise RuntimeError(f"{canonical}: structured reading stimulus targets a non-reading interaction")
+            step["expected_reading_text"] = str(expected)
+            step["options"] = []
+
+    # Sep-08 is newer and authoritative for changed stimulus semantics.
+    for canonical, stimulus in POSTTEST_STIMULUS_OVERRIDES.items():
+        by_id[canonical]["rounds"][0]["stimulus"] = deepcopy(stimulus)
 
 
 def _baseline_audio_targets() -> dict[tuple[str, int], str]:
@@ -250,6 +295,7 @@ def _resolve_listening_audio(release: dict[str, Any]) -> None:
 
 def build_canonical_release() -> dict[str, Any]:
     release = deepcopy(compile_release())
+    _apply_posttest_presentation(release)
     assert_question_contract_coverage(release)
     _resolve_listening_audio(release)
     release = _rehash(release)
