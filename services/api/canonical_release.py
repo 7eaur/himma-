@@ -29,6 +29,7 @@ from content_approval_contract_2026_09_08 import (
 )
 
 ROOT = Path(__file__).resolve().parents[2]
+BASELINE_SOURCE = ROOT / "packages" / "content" / "src" / "catalog.json"
 ADDITION_SOURCES = (
     ROOT / "packages" / "content" / "src" / "reinforcement_additions_v1.json",
     ROOT / "packages" / "content" / "src" / "reinforcement_additions_v2.json",
@@ -103,6 +104,37 @@ def assert_question_contract_coverage(release: dict[str, Any]) -> None:
             raise RuntimeError(f"{canonical}: approved story source has an empty question round")
 
 
+def _baseline_audio_targets() -> dict[tuple[str, int], str]:
+    """Freeze unchanged listening semantics before later image-media replacement.
+
+    The September approval changes several image pools without changing the sound
+    heard by the learner (for example L1-CORE-04, L1-REIN-02 and POST-Q05).
+    Replacing the image contract must not erase that independent audio target.
+    The legacy catalog is used here only as a compile-time migration input; the
+    resolved target is written into the final canonical release and runtime never
+    parses this file.
+    """
+    if not BASELINE_SOURCE.is_file():
+        raise RuntimeError(f"Missing baseline source needed for audio resolution: {BASELINE_SOURCE}")
+    payload = json.loads(BASELINE_SOURCE.read_text(encoding="utf-8"))
+    result: dict[tuple[str, int], str] = {}
+    for item in payload.get("items") or []:
+        canonical = str(item.get("canonical_id") or "").strip()
+        for index, raw in enumerate(item.get("rounds") or [], 1):
+            targets = {
+                str(asset.get("semantic_text") or "").strip()
+                for asset in raw.get("media") or []
+                if str(asset.get("asset_type") or "") == "audio"
+                and str(asset.get("usage") or "") == "prompt"
+                and str(asset.get("semantic_text") or "").strip()
+            }
+            if len(targets) > 1:
+                raise RuntimeError(f"Conflicting baseline prompt audio targets for {canonical}/R{index:02d}: {sorted(targets)}")
+            if targets:
+                result[(canonical, index)] = next(iter(targets))
+    return result
+
+
 def _addition_audio_targets() -> dict[tuple[str, int], str]:
     """Read explicit ``audio_text`` from approved reinforcement source files."""
     result: dict[tuple[str, int], str] = {}
@@ -140,20 +172,24 @@ def _target_for_round(
     canonical: str,
     round_number: int,
     step: dict[str, Any],
+    baseline_targets: dict[tuple[str, int], str],
     addition_targets: dict[tuple[str, int], str],
 ) -> str:
     stimulus = step.get("stimulus") or {}
     explicit = str(stimulus.get("audio_target") or "").strip() if isinstance(stimulus, dict) else ""
     source_target = addition_targets.get((canonical, round_number), "")
     existing = _existing_prompt_target(step) or ""
+    baseline = baseline_targets.get((canonical, round_number), "")
 
-    declared = [value for value in (explicit, source_target, existing) if value]
+    declared = [value for value in (explicit, source_target, existing, baseline) if value]
     if not declared:
         raise RuntimeError(f"{canonical}/R{round_number:02d}: listen interaction has no approved audio target")
 
-    # The latest explicit structured stimulus wins. If no later stimulus exists,
-    # the approved reinforcement source wins over historical catalog metadata.
-    target = explicit or source_target or existing
+    # Latest structured stimulus wins. Approved reinforcement source wins next.
+    # Existing compiled prompt media is preferred to the historical baseline;
+    # the baseline is only a recovery source when an independent image contract
+    # intentionally replaced the media list earlier in compilation.
+    target = explicit or source_target or existing or baseline
     if explicit and source_target and explicit != source_target:
         raise RuntimeError(
             f"{canonical}/R{round_number:02d}: conflicting explicit/source audio targets "
@@ -164,6 +200,7 @@ def _target_for_round(
 
 def _resolve_listening_audio(release: dict[str, Any]) -> None:
     """Resolve every listening round by target semantics, never by old asset ID."""
+    baseline_targets = _baseline_audio_targets()
     addition_targets = _addition_audio_targets()
     seen_addition_targets: set[tuple[str, int]] = set()
 
@@ -174,7 +211,13 @@ def _resolve_listening_audio(release: dict[str, Any]) -> None:
         canonical = str(item.get("canonical_id") or "")
         for step in item.get("rounds") or []:
             round_number = int(step.get("order_index") or 0)
-            target = _target_for_round(canonical, round_number, step, addition_targets)
+            target = _target_for_round(
+                canonical,
+                round_number,
+                step,
+                baseline_targets,
+                addition_targets,
+            )
             if (canonical, round_number) in addition_targets:
                 seen_addition_targets.add((canonical, round_number))
             asset_id = resolve_audio_asset(target)
