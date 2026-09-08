@@ -2,18 +2,22 @@
 
 Academic scoring/adaptation remains owned by the activity runtime. This endpoint
 exposes only the canonical structured presentation plus current options/media.
+It consumes the same learner-navigation resolver as ``/activities/.../next`` so
+pending audio review can never make the visual experience point at a different
+step than the submission runtime.
+
 Legacy prompt/source text is never parsed for student rendering.
 """
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 
 from activities import _activity_session_or_404
-from activity_runtime import effective_step_state
+from activity_runtime import effective_step_state, navigation_target
 from content_approval_contract_2026_09_08 import LEARNING_VERSION, VERSION as APPROVAL_VERSION
 from content_runtime import active_options, canonical_interaction, item_assets, media_gaps, step_assets
-from db.models import Attempt, ContentItem, ContentStep, Student
+from db.models import ContentItem, ContentStep, Student
 from dependencies import get_current_student, get_db
 
 router = APIRouter(prefix="/learning-experience", tags=["Learning Experience"])
@@ -68,31 +72,20 @@ def current_learning_experience(
     student: Student = Depends(get_current_student),
 ):
     session = _activity_session_or_404(db, session_id, student.id, require_active=False)
-    attempt = (
-        db.query(Attempt)
-        .filter(Attempt.session_id == session.id, Attempt.status == "in_progress")
-        .order_by(Attempt.id.desc())
-        .first()
-    )
-    if attempt is None:
-        return None
 
-    item = (
-        db.query(ContentItem)
-        .options(
-            joinedload(ContentItem.steps).joinedload(ContentStep.options),
-            joinedload(ContentItem.steps).joinedload(ContentStep.assets),
-            joinedload(ContentItem.assets),
-        )
-        .filter(ContentItem.id == attempt.item_id)
-        .first()
+    attempt, item, step, pending_count, _ = navigation_target(
+        db,
+        session.id,
+        finalize_completed=False,
     )
-    if item is None:
-        raise HTTPException(status_code=409, detail="تعذر تحميل بيانات عرض النشاط")
-
-    steps = sorted(item.steps, key=lambda value: value.order_index)
-    step = next((value for value in steps if not effective_step_state(db, attempt, value)["done"]), None)
-    if step is None:
+    if attempt is None or item is None or step is None:
+        if pending_count:
+            return {
+                "version": VERSION,
+                "session_id": session.id,
+                "navigation_state": "awaiting_audio_review",
+                "pending_audio_reviews": pending_count,
+            }
         return None
 
     data = item.template_data or {}
@@ -117,32 +110,33 @@ def current_learning_experience(
     current_assets = item_assets(item)
     options = active_options(step)
     return {
-        "version":VERSION,
-        "session_id":session.id,
-        "level_id":item.level_id,
-        "item_id":item.id,
-        "stable_key":item.stable_key,
-        "kind":item.kind,
-        "interaction_type":interaction,
-        "round":round_data,
-        "retry":state["attempts_used"] > 0 and not state["done"] and not awaiting_audio_review,
-        "attempts_used":state["attempts_used"],
-        "max_attempts":MAX_STEP_ATTEMPTS,
-        "audio_review_status":audio_review_status,
-        "awaiting_audio_review":awaiting_audio_review,
-        "context_intro":_context_intro(item, current_assets),
-        "layout_hint":_layout_hint(item),
-        "step":{
-            "id":step.id,
-            "order_index":step.order_index,
-            "expected_reading_text":step.expected_reading_text,
-            "required_selection_count":_required_selection_count(interaction, step),
-            "options":[
-                {"id":option.id,"text":option.text,"order_index":option.order_index}
+        "version": VERSION,
+        "session_id": session.id,
+        "level_id": item.level_id,
+        "item_id": item.id,
+        "stable_key": item.stable_key,
+        "kind": item.kind,
+        "interaction_type": interaction,
+        "round": round_data,
+        "retry": state["attempts_used"] > 0 and not state["done"] and not awaiting_audio_review,
+        "attempts_used": state["attempts_used"],
+        "max_attempts": MAX_STEP_ATTEMPTS,
+        "audio_review_status": audio_review_status,
+        "awaiting_audio_review": awaiting_audio_review,
+        "pending_audio_reviews": pending_count,
+        "context_intro": _context_intro(item, current_assets),
+        "layout_hint": _layout_hint(item),
+        "step": {
+            "id": step.id,
+            "order_index": step.order_index,
+            "expected_reading_text": step.expected_reading_text,
+            "required_selection_count": _required_selection_count(interaction, step),
+            "options": [
+                {"id": option.id, "text": option.text, "order_index": option.order_index}
                 for option in options
             ],
-            "assets":step_assets(item, step),
-            "media_gaps":media_gaps(item, step),
+            "assets": step_assets(item, step),
+            "media_gaps": media_gaps(item, step),
         },
-        "assets":current_assets,
+        "assets": current_assets,
     }
