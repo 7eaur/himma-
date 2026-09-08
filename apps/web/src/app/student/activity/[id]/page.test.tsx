@@ -5,6 +5,13 @@ const push = jest.fn();
 const playbackToggle = jest.fn();
 const playbackStop = jest.fn();
 let queueEnded: (() => void) | undefined;
+const playbackApi = {
+  state: "idle" as const,
+  isPlaying: false,
+  isPaused: false,
+  toggle: playbackToggle,
+  stop: playbackStop,
+};
 
 jest.mock("next/navigation", () => ({
   useParams: () => ({ id: "42" }),
@@ -14,13 +21,7 @@ jest.mock("next/navigation", () => ({
 jest.mock("@/hooks/useAudioQueue", () => ({
   useAudioQueue: (_onError?: (message: string) => void, onEnded?: () => void) => {
     queueEnded = onEnded;
-    return {
-      state: "idle",
-      isPlaying: false,
-      isPaused: false,
-      toggle: playbackToggle,
-      stop: playbackStop,
-    };
+    return playbackApi;
   },
 }));
 
