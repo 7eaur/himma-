@@ -1,12 +1,12 @@
-"""Publish the compiled Himma canonical release to PostgreSQL.
+"""Publish the final Himma canonical release to PostgreSQL.
 
-The compiler owns academic/current presentation truth. This publisher owns only
-persistence and historical safety:
+The release builder owns academic/current presentation truth and complete media
+resolution. This publisher owns persistence and historical safety:
 - existing ContentItem and ContentStep IDs are preserved;
 - superseded ContentOption rows are retired, never deleted/reinterpreted;
 - current media links are replaced from the explicit semantic contract;
 - the DB-only runtime snapshot contains no raw source text;
-- all writes occur in one transaction after the complete release validates.
+- all writes occur in one transaction after digest/media validation.
 
 Legacy baseline/addition seeders may still be used by seed_all as *bootstrap
 importers* on an empty database, but no legacy correction/projection seed is part
@@ -19,7 +19,8 @@ import json
 from copy import deepcopy
 from typing import Any
 
-from canonical_content_compiler import compile_release
+from canonical_media_guard import assert_media_contract
+from canonical_release import build_canonical_release
 from content_approval_contract_2026_09_08 import (
     LEARNING_VERSION,
     POSTTEST_VERSION,
@@ -43,6 +44,16 @@ def _canonical(item: ContentItem) -> str:
 def _item_checksum(spec: dict[str, Any]) -> str:
     raw = json.dumps(spec, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
     return hashlib.sha256(raw).hexdigest()
+
+
+def _assert_release_digest(release: dict[str, Any]) -> None:
+    expected = str(release.get("sha256") or "")
+    value = deepcopy(release)
+    value.pop("sha256", None)
+    raw = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    actual = hashlib.sha256(raw).hexdigest()
+    if not expected or expected != actual:
+        raise RuntimeError(f"Canonical release digest mismatch: expected={expected!r} actual={actual!r}")
 
 
 def _runtime_interaction(canonical: str) -> str:
@@ -113,9 +124,9 @@ def _replace_assets(db, owner, specs: list[dict[str, Any]]) -> None:
         if not asset_id or not asset_type:
             raise RuntimeError("Canonical media link has no asset_id/asset_type")
         kwargs: dict[str, Any] = {
-            "manifest_asset_id":asset_id,
-            "asset_type":asset_type,
-            "usage_context":str(value.get("usage") or "") or None,
+            "manifest_asset_id": asset_id,
+            "asset_type": asset_type,
+            "usage_context": str(value.get("usage") or "") or None,
         }
         if isinstance(owner, ContentStep):
             kwargs["step_id"] = owner.id
@@ -133,7 +144,7 @@ def _publish_steps(db, item: ContentItem, spec: dict[str, Any]) -> tuple[int, in
             f"{spec['canonical_id']}: publisher refuses to change durable round count "
             f"existing={len(existing)} compiled={len(compiled)}"
         )
-    by_order = {int(step.order_index):step for step in existing}
+    by_order = {int(step.order_index): step for step in existing}
     if len(by_order) != len(existing):
         raise RuntimeError(f"{spec['canonical_id']}: duplicate durable round order")
 
@@ -168,16 +179,16 @@ def _assessment_projection(item: ContentItem, spec: dict[str, Any], version: str
         raise RuntimeError(f"{spec['canonical_id']}: assessment item must have one round")
     step = spec["rounds"][0]
     return {
-        "version":version,
-        "question_number":int(spec["order_index"]),
-        "section":section,
-        "skill":item.skill.name if item.skill is not None else str(spec["canonical_skill_code"]),
-        "encouragement":str(step["encouragement"]),
-        "hint":str(step["hint"]),
-        "question_text":str(step["question_text"]),
-        "instruction_text":str(step["instruction_text"]),
-        "interaction_type":str(spec["interaction_type"]),
-        "stimulus":deepcopy(step.get("stimulus") or {"kind":"none"}),
+        "version": version,
+        "question_number": int(spec["order_index"]),
+        "section": section,
+        "skill": item.skill.name if item.skill is not None else str(spec["canonical_skill_code"]),
+        "encouragement": str(step["encouragement"]),
+        "hint": str(step["hint"]),
+        "question_text": str(step["question_text"]),
+        "instruction_text": str(step["instruction_text"]),
+        "interaction_type": str(spec["interaction_type"]),
+        "stimulus": deepcopy(step.get("stimulus") or {"kind": "none"}),
     }
 
 
@@ -186,36 +197,37 @@ def _learning_projection(item: ContentItem, spec: dict[str, Any]) -> dict[str, A
     rounds = []
     for step in spec["rounds"]:
         rounds.append({
-            "round_number":int(step["order_index"]),
-            "round_total":len(spec["rounds"]),
-            "skill":skill,
-            "encouragement":str(step["encouragement"]),
-            "hint":str(step["hint"]),
-            "question_text":str(step["question_text"]),
-            "instruction_text":str(step["instruction_text"]),
-            "stimulus_text":_stimulus_text(step.get("stimulus")),
+            "round_number": int(step["order_index"]),
+            "round_total": len(spec["rounds"]),
+            "skill": skill,
+            "encouragement": str(step["encouragement"]),
+            "hint": str(step["hint"]),
+            "question_text": str(step["question_text"]),
+            "instruction_text": str(step["instruction_text"]),
+            "stimulus_text": _stimulus_text(step.get("stimulus")),
+            "stimulus": deepcopy(step.get("stimulus") or {"kind": "none"}),
         })
     return {
-        "version":LEARNING_VERSION,
-        "projection_contract":"canonical_release_v3",
-        "rounds":rounds,
+        "version": LEARNING_VERSION,
+        "projection_contract": "canonical_release_v3",
+        "rounds": rounds,
     }
 
 
 def _runtime_snapshot(spec: dict[str, Any], release_sha: str) -> dict[str, Any]:
     return {
-        "version":DB_RUNTIME_VERSION,
-        "canonical_release_version":VERSION,
-        "canonical_release_sha256":release_sha,
-        "rounds":[
+        "version": DB_RUNTIME_VERSION,
+        "canonical_release_version": VERSION,
+        "canonical_release_sha256": release_sha,
+        "rounds": [
             {
-                "order_index":int(step["order_index"]),
-                "assets":deepcopy(step.get("media") or []),
-                "media_gaps":deepcopy(step.get("media_gaps") or []),
+                "order_index": int(step["order_index"]),
+                "assets": deepcopy(step.get("media") or []),
+                "media_gaps": deepcopy(step.get("media_gaps") or []),
             }
             for step in spec["rounds"]
         ],
-        "item_assets":deepcopy(spec.get("item_assets") or []),
+        "item_assets": deepcopy(spec.get("item_assets") or []),
     }
 
 
@@ -241,19 +253,19 @@ def _publish_item(db, item: ContentItem, spec: dict[str, Any], skill_map: dict[s
     item.skill = skill
     data = dict(item.template_data or {})
     data.update({
-        "canonical_id":canonical,
-        "title":str(spec["title"]),
-        "canonical_interaction_type":str(spec["interaction_type"]),
-        "criterion":spec.get("criterion"),
-        "canonical_release_version":VERSION,
-        "canonical_release_sha256":release_sha,
-        "canonical_publisher_version":PUBLISHER_VERSION,
-        "db_runtime":_runtime_snapshot(spec, release_sha),
-        "item_assets":deepcopy(spec.get("item_assets") or []),
+        "canonical_id": canonical,
+        "title": str(spec["title"]),
+        "canonical_interaction_type": str(spec["interaction_type"]),
+        "criterion": spec.get("criterion"),
+        "canonical_release_version": VERSION,
+        "canonical_release_sha256": release_sha,
+        "canonical_publisher_version": PUBLISHER_VERSION,
+        "db_runtime": _runtime_snapshot(spec, release_sha),
+        "item_assets": deepcopy(spec.get("item_assets") or []),
     })
     approval = {
-        "version":VERSION,
-        "source":"HIMMA_CONTENT_APPROVAL_MASTER_INDEX_2026-09-08_AR.md",
+        "version": VERSION,
+        "source": "HIMMA_CONTENT_APPROVAL_MASTER_INDEX_2026-09-08_AR.md",
     }
     if spec.get("context_intro"):
         approval["context_intro"] = deepcopy(spec["context_intro"])
@@ -271,7 +283,7 @@ def _publish_item(db, item: ContentItem, spec: dict[str, Any], skill_map: dict[s
         data["learning_experience_version"] = LEARNING_VERSION
         data["learning_experience"] = _learning_projection(item, spec)
     item.template_data = data
-    return {"created":created,"reactivated":reactivated,"retired":retired}
+    return {"created": created, "reactivated": reactivated, "retired": retired}
 
 
 def _activate_release(db, release: dict[str, Any]) -> None:
@@ -286,12 +298,17 @@ def _activate_release(db, release: dict[str, Any]) -> None:
 
 
 def publish_release(release: dict[str, Any] | None = None) -> dict[str, Any]:
-    canonical = release or compile_release()
+    canonical = release or build_canonical_release()
     if str(canonical.get("release_version")) != VERSION:
         raise RuntimeError("Publisher received the wrong canonical release version")
     items = list(canonical.get("items") or [])
     if len(items) != 125:
         raise RuntimeError(f"Publisher requires the validated 125-item release, got {len(items)}")
+
+    # Never let a caller bypass the canonical builder with a stale/tampered
+    # object. Publication is fail-closed before a database transaction begins.
+    _assert_release_digest(canonical)
+    assert_media_contract(canonical)
 
     db = SessionLocal()
     try:
@@ -302,7 +319,7 @@ def publish_release(release: dict[str, Any] | None = None) -> dict[str, Any]:
                 f"found {existing_count}. Run seed_all so import-only bootstrap can create it first."
             )
         skills = _reconcile_skills(db, canonical)
-        totals = {"created":0,"reactivated":0,"retired":0}
+        totals = {"created": 0, "reactivated": 0, "retired": 0}
         published_ids: set[int] = set()
         for spec in items:
             item = _find_item(db, spec)
@@ -317,12 +334,12 @@ def publish_release(release: dict[str, Any] | None = None) -> dict[str, Any]:
         _activate_release(db, canonical)
         db.commit()
         return {
-            "release_version":str(canonical["release_version"]),
-            "release_sha256":str(canonical["sha256"]),
-            "items":len(published_ids),
-            "option_rows_created":totals["created"],
-            "option_rows_reactivated":totals["reactivated"],
-            "option_rows_retired":totals["retired"],
+            "release_version": str(canonical["release_version"]),
+            "release_sha256": str(canonical["sha256"]),
+            "items": len(published_ids),
+            "option_rows_created": totals["created"],
+            "option_rows_reactivated": totals["reactivated"],
+            "option_rows_retired": totals["retired"],
         }
     except Exception:
         db.rollback()
