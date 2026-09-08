@@ -1,0 +1,27 @@
+{
+  "format_version": "1.0",
+  "set_id": "HIMMA_GENERATED_VOCABULARY_V1",
+  "generated_at_utc": "2026-09-08T20:00:00Z",
+  "asset_root": "assets/education",
+  "notes": "Generated only for a proven canonical vocabulary media gap. No instructional text is embedded in the image.",
+  "assets": [
+    {
+      "id": "HIMMA-GEN-VOC-001",
+      "category": "vocabulary",
+      "usage": ["choose_image", "listen_choose_image"],
+      "label_ar": "بيت",
+      "alt_ar": "صورة بيت",
+      "semantic_key": "بيت",
+      "source_item": "PRE-Q17",
+      "files": {
+        "webp_small": "generated_vocabulary/webp/hem-gen-voc-001-house-512.webp"
+      },
+      "qa": {
+        "no_embedded_text": true,
+        "single_subject": true,
+        "transparent_background": true,
+        "student_choice_safe": true
+      }
+    }
+  ]
+}
