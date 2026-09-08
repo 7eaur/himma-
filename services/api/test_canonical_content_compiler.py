@@ -1,8 +1,13 @@
 """Regression coverage for the single canonical Himma content release."""
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 from canonical_content_compiler import compile_release
 from content_approval_contract_2026_09_08 import VERSION
+
+ROOT = Path(__file__).resolve().parents[2]
 
 
 def _items():
@@ -79,3 +84,42 @@ def test_story_and_image_contracts_are_explicit_not_positional():
     for prefix in ("PRE-Q", "POST-Q"):
         for number in range(25, 31):
             assert items[f"{prefix}{number:02d}"]["item_assets"] == []
+
+
+def test_pre_q17_generated_house_closes_the_last_proven_vocabulary_media_gap():
+    _, items = _items()
+    step = items["PRE-Q17"]["rounds"][0]
+
+    assert step["media_gaps"] == []
+    choice_images = [
+        asset for asset in step["media"]
+        if asset["asset_type"] == "image" and asset["usage"] == "choice"
+    ]
+    assert [(asset["asset_id"], asset["option_order_index"]) for asset in choice_images] == [
+        ("HIMMA-GEN-VOC-001", 1),
+        ("HIMMA-EDU-VOC-017", 2),
+        ("HIMMA-EDU-VOC-018", 3),
+        ("HIMMA-EDU-VOC-019", 4),
+    ]
+
+    generated_map = ROOT / "assets" / "education" / "developer" / "generated-vocabulary-map.json"
+    payload = json.loads(generated_map.read_text(encoding="utf-8"))
+    record = next(asset for asset in payload["assets"] if asset["id"] == "HIMMA-GEN-VOC-001")
+    assert record["semantic_key"] == "بيت"
+    assert record["qa"]["no_embedded_text"] is True
+    assert record["qa"]["single_subject"] is True
+    relative = record["files"]["webp_small"]
+    image_path = ROOT / "assets" / "education" / relative
+    assert image_path.is_file()
+    assert image_path.stat().st_size > 0
+
+
+def test_compiled_release_contains_no_unresolved_media_gap():
+    release = compile_release()
+    unresolved = [
+        (item["canonical_id"], step["order_index"], gap)
+        for item in release["items"]
+        for step in item["rounds"]
+        for gap in step.get("media_gaps") or []
+    ]
+    assert unresolved == []
