@@ -29,6 +29,24 @@ test.describe("approved media fidelity", () => {
     await expect.poll(async () => audio.evaluate((element) => (element as HTMLMediaElement).readyState)).toBeGreaterThan(0);
   });
 
+  test("serves the canonical standalone house choice as a real generated image", async ({ page, request }) => {
+    const response = await request.get("/api/media/HIMMA-GEN-VOC-001");
+    expect(response.status()).toBe(200);
+    expect(response.headers()["content-type"]).toContain("image/webp");
+    expect((await response.body()).byteLength).toBeGreaterThan(1_000);
+
+    await page.goto("/");
+    await page.setContent(`
+      <main dir="rtl" style="padding:24px;background:#F7FBFF">
+        <img id="generated-house" src="/api/media/HIMMA-GEN-VOC-001" alt="بيت" style="width:260px;height:260px;object-fit:contain" />
+      </main>
+    `);
+    const image = page.locator("#generated-house");
+    await expect(image).toBeVisible();
+    await expect.poll(async () => image.evaluate((element) => (element as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+    await expect.poll(async () => image.evaluate((element) => (element as HTMLImageElement).naturalHeight)).toBeGreaterThan(0);
+  });
+
   test("renders every approved generated sequence scene and captures visual evidence", async ({ page, request }) => {
     const generated = [
       ["HIMMA-GEN-SEQ-001", "غسل اليدين"],
