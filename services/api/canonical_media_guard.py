@@ -106,6 +106,28 @@ def _audio_semantic_matches(row: dict[str, str], semantic: str) -> bool:
     return False
 
 
+def resolve_audio_asset(semantic: str) -> str:
+    """Resolve one target to exactly one approved manifest ID, never by position.
+
+    Exact vocalization wins.  The only relaxed rule is for a *bare* single-letter
+    target, which may resolve to the corresponding approved ``letter-sound`` row
+    regardless of whether its spoken form carries fatha/sukoon.  Ambiguous or
+    missing targets fail rather than picking the first manifest row.
+    """
+    audio, duplicates = _audio_rows()
+    if duplicates:
+        raise RuntimeError(f"Duplicate audio manifest IDs: {duplicates}")
+    matches = [
+        asset_id for asset_id, row in audio.items()
+        if _norm(row.get("status")) == "approved" and _audio_semantic_matches(row, semantic)
+    ]
+    if len(matches) != 1:
+        raise RuntimeError(
+            f"Audio target {_norm(semantic)!r} must resolve to exactly one approved asset, got {matches}"
+        )
+    return matches[0]
+
+
 def validate_media_contract(release: dict[str, Any]) -> dict[str, list[str]]:
     images, duplicate_image_ids, missing_image_maps = _image_records()
     audio, duplicate_audio_ids = _audio_rows()
