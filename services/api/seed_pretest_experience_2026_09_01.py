@@ -10,6 +10,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any
+from sqlalchemy.orm import object_session
+from content_option_lifecycle import set_exact_current_options
 
 from db.database import SessionLocal
 from db.models import ContentItem
@@ -78,18 +80,12 @@ def _apply_item(item: ContentItem, contract: dict[str, Any]) -> int:
 
     answer = contract.get("correct_answer")
     answer_set = {str(value) for value in answer} if isinstance(answer, list) else {str(answer)}
-    for index, option in enumerate(options):
-        new_text = contract_options[index]
-        if option.text != new_text:
-            option.text = new_text
-            changed += 1
-        should_be_correct = new_text in answer_set
-        if bool(option.is_correct) != should_be_correct:
-            option.is_correct = should_be_correct
-            changed += 1
-        if option.order_index != index + 1:
-            option.order_index = index + 1
-            changed += 1
+    option_changes = set_exact_current_options(
+        object_session(item), step,
+        [(text, text in answer_set) for text in contract_options],
+        allow_repeated=interaction in {"sequence", "memory_sequence", "path_sequence", "build_word"},
+    )
+    changed += sum(option_changes.values())
 
     data = dict(item.template_data or {})
     new_data = dict(data)

@@ -12,7 +12,8 @@ Authoritative 2026-09-02/03 corrections:
 from __future__ import annotations
 
 from db.database import SessionLocal
-from db.models import ContentItem, ContentOption
+from db.models import ContentItem
+from content_option_lifecycle import set_exact_current_options
 
 VERSION = "HIMMA-STUDENT-EXPERIENCE-2.0"
 PAIR_VERSION = "HIMMA-L1-ONSET-PAIR-2026-09-03"
@@ -40,19 +41,7 @@ def _mark(item: ContentItem, *, title: str | None = None, interaction: str | Non
 
 def _set_two_choice_step(db, step, *, prompt: str, first: str, second: str, answer: str) -> None:
     step.prompt_text = prompt
-    options = sorted(step.options, key=lambda option: option.order_index)
-    while len(options) < 2:
-        option = ContentOption(step_id=step.id, text="", is_correct=False, order_index=len(options) + 1)
-        db.add(option)
-        options.append(option)
-    options[0].text = first
-    options[0].order_index = 1
-    options[0].is_correct = first == answer
-    options[1].text = second
-    options[1].order_index = 2
-    options[1].is_correct = second == answer
-    for extra in options[2:]:
-        db.delete(extra)
+    set_exact_current_options(db, step, [(first, first == answer), (second, second == answer)])
 
 
 def _replace_onset_compare(db) -> None:
@@ -108,17 +97,7 @@ def _repair_post_q14(db) -> None:
     step = steps[0]
     step.prompt_text = "انظر إلى صورة النخلة، ثم اضغط الحروف بالترتيب لتكوّن كلمة «نَخْلَة»."
     wanted = ["ن", "خ", "ل", "ة"]
-    options = sorted(step.options, key=lambda option: option.order_index)
-    while len(options) < len(wanted):
-        option = ContentOption(step_id=step.id, text="", is_correct=False, order_index=len(options) + 1)
-        db.add(option)
-        options.append(option)
-    for index, text in enumerate(wanted, start=1):
-        options[index - 1].text = text
-        options[index - 1].order_index = index
-        options[index - 1].is_correct = True
-    for extra in options[len(wanted):]:
-        extra.is_correct = False
+    set_exact_current_options(db, step, [(text, True) for text in wanted], allow_repeated=True)
 
 
 def _mark_all_items(db) -> None:

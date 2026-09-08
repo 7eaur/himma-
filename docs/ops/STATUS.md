@@ -2,6 +2,13 @@
 
 ## Reconciliation in progress — 2026-09-08
 
+Checkpoint: safety slice published as c8c9e2c; option lifecycle follow-up passes eight
+local tests (including full seed twice). Remote Quality/M04/M09 fail before any job
+step and log blobs are unavailable. Owner inspection of the run annotation is
+required to establish the blocker. No release PASS, merge or deployment.
+Migration 0011 is added locally; production migration and PostgreSQL verification
+are not performed. Detailed rollout/rollback and remaining work are in the audit.
+
 Active branch: `integration/official-content-reconciliation-2026-09-08`.
 The owner authorized official audit, intent reconciliation and implementation; no merge or deployment.
 Current slice: study-wide configurable capacity (50), authenticated page guards,

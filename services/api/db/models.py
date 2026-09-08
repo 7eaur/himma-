@@ -128,7 +128,7 @@ class ContentStep(Base):
     expected_reading_text = Column(String, nullable=True)
 
     item = relationship("ContentItem", back_populates="steps")
-    options = relationship("ContentOption", back_populates="step", cascade="all, delete", order_by="ContentOption.order_index")
+    options = relationship("ContentOption", back_populates="step", cascade="all, delete", order_by="ContentOption.order_index", primaryjoin="and_(ContentStep.id == ContentOption.step_id, ContentOption.is_active == True)")
     assets = relationship("ContentAssetLink", back_populates="step", cascade="all, delete")
 
 
@@ -141,6 +141,7 @@ class ContentOption(Base):
     text = Column(String, nullable=False)
     is_correct = Column(Boolean, nullable=False, default=False)
     order_index = Column(Integer, nullable=False)
+    is_active = Column(Boolean, nullable=False, default=True, server_default="true")
 
     step = relationship("ContentStep", back_populates="options")
 

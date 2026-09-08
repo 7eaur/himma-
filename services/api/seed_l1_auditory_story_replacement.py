@@ -16,7 +16,8 @@ import json
 from pathlib import Path
 
 from db.database import SessionLocal
-from db.models import ContentAssetLink, ContentItem, ContentOption, Skill
+from db.models import ContentAssetLink, ContentItem, Skill
+from content_option_lifecycle import set_exact_current_options
 
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "packages" / "content" / "src" / "l1_auditory_comprehension_v1.json"
@@ -72,18 +73,7 @@ def _auditory_skill(db) -> Skill:
 
 
 def _set_options(db, step, values: list[str], answer: str) -> None:
-    options = sorted(step.options, key=lambda option: option.order_index)
-    while len(options) < len(values):
-        option = ContentOption(step_id=step.id, text="", is_correct=False, order_index=len(options) + 1)
-        db.add(option)
-        options.append(option)
-    for index, value in enumerate(values, start=1):
-        option = options[index - 1]
-        option.text = value
-        option.order_index = index
-        option.is_correct = value == answer
-    for extra in options[len(values):]:
-        db.delete(extra)
+    set_exact_current_options(db, step, [(value, value == answer) for value in values])
 
 
 def _set_story_audio(db, step, asset_id: str | None) -> None:

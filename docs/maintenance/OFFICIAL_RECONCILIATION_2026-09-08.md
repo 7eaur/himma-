@@ -59,6 +59,17 @@ Status: IN_PROGRESS — initial code audit; not an acceptance certificate.
 ## Completion policy
 Every finding remains OPEN until code, regression evidence, and (where required) integration evidence are recorded. Draft PR #3 documentation is not evidence of implementation correctness. No merge is authorized by this record.
 
+## Checkpoint: option lifecycle and external gate blocker
+- First published executable slice: c8c9e2c7ca6fcc58030c8d7386e4d9dbd0a65d41.
+- Remote Quality run 34221956281, M04 run 34221956163, M09 run 34221956156 all report failure with zero executed job steps. Integration is skipped. Job log retrieval returns BlobNotFound, and the connector does not expose check-run annotations. Root cause is NOT established; owner must inspect the run annotation. Do not infer billing or code failure from this evidence.
+- Lifecycle follow-up adds migration 0011 after official 0010, active-only ContentStep.options, and a common exact-publication helper. Matching text/correctness/order identities are reused, superseded rows retire without text/correctness/order mutation, and stale IDs are rejected for new answers.
+- Updated the existing onset, story and pretest publishers at their mutation sites; no additional final repair seed was appended. POST-Q14's exact four letters retire old extras. The remaining multi-commit seed architecture is still A13 OPEN and must become atomic.
+- Normalization preserves vowel and contextual form differences, rejects invisible duplicates for choices, and allows distinct repeated letter tokens only for ordered contracts.
+- Eight local lifecycle/seed regression tests passed (including seed_all twice). This proves neither full row-digest idempotency nor the complete historical-FK migration path; both remain required.
+- Rollout: back up and restore-test database; stop content writes; apply alembic upgrade head before new code; validate retired/active sets and historical responses in staging. No production migration was run.
+- Rollback: downgrade refuses to drop is_active if retired rows exist, since old code would expose retired options. Restore a verified pre-migration database backup together with its matching application, or roll forward. Empty-database migration roundtrip and PostgreSQL integration remain unverified.
+- Resume: resolve remote gate-start failure, verify this lifecycle slice with PostgreSQL and historical responses, then continue the single structured content source, semantic media, shared preview/student UI and E2E. Do not treat this checkpoint as a completed port.
+
 ## Slice 1 — implemented, local targeted verification
 - A05: central default capacity 50 with configuration validation, authenticated capacity endpoint, and common admission transaction lock. Historical inactive accounts remain counted. Cross-worker PostgreSQL concurrency still needs integration evidence.
 - A06: /student and /admin page guards verify /me, not cookie presence. Login routes remain public; invalid/wrong-role sessions redirect; unavailable API fails closed with 503. API role validation rechecks the stored researcher role.
