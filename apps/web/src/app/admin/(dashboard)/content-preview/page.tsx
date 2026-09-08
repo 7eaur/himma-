@@ -80,8 +80,6 @@ const KIND_LABEL: Record<Kind, string> = {
 };
 const ORDER = new Set<Interaction>(["sequence", "memory_sequence", "path_sequence", "build_word"]);
 
-function mediaUrl(assetId: string) { return `/api/media/${encodeURIComponent(assetId)}`; }
-
 function ReadOnlyOptions({ interaction, options, assets }: { interaction: Interaction; options: Option[]; assets: Asset[] }) {
   const imageByOption = new Map<number, Asset>();
   for (const asset of assets) if (asset.asset_type === "image" && asset.option_id) imageByOption.set(Number(asset.option_id), asset);
@@ -143,17 +141,19 @@ function LearningPreview({ payload }: { payload: LearningPayload }) {
 
   if (intro && !introSeen) {
     const isAudioStory = intro.kind === "audio_story";
-    const audioAvailable = Boolean(intro.audio_asset_id);
+    const audioAsset = intro.audio_asset_id
+      ? payload.item.assets.find((asset) => asset.asset_id === intro.audio_asset_id && asset.asset_type === "audio")
+      : undefined;
     const imageAsset = intro.image_asset_id
-      ? payload.item.assets.find((asset) => asset.asset_id === intro.image_asset_id)
+      ? payload.item.assets.find((asset) => asset.asset_id === intro.image_asset_id && asset.asset_type === "image")
       : undefined;
     return <div className="max-w-4xl mx-auto rounded-[28px] border border-border bg-bg p-4 sm:p-6 lg:p-8 shadow-sm" dir="rtl" data-testid="preview-context-intro">
       <div className="rounded-3xl bg-white border border-border p-5 sm:p-7 space-y-5">
         <div className="flex items-center gap-3"><Headphones className="text-primary" /><div><p className="text-xs text-muted">{isAudioStory ? "مرحلة استماع مستقلة قبل الأسئلة" : "سياق مستقل قبل الأسئلة"}</p><h3 className="font-extrabold text-navy text-2xl">{intro.title || "استعد للنشاط"}</h3></div></div>
         {intro.kind === "reading_context" && intro.text && <div className="rounded-2xl bg-bg border border-border px-5 py-5 text-xl font-bold text-navy leading-loose" data-testid="preview-context-reading-text">{intro.text}</div>}
         {imageAsset && <div className="flex justify-center"><Image src={imageAsset.url} alt={imageAsset.semantic_text || "صورة تمهيدية"} width={520} height={300} className="max-h-72 w-auto object-contain rounded-2xl" unoptimized /></div>}
-        {isAudioStory && audioAvailable && <audio src={mediaUrl(intro.audio_asset_id!)} controls preload="metadata" className="w-full" data-testid="preview-context-audio" onEnded={() => setIntroPlaybackComplete(true)} />}
-        {isAudioStory && !audioAvailable && <div className="alert-error">الصوت المعتمد لشاشة الاستماع غير مرتبط بهذا النشاط، لذلك لا يمكن تجاوز المقدمة في المعاينة.</div>}
+        {isAudioStory && audioAsset && <audio src={audioAsset.url} controls preload="metadata" className="w-full" data-testid="preview-context-audio" onEnded={() => setIntroPlaybackComplete(true)} />}
+        {isAudioStory && !audioAsset && <div className="alert-error">الصوت المعتمد لشاشة الاستماع غير مرتبط بهذا النشاط، لذلك لا يمكن تجاوز المقدمة في المعاينة.</div>}
         {intro.instruction && <div className="rounded-2xl bg-bg border border-border px-4 py-3 text-sm sm:text-base text-navy">{intro.instruction}</div>}
         <div className="flex justify-end"><button type="button" className="btn-primary" disabled={isAudioStory && !introPlaybackComplete} onClick={() => setIntroSeen(true)}>{isAudioStory && !introPlaybackComplete ? "استمع إلى القصة أولًا" : "ابدأ الأسئلة"}</button></div>
       </div>
