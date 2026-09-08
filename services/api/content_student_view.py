@@ -109,11 +109,21 @@ def activity_student_content(item: ContentItem, step: ContentStep) -> dict:
     """Return the static content portion of the live learning-step payload.
 
     Session/attempt/retry state is intentionally not part of this function, so
-    researcher preview can call it without creating progress or attempts.
+    researcher preview can call it without creating progress or attempts.  The
+    same result is consumed by the live learning endpoint; this is the single
+    serializer for question copy, instructions, options, media and context data.
     """
     interaction = canonical_interaction(item)
     presentation = presentation_data(item, step)
     options = active_options(step)
+    skill_name = item.skill.name if item.skill is not None else str((item.template_data or {}).get("canonical_skill_code") or "")
+    round_total = len(item.steps)
+    stimulus = dict(presentation.get("stimulus") or {})
+    stimulus_text = str(
+        presentation.get("stimulus_text")
+        or (stimulus.get("text") if stimulus.get("kind") == "text" else "")
+        or ""
+    )
     return {
         "item": {
             "id": item.id,
@@ -127,16 +137,23 @@ def activity_student_content(item: ContentItem, step: ContentStep) -> dict:
             "kind": item.kind,
             "assets": item_assets(item),
             "context_intro": ((item.template_data or {}).get("content_approval_2026_09_08") or {}).get("context_intro"),
+            "layout_hint": ((item.template_data or {}).get("content_approval_2026_09_08") or {}).get("layout_hint"),
         },
         "step": {
             "id": step.id,
             "order_index": step.order_index,
+            "round_number": int(presentation.get("round_number") or step.order_index),
+            "round_total": int(presentation.get("round_total") or round_total),
+            "skill": str(presentation.get("skill") or skill_name),
             "prompt_text": step.prompt_text,
             "question_text": str(presentation.get("question_text") or step.prompt_text or ""),
             "instruction_text": instruction_text(item, step),
             "encouragement": str(presentation.get("encouragement") or ""),
             "hint": str(presentation.get("hint") or ""),
+            "stimulus_text": stimulus_text,
+            "stimulus": stimulus,
             "expected_reading_text": step.expected_reading_text,
+            "required_selection_count": _selection_count(item, step),
             "options": [
                 {
                     "id": option.id,
