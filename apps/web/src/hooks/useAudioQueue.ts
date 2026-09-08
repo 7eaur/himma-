@@ -3,24 +3,43 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export type AudioQueueState = "idle" | "playing" | "paused";
+export type AudioQueueApi = {
+  state: AudioQueueState;
+  isPlaying: boolean;
+  isPaused: boolean;
+  toggle: (urls: string[]) => void;
+  stop: () => void;
+};
 
 function signature(urls: string[]) {
   return urls.join("\n");
 }
 
 /**
- * One cancellable audio owner per screen.
+ * One cancellable audio owner per screen with a stable controller identity.
  *
- * Replaces chained `new Audio()` promises that could leave old playback alive
- * after navigation or make the control untappable while its visual state moved.
+ * The stable object matters because student screens keep the controller inside
+ * memoized loading/reset callbacks. Playback state is still React state, so the
+ * screen re-renders for play/pause icons without causing navigation effects to
+ * restart.
  */
-export function useAudioQueue(onError?: (message: string) => void) {
+export function useAudioQueue(onError?: (message: string) => void): AudioQueueApi {
   const [state, setState] = useState<AudioQueueState>("idle");
+  const stateRef = useRef<AudioQueueState>("idle");
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const urlsRef = useRef<string[]>([]);
   const indexRef = useRef(0);
   const signatureRef = useRef("");
   const disposedRef = useRef(false);
+  const onErrorRef = useRef(onError);
+  const playIndexRef = useRef<(index: number) => void>(() => undefined);
+  const apiRef = useRef<AudioQueueApi | null>(null);
+  onErrorRef.current = onError;
+
+  const setPlaybackState = useCallback((next: AudioQueueState) => {
+    stateRef.current = next;
+    if (!disposedRef.current) setState(next);
+  }, []);
 
   const stop = useCallback(() => {
     const audio = audioRef.current;
@@ -34,8 +53,8 @@ export function useAudioQueue(onError?: (message: string) => void) {
     urlsRef.current = [];
     indexRef.current = 0;
     signatureRef.current = "";
-    if (!disposedRef.current) setState("idle");
-  }, []);
+    setPlaybackState("idle");
+  }, [setPlaybackState]);
 
   const playIndex = useCallback((index: number) => {
     const url = urlsRef.current[index];
@@ -54,19 +73,20 @@ export function useAudioQueue(onError?: (message: string) => void) {
         stop();
         return;
       }
-      playIndex(next);
+      playIndexRef.current(next);
     };
     audio.onerror = () => {
       stop();
-      onError?.("تعذر تشغيل الصوت. حاول مرة أخرى.");
+      onErrorRef.current?.("تعذر تشغيل الصوت. حاول مرة أخرى.");
     };
     void audio.play().then(() => {
-      if (!disposedRef.current) setState("playing");
+      setPlaybackState("playing");
     }).catch(() => {
       stop();
-      onError?.("تعذر تشغيل الصوت. حاول مرة أخرى.");
+      onErrorRef.current?.("تعذر تشغيل الصوت. حاول مرة أخرى.");
     });
-  }, [onError, stop]);
+  }, [setPlaybackState, stop]);
+  playIndexRef.current = playIndex;
 
   const toggle = useCallback((urls: string[]) => {
     const clean = urls.filter(Boolean);
@@ -75,15 +95,15 @@ export function useAudioQueue(onError?: (message: string) => void) {
     const current = audioRef.current;
 
     if (current && signatureRef.current === nextSignature) {
-      if (state === "playing") {
+      if (stateRef.current === "playing") {
         current.pause();
-        setState("paused");
+        setPlaybackState("paused");
         return;
       }
-      if (state === "paused") {
-        void current.play().then(() => setState("playing")).catch(() => {
+      if (stateRef.current === "paused") {
+        void current.play().then(() => setPlaybackState("playing")).catch(() => {
           stop();
-          onError?.("تعذر استئناف الصوت. حاول مرة أخرى.");
+          onErrorRef.current?.("تعذر استئناف الصوت. حاول مرة أخرى.");
         });
         return;
       }
@@ -93,8 +113,8 @@ export function useAudioQueue(onError?: (message: string) => void) {
     urlsRef.current = clean;
     signatureRef.current = nextSignature;
     indexRef.current = 0;
-    playIndex(0);
-  }, [onError, playIndex, state, stop]);
+    playIndexRef.current(0);
+  }, [setPlaybackState, stop]);
 
   useEffect(() => {
     disposedRef.current = false;
@@ -111,11 +131,13 @@ export function useAudioQueue(onError?: (message: string) => void) {
     };
   }, []);
 
-  return {
-    state,
-    isPlaying: state === "playing",
-    isPaused: state === "paused",
-    toggle,
-    stop,
-  };
+  if (!apiRef.current) {
+    apiRef.current = { state, isPlaying: false, isPaused: false, toggle, stop };
+  }
+  apiRef.current.state = state;
+  apiRef.current.isPlaying = state === "playing";
+  apiRef.current.isPaused = state === "paused";
+  apiRef.current.toggle = toggle;
+  apiRef.current.stop = stop;
+  return apiRef.current;
 }
