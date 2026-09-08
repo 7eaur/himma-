@@ -26,10 +26,11 @@
 - `source_text` تاريخي فقط؛ لا يُعرض ولا يُحلل في Runtime لاستخراج سؤال أو خيار أو جواب.
 - كل option قيمة واحدة، وصحته صريحة.
 - الخيارات الحالية فقط تُعرض وتُقبل للإجابات الجديدة، مع حفظ الصفوف التاريخية retired.
-- لا قاعدة «4 دائمًا»: يضاف الرابع في single-choice الأساسي عند وجود مشتت عادل؛ الفئات الطبيعية الثلاث تبقى 3؛ التقوية 2/3 حسب الهدف؛ القراءة بلا خيارات؛ sequence/build بعدد عناصر المهمة.
+- لا قاعدة «4 دائمًا»: يضاف الرابع فقط حيث اعتمده عقد 8 سبتمبر؛ الفئات الطبيعية الثلاث تبقى 3؛ التقوية 2/3 حسب الهدف؛ القراءة بلا خيارات؛ sequence/build بعدد عناصر المهمة.
 - image-choice يعرض الصورة فقط؛ semantic text داخلي للربط وalt.
 - option↔image ربط صريح ودلالي، وليس zip حسب الترتيب.
-- قصتا ليان ونادر لهما شاشة استماع مستقلة ثم أسئلة بلا مشغل قصة ولا تسجيل ولا صورة قصة.
+- قصتا ليان ونادر لهما شاشة استماع مستقلة ثم أسئلة بلا مشغل قصة داخل الجولات.
+- لا يمكن تجاوز شاشة `audio_story` قبل انتهاء تشغيل القصة المعتمدة طبيعيًا؛ الإيقاف اليدوي أو الرجوع أو خطأ التشغيل لا يُحتسب استماعًا مكتملًا.
 - توقيت الطلاقة داخلي وغير ظاهر للطفل.
 - PRE/POST Q25..30 لا ترث صورة القصة داخل جولات الأسئلة.
 - POST-Q11 موحّد على `مَ` في الصوت والاختيار الصحيح والcriterion.
@@ -49,6 +50,7 @@
 6. لا commit جزئي بين base/reinforcement/presentation/media في مرحلة النشر الحالية.
 7. importers القديمة لا تُعاد بعد وجود 125 صفًا بنيويًا؛ المصدر الحالي بعد bootstrap هو canonical compiler/publisher فقط.
 8. تشغيل seed مرتين يجب أن يعطي نفس digest والصفوف الحالية دون إنشاء/تغيير غير ضروري.
+9. الـPublisher لا يقبل Release بديلة حتى لو أعاد المستدعي حساب SHA لها؛ يجب أن يطابق digest الناتج من `build_canonical_release()` نفسه، لمنع أي مسار جانبي يعيد إدخال سؤال/خيار غير معتمد.
 
 ## الصور بعد الجرد والتنفيذ
 
@@ -59,6 +61,7 @@
 - أضيفت خريطة generated vocabulary إلى `/media/{asset_id}` لكي لا يبقى الأصل موجودًا في العقد وغير قابل للخدمة Runtime.
 - أضيف Regression يثبت أن PRE-Q17 أصبح 1:1 لأربعة خيارات صور وأن ملف البيت موجود فعليًا وغير صفري.
 - أضيف Gate يرفض أي `media_gaps` متبقية في الـ125 عنصرًا المجمعة.
+- صور L1-REIN-12 التي كانت مسجلة كفجوات في Sandbox أصبحت مرتبطة بالأصول المولدة الموجودة فعليًا `HIMMA-GEN-SEQ-001..006` حيث يلزم، لذلك لا يعاد توليدها.
 - لا تُولد أي صورة أخرى إلا إذا أثبت الجرد الدلالي الصريح أنها مفقودة فعلًا.
 
 ## الصوت بعد الجرد والتحقق
@@ -78,7 +81,9 @@
 - فحص WAV/MP3 للتوسعة الجديدة وقراءة المدة نجح.
 - لا توجد ملفات صوتية مفقودة للمراجعة.
 
-المطلوب Runtime ليس دمجها في ملف صوت واحد؛ بل دمجها **وظيفيًا** في manifest/content contract/runtime بالـIDs الثابتة الصحيحة، وهو ما تم اعتماده في العقد الحالي.
+الربط النهائي للصوت أصبح دلاليًا في `canonical_release.py`: الهدف المشكول يطابق الأصل المشكول الدقيق، ولذلك `مِ` لا يمكن أن تنقلب إلى `LET-01` بل تُحل إلى `SYL-05`، بينما هدف الحرف المجرد `م` يبقى عقد letter-sound ويُحل إلى `LET-01` وفق بنك الصوت الحالي.
+
+المطلوب Runtime ليس دمج الملفات في ملف صوت واحد؛ بل دمجها **وظيفيًا** في manifest/content contract/runtime بالـIDs الثابتة الصحيحة، وهو ما يطبقه الإصدار الكانوني الحالي.
 
 ## حالة التنفيذ الحالية
 
@@ -89,25 +94,39 @@
 - إيقاف سلسلة correction/projection القديمة من `seed_all.py`.
 - POST-Q11=`مَ` عبر criterion/options/stimulus/LET-01.
 - POST-Q08/Q13 وL1-CORE-03 وPOST-Q15 محمية باختبارات regression.
+- جميع IDs الخاصة بأسئلة القبلي والبعدي و65 عنصر تعلم أصبحت مطالبة بتغطية structured صريحة قبل السماح ببناء Release قابلة للنشر؛ قصتا ليان ونادر فقط تستمدان أسئلة الجولات من مصدري القصة structured المعتمدين.
+- الـPublisher يعيد التحقق من digest + structured coverage + media، ثم يقارن الإصدار الممرر بالإصدار الناتج من builder الرسمي نفسه قبل فتح معاملة DB.
 - قصتا ليان ونادر كـ`context_intro` مستقل، بدون صوت قصة داخل جولات الأسئلة.
-- image mapping صريح مع `option_order_index`.
+- واجهة الطالب تمنع تخطي القصة الصوتية حتى انتهاء التشغيل طبيعيًا، مع Play/Pause/Resume وإلغاء صحيح عند الخروج.
+- `useAudioQueue` أصبح يميز natural completion عن stop/error، وأضيفت له اختبارات مخصصة.
+- Admin Content Preview أصبح يعرض `context_intro` كمرحلة مستقلة قبل الجولات، ولا يسمح بتجاوز audio-story قبل انتهاء الصوت، ويشترط أن يكون أصل القصة مرتبطًا فعليًا بالنشاط بدل بناء URL من ID غير مرتبط.
+- Preview والطالب يستفيدان من نفس serializer الخلفي للمحتوى الحالي، مع بقاء الـPreview read-only بلا Attempts/Progress/AudioSubmission.
+- image mapping صريح مع `option_order_index`، والواجهات تفشل مغلقة عند mapping جزئي.
 - أصل البيت المفقود لـPRE-Q17 أُنشئ وسُجل وربط وخُدم من media endpoint.
 - الصوت الحالي 54 ID / 108 binary موثق وموجود في المستودع.
+- أضيف اختبار table-driven يمر على كل `OPTION_CONTRACTS` و`INTERACTION_OVERRIDES` و`READING_TEXTS` و`TIMED_WORD_SELECTIONS` و`CONTEXT_INTROS` و`LAYOUT_HINTS` و`STEP_MEDIA` و`ITEM_MEDIA` و`SUPPRESS_ITEM_MEDIA` للتأكد أن كل اعتماد معلن يصل إلى الإصدار النهائي، لا مجموعة أمثلة فقط.
 
 ## بوابات عدم الترقيع
 
 لا يعتبر النقل ناجحًا حتى تتحقق الآتي:
 
 - `seed_all.py` لا يستدعي سلسلة correction/overlay seeds. **منجز بنيويًا**.
-- لا يوجد Runtime parsing لـ`source_text` في المسار الكانوني. **منجز في compiler الحالي**.
-- 125 عنصرًا نهائيًا، 30 قبلي، 30 core، 35 reinforcement، 30 بعدي. **مغلق في compiler tests**.
+- لا يوجد Runtime parsing لـ`source_text` في المسار الكانوني. **منجز بنيويًا؛ legacy parsing محصور في compiler كمرحلة migration قبل إسقاطه من العقد النهائي**.
+- 125 عنصرًا نهائيًا، 30 قبلي، 30 core، 35 reinforcement، 30 بعدي. **مغلق في compiler invariants/tests، لكن ما زال يحتاج تشغيل pytest فعليًا على HEAD النهائي**.
+- كل سؤال طالب يجب أن يكون مغطى بمصدر structured معتمد قبل النشر. **منجز بنيويًا**.
 - جميع options الحالية فريدة بصريًا بعد تطبيع invisible Unicode، مع السماح بالتكرار المقصود في ordered/build.
 - كل image-choice لديه mapping 1:1 صريح.
 - كل media ID موجود فعليًا ولا توجد `media_gaps` متبقية في العقد المجمّع.
 - seed مرتين idempotent مع digest ثابت على DB فعلية.
-- Admin Preview والطالب يستهلكان نفس payload/rendering contract.
+- Admin Preview والطالب يستهلكان نفس payload/content contract، مع نفس مرحلة context-intro للقصص.
 - Backend/Frontend/Integration/E2E والـsemantic readiness كلها خضراء قبل أي merge.
 
 ## ملاحظة GitHub Actions الحالية
 
-آخر Push شغّل `Himma CI — Quality Gate` و`Himma M09 — Release Readiness Gate`، لكن GitHub أنهى jobs الخاصة بـbackend/frontend/security/release-readiness كـ`failure` مع **صفر خطوات قابلة للتنفيذ**، ومحاولة قراءة السجل ترجع `BlobNotFound`. لذلك لا يُصنف هذا كفشل اختبار كود، ولا يجوز اعتباره نجاحًا أيضًا. حالة الإصدار تبقى **NOT RELEASE READY** حتى تصبح البوابات قابلة للتنفيذ ونحصل على نتائج فعلية.
+حتى آخر تشغيل تم فحصه على الفرع، `Himma CI — Quality Gate` ما زال ينتهي بفشل jobs الخاصة بـbackend/frontend/security مع `steps=null`، والـintegration يصبح skipped. آخر تشغيل CI تم فحصه بعد تحديثات الـPreview هو run id `34283190591` على commit `97860faa1873516a3429ca4584909ed5d5e0e854`، وكانت jobs الثلاث بلا أي خطوة تنفيذية أو logs فعلية.
+
+لذلك لا يُصنف هذا كفشل اختبار كود، ولا يجوز اعتباره نجاحًا أيضًا. حالة الإصدار تبقى **NOT RELEASE READY** حتى تصبح البوابات قابلة للتنفيذ ونحصل على نتائج فعلية من pytest/typecheck/lint/build/security/integration/Playwright والمigrations/seed-twice.
+
+## آخر HEAD عند تحديث هذا السجل
+
+`85a31e5d54508eb1438b657b3a75244a91a46192` — قبل commit تحديث هذا المستند نفسه. لا يوجد merge ولا deployment معتمد.
