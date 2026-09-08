@@ -2,7 +2,8 @@
 
 This scans every seeded pretest, posttest, core and reinforcement round. The gate
 protects presentation separation, option cardinality, DB-only runtime metadata and
-media mapping. It intentionally reports all discovered violations in one failure.
+media mapping. Historical inactive options remain in PostgreSQL for response
+integrity but are deliberately excluded from current student-presentation checks.
 """
 from __future__ import annotations
 
@@ -11,7 +12,8 @@ import unicodedata
 
 import seed_all
 from assessment_view import _clean_payload
-from content_runtime import canonical_id, canonical_interaction, media_gaps, presentation_data, step_assets
+from canonical_content_publisher import DB_RUNTIME_VERSION
+from content_runtime import active_options, canonical_id, canonical_interaction, media_gaps, presentation_data, step_assets
 from db.database import SessionLocal
 from db.models import ContentItem
 
@@ -52,8 +54,8 @@ def test_complete_student_runtime_has_no_presentation_or_choice_overlap():
             counts[item.kind] = counts.get(item.kind, 0) + 1
             order_groups.setdefault((item.kind, int(item.level_id)), []).append(int(item.order_index))
             runtime = (item.template_data or {}).get("db_runtime") or {}
-            if runtime.get("version") != "HIMMA-DB-RUNTIME-1.0":
-                _issue(errors, canonical, None, "missing DB runtime snapshot")
+            if runtime.get("version") != DB_RUNTIME_VERSION:
+                _issue(errors, canonical, None, f"missing current DB runtime snapshot {DB_RUNTIME_VERSION}")
             if not item.steps:
                 _issue(errors, canonical, None, "item has no executable rounds")
                 continue
@@ -75,7 +77,7 @@ def test_complete_student_runtime_has_no_presentation_or_choice_overlap():
             for expected_order, step in enumerate(sorted(item.steps, key=lambda value: value.order_index), start=1):
                 if int(step.order_index) != expected_order:
                     _issue(errors, canonical, int(step.order_index), f"non-consecutive round order; expected {expected_order}")
-                options = sorted(step.options, key=lambda value: value.order_index)
+                options = active_options(step)
                 texts = [str(option.text).strip() for option in options]
                 normalized = [_display_key(text) for text in texts]
                 correct = [option for option in options if option.is_correct]
@@ -103,12 +105,14 @@ def test_complete_student_runtime_has_no_presentation_or_choice_overlap():
                         _issue(errors, canonical, step.order_index, f"ordered-task option count is {len(options)}")
                 elif interaction in READ:
                     if options:
-                        _issue(errors, canonical, step.order_index, "read-aloud round unexpectedly has choice options")
+                        _issue(errors, canonical, step.order_index, "read-aloud round unexpectedly has current choice options")
                     if not str(step.expected_reading_text or "").strip():
                         _issue(errors, canonical, step.order_index, "read-aloud round has no expected reading text")
 
-                if interaction in LISTEN and not audio_assets and not gaps:
-                    _issue(errors, canonical, step.order_index, "listening round has no audio and no declared media gap")
+                if interaction in LISTEN:
+                    prompt_audio = [asset for asset in audio_assets if asset.get("usage") == "prompt"]
+                    if len(prompt_audio) != 1 and not gaps:
+                        _issue(errors, canonical, step.order_index, f"listening round prompt-audio count is {len(prompt_audio)}")
 
                 if interaction in IMAGE_CHOICE and not gaps:
                     mapped = [asset for asset in image_assets if asset.get("option_id") is not None]
@@ -116,7 +120,7 @@ def test_complete_student_runtime_has_no_presentation_or_choice_overlap():
                     if len(mapped) != len(options):
                         _issue(errors, canonical, step.order_index, f"image choices mapped={len(mapped)} but options={len(options)}")
                     if len(set(mapped_ids)) != len(mapped_ids):
-                        _issue(errors, canonical, step.order_index, "two image assets map to the same option")
+                        _issue(errors, canonical, step.order_index, "two image assets map to the same current option")
 
                 presentation = presentation_data(item, step)
                 if item.kind in {"core_activity", "reinforcement_activity"}:
