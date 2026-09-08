@@ -6,9 +6,9 @@ importers for an empty/old database:
 - reinforcement addition importers create the 20 durable extension rows.
 
 They are never the final content source. Once the structural 125 rows exist, the
-DB-free canonical compiler creates one validated release and the transactional
-publisher replaces the *current* option/media/presentation contract while
-preserving historical item/step/option evidence.
+DB-free canonical release builder creates one validated, media-verified release
+and the transactional publisher replaces the *current* option/media/presentation
+contract while preserving historical item/step/option evidence.
 
 The retired correction/projection chain is intentionally NOT called here.
 """
@@ -20,8 +20,8 @@ from pathlib import Path
 import seed
 import seed_reinforcement_additions
 import seed_reinforcement_additions_v2
-from canonical_content_compiler import compile_release
 from canonical_content_publisher import DB_RUNTIME_VERSION, publish_release
+from canonical_release import build_canonical_release
 from content_approval_contract_2026_09_08 import (
     LEARNING_VERSION,
     POSTTEST_VERSION,
@@ -72,7 +72,9 @@ def _bootstrap_structure() -> tuple[int, int]:
 def run_seed_all() -> dict[str, object]:
     v1_created, v2_created = _bootstrap_structure()
 
-    release = compile_release()
+    # This is the only release object allowed to reach the publisher. It has
+    # already resolved listening media semantically and verified real binaries.
+    release = build_canonical_release()
     publication = publish_release(release)
 
     db = SessionLocal()
