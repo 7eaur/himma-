@@ -2,6 +2,7 @@
 
 ``canonical_content_compiler`` converts historical/approved content sources into
 one structured academic release. This module is the final release boundary: it
+verifies that every student question is covered by an approved structured source,
 resolves every listening prompt against the approved audio manifest by semantic
 target, makes the heard target explicit, re-hashes the result, and runs the
 fail-closed media inventory guard.
@@ -20,12 +21,23 @@ from typing import Any
 
 from canonical_content_compiler import compile_release
 from canonical_media_guard import assert_media_contract, resolve_audio_asset
+from content_approval_contract_2026_09_08 import (
+    LEARNING_QUESTIONS,
+    LEARNING_ROUND_QUESTIONS,
+    POSTTEST_QUESTIONS,
+    PRETEST_QUESTIONS,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 ADDITION_SOURCES = (
     ROOT / "packages" / "content" / "src" / "reinforcement_additions_v1.json",
     ROOT / "packages" / "content" / "src" / "reinforcement_additions_v2.json",
 )
+
+# These two story activities use their separately approved structured story
+# sources/replacement rounds. They are intentionally not represented by one
+# item-level question because every story round has its own question.
+STRUCTURED_STORY_QUESTION_SOURCES = {"L1-CORE-09", "L1-REIN-11"}
 
 
 def _rehash(release: dict[str, Any]) -> dict[str, Any]:
@@ -34,6 +46,61 @@ def _rehash(release: dict[str, Any]) -> dict[str, Any]:
     raw = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
     value["sha256"] = hashlib.sha256(raw).hexdigest()
     return value
+
+
+def _canonical_ids(release: dict[str, Any], kind: str) -> set[str]:
+    return {
+        str(item.get("canonical_id") or "").strip()
+        for item in release.get("items") or []
+        if str(item.get("kind") or "") == kind
+    }
+
+
+def _assert_exact_ids(label: str, actual: set[str], expected: set[str]) -> None:
+    missing = sorted(expected - actual)
+    extra = sorted(actual - expected)
+    if missing or extra:
+        raise RuntimeError(f"{label} structured question coverage mismatch: missing={missing} extra={extra}")
+
+
+def _assert_question_contract_coverage(release: dict[str, Any]) -> None:
+    """Refuse publication if any learner question falls back to raw legacy copy.
+
+    Historical sources remain legal migration inputs for durable IDs, criteria,
+    and unchanged structural fields. Student-facing question copy, however, must
+    be accounted for by the approved September contract or by one of the two
+    explicitly approved structured story sources.
+    """
+    _assert_exact_ids(
+        "pretest",
+        _canonical_ids(release, "pretest_question"),
+        set(PRETEST_QUESTIONS),
+    )
+    _assert_exact_ids(
+        "posttest",
+        _canonical_ids(release, "posttest_question"),
+        set(POSTTEST_QUESTIONS),
+    )
+
+    learning_ids = _canonical_ids(release, "core_activity") | _canonical_ids(release, "reinforcement_activity")
+    structured_learning = set(LEARNING_QUESTIONS) | set(LEARNING_ROUND_QUESTIONS) | STRUCTURED_STORY_QUESTION_SOURCES
+    _assert_exact_ids("learning", learning_ids, structured_learning)
+
+    # Round-specific contracts must cover every durable round of the item. The
+    # compiler also checks this while applying them; keeping the invariant at the
+    # release boundary prevents a future compiler refactor from weakening it.
+    by_id = {str(item.get("canonical_id") or ""): item for item in release.get("items") or []}
+    for canonical, questions in LEARNING_ROUND_QUESTIONS.items():
+        rounds = list((by_id.get(canonical) or {}).get("rounds") or [])
+        if len(rounds) != len(questions):
+            raise RuntimeError(
+                f"{canonical}: structured round-question count={len(questions)} but release rounds={len(rounds)}"
+            )
+
+    for canonical in STRUCTURED_STORY_QUESTION_SOURCES:
+        rounds = list((by_id.get(canonical) or {}).get("rounds") or [])
+        if not rounds or any(not str(step.get("question_text") or "").strip() for step in rounds):
+            raise RuntimeError(f"{canonical}: approved story source has an empty question round")
 
 
 def _addition_audio_targets() -> dict[tuple[str, int], str]:
@@ -113,7 +180,8 @@ def _resolve_listening_audio(release: dict[str, Any]) -> None:
             asset_id = resolve_audio_asset(target)
 
             preserved = [
-                value for value in step.get("media") or []
+                value
+                for value in step.get("media") or []
                 if not (
                     str(value.get("asset_type") or "") == "audio"
                     and str(value.get("usage") or "") == "prompt"
@@ -139,6 +207,7 @@ def _resolve_listening_audio(release: dict[str, Any]) -> None:
 
 def build_canonical_release() -> dict[str, Any]:
     release = deepcopy(compile_release())
+    _assert_question_contract_coverage(release)
     _resolve_listening_audio(release)
     release = _rehash(release)
     assert_media_contract(release)
