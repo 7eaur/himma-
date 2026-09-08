@@ -1,17 +1,15 @@
 """Canonical adaptive-learning HTTP runtime.
 
-This module owns the mounted ``/activities`` routes.  It reuses the proven
-Stage-2 scoring/adaptation services, but makes the learner reading-review state
-explicit so a persisted recording can never become completion evidence before
-supervisor review.
+This module owns the mounted ``/activities`` routes. It keeps academic evidence
+state separate from learner navigation state:
 
-Important invariants:
-- required student audio has no skip/bypass path;
-- an uploaded recording is pending evidence, not a correct answer;
-- supervisor review is authoritative: ``graded`` may satisfy the step and
-  ``rerecord_required`` reopens it;
-- historical Stage-2 helpers stay available as service code, while this module
-  is the single public route owner.
+- uploaded/pending audio is persisted evidence awaiting supervisor review;
+- pending audio never becomes correctness/mastery/completion evidence;
+- a learner may continue to another approved item while review is pending;
+- ``rerecord_required`` becomes learner-actionable again immediately;
+- ``graded`` is the only audio-review state that may complete the reading step;
+- no adaptation/promotion decision is evaluated while unresolved audio evidence
+  exists in the active learning session.
 """
 from __future__ import annotations
 
@@ -30,7 +28,6 @@ from activities import (
     _activity_session_or_404,
     _finalize_session_if_done,
     _load_item,
-    _pending_attempt,
     _progress_payload,
     _rich_item_query,
     _step_payload as stage2_step_payload,
@@ -39,7 +36,7 @@ from activities import (
     start_learning as stage2_start_learning,
     submit_activity_step as stage2_submit_activity_step,
 )
-from activities_v4 import _next_unused_core_item, _resolve_active_session
+from activities_v4 import _preferred_core_skill_id, _resolve_active_session
 from adaptation_runtime import prepare_next_for_student
 from assessment import (
     _commit_idempotent,
@@ -90,7 +87,7 @@ def _audio_for_response(db: Session, response: AttemptResponse | None) -> AudioS
 
 
 def effective_step_state(db: Session, attempt: Attempt, step: ContentStep) -> dict[str, Any]:
-    """Return fail-closed step state for supervisor-reviewed reading evidence."""
+    """Return fail-closed *academic* state for supervisor-reviewed reading evidence."""
     response = (
         db.query(AttemptResponse)
         .filter(
@@ -102,7 +99,10 @@ def effective_step_state(db: Session, attempt: Attempt, step: ContentStep) -> di
     )
     audio = _audio_for_response(db, response)
     if audio is None:
-        return stage2_step_state(db, attempt, step)
+        state = stage2_step_state(db, attempt, step)
+        state.setdefault("awaiting_audio_review", False)
+        state.setdefault("audio_review_status", None)
+        return state
 
     base = {
         "attempts_used": 1,
@@ -132,7 +132,7 @@ def effective_step_state(db: Session, attempt: Attempt, step: ContentStep) -> di
             "awaiting_audio_review": False,
         }
 
-    # Unknown review states fail closed. They must never count as completion.
+    # Unknown review states fail closed academically and are never navigation evidence.
     return {
         **base,
         "done": False,
@@ -150,19 +150,169 @@ def _runtime_step_payload(
     payload = stage2_step_payload(db, item, attempt, step)
     state = effective_step_state(db, attempt, step)
     payload["attempts_used"] = state["attempts_used"]
-    payload["retry"] = state["attempts_used"] > 0 and not state["done"] and not state.get("awaiting_audio_review")
+    payload["retry"] = (
+        state["attempts_used"] > 0
+        and not state["done"]
+        and not state.get("awaiting_audio_review")
+    )
     payload["hint_available"] = payload["retry"]
     payload["audio_review_status"] = state.get("audio_review_status")
     payload["awaiting_audio_review"] = bool(state.get("awaiting_audio_review"))
     return payload
 
 
-def _finalize_attempt_if_done(db: Session, attempt: Attempt, item: ContentItem) -> None:
+def _finalize_attempt_if_done(db: Session, attempt: Attempt, item: ContentItem) -> bool:
+    """Finalize only from academically completed evidence; pending review never qualifies."""
     for step in item.steps:
         if not effective_step_state(db, attempt, step)["done"]:
-            return
-    attempt.status = "completed"
-    attempt.completed_at = datetime.now(timezone.utc)
+            return False
+    if attempt.status != "completed":
+        attempt.status = "completed"
+        attempt.completed_at = datetime.now(timezone.utc)
+    return True
+
+
+def _in_progress_attempts(db: Session, session_id: int) -> list[Attempt]:
+    return (
+        db.query(Attempt)
+        .filter(
+            Attempt.session_id == session_id,
+            Attempt.status == "in_progress",
+        )
+        .order_by(Attempt.id)
+        .all()
+    )
+
+
+def navigation_target(
+    db: Session,
+    session_id: int,
+    *,
+    finalize_completed: bool = False,
+) -> tuple[Attempt | None, ContentItem | None, ContentStep | None, int, bool]:
+    """Resolve learner action independently from academic completion.
+
+    Returns ``(attempt, item, step, pending_review_count, finalized_any)``.
+
+    Pending-review steps are skipped for navigation but remain academically open.
+    A rerecord-required or otherwise incomplete learner-actionable step is never
+    skipped. Older actionable attempts win so a supervisor rerecord request is
+    surfaced even when the learner already continued to later items.
+    """
+    pending_review_count = 0
+    finalized_any = False
+
+    for attempt in _in_progress_attempts(db, session_id):
+        item = _load_item(db, attempt.item_id)
+        if item is None:
+            raise HTTPException(status_code=409, detail="تعذر تحميل محتوى النشاط")
+
+        actionable_step: ContentStep | None = None
+        has_academic_pending = False
+        all_done = True
+
+        for step in sorted(item.steps, key=lambda value: value.order_index):
+            state = effective_step_state(db, attempt, step)
+            if state["done"]:
+                continue
+            all_done = False
+            if state.get("awaiting_audio_review"):
+                has_academic_pending = True
+                continue
+            actionable_step = step
+            break
+
+        if actionable_step is not None:
+            return (
+                attempt,
+                item,
+                actionable_step,
+                pending_review_count,
+                finalized_any,
+            )
+
+        if all_done:
+            if finalize_completed:
+                finalized_any = _finalize_attempt_if_done(db, attempt, item) or finalized_any
+            continue
+
+        if has_academic_pending:
+            pending_review_count += 1
+
+    return None, None, None, pending_review_count, finalized_any
+
+
+def _attempted_item_ids(db: Session, session_id: int) -> set[int]:
+    """Every attempted item is reserved for this session, including pending review."""
+    return {
+        int(row[0])
+        for row in db.query(Attempt.item_id)
+        .filter(Attempt.session_id == session_id)
+        .all()
+    }
+
+
+def _next_unattempted_core_item(
+    db: Session,
+    *,
+    student_id: int,
+    session_id: int,
+    level_id: int,
+) -> ContentItem | None:
+    """Choose the next approved Core item without reselecting pending-review work."""
+    attempted_ids = _attempted_item_ids(db, session_id)
+    query = _rich_item_query(db).filter(
+        ContentItem.kind == "core_activity",
+        ContentItem.level_id == level_id,
+        ContentItem.status == "approved",
+    )
+    if attempted_ids:
+        query = query.filter(ContentItem.id.notin_(attempted_ids))
+
+    target_skill_id = _preferred_core_skill_id(
+        db,
+        student_id=student_id,
+        session_id=session_id,
+        level_id=level_id,
+    )
+    if target_skill_id is not None:
+        preferred = (
+            query.filter(ContentItem.skill_id == target_skill_id)
+            .order_by(ContentItem.order_index, ContentItem.id)
+            .first()
+        )
+        if preferred is not None:
+            return preferred
+
+    return query.order_by(ContentItem.order_index, ContentItem.id).first()
+
+
+def _create_attempt(db: Session, session_id: int, item: ContentItem) -> Attempt:
+    attempt = Attempt(session_id=session_id, item_id=item.id, status="in_progress")
+    db.add(attempt)
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        attempt = (
+            db.query(Attempt)
+            .filter(
+                Attempt.session_id == session_id,
+                Attempt.item_id == item.id,
+            )
+            .one()
+        )
+    return attempt
+
+
+def _waiting_review_payload(session: AssessmentSession, level_id: int, pending_count: int) -> dict[str, Any]:
+    return {
+        "navigation_state": "awaiting_audio_review",
+        "session_id": session.id,
+        "level_id": level_id,
+        "pending_audio_reviews": pending_count,
+        "message": "أكملت الأنشطة المتاحة حاليًا، وتوجد تسجيلات تنتظر مراجعة المشرف.",
+    }
 
 
 def _validate_learning_audio(
@@ -206,11 +356,15 @@ def _submit_learning_audio(
     if replay is not None:
         return replay
 
-    attempt = db.query(Attempt).filter(
-        Attempt.session_id == session.id,
-        Attempt.item_id == item_id,
-        Attempt.status == "in_progress",
-    ).first()
+    attempt = (
+        db.query(Attempt)
+        .filter(
+            Attempt.session_id == session.id,
+            Attempt.item_id == item_id,
+            Attempt.status == "in_progress",
+        )
+        .first()
+    )
     if attempt is None:
         raise HTTPException(status_code=404, detail="محاولة النشاط غير موجودة أو انتهت")
 
@@ -226,10 +380,15 @@ def _submit_learning_audio(
 
     _validate_learning_audio(student=student, body=body)
 
-    response = db.query(AttemptResponse).filter(
-        AttemptResponse.attempt_id == attempt.id,
-        AttemptResponse.step_id == step.id,
-    ).order_by(AttemptResponse.id.desc()).first()
+    response = (
+        db.query(AttemptResponse)
+        .filter(
+            AttemptResponse.attempt_id == attempt.id,
+            AttemptResponse.step_id == step.id,
+        )
+        .order_by(AttemptResponse.id.desc())
+        .first()
+    )
     audio = _audio_for_response(db, response)
 
     if response is not None:
@@ -282,6 +441,7 @@ def _submit_learning_audio(
         "learning_complete": False,
         "awaiting_review": True,
         "audio_review_status": "uploaded",
+        "navigation_complete": True,
     }
     _store_idempotency(db, student.id, operation, idempotency_key, payload_hash, result)
     return _commit_idempotent(db, student.id, operation, idempotency_key, payload_hash, result)
@@ -314,7 +474,10 @@ def learning_progress(
         requested_session_id=session_id,
         student_id=student.id,
     )
-    return _progress_payload(db, session, session.assigned_level or student.current_level)
+    payload = _progress_payload(db, session, session.assigned_level or student.current_level)
+    _, _, _, pending_count, _ = navigation_target(db, session.id, finalize_completed=False)
+    payload["pending_audio_reviews"] = pending_count
+    return payload
 
 
 @router.get("/activities/session/{session_id}/next")
@@ -329,16 +492,34 @@ def next_activity_step(
         student_id=student.id,
     )
 
-    pending_attempt = _pending_attempt(db, session.id)
-    if pending_attempt:
-        item = _load_item(db, pending_attempt.item_id)
-        if not item:
-            raise HTTPException(status_code=409, detail="تعذر تحميل محتوى النشاط")
-        for step in item.steps:
-            if not effective_step_state(db, pending_attempt, step)["done"]:
-                return _runtime_step_payload(db, item, pending_attempt, step)
-        _finalize_attempt_if_done(db, pending_attempt, item)
+    attempt, item, step, pending_count, finalized_any = navigation_target(
+        db,
+        session.id,
+        finalize_completed=True,
+    )
+    if finalized_any:
         db.commit()
+    if attempt is not None and item is not None and step is not None:
+        return _runtime_step_payload(db, item, attempt, step)
+
+    db.refresh(session)
+    db.refresh(student)
+    level_id = session.assigned_level or student.current_level
+
+    if pending_count:
+        item = _next_unattempted_core_item(
+            db,
+            student_id=student.id,
+            session_id=session.id,
+            level_id=level_id,
+        )
+        if item is None:
+            return _waiting_review_payload(session, level_id, pending_count)
+        attempt = _create_attempt(db, session.id, item)
+        first_step = next(iter(item.steps), None)
+        if first_step is None:
+            raise HTTPException(status_code=409, detail="النشاط لا يحتوي على جولات معتمدة")
+        return _runtime_step_payload(db, item, attempt, first_step)
 
     prepared = prepare_next_for_student(db, student, session)
     if prepared.get("mapping_blocked"):
@@ -362,46 +543,46 @@ def next_activity_step(
     db.refresh(student)
     level_id = session.assigned_level or student.current_level
 
-    pending_attempt = _pending_attempt(db, session.id)
-    if pending_attempt:
-        item = _load_item(db, pending_attempt.item_id)
-        if not item:
-            raise HTTPException(status_code=409, detail="تعذر تحميل نشاط التقوية أو التحقق")
-        first_pending = next(
-            (step for step in item.steps if not effective_step_state(db, pending_attempt, step)["done"]),
-            None,
-        )
-        if first_pending:
-            return _runtime_step_payload(db, item, pending_attempt, first_pending)
-        _finalize_attempt_if_done(db, pending_attempt, item)
+    attempt, item, step, pending_count, finalized_any = navigation_target(
+        db,
+        session.id,
+        finalize_completed=True,
+    )
+    if finalized_any:
         db.commit()
+    if attempt is not None and item is not None and step is not None:
+        return _runtime_step_payload(db, item, attempt, step)
+    if pending_count:
+        item = _next_unattempted_core_item(
+            db,
+            student_id=student.id,
+            session_id=session.id,
+            level_id=level_id,
+        )
+        if item is None:
+            return _waiting_review_payload(session, level_id, pending_count)
+        attempt = _create_attempt(db, session.id, item)
+        first_step = next(iter(item.steps), None)
+        if first_step is None:
+            raise HTTPException(status_code=409, detail="النشاط لا يحتوي على جولات معتمدة")
+        return _runtime_step_payload(db, item, attempt, first_step)
 
-    item = _next_unused_core_item(
+    item = _next_unattempted_core_item(
         db,
         student_id=student.id,
         session_id=session.id,
         level_id=level_id,
     )
-    if not item:
+    if item is None:
         _finalize_session_if_done(db, session, level_id)
         db.commit()
         if session.status == "completed":
             return None
         raise HTTPException(status_code=409, detail="لا يمكن متابعة المسار دون محتوى معتمد مطابق")
 
-    attempt = Attempt(session_id=session.id, item_id=item.id, status="in_progress")
-    db.add(attempt)
-    try:
-        db.commit()
-    except IntegrityError:
-        db.rollback()
-        attempt = db.query(Attempt).filter(
-            Attempt.session_id == session.id,
-            Attempt.item_id == item.id,
-        ).one()
-
+    attempt = _create_attempt(db, session.id, item)
     first_step = next(iter(item.steps), None)
-    if not first_step:
+    if first_step is None:
         raise HTTPException(status_code=409, detail="النشاط لا يحتوي على جولات معتمدة")
     return _runtime_step_payload(db, item, attempt, first_step)
 
@@ -421,8 +602,6 @@ def submit_activity_step(
         student_id=student.id,
     )
 
-    # Historical skip fields remain readable in old records, but no current
-    # public request can manufacture completion from a missing media asset.
     if body.declared_media_gap_skip:
         raise HTTPException(
             status_code=409,
@@ -444,12 +623,14 @@ def submit_activity_step(
             student=student,
         )
 
-    if any([
-        body.audio_storage_key,
-        body.audio_file_size,
-        body.audio_mime_type,
-        body.audio_duration_seconds is not None,
-    ]):
+    if any(
+        [
+            body.audio_storage_key,
+            body.audio_file_size,
+            body.audio_mime_type,
+            body.audio_duration_seconds is not None,
+        ]
+    ):
         raise HTTPException(status_code=400, detail="هذه الجولة لا تستقبل تسجيلًا صوتيًا")
 
     stage2_body = ActivitySubmitRequest(
