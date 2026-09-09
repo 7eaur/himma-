@@ -1,9 +1,8 @@
-"""Listening-media regressions around September image-choice changes.
+"""Listening-media regressions around September content changes.
 
-Several approved activities change image pools while keeping the heard sound.
-The canonical compiler must not erase that independent audio target when it
-replaces image media. Final runtime receives one explicit semantic prompt audio
-plus the approved image choices.
+Approved image-pool changes must not erase an independent heard sound, while the
+Student Experience v2 onset-comparison task must publish both heard words in the
+correct order rather than resurrecting its obsolete single prompt sound.
 """
 from canonical_release import build_canonical_release
 
@@ -36,6 +35,27 @@ def test_l1_core_04_keeps_sound_targets_after_four_image_contract():
         ]) == 4
         for step in item["rounds"]
     )
+
+
+def test_l1_core_06_publishes_both_heard_words_in_order():
+    item = _by_id()["L1-CORE-06"]
+    expected = [
+        (("موز", "ماء"), ("WRD-29", "WRD-11")),
+        (("باب", "بطة"), ("WRD-03", "WRD-12")),
+        (("قلم", "كرة"), ("WRD-04", "WRD-10")),
+        (("سمك", "شمس"), ("WRD-05", "WRD-07")),
+        (("نور", "نخلة"), ("WRD-15", "WRD-09")),
+    ]
+    assert len(item["rounds"]) == len(expected)
+    for step, (targets, asset_ids) in zip(item["rounds"], expected, strict=True):
+        assert step["stimulus"] == {"kind": "audio_sequence", "audio_targets": list(targets)}
+        prompt = [
+            asset for asset in step["media"]
+            if asset["asset_type"] == "audio" and asset["usage"] == "prompt"
+        ]
+        assert tuple(asset["semantic_text"] for asset in prompt) == targets
+        assert tuple(asset["asset_id"] for asset in prompt) == asset_ids
+        assert all(not asset["asset_id"].startswith("LET-") for asset in prompt)
 
 
 def test_l1_rein_02_keeps_sound_targets_after_two_image_therapy_contract():
