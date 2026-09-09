@@ -55,6 +55,19 @@ REINFORCEMENT_V1 = "HIMMA-REINFORCEMENT-ADD-1.0"
 REINFORCEMENT_V2 = "HIMMA-REINFORCEMENT-ADD-2.0"
 SCORING_POLICY_VERSION = "SCORING_POLICY_V1"
 
+# These keys belonged to superseded DB repair/projection seeds. Keeping them on
+# an existing official database would leave two apparent runtime authorities
+# after canonical publication. They are presentation metadata only, not attempt
+# evidence, so canonical publication removes them while preserving durable
+# item/step/option IDs and all historical response rows.
+RETIRED_RUNTIME_OVERLAY_KEYS = {
+    "student_experience_version",
+    "onset_pair_version",
+    "onset_pair_compare",
+    "auditory_story_version",
+    "auditory_story",
+}
+
 
 def _canonical(item: ContentItem) -> str:
     return str((item.template_data or {}).get("canonical_id") or item.stable_key)
@@ -495,6 +508,8 @@ def _publish_item(db, item: ContentItem, spec: dict[str, Any], skill_map: dict[s
     # Refresh relationships used while constructing the student projection.
     item.skill = skill
     data = dict(item.template_data or {})
+    for key in RETIRED_RUNTIME_OVERLAY_KEYS:
+        data.pop(key, None)
     data.update({
         "canonical_id": canonical,
         "title": str(spec["title"]),
