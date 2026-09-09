@@ -691,15 +691,9 @@ def next_activity_step(
     db.refresh(student)
     level_id = session.assigned_level or student.current_level
 
-    unresolved_payload = _unresolved_navigation_payload(
-        db,
-        session=session,
-        student=student,
-        level_id=level_id,
-    )
-    if unresolved_payload is not None:
-        return unresolved_payload
-
+    # Academic adaptation must still evaluate already graded evidence while
+    # another recording is unresolved. The adaptation bridge itself holds only
+    # irreversible promotion/level-completion boundaries.
     prepared = prepare_next_for_student(db, student, session)
     if prepared.get("mapping_blocked"):
         raise HTTPException(
