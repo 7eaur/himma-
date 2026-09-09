@@ -1,0 +1,40 @@
+name: Himma Story Audio Context Patch
+
+on:
+  push:
+    branches:
+      - integration/canonical-content-2026-09-08
+    paths:
+      - .github/workflows/story-audio-context-patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: integration/canonical-content-2026-09-08
+      - name: Keep story audio at item context boundary
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("services/api/canonical_release.py")
+          text = path.read_text(encoding="utf-8")
+          old = '''        canonical = str(item.get("canonical_id") or "")\n        rounds = list(item.get("rounds") or [])\n\n        # L1-CORE-06 is not a one-sound prompt. Student Experience v2 replaced\n'''
+          new = '''        canonical = str(item.get("canonical_id") or "")\n        rounds = list(item.get("rounds") or [])\n\n        # Auditory-story items own one approved item-level recording in their\n        # context intro. Their following comprehension rounds do not each play a\n        # new prompt sound, even if the historical item interaction still starts\n        # with ``listen_``. Keep that story asset at the context boundary instead\n        # of inventing per-round audio targets.\n        context_intro = item.get("context_intro") or {}\n        if isinstance(context_intro, dict) and context_intro.get("kind") == "audio_story":\n            continue\n\n        # L1-CORE-06 is not a one-sound prompt. Student Experience v2 replaced\n'''
+          if old not in text:
+              raise SystemExit("story context anchor not found")
+          path.write_text(text.replace(old, new, 1), encoding="utf-8")
+          PY
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add services/api/canonical_release.py
+          git diff --cached --check
+          git commit -m "fix(audio): keep story playback at context boundary"
+          git push origin HEAD:integration/canonical-content-2026-09-08
