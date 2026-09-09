@@ -13,6 +13,7 @@ from content_approval_contract_2026_09_08 import (
     PRETEST_QUESTIONS,
     VERSION,
 )
+from listening_sequence_contract_2026_09_03 import LISTENING_AUDIO_SEQUENCES
 
 ROOT = Path(__file__).resolve().parents[2]
 STRUCTURED_STORY_QUESTION_SOURCES = {"L1-CORE-09", "L1-REIN-11"}
@@ -105,23 +106,34 @@ def test_canonical_release_locks_critical_sep8_regressions():
     ]
 
 
-def test_every_listening_round_has_one_semantic_prompt_audio():
+def test_every_listening_round_has_an_explicit_semantic_prompt_contract():
     _release, items = _items()
     seen = 0
     for item in items.values():
         if not str(item["interaction_type"]).startswith("listen_"):
             continue
+        canonical = item["canonical_id"]
+        sequences = LISTENING_AUDIO_SEQUENCES.get(canonical)
         for step in item["rounds"]:
             seen += 1
             prompt_audio = [
                 value for value in step["media"]
                 if value["asset_type"] == "audio" and value["usage"] == "prompt"
             ]
-            assert len(prompt_audio) == 1, (item["canonical_id"], step["order_index"])
-            assert step["stimulus"] == {
-                "kind": "audio",
-                "audio_target": prompt_audio[0]["semantic_text"],
-            }
+            if sequences is not None:
+                targets = sequences[int(step["order_index"]) - 1]
+                assert len(prompt_audio) == len(targets)
+                assert [value["semantic_text"] for value in prompt_audio] == list(targets)
+                assert step["stimulus"] == {
+                    "kind": "audio_sequence",
+                    "audio_targets": list(targets),
+                }
+            else:
+                assert len(prompt_audio) == 1, (canonical, step["order_index"])
+                assert step["stimulus"] == {
+                    "kind": "audio",
+                    "audio_target": prompt_audio[0]["semantic_text"],
+                }
     assert seen > 0
 
     # The final audio package changed LET-01 to مَ. A vocalized مِ target must
