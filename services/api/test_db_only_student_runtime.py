@@ -5,8 +5,8 @@ import inspect
 
 import content_runtime
 import seed_all
-from assessment_view import _clean_payload
 from content_runtime import canonical_id
+from content_student_view import assessment_student_payload
 from db.database import SessionLocal
 from db.models import ContentItem
 
@@ -36,7 +36,7 @@ def test_every_assessment_student_payload_is_structured_and_contains_no_raw_prom
     try:
         for item in db.query(ContentItem).filter(ContentItem.kind.in_(["pretest_question", "posttest_question"])).all():
             for step in item.steps:
-                payload = _clean_payload(item, step)
+                payload = assessment_student_payload(item, step)
                 raw = repr(payload)
                 if "prompt_text" in raw or "template_data" in raw:
                     violations.append(canonical_id(item))
