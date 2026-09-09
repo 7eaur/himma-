@@ -288,6 +288,15 @@ def _resolve_listening_audio(release: dict[str, Any]) -> None:
         canonical = str(item.get("canonical_id") or "")
         rounds = list(item.get("rounds") or [])
 
+        # Auditory-story items own one approved item-level recording in their
+        # context intro. Their following comprehension rounds do not each play a
+        # new prompt sound, even if the historical item interaction still starts
+        # with ``listen_``. Keep that story asset at the context boundary instead
+        # of inventing per-round audio targets.
+        context_intro = item.get("context_intro") or {}
+        if isinstance(context_intro, dict) and context_intro.get("kind") == "audio_story":
+            continue
+
         # L1-CORE-06 is not a one-sound prompt. Student Experience v2 replaced
         # the old sound-vs-word task with two heard words per round. Resolve both
         # words in order and explicitly discard any obsolete baseline prompt.
