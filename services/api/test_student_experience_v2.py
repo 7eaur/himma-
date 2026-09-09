@@ -8,7 +8,7 @@ repair seed.
 from __future__ import annotations
 
 import seed_all
-from content_runtime import canonical_id, step_assets
+from content_runtime import canonical_id, item_assets, step_assets
 from db.database import SessionLocal
 from db.models import ContentItem, Skill
 
@@ -118,8 +118,8 @@ def test_path_tasks_are_replaced_by_auditory_story_contract_without_runtime_patc
             assert "student_experience_version" not in data
 
             # Story audio is intro-only. Question rounds never replay the story.
-            item_assets = [asset for asset in step_assets(item, None) if asset["asset_type"] == "audio"]
-            assert [asset["asset_id"] for asset in item_assets] == [audio_asset_id]
+            story_assets = [asset for asset in item_assets(item) if asset["asset_type"] == "audio"]
+            assert [asset["asset_id"] for asset in story_assets] == [audio_asset_id]
             assert len(item.steps) == 5
             for step in item.steps:
                 assert not [asset for asset in step_assets(item, step) if asset["asset_type"] == "audio"]
