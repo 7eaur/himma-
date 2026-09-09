@@ -178,17 +178,42 @@ def _choice_image_contains_text(row: dict[str, Any]) -> bool:
 
 
 def resolve_audio_asset(semantic: str) -> str:
-    """Resolve one target to exactly one approved manifest ID, never by position."""
+    """Resolve one target to exactly one approved manifest ID, never by position.
+
+    Exact manifest text/spoken matches always outrank relaxed category matching.
+    This keeps inflected/vocalized variants distinct (for example ``قَلَم`` from
+    ``قَلَمٌ``) while still allowing a unique approved fallback when the manifest
+    omits optional diacritics.
+    """
     audio, duplicates = _audio_rows()
     if duplicates:
         raise RuntimeError(f"Duplicate audio manifest IDs: {duplicates}")
+
+    target = _norm(semantic)
+    approved = {
+        asset_id: row
+        for asset_id, row in audio.items()
+        if _norm(row.get("status")) == "approved"
+    }
+    exact = [
+        asset_id
+        for asset_id, row in approved.items()
+        if target in {_norm(row.get("text_ar")), _norm(row.get("spoken_input"))} - {""}
+    ]
+    if len(exact) == 1:
+        return exact[0]
+    if len(exact) > 1:
+        raise RuntimeError(
+            f"Audio target {target!r} has multiple exact approved assets: {exact}"
+        )
+
     matches = [
-        asset_id for asset_id, row in audio.items()
-        if _norm(row.get("status")) == "approved" and _audio_semantic_matches(row, semantic)
+        asset_id for asset_id, row in approved.items()
+        if _audio_semantic_matches(row, semantic)
     ]
     if len(matches) != 1:
         raise RuntimeError(
-            f"Audio target {_norm(semantic)!r} must resolve to exactly one approved asset, got {matches}"
+            f"Audio target {target!r} must resolve to exactly one approved asset, got {matches}"
         )
     return matches[0]
 
