@@ -49,6 +49,9 @@ def run_seed_all() -> dict[str, object]:
         all_items = db.query(ContentItem).all()
         total = len(all_items)
         base_count = db.query(ContentItem).filter(ContentItem.stable_key.in_(_base_stable_keys())).count()
+        pretest_count = db.query(ContentItem).filter(ContentItem.kind == "pretest_question").count()
+        posttest_count = db.query(ContentItem).filter(ContentItem.kind == "posttest_question").count()
+        core_count = db.query(ContentItem).filter(ContentItem.kind == "core_activity").count()
         reinforcement_count = db.query(ContentItem).filter(ContentItem.kind == "reinforcement_activity").count()
         release_marked = sum(
             1 for item in all_items
@@ -79,8 +82,15 @@ def run_seed_all() -> dict[str, object]:
 
     if base_count != 105:
         raise RuntimeError(f"Expected 105 baseline items, got {base_count}")
-    if reinforcement_count != 35:
-        raise RuntimeError(f"Expected 35 reinforcement items, got {reinforcement_count}")
+    actual_kinds = {
+        "pretest": int(pretest_count),
+        "posttest": int(posttest_count),
+        "core": int(core_count),
+        "reinforcement": int(reinforcement_count),
+    }
+    expected_kinds = {"pretest": 30, "posttest": 30, "core": 30, "reinforcement": 35}
+    if actual_kinds != expected_kinds:
+        raise RuntimeError(f"Canonical runtime kind counts mismatch: {actual_kinds}")
     if total != 125:
         raise RuntimeError(f"Expected 125 total runtime items, got {total}")
     if release_marked != 125:
@@ -97,9 +107,14 @@ def run_seed_all() -> dict[str, object]:
     v1_created = int(publication.get("v1_rows_created") or 0)
     v2_created = int(publication.get("v2_rows_created") or 0)
     result: dict[str, object] = {
-        "baseline_items": base_count,
-        "reinforcement_items": reinforcement_count,
-        "total_items": total,
+        "baseline_items": int(base_count),
+        # Keep the long-standing public/test count keys while the canonical
+        # markers below prove the same projection at the current version.
+        "pretest_items": int(pretest_count),
+        "posttest_items": int(posttest_count),
+        "core_items": int(core_count),
+        "reinforcement_items": int(reinforcement_count),
+        "total_items": int(total),
         "v1_additions_created": v1_created,
         "v2_additions_created": v2_created,
         "additions_created": v1_created + v2_created,
