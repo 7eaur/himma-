@@ -84,7 +84,7 @@ def _researcher_login(client):
 
 
 class TestLearningAudioRuntime:
-    def test_uploaded_audio_stays_pending_until_supervisor_grade(self, client, monkeypatch):
+    def test_uploaded_audio_stays_academically_pending_but_student_can_continue(self, client, monkeypatch):
         _student_login(client)
         student_id, session_id, item_id, step_id, attempt_id = _create_audio_attempt(client)
         monkeypatch.setattr(activity_runtime.storage, "verify_audio", lambda *args, **kwargs: None)
@@ -112,16 +112,18 @@ class TestLearningAudioRuntime:
         submission_id = audio.id
         db.close()
 
+        progress = client.get(f"/activities/session/{session_id}/progress")
+        assert progress.status_code == 200, progress.text
+        assert progress.json()["pending_audio_reviews"] == 1
+
         current = client.get(f"/activities/session/{session_id}/next")
         assert current.status_code == 200, current.text
-        assert current.json()["item"]["id"] == item_id
-        assert current.json()["awaiting_audio_review"] is True
-        assert current.json()["audio_review_status"] == "uploaded"
+        assert current.json()["item"]["id"] != item_id
 
         learning_view = client.get(f"/learning-experience/session/{session_id}")
         assert learning_view.status_code == 200, learning_view.text
-        assert learning_view.json()["awaiting_audio_review"] is True
-        assert learning_view.json()["audio_review_status"] == "uploaded"
+        assert learning_view.json()["item_id"] == current.json()["item"]["id"]
+        assert learning_view.json()["pending_audio_reviews"] == 1
 
         _researcher_login(client)
         graded = client.post(
@@ -136,13 +138,6 @@ class TestLearningAudioRuntime:
         )
         assert graded.status_code == 200, graded.text
 
-        _student_login(client)
-        advanced = client.get(f"/activities/session/{session_id}/next")
-        assert advanced.status_code == 200, advanced.text
-        assert advanced.json()["item"]["id"] == item_id
-        assert advanced.json()["step"]["id"] != step_id
-        assert advanced.json()["awaiting_audio_review"] is False
-
         db = SessionLocal()
         attempt = db.query(Attempt).filter(Attempt.id == attempt_id).one()
         response = db.query(AttemptResponse).filter(
@@ -150,11 +145,12 @@ class TestLearningAudioRuntime:
             AttemptResponse.step_id == step_id,
         ).one()
         audio = db.query(AudioSubmission).filter(AudioSubmission.response_id == response.id).one()
-        assert attempt.status == "in_progress"
         assert audio.status == "graded"
+        assert response.is_correct is True
+        assert attempt.status == "in_progress"
         db.close()
 
-    def test_invalid_review_reopens_same_reading_step_for_rerecord(self, client, monkeypatch):
+    def test_invalid_review_is_deferred_until_student_opens_rerecord_task(self, client, monkeypatch):
         _student_login(client)
         student_id, session_id, item_id, step_id, attempt_id = _create_audio_attempt(client)
         monkeypatch.setattr(activity_runtime.storage, "verify_audio", lambda *args, **kwargs: None)
@@ -171,7 +167,8 @@ class TestLearningAudioRuntime:
             AttemptResponse.attempt_id == attempt_id,
             AttemptResponse.step_id == step_id,
         ).one()
-        submission_id = db.query(AudioSubmission).filter(AudioSubmission.response_id == response.id).one().id
+        first_submission = db.query(AudioSubmission).filter(AudioSubmission.response_id == response.id).one()
+        submission_id = first_submission.id
         db.close()
 
         _researcher_login(client)
@@ -182,12 +179,35 @@ class TestLearningAudioRuntime:
         assert rejected.status_code == 200, rejected.text
 
         _student_login(client)
+        tasks = client.get(f"/activities/session/{session_id}/rerecord-tasks")
+        assert tasks.status_code == 200, tasks.text
+        assert [task["submission_id"] for task in tasks.json()] == [submission_id]
+
+        blocked = client.post(
+            f"/activities/session/{session_id}/attempt/{item_id}/submit",
+            json=_audio_payload(student_id, step_id, "blocked-before-open"),
+            headers={"Idempotency-Key": "learning-audio-rerecord-before-open"},
+        )
+        assert blocked.status_code == 409
+        assert "افتح مهمة إعادة التسجيل" in blocked.json()["detail"]
+
         current = client.get(f"/activities/session/{session_id}/next")
         assert current.status_code == 200, current.text
-        assert current.json()["item"]["id"] == item_id
-        assert current.json()["audio_review_status"] == "rerecord_required"
-        assert current.json()["awaiting_audio_review"] is False
-        assert current.json()["retry"] is True
+        assert current.json()["item"]["id"] != item_id
+
+        opened = client.post(
+            f"/activities/session/{session_id}/attempt/{item_id}/step/{step_id}/rerecord/start"
+        )
+        assert opened.status_code == 200, opened.text
+        assert opened.json()["submission_id"] == submission_id
+
+        rerecord = client.get(f"/activities/session/{session_id}/next")
+        assert rerecord.status_code == 200, rerecord.text
+        assert rerecord.json()["item"]["id"] == item_id
+        assert rerecord.json()["step"]["id"] == step_id
+        assert rerecord.json()["audio_review_status"] == "rerecord_required"
+        assert rerecord.json()["rerecord_opened"] is True
+        assert rerecord.json()["retry"] is True
 
         second = client.post(
             f"/activities/session/{session_id}/attempt/{item_id}/submit",
@@ -202,9 +222,15 @@ class TestLearningAudioRuntime:
             AttemptResponse.attempt_id == attempt_id,
             AttemptResponse.step_id == step_id,
         ).one()
-        audio = db.query(AudioSubmission).filter(AudioSubmission.response_id == response.id).one()
-        assert audio.status == "uploaded"
-        assert audio.storage_key.endswith("second.webm")
+        submissions = db.query(AudioSubmission).filter(
+            AudioSubmission.response_id == response.id,
+        ).order_by(AudioSubmission.id).all()
+        assert len(submissions) == 2
+        assert submissions[0].id == submission_id
+        assert submissions[0].status == "rerecord_required"
+        assert submissions[0].storage_key.endswith("first.webm")
+        assert submissions[1].status == "uploaded"
+        assert submissions[1].storage_key.endswith("second.webm")
         assert response.is_correct is None
         assert db.query(Attempt).filter(Attempt.id == attempt_id).one().status == "in_progress"
         db.close()
