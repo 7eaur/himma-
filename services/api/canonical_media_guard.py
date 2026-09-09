@@ -142,7 +142,11 @@ def _audio_semantic_matches(row: dict[str, str], semantic: str) -> bool:
         # unique approved stable ID for this lexical target.
         return bool(target_plain) and any(_without_marks(candidate) == target_plain for candidate in candidates)
     if category == "auditory-story":
-        return any(target_plain and target_plain in _without_marks(candidate) for candidate in candidates)
+        # Story lookup is against the story label only. Never search a full story
+        # transcript for arbitrary prompt targets: a bare letter or common word
+        # would otherwise collide with the dedicated letter/word asset.
+        story_label = _without_marks(row.get("text_ar"))
+        return target_plain.startswith("قصة") and target_plain in story_label
     # ``syllable`` intentionally has no relaxed branch: vowel length/quality is
     # the academic target and must remain exact.
     return False
