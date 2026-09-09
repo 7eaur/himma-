@@ -282,10 +282,25 @@ async function reviewPendingLearningAudio(
   request: APIRequestContext,
   accessCode: string,
   learningSessionId: string,
+  captureEvidence: boolean,
 ) {
-  const hold = page.getByTestId("student-audio-review-hold");
-  await expect(hold).toBeVisible({ timeout: 10000 });
-  await expect(hold.getByRole("heading", { name: /عند المشرف للمراجعة/ })).toBeVisible();
+  const progressResponse = await request.get(`${API_URL}/activities/session/${learningSessionId}/progress`);
+  expect(progressResponse.status(), "Pending learning audio should remain visible in progress").toBe(200);
+  const progress: { pending_audio_reviews?: number } = await progressResponse.json();
+  expect(progress.pending_audio_reviews ?? 0).toBeGreaterThan(0);
+
+  // Pending evidence is academically unresolved, but it is no longer a modal
+  // navigation hold. The learner may continue same-level work; only an
+  // irreversible level boundary may show the explicit awaiting state.
+  await expect(page.getByTestId("student-audio-review-hold")).toHaveCount(0);
+  const activity = page.getByTestId("activity-session");
+  await expect(activity).toHaveAttribute("data-phase", /^(active|awaiting-audio-review)$/, { timeout: 10000 });
+  const phase = await activity.getAttribute("data-phase");
+  if (captureEvidence) {
+    await shot(page, phase === "active"
+      ? "13-learning-audio-pending-nonblocking"
+      : "13-learning-audio-pending-at-level-boundary");
+  }
 
   await context.clearCookies();
   await loginAsSupervisor(request, context);
@@ -300,7 +315,7 @@ async function reviewPendingLearningAudio(
   await context.clearCookies();
   await loginAsStudent(request, context, accessCode);
   await page.goto(`/student/activity/${learningSessionId}`);
-  await expect(page.getByTestId("student-audio-review-hold")).toHaveCount(0, { timeout: 10000 });
+  await expect(page.getByTestId("student-audio-review-hold")).toHaveCount(0);
 }
 
 test.describe("Himma recovered vertical slice", () => {
@@ -457,18 +472,24 @@ test.describe("Himma recovered vertical slice", () => {
       await answerActivityVisual(page, current);
 
       if (readingRound) {
-        await expect(page.getByTestId("student-audio-review-hold")).toBeVisible({ timeout: 10000 });
-        if (!capturedLearningAudioHold) {
-          await shot(page, "13-learning-audio-awaiting-supervisor");
-          capturedLearningAudioHold = true;
-        }
-        await reviewPendingLearningAudio(page, context, request, accessCode, learningSessionId!);
-        await page.waitForTimeout(500);
-        current = await fetchLearningExperience(request, learningSessionId!);
-        if (current) await waitForActivityPayload(page, current);
-        else await expect(activityRoot).toHaveAttribute("data-phase", "done", { timeout: 20000 });
-        continue;
-      }
+  const nextResponse = await nextResponsePromise;
+  expect(nextResponse, "Reading upload should resolve the next learner state").toBeTruthy();
+  if (nextResponse) expect(nextResponse.status()).toBe(200);
+  await reviewPendingLearningAudio(
+    page,
+    context,
+    request,
+    accessCode,
+    learningSessionId!,
+    !capturedLearningAudioHold,
+  );
+  capturedLearningAudioHold = true;
+  await page.waitForTimeout(500);
+  current = await fetchLearningExperience(request, learningSessionId!);
+  if (current) await waitForActivityPayload(page, current);
+  else await expect(activityRoot).toHaveAttribute("data-phase", "done", { timeout: 20000 });
+  continue;
+}
       await page.waitForTimeout(850);
       if ((await activityRoot.getAttribute("data-phase")) === "done") break;
       const nextResponse = await nextResponsePromise;
