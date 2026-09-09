@@ -6,6 +6,7 @@ from activity_runtime import (
     effective_step_state,
     navigation_target,
 )
+from audio_review_state import open_rerecord_task_once
 from db.database import SessionLocal
 from db.models import (
     AssessmentSession,
@@ -163,10 +164,32 @@ def test_pending_item_is_reserved_and_cannot_be_selected_again(monkeypatch):
         db.close()
 
 
-def test_rerecord_required_resurfaces_the_original_step():
-    db, _, session, attempt, step, _, audio, _ = _build_pending_audio_case()
+def test_rerecord_required_is_deferred_until_learner_opens_task():
+    db, student, session, attempt, step, _, audio, _ = _build_pending_audio_case()
     try:
         audio.status = "rerecord_required"
+        db.commit()
+
+        current_attempt, current_item, current_step, pending_count, _ = navigation_target(
+            db,
+            session.id,
+            finalize_completed=False,
+        )
+        assert current_attempt is None
+        assert current_item is None
+        assert current_step is None
+        assert pending_count == 0
+        state = effective_step_state(db, attempt, step)
+        assert state["done"] is False
+        assert state["awaiting_audio_review"] is False
+        assert state["rerecord_opened"] is False
+
+        assert open_rerecord_task_once(
+            db,
+            student_id=student.id,
+            submission=audio,
+            details="test-open",
+        ) is True
         db.commit()
 
         current_attempt, current_item, current_step, pending_count, _ = navigation_target(
@@ -178,9 +201,7 @@ def test_rerecord_required_resurfaces_the_original_step():
         assert current_item is not None and current_item.id == attempt.item_id
         assert current_step is not None and current_step.id == step.id
         assert pending_count == 0
-        state = effective_step_state(db, attempt, step)
-        assert state["done"] is False
-        assert state["awaiting_audio_review"] is False
+        assert effective_step_state(db, attempt, step)["rerecord_opened"] is True
     finally:
         db.close()
 
