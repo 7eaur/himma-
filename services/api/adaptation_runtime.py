@@ -17,6 +17,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from adaptation import evaluate_student
+from audio_review_state import session_audio_review_summary
 from db.adaptation_models import AdaptationDecision
 from db.models import AssessmentSession, Attempt, ContentItem, Student
 from db.reinforcement_models import ReinforcementCycle
@@ -188,11 +189,45 @@ def _existing_cycle_hold(db: Session, session: AssessmentSession) -> dict | None
     }
 
 
+def _audio_transition_hold(db: Session, session: AssessmentSession) -> dict | None:
+    """Fail closed for promotion/completion while latest audio is unresolved.
+
+    The activity runtime handles same-level navigation before calling this bridge,
+    so this hold protects transitions without turning pending review into a study
+    blocker.
+    """
+    summary = session_audio_review_summary(db, session.id)
+    if not summary.has_unresolved:
+        return None
+    return {
+        "continue_learning": session.status == "in_progress",
+        "decision": {
+            "ready": False,
+            "action": "hold",
+            "reason": "unresolved_audio_evidence",
+            "pending_audio_reviews": summary.pending_count,
+            "rerecord_required_count": summary.rerecord_required_count,
+        },
+        "recommended_attempt_id": None,
+        "verification_attempt_id": None,
+        "mapping_blocked": False,
+        "recommendation_fulfilled": False,
+        "verification_escalated": False,
+        "level_id": session.assigned_level,
+        "session_id": session.id,
+        "level_transitioned": False,
+    }
+
+
 def prepare_next_for_student(db: Session, student: Student, session: AssessmentSession) -> dict:
     """Evaluate only this active session and prepare the next safe learning action."""
     existing_hold = _existing_cycle_hold(db, session)
     if existing_hold is not None:
         return existing_hold
+
+    audio_hold = _audio_transition_hold(db, session)
+    if audio_hold is not None:
+        return audio_hold
 
     decision_payload = evaluate_student(db, student, session_id=session.id)
     if not decision_payload.get("ready"):
