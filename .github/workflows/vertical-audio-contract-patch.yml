@@ -1,0 +1,148 @@
+name: Himma Vertical Audio Contract Patch
+
+permissions:
+  contents: write
+
+on:
+  push:
+    branches: ['integration/canonical-content-2026-09-08']
+    paths: ['.github/workflows/vertical-audio-contract-patch.yml']
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: integration/canonical-content-2026-09-08
+          fetch-depth: 1
+      - name: Align vertical slice with non-blocking pending audio
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('apps/web/tests/e2e/vertical-slice.spec.ts')
+          text = path.read_text(encoding='utf-8')
+
+          old_helper = '''async function reviewPendingLearningAudio(
+            page: Page,
+            context: import("@playwright/test").BrowserContext,
+            request: APIRequestContext,
+            accessCode: string,
+            learningSessionId: string,
+          ) {
+            const hold = page.getByTestId("student-audio-review-hold");
+            await expect(hold).toBeVisible({ timeout: 10000 });
+            await expect(hold.getByRole("heading", { name: /عند المشرف للمراجعة/ })).toBeVisible();
+
+            await context.clearCookies();
+            await loginAsSupervisor(request, context);
+            await page.goto("/admin/audio-review");
+            const startReview = page.getByRole("button", { name: "بدء المراجعة" });
+            await expect(startReview.first()).toBeVisible({ timeout: 15000 });
+            await startReview.first().click();
+            const save = page.getByRole("button", { name: "حفظ التقييم" });
+            await expect(save).toBeEnabled({ timeout: 7000 });
+            await save.click();
+
+            await context.clearCookies();
+            await loginAsStudent(request, context, accessCode);
+            await page.goto(`/student/activity/${learningSessionId}`);
+            await expect(page.getByTestId("student-audio-review-hold")).toHaveCount(0, { timeout: 10000 });
+          }'''
+
+          new_helper = '''async function reviewPendingLearningAudio(
+            page: Page,
+            context: import("@playwright/test").BrowserContext,
+            request: APIRequestContext,
+            accessCode: string,
+            learningSessionId: string,
+            captureEvidence: boolean,
+          ) {
+            const progressResponse = await request.get(`${API_URL}/activities/session/${learningSessionId}/progress`);
+            expect(progressResponse.status(), "Pending learning audio should remain visible in progress").toBe(200);
+            const progress: { pending_audio_reviews?: number } = await progressResponse.json();
+            expect(progress.pending_audio_reviews ?? 0).toBeGreaterThan(0);
+
+            // Pending evidence is academically unresolved, but it is no longer a modal
+            // navigation hold. The learner may continue same-level work; only an
+            // irreversible level boundary may show the explicit awaiting state.
+            await expect(page.getByTestId("student-audio-review-hold")).toHaveCount(0);
+            const activity = page.getByTestId("activity-session");
+            await expect(activity).toHaveAttribute("data-phase", /^(active|awaiting-audio-review)$/, { timeout: 10000 });
+            const phase = await activity.getAttribute("data-phase");
+            if (captureEvidence) {
+              await shot(page, phase === "active"
+                ? "13-learning-audio-pending-nonblocking"
+                : "13-learning-audio-pending-at-level-boundary");
+            }
+
+            await context.clearCookies();
+            await loginAsSupervisor(request, context);
+            await page.goto("/admin/audio-review");
+            const startReview = page.getByRole("button", { name: "بدء المراجعة" });
+            await expect(startReview.first()).toBeVisible({ timeout: 15000 });
+            await startReview.first().click();
+            const save = page.getByRole("button", { name: "حفظ التقييم" });
+            await expect(save).toBeEnabled({ timeout: 7000 });
+            await save.click();
+
+            await context.clearCookies();
+            await loginAsStudent(request, context, accessCode);
+            await page.goto(`/student/activity/${learningSessionId}`);
+            await expect(page.getByTestId("student-audio-review-hold")).toHaveCount(0);
+          }'''
+
+          old_block = '''      if (readingRound) {
+                await expect(page.getByTestId("student-audio-review-hold")).toBeVisible({ timeout: 10000 });
+                if (!capturedLearningAudioHold) {
+                  await shot(page, "13-learning-audio-awaiting-supervisor");
+                  capturedLearningAudioHold = true;
+                }
+                await reviewPendingLearningAudio(page, context, request, accessCode, learningSessionId!);
+                await page.waitForTimeout(500);
+                current = await fetchLearningExperience(request, learningSessionId!);
+                if (current) await waitForActivityPayload(page, current);
+                else await expect(activityRoot).toHaveAttribute("data-phase", "done", { timeout: 20000 });
+                continue;
+              }'''
+
+          new_block = '''      if (readingRound) {
+                const nextResponse = await nextResponsePromise;
+                expect(nextResponse, "Reading upload should resolve the next learner state").toBeTruthy();
+                if (nextResponse) expect(nextResponse.status()).toBe(200);
+                await reviewPendingLearningAudio(
+                  page,
+                  context,
+                  request,
+                  accessCode,
+                  learningSessionId!,
+                  !capturedLearningAudioHold,
+                );
+                capturedLearningAudioHold = true;
+                await page.waitForTimeout(500);
+                current = await fetchLearningExperience(request, learningSessionId!);
+                if (current) await waitForActivityPayload(page, current);
+                else await expect(activityRoot).toHaveAttribute("data-phase", "done", { timeout: 20000 });
+                continue;
+              }'''
+
+          if text.count(old_helper) != 1:
+              raise SystemExit(f'expected one old learning-audio helper, found {text.count(old_helper)}')
+          if text.count(old_block) != 1:
+              raise SystemExit(f'expected one old reading block, found {text.count(old_block)}')
+
+          text = text.replace(old_helper, new_helper).replace(old_block, new_block)
+          path.write_text(text, encoding='utf-8')
+          PY
+      - name: Commit source-aligned E2E and remove one-shot workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/vertical-audio-contract-patch.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/web/tests/e2e/vertical-slice.spec.ts .github/workflows/vertical-audio-contract-patch.yml
+          git commit -m 'test(e2e): align learning audio journey with deferred review'
+          git push origin HEAD:integration/canonical-content-2026-09-08
