@@ -3,11 +3,11 @@
 Academic scoring/adaptation remains owned by the activity runtime. This endpoint
 exposes only the canonical structured presentation plus current options/media.
 It consumes the same learner-navigation resolver as ``/activities/.../next`` so
-pending audio review can never make the visual experience point at a different
-step than the submission runtime.
+pending review and deferred rerecord tasks cannot make the visual experience
+point at a different step than the submission runtime.
 
 The static learner content is serialized exclusively by
-``content_student_view.activity_student_content``.  Researcher preview calls the
+``content_student_view.activity_student_content``. Researcher preview calls the
 same serializer, so question wording, instructions, current options, media,
 context and layout metadata cannot drift between preview and the live learner.
 Legacy prompt/source text is never parsed for student rendering.
@@ -19,6 +19,7 @@ from sqlalchemy.orm import Session
 
 from activities import _activity_session_or_404
 from activity_runtime import effective_step_state, navigation_target
+from audio_review_state import session_audio_review_summary
 from content_approval_contract_2026_09_08 import LEARNING_VERSION, VERSION as APPROVAL_VERSION
 from content_student_view import activity_student_content
 from db.models import ContentItem, Student
@@ -69,12 +70,22 @@ def current_learning_experience(
         finalize_completed=False,
     )
     if attempt is None or item is None or step is None:
-        if pending_count:
+        summary = session_audio_review_summary(db, session.id)
+        if summary.pending_count:
             return {
                 "version": VERSION,
                 "session_id": session.id,
                 "navigation_state": "awaiting_audio_review",
-                "pending_audio_reviews": pending_count,
+                "pending_audio_reviews": summary.pending_count,
+                "rerecord_required_count": summary.rerecord_required_count,
+            }
+        if summary.rerecord_required_count:
+            return {
+                "version": VERSION,
+                "session_id": session.id,
+                "navigation_state": "rerecord_available",
+                "pending_audio_reviews": 0,
+                "rerecord_required_count": summary.rerecord_required_count,
             }
         return None
 
@@ -95,6 +106,10 @@ def current_learning_experience(
 
     state = effective_step_state(db, attempt, step)
     awaiting_audio_review = bool(state.get("awaiting_audio_review"))
+    rerecord_actionable = (
+        state.get("audio_review_status") != "rerecord_required"
+        or bool(state.get("rerecord_opened"))
+    )
     static = activity_student_content(item, step)
     item_view = dict(static["item"])
     step_view = dict(static["step"])
@@ -121,11 +136,12 @@ def current_learning_experience(
         "kind": item_view.get("kind"),
         "interaction_type": item_view.get("interaction_type"),
         "round": round_payload,
-        "retry": state["attempts_used"] > 0 and not state["done"] and not awaiting_audio_review,
+        "retry": state["attempts_used"] > 0 and not state["done"] and not awaiting_audio_review and rerecord_actionable,
         "attempts_used": state["attempts_used"],
         "max_attempts": MAX_STEP_ATTEMPTS,
         "audio_review_status": state.get("audio_review_status"),
         "awaiting_audio_review": awaiting_audio_review,
+        "rerecord_opened": bool(state.get("rerecord_opened")),
         "pending_audio_reviews": pending_count,
         "context_intro": _context_intro(item, current_assets),
         "layout_hint": item_view.get("layout_hint") or _layout_hint(item),
