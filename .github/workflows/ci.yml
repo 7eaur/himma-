@@ -96,19 +96,6 @@ jobs:
 
   backend:
     runs-on: ubuntu-24.04
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: himma_test
-          POSTGRES_PASSWORD: himma_test_pass
-          POSTGRES_DB: himma_test_db
-        ports: [5432:5432]
-        options: >-
-          --health-cmd="pg_isready -U himma_test -d himma_test_db"
-          --health-interval=5s
-          --health-timeout=5s
-          --health-retries=10
     defaults:
       run:
         working-directory: services/api
@@ -122,6 +109,30 @@ jobs:
       HIMMA_TEST_DATABASE_URL: postgresql://himma_test:himma_test_pass@localhost:5432/himma_test_db
     steps:
       - uses: actions/checkout@v4
+      - name: Start native PostgreSQL (no containers)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v psql >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y postgresql postgresql-contrib
+          fi
+          sudo systemctl start postgresql
+          sudo -u postgres psql -v ON_ERROR_STOP=1 <<'SQL'
+          DO $$
+          BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'himma_test') THEN
+              CREATE ROLE himma_test LOGIN PASSWORD 'himma_test_pass';
+            ELSE
+              ALTER ROLE himma_test WITH LOGIN PASSWORD 'himma_test_pass';
+            END IF;
+          END
+          $$;
+          SELECT 'CREATE DATABASE himma_test_db OWNER himma_test'
+          WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'himma_test_db')\gexec
+          ALTER DATABASE himma_test_db OWNER TO himma_test;
+          SQL
+          pg_isready -h localhost -p 5432 -U himma_test -d himma_test_db
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -169,27 +180,6 @@ jobs:
   integration:
     runs-on: ubuntu-24.04
     needs: [security, backend, frontend]
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: himma_test
-          POSTGRES_PASSWORD: himma_test_pass
-          POSTGRES_DB: himma_test_db
-        ports: [5432:5432]
-        options: >-
-          --health-cmd="pg_isready -U himma_test -d himma_test_db"
-          --health-interval=5s
-          --health-timeout=5s
-          --health-retries=10
-      redis:
-        image: redis:7-alpine
-        ports: [6379:6379]
-        options: >-
-          --health-cmd="redis-cli ping"
-          --health-interval=5s
-          --health-timeout=5s
-          --health-retries=5
     env:
       DATABASE_URL: postgresql://himma_test:himma_test_pass@localhost:5432/himma_test_db
       API_SECRET_KEY: ci-test-secret-32-chars-minimum!!
@@ -205,6 +195,35 @@ jobs:
       E2E_RESEARCHER_PASSWORD: ci-only-researcher-password
     steps:
       - uses: actions/checkout@v4
+      - name: Start native PostgreSQL and Redis (no containers)
+        shell: bash
+        run: |
+          set -euo pipefail
+          missing=()
+          command -v psql >/dev/null 2>&1 || missing+=(postgresql postgresql-contrib)
+          command -v redis-server >/dev/null 2>&1 || missing+=(redis-server)
+          if ((${#missing[@]})); then
+            sudo apt-get update
+            sudo apt-get install -y "${missing[@]}"
+          fi
+          sudo systemctl start postgresql
+          sudo -u postgres psql -v ON_ERROR_STOP=1 <<'SQL'
+          DO $$
+          BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'himma_test') THEN
+              CREATE ROLE himma_test LOGIN PASSWORD 'himma_test_pass';
+            ELSE
+              ALTER ROLE himma_test WITH LOGIN PASSWORD 'himma_test_pass';
+            END IF;
+          END
+          $$;
+          SELECT 'CREATE DATABASE himma_test_db OWNER himma_test'
+          WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'himma_test_db')\gexec
+          ALTER DATABASE himma_test_db OWNER TO himma_test;
+          SQL
+          pg_isready -h localhost -p 5432 -U himma_test -d himma_test_db
+          sudo systemctl start redis-server || sudo redis-server --daemonize yes
+          redis-cli ping | grep -qx PONG
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
