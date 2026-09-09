@@ -29,6 +29,7 @@ from content_approval_contract_2026_09_08 import (
     PRETEST_QUESTIONS,
 )
 from learning_presentation_2026_09_01 import apply_learning_presentation
+from listening_sequence_contract_2026_09_03 import LISTENING_AUDIO_SEQUENCES
 from posttest_presentation_2026_09_01 import POSTTEST_PRESENTATION
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -244,8 +245,31 @@ def _target_for_round(
     return target
 
 
+def _replace_prompt_audio(step: dict[str, Any], targets: tuple[str, ...] | list[str]) -> None:
+    """Write an ordered semantic prompt-audio sequence into one compiled round."""
+    preserved = [
+        value
+        for value in step.get("media") or []
+        if not (
+            str(value.get("asset_type") or "") == "audio"
+            and str(value.get("usage") or "") == "prompt"
+        )
+    ]
+    for target in targets:
+        semantic = str(target).strip()
+        if not semantic:
+            raise RuntimeError("Listening audio sequence contains an empty semantic target")
+        preserved.append({
+            "asset_id": resolve_audio_asset(semantic),
+            "asset_type": "audio",
+            "usage": "prompt",
+            "semantic_text": semantic,
+        })
+    step["media"] = preserved
+
+
 def _resolve_listening_audio(release: dict[str, Any]) -> None:
-    """Resolve every listening round by target semantics, never by old asset ID."""
+    """Resolve every listening round by semantic target, including audio sequences."""
     baseline_targets = _baseline_audio_targets()
     addition_targets = _addition_audio_targets()
     seen_addition_targets: set[tuple[str, int]] = set()
@@ -255,7 +279,25 @@ def _resolve_listening_audio(release: dict[str, Any]) -> None:
         if not interaction.startswith("listen_"):
             continue
         canonical = str(item.get("canonical_id") or "")
-        for step in item.get("rounds") or []:
+        rounds = list(item.get("rounds") or [])
+
+        # L1-CORE-06 is not a one-sound prompt. Student Experience v2 replaced
+        # the old sound-vs-word task with two heard words per round. Resolve both
+        # words in order and explicitly discard any obsolete baseline prompt.
+        sequences = LISTENING_AUDIO_SEQUENCES.get(canonical)
+        if sequences is not None:
+            if len(rounds) != len(sequences):
+                raise RuntimeError(
+                    f"{canonical}: audio-sequence contract rounds={len(sequences)} release rounds={len(rounds)}"
+                )
+            for step, targets in zip(rounds, sequences, strict=True):
+                if len(targets) < 2:
+                    raise RuntimeError(f"{canonical}: listening comparison needs at least two audio targets")
+                _replace_prompt_audio(step, targets)
+                step["stimulus"] = {"kind": "audio_sequence", "audio_targets": list(targets)}
+            continue
+
+        for step in rounds:
             round_number = int(step.get("order_index") or 0)
             target = _target_for_round(
                 canonical,
@@ -266,23 +308,7 @@ def _resolve_listening_audio(release: dict[str, Any]) -> None:
             )
             if (canonical, round_number) in addition_targets:
                 seen_addition_targets.add((canonical, round_number))
-            asset_id = resolve_audio_asset(target)
-
-            preserved = [
-                value
-                for value in step.get("media") or []
-                if not (
-                    str(value.get("asset_type") or "") == "audio"
-                    and str(value.get("usage") or "") == "prompt"
-                )
-            ]
-            preserved.append({
-                "asset_id": asset_id,
-                "asset_type": "audio",
-                "usage": "prompt",
-                "semantic_text": target,
-            })
-            step["media"] = preserved
+            _replace_prompt_audio(step, (target,))
             step["stimulus"] = {"kind": "audio", "audio_target": target}
 
     # An approved addition that declares audio_text must actually be a listening
