@@ -12,9 +12,9 @@ import re
 import unicodedata
 
 import seed_all
-from assessment_view import _clean_payload
 from canonical_content_publisher import DB_RUNTIME_VERSION
 from content_runtime import active_options, canonical_id, canonical_interaction, media_gaps, presentation_data, step_assets
+from content_student_view import assessment_student_payload
 from db.database import SessionLocal
 from db.models import ContentItem
 
@@ -151,7 +151,7 @@ def test_complete_student_runtime_has_no_presentation_or_choice_overlap():
                     _issue(errors, canonical, step.order_index, f"stimulus leaks serialized source content: {stimulus!r}")
 
                 if item.kind in {"pretest_question", "posttest_question"}:
-                    payload = _clean_payload(item, step)
+                    payload = assessment_student_payload(item, step)
                     raw = str(payload)
                     if "prompt_text" in raw or "template_data" in raw:
                         _issue(errors, canonical, step.order_index, "student assessment payload exposes legacy raw fields")
