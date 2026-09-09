@@ -190,11 +190,12 @@ def _existing_cycle_hold(db: Session, session: AssessmentSession) -> dict | None
 
 
 def _audio_transition_hold(db: Session, session: AssessmentSession) -> dict | None:
-    """Fail closed for promotion/completion while latest audio is unresolved.
+    """Hold only an irreversible level boundary while latest audio is unresolved.
 
-    The activity runtime handles same-level navigation before calling this bridge,
-    so this hold protects transitions without turning pending review into a study
-    blocker.
+    Same-level evaluation, support, reinforcement and verification must continue
+    to run from already graded evidence. This guard is therefore called only
+    after adaptation has produced a decision that would promote the learner or
+    complete level 3.
     """
     summary = session_audio_review_summary(db, session.id)
     if not summary.has_unresolved:
@@ -225,10 +226,6 @@ def prepare_next_for_student(db: Session, student: Student, session: AssessmentS
     if existing_hold is not None:
         return existing_hold
 
-    audio_hold = _audio_transition_hold(db, session)
-    if audio_hold is not None:
-        return audio_hold
-
     decision_payload = evaluate_student(db, student, session_id=session.id)
     if not decision_payload.get("ready"):
         return {
@@ -247,6 +244,9 @@ def prepare_next_for_student(db: Session, student: Student, session: AssessmentS
     ).one()
 
     if decision.action == "promote" and decision.new_level > decision.previous_level:
+        audio_hold = _audio_transition_hold(db, session)
+        if audio_hold is not None:
+            return audio_hold
         next_session = _transition_level_session(db, student, session, decision.new_level)
         explanation = dict(decision.explanation or {})
         explanation["journey_transition"] = f"L{decision.previous_level}->L{decision.new_level}"
@@ -292,6 +292,9 @@ def prepare_next_for_student(db: Session, student: Student, session: AssessmentS
         and decision.explanation.get("reason") == "top_level_mastery"
         and _completed_core_count(db, session.id, 3) >= CORE_ACTIVITY_COUNT
     ):
+        audio_hold = _audio_transition_hold(db, session)
+        if audio_hold is not None:
+            return audio_hold
         now = datetime.now(timezone.utc)
         session.status = "completed"
         session.completed_at = session.completed_at or now
