@@ -2,10 +2,10 @@
 
 ``canonical_content_compiler`` converts historical/approved content sources into
 one structured academic release. This module is the final release boundary: it
-projects the already-approved structured posttest presentation, reapplies the
-newer 2026-09-08 overrides, verifies question coverage, resolves every listening
-prompt against the approved audio manifest by semantic target, re-hashes the
-result, and runs the fail-closed media inventory guard.
+projects the already-approved learner presentation, reapplies the newer
+2026-09-08 academic overrides, verifies question coverage, resolves every
+listening prompt against the approved audio manifest by semantic target,
+re-hashes the result, and runs the fail-closed media inventory guard.
 
 Nothing here writes to the database. The publisher receives only the returned
 final object, so there is one canonical release and no post-publication repair
@@ -28,6 +28,7 @@ from content_approval_contract_2026_09_08 import (
     POSTTEST_STIMULUS_OVERRIDES,
     PRETEST_QUESTIONS,
 )
+from learning_presentation_2026_09_01 import apply_learning_presentation
 from posttest_presentation_2026_09_01 import POSTTEST_PRESENTATION
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -295,6 +296,7 @@ def _resolve_listening_audio(release: dict[str, Any]) -> None:
 
 def build_canonical_release() -> dict[str, Any]:
     release = deepcopy(compile_release())
+    apply_learning_presentation(release)
     _apply_posttest_presentation(release)
     assert_question_contract_coverage(release)
     _resolve_listening_audio(release)
