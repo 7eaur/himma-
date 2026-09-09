@@ -1,0 +1,79 @@
+.task {
+  position: fixed;
+  inset-inline-end: 1rem;
+  bottom: 1rem;
+  z-index: 35;
+  width: min(31rem, calc(100vw - 2rem));
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.75rem 0.9rem;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid var(--border, #dce8f2);
+  border-radius: 1.25rem;
+  background: #ffffff;
+  box-shadow: 0 12px 30px rgb(32 54 77 / 12%);
+  color: #20364d;
+}
+
+.icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #f7fbff;
+  color: #347fd9;
+}
+
+.copy {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.copy strong {
+  font-size: 1rem;
+}
+
+.copy span,
+.copy small {
+  line-height: 1.6;
+  color: #526779;
+}
+
+.error {
+  color: #9f2f2f !important;
+}
+
+.button {
+  grid-column: 1 / -1;
+  min-height: 2.75rem;
+  border: 0;
+  border-radius: 0.9rem;
+  padding: 0.65rem 1rem;
+  background: #347fd9;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.button:focus-visible {
+  outline: 3px solid #20364d;
+  outline-offset: 3px;
+}
+
+.button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+@media (max-width: 520px) {
+  .task {
+    inset-inline: 0.75rem;
+    bottom: 0.75rem;
+    width: auto;
+    padding: 0.85rem;
+  }
+}
