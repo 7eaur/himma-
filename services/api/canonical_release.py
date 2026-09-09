@@ -160,6 +160,11 @@ def _baseline_audio_targets() -> dict[tuple[str, int], str]:
     The legacy catalog is used here only as a compile-time migration input; the
     resolved target is written into the final canonical release and runtime never
     parses this file.
+
+    A listening-sequence contract is newer than the single-prompt baseline and
+    intentionally replaces every old prompt for that item. Historical baseline
+    rounds may therefore contain multiple obsolete prompt rows; those conflicts
+    are ignored only when an explicit sequence contract owns the whole item.
     """
     if not BASELINE_SOURCE.is_file():
         raise RuntimeError(f"Missing baseline source needed for audio resolution: {BASELINE_SOURCE}")
@@ -176,8 +181,10 @@ def _baseline_audio_targets() -> dict[tuple[str, int], str]:
                 and str(asset.get("semantic_text") or "").strip()
             }
             if len(targets) > 1:
+                if canonical in LISTENING_AUDIO_SEQUENCES:
+                    continue
                 raise RuntimeError(f"Conflicting baseline prompt audio targets for {canonical}/R{index:02d}: {sorted(targets)}")
-            if targets:
+            if targets and canonical not in LISTENING_AUDIO_SEQUENCES:
                 result[(canonical, index)] = next(iter(targets))
     return result
 
