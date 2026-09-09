@@ -134,6 +134,7 @@ export default function StudentActivityPage() {
       setIntroPlaybackComplete(true);
     }
   });
+  const stopPlayback = playback.stop;
 
   const interaction = view?.interaction_type;
   const step = view?.step;
@@ -162,12 +163,12 @@ export default function StudentActivityPage() {
     setRecordingSeconds(0);
     setMemoryPreview(true);
     startedAtRef.current = Date.now();
-    playback.stop();
+    stopPlayback();
     setAudioUrl((current) => {
       if (current) URL.revokeObjectURL(current);
       return null;
     });
-  }, [playback]);
+  }, [stopPlayback]);
 
   const prepareContextIntro = useCallback((data: ViewPayload) => {
     if (!data.context_intro || !data.item_id) {
@@ -248,9 +249,9 @@ export default function StudentActivityPage() {
       window.clearTimeout(kickoff);
       if (timerRef.current) clearInterval(timerRef.current);
       if (recorderRef.current?.state === "recording") recorderRef.current.stop();
-      playback.stop();
+      stopPlayback();
     };
-  }, [loadCurrent, playback]);
+  }, [loadCurrent, stopPlayback]);
 
   const operationKey = (kind: "answer" | "upload") => `himma:activity:${sessionId}:${step?.id ?? 0}:${(view?.attempts_used ?? 0) + 1}:${kind}`;
   const idempotencyKey = (kind: "answer" | "upload") => {
@@ -286,7 +287,7 @@ export default function StudentActivityPage() {
     if (!view?.item_id) return;
     if (view.context_intro?.kind === "audio_story" && !introPlaybackComplete) return;
     window.sessionStorage.setItem(`himma:context-intro:${sessionId}:${view.item_id}`, "seen");
-    playback.stop();
+    stopPlayback();
     setShowContextIntro(false);
     startedAtRef.current = Date.now();
   };
@@ -474,7 +475,7 @@ export default function StudentActivityPage() {
     const requiresAudioCompletion = intro.kind === "audio_story";
     const audioIntro = introAsset?.asset_type === "audio";
     return <div className={styles.page} dir="rtl" data-testid="activity-session" data-phase="context-intro" data-context-kind={intro.kind || "context"}>
-      <header className={styles.header}><div className={styles.headerInner}><Image src="/brand/logo-navy.svg" alt="هِمّة" width={124} height={44} priority/><button className={styles.exit} type="button" onClick={() => { playback.stop(); router.push("/student"); }}><LogOut size={21}/><span>رجوع</span></button></div></header>
+      <header className={styles.header}><div className={styles.headerInner}><Image src="/brand/logo-navy.svg" alt="هِمّة" width={124} height={44} priority/><button className={styles.exit} type="button" onClick={() => { stopPlayback(); router.push("/student"); }}><LogOut size={21}/><span>رجوع</span></button></div></header>
       <main className={styles.shell}><section className={styles.card}><div className={styles.contentColumn}>
         <h1 className={styles.questionTitle}>{intro.title || "استعد للنشاط"}</h1>
         {intro.text && <div className={`${styles.readingBox} ${intro.text.length > 120 ? styles.readingBoxLong : ""}`}>{intro.text}</div>}
