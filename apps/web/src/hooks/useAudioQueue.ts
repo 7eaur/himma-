@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export type AudioQueueState = "idle" | "playing" | "paused";
 export type AudioQueueApi = {
@@ -16,12 +16,11 @@ function signature(urls: string[]) {
 }
 
 /**
- * One cancellable audio owner per screen with a stable controller identity.
+ * One cancellable audio owner per screen.
  *
- * The stable object matters because student screens keep the controller inside
- * memoized loading/reset callbacks. Playback state is still React state, so the
- * screen re-renders for play/pause icons without causing navigation effects to
- * restart.
+ * Playback state is React state so the screen re-renders for play/pause icons.
+ * The command functions stay stable; consumers that memoize navigation/reset
+ * callbacks should depend on `stop`/`toggle`, not on the returned state object.
  *
  * onQueueEnded fires only after natural playback reaches the end of the final
  * asset. Manual stop, navigation cleanup, and playback errors deliberately do
@@ -41,9 +40,14 @@ export function useAudioQueue(
   const onErrorRef = useRef(onError);
   const onQueueEndedRef = useRef(onQueueEnded);
   const playIndexRef = useRef<(index: number) => void>(() => undefined);
-  const apiRef = useRef<AudioQueueApi | null>(null);
-  onErrorRef.current = onError;
-  onQueueEndedRef.current = onQueueEnded;
+
+  useEffect(() => {
+    onErrorRef.current = onError;
+  }, [onError]);
+
+  useEffect(() => {
+    onQueueEndedRef.current = onQueueEnded;
+  }, [onQueueEnded]);
 
   const setPlaybackState = useCallback((next: AudioQueueState) => {
     stateRef.current = next;
@@ -97,7 +101,10 @@ export function useAudioQueue(
       onErrorRef.current?.("تعذر تشغيل الصوت. حاول مرة أخرى.");
     });
   }, [setPlaybackState, stop]);
-  playIndexRef.current = playIndex;
+
+  useEffect(() => {
+    playIndexRef.current = playIndex;
+  }, [playIndex]);
 
   const toggle = useCallback((urls: string[]) => {
     const clean = urls.filter(Boolean);
@@ -142,13 +149,11 @@ export function useAudioQueue(
     };
   }, []);
 
-  if (!apiRef.current) {
-    apiRef.current = { state, isPlaying: false, isPaused: false, toggle, stop };
-  }
-  apiRef.current.state = state;
-  apiRef.current.isPlaying = state === "playing";
-  apiRef.current.isPaused = state === "paused";
-  apiRef.current.toggle = toggle;
-  apiRef.current.stop = stop;
-  return apiRef.current;
+  return useMemo(() => ({
+    state,
+    isPlaying: state === "playing",
+    isPaused: state === "paused",
+    toggle,
+    stop,
+  }), [state, stop, toggle]);
 }
