@@ -108,6 +108,7 @@ export default function SessionPage() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const stepStartedAtRef = useRef(0);
   const playback = useAudioQueue(setError);
+  const stopPlayback = playback.stop;
 
   const step = item?.steps[0] ?? null;
   const interaction = item?.interaction_type;
@@ -150,8 +151,8 @@ export default function SessionPage() {
     });
     setRecordingSeconds(0);
     setError("");
-    playback.stop();
-  }, [playback]);
+    stopPlayback();
+  }, [stopPlayback]);
 
   const fetchProgress = useCallback(async () => {
     const response = await fetch(`/api/assessment/session/${sessionId}/progress`, { cache: "no-store" });
@@ -182,7 +183,7 @@ export default function SessionPage() {
   const fetchNext = useCallback(async () => {
     setPhase("loading");
     setError("");
-    playback.stop();
+    stopPlayback();
     try {
       const response = await fetch(`/api/assessment-view/session/${sessionId}/next`, { cache: "no-store" });
       const data = await response.json().catch(() => null);
@@ -205,7 +206,7 @@ export default function SessionPage() {
       setError(err instanceof Error ? err.message : "تعذر تحميل السؤال");
       setPhase("error");
     }
-  }, [clearQuestionState, fetchProgress, finishSession, playback, sessionId]);
+  }, [clearQuestionState, fetchProgress, finishSession, sessionId, stopPlayback]);
 
   useEffect(() => {
     const kickoff = window.setTimeout(() => void fetchNext(), 0);
@@ -213,9 +214,9 @@ export default function SessionPage() {
       window.clearTimeout(kickoff);
       if (timerRef.current) clearInterval(timerRef.current);
       if (recorderRef.current?.state === "recording") recorderRef.current.stop();
-      playback.stop();
+      stopPlayback();
     };
-  }, [fetchNext, playback]);
+  }, [fetchNext, stopPlayback]);
 
   const playPrompt = () => {
     const urls = audioAssets.map((asset) => asset.url);
