@@ -80,6 +80,20 @@ const KIND_LABEL: Record<Kind, string> = {
 };
 const ORDER = new Set<Interaction>(["sequence", "memory_sequence", "path_sequence", "build_word"]);
 
+async function fetchPreviewIndex(): Promise<PreviewIndex> {
+  const response = await fetch("/api/researcher/content-preview", { cache: "no-store" });
+  const data = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(data?.detail || "تعذر تحميل فهرس المحتوى");
+  return data as PreviewIndex;
+}
+
+async function fetchPreviewDetail(canonicalId: string): Promise<PreviewDetail> {
+  const response = await fetch(`/api/researcher/content-preview/${encodeURIComponent(canonicalId)}`, { cache: "no-store" });
+  const data = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(data?.detail || "تعذر تحميل المعاينة");
+  return data as PreviewDetail;
+}
+
 function ReadOnlyOptions({ interaction, options, assets }: { interaction: Interaction; options: Option[]; assets: Asset[] }) {
   const imageByOption = new Map<number, Asset>();
   for (const asset of assets) if (asset.asset_type === "image" && asset.option_id) imageByOption.set(Number(asset.option_id), asset);
@@ -129,11 +143,6 @@ function LearningPreview({ payload }: { payload: LearningPayload }) {
   const [round, setRound] = useState(0);
   const [introSeen, setIntroSeen] = useState(false);
   const [introPlaybackComplete, setIntroPlaybackComplete] = useState(false);
-  useEffect(() => {
-    setRound(0);
-    setIntroSeen(false);
-    setIntroPlaybackComplete(false);
-  }, [payload.item.canonical_id]);
 
   const step = payload.rounds[Math.min(round, Math.max(0, payload.rounds.length - 1))];
   const intro = payload.item.context_intro;
@@ -198,9 +207,60 @@ export default function ContentPreviewPage() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const loadIndex = async () => { setLoading(true); setError(""); try { const response = await fetch("/api/researcher/content-preview", { cache: "no-store" }); const data = await response.json().catch(() => null); if (!response.ok) throw new Error(data?.detail || "تعذر تحميل فهرس المحتوى"); setIndex(data); if (!selected && data.items?.length) setSelected(data.items[0].canonical_id); } catch (caught) { setError(caught instanceof Error ? caught.message : "تعذر تحميل فهرس المحتوى"); } finally { setLoading(false); } };
-  useEffect(() => { void loadIndex(); }, []);
-  useEffect(() => { if (!selected) { setDetail(null); return; } let cancelled = false; setDetailLoading(true); setError(""); void fetch(`/api/researcher/content-preview/${encodeURIComponent(selected)}`, { cache: "no-store" }).then(async (response) => { const data = await response.json().catch(() => null); if (!response.ok) throw new Error(data?.detail || "تعذر تحميل المعاينة"); if (!cancelled) setDetail(data); }).catch((caught: unknown) => { if (!cancelled) setError(caught instanceof Error ? caught.message : "تعذر تحميل المعاينة"); }).finally(() => { if (!cancelled) setDetailLoading(false); }); return () => { cancelled = true; }; }, [selected]);
+  const loadIndex = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const data = await fetchPreviewIndex();
+      setIndex(data);
+      if (!selected && data.items.length) {
+        setDetailLoading(true);
+        setSelected(data.items[0].canonical_id);
+      }
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "تعذر تحميل فهرس المحتوى");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadInitialIndex = async () => {
+      try {
+        const data = await fetchPreviewIndex();
+        if (cancelled) return;
+        setIndex(data);
+        if (data.items.length) {
+          setDetailLoading(true);
+          setSelected(data.items[0].canonical_id);
+        }
+      } catch (caught) {
+        if (!cancelled) setError(caught instanceof Error ? caught.message : "تعذر تحميل فهرس المحتوى");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    void loadInitialIndex();
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    if (!selected) return;
+    let cancelled = false;
+    void fetchPreviewDetail(selected)
+      .then((data) => { if (!cancelled) setDetail(data); })
+      .catch((caught: unknown) => { if (!cancelled) setError(caught instanceof Error ? caught.message : "تعذر تحميل المعاينة"); })
+      .finally(() => { if (!cancelled) setDetailLoading(false); });
+    return () => { cancelled = true; };
+  }, [selected]);
+
+  const selectItem = (canonicalId: string) => {
+    if (canonicalId === selected) return;
+    setError("");
+    setDetailLoading(true);
+    setSelected(canonicalId);
+  };
 
   const filtered = useMemo(() => (index?.items || []).filter((item) => (kind === "all" || item.kind === kind) && (level === "all" || Number(item.level_id || 0) === Number(level))), [index, kind, level]);
 
@@ -209,10 +269,10 @@ export default function ContentPreviewPage() {
     <div className="grid xl:grid-cols-[330px_minmax(0,1fr)] gap-5 items-start">
       <AdminPanel title="فهرس المحتوى" description={`${filtered.length} عنصرًا في العرض الحالي`}>
         <div className="grid grid-cols-2 gap-3 mb-4"><label className="text-xs text-muted">النوع<select className="input-field mt-2" value={kind} onChange={(event) => setKind(event.target.value as "all" | Kind)}><option value="all">الكل</option><option value="pretest_question">قبلي</option><option value="core_activity">أساسي</option><option value="reinforcement_activity">تقوية</option><option value="posttest_question">بعدي</option></select></label><label className="text-xs text-muted">المستوى<select className="input-field mt-2" value={level} onChange={(event) => setLevel(event.target.value as "all" | "1" | "2" | "3")}><option value="all">الكل</option><option value="1">الأول</option><option value="2">الثاني</option><option value="3">الثالث</option></select></label></div>
-        {loading ? <div className="min-h-48 flex items-center justify-center"><div className="spinner w-9 h-9" /></div> : filtered.length === 0 ? <AdminEmptyState title="لا توجد عناصر" description="غيّر المرشحات لعرض محتوى آخر." /> : <div className="space-y-2 max-h-[68vh] overflow-auto pe-1">{filtered.map((item) => <button key={item.canonical_id} type="button" onClick={() => setSelected(item.canonical_id)} className={`w-full text-right rounded-2xl border p-3 transition ${selected === item.canonical_id ? "border-primary bg-teal-soft" : "border-border bg-white hover:border-primary/40"}`}><div className="flex items-center justify-between gap-2"><span className="font-bold text-navy text-sm">{item.canonical_id}</span><span className="text-[11px] text-muted">#{item.order_index}</span></div><p className="text-xs text-muted mt-1 line-clamp-2">{KIND_LABEL[item.kind]} · {item.title}</p></button>)}</div>}
+        {loading ? <div className="min-h-48 flex items-center justify-center"><div className="spinner w-9 h-9" /></div> : filtered.length === 0 ? <AdminEmptyState title="لا توجد عناصر" description="غيّر المرشحات لعرض محتوى آخر." /> : <div className="space-y-2 max-h-[68vh] overflow-auto pe-1">{filtered.map((item) => <button key={item.canonical_id} type="button" onClick={() => selectItem(item.canonical_id)} className={`w-full text-right rounded-2xl border p-3 transition ${selected === item.canonical_id ? "border-primary bg-teal-soft" : "border-border bg-white hover:border-primary/40"}`}><div className="flex items-center justify-between gap-2"><span className="font-bold text-navy text-sm">{item.canonical_id}</span><span className="text-[11px] text-muted">#{item.order_index}</span></div><p className="text-xs text-muted mt-1 line-clamp-2">{KIND_LABEL[item.kind]} · {item.title}</p></button>)}</div>}
       </AdminPanel>
       <AdminPanel title="شاشة الطالب" description={detail ? `${detail.summary.canonical_id} · ${KIND_LABEL[detail.summary.kind]}` : "اختر عنصرًا من الفهرس"} actions={<span className="inline-flex items-center gap-2 text-xs text-muted"><BookOpenCheck size={16} /> قراءة فقط</span>}>
-        {detailLoading ? <div className="min-h-[520px] flex flex-col items-center justify-center gap-3"><div className="spinner w-10 h-10" /><p className="text-muted">جاري تجهيز نفس عقد الطالب...</p></div> : !detail ? <AdminEmptyState title="اختر عنصرًا للمعاينة" description="ستظهر هنا بنية السؤال أو النشاط والوسائط الحالية دون تسجيل أي تقدم." /> : detail.surface === "assessment" ? <AssessmentPreview payload={detail.payload as AssessmentPayload} /> : <LearningPreview payload={detail.payload as LearningPayload} />}
+        {detailLoading ? <div className="min-h-[520px] flex flex-col items-center justify-center gap-3"><div className="spinner w-10 h-10" /><p className="text-muted">جاري تجهيز نفس عقد الطالب...</p></div> : !detail ? <AdminEmptyState title="اختر عنصرًا للمعاينة" description="ستظهر هنا بنية السؤال أو النشاط والوسائط الحالية دون تسجيل أي تقدم." /> : detail.surface === "assessment" ? <AssessmentPreview payload={detail.payload as AssessmentPayload} /> : <LearningPreview key={detail.summary.canonical_id} payload={detail.payload as LearningPayload} />}
         {detail && <div className="mt-5 rounded-2xl border border-border bg-bg px-4 py-3 text-xs text-muted flex items-center gap-2"><Eye size={16} className="text-primary" /> هذه الصفحة لا ترسل إجابات ولا تنشئ Attempt أو Progress أو AudioSubmission.</div>}
       </AdminPanel>
     </div>
