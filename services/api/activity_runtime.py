@@ -1,15 +1,15 @@
 """Canonical adaptive-learning HTTP runtime.
 
-This module owns the mounted ``/activities`` routes. It keeps academic evidence
+This module owns the mounted ``/activities`` routes and keeps academic evidence
 state separate from learner navigation state:
 
 - uploaded/pending audio is persisted evidence awaiting supervisor review;
 - pending audio never becomes correctness/mastery/completion evidence;
 - a learner may continue to another approved item while review is pending;
-- ``rerecord_required`` becomes learner-actionable again immediately;
+- ``rerecord_required`` is deferred until the learner explicitly opens that task;
+- rerecording creates a new audio submission and preserves the rejected one;
 - ``graded`` is the only audio-review state that may complete the reading step;
-- no adaptation/promotion decision is evaluated while unresolved audio evidence
-  exists in the active learning session.
+- unresolved audio may hold promotion/level completion but not same-level study.
 """
 from __future__ import annotations
 
@@ -45,6 +45,13 @@ from assessment import (
     _store_idempotency,
     _validate_idempotency_key,
 )
+from audio_review_state import (
+    PENDING_AUDIO_STATUSES,
+    latest_audio_submission,
+    open_rerecord_task_once,
+    rerecord_task_is_open,
+    session_audio_review_summary,
+)
 from content_runtime import canonical_interaction
 from db.models import (
     AssessmentSession,
@@ -59,7 +66,6 @@ from dependencies import get_current_student, get_db
 
 router = APIRouter(tags=["Activities"])
 AUDIO_INTERACTIONS = {"read_aloud", "timed_read_aloud"}
-PENDING_AUDIO_STATUSES = {"uploaded", "pending"}
 
 
 class ActivityRuntimeSubmitRequest(BaseModel):
@@ -75,19 +81,8 @@ class ActivityRuntimeSubmitRequest(BaseModel):
     audio_duration_seconds: Optional[Decimal] = Field(default=None, ge=0)
 
 
-def _audio_for_response(db: Session, response: AttemptResponse | None) -> AudioSubmission | None:
-    if response is None:
-        return None
-    return (
-        db.query(AudioSubmission)
-        .filter(AudioSubmission.response_id == response.id)
-        .order_by(AudioSubmission.id.desc())
-        .first()
-    )
-
-
 def effective_step_state(db: Session, attempt: Attempt, step: ContentStep) -> dict[str, Any]:
-    """Return fail-closed *academic* state for supervisor-reviewed reading evidence."""
+    """Return fail-closed academic state plus explicit rerecord navigation state."""
     response = (
         db.query(AttemptResponse)
         .filter(
@@ -97,11 +92,12 @@ def effective_step_state(db: Session, attempt: Attempt, step: ContentStep) -> di
         .order_by(AttemptResponse.id.desc())
         .first()
     )
-    audio = _audio_for_response(db, response)
+    audio = latest_audio_submission(db, response)
     if audio is None:
         state = stage2_step_state(db, attempt, step)
         state.setdefault("awaiting_audio_review", False)
         state.setdefault("audio_review_status", None)
+        state.setdefault("rerecord_opened", False)
         return state
 
     base = {
@@ -109,6 +105,7 @@ def effective_step_state(db: Session, attempt: Attempt, step: ContentStep) -> di
         "reinforcement_verification": False,
         "reinforcement_cycle_id": None,
         "audio_review_status": audio.status,
+        "rerecord_opened": False,
     }
     if audio.status in PENDING_AUDIO_STATUSES:
         return {
@@ -123,6 +120,11 @@ def effective_step_state(db: Session, attempt: Attempt, step: ContentStep) -> di
             "done": False,
             "last_correct": None,
             "awaiting_audio_review": False,
+            "rerecord_opened": rerecord_task_is_open(
+                db,
+                student_id=_student_id_for_attempt(db, attempt),
+                submission_id=audio.id,
+            ),
         }
     if audio.status == "graded":
         return {
@@ -141,6 +143,17 @@ def effective_step_state(db: Session, attempt: Attempt, step: ContentStep) -> di
     }
 
 
+def _student_id_for_attempt(db: Session, attempt: Attempt) -> int:
+    student_id = (
+        db.query(AssessmentSession.student_id)
+        .filter(AssessmentSession.id == attempt.session_id)
+        .scalar()
+    )
+    if student_id is None:
+        raise HTTPException(status_code=409, detail="تعذر تحديد صاحب محاولة النشاط")
+    return int(student_id)
+
+
 def _runtime_step_payload(
     db: Session,
     item: ContentItem,
@@ -149,15 +162,21 @@ def _runtime_step_payload(
 ) -> dict[str, Any]:
     payload = stage2_step_payload(db, item, attempt, step)
     state = effective_step_state(db, attempt, step)
+    rerecord_actionable = (
+        state.get("audio_review_status") != "rerecord_required"
+        or bool(state.get("rerecord_opened"))
+    )
     payload["attempts_used"] = state["attempts_used"]
     payload["retry"] = (
         state["attempts_used"] > 0
         and not state["done"]
         and not state.get("awaiting_audio_review")
+        and rerecord_actionable
     )
     payload["hint_available"] = payload["retry"]
     payload["audio_review_status"] = state.get("audio_review_status")
     payload["awaiting_audio_review"] = bool(state.get("awaiting_audio_review"))
+    payload["rerecord_opened"] = bool(state.get("rerecord_opened"))
     return payload
 
 
@@ -194,10 +213,9 @@ def navigation_target(
 
     Returns ``(attempt, item, step, pending_review_count, finalized_any)``.
 
-    Pending-review steps are skipped for navigation but remain academically open.
-    A rerecord-required or otherwise incomplete learner-actionable step is never
-    skipped. Older actionable attempts win so a supervisor rerecord request is
-    surfaced even when the learner already continued to later items.
+    Pending-review steps and unopened rerecord tasks are skipped for navigation
+    while remaining academically open. Once the learner explicitly opens a
+    rerecord task, its original reading step becomes actionable again.
     """
     pending_review_count = 0
     finalized_any = False
@@ -218,6 +236,11 @@ def navigation_target(
             all_done = False
             if state.get("awaiting_audio_review"):
                 has_academic_pending = True
+                continue
+            if (
+                state.get("audio_review_status") == "rerecord_required"
+                and not state.get("rerecord_opened")
+            ):
                 continue
             actionable_step = step
             break
@@ -259,7 +282,7 @@ def _next_unattempted_core_item(
     session_id: int,
     level_id: int,
 ) -> ContentItem | None:
-    """Choose the next approved Core item without reselecting pending-review work."""
+    """Choose the next approved Core item without reselecting unresolved work."""
     attempted_ids = _attempted_item_ids(db, session_id)
     query = _rich_item_query(db).filter(
         ContentItem.kind == "core_activity",
@@ -313,6 +336,60 @@ def _waiting_review_payload(session: AssessmentSession, level_id: int, pending_c
         "pending_audio_reviews": pending_count,
         "message": "أكملت الأنشطة المتاحة حاليًا، وتوجد تسجيلات تنتظر مراجعة المشرف.",
     }
+
+
+def _rerecord_available_payload(session: AssessmentSession, level_id: int, count: int) -> dict[str, Any]:
+    return {
+        "navigation_state": "rerecord_available",
+        "session_id": session.id,
+        "level_id": level_id,
+        "rerecord_required_count": count,
+        "message": "لديك مهمة إعادة تسجيل جاهزة. افتحها من مسارك عندما تكون مستعدًا.",
+    }
+
+
+def _deferred_rerecord_tasks(
+    db: Session,
+    *,
+    session_id: int,
+    student_id: int,
+) -> list[dict[str, Any]]:
+    tasks: list[dict[str, Any]] = []
+    for attempt in _in_progress_attempts(db, session_id):
+        item = _load_item(db, attempt.item_id)
+        if item is None:
+            continue
+        for step in sorted(item.steps, key=lambda value: value.order_index):
+            response = (
+                db.query(AttemptResponse)
+                .filter(
+                    AttemptResponse.attempt_id == attempt.id,
+                    AttemptResponse.step_id == step.id,
+                )
+                .order_by(AttemptResponse.id.desc())
+                .first()
+            )
+            submission = latest_audio_submission(db, response)
+            if submission is None or submission.status != "rerecord_required":
+                continue
+            if rerecord_task_is_open(
+                db,
+                student_id=student_id,
+                submission_id=submission.id,
+            ):
+                continue
+            data = item.template_data or {}
+            tasks.append({
+                "submission_id": submission.id,
+                "session_id": session_id,
+                "attempt_id": attempt.id,
+                "item_id": item.id,
+                "step_id": step.id,
+                "stable_key": item.stable_key,
+                "title": data.get("title") or "إعادة تسجيل القراءة",
+                "expected_reading_text": step.expected_reading_text,
+            })
+    return tasks
 
 
 def _validate_learning_audio(
@@ -389,7 +466,7 @@ def _submit_learning_audio(
         .order_by(AttemptResponse.id.desc())
         .first()
     )
-    audio = _audio_for_response(db, response)
+    audio = latest_audio_submission(db, response)
 
     if response is not None:
         if audio is None:
@@ -400,15 +477,24 @@ def _submit_learning_audio(
             raise HTTPException(status_code=409, detail="تمت مراجعة هذا التسجيل مسبقًا")
         if audio.status != "rerecord_required":
             raise HTTPException(status_code=409, detail="حالة التسجيل الحالية لا تسمح بإعادة الإرسال")
+        if not rerecord_task_is_open(
+            db,
+            student_id=student.id,
+            submission_id=audio.id,
+        ):
+            raise HTTPException(status_code=409, detail="افتح مهمة إعادة التسجيل من مسارك أولًا")
 
+        # Preserve the invalid submission as immutable history and append a new one.
         response.is_correct = None
         response.elapsed_seconds = body.elapsed_seconds
-        audio.storage_key = body.audio_storage_key
-        audio.file_size = body.audio_file_size
-        audio.mime_type = body.audio_mime_type
-        audio.duration_seconds = body.audio_duration_seconds
-        audio.status = "uploaded"
-        audio.submitted_at = datetime.now(timezone.utc)
+        db.add(AudioSubmission(
+            response_id=response.id,
+            storage_key=body.audio_storage_key,
+            file_size=body.audio_file_size,
+            mime_type=body.audio_mime_type,
+            duration_seconds=body.audio_duration_seconds,
+            status="uploaded",
+        ))
     else:
         response = AttemptResponse(
             attempt_id=attempt.id,
@@ -419,15 +505,14 @@ def _submit_learning_audio(
         )
         db.add(response)
         db.flush()
-        audio = AudioSubmission(
+        db.add(AudioSubmission(
             response_id=response.id,
             storage_key=body.audio_storage_key,
             file_size=body.audio_file_size,
             mime_type=body.audio_mime_type,
             duration_seconds=body.audio_duration_seconds,
             status="uploaded",
-        )
-        db.add(audio)
+        ))
 
     attempt.elapsed_seconds = int(attempt.elapsed_seconds or 0) + body.elapsed_seconds
     session.elapsed_seconds = int(session.elapsed_seconds or 0) + body.elapsed_seconds
@@ -475,9 +560,109 @@ def learning_progress(
         student_id=student.id,
     )
     payload = _progress_payload(db, session, session.assigned_level or student.current_level)
-    _, _, _, pending_count, _ = navigation_target(db, session.id, finalize_completed=False)
-    payload["pending_audio_reviews"] = pending_count
+    summary = session_audio_review_summary(db, session.id)
+    payload["pending_audio_reviews"] = summary.pending_count
+    payload["rerecord_required_count"] = summary.rerecord_required_count
     return payload
+
+
+@router.get("/activities/session/{session_id}/rerecord-tasks")
+def rerecord_tasks(
+    session_id: int,
+    db: Session = Depends(get_db),
+    student: Student = Depends(get_current_student),
+):
+    session = _resolve_active_session(
+        db,
+        requested_session_id=session_id,
+        student_id=student.id,
+    )
+    return _deferred_rerecord_tasks(
+        db,
+        session_id=session.id,
+        student_id=student.id,
+    )
+
+
+@router.post("/activities/session/{session_id}/attempt/{item_id}/step/{step_id}/rerecord/start")
+def start_rerecord_task(
+    session_id: int,
+    item_id: int,
+    step_id: int,
+    db: Session = Depends(get_db),
+    student: Student = Depends(get_current_student),
+):
+    session = _resolve_active_session(
+        db,
+        requested_session_id=session_id,
+        student_id=student.id,
+    )
+    attempt = db.query(Attempt).filter(
+        Attempt.session_id == session.id,
+        Attempt.item_id == item_id,
+        Attempt.status == "in_progress",
+    ).first()
+    if attempt is None:
+        raise HTTPException(status_code=404, detail="مهمة إعادة التسجيل غير موجودة")
+    item = _load_item(db, item_id)
+    if item is None:
+        raise HTTPException(status_code=404, detail="النشاط غير موجود")
+    step = next((candidate for candidate in item.steps if candidate.id == step_id), None)
+    if step is None:
+        raise HTTPException(status_code=404, detail="جولة القراءة غير موجودة")
+    response = db.query(AttemptResponse).filter(
+        AttemptResponse.attempt_id == attempt.id,
+        AttemptResponse.step_id == step.id,
+    ).order_by(AttemptResponse.id.desc()).first()
+    submission = latest_audio_submission(db, response)
+    if submission is None or submission.status != "rerecord_required":
+        raise HTTPException(status_code=409, detail="هذه الجولة لا تنتظر إعادة تسجيل")
+
+    opened = open_rerecord_task_once(
+        db,
+        student_id=student.id,
+        submission=submission,
+        details=f"session={session.id};item={item.id};step={step.id}",
+    )
+    if opened:
+        db.commit()
+    return {
+        "status": "ok",
+        "opened": True,
+        "session_id": session.id,
+        "item_id": item.id,
+        "step_id": step.id,
+        "submission_id": submission.id,
+    }
+
+
+def _unresolved_navigation_payload(
+    db: Session,
+    *,
+    session: AssessmentSession,
+    student: Student,
+    level_id: int,
+) -> dict[str, Any] | None:
+    summary = session_audio_review_summary(db, session.id)
+    if not summary.has_unresolved:
+        return None
+    item = _next_unattempted_core_item(
+        db,
+        student_id=student.id,
+        session_id=session.id,
+        level_id=level_id,
+    )
+    if item is not None:
+        attempt = _create_attempt(db, session.id, item)
+        first_step = next(iter(item.steps), None)
+        if first_step is None:
+            raise HTTPException(status_code=409, detail="النشاط لا يحتوي على جولات معتمدة")
+        return _runtime_step_payload(db, item, attempt, first_step)
+    if summary.pending_count:
+        return _waiting_review_payload(session, level_id, summary.pending_count)
+    if summary.rerecord_required_count:
+        return _rerecord_available_payload(session, level_id, summary.rerecord_required_count)
+    return None
 
 
 @router.get("/activities/session/{session_id}/next")
@@ -492,7 +677,7 @@ def next_activity_step(
         student_id=student.id,
     )
 
-    attempt, item, step, pending_count, finalized_any = navigation_target(
+    attempt, item, step, _, finalized_any = navigation_target(
         db,
         session.id,
         finalize_completed=True,
@@ -506,20 +691,14 @@ def next_activity_step(
     db.refresh(student)
     level_id = session.assigned_level or student.current_level
 
-    if pending_count:
-        item = _next_unattempted_core_item(
-            db,
-            student_id=student.id,
-            session_id=session.id,
-            level_id=level_id,
-        )
-        if item is None:
-            return _waiting_review_payload(session, level_id, pending_count)
-        attempt = _create_attempt(db, session.id, item)
-        first_step = next(iter(item.steps), None)
-        if first_step is None:
-            raise HTTPException(status_code=409, detail="النشاط لا يحتوي على جولات معتمدة")
-        return _runtime_step_payload(db, item, attempt, first_step)
+    unresolved_payload = _unresolved_navigation_payload(
+        db,
+        session=session,
+        student=student,
+        level_id=level_id,
+    )
+    if unresolved_payload is not None:
+        return unresolved_payload
 
     prepared = prepare_next_for_student(db, student, session)
     if prepared.get("mapping_blocked"):
@@ -543,7 +722,7 @@ def next_activity_step(
     db.refresh(student)
     level_id = session.assigned_level or student.current_level
 
-    attempt, item, step, pending_count, finalized_any = navigation_target(
+    attempt, item, step, _, finalized_any = navigation_target(
         db,
         session.id,
         finalize_completed=True,
@@ -552,20 +731,15 @@ def next_activity_step(
         db.commit()
     if attempt is not None and item is not None and step is not None:
         return _runtime_step_payload(db, item, attempt, step)
-    if pending_count:
-        item = _next_unattempted_core_item(
-            db,
-            student_id=student.id,
-            session_id=session.id,
-            level_id=level_id,
-        )
-        if item is None:
-            return _waiting_review_payload(session, level_id, pending_count)
-        attempt = _create_attempt(db, session.id, item)
-        first_step = next(iter(item.steps), None)
-        if first_step is None:
-            raise HTTPException(status_code=409, detail="النشاط لا يحتوي على جولات معتمدة")
-        return _runtime_step_payload(db, item, attempt, first_step)
+
+    unresolved_payload = _unresolved_navigation_payload(
+        db,
+        session=session,
+        student=student,
+        level_id=level_id,
+    )
+    if unresolved_payload is not None:
+        return unresolved_payload
 
     item = _next_unattempted_core_item(
         db,
