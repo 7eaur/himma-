@@ -30,13 +30,13 @@ from pydantic import BaseModel, Field
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from audio_review_state import latest_audio_submission, session_audio_review_summary
 from db.adaptation_models import AdaptationDecision, RewardEvent
 from db.activity_models import ActivityStepResponse
 from db.models import (
     AssessmentSession,
     Attempt,
     AttemptResponse,
-    AudioSubmission,
     ContentItem,
     ContentStep,
     Skill,
@@ -192,7 +192,7 @@ def _attempt_signal(db: Session, attempt: Attempt, item: ContentItem) -> Optiona
         ).first()
         if not response:
             return None
-        audio = db.query(AudioSubmission).filter(AudioSubmission.response_id == response.id).first()
+        audio = latest_audio_submission(db, response)
         if audio and audio.status in {"pending", "rerecord_required", "uploaded"}:
             return None
         if response.is_correct is None:
@@ -825,16 +825,7 @@ def manual_override(
 
     next_session = None
     if level_changing and active_core is not None:
-        pending_audio = (
-            db.query(AudioSubmission.id)
-            .join(AttemptResponse, AttemptResponse.id == AudioSubmission.response_id)
-            .join(Attempt, Attempt.id == AttemptResponse.attempt_id)
-            .filter(
-                Attempt.session_id == active_core.id,
-                AudioSubmission.status.in_(["pending", "uploaded", "rerecord_required"]),
-            )
-            .first()
-        )
+        pending_audio = session_audio_review_summary(db, active_core.id).has_unresolved
         unresolved_cycle = db.query(ReinforcementCycle.id).filter(
             ReinforcementCycle.session_id == active_core.id,
             ReinforcementCycle.status.in_([
