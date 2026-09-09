@@ -242,8 +242,17 @@ def test_unresolved_audio_completion_is_neutral_until_reviewed():
         assert unresolved["decision"]["ready"] is False
         assert unresolved["decision"]["valid_attempt_count"] == 0
 
-        # Only the graded latest submission becomes academic evidence.
-        submission.status = "graded"
+        # Immutable rejected history remains, but the newest graded rerecord is
+        # the only review state allowed to become academic evidence.
+        submission.status = "rerecord_required"
+        db.add(AudioSubmission(
+            response_id=response.id,
+            storage_key="test/rerecorded-graded.webm",
+            file_size=110,
+            mime_type="audio/webm",
+            duration_seconds=2,
+            status="graded",
+        ))
         response.is_correct = True
         db.commit()
         graded = prepare_next_for_student(db, student, session)
