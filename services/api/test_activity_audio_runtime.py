@@ -119,6 +119,8 @@ class TestLearningAudioRuntime:
         current = client.get(f"/activities/session/{session_id}/next")
         assert current.status_code == 200, current.text
         assert current.json()["step"]["id"] != step_id
+        # AUD-BE-003: navigation and the session review aggregate are independent.
+        assert current.json()["pending_audio_reviews"] == 1
 
         learning_view = client.get(f"/learning-experience/session/{session_id}")
         assert learning_view.status_code == 200, learning_view.text
@@ -169,6 +171,8 @@ class TestLearningAudioRuntime:
         ).one()
         first_submission = db.query(AudioSubmission).filter(AudioSubmission.response_id == response.id).one()
         submission_id = first_submission.id
+        first_storage_key = first_submission.storage_key
+        first_submitted_at = first_submission.submitted_at
         db.close()
 
         _researcher_login(client)
@@ -194,6 +198,7 @@ class TestLearningAudioRuntime:
         current = client.get(f"/activities/session/{session_id}/next")
         assert current.status_code == 200, current.text
         assert current.json()["step"]["id"] != step_id
+        assert current.json()["rerecord_required_count"] == 1
 
         opened = client.post(
             f"/activities/session/{session_id}/attempt/{item_id}/step/{step_id}/rerecord/start"
@@ -228,12 +233,23 @@ class TestLearningAudioRuntime:
         assert len(submissions) == 2
         assert submissions[0].id == submission_id
         assert submissions[0].status == "rerecord_required"
-        assert submissions[0].storage_key.endswith("first.webm")
+        assert submissions[0].storage_key == first_storage_key
+        assert submissions[0].submitted_at == first_submitted_at
         assert submissions[1].status == "uploaded"
         assert submissions[1].storage_key.endswith("second.webm")
+        second_submission_id = submissions[1].id
         assert response.is_correct is None
         assert db.query(Attempt).filter(Attempt.id == attempt_id).one().status == "in_progress"
         db.close()
+
+        # The old rejected recording is history only. Only the latest upload is
+        # allowed back into the supervisor's pending queue.
+        _researcher_login(client)
+        queue = client.get("/review/pending-audio")
+        assert queue.status_code == 200, queue.text
+        queued_ids = [row["id"] for row in queue.json()]
+        assert submission_id not in queued_ids
+        assert second_submission_id in queued_ids
 
     def test_declared_media_gap_skip_cannot_create_completion_evidence(self, client):
         _student_login(client)
