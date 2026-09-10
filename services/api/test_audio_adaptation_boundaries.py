@@ -1,7 +1,10 @@
 """Regression tests for unresolved/graded audio at adaptive journey boundaries."""
 
 from datetime import datetime, timezone
+from decimal import Decimal
 from types import SimpleNamespace
+
+import pytest
 
 import adaptation_runtime
 import seed_all
@@ -12,11 +15,13 @@ from db.models import (
     AssessmentSession,
     Attempt,
     AttemptResponse,
+    AudioReview,
     AudioSubmission,
     ContentItem,
     ContentStep,
     Skill,
     Student,
+    User,
 )
 
 
@@ -172,20 +177,30 @@ def test_unresolved_audio_holds_promotion_then_resolution_allows_it(monkeypatch)
         db.close()
 
 
-def test_only_graded_audio_enters_adaptation_evidence():
+@pytest.mark.parametrize(
+    ("rubric_score", "expected_score"),
+    [
+        (0.0, 0.0),
+        (0.1, 10.0),
+        (0.7, 70.0),
+        (1.0, 100.0),
+    ],
+)
+def test_only_latest_graded_human_rubric_enters_numeric_adaptation_evidence(rubric_score, expected_score):
     db = SessionLocal()
     try:
         student, session = _core_session(db, level=1)
+        reviewer = db.query(User).filter(User.username == "researcher1").one()
         skill = Skill(
-            skill_key="audio-boundary-test-skill",
+            skill_key=f"audio-boundary-test-skill-{rubric_score}",
             name="مهارة صوتية اختبارية",
             level_id=1,
-            canonical_skill_id="TEST-AUDIO-BOUNDARY",
+            canonical_skill_id=f"TEST-AUDIO-BOUNDARY-{rubric_score}",
         )
         db.add(skill)
         db.flush()
         item = ContentItem(
-            stable_key="TEST-AUDIO-BOUNDARY-ITEM",
+            stable_key=f"TEST-AUDIO-BOUNDARY-ITEM-{rubric_score}",
             kind="core_activity",
             level_id=1,
             skill_id=skill.id,
@@ -214,6 +229,8 @@ def test_only_graded_audio_enters_adaptation_evidence():
         )
         db.add(attempt)
         db.flush()
+        # Keep the compatibility Boolean deliberately identical across all
+        # rubric values. Academic evidence must ignore it for audio.
         response = AttemptResponse(
             attempt_id=attempt.id,
             step_id=step.id,
@@ -223,7 +240,7 @@ def test_only_graded_audio_enters_adaptation_evidence():
         db.flush()
         submission = AudioSubmission(
             response_id=response.id,
-            storage_key=f"audio/{student.id}/boundary.webm",
+            storage_key=f"audio/{student.id}/boundary-{rubric_score}.webm",
             file_size=128,
             mime_type="audio/webm",
             duration_seconds=1.0,
@@ -232,14 +249,29 @@ def test_only_graded_audio_enters_adaptation_evidence():
         db.add(submission)
         db.commit()
 
+        # Uploaded is academically neutral.
         assert _attempt_signal(db, attempt, item) is None
 
+        # A status flip without a human review is still not evidence.
         submission.status = "graded"
         db.commit()
+        assert _attempt_signal(db, attempt, item) is None
+
+        db.add(AudioReview(
+            submission_id=submission.id,
+            reviewer_id=reviewer.id,
+            target_units=10,
+            deletions=0,
+            substitutions=0,
+            insertions=0,
+            rubric_score=Decimal(str(rubric_score)),
+        ))
+        db.commit()
+
         signal = _attempt_signal(db, attempt, item)
         assert signal is not None
         assert signal.attempt_id == attempt.id
         assert signal.skill_id == skill.id
-        assert signal.score == 100.0
+        assert signal.score == expected_score
     finally:
         db.close()
