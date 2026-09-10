@@ -1,5 +1,7 @@
 """Integration-level P06 tests for recommendation and reward persistence."""
 
+from decimal import Decimal
+
 import adaptation_runtime
 from adaptation import ensure_rewards
 from adaptation_runtime import prepare_next_for_student
@@ -10,11 +12,13 @@ from db.models import (
     AssessmentSession,
     Attempt,
     AttemptResponse,
+    AudioReview,
     AudioSubmission,
     ContentItem,
     ContentStep,
     Skill,
     Student,
+    User,
 )
 
 
@@ -243,15 +247,27 @@ def test_unresolved_audio_completion_is_neutral_until_reviewed():
         assert unresolved["decision"]["valid_attempt_count"] == 0
 
         # Immutable rejected history remains, but the newest graded rerecord is
-        # the only review state allowed to become academic evidence.
+        # academic evidence only when its numeric supervisor review exists.
         submission.status = "rerecord_required"
-        db.add(AudioSubmission(
+        graded_submission = AudioSubmission(
             response_id=response.id,
             storage_key="test/rerecorded-graded.webm",
             file_size=110,
             mime_type="audio/webm",
             duration_seconds=2,
             status="graded",
+        )
+        db.add(graded_submission)
+        db.flush()
+        reviewer = db.query(User).filter(User.username == "researcher1").one()
+        db.add(AudioReview(
+            submission_id=graded_submission.id,
+            reviewer_id=reviewer.id,
+            target_units=1,
+            deletions=0,
+            substitutions=0,
+            insertions=0,
+            rubric_score=Decimal("1.0"),
         ))
         response.is_correct = True
         db.commit()
