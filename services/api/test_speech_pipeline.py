@@ -1,5 +1,4 @@
 from datetime import datetime, timezone
-from types import SimpleNamespace
 
 from conftest import TestingSessionLocal
 from db.models import (
