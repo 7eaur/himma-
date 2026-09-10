@@ -210,7 +210,7 @@ class TestStudentLifecycle:
             json={"enabled": True},
         )
         assert too_early.status_code == 409
-        assert "الأنشطة التعليمية العشرة" in too_early.json()["detail"]
+        assert "مسار التعلم المعتمد حتى المستوى الثالث" in too_early.json()["detail"]
 
         db = SessionLocal()
         student = db.query(Student).filter(Student.id == student_id).one()
@@ -615,7 +615,7 @@ class TestAssessmentAndScoring:
         assert response.status_code == 400
         assert response.json()["detail"] == "الإجابة المختارة غير صالحة"
 
-    def test_invalid_audio_reopens_attempt_and_accepts_rerecord(
+    def test_invalid_audio_requires_explicit_rerecord_and_preserves_history(
         self, client, monkeypatch
     ):
         import seed
@@ -697,7 +697,6 @@ class TestAssessmentAndScoring:
         assert rejected.status_code == 200
 
         db = SessionLocal()
-        assert db.query(Attempt).filter(Attempt.id == attempt_id).one().status == "in_progress"
         assert db.query(AudioSubmission).filter(
             AudioSubmission.id == submission_id,
         ).one().status == "rerecord_required"
@@ -706,13 +705,28 @@ class TestAssessmentAndScoring:
         assert client.post(
             "/auth/student-login", json={"access_code": "STU001"}
         ).status_code == 200
-        resumed = client.get(f"/assessment/session/{session_id}/next")
-        assert resumed.status_code == 200
-        assert resumed.json()["id"] == item_id
+        blocked = client.get(f"/assessment/session/{session_id}/next")
+        assert blocked.status_code == 409
+        assert "إعادة التسجيل" in blocked.json()["detail"]
+
+        tasks = client.get(f"/assessment/session/{session_id}/rerecord-tasks")
+        assert tasks.status_code == 200
+        assert [task["submission_id"] for task in tasks.json()] == [submission_id]
 
         finish = client.post(f"/assessment/session/{session_id}/finish")
         assert finish.status_code == 409
         assert "يحتاج إلى إعادة" in finish.json()["detail"]
+
+        opened = client.post(
+            f"/assessment/session/{session_id}/attempt/{item_id}/step/{step_id}/rerecord/start"
+        )
+        assert opened.status_code == 200
+        assert opened.json()["submission_id"] == submission_id
+
+        resumed = client.get(f"/assessment/session/{session_id}/next")
+        assert resumed.status_code == 200
+        assert resumed.json()["id"] == item_id
+        assert resumed.json()["steps"][0]["id"] == step_id
 
         second_key = f"audio/{student_id}/second.webm"
         replacement = client.post(
@@ -731,13 +745,14 @@ class TestAssessmentAndScoring:
 
         db = SessionLocal()
         refreshed_attempt = db.query(Attempt).filter(Attempt.id == attempt_id).one()
-        refreshed_audio = db.query(AudioSubmission).filter(
-            AudioSubmission.id == submission_id,
-        ).one()
-        assert refreshed_attempt.status == "completed"
-        assert refreshed_audio.status == "uploaded"
-        assert refreshed_audio.storage_key == second_key
-        assert db.query(AudioSubmission).filter(
+        submissions = db.query(AudioSubmission).filter(
             AudioSubmission.response_id == response_id,
-        ).count() == 1
+        ).order_by(AudioSubmission.id).all()
+        assert refreshed_attempt.status == "completed"
+        assert len(submissions) == 2
+        assert submissions[0].id == submission_id
+        assert submissions[0].status == "rerecord_required"
+        assert submissions[0].storage_key == first_key
+        assert submissions[1].status == "uploaded"
+        assert submissions[1].storage_key == second_key
         db.close()
