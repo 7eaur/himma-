@@ -1,294 +1,284 @@
-# منصة همة — المراجعة الشاملة للمستودع والمنصة
+# منصة هِمّة — المراجعة الشاملة للمستودع
 
 **التاريخ:** 2026-09-10  
-**الحالة:** AUDIT IN PROGRESS — لا دمج ولا نشر  
-**مستودع الحقيقة:** `7eaur/himma-`  
-**فرع الأساس التنفيذي:** `integration/canonical-content-2026-09-08`  
-**HEAD الأساس عند بدء المراجعة:** `7cb2192b0c31bc85dcf98a470023e9cc6f1598e0`  
-**فرع سجل المراجعة:** `audit/comprehensive-repository-review-2026-09-10`
+**الحالة:** `A00–A09 AUDIT COMPLETE — A10 ROOT REMEDIATION STARTS — NO MERGE — NO DEPLOY`  
+**المستودع:** `7eaur/himma-`  
+**فرع المراجعة/الصيانة الحالي:** `audit/comprehensive-repository-review-2026-09-10`
+
+> هذا الملف سجل مركزي. التفاصيل الكاملة لكل مرحلة في تقارير `docs/maintenance/`. Git الحالي هو الحقيقة التنفيذية إذا تقدم عن SHA مذكور في تقرير أقدم، مع عدم الرجوع عن قرارات المحتوى/الصوت/التكيف الأحدث.
 
 ---
 
-## 1. الهدف
+## 1. الهدف والقواعد
 
-هذه مراجعة شاملة تسبق الإغلاق النهائي والدمج والنشر. الهدف ليس جمع أخطاء سطحية ولا حذف ملفات قديمة لمجرد أن أسماءها تبدو كترقيعات؛ بل فهم البنية الحالية، وتتبع سبب كل طبقة تاريخية أو Repair/Overlay/Recovery، وتحديد مالك الحقيقة الحالي، ثم بناء خطة صيانة جذرية تحافظ على السلوك الصحيح والتاريخ الأكاديمي.
+المراجعة لم تكن بحثًا عن أخطاء سطحية، بل فحص ownership والمعمارية والتاريخ والـUX والبيانات والاختبارات والفروع قبل الصيانة والنشر.
 
-النتيجة المطلوبة هي **سجل فجوات كامل ومثبت بالأدلة** يغطي Backend وFrontend وUX/UI وقاعدة البيانات والمحتوى والتكيف والصوت والشارات والوسائط والأمان والاختبارات والفروع والاستعداد للنشر. لا تبدأ موجات التحسين والدمج إلا بعد نضج هذا السجل.
+القواعد الثابتة:
 
----
-
-## 2. قواعد المراجعة غير القابلة للتجاوز
-
-1. Git الحالي هو الحقيقة التنفيذية إذا كان أحدث من ملفات التسليم السابقة.
-2. لا Docker في أي مرحلة.
-3. لا Repair/Overlay Runtime جديد لحل مشكلة حالية.
-4. أي ترقيع/طبقة قديمة تُفهم أولًا: لماذا أضيفت؟ ما الذي ما زال يعتمد عليها؟ وما البديل الجذري؟ ثم فقط تُدمج أو تُزال.
-5. لا حذف للتاريخ الأكاديمي أو معرفات الإجابات القديمة بهدف التنظيف.
-6. لا Merge ولا Deploy أثناء المراجعة.
-7. فرع نموذج الصوت/الذكاء الاصطناعي المؤقت مستبعد من الدمج حتى اعتماد مستقل.
-8. لا استبدال صورة بصورة «مشابهة» فقط لتقليل التكرار؛ يجب أن يكون التطابق الدلالي صحيحًا ومعتمدًا.
-9. Railway هو هدف النشر النهائي بعد اكتمال الصيانة والدمج والاختبارات، وليس أثناء مرحلة التدقيق.
-10. كل نتيجة مهمة تُسجل هنا قبل التحسين، مع حالة واضحة: `OPEN / VERIFIED / PLANNED / FIXED / ACCEPTED`.
-
----
-
-## 3. مراحل المراجعة
-
-### A00 — خط الأساس والحوكمة وCI
-تثبيت HEAD، فحص default branch وCI، وتفريق فشل Runner عن فشل الكود.
-
-### A01 — Backend والـRuntime والـRoutes
-ملكية Routes، طبقات activities التاريخية، الخدمات المشتركة، التقييم/التعلم/التقوية/التقارير/الصوت/التكيف، والتكرار/dead code.
-
-### A02 — قاعدة البيانات والمحتوى والـSeeds/Migrations
-canonical publisher، Seed/Repair/Projection التاريخي، Alembic roundtrip/drift/idempotency والتاريخ الدائم.
-
-### A03 — الصوت والتحليل والتكيف
-Pending/graded/rerecord، append-only history، ASR/reference-guided pipeline، human review، evidence، promotion/completion gates.
-
-### A04 — Frontend وUX/UI
-Design System، Admin shell، Student Details، Settings/Account، mobile/responsive/accessibility/states/RTL.
-
-### A05 — نظام الشارات والمكافآت
-Models/Migrations، award semantics، idempotency، API، Student/Admin UI، الأصول، Unit/Integration/E2E.
-
-### A06 — الصور والوسائط
-جرد assets واستخدامها، orphans/duplicates، semantic correctness، القصص والصوت والـserving contracts.
-
-### A07 — الأمن، الأداء، الوصولية، المراقبة
-Auth/roles/IDOR/rate limits/secrets، performance، WCAG، readiness/logging/health.
-
-### A08 — الاختبارات والرحلة الكاملة
-Backend/Frontend/Security/Migrations/Seed/Media/Audio/Integration/E2E والرحلة Pretest→Posttest والتجارب على الهاتف.
-
-### A09 — مراجعة الفروع والتوحيد
-تصنيف `already-contained / unique-relevant / obsolete / experimental / archive-candidate` مع استبعاد فرع نموذج الصوت المؤقت وعدم الدمج الأعمى.
-
-### A10 — موجات الصيانة والتحسين
-تُبنى فقط بعد اكتمال A00–A09، حسب الخطورة والاعتماديات.
-
-### A11 — Final Release Gate ثم Railway
-جميع البوابات خضراء، فرع نهائي موحد، Backup/Rollback، PostgreSQL/Media/Audio/Worker عند الاعتماد، migrations/canonical publication/readiness/smoke/post-deploy E2E.
+- لا Docker.
+- لا Merge أو Deploy أثناء A00–A10.
+- لا Repair/Overlay runtime جديد.
+- لا حذف history أو AudioSubmissions أو evidence أكاديمي بغرض التنظيف.
+- canonical content الحالي = **125 عنصرًا** بعد اعتماد 2026-09-08.
+- pending/uploaded audio محايد أكاديميًا ولا يمنع same-level navigation/support.
+- promotion/L3 completion فقط هي boundaries التي تنتظر unresolved audio.
+- `rerecord_required` مهمة مؤجلة يفتحها الطالب صراحة.
+- إعادة التسجيل يجب أن تكون append-only.
+- `graded` فقط يدخل evidence الأكاديمي.
+- latest AudioSubmission هو الحالة الفعالة.
+- لا Production ASR Provider معتمد؛ لا دمج لفروع Speech Lab قبل اعتماد مستقل.
+- early promotion في L1/L2 قرار معتمد ولا يُلغى لتسهيل الشارات أو الاختبارات.
 
 ---
 
-## 4. الحالة المثبتة عند بداية المراجعة
+## 2. حالة المراحل
 
-### 4.1 CI الحقيقي للـHEAD `7cb2192...`
-Run: `34419490966`
-
-- Security: **PASS**.
-- Frontend: **PASS** — install/typecheck/ESLint/unit/build.
-- PostgreSQL native startup: **PASS**، بدون Docker.
-- canonical catalog/release validation: **PASS**.
-- Alembic upgrade → downgrade base → upgrade: **PASS**.
-- `alembic check`: **PASS**.
-- canonical seed twice/idempotency على PostgreSQL: **PASS**.
-- Backend pytest: **FAIL** — `823 passed, 2 failed`.
-- Integration/E2E: **لم يبدأ** لأن Backend فشل.
-
-هذه نتائج التشغيل المرجعي عند بداية المراجعة وليست دعوى تشغيل جديدة للمراحل اللاحقة.
-
----
-
-## 5. سجل الفجوات الجامع حتى إغلاق A05
-
-| ID | المجال | الشدة | الحالة | الملخص |
-|---|---|---:|---|---|
-| AUD-CI-001 | CI | P1 | OPEN | Backend فيه فشلان من 825، ولذلك Integration/E2E لم يعمل على HEAD المرجعي. |
-| AUD-BE-001 | Runtime | P2 | VERIFIED | `activity_runtime` يعتمد على `activities_v4` و`activities`؛ Router العام واحد لكن ملكية الخدمة موزعة تاريخيًا. |
-| AUD-BE-002 | Seeds | P2 | VERIFIED | `seed_all` canonical، لكن Seed/Projection/Correction تاريخية كثيرة ما زالت تحتاج dependency classification. |
-| AUD-BE-003 | Audio view | P1 | VERIFIED | `pending_audio_reviews` قد يرجع 0 مع جولة صوت Pending إذا وجدت خطوة أخرى actionable في نفس المحاولة. |
-| AUD-BE-004 | Legacy test path | P2 | VERIFIED | Recovery لـPRE-Q05 يبني baseline 105 عبر `seed.run_seed()` بدل canonical 125 فيرى 3 صور بدل 4. |
-| AUD-A03-001 | Assessment rerecord/history | P0 | VERIFIED | assessment rerecord يستبدل نفس `AudioSubmission` بدل append-only submission جديد. |
-| AUD-A03-002 | Assessment latest semantics | P1 | VERIFIED | assessment/profile/completion لا تعتمد latest-submission semantics بشكل موحد. |
-| AUD-A03-003 | Human review/rerecord | P1 | VERIFIED | invalid review يعيد Attempt إلى in_progress فورًا بدل deferred explicit rerecord contract. |
-| AUD-A03-004 | Machine/human adjudication | P1 | VERIFIED | SpeechAnalysis غير مربوط بقرار human review كمسار adjudication واحد. |
-| AUD-A03-005 | Calibration governance | P1 | VERIFIED | calibration env/version لا يساوي approved attestation registry. |
-| AUD-A03-006 | Queue concurrency | P1 | VERIFIED | worker claim غير ذري، ويمكن ازدواج provider call/enqueue race. |
-| AUD-A03-007 | Retry/operator recovery | P2 | VERIFIED | retry/dead-letter/provider recovery contract غير مكتمل. |
-| AUD-A03-008 | Production ASR | P1 | BLOCKED | لا Production ASR Provider معتمد ولا معايرة/خصوصية/تكلفة مغلقة. |
-| AUD-A03-009 | Adaptation evidence | P0 | VERIFIED | `rubric_score > 0` يتحول إلى boolean correct؛ 0.10 و1.00 قد يصبحان full-correct evidence. |
-| AUD-A03-010 | Storage/security/observability | P2 | CARRY_TO_A07 | storage authorization/config وqueue observability تحتاج A07. |
-| AUD-A04-001 | Admin UI ownership | P1 | VERIFIED | Student Details + Settings + legacy Account تمثل ثلاث طبقات presentation موازية رغم وجود AdminUI. |
-| AUD-A04-002 | Student Detail evidence states | P1 | VERIFIED | فشل history/rewards يتحول إلى `[]` ويظهر للمشرف كـ0/empty حقيقي. |
-| AUD-A04-003 | Journey truth | P1 | VERIFIED | UI يساوي `level < current_level` بـ“مكتمل”؛ manual override يمكن أن يقفز مستويات دون completion evidence لكل مستوى أدنى. |
-| AUD-A04-004 | Legacy account | P2 | VERIFIED | `/admin/account` موجود، غير موجود في shell nav، ويتداخل مع Settings ويستخدم legacy styling. |
-| AUD-A04-005 | Student Detail mobile gate | P1 | VERIFIED | detail يغطي 390/768 فقط وبشكل شرطي؛ لا gate مباشر كامل 320/360/390/430/768/Desktop. |
-| AUD-A04-006 | Mobile dialog keyboard | P2 | VERIFIED | shell dialog لا يملك focus-trap/Escape/return-focus contract صريحًا، والاختبار الحالي لا يغطيه. |
-| AUD-A04-007 | Settings accessibility/style drift | P2 | VERIFIED | tabs/styles مستقلة عن AdminUI وبدون selected-state ARIA pattern واضح. |
-| AUD-A04-008 | Student recording context | P2 | VERIFIED | Student Detail يرسل المشرف إلى audio-review العامة دون filter/deep-link خاص بالطالب. |
-| AUD-BADGE-001 | Student badges | P1 | VERIFIED | Backend/API يملكان BadgeEvent لكن Student home لا يعرض الشارات بصريًا. |
-| AUD-BADGE-002 | Admin badge visual | P2 | VERIFIED | Student Detail يعرض label/chip فقط دون asset canonical. |
-| AUD-BADGE-003 | Badge assets | P1 | VERIFIED | الحزمة المعتمدة للشارات/المستويات غير مدمجة في `apps/web/public` كـreward catalog. |
-| AUD-BADGE-004 | L3 badge naming | P1 | VERIFIED | Backend `قارئ متميز` مقابل BDG-06 المعتمد `نجم الفهم`. |
-| AUD-BADGE-005 | Completion semantics | P1 | VERIFIED | early promotion في L1/L2 يثبت completion عند 6–9 Core بينما badge logic لا يمنح إلا عند 10؛ lifecycle الحالي يترك المستوى completed بلا badge. |
-| AUD-BADGE-006 | Badge E2E | P1 | OPEN | لا E2E يغلق award→asset→Student/Admin→refresh/idempotency كاملًا. |
-| AUD-BADGE-007 | Student reward state | P2 | VERIFIED | فشل `/api/rewards` في Student Home يبقي rewards فارغة فيظهر رصيد 0 بدل حالة unavailable صريحة. |
-| AUD-BADGE-008 | Reward presentation contract | P1 | VERIFIED | Reward API لا يحمل catalog/asset identity/version مستقرة، ما يجبر UI على mapping موازٍ إن أضيفت الصور مباشرة. |
-| AUD-BADGE-009 | Reward history FK | P2 | CARRY_TO_A10_A07 | star RewardEvent يرتبط بـAttempt مع `ON DELETE CASCADE`; لا delete path طبيعي مثبت الآن، لكنه schema risk يجب حمايته قبل أي cleanup/reset. |
-| AUD-MEDIA-001 | Images | P2 | IN PROGRESS | referenced/unreferenced/repeated inventory موجود مبدئيًا ويحتاج إغلاق semantic/dependency classification في A06 قبل الاستبدال. |
-| AUD-GIT-001 | Branch governance | P1 | VERIFIED | default branch ليس فرع التكامل الحديث؛ يحسم بعد A09 وقبل الإصدار. |
-| AUD-GIT-002 | Branches | P1 | IN PROGRESS | فروع stage/integration/codex/feature كثيرة تحتاج تصنيفًا كاملًا. |
-| AUD-REL-001 | Release | P0 | OPEN | لا نشر أو استبدال Railway قبل اكتمال التدقيق والتحسين والتوحيد والبوابات. |
+| المرحلة | الحالة | المخرج |
+|---|---|---|
+| A00 Baseline / CI | CLOSED AUDIT | تشغيل مرجعي وتحليل gates |
+| A01 Backend ownership | CLOSED AUDIT | ownership gaps + runtime layering |
+| A02 Seeds / Migrations / Legacy | CLOSED AUDIT | static inventory + Python import graph |
+| A03 Audio / Speech / Review / Adaptation | CLOSED AUDIT | `HIMMA_A03_AUDIO_SPEECH_REVIEW_ADAPTATION_AUDIT_2026-09-10_AR.md` |
+| A04 Admin / Student Details / Mobile | CLOSED AUDIT | `HIMMA_A04_ADMIN_MOBILE_DEEP_AUDIT_2026-09-10_AR.md` |
+| A05 Rewards / Badges | CLOSED AUDIT | `HIMMA_A04_A05_ADMIN_BADGES_AUDIT_2026-09-10_AR.md` |
+| A06 Images / Media | CLOSED AUDIT | `HIMMA_A06_IMAGE_MEDIA_DEEP_AUDIT_2026-09-10_AR.md` |
+| A07 Security / Performance / Accessibility / Observability | CLOSED AUDIT | `HIMMA_A07_SECURITY_PERFORMANCE_ACCESSIBILITY_OBSERVABILITY_AUDIT_2026-09-10_AR.md` |
+| A08 Full Journey / Integration / E2E | CLOSED AUDIT | `HIMMA_A08_FULL_JOURNEY_INTEGRATION_E2E_AUDIT_2026-09-10_AR.md` |
+| A09 All Branches | CLOSED AUDIT | `HIMMA_A09_BRANCH_CLASSIFICATION_2026-09-10_AR.md` |
+| Master Gap Register | COMPLETE | `HIMMA_MASTER_GAP_REGISTER_2026-09-10_AR.md` |
+| A10 Root Remediation | **NEXT / START W1** | تنفيذ جذري بالموجات |
+| A11 Railway Finalization | BLOCKED UNTIL GREEN | بعد Final Gates فقط |
 
 ---
 
-## 6. تفاصيل Backend/Seeds المبكرة
+## 3. خط الأساس وCI الحقيقي
 
-### AUD-BE-001 — سلسلة Runtime تاريخية للأنشطة
-`main.py` يركب Router الأنشطة من `activity_runtime.py`، لكن `activity_runtime.py` ما زال يستورد خدمات من `activities.py` وhelpers من `activities_v4.py`، والأخير يعتمد على `activities.py`. هذه أجيال تنفيذية متداخلة وليست ثلاثة Routers عامة متعارضة. الإزالة لا تبدأ قبل dependency map/parity tests ونقل primitives إلى owners وظيفيين.
+تشغيل GitHub Actions المرجعي `34419490966` على `7cb2192b0c31bc85dcf98a470023e9cc6f1598e0` أثبت:
 
-### AUD-BE-002 — Seed/Projection تاريخي بعد التوحيد
-`seed_all.py` ينشر 125 عنصرًا عبر canonical publisher ولا يشغل repair chain بعد النشر. بقاء ملفات correction/projection لا يعني حذفها؛ يجب تصنيفها migration input/test/tool/dead candidate أولًا.
+- Security PASS.
+- Frontend PASS.
+- canonical validation PASS.
+- Alembic up/down/up PASS.
+- drift PASS.
+- canonical seed idempotency PASS.
+- Backend: **823 passed / 2 failed / 825**.
+- Integration: **SKIPPED** لأن Backend dependency gate فشل.
 
-### AUD-BE-003 — Pending Audio summary
-`navigation_target()` يخلط اختيار next action مع session pending summary، فيمكن أن يرجع actionable step قبل احتساب pending review. الإصلاح الجذري هو فصل navigation resolver عن latest-submission review summary.
+الفشلان:
 
-### AUD-BE-004 — Recovery يبني عالمًا قديمًا
-Recovery helper لـPRE-Q05 يشغل `seed.run_seed()` التاريخي 105 بدل canonical publication؛ لذلك يرى VOC-01/02/03 فقط بينما canonical الحالي أربع صور. يجب فصل migration-compatibility tests عن runtime-current tests.
+1. `AUD-BE-003`: pending learning audio summary يرجع 0 في حالة يوجد معها step آخر actionable.
+2. `AUD-BE-004`: recovery test يبني baseline 105 قديمًا ويرى PRE-Q05 بثلاث صور بدل canonical الحالي بأربع.
 
----
+وفي نفس التشغيل نجح `test_m09_full_single_candidate_journey.py`، لكنه domain longitudinal test وليس Full Browser Journey.
 
-## 7. A03 — Audio / Speech Analysis / Human Review / Adaptation
-
-**الحالة:** `AUDIT COMPLETE / FINDINGS VERIFIED / NO FIX APPLIED`  
-**التقرير التفصيلي:** `docs/maintenance/HIMMA_A03_AUDIO_SPEECH_REVIEW_ADAPTATION_AUDIT_2026-09-10_AR.md`
-
-### ما يجب الحفاظ عليه
-- `audio_review_state.py` هو أقرب مالك للعقد الحديث: latest submission + pending neutral + deferred rerecord + graded-only evidence.
-- Core الحديث يواصل same-level مع pending audio، يفتح rerecord صراحة، ويضيف submission جديدًا.
-- `adaptation_runtime.py` يحجز فقط promotion/L3 completion عند unresolved audio ولا يمنع same-level support.
-- Speech queue/worker/alignment/models حقيقية، ولا Fake production provider ولا provider call داخل HTTP path.
-- word-level C/D/I/S alignment موجود؛ phoneme/haraka authority غير معتمد.
-- لا Production ASR Provider معتمد.
-
-### الفجوات الجذرية
-- Assessment pre/post ما زال على lifecycle أقدم: replace same submission، non-latest reads، وreopen semantics.
-- Admin review وSpeechAnalysis مساران غير موحدين.
-- worker claim/retry/calibration governance تحتاج عقد production قبل ASR.
-- أخطر فجوة أكاديمية: graded rubric يتحول حاليًا إلى boolean `is_correct` عبر `>0` ثم adaptation يراه full correctness.
-
-### حدود التاريخ
-لا تُعاد كتابة AudioSubmission/AdaptationDecision التاريخية بصمت. أي migration لاحق يجب أن يحافظ على السجل ويغيّر ownership للأحداث الجديدة مع compatibility واضحة.
-
-**لم تُشغّل Test Suite جديدة أثناء A03.**
+فرع المراجعة `audit/*` غير داخل push triggers الحالية، لذلك لا يوجد Green exact-HEAD للـaudit branch ويجب تشغيل Final Gate صريح لاحقًا.
 
 ---
 
-## 8. A04 — Admin UI / Student Details / Mobile
+## 4. Backend / Seeds / Runtime ownership
 
-**الحالة:** `AUDIT COMPLETE / FINDINGS VERIFIED / NO PRODUCTION FIX APPLIED`  
-**التقرير التفصيلي:** `docs/maintenance/HIMMA_A04_ADMIN_MOBILE_DEEP_AUDIT_2026-09-10_AR.md`  
-**التقرير المشترك:** `docs/maintenance/HIMMA_A04_A05_ADMIN_BADGES_AUDIT_2026-09-10_AR.md`
+### AUD-BE-001
 
-### 8.1 ملكية الواجهة
-`components/admin/AdminUI` موجود ويُستخدم فعليًا في `/admin`, `/admin/students`, `/admin/students/new` وصفحات أخرى. لكن Student Details وSettings يعيدان بناء primitives محلية، و`/admin/account` يحتفظ بطبقة legacy إضافية. الاتجاه الجذري في A10 هو:
+Router الأنشطة العام واحد، لكن `activity_runtime.py` ما زال يعتمد خدمات تاريخية من `activities_v4.py` و`activities.py`. لا حذف قبل parity/dependency extraction.
 
-`global tokens → AdminUI primitives → page-specific composition`
+### AUD-BE-002
 
-### 8.2 Student Details لا يجوز أن يحول error إلى empty
-الصفحة تجمع ثلاث APIs. إذا نجح student وفشل history أو rewards، تحول الفشل إلى `[]`. عندها تعرض “لا يوجد سجل” أو 0 نجوم/شارات. هذا تضليل للـevidence ويجب أن يصبح partial-source state صريحًا أو view-model endpoint موحدًا.
+`seed_all.py` canonical وينشر 125 عنصرًا دون repair chain runtime، لكن ملفات seed/projection/correction التاريخية ما زالت في الشجرة. تصنيفها migration/test/tool/dead مطلوب قبل cleanup.
 
-### 8.3 Journey completion ليس `current_level`
-الواجهة الحالية تعتبر كل مستوى أقل من `current_level` مكتملًا. manual override يستطيع تغيير المستوى؛ لذلك يجب أن يأتي per-level completion من Journey/completion owner canonical، لا من رقم المستوى.
+### AUD-BE-003
 
-### 8.4 `/admin/account`
-تم فحصه قبل أي حذف. هو route حي read-only profile/logout، غير موجود في sidebar، يستخدم legacy CSS/inline styles، ويتداخل مع Settings. الحكم: `LEGACY DUPLICATE / ARCHIVE-CANDIDATE` فقط؛ لا حذف حتى dependency scan/redirect proof في A10.
+navigation resolver يخلط اختيار next action مع pending-audio summary. W1 يفصل الاثنين.
 
-### 8.5 Responsive evidence
-الاختبارات الحالية تغطي أجزاء من Admin/responsive، لكنها لا تغلق Student Details عند 320/360/390/430/768/Desktop بfixture deterministic وoverflow/tabs/forms/actions/keyboard assertions.
+### AUD-BE-004
 
-### 8.6 قرار A04
-A04 مغلق كتدقيق. لا Production code، لا Merge، لا Deploy.
+Recovery test تاريخي يبني عالم 105 بدل current canonical 125. W5 يفصل migration compatibility tests عن runtime-current tests.
 
 ---
 
-## 9. A05 — Rewards / Badges
+## 5. A03 — الصوت والتحليل والتكيف
 
-**الحالة:** `STATIC/SOURCE AUDIT COMPLETE / FINDINGS VERIFIED / NO PRODUCTION FIX APPLIED`  
-**التقرير التفصيلي:** `docs/maintenance/HIMMA_A04_A05_ADMIN_BADGES_AUDIT_2026-09-10_AR.md`
+أهم P0/P1:
 
-### 9.1 ما هو موجود ويجب الحفاظ عليه
-- `RewardEvent` persistent وقيد `UNIQUE(student_id, reward_key)`.
-- `ensure_rewards()` يمنح نجومًا من evidence صالح فقط ويستبعد media-gap/unresolved audio.
-- النجوم تستخدم stable key per Attempt وتوجد حماية idempotency منطقية + DB.
-- Student `/rewards` وResearcher student rewards APIs موجودة.
-- `test_adaptation_runtime.py` يثبت stars once/idempotency واستبعاد evidence غير الصالح.
+- `AUD-A03-001 P0`: assessment rerecord يستبدل نفس AudioSubmission بدل append-only.
+- `AUD-A03-002 P1`: latest-submission semantics غير موحدة في assessment/profile/completion.
+- `AUD-A03-003 P1`: invalid human review يعيد Attempt إلى in_progress فورًا بدل deferred explicit rerecord.
+- `AUD-A03-009 P0`: `rubric_score > 0` يتحول إلى boolean correctness؛ يمكن أن تصبح 0.10 و1.00 متكافئتين في evidence.
+- `AUD-A03-004/005`: machine analysis وhuman adjudication/calibration governance غير موحدين.
+- `AUD-A03-006`: worker claim غير ذري.
+- `AUD-A03-007`: retry/operator recovery غير مكتمل.
+- `AUD-A03-008`: Production ASR **BLOCKED** حتى اعتماد provider/model/calibration/privacy/cost.
 
-### 9.2 split-brain في milestone completion
-`decide_transition()` يسمح L1/L2 early promotion من 6 Core بعد استيفاء mastery/critical-skill/gates. `ensure_rewards()` يعمل قبل transition ويشترط `_completed_core_count >= 10` للشارة. `journey.py` لاحقًا يقرأ persisted transition evidence ويعتبر المستوى completed حتى لو كان 6–9 Core. `test_m09_full_single_candidate_journey.py` يثبت أن L1/L2 يترقيان فعليًا تحت 10 Core.
+ما هو صحيح ويحفظ:
 
-النتيجة: completion milestone وbadge milestone لهما مالكان مختلفان، ويجب توحيدهما في A10 دون إعادة early-promotion إلى legacy 10/10.
-
-### 9.3 Visual/catalog contract غير مكتمل
-حزمة BDG الرسمية تحتوي ست مكافآت وSVGs مع BDG-04/05/06 للمستويات، لكنها غير مدمجة في `apps/web/public`. Student لا يعرض badges، Admin يعرض text chip فقط، والـAPI لا يملك catalog/asset identity مستقرة. L3 backend label `قارئ متميز` بينما BDG-06 `نجم الفهم`.
-
-الحل الجذري: Reward Catalog canonical واحد يملك `catalog_id/key/type/level/label/asset/version` ويغذي API وStudent/Admin، مع إبقاء تاريخ RewardEvent محفوظًا وعدم إعادة كتابة labels القديمة صامتًا.
-
-### 9.4 حالات الخطأ والاختبارات
-Student Home يحول rewards fetch failure عمليًا إلى قائمة فارغة/totalStars=0، فيخلط unavailable مع true zero. كما أن `student/page.test.tsx` لا يختبر badge rendering. لا يوجد E2E كامل award→asset→Student/Admin→refresh.
-
-### 9.5 مخاطرة history schema
-`reward_events.attempt_id` عليه `ON DELETE CASCADE`. لا يوجد delete path طبيعي مثبت في هذه الجولة، وretake contract يحافظ على history؛ لذا لا نصنفه data-loss defect حاليًا، لكن يمنع أي cleanup مستقبلًا قبل حسم سياسة Reward history/FK.
-
-### 9.6 قرار A05
-A05 مغلق كتدقيق static/source. التنفيذ مؤجل إلى A10، والـBadge E2E إلى A08 بعد الإصلاح. نقطة الاستكمال انتقلت إلى **A06 — Images / Media**.
+- core learning audio لا يوقف same-level navigation.
+- unresolved audio يوقف فقط irreversible promotion/L3 completion.
+- speech queue/pipeline موجود فعلًا ولا يخترع score عند غياب provider.
+- machine confidence ليس academic truth.
 
 ---
 
-## 10. ما تم التحقق منه إيجابيًا ولا يجب كسره
+## 6. A04 — Admin / Student Details / Mobile
 
-1. Router الأنشطة العام الحالي له مالك واحد في `main.py`.
-2. canonical content release = 125 عنصرًا.
-3. canonical seed مرتين على PostgreSQL أعطى نفس release/projection بلا churn في الدورة الثانية.
-4. snapshot المرجعي: 44 مهارة، 824 خيارًا، 265 asset links.
-5. migrations roundtrip وdrift gate نجحا في التشغيل المرجعي.
-6. Frontend typecheck/lint/unit/build خضراء في التشغيل المرجعي.
-7. Security gates خضراء في التشغيل المرجعي.
-8. Core audio/adaptation الحديثة تحافظ على pending-neutral وsame-level continuation.
-9. media canonical guard/generated sequence tests موجودة ونجحت في التشغيل المرجعي.
-10. AdminUI/responsive table/mobile-card pattern موجود ولا حاجة لإنشاء Design System جديد.
-11. التاريخ الأكاديمي والصوتي والمكافآت الحالية لا يحذف لمجرد التوحيد.
-12. Early promotion المعتمد في L1/L2 لا يكسر أثناء توحيد rewards/completion.
+الفجوات الأساسية:
 
----
+- `AUD-A04-001 P1`: AdminUI موجود، لكن Student Details + Settings + legacy Account يعيدون بناء presentation systems موازية.
+- `AUD-A04-002 P1`: فشل history/rewards يتحول إلى empty/zero في Student Details بدل error state.
+- `AUD-A04-003 P1`: Journey UI يستنتج completion من `current_level` بدل longitudinal evidence، ويتأثر manual override.
+- `AUD-A04-004 P2`: `/admin/account` legacy duplicate؛ لا حذف قبل dependency scan/redirect plan.
+- `AUD-A04-005 P1`: لا Student Details mobile gate deterministic عند 320/360/390/430/768/Desktop.
+- `AUD-A04-006/007`: keyboard dialog lifecycle وSettings tabs/accessibility تحتاج توحيدًا.
+- `AUD-A04-008`: Student Detail يفقد سياق الطالب عند الانتقال إلى audio-review العامة.
 
-## 11. سياسة الصور أثناء المراجعة
-
-A06 ينتج/يثبت:
-`asset_id | file | semantic label | usages | use_count | current locations | orphan? | duplicate semantics? | candidate replacement?`
-
-التكرار المقبول يُحكم دلاليًا. لا تستبدل صورة لمجرد التنوع. الصورة غير المستخدمة تصبح مرشحًا فقط إذا طابقت المعنى بدقة، ولا حذف لأي asset قبل dependency proof.
+اتجاه A10: `global tokens → AdminUI primitives → page-specific composition`، دون Design System ثانٍ.
 
 ---
 
-## 12. سياسة مراجعة الفروع
+## 7. A05 — Rewards / Badges
 
-لكل فرع:
-`branch | head | merge-base | ahead/behind | unique files/commits | category | action`
+Backend RewardEvent موجود ودائم مع idempotency، لكن المنتج غير مكتمل end-to-end:
 
-التصنيفات: `ALREADY_CONTAINED`, `UNIQUE_RELEVANT`, `OBSOLETE_SUPERSEDED`, `EXPERIMENTAL`, `ARCHIVE_CANDIDATE`, `EXCLUDED_AI_VOICE_MODEL`.
+- Student لا يعرض badges بصريًا.
+- Admin يعرض label فقط.
+- الحزمة الرسمية BDG-01..06 غير مدمجة كReward Catalog في الويب.
+- L3 backend `قارئ متميز` مقابل asset الرسمي `نجم الفهم`.
+- أخطر semantic gap: early promotion يثبت L1/L2 completion عند 6–9 Core بينما badge logic يمنح عند 10 فقط.
+- Reward API لا يحمل stable asset/catalog version.
+- failure في Student rewards يظهر 0 بدل unavailable.
+- لا full badge lifecycle E2E.
+- Reward history FK يحتاج حماية من cleanup destructive paths.
 
-فرع نموذج الصوت الاصطناعي المؤقت خارج الدمج حتى قرار منفصل.
+الحل: **Level Completion owner واحد + Canonical Reward Catalog واحد**.
 
 ---
 
-## 13. بوابة Railway النهائية
+## 8. A06 — Images / Media
 
-لا يتم لمس الإنتاج الحالي أثناء التدقيق. قبل الاستبدال يجب توفر: branch نهائي موحد، Backend/Frontend/Security green، migration roundtrip، seed-twice، media/audio، Integration/E2E، mobile Admin+Student journeys، badge E2E، readiness 200، backup/rollback، ثم smoke/post-deploy E2E.
+المثبت:
+
+- 125 canonical items.
+- 71 image IDs معروفة.
+- 48 referenced من canonical release.
+- 23 approved unused reserve.
+- 0 referenced image IDs مفقودة.
+- 18 multi-semantic IDs، أغلبها accepted aliases/context reuse.
+- لا exact duplicate SHA داخل `assets/education`.
+- 5 duplicate character SHA groups في `apps/web/public`، ولا حذف قبل dependency proof.
+
+الفجوة الأكاديمية P1:
+
+`L2-CORE-09` يستخدم image context كـlexical stimulus، بينما semantic guard صارم أساسًا للـchoice images. جولتا `سَمَك` مع صورة `سمكة` و`نُور` مع صورة مصباح/ضوء تحتاجان **قرارًا أكاديميًا** ثم role-aware semantic contract (`lexical_stimulus` مقابل `story_context` وغيرها). لا تغيير عشوائي أثناء التدقيق.
 
 ---
 
-## 14. نقطة الاستكمال الحالية
+## 9. A07 — Security / Performance / Accessibility / Observability
 
-A03 وA04 وA05 مغلقة كـaudit-only. لم يبدأ A10 ولم يحدث Merge/Deploy.
+### Security P1
 
-**نقطة الاستكمال الآن: A06 — Images / Media.**
+- لا rate limiting لمسارات login.
+- تغيير access code/password لا يبطل JWT قائمًا فورًا.
+- Secure cookie يعتمد `ENV=production` لكن readiness لا يفرض هذا الوضع.
+- legacy `/recordings/init` presigned PUT بلا max upload policy مثبت.
 
-الأولوية الفورية:
-1. إعادة قراءة تقرير A06 الحالي والجرد A02/A06 بدل إعادة الجرد من الصفر.
-2. مطابقة canonical image IDs مع الملفات الفعلية والـsemantic maps والـruntime/public serving.
-3. فصل: referenced، unused-approved، duplicate-by-bytes، repeated-use، semantic-conflict، orphan/dead-candidate.
-4. مراجعة الـ23 original-approved unused assets و18 multi-semantic repeated assets يدويًا من حيث الدلالة، لا العدد فقط.
-5. عدم حذف/استبدال أي أصل أثناء التدقيق؛ تسجيل owner/root fix/test requirements ثم الانتقال إلى A07.
+P2: raw storage errors، وsecurity headers تحتاج owner/verification نهائيًا.
+
+### Performance
+
+- P1: Next BFF يحول immutable media cache إلى `private,no-store` حتى لـ`/api/media/*`.
+- P2: Admin students N+1، notification GET يكتب/reconciles، Google Fonts runtime dependency.
+
+### Accessibility
+
+- P1: reduced-motion contract في E2E دون implementation عالمي ظاهر.
+- P1: primary/green tokens لا تحقق 4.5:1 في الاختبار المكتوب لبعض normal-text usages.
+- P2: progressbar semantics، mobile-dialog keyboard، broad axe/SR gate.
+
+### Observability
+
+- لا request correlation/structured app logs contract.
+- speech worker metrics/alerts غير كافية إذا فُعّل Production ASR.
+- failed auth ليس security signal تشغيليًا واضحًا.
+
+---
+
+## 10. A08 — Full Journey / Integration / E2E
+
+الـBrowser Vertical Slice قوي: Admin login، create student، student login، 30-question assessment، image/audio flows، human audio review، resume، learning/reinforcement slice، Student Details/reports.
+
+لكن لا يكمل طالبًا واحدًا عبر browser/runtime من Pretest → L1/L2/L3 → Posttest كامل.
+
+Backend longitudinal test يغطي transitions/history/reinforcement/L3/posttest authorization/reports، لكنه يستخدم persisted assessment snapshots ويعتمد على vertical slice لميكانيكا المتصفح/التسجيل.
+
+لذلك evidence مقسوم ولا توجد Full Live Journey واحدة.
+
+إضافيًا:
+
+- `m09-release-readiness.yml` infrastructure/readiness/backup gate ولا يشغّل pytest أو Playwright.
+- main CI integration يشغّل 5 E2E فقط.
+- authenticated responsive matrix ناقصة.
+- `browser-flow.spec.ts` legacy/loose archive candidate.
+- badge visual E2E غير موجود.
+
+---
+
+## 11. A09 — مراجعة كل الفروع
+
+تم جلب ومقارنة **20 فرعًا** بما فيها audit الحالي.
+
+### Already contained — لا Merge
+
+B01/B02/B03، Stage 02/03/04، recovery baselines، `recovery/ui-media-admin-overhaul`، `integration/official-content-reconciliation-2026-09-08`، و`integration/canonical-content-2026-09-08` كلها `ahead_by=0` بالنسبة لفرع المراجعة.
+
+### `b04/asr-pipeline`
+
+Diverged لكنه يملك 3 commits فريدة توثيقية فقط (`RESUME_HERE`, `STATUS`, `progress.json`)؛ لا ASR code فريد يحتاج نقلًا. `obsolete/archive-candidate`.
+
+### Speech/Pronunciation Labs — **EXCLUDE FROM MERGE**
+
+- `m08/speech-lab-google-stt`
+- `b08/speech-lab-google-stt`
+- `b08/arabic-pronunciation-lab`
+- `b08/acoustic-pronunciation-evidence`
+
+تحمل providers/lab/pronunciation code فريدًا وتجريبيًا، وبعضها diverged عن بعض. تبقى research reference فقط حتى اعتماد Production ASR مستقل.
+
+### Deployment sandbox — لا Merge
+
+`deployment/platform-sandbox` يحمل مواد نشر فريدة لكنه يعتمد Dockerfile ويذكر `HIMMA_TEMP_AUDIO_SKIP=true` وتجربة Vercel/Railway/Supabase قديمة. يستفاد منه مرجعيًا فقط في A11 لما لا يتعارض مع الحقيقة الحالية، ولا يعاد إحياء Docker أو bypass.
+
+**نتيجة A09: لا يوجد فرع يجب دمجه الآن.**
+
+---
+
+## 12. Master Gap Register وA10
+
+السجل الجامع:
+
+`docs/maintenance/HIMMA_MASTER_GAP_REGISTER_2026-09-10_AR.md`
+
+موجات A10 المعتمدة:
+
+1. **W1 Academic / History Integrity** — P0 audio history + latest semantics + numeric evidence + completion truth.
+2. **W2 Security / Speech boundaries** — auth/session/storage/queue/observability؛ Production ASR يبقى HOLD.
+3. **W3 Admin / Student UX / Accessibility / Web reliability**.
+4. **W4 Rewards / Badges / Media semantics**.
+5. **W5 Historical cleanup / performance / test ownership**.
+6. **W6 Final Quality Gates** على exact SHA.
+
+بعد W6 فقط يبدأ A11 Railway finalization.
+
+---
+
+## 13. نقطة الاستكمال الدقيقة
+
+**A00–A09 لا تعاد. A09 مغلق. Master Gap Register موجود.**
+
+ابدأ الآن بـ **A10 / W1** بالترتيب:
+
+1. توحيد canonical latest AudioSubmission lifecycle للـassessment.
+2. جعل rerecord append-only بعد explicit open وعدم reopen التلقائي عند review.
+3. فصل pending review summary عن navigation resolver.
+4. إصلاح numeric rubric evidence بدل booleanization.
+5. توحيد Level Completion truth للاستهلاك من Journey/Rewards مع الحفاظ على early promotion.
+6. Regression tests لكل boundary قبل الانتقال إلى W2.
+
+لا Merge، لا Deploy، لا Railway الآن.
