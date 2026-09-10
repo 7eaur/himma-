@@ -143,6 +143,49 @@ def test_supervisor_password_rotation_revokes_pre_rotation_jwt(researcher_client
     assert researcher_client.get("/researcher/account").status_code == 401
 
 
+def test_legacy_recording_init_rejects_oversize_before_storage_call(monkeypatch):
+    monkeypatch.setattr(
+        recordings,
+        "_get_s3",
+        lambda: (_ for _ in ()).throw(AssertionError("storage must not be called")),
+    )
+    student = SimpleNamespace(id=17)
+
+    with pytest.raises(HTTPException) as exc_info:
+        recordings.init_recording(
+            recordings.InitRequest(file_size=MAX_AUDIO_BYTES + 1, mime_type="audio/webm"),
+            student=student,
+        )
+
+    assert exc_info.value.status_code == 413
+
+
+def test_legacy_recording_presign_binds_content_length_and_type(monkeypatch):
+    captured = {}
+
+    class S3Stub:
+        def generate_presigned_url(self, operation, Params, ExpiresIn):
+            captured.update({"operation": operation, "params": Params, "expiry": ExpiresIn})
+            return "https://storage.invalid/signed"
+
+    monkeypatch.setattr(recordings, "_get_s3", lambda: S3Stub())
+    student = SimpleNamespace(id=18)
+    requested_size = 4096
+
+    result = recordings.init_recording(
+        recordings.InitRequest(file_size=requested_size, mime_type="audio/webm"),
+        student=student,
+    )
+
+    assert captured["operation"] == "put_object"
+    assert captured["params"]["ContentLength"] == requested_size
+    assert captured["params"]["ContentType"] == "audio/webm"
+    assert result["required_headers"] == {
+        "Content-Type": "audio/webm",
+        "Content-Length": str(requested_size),
+    }
+
+
 def test_legacy_recording_completion_rejects_and_removes_oversized_object(monkeypatch):
     deleted = []
 
