@@ -23,6 +23,10 @@ class SpeechAnalysisJob(Base):
     P07 intentionally keeps provider execution outside the request path. Jobs are
     retried deterministically and may end in dead_letter rather than silently
     awarding or penalising a student when the provider is unavailable.
+
+    ``lease_owner``/``lease_expires_at`` make provider execution an explicit
+    durable claim. Multiple workers select with SKIP LOCKED and an abandoned
+    processing job becomes claimable only after its lease expires.
     """
 
     __tablename__ = "speech_analysis_jobs"
@@ -33,6 +37,8 @@ class SpeechAnalysisJob(Base):
     attempt_count = Column(Integer, nullable=False, default=0, server_default="0")
     max_attempts = Column(Integer, nullable=False, default=3, server_default="3")
     next_attempt_at = Column(DateTime(timezone=True), nullable=True)
+    lease_owner = Column(String(160), nullable=True)
+    lease_expires_at = Column(DateTime(timezone=True), nullable=True)
     last_error_code = Column(String(100), nullable=True)
     last_error_message = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
@@ -47,7 +53,7 @@ class SpeechAnalysisJob(Base):
             "status IN ('queued','processing','retry_wait','completed','review_required','failed','dead_letter','blocked_provider')",
             name="ck_speech_jobs_status",
         ),
-        Index("ix_speech_jobs_claim", "status", "next_attempt_at", "created_at"),
+        Index("ix_speech_jobs_claim", "status", "next_attempt_at", "lease_expires_at", "created_at"),
     )
 
 
