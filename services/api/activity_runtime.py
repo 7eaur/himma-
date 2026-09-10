@@ -162,6 +162,7 @@ def _runtime_step_payload(
 ) -> dict[str, Any]:
     payload = stage2_step_payload(db, item, attempt, step)
     state = effective_step_state(db, attempt, step)
+    summary = session_audio_review_summary(db, attempt.session_id)
     rerecord_actionable = (
         state.get("audio_review_status") != "rerecord_required"
         or bool(state.get("rerecord_opened"))
@@ -177,6 +178,8 @@ def _runtime_step_payload(
     payload["audio_review_status"] = state.get("audio_review_status")
     payload["awaiting_audio_review"] = bool(state.get("awaiting_audio_review"))
     payload["rerecord_opened"] = bool(state.get("rerecord_opened"))
+    payload["pending_audio_reviews"] = summary.pending_count
+    payload["rerecord_required_count"] = summary.rerecord_required_count
     return payload
 
 
@@ -209,15 +212,13 @@ def navigation_target(
     *,
     finalize_completed: bool = False,
 ) -> tuple[Attempt | None, ContentItem | None, ContentStep | None, int, bool]:
-    """Resolve learner action independently from academic completion.
+    """Resolve learner action independently from the audio-review aggregate.
 
     Returns ``(attempt, item, step, pending_review_count, finalized_any)``.
-
-    Pending-review steps and unopened rerecord tasks are skipped for navigation
-    while remaining academically open. Once the learner explicitly opens a
-    rerecord task, its original reading step becomes actionable again.
+    The aggregate is computed once from latest AudioSubmission state for the
+    whole session, so an actionable sibling never hides a pending review.
     """
-    pending_review_count = 0
+    pending_review_count = session_audio_review_summary(db, session_id).pending_count
     finalized_any = False
 
     for attempt in _in_progress_attempts(db, session_id):
@@ -226,7 +227,6 @@ def navigation_target(
             raise HTTPException(status_code=409, detail="تعذر تحميل محتوى النشاط")
 
         actionable_step: ContentStep | None = None
-        has_academic_pending = False
         all_done = True
 
         for step in sorted(item.steps, key=lambda value: value.order_index):
@@ -235,7 +235,6 @@ def navigation_target(
                 continue
             all_done = False
             if state.get("awaiting_audio_review"):
-                has_academic_pending = True
                 continue
             if (
                 state.get("audio_review_status") == "rerecord_required"
@@ -258,9 +257,6 @@ def navigation_target(
             if finalize_completed:
                 finalized_any = _finalize_attempt_if_done(db, attempt, item) or finalized_any
             continue
-
-        if has_academic_pending:
-            pending_review_count += 1
 
     return None, None, None, pending_review_count, finalized_any
 
