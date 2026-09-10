@@ -1,167 +1,171 @@
 # STATUS — Himma Platform
 
-## Reconciliation in progress — 2026-09-08
-
-Checkpoint: safety slice published as c8c9e2c; option lifecycle follow-up passes eight
-local tests (including full seed twice). Remote Quality/M04/M09 fail before any job
-step and log blobs are unavailable. Owner inspection of the run annotation is
-required to establish the blocker. No release PASS, merge or deployment.
-Migration 0011 is added locally; production migration and PostgreSQL verification
-are not performed. Detailed rollout/rollback and remaining work are in the audit.
-
-Active branch: `integration/official-content-reconciliation-2026-09-08`.
-The owner authorized official audit, intent reconciliation and implementation; no merge or deployment.
-Current slice: study-wide configurable capacity (50), authenticated page guards,
-database-role revalidation, non-positional multi-select scoring and serialized audio review.
-No schema migration in this slice. Acceptance: A05/A06/A14 in
-`docs/maintenance/OFFICIAL_RECONCILIATION_2026-09-08.md`, plus newly discovered scoring bug.
-Targeted tests and frontend gates are in progress. Content/option lifecycle and full
-release gates remain open. The September 5 evidence below is historical, NOT a PASS
-for the new branch. No Docker is used locally.
-
-**Last updated:** 2026-09-05  
+**Last updated:** 2026-09-10  
 **Repository:** `7eaur/himma-`  
-**Branch:** `recovery/ui-media-admin-overhaul`  
-**Program:** Full Maintenance / Recovery  
-**Current state:** `RECOVERY A–I CLOSED — READY_FOR_USER_DECISION`
+**Active branch:** `audit/comprehensive-repository-review-2026-09-10`  
+**Current state:** `A00–A09 AUDIT CLOSED — A10/W1 IN PROGRESS — NO MERGE / NO DEPLOY`  
 
-## Final executable candidate
+> هذا الملف يعكس نقطة التنفيذ الحالية. أي أقسام Recovery/Integration أقدم هي أدلة تاريخية فقط وليست HEAD أو release candidate حاليًا.
 
-`976b7c2ed8b9c6f1535a22a0b3a94b2c233f75eb`
+## Current continuity source
 
-جميع بوابات الإغلاق المطلوبة نجحت على **هذا SHA نفسه**:
+المرجع الأول للمحادثات الجديدة:
 
-- Himma CI — Quality Gate: run `33979846641` — **SUCCESS**.
-- Himma M04 — Responsive Visual Gate: run `33979846639` — **SUCCESS**.
-- Himma M09 — Release Readiness Gate: run `33979846640` — **SUCCESS**.
+`docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-10_A10_W1_FULL_AR.md`
 
-أي commits لاحقة لتحديث وثائق التشغيل هي docs-only ولا تستبدل مرشح التنفيذ المثبت أعلاه. إذا تغير الكود التنفيذي بعده، يجب اختيار SHA تنفيذي جديد وإعادة الإثبات على نفس SHA قبل إعلان PASS جديد.
+Checkpoint التنفيذ الحالي:
 
-## Final quality evidence
+`docs/maintenance/HIMMA_A10_W1_EXECUTION_CHECKPOINT_2026-09-10_AR.md`
 
-على المرشح النهائي:
+Master gaps:
 
-- Backend: **755 passed**؛ تحذيران deprecation من طبقة الاختبار فقط.
-- Approved content catalog: **PASS — 105 original items, 44 canonical skills, 0 explicit V1 media gaps**.
-- Alembic `upgrade -> downgrade -> upgrade`: SUCCESS.
-- Alembic model drift: لا توجد upgrade operations جديدة.
-- Seed idempotency: SUCCESS.
-- TypeScript: SUCCESS.
-- ESLint: SUCCESS.
-- Frontend unit tests: SUCCESS.
-- Next.js production build: SUCCESS.
-- PostgreSQL + Redis + pinned MinIO + FastAPI + Next.js integration: SUCCESS.
-- Playwright E2E: SUCCESS.
-- Python dependency audit: no known vulnerabilities.
-- npm audit عند مستوى high: no known vulnerabilities.
-- Gitleaks current-tree scan: SUCCESS.
-- Production placeholder/fake-delay guard: SUCCESS.
-- Disabled/skipped test guard: SUCCESS.
-- M09 live readiness + backup/restore PostgreSQL/Object Storage: SUCCESS.
+`docs/maintenance/HIMMA_MASTER_GAP_REGISTER_2026-09-10_AR.md`
 
-## Phase status
+## Current code checkpoint
 
-- Phase A — Audio Review Vertical Slice Recovery: **CLOSED**.
-- Phase B — Runtime Bypass Closure Audit: **CLOSED**.
-- Phase C — Approved Audio Binary Contract: **CLOSED**.
-- Phase D — Deterministic Structured Projection: **CLOSED**.
-- Phase E — Runtime Readiness Hardening: **CLOSED**.
-- Phase F — Student Path Regression Closure: **CLOSED**.
-- Phase G — Supervisor Audio/Admin UX Closure: **CLOSED**.
-- Phase H — Proven-Dead Legacy Cleanup: **CLOSED CONSERVATIVELY**.
-- Phase I — Final Single-Candidate Closure: **CLOSED EXACT-SHA GREEN**.
+آخر code-bearing checkpoint قبل commits التوثيق:
 
-تفاصيل إغلاق F–I:
+`ead44bf492cdbea35b65dc9ddce54fe7de4a20ef`
 
-`docs/ops/HIMMA_PHASE_F_I_CLOSURE_2026-09-05_AR.md`
+لا يُفترض أنه HEAD الحالي بعد commits التوثيق؛ يجب جلب HEAD قبل أي تنفيذ جديد.
 
-فهرس الأدلة:
+## Audit status
 
-`docs/ops/EVIDENCE_INDEX.md`
+A00–A09 مغلقة كتدقيق:
+
+- A00 Baseline / CI — CLOSED AUDIT.
+- A01 Backend ownership — CLOSED AUDIT.
+- A02 Seeds / migrations / legacy — CLOSED AUDIT.
+- A03 Audio / Speech / Review / Adaptation — CLOSED AUDIT.
+- A04 Admin / Student Details / Mobile — CLOSED AUDIT.
+- A05 Rewards / Badges — CLOSED AUDIT.
+- A06 Images / Media — CLOSED AUDIT.
+- A07 Security / Performance / Accessibility / Observability — CLOSED AUDIT.
+- A08 Full Journey / Integration / E2E — CLOSED AUDIT.
+- A09 All Branches — CLOSED AUDIT.
+- Master Gap Register — COMPLETE.
+
+لا تعاد هذه المراحل من الصفر.
+
+## A10 / W1 — work completed so far
+
+W1 = Academic / History Integrity.
+
+تم تنفيذ:
+
+- `8f5e3aa6d736faee579924f7a813d0e033879cac` — centralized latest AudioSubmission/latest AudioReview helpers.
+- `6a877335bf51f575450f199767321fdced3fdd14` — human review preserves history; invalid review no longer auto-reopens Attempt; historical submission cannot become active review.
+- `b114d8618b94db01cff0bcd99303fe3de4449619` — assessment completion/scoring reads latest audio state/review.
+- `00926e115840799c689375008e8f66744fa2b41d` — assessment rerecord is append-only and requires explicit learner open.
+- `ead44bf492cdbea35b65dc9ddce54fe7de4a20ef` — added canonical `level_completion.py` owner.
+
+## A10 / W1 — still open
+
+- Wire `level_completion.py` into Journey/Rewards/relevant completion consumers.
+- Fix numeric `AudioReview.rubric_score` evidence in adaptation; do not Boolean-collapse 0.10 and 1.00.
+- Fix `AUD-BE-003`: pending review aggregate must remain correct when a sibling step is actionable.
+- Make profile/protected assessment state latest-submission only.
+- Update assessment frontend for deferred explicit rerecord task flow.
+- Add regression tests for all W1 boundaries.
+- Run targeted and relevant full gates and record exact SHA.
+
+**There is no new Green exact-SHA claim for A10 yet.**
 
 ## Active academic contract
 
-### Initial placement — ADR-014
+### Initial placement
 
-بعد اكتمال الاختبار القبلي:
+- `<50%` → L1.
+- `50%..<80%` → L2.
+- `80%..100%` → L3.
 
-- أقل من 50% → المستوى الأول.
-- من 50% إلى أقل من 80% → المستوى الثاني.
-- من 80% إلى 100% → المستوى الثالث.
+### Learning / Adaptation V4
 
-بوابة readiness القديمة `12/20` والبوابات الرقمية الإضافية التجريبية لـL3 **ليست جزءًا من قرار التوزيع النشط**.
+- Activity `>=80` → pass.
+- `70..<80` → guided retry.
+- `<70` → targeted reinforcement.
+- L1/L2 early promotion: >=6 Core + mastery >=85 + critical coverage + critical floor >=70 + no unresolved reinforcement/supervisor/audio blocker at irreversible boundary.
+- one-level promotion only.
+- no automatic demotion.
+- L3 completion requires all 10 Core.
+- newest 3 valid active-session evidences weighted 50/30/20.
 
-### Learning/adaptation V4
+## Canonical content/runtime contract
 
-- Activity `>=80` → نجاح.
-- Activity `70..<80` → إعادة موجهة.
-- Activity `<70` → تقوية موجهة.
-- L1/L2 early promotion: >=6 Core + mastery >=85 + critical coverage + critical floor >=70 + no unresolved reinforcement/audio/supervisor blocker.
-- الترقية مستوى واحد فقط.
-- لا يوجد خفض تلقائي.
-- L3 لا يكتمل إلا بعد 10 Core، ولا يوجد L4.
-- أحدث ثلاثة أدلة Core صالحة من الجلسة النشطة فقط تدخل قرار mastery بأوزان 50/30/20.
+- Runtime total: **125**.
+- Pretest: 30.
+- Posttest: 30.
+- Learning runtime: 65.
+- Reinforcement: 35.
+- Skills: 44.
+- Projection contract: `structured_db_runtime_v1`.
+- Architecture: `approved_versioned_source -> deterministic_structured_projection -> postgres_runtime -> structured_api -> deterministic_renderer`.
+
+Do not revert to the historical 105-item runtime world.
 
 ## Audio contract
 
 Static approved audio:
 
-- Approved IDs: **54**.
-- WAV: **54**.
-- MP3: **54**.
-- Required static audio gaps: **0**.
+- Approved IDs: 54.
+- WAV: 54.
+- MP3: 54.
+- Required static audio gaps: 0.
 
-Current student-reading authority:
+Student audio authority:
 
-`record -> persist/upload -> supervisor review -> graded / rerecord_required -> continue`
+`record -> persist/upload -> supervisor review -> graded / rerecord_required -> explicit rerecord when required`
 
-- `uploaded` = انتظار مراجعة، وليس نجاحًا أو درجة أو إتقانًا.
-- `rerecord_required` = إعادة فتح نفس موضع القراءة.
-- `graded` فقط يسمح باستكمال الدليل الأكاديمي.
-- لا يوجد learner audio bypass نشط.
-- ASR الحقيقي/التلقائي ما يزال مسارًا مستقبليًا مستقلًا ولا يملك سلطة أكاديمية حاليًا.
+- uploaded/pending = neutral academic state.
+- unresolved learning audio does not block same-level navigation/support.
+- irreversible promotion/L3 completion waits on unresolved audio.
+- assessment may wait for human review before the next assessment item under the current contract.
+- rerecord is deferred until explicit learner open.
+- rerecord is append-only; old submissions remain immutable history.
+- latest AudioSubmission is active state.
+- graded only may become academic evidence.
+- human supervisor review is currently authoritative.
 
-Authoritative audio contract:
+Production ASR is **not approved**. Speech Lab branches remain research-only and excluded from merge.
 
-`docs/maintenance/AUDIO_RUNTIME_AND_REVIEW_CONTRACT_2026-09-04_AR.md`
+## Branch governance
 
-## Architecture/runtime truth
+A09 compared 20 branches.
 
-- Original approved content: 105 items.
-- Runtime total: 125.
-- Learning runtime: 65 items.
-- Reinforcement total: 35.
-- Pretest: 30.
-- Posttest: 30.
-- Skills: 44.
-- Projection contract: `structured_db_runtime_v1`.
-- Runtime architecture: `approved_versioned_source -> deterministic_structured_projection -> postgres_runtime -> structured_api -> deterministic_renderer`.
-- Reports are descriptive read models and do not manufacture mastery evidence.
-- Seeds remain version-aware, idempotent and non-destructive.
+- historical B/Stage/recovery/integration branches are already contained or obsolete for current work; no blind merge.
+- Speech/Pronunciation Lab branches: EXCLUDE FROM MERGE until independent ASR approval.
+- `deployment/platform-sandbox`: reference only; no Docker/Temporary Audio Skip revival.
 
-## Security hardening completed
+## Baseline CI evidence before A10
 
-- Replaced vulnerable legacy `python-jose` dependency with maintained `joserfc==1.7.5`.
-- JWT signing/validation uses explicit HS256 allowlisting and expiry validation.
-- Tampered, malformed and non-allowlisted-algorithm tokens are regression tested.
-- CI now includes Python and Node dependency audits, Gitleaks, unfinished production marker guard, fake-delay guard and skipped-test guard.
-- Deterministic catalog `stable_key` UUIDs are the only narrow Gitleaks path/rule exception introduced for the known false-positive class.
+Reference run `34419490966` on `7cb2192b0c31bc85dcf98a470023e9cc6f1598e0`:
+
+- Security PASS.
+- Frontend PASS.
+- canonical validation PASS.
+- Alembic up/down/up PASS.
+- drift PASS.
+- canonical seed idempotency PASS.
+- Backend: 823 passed / 2 failed / 825.
+- Integration skipped because Backend gate failed.
+
+This is baseline evidence only, not a PASS for current A10 code.
+
+Historical Recovery exact-SHA evidence `976b7c2ed8b9c6f1535a22a0b3a94b2c233f75eb` and runs `33979846641/639/640` remain archived evidence for the 2026-09-05 recovery state only; they do not authorize the current branch.
 
 ## Remaining external / production gates
 
-Recovery is closed, but production is not automatically authorized. `docs/ops/OPEN_ITEMS.md` remains authoritative for unresolved external items, especially:
+Still unresolved before real production where applicable:
 
-- OI-02 / OI-03: production ASR provider and calibration before automatic speech decisions.
-- OI-04: intervention/session duration before study activation.
-- OI-05: child-recording retention policy — blocks real-child production data.
-- OI-06: domain/hosting — blocks deployment.
-- OI-07: supervising organization details/logo before final report signoff.
-- OI-08: rotate any real credentials that may have appeared historically — blocks production/deployment.
+- Production ASR provider/calibration/privacy/cost/governance if automatic speech decisions are pursued.
+- intervention/session duration decision before study activation.
+- child-recording retention policy before real-child production data.
+- domain/hosting/deployment settings.
+- supervising organization details/logo for final reporting.
+- credential rotation before production/deployment if any historical real credentials were exposed.
 
-OI-10 is **CLOSED**: approved `WRD-29`, `SYL-13`, `INS-01`, and `INS-02` are present in the active audio contract.
+## Execution boundary
 
-## Decision boundary
+No Merge, Release, Deploy, Railway finalization or Docker use is authorized at this state.
 
-No merge, release, or deployment has been performed.
-
-The next action requires explicit owner authorization. Until then, preserve `976b7c2ed8b9c6f1535a22a0b3a94b2c233f75eb` as the final executable Recovery evidence candidate.
+Next action: continue **A10/W1** from the full handoff, close it with real regression evidence, then move to W2 according to the Master Gap Register.
