@@ -4,20 +4,25 @@ Usage:
     python speech_worker.py --once
     python speech_worker.py --poll-seconds 3
 
-The worker discovers uploaded audio that has no queue row, then processes due
-jobs. It never fabricates ASR results when the provider is not configured.
+The worker discovers uploaded audio that has no queue row, atomically leases one
+due job at a time, commits that lease before any provider call, then processes
+only jobs owned by this worker. A crash leaves a durable lease that can be
+reclaimed after expiry; it never fabricates ASR results when no provider is
+approved/configured.
 """
 
 from __future__ import annotations
 
 import argparse
 import os
+import socket
 import time
+import uuid
 
 from db.database import SessionLocal
 from db.models import AudioSubmission
 from db.speech_models import SpeechAnalysisJob
-from speech_pipeline import claimable_job_ids, enqueue_submission, process_job
+from speech_pipeline import claim_next_job, enqueue_submission, process_job
 
 
 def discover_jobs(db, limit: int = 100) -> int:
@@ -36,13 +41,29 @@ def discover_jobs(db, limit: int = 100) -> int:
     return len(submission_ids)
 
 
-def run_cycle(limit: int = 10) -> dict[str, int]:
+def _worker_id() -> str:
+    explicit = os.getenv("HIMMA_ASR_WORKER_ID", "").strip()
+    if explicit:
+        return explicit[:160]
+    return f"{socket.gethostname()}:{os.getpid()}:{uuid.uuid4().hex}"[:160]
+
+
+def run_cycle(limit: int = 10, *, worker_id: str | None = None) -> dict[str, int]:
     db = SessionLocal()
     discovered = processed = blocked = 0
+    owner = worker_id or _worker_id()
     try:
         discovered = discover_jobs(db)
-        for job_id in claimable_job_ids(db, limit=limit):
-            job = process_job(db, job_id)
+        for _ in range(limit):
+            job = claim_next_job(db, worker_id=owner)
+            if job is None:
+                db.rollback()
+                break
+            job_id = job.id
+            # Claim must be visible before the external provider call so another
+            # worker sees the durable processing lease and SKIP LOCKED behavior.
+            db.commit()
+            job = process_job(db, job_id, worker_id=owner)
             db.commit()
             processed += 1
             if job.status == "blocked_provider":
@@ -67,8 +88,9 @@ def main() -> None:
     if args.limit < 1 or args.limit > 100:
         parser.error("--limit must be between 1 and 100")
 
+    worker_id = _worker_id()
     while True:
-        print(run_cycle(limit=args.limit), flush=True)
+        print(run_cycle(limit=args.limit, worker_id=worker_id), flush=True)
         if args.once:
             return
         time.sleep(args.poll_seconds)
