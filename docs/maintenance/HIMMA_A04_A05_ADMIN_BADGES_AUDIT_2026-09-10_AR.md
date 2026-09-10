@@ -1,9 +1,10 @@
 # هِمّة — A04/A05 تدقيق لوحة الإدارة، الهاتف، الشارات والمكافآت
 
 **التاريخ:** 2026-09-10  
-**الحالة:** AUDIT ONLY — لا إصلاح واسع، لا دمج، لا نشر  
+**الحالة:** `A04 STATIC AUDIT CLOSED / A05 STATIC AUDIT CLOSED — NO MERGE — NO DEPLOY`  
 **الفرع:** `audit/comprehensive-repository-review-2026-09-10`  
-**مرجع التنفيذ:** `integration/canonical-content-2026-09-08@7cb2192b0c31bc85dcf98a470023e9cc6f1598e0`
+**مرجع التنفيذ الأصلي:** `integration/canonical-content-2026-09-08@7cb2192b0c31bc85dcf98a470023e9cc6f1598e0`  
+**ملاحظة:** Git الحالي على فرع التدقيق هو الحقيقة التنفيذية إذا تقدم عن هذا المرجع.
 
 ---
 
@@ -22,105 +23,54 @@
 
 | المسار | النظام البصري الحالي | الهاتف | الحالة | الملاحظة |
 |---|---|---|---|---|
-| `/admin` | `AdminUI` | جيد مبدئيًا | VERIFIED | يستخدم primitives المشتركة. |
-| `/admin/students` | `AdminUI` + desktop table/mobile cards | جيد مبدئيًا | VERIFIED | نموذج جيد يعاد استخدامه. |
-| `/admin/students/new` | `AdminUI` | جيد مبدئيًا | VERIFIED | form/layout مشترك. |
-| `/admin/reports` | `AdminUI` + mobile cards | جيد مبدئيًا | VERIFIED | لا يحتاج نظامًا بصريًا جديدًا. |
-| `/admin/skill-reports` | `AdminUI` | جيد مبدئيًا | VERIFIED | responsive table/mobile-card pattern. |
+| `/admin` | `AdminUI` | جيد مبدئيًا | VERIFIED STRUCTURE | يستخدم primitives المشتركة. |
+| `/admin/students` | `AdminUI` + desktop table/mobile cards | جيد مبدئيًا | VERIFIED STRUCTURE | نموذج جيد يعاد استخدامه. |
+| `/admin/students/new` | `AdminUI` | جيد مبدئيًا | VERIFIED STRUCTURE | form/layout مشترك. |
+| `/admin/reports` | `AdminUI` + mobile cards | جيد مبدئيًا | VERIFIED STRUCTURE | لا يحتاج نظامًا بصريًا جديدًا. |
+| `/admin/skill-reports` | `AdminUI` | جيد مبدئيًا | VERIFIED STRUCTURE | responsive table/mobile-card pattern. |
 | `/admin/audio-review` | `AdminUI` | يحتاج E2E هاتف | VERIFIED STRUCTURE | shell موحد، لكن نص إعادة التسجيل يحتاج مراجعة دلالية. |
 | `/admin/content-preview` | `AdminUI` shell + preview داخلي | مقبول بنيويًا | VERIFIED STRUCTURE | التخصيص الداخلي مبرر لأنه عارض محتوى. |
 | `/admin/settings` | نظام CSS خاص | responsive جزئيًا | GAP | يعيد بناء page/header/tabs/panels/forms/buttons بدل primitives المشتركة. |
-| `/admin/account` | `admin.module.css` + inline/global classes | غير موحد | GAP | مسار قديم/مكرر وغير موجود في قائمة التنقل الحالية؛ لا يحذف قبل تتبع الروابط والاختبارات. |
-| `/admin/students/[id]` | نظام CSS خاص كبير | خطر واضح 320–360px | GAP P1 | يعيد بناء header/cards/stats/tabs/forms/actions/modal بدل AdminUI. |
-| `/admin/login` | صفحة auth مستقلة | يحتاج فحص هاتف | REVIEW | استقلال auth مقبول، لكن يجب توحيد tokens/هوية/accessible states لا فرض dashboard shell عليها. |
+| `/admin/account` | `admin.module.css` + inline/global classes | غير موحد | GAP | مسار حي داخل route tree؛ لا يحذف قبل dependency scan وحسم التداخل مع Settings. |
+| `/admin/students/[id]` | نظام CSS خاص كبير | يحتاج بوابة 320–768px | GAP P1 | يعيد بناء header/cards/stats/tabs/forms/actions بدل AdminUI. |
+| `/admin/login` | صفحة auth مستقلة | يحتاج فحص هاتف | REVIEW | استقلال auth مقبول، مع توحيد tokens/هوية/accessible states فقط. |
 
 ### AUD-FE-004 — Settings يشكل Design System إداريًا ثانيًا
 
-`settings/page.tsx` + `settings.module.css` يبنيان:
-- page/header
-- tabs
-- panels
-- form controls
-- buttons
-- supervisor cards
+`settings/page.tsx` + `settings.module.css` يبنيان page/header/tabs/panels/forms/buttons محلية، بينما توجد primitives مشتركة في `components/admin/AdminUI.tsx`.
 
-بينما نفس primitives موجودة أصلًا في `components/admin/AdminUI.tsx`.
+**الأثر:** أي تعديل spacing/radius/focus/mobile behavior في AdminUI لا يصل تلقائيًا إلى Settings، فينتج drift دائم.
 
-**المشكلة:** ليس مجرد اختلاف شكلي؛ أي تعديل spacing/radius/focus/mobile behavior في AdminUI لن يصل إلى Settings، ما يخلق drift دائمًا.
+**المعالجة المخطط لها في A10:** نقل shell/forms/actions/panels إلى AdminUI، والإبقاء فقط على CSS الخاص بتركيب لا يغطيه النظام المشترك.
 
-**المعالجة المخطط لها لاحقًا:** نقل shell/forms/actions/panels إلى AdminUI، والإبقاء فقط على CSS الخاص بالتبويبات أو التركيب الذي لا يغطيه النظام المشترك.
+### AUD-FE-005 — `/admin/account` مسار حي/legacy candidate يحتاج حسم
 
-### AUD-FE-005 — `/admin/account` مسار قديم/مكرر يحتاج حسم
-
-المسار الحالي يعرض بيانات الحساب والخروج، لكنه:
-- غير موجود في sidebar الحالي.
-- يستخدم `admin.module.css` وinline/global classes.
-- تتقاطع وظيفته مع `/admin/settings` الذي يدير الحساب/الأمان/المشرفين.
-
-**لا يُحذف الآن.** يجب أولًا فحص:
-1. أي Link داخلي أو redirect إليه.
-2. اختبارات E2E أو روابط محفوظة.
-3. هل Settings هو المالك النهائي فعلًا لكل وظائفه.
-
-إذا ثبت عدم وجود اعتماد مشروع، يصبح `ARCHIVE/REMOVE CANDIDATE` بعد redirect آمن أو migration UX إن لزم.
+المسار موجود فعليًا تحت `apps/web/src/app/admin/(dashboard)/account/page.tsx`، لكنه متداخل وظيفيًا وبصريًا مع Settings. لا يجوز وصفه بأنه «محذوف» ولا حذفه الآن. قبل أي إزالة يجب فحص الروابط والـredirects والاختبارات والروابط المحفوظة وتحديد المالك النهائي لوظائف الحساب.
 
 ### AUD-FE-001 / AUD-FE-002 — تفاصيل الطالب أولوية إعادة البناء
 
-`students/[id]/page.tsx` لديه منطق وظيفي مهم لا يجب كسره، لكنه يعيد بناء معظم النظام البصري محليًا.
+`students/[id]/page.tsx` لديه منطق وظيفي مهم، لكنه يعيد بناء معظم النظام البصري محليًا: header/identity/status، summary cards، tabs، panels، reward cards، journey/progress، forms/actions، history، messages.
 
-المكوّنات المحلية تشمل:
-- header/identity/status button
-- summary cards
-- tabs
-- panels
-- info/reward cards
-- journey/progress
-- forms/actions
-- history rows
-- message states
+**بوابة الهاتف لاحقًا:** 320 / 360 / 390 / 430 / 768 / desktop مع no horizontal overflow، tabs قابلة للمس، cards لا تكسر الأرقام، actions stack واضح، forms قابلة للكتابة، focus/keyboard/error states، RTL صحيح.
 
-CSS يعتمد أيضًا على grid بقيم مثل `minmax(320px, 1fr)` مع تغطية هاتف محدودة.
+**اتجاه الحل الجذري:** إعادة تكوين الصفحة من AdminUI primitives ومكونات shared فقط عند وجود pattern حقيقي غير مغطى.
 
-**بوابة الهاتف لهذه الصفحة قبل الاعتماد:**
-- 320px
-- 360px
-- 390px
-- 430px
-- 768px
-- desktop
+### AUD-FE-006 — نص إعادة التسجيل في لوحة المراجعة يحتاج مزامنة
 
-ويجب التحقق فعليًا من:
-- عدم horizontal overflow.
-- tabs قابلة للاستخدام باللمس ولا تقطع النصوص.
-- summary cards لا تضغط رمز الدخول/الأرقام.
-- status/actions تتكدس بشكل مفهوم.
-- حقول تعديل الاسم/الرمز/المستوى والسبب قابلة للكتابة دون overflow.
-- focus/keyboard/error states.
-- النص العربي والـRTL لا ينكسران.
+العقد الحالي: `rerecord_required` مهمة مؤجلة وصريحة، لا تسحب الطالب فورًا من المسار. يجب توحيد Admin/Student copy على أن التسجيل غير الصالح يفتح طلب إعادة تسجيل، والطالب يعيده عندما يفتح المهمة، مع حفظ التسجيل السابق تاريخيًا.
 
-**اتجاه الحل الجذري لاحقًا:** إعادة تكوين الصفحة من `AdminPage`, `AdminPageHeader`, `AdminPanel`, `AdminStatGrid`, `AdminAction` ومكونات shared جديدة فقط إذا كان هناك pattern حقيقي غير موجود، بدل نسخ CSS جديد.
+### إغلاق A04
 
-### AUD-FE-006 — نص إعادة التسجيل في لوحة المراجعة يحتاج مزامنة مع العقد الحالي
-
-العقد التنفيذي الحالي: `rerecord_required` مهمة مؤجلة وصريحة يفتحها الطالب عندما يختار ذلك، ولا تسحبه فورًا من مساره.
-
-بعض نصوص Admin Audio Review ما زالت تُفهم كأن المحاولة «تعاد فتحها» مباشرة بعد رفض التسجيل.
-
-**المطلوب لاحقًا:** توحيد صياغة Admin/Student على:
-- التسجيل غير صالح → ينشأ طلب إعادة تسجيل.
-- الطالب يستطيع متابعة المسار المسموح.
-- يعيد التسجيل عندما يفتح المهمة صراحة.
-- التسجيل السابق محفوظ تاريخيًا.
+A04 مغلق كـ **static/source audit**. إعادة التصميم والاختبار البصري الفعلي مؤجلان إلى A10/A08 حسب نوع البوابة؛ لم يتم الادعاء هنا بمرور browser screenshots أو mobile E2E.
 
 ---
 
-## 3. A05 — حالة نظام النجوم والشارات فعليًا
+## 3. A05 — النظام الفعلي للمكافآت والشارات
 
-### 3.1 قاعدة البيانات — موجودة وليست ناقصة
+### 3.1 قاعدة البيانات — موجودة ودائمة
 
-يوجد Model دائم `RewardEvent` وجدول `reward_events` في migration `0006_adaptation_engine.py`.
+يوجد Model `RewardEvent` وجدول `reward_events` في migration `0006_adaptation_engine.py` بالحقول:
 
-الحقول تشمل:
 - `student_id`
 - `attempt_id` nullable
 - `reward_type` (`stars` / `badge`)
@@ -130,195 +80,191 @@ CSS يعتمد أيضًا على grid بقيم مثل `minmax(320px, 1fr)` مع 
 - `details`
 - `created_at`
 
-يوجد قيد فريد:
-`UNIQUE(student_id, reward_key)`
+وقيد `UNIQUE(student_id, reward_key)`، لذلك idempotency الأساسية موجودة على مستوى DB.
 
-**النتيجة:** الأساس البنيوي للمكافآت persistent ويدعم idempotency على مستوى DB.
-
-### 3.2 منطق المنح — موجود
+### 3.2 منطق المنح الحالي
 
 `adaptation.ensure_rewards()`:
-- يمنح نجومًا فقط لمحاولة مكتملة ولها evidence صالح عبر `_attempt_signal`.
-- لا يمنح فجوة media-only أو صوتًا unresolved كمكافأة أكاديمية.
-- يستخدم مفتاحًا ثابتًا `activity:{attempt_id}:stars`.
-- يحسب 3/2/1 نجمة بحسب retry/hint behavior.
-- ينشئ badge event بمفتاح `level:{level}:core-complete`.
-- `_add_reward_once` + unique constraint يمنعان التكرار.
 
-كما توجد APIs:
-- `GET /rewards` للطالب.
-- `GET /researcher/students/{student_id}/rewards` للمشرف.
+- يمنح نجومًا لمحاولة Learning مكتملة ولها evidence صالح عبر `_attempt_signal`.
+- يستبعد media-gap والصوت unresolved من reward evidence.
+- يستخدم `activity:{attempt_id}:stars`.
+- يمنح 3/2/1 نجمة حسب retry/hint.
+- يمنح badge بمفتاح `level:{level}:core-complete` عندما `_completed_core_count >= 10`.
+- يستخدم `_add_reward_once` مع unique constraint لمنع التكرار.
+- يستدعى داخل `evaluate_student()`، وكذلك من `GET /rewards` و`GET /researcher/students/{student_id}/rewards`.
 
-**إذن النظام ليس مفقودًا من Backend.** الفجوات الأساسية حاليًا في contract/visual integration/coverage.
+الـBackend إذن ليس مفقودًا؛ الخلل في ownership/semantics/display contract/visual integration والبوابات النهائية.
 
 ---
 
-## 4. فجوات الشارات المثبتة
+## 4. فجوات A05 المثبتة
 
 ### AUD-BADGE-001 — واجهة الطالب تجلب الشارات ثم لا تعرضها
 
-`student/page.tsx` يجلب `/api/rewards` ويخزن جميع RewardEvent، لكنه يحسب فقط:
-`totalStars = sum(reward.stars)`
+`apps/web/src/app/student/page.tsx` يجلب `/api/rewards` ويحسب `totalStars`، لكنه لا يملك render فعليًا لمجموعة badges. الطالب قد يملك BadgeEvent دائمًا ولا يراه في واجهته.
 
-ولا يوجد render للشارات المكتسبة في الصفحة الحالية.
+**Severity:** P1.
 
-النتيجة: الطالب قد يمتلك BadgeEvent في قاعدة البيانات وAPI، بينما واجهته الرئيسية لا تعرض الشارة نفسها.
+### AUD-BADGE-002 — لوحة المشرف تعرض الشارة كنص فقط
 
-**الشدة:** P1 لأن الشارات جزء من تجربة التحفيز المرئية، وليست مجرد metadata خلفية.
-
-### AUD-BADGE-002 — لوحة المشرف تعرض اسم الشارة كنص فقط
-
-صفحة تفاصيل الطالب:
-- تحسب `badges = rewards.filter(type === "badge")`.
-- تعرض العدد.
-- تعرض `badge.label` داخل chip نصي.
-
-هذا أفضل من عدم العرض، لكنه لا يستخدم الأصل البصري المعتمد للشارة، ولا يوجد asset id في الـAPI يجعل الربط صريحًا.
+`apps/web/src/app/admin/(dashboard)/students/[id]/page.tsx` يحسب badge count ويعرض `badge.label` داخل chip، دون الأصل البصري المعتمد.
 
 ### AUD-BADGE-003 — حزمة الشارات المعتمدة غير مدمجة في `public`
 
-الحزمة المرفقة `Himma_Characters_Badges_UI_Kit_v1.0` تحتوي:
-- BDG-01 نجمة واحدة
-- BDG-02 نجمتان
-- BDG-03 ثلاث نجوم
-- BDG-04 مستكشف الحروف
-- BDG-05 بطل الكلمات
-- BDG-06 نجم الفهم
-- وثلاثة رموز مستويات
-- وصيغ SVG/PNG/WebP
+الفحص الحالي لـ`apps/web/public` وجد `audio`, `brand`, `characters` وأصول Next الافتراضية، ولا يوجد reward/levels bundle معتمد.
 
-لكن `apps/web/public` الحالي يحتوي `audio`, `brand`, `characters` وبعض أصول Next الافتراضية، ولا يوجد حاليًا directory معتمد `rewards` أو `levels` لهذه الحزمة.
+حزمة `Himma_Characters_Badges_UI_Kit_v1.0` نفسها تثبت الأصول التالية:
 
-**النتيجة:** Backend reward events غير موصول فعليًا بالحزمة البصرية الرسمية.
+- BDG-01 نجمة واحدة — `hem-bdg-01-star-one.svg`
+- BDG-02 نجمتان — `hem-bdg-02-stars-two.svg`
+- BDG-03 ثلاث نجوم — `hem-bdg-03-stars-three.svg`
+- BDG-04 مستكشف الحروف — `hem-bdg-04-letter-explorer.svg`
+- BDG-05 بطل الكلمات — `hem-bdg-05-word-hero.svg`
+- BDG-06 نجم الفهم — `hem-bdg-06-comprehension-star.svg`
 
-### AUD-BADGE-004 — عدم تطابق اسم شارة المستوى الثالث
+وتوصي الحزمة باستخدام SVG للشارات في شاشة النتيجة ومسار التقدم.
 
-Backend الحالي:
-- L1 = `مستكشف الحروف`
-- L2 = `بطل الكلمات`
-- L3 = `قارئ متميز`
+### AUD-BADGE-004 — عدم تطابق شارة L3
+
+Backend الحالي في `BADGE_BY_LEVEL`:
+
+- L1 `مستكشف الحروف`
+- L2 `بطل الكلمات`
+- L3 `قارئ متميز`
 
 الحزمة المعتمدة:
-- BDG-04 = `مستكشف الحروف`
-- BDG-05 = `بطل الكلمات`
-- BDG-06 = `نجم الفهم`
 
-L3 غير متطابق: `قارئ متميز` مقابل `نجم الفهم`.
+- BDG-04 `مستكشف الحروف`
+- BDG-05 `بطل الكلمات`
+- BDG-06 `نجم الفهم`
 
-**هذه فجوة Source of Truth.** لا نعدل الاسم عشوائيًا الآن؛ في موجة التحسين يجب إنشاء reward catalog canonical واحد يربط:
-`reward_key -> asset_id -> label -> level -> type`
-بحيث لا يحتفظ Backend وUI والحزمة بثلاث حقائق منفصلة.
+إذن L3 له حقيقتان مختلفتان. لا يغير الاسم عشوائيًا أثناء التدقيق؛ الحل هو Reward Catalog canonical واحد.
 
-### AUD-BADGE-005 — شرط منح الشارة لا يطابق تعريف اكتمال L1/L2 الحالي
+### AUD-BADGE-005 — Journey completion وBadge completion لهما مصدران مختلفان
 
-`journey.py` يعترف صراحة بأن المستوى 1 أو 2 يمكن أن يصبح `completed` عبر **early promotion** بعد بوابات V4، حتى لو اكتملت 6–9 أنشطة Core فقط.
+هذا ليس احتمالًا نظريًا فقط. التسلسل الحالي حتمي عند early promotion:
 
-لكن `ensure_rewards()` يمنح badge فقط عندما:
-`_completed_core_count(...) >= 10`
+1. `evaluate_student()` يستدعي `ensure_rewards()` **قبل** تنفيذ transition.
+2. L1/L2 يسمحان بالترقية عند `>=6` Core إذا تحققت بقية بوابات V4.
+3. `ensure_rewards()` لا يمنح شارة المستوى إلا عند `>=10` Core.
+4. `adaptation_runtime` بعد ذلك يغلق جلسة المستوى ويسجل transition evidence.
+5. `journey.py` يعتبر L1/L2 `completed` من persisted early-promotion evidence حتى لو كانت 6–9 Core.
+6. أي استدعاء لاحق لـ`ensure_rewards()` يبقى مشروطًا بـ10 Core، لذلك لا تتحول حقيقة اكتمال المستوى إلى badge.
 
-النتيجة المحتملة المؤكدة منطقيًا من الكود:
-- طالب متفوق يترقى مبكرًا من L1 أو L2.
-- رحلة الطالب تعرض المستوى `completed`.
-- لن يحصل على شارة ذلك المستوى لأن شرط الشارة ما زال legacy `10 core`.
+وتؤكد `test_m09_full_single_candidate_journey.py` أن L1/L2 يترقيان فعليًا في المسار الكامل مع `6 <= completed < 10`، لكنها لا تتحقق من الشارة.
 
-هذا تعارض semantics حقيقي بين Journey وRewards.
+**Severity:** P1.  
+**Correct owner of truth:** خدمة/عقد واحد لحالة اكتمال المستوى، يستهلكه Journey + Rewards + gates ذات الصلة، مع الحفاظ على early-promotion المعتمد.
 
-**اتجاه الحل الجذري المخطط:** الشارة يجب أن تعتمد على نفس مفهوم `level completion` الرسمي المستخدم في Journey/transition evidence، وليس عدادًا موازيًا خاصًا بها. يلزم تثبيت العقد النهائي قبل التنفيذ: هل الشارة لـ«إكمال المستوى وفق سياسة V4» أم لـ«إكمال العشرة أنشطة تحديدًا»؟ أسماء الشارات وحزمة المستويات تشير إلى أنها milestone مستوى، لذلك الخيار الأول هو المرشح الأقوى، لكن لا يطبق قبل تثبيت القرار في Source of Truth/ADR.
+### AUD-BADGE-006 — E2E للشارات غير مغلق
 
-### AUD-BADGE-006 — تغطية الاختبارات الحالية لا تغلق E2E للشارات
+الاختبارات الحالية تثبت أجزاء مهمة فقط:
 
-في الاختبارات التي تمت مراجعتها:
-- يوجد إثبات قوي لمنح النجوم مرة واحدة.
-- يوجد إثبات أن media-gap/unresolved-audio لا يكسب مكافأة.
-- يوجد idempotency في DB والمنطق.
+- `test_adaptation_runtime.py` يثبت نجومًا once/idempotent، واستبعاد media-gap/unresolved audio.
+- `test_adaptation.py` وscenario matrix يثبتان بوابات early promotion/L3.
+- `test_m09_full_single_candidate_journey.py` يثبت رحلة L1→L2→L3 مع early promotion.
+- `apps/web/src/app/student/page.test.tsx` يمرر rewards كـ`[]` في سيناريوهاته ولا يختبر badge rendering.
 
-لكن لم يُثبت بعد في المراجعة الحالية Test يغطي الرحلة كاملة:
-1. إكمال/ترقية مستوى.
-2. إنشاء الشارة الصحيحة مرة واحدة.
-3. asset_id/label الصحيح.
-4. ظهورها للطالب.
-5. ظهورها للمشرف.
-6. بقاءها صحيحة بعد refresh/seed/runtime restart.
+لا يوجد عقد واحد يثبت:
+`promotion/completion -> badge once -> correct catalog identity/asset -> Student visible -> Admin visible -> refresh/persistence`.
 
-لذلك Badge E2E يبقى Gate مفتوحًا.
+**Status:** OPEN GATE، ينفذ في A08 بعد إصلاح A10.
+
+### AUD-BADGE-007 — فشل Rewards API يظهر للطالب كأنه صفر مكافآت
+
+في Student Home، فشل `/api/rewards` لا يتحول إلى حالة `unavailable/error` مستقلة؛ القائمة تبقى فارغة ويظهر `totalStars = 0`. هذا يخلط «لا توجد مكافآت» مع «تعذر تحميل سجل المكافآت» ويعرض حقيقة غير مؤكدة للطالب.
+
+**Severity:** P2 مع أثر ثقة/UX واضح.  
+**Root fix:** state صريح `loading / loaded / unavailable` للمكافآت، وعدم تمثيل fetch failure كرصيد صفر.
+
+### AUD-BADGE-008 — API لا يحمل هوية بصرية/كتالوجية مستقرة
+
+Reward payload الحالي يخرج الهوية الحدثية (`key/type/stars/label/details`) لكنه لا يخرج `catalog_id/asset_id/asset_url/catalog_version`. لذلك لا تستطيع الواجهات ربط الحدث بالأصل المعتمد دون إنشاء mapping محلي جديد، ما يعيد نفس split-brain الحالي.
+
+**Severity:** P1 contract gap.  
+**Root fix:** Reward Catalog canonical واحد مع stable IDs، والـAPI يعيد presentation metadata من هذا المصدر مع الحفاظ على `RewardEvent.label/details` التاريخية وعدم إعادة كتابة الماضي صامتًا.
+
+### AUD-BADGE-009 — FK النجوم إلى Attempt لديه مخاطرة حذف تاريخي يجب حمايتها
+
+Model/migration يعرّف `RewardEvent.attempt_id -> attempts.id ON DELETE CASCADE`. لم يثبت في هذه الجولة وجود مسار production طبيعي يحذف Attempts، كما أن retake contract الحالي يصرح بحفظ المحاولات السابقة وعدم حذفها؛ لذلك هذه **ليست مطالبة بوجود فقد بيانات حالي**.
+
+لكنها مخاطرة schema/history: أي cleanup/reset/delete لاحق لمحاولة يمكن أن يمحو star RewardEvent المرتبط بها تلقائيًا.
+
+**Severity:** P2 CARRY-TO-A10/A07.  
+**Required action:** قبل أي cleanup أو FK تغيير، inventory لمسارات حذف Attempt، ثم اختيار سياسة history صريحة (restrict/retain snapshot/soft-delete) دون كسر السجل الأكاديمي.
 
 ---
 
-## 5. التصميم الجذري المقترح لنظام المكافآت — لا ينفذ قبل نهاية التدقيق
-
-بدل إضافة if/else جديد داخل الواجهة:
+## 5. التصميم الجذري المطلوب لاحقًا — لا ينفذ أثناء A05
 
 ### Reward Catalog واحد
-مثال عقد مقترح:
+
+العقد المرشح:
 
 ```text
-BDG-01 -> stars:1 -> asset hem-bdg-01-star-one.svg
-BDG-02 -> stars:2 -> asset hem-bdg-02-stars-two.svg
-BDG-03 -> stars:3 -> asset hem-bdg-03-stars-three.svg
-BDG-04 -> level:1 -> مستكشف الحروف
-BDG-05 -> level:2 -> بطل الكلمات
-BDG-06 -> level:3 -> نجم الفهم
+BDG-01 -> stars:1 -> hem-bdg-01-star-one.svg
+BDG-02 -> stars:2 -> hem-bdg-02-stars-two.svg
+BDG-03 -> stars:3 -> hem-bdg-03-stars-three.svg
+BDG-04 -> level:1 -> مستكشف الحروف -> hem-bdg-04-letter-explorer.svg
+BDG-05 -> level:2 -> بطل الكلمات -> hem-bdg-05-word-hero.svg
+BDG-06 -> level:3 -> نجم الفهم -> hem-bdg-06-comprehension-star.svg
 ```
 
-ويصبح RewardEvent يسجل هوية reward مستقرة (`reward_key` أو catalog id)، بينما API يخرج display contract موحدًا يتضمن على الأقل:
-- `key`
-- `type`
-- `stars`
-- `label`
-- `asset_id` أو `asset_url`
-- `level_id` عند الحاجة
-- `created_at`
+ويخرج API على الأقل: `key`, `catalog_id`, `type`, `stars`, `label`, `asset_id/asset_url`, `level_id`, `created_at`، مع versioning إذا كان الكتالوج قابلًا للتطور.
 
 ### مصدر واحد لاكتمال المستوى
-لا يجب أن يمتلك:
-- Journey تعريفًا للاكتمال،
-- Rewards تعريفًا ثانيًا،
-- Posttest eligibility تعريفًا ثالثًا.
 
-يجب استخراج service/policy واحد يجيب: `is_level_completed(student, level, evidence)`، وتستهلكه Journey + Rewards + posttest gate حيث يلزم.
+لا يجوز أن يحتفظ Journey بتعريف، وRewards بتعريف ثانٍ، وPosttest/واجهات بتعريف ثالث. المطلوب state/contract واحد مبني على transition/session evidence الرسمي، مع المحافظة على early-promotion لـL1/L2 وعلى 10/10 لـL3.
 
 ---
 
-## 6. أصول موجودة يجب حمايتها أثناء التحسين
+## 6. أصول يجب حمايتها أثناء A10
 
 1. `RewardEvent` التاريخي لا يحذف.
 2. `reward_key` uniqueness لا يكسر.
-3. النجوم المكتسبة سابقًا لا تعاد حسابها بطريقة تغيّر التاريخ دون migration صريحة.
-4. rejected/pending audio لا يصبح reward evidence.
-5. high-performing early-promotion behavior لا يعاد إلى legacy 10-core لمجرد إصلاح الشارة.
-6. AdminUI الموجود يعاد استخدامه بدل إنشاء Design System ثالث.
-7. حزمة badges/levels تستخدم بأسمائها ومعرفاتها المعتمدة؛ لا تعاد رسمها أو إعادة تسميتها اعتباطيًا.
+3. النجوم المكتسبة سابقًا لا يعاد حسابها بما يغير التاريخ دون migration موثقة.
+4. pending/rejected/unresolved audio لا يصبح reward evidence.
+5. early-promotion لا يعاد إلى legacy 10-core لمجرد إصلاح الشارة.
+6. AdminUI يعاد استخدامه بدل Design System ثالث.
+7. أصول BDG الرسمية تستخدم بمعرفاتها؛ لا يعاد رسمها/تسميتها اعتباطيًا.
+8. أي تغيير في FK/history يخضع لاختبار migration + history preservation.
 
 ---
 
-## 7. بوابات قبول A04/A05 لاحقًا
+## 7. بوابات القبول المؤجلة
 
 ### Admin UI
-- جميع صفحات dashboard تستخدم shell/tokens/primitives موحدة أو توثق سبب استثناء واضح.
+- dashboard shell/tokens/primitives موحدة أو استثناء موثق.
 - Student Details يمر 320/360/390/430/768/desktop دون overflow.
 - Settings لا يحتفظ بنظام buttons/panels/forms موازٍ.
-- orphan `/admin/account` يحسم بعد dependency scan.
+- `/admin/account` يحسم بعد dependency scan.
 - keyboard/focus/error/loading/mobile states مختبرة.
 
 ### Rewards/Badges
-- Reward catalog canonical.
-- أسماء BDG-04/05/06 مطابقة للأصول المعتمدة.
-- قواعد completion موحدة مع Journey.
-- Student UI يعرض الشارات بصريًا.
-- Admin UI يعرض الشارة بمظهر موحد.
-- badge assets موجودة في bundle النهائي ومختبرة 404-free.
-- لا duplication عند تكرار الطلبات.
-- test لـearly promotion badge semantics.
-- Backend + frontend unit + integration + E2E خضراء.
+- Reward Catalog canonical.
+- BDG-04/05/06 تطابق الأصول المعتمدة.
+- completion semantics موحدة مع Journey.
+- Student/Admin يعرضان الشارات بصريًا.
+- assets موجودة و404-free.
+- API failure لا يمثل كرصيد صفر.
+- no duplication على repeat/refresh.
+- early-promotion badge regression test.
+- Backend + frontend + integration + browser E2E خضراء فعليًا.
 
 ---
 
-## 8. الحالة بعد هذه الجولة
+## 8. إغلاق مرحلة A05
 
-- A04: **فهم هيكل لوحة الإدارة اكتمل مبدئيًا، مع فجوات موثقة في Student Details / Settings / Account.**
-- A05 Backend persistence/API: **VERIFIED**.
-- A05 Visual integration: **GAP**.
-- A05 completion semantics: **GAP P1**.
-- A05 end-to-end verification: **OPEN**.
+A05 مغلق الآن كـ **static/source audit**، وليس كإصلاح أو release gate:
 
-المرحلة التالية: A02 dependency map للـSeeds/Repair/Projection، ثم A06 جرد الأصول الفعلي، مع إبقاء الإصلاحات الواسعة مؤجلة حتى اكتمال سجل الفجوات.
+- Persistence/API/idempotency basics: **VERIFIED**.
+- Audio/media neutrality في rewards: **VERIFIED BY SOURCE + EXISTING TESTS**.
+- Visual integration: **GAP P1**.
+- L1/L2 completion semantics: **GAP P1**.
+- Catalog/API presentation identity: **GAP P1**.
+- Student reward failure-state: **GAP P2**.
+- Historical FK risk: **CARRY P2**.
+- Full Badge E2E: **OPEN FOR A08**.
+
+**نقطة الاستكمال التالية:** `A06 — Images / Media`، بدءًا من تقرير الاستخدام الكانوني الموجود والجرد الفعلي للأصول/التكرارات/unused references. لا حذف ولا استبدال أثناء التدقيق؛ فقط إثبات الدلالة والاعتماديات ثم نقل القرارات إلى Master Gap Register.
