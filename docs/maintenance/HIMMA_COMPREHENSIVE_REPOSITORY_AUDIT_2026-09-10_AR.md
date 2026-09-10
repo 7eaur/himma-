@@ -290,15 +290,80 @@ Run: `34419490966`
 
 ---
 
-## 11. نقطة التوقف الحالية
+## 11. نقطة التوقف السابقة
 
-تم بدء A00 وA01 وA04، واستخراج الفشلين الحقيقيين من Backend CI بدل التخمين. الخطوة التالية في المراجعة هي استكمال:
+تم بدء A00 وA01 وA04، واستخراج الفشلين الحقيقيين من Backend CI بدل التخمين. وكانت الخطوة التالية المسجلة قبل استلام الاستمرارية هي استكمال الصوت وبقية التدقيق.
 
-1. Matrix كامل لصفحات Admin وmobile behavior.
-2. Badge subsystem end-to-end.
-3. Legacy seed/runtime dependency map.
-4. Asset usage/orphan/repetition matrix.
-5. باقي Backend/Data/Security/Audio/Reports/Operational audit.
-6. بعدها branch reconciliation inventory.
+هذه النقطة **SUPERSEDED** بالقسم 12 أدناه بعد اكتمال A03 deep audit على فرع المراجعة.
 
-**لا تحسينات واسعة ولا Merge ولا Railway Deploy قبل أن تكتمل خريطة الفجوات.**
+---
+
+## 12. A03 — Audio / Speech Analysis / Human Review / Adaptation deep audit
+
+**الحالة:** `AUDIT COMPLETE / FINDINGS VERIFIED / NO FIX APPLIED`  
+**HEAD الذي بدأ عليه التدقيق:** `91ae00776f52ec01dc0fc2c6006f8376ba44636b`  
+**التقرير التفصيلي:** `docs/maintenance/HIMMA_A03_AUDIO_SPEECH_REVIEW_ADAPTATION_AUDIT_2026-09-10_AR.md`
+
+### 12.1 ما ثبت أنه صحيح ويجب الحفاظ عليه
+
+- `audio_review_state.py` هو أقرب مالك حالي للعقد الحديث: latest submission + pending neutral + deferred rerecord + graded-only evidence.
+- `activity_runtime.py` يواصل نفس المستوى مع pending audio، ويحجز العنصر السابق، ويفتح rerecord صراحة، ويضيف submission جديدًا في مسار Core.
+- `adaptation_runtime.py` يحجز فقط promotion/L3 completion عند unresolved audio، ولا يمنع same-level support.
+- Speech queue/worker/alignment/models موجودة فعليًا؛ لا Fake production provider، ولا provider call داخل HTTP request path.
+- word-level C/D/I/S reference alignment موجود، بينما haraka/phoneme scoring غير مدعى وغير معتمد بعد.
+- لا يوجد Production ASR Provider معتمد حتى الآن؛ هذا Blocker قرار لا يجوز ترقيعه بمزود وهمي.
+
+### 12.2 سجل فجوات A03
+
+| ID | المجال | Severity | Status | Symptom / Evidence المختصر | Root Cause | Correct Owner | Root Fix لاحقًا | History/Migration Risk | Required Tests | Release Risk | Wave |
+|---|---|---:|---|---|---|---|---|---|---|---|---|
+| AUD-A03-001 | Assessment rerecord/history | P0 | VERIFIED | `assessment.py` يستبدل بيانات نفس `AudioSubmission` عند rerecord بدل إنشاء صف جديد؛ اختبار تاريخي يثبت count=1 بعد الإعادة. | state machine assessment أقدم من canonical audio lifecycle. | shared audio-review lifecycle | append-only rerecord بعد explicit open؛ old immutable. | HIGH؛ لا يمكن اختلاق recording سبق طمسه. | old retained + new latest + explicit open + score/display latest | Academic/audit integrity | A10-W1 |
+| AUD-A03-002 | Assessment latest semantics | P1 | VERIFIED | assessment/profile/completion تستخدم `first()` أو تفحص كل submissions؛ old rerecord قد يبقى حاجبًا بعد append-only. | helper الحديث لم يصبح owner لكل assessment surfaces. | canonical latest-submission service | latest-only navigation/progress/display/completion/scoring. | MEDIUM | old rerecord + new uploaded/graded عبر كل APIs | High | A10-W1 |
+| AUD-A03-003 | Human review/rerecord | P1 | VERIFIED | invalid review يعيد `Attempt` إلى in_progress ويمسح completed_at فورًا؛ Admin copy يقول “سيُعاد فتح”. | review endpoint يحمل reopen semantics قديمة. | unified review lifecycle | mark rerecord_required فقط؛ actionability عند learner explicit open. | MEDIUM | invalid alone non-actionable; explicit open actionable | High | A10-W1 |
+| AUD-A03-004 | Machine/human adjudication | P1 | VERIFIED | Admin review لا يرى SpeechAnalysis؛ لا direct adjudication link؛ human grading قد يسبق worker discovery. | speech pipeline وhuman review مساران متوازيان. | unified review/adjudication service | machine evidence advisory + linked audited human decision. | LOW/MEDIUM | provider absent path + fixture analysis + human override | High before ASR release | A10-W2 |
+| AUD-A03-005 | Calibration governance | P1 | VERIFIED | threshold + arbitrary calibration-version env يمكن أن ينتج machine `auto_accepted`؛ لا approved registry/checksum. لا score mutation اليوم. | config string مساوية داخل subsystem لمفهوم approval. | speech policy/governance | attested provider/model/calibration registry؛ machine remains advisory until approved. | LOW | arbitrary env cannot become academic authority | Release-gate risk | A10-W2 |
+| AUD-A03-006 | Queue concurrency/idempotency | P1 | VERIFIED | plain claim select دون lease/`SKIP LOCKED`; عاملان يمكنهما استدعاء provider لنفس job؛ enqueue check-then-insert. | atomic claim protocol ناقص. | speech queue/worker | PostgreSQL atomic claim + lease + idempotent result write. | LOW | 2 workers/1 job; crash recovery; concurrent enqueue | Cost/reliability | A10-W2 |
+| AUD-A03-007 | Retry/operator recovery | P2 | VERIFIED | manual retry لا يعيد attempt budget؛ blocked_provider لا يعود claimable تلقائيًا؛ unexpected errors لا تُصنف durable بوضوح. | operator recovery contract غير مكتمل. | speech queue/worker | explicit requeue/reset policy + durable unexpected-error state. | LOW | dead-letter retry + provider recovery + unexpected error | Medium | A10-W2 |
+| AUD-A03-008 | Production ASR | P1 | BLOCKED | لا Production Adapter ولا representative calibration ولا phoneme/haraka authority. | OI-02 provider/privacy/cost/data-transfer/calibration غير مغلق. | Product + Privacy + Academic + Speech | اعتماد مزود وعقد ومعايرة؛ أو إبقاء human path authoritative. | N/A | provider/privacy/calibration/human override | يمنع ادعاء Automated ASR readiness | A10/A11 |
+| AUD-A03-009 | Adaptation academic evidence | P0 | VERIFIED | `review.py` يحول `rubric_score > 0` إلى `response.is_correct=True`، ثم `_attempt_signal()` يحوله إلى full boolean correctness؛ 0.10 و1.00 قد يصبحان 100% على خطوة صوتية أحادية. | boolean response contract أقدم من C/D/I/S rubric. | canonical adaptation evidence builder | graded audio evidence من latest `AudioReview.rubric_score` أو policy أكاديمية صريحة، لا `>0`. | HIGH؛ لا تعاد كتابة decisions تاريخية بصمت. | rubric 1.0/0.5/0.1 differentiated; latest-only; promotion regression | Academic correctness P0 | A10-W1 |
+| AUD-A03-010 | Storage/security/observability | P2 | CARRY_TO_A07 | `recordings.py` يكرر boto config؛ `stream-by-key` يثق بأي `audio/` key للمشرف؛ لا queue lag/worker health واضح. | storage/ops hardening خارج owner واحد. | A07 Security/Observability | يحدد بعد تدقيق A07. | TBD | authorization/metrics/readiness tests | TBD | A07/A10 |
+
+### 12.3 أهم استنتاج معماري
+
+يوجد حاليًا **مساران صوتيان مختلفان**:
+
+1. **Core learning الحديث نسبيًا**: latest submission، append-only rerecord، explicit open، same-level continuation.
+2. **Pre/Post assessment التاريخي**: pending review يحجز الاختبار، invalid review يعيد Attempt، وrerecord يستبدل نفس AudioSubmission، وبعض display/completion queries لا تستخدم latest semantics.
+
+يمكن أن يكون انتظار review داخل الاختبار قرارًا بحثيًا مشروعًا، لكن **طمس التسجيل السابق وازدواج تعريف active audio state ليسا مقبولين** وفق العقد الأحدث.
+
+### 12.4 فجوة P0 إضافية في evidence
+
+المراجعة البشرية تحفظ rubric مستمرًا من C/D/I/S، لكن adaptation الحالي لا يقرأ rubric للصوت graded؛ يعتمد على `AttemptResponse.is_correct` الذي يساوي فقط `rubric_score > 0`. هذا يجعل أي أداء موجب تقريبًا قابلًا للتحول إلى full-correct evidence، وقد يرفع mastery بصورة غير صحيحة. لا يصلح بتغيير threshold سريع؛ يحتاج owner واحد لتعريف graded-audio evidence مع قرار أكاديمي واختبارات حدود.
+
+### 12.5 Frontend / review contract
+
+- Admin audio review يعرض التسجيل والنص المرجعي وحقول C/D/I/S، لكنه لا يعرض machine transcript/alignment/confidence.
+- copy المراجعة ما زال يستخدم “إعادة فتح المحاولة”.
+- `StudentRerecordTasks` يطبق deferred explicit task لمسار `core` فقط؛ لا يغطي assessment.
+- `StudentAudioReviewOverlay.tsx` موجود في الشجرة لكنه غير مركب في student layout الحالي؛ يصنف legacy/dead-code candidate فقط حتى dependency proof، ولا نعتبره blocking فعالًا.
+
+### 12.6 الاختبارات
+
+يوجد regression coverage جيد للعقد الحديث في Core ولحدود adaptation مع pending/graded، لكن يوجد أيضًا اختبار Assessment تاريخي يثبت السلوك القديم `reopen + replace same submission`. لذلك الاختبار التاريخي نفسه جزء من migration المطلوبة، وليس دليلًا على أن السلوك الحالي صحيح.
+
+**لم تُشغل Test Suite جديدة أثناء A03 في جلسة التدقيق هذه.** لا توجد دعوى PASS جديدة.
+
+### 12.7 قرار A03 ونقطة الاستكمال الجديدة
+
+A03 مكتمل من ناحية **الفهم والتوثيق قبل الإصلاح**. لم نبدأ A10 ولم نغير Production code.
+
+نقطة الاستكمال الجديدة:
+
+1. **A04 — Admin / Frontend / Mobile detailed audit**.
+2. ثم A05 end-to-end badges.
+3. ثم A06 manual media semantic review.
+4. ثم A07/A08/A09.
+5. بعدها فقط Master Gap Register الكامل ثم A10.
+
+**ممنوع القفز من هذه النتائج إلى Patch سريع؛ P0/P1 أعلاه تُحل كموجة جذرية بعد اكتمال A00–A09.**
