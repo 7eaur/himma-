@@ -120,7 +120,7 @@ def test_provider_absence_blocks_without_fake_analysis(monkeypatch):
         db.close()
 
 
-def test_valid_provider_result_stays_human_review_until_calibrated(monkeypatch):
+def test_valid_provider_result_stays_human_review_until_governed(monkeypatch):
     monkeypatch.delenv("HIMMA_ASR_CONFIDENCE_THRESHOLD", raising=False)
     monkeypatch.delenv("HIMMA_ASR_CALIBRATION_VERSION", raising=False)
     monkeypatch.setattr("speech_pipeline._audio_bytes", lambda submission: b"real-audio-placeholder")
@@ -134,6 +134,7 @@ def test_valid_provider_result_stays_human_review_until_calibrated(monkeypatch):
         analysis = db.query(SpeechAnalysis).filter(SpeechAnalysis.job_id == job.id).one()
         assert job.status == "review_required"
         assert analysis.decision == "review_required"
+        assert analysis.calibration_version is None
         assert analysis.correct_count == 4
         assert analysis.deletion_count == 0
         assert analysis.insertion_count == 0
@@ -142,21 +143,22 @@ def test_valid_provider_result_stays_human_review_until_calibrated(monkeypatch):
         db.close()
 
 
-def test_calibrated_threshold_can_auto_accept_high_confidence(monkeypatch):
-    monkeypatch.setenv("HIMMA_ASR_CONFIDENCE_THRESHOLD", "0.90")
-    monkeypatch.setenv("HIMMA_ASR_CALIBRATION_VERSION", "pilot-001")
+def test_arbitrary_environment_threshold_cannot_grant_academic_acceptance(monkeypatch):
+    monkeypatch.setenv("HIMMA_ASR_CONFIDENCE_THRESHOLD", "0.01")
+    monkeypatch.setenv("HIMMA_ASR_CALIBRATION_VERSION", "invented-env-calibration")
+    monkeypatch.setenv("HIMMA_ASR_PROVIDER", "fixture-asr")
     monkeypatch.setattr("speech_pipeline._audio_bytes", lambda submission: b"real-audio-placeholder")
     db = TestingSessionLocal()
     try:
         audio = _submission(db)
         job = enqueue_submission(db, audio.id)
         db.commit()
-        process_job(db, job.id, provider=FakeProvider(confidence=0.95))
+        process_job(db, job.id, provider=FakeProvider(confidence=1.0))
         db.commit()
         analysis = db.query(SpeechAnalysis).filter(SpeechAnalysis.job_id == job.id).one()
-        assert job.status == "completed"
-        assert analysis.decision == "auto_accepted"
-        assert analysis.calibration_version == "pilot-001"
+        assert job.status == "review_required"
+        assert analysis.decision == "review_required"
+        assert analysis.calibration_version is None
     finally:
         db.close()
 
