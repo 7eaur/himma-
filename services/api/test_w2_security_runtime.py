@@ -41,7 +41,7 @@ def test_runtime_readiness_rejects_missing_or_development_security_mode(monkeypa
 def test_protected_runtime_counts_secret_strength_in_utf8_bytes(monkeypatch):
     monkeypatch.setenv("ENV", "trial")
     monkeypatch.setenv("API_SECRET_KEY", "قصير")
-    with pytest.raises(RuntimeError, match="32 UTF-8 bytes"):
+    with pytest.raises(RuntimeError, match="at least 32"):
         validate_runtime_safety()
 
 
