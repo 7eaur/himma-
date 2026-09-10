@@ -22,7 +22,7 @@ from skill_reports import router as skill_reports_router
 from admin_notifications import router as admin_notifications_router
 from content_preview import router as content_preview_router
 from readiness import readiness_report
-from runtime_flags import validate_runtime_safety
+from runtime_flags import runtime_security_ready, validate_runtime_safety
 
 
 # Runtime configuration still fails closed for unsafe provider/test settings.
@@ -77,6 +77,17 @@ def health_check():
 @app.get("/ready")
 def readiness_check(response: Response):
     report = readiness_report()
+    if not runtime_security_ready():
+        report = dict(report)
+        checks = dict(report.get("checks") or {})
+        checks["security_mode"] = "unavailable"
+        report["checks"] = checks
+        report["status"] = "not_ready"
+    else:
+        checks = dict(report.get("checks") or {})
+        checks["security_mode"] = "ok"
+        report = dict(report)
+        report["checks"] = checks
     if report["status"] != "ready":
         response.status_code = 503
     return report
