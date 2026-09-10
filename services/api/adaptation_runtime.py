@@ -22,24 +22,10 @@ from db.adaptation_models import AdaptationDecision
 from db.models import AssessmentSession, Attempt, ContentItem, Student
 from db.reinforcement_models import ReinforcementCycle
 from dependencies import get_current_student, get_db
+from level_completion import CORE_ACTIVITY_COUNT, completed_core_count
 from reinforcement_cycles import ensure_cycle, mark_reinforcement_completed
 
 router = APIRouter(prefix="/adaptation", tags=["Adaptation Runtime"])
-CORE_ACTIVITY_COUNT = 10
-
-
-def _completed_core_count(db: Session, session_id: int, level_id: int) -> int:
-    return (
-        db.query(Attempt.id)
-        .join(ContentItem, ContentItem.id == Attempt.item_id)
-        .filter(
-            Attempt.session_id == session_id,
-            Attempt.status == "completed",
-            ContentItem.kind == "core_activity",
-            ContentItem.level_id == level_id,
-        )
-        .count()
-    )
 
 
 def _recommended_attempt(db: Session, session_id: int, item_id: int | None) -> Attempt | None:
@@ -290,7 +276,7 @@ def prepare_next_for_student(db: Session, student: Student, session: AssessmentS
     if (
         decision.previous_level == 3
         and decision.explanation.get("reason") == "top_level_mastery"
-        and _completed_core_count(db, session.id, 3) >= CORE_ACTIVITY_COUNT
+        and completed_core_count(db, session.id, 3) >= CORE_ACTIVITY_COUNT
     ):
         audio_hold = _audio_transition_hold(db, session)
         if audio_hold is not None:
