@@ -9,6 +9,7 @@ from joserfc import jwt
 from sqlalchemy.orm import Session
 
 from auth_rate_limit import clear_identifier_rate_limit, enforce_auth_rate_limit
+from auth_session_state import current_auth_epoch
 from db.models import AuditLog, Student, User
 from dependencies import (
     ALGORITHM,
@@ -44,12 +45,18 @@ def _set_token_cookie(response: Response, token: str) -> None:
     )
 
 
-def _create_access_token(*, sub: int, role: str) -> str:
+def _create_access_token(*, sub: int, role: str, auth_epoch: int = 0) -> str:
     now = datetime.now(timezone.utc)
     expire = now + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     return jwt.encode(
         {"alg": ALGORITHM},
-        {"sub": str(sub), "role": role, "iat": now, "exp": expire},
+        {
+            "sub": str(sub),
+            "role": role,
+            "aep": int(auth_epoch),
+            "iat": now,
+            "exp": expire,
+        },
         JWT_KEY,
         algorithms=[ALGORITHM],
     )
@@ -87,7 +94,11 @@ def supervisor_login(
             detail="اسم المستخدم أو كلمة المرور غير صحيحة",
         )
     clear_identifier_rate_limit(scope="supervisor-login", identifier=creds.username)
-    token = _create_access_token(sub=user.id, role="researcher")
+    token = _create_access_token(
+        sub=user.id,
+        role="researcher",
+        auth_epoch=current_auth_epoch(db, actor_role="researcher", actor_id=user.id),
+    )
     _set_token_cookie(response, token)
     _audit(db, actor_role="researcher", actor_id=user.id,
            action="LOGIN", entity_type="USER", entity_id=str(user.id))
@@ -109,7 +120,11 @@ def student_login(
             detail="رمز الدخول غير صحيح، تحقق منه وحاول مرة أخرى",
         )
     clear_identifier_rate_limit(scope="student-login", identifier=creds.access_code)
-    token = _create_access_token(sub=student.id, role="student")
+    token = _create_access_token(
+        sub=student.id,
+        role="student",
+        auth_epoch=current_auth_epoch(db, actor_role="student", actor_id=student.id),
+    )
     _set_token_cookie(response, token)
     _audit(db, actor_role="student", actor_id=student.id,
            action="LOGIN", entity_type="STUDENT", entity_id=str(student.id))
