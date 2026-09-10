@@ -48,5 +48,5 @@ def validate_runtime_safety() -> None:
     secret = os.getenv("API_SECRET_KEY", "")
     if len(secret.encode("utf-8")) < _MIN_SECRET_BYTES:
         raise RuntimeError(
-            "API_SECRET_KEY must contain at least 32 UTF-8 bytes in trial/production"
+            "API_SECRET_KEY must contain at least 32 characters/UTF-8 bytes in trial/production"
         )
