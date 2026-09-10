@@ -3,6 +3,7 @@ from decimal import Decimal
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from audio_review_state import latest_audio_submission
 from dependencies import get_db, get_current_user
 from db.models import (
     AssessmentSession,
@@ -26,7 +27,12 @@ def get_pending_audio(
     db: Session = Depends(get_db),
     supervisor: User = Depends(get_current_user),
 ):
-    """Return pending recordings with enough context for a meaningful review."""
+    """Return only currently-active uploaded recordings for manual review.
+
+    Historical uploaded rows can exist after a rerecord. They stay in storage,
+    but once a newer submission exists they must never re-enter the actionable
+    review queue.
+    """
     submissions = db.query(AudioSubmission).filter(
         AudioSubmission.status == "uploaded"
     ).order_by(AudioSubmission.submitted_at, AudioSubmission.id).all()
@@ -36,13 +42,19 @@ def get_pending_audio(
         response = db.query(AttemptResponse).filter(
             AttemptResponse.id == submission.response_id
         ).first()
-        attempt = db.query(Attempt).filter(Attempt.id == response.attempt_id).first() if response else None
+        if not response:
+            continue
+        latest = latest_audio_submission(db, response)
+        if latest is None or latest.id != submission.id:
+            continue
+
+        attempt = db.query(Attempt).filter(Attempt.id == response.attempt_id).first()
         session = db.query(AssessmentSession).filter(
             AssessmentSession.id == attempt.session_id
         ).first() if attempt else None
         student = db.query(Student).filter(Student.id == session.student_id).first() if session else None
         item = db.query(ContentItem).filter(ContentItem.id == attempt.item_id).first() if attempt else None
-        step = db.query(ContentStep).filter(ContentStep.id == response.step_id).first() if response else None
+        step = db.query(ContentStep).filter(ContentStep.id == response.step_id).first()
         payload.append({
             "id": submission.id,
             "storage_key": submission.storage_key,
@@ -64,8 +76,10 @@ def grade_audio_submission(
     db: Session = Depends(get_db),
     supervisor: User = Depends(get_current_user),
 ):
-    """Grade an audio submission and preserve the manual review trail."""
-    submission = db.query(AudioSubmission).filter(AudioSubmission.id == submission_id).with_for_update().populate_existing().first()
+    """Grade the latest audio submission while preserving immutable history."""
+    submission = db.query(AudioSubmission).filter(
+        AudioSubmission.id == submission_id
+    ).with_for_update().populate_existing().first()
     if not submission:
         raise HTTPException(status_code=404, detail="التسجيل غير موجود")
 
@@ -73,24 +87,25 @@ def grade_audio_submission(
     if not response:
         raise HTTPException(status_code=404, detail="إجابة الطالب المرتبطة بالتسجيل غير موجودة")
 
+    latest = latest_audio_submission(db, response)
+    if latest is None or latest.id != submission.id:
+        raise HTTPException(status_code=409, detail="هذا تسجيل تاريخي وليس التسجيل الحالي للطالب")
     if submission.status != "uploaded":
         raise HTTPException(status_code=409, detail="تمت معالجة هذا التسجيل مسبقًا")
 
     if not request.is_valid:
+        # Review changes the latest submission state only. It deliberately does
+        # not reopen/mutate the Attempt: rerecord is a deferred learner task and
+        # becomes actionable only after the learner explicitly opens it.
         submission.status = "rerecord_required"
         response.is_correct = None
-        attempt = db.query(Attempt).filter(Attempt.id == response.attempt_id).first()
-        if not attempt:
-            raise HTTPException(status_code=404, detail="محاولة الطالب غير موجودة")
-        attempt.status = "in_progress"
-        attempt.completed_at = None
         db.add(AuditLog(
             actor_role="researcher",
             actor_id=supervisor.id,
             action="request_audio_rerecord",
             entity_type="AudioSubmission",
             entity_id=str(submission.id),
-            details="Recording marked invalid; student attempt reopened",
+            details="Recording marked invalid; rerecord deferred until learner explicitly opens the task",
         ))
         db.commit()
         return {"status": "ok", "message": "تم طلب إعادة التسجيل"}
@@ -108,6 +123,8 @@ def grade_audio_submission(
     rubric_score = max(Decimal(0), Decimal(1) - Decimal(errors) / Decimal(request.target_units))
 
     submission.status = "graded"
+    # Compatibility field only. Numeric academic consumers must read the latest
+    # AudioReview.rubric_score, not collapse this score back to a Boolean.
     response.is_correct = rubric_score > 0
 
     existing_review = db.query(AudioReview).filter(
