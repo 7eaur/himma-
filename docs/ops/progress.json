@@ -1,16 +1,14 @@
 {
-  "schema_version": 8,
+  "schema_version": 9,
   "plan_version": "HIMMA-COMPREHENSIVE-AUDIT-AND-ROOT-REMEDIATION-2026-09-10",
   "repository": "7eaur/himma-",
   "branch": "audit/comprehensive-repository-review-2026-09-10",
   "phase": "A10_ROOT_REMEDIATION",
-  "wave": "W1_ACADEMIC_HISTORY_INTEGRITY",
-  "status": "IN_PROGRESS_NOT_RELEASE_READY",
+  "wave": "W2_SECURITY_SPEECH_BOUNDARIES",
+  "status": "W1_CLOSED_GREEN_W2_ACTIVE_NOT_RELEASE_READY",
   "last_updated": "2026-09-10",
   "refetch_current_head_before_work": true,
-  "last_code_bearing_checkpoint_before_docs": "ead44bf492cdbea35b65dc9ddce54fe7de4a20ef",
   "continuity_handoff": "docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-10_A10_W1_FULL_AR.md",
-  "new_chat_prompt": "docs/handoff/HIMMA_NEW_CHAT_CONTINUATION_PROMPT_2026-09-10_AR.md",
   "execution_checkpoint": "docs/maintenance/HIMMA_A10_W1_EXECUTION_CHECKPOINT_2026-09-10_AR.md",
   "comprehensive_audit": "docs/maintenance/HIMMA_COMPREHENSIVE_REPOSITORY_AUDIT_2026-09-10_AR.md",
   "master_gap_register": "docs/maintenance/HIMMA_MASTER_GAP_REGISTER_2026-09-10_AR.md",
@@ -25,7 +23,7 @@
     "A07": "CLOSED_AUDIT",
     "A08": "CLOSED_AUDIT",
     "A09": "CLOSED_AUDIT",
-    "A10": "IN_PROGRESS_W1",
+    "A10": "IN_PROGRESS_W2",
     "A11": "BLOCKED_UNTIL_W6_GREEN"
   },
   "runtime": {
@@ -68,55 +66,34 @@
     "production_asr_approved": false
   },
   "w1": {
-    "scope_ids": [
-      "AUD-A03-001",
-      "AUD-A03-002",
-      "AUD-A03-003",
-      "AUD-A03-009",
-      "AUD-BE-003",
-      "AUD-A04-003",
-      "AUD-BADGE-005"
-    ],
-    "implemented_commits": [
-      "8f5e3aa6d736faee579924f7a813d0e033879cac",
-      "6a877335bf51f575450f199767321fdced3fdd14",
-      "b114d8618b94db01cff0bcd99303fe3de4449619",
-      "00926e115840799c689375008e8f66744fa2b41d",
-      "ead44bf492cdbea35b65dc9ddce54fe7de4a20ef"
-    ],
-    "completed_so_far": [
-      "central_latest_audio_state_helpers",
-      "human_review_latest_only_and_no_auto_reopen",
-      "assessment_completion_latest_audio_semantics",
-      "assessment_rerecord_append_only_explicit_open",
-      "canonical_level_completion_owner_created"
-    ],
-    "open": [
-      "wire_level_completion_to_journey_rewards_and_relevant_consumers",
-      "preserve_numeric_audio_review_rubric_score_in_adaptation",
-      "fix_pending_audio_aggregate_vs_navigation_AUD_BE_003",
-      "make_profile_protected_assessment_state_latest_only",
-      "update_assessment_frontend_deferred_rerecord_flow",
-      "add_and_run_W1_regression_tests",
-      "record_exact_SHA_test_evidence_before_closing_W1"
-    ],
-    "tests_after_current_code_changes": "NOT_YET_RUN",
-    "exact_sha_green": false
+    "status": "CLOSED_GREEN",
+    "scope_ids": ["AUD-A03-001", "AUD-A03-002", "AUD-A03-003", "AUD-A03-009", "AUD-BE-003", "AUD-A04-003", "AUD-BADGE-005"],
+    "verified_sha": "ea132c9afbe152d0afa5ae581c058ce3248a0c48",
+    "quality_gate_run": 34467329988,
+    "quality_gate_run_number": 813,
+    "security": "PASS",
+    "frontend": "PASS",
+    "backend": "PASS",
+    "integration_playwright_e2e": "PASS",
+    "exact_sha_green": true,
+    "notes": "CI was triggered through stage/a10-w1-ci pointing at the same exact SHA because push workflow filters exclude audit/*"
   },
-  "baseline_ci_before_a10": {
-    "run": 34419490966,
-    "sha": "7cb2192b0c31bc85dcf98a470023e9cc6f1598e0",
-    "backend_passed": 823,
-    "backend_failed": 2,
-    "integration": "SKIPPED_DEPENDENCY_FAILED",
-    "note": "historical baseline only; not evidence for current A10 HEAD"
-  },
-  "historical_recovery_evidence": {
-    "sha": "976b7c2ed8b9c6f1535a22a0b3a94b2c233f75eb",
-    "quality_gate_run": 33979846641,
-    "m04_run": 33979846639,
-    "m09_run": 33979846640,
-    "status": "ARCHIVED_2026_09_05_EVIDENCE_NOT_CURRENT_RELEASE_AUTHORITY"
+  "w2": {
+    "status": "IN_PROGRESS",
+    "scope": "Security / Speech boundaries",
+    "priority_gaps": [
+      "AUD-SEC-001",
+      "AUD-SEC-002",
+      "AUD-SEC-003",
+      "AUD-SEC-004",
+      "AUD-SEC-005",
+      "AUD-A03-004",
+      "AUD-A03-005",
+      "AUD-A03-006",
+      "AUD-A03-007"
+    ],
+    "external_deferred": ["AUD-A03-008"],
+    "next": "implement centralized auth abuse controls and revocable auth/session epoch before speech-governance runtime hardening"
   },
   "branch_governance": {
     "blind_merge_forbidden": true,
@@ -139,5 +116,5 @@
     "supervising organization details/logo before final report signoff",
     "credential rotation before production/deployment if historically exposed"
   ],
-  "next_step": "Continue A10/W1: wire Level Completion owner to Journey/Rewards, then numeric rubric evidence, AUD-BE-003/profile/frontend rerecord, then regression tests. Do not move to W2 until W1 is closed with real evidence."
+  "next_step": "Continue A10/W2. Do not merge/deploy. Keep Production ASR blocked until explicit approval."
 }
