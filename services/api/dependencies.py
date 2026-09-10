@@ -8,6 +8,7 @@ from joserfc.errors import JoseError
 from joserfc.jwt import JWTClaimsRegistry
 from sqlalchemy.orm import Session
 
+from auth_session_state import token_epoch_matches
 from db.database import SessionLocal
 from db.models import Student, User
 
@@ -55,6 +56,22 @@ def _decode_token(request: Request) -> dict:
     return decoded.claims
 
 
+def _require_epoch(db: Session, *, payload: dict, role: str, entity_id: int) -> None:
+    # Tokens issued before the auth-epoch migration have no `aep` claim and map
+    # to epoch 0. The first credential/activation rotation bumps durable state
+    # to >=1, invalidating those historical tokens without a destructive rollout.
+    if not token_epoch_matches(
+        db,
+        actor_role=role,
+        actor_id=entity_id,
+        token_epoch=payload.get("aep", 0),
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="انتهت جلسة الدخول أو أصبحت غير صالحة، سجّل الدخول مرة أخرى",
+        )
+
+
 def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:
     """Resolve the authenticated supervisor from the legacy researcher role."""
     payload = _decode_token(request)
@@ -74,6 +91,7 @@ def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="حساب المشرف غير متاح، سجّل الدخول مرة أخرى",
         )
+    _require_epoch(db, payload=payload, role="researcher", entity_id=user.id)
     return user
 
 
@@ -95,6 +113,7 @@ def get_current_student(request: Request, db: Session = Depends(get_db)) -> Stud
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="حساب الطالب غير متاح، تواصل مع المشرف",
         )
+    _require_epoch(db, payload=payload, role="student", entity_id=student.id)
     return student
 
 
@@ -116,4 +135,5 @@ def get_any_authenticated(request: Request, db: Session = Depends(get_db)):
         raise HTTPException(status_code=403, detail="نوع الحساب غير معروف")
     if entity is None:
         raise HTTPException(status_code=401, detail="الحساب غير موجود أو غير نشط")
+    _require_epoch(db, payload=payload, role=role, entity_id=entity.id)
     return role, entity
