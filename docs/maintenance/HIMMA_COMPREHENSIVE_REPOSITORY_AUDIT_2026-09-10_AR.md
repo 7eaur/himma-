@@ -91,7 +91,7 @@ Run: `34419490966`
 
 ---
 
-## 5. سجل الفجوات الجامع حتى إغلاق A04
+## 5. سجل الفجوات الجامع حتى إغلاق A05
 
 | ID | المجال | الشدة | الحالة | الملخص |
 |---|---|---:|---|---|
@@ -118,13 +118,16 @@ Run: `34419490966`
 | AUD-A04-006 | Mobile dialog keyboard | P2 | VERIFIED | shell dialog لا يملك focus-trap/Escape/return-focus contract صريحًا، والاختبار الحالي لا يغطيه. |
 | AUD-A04-007 | Settings accessibility/style drift | P2 | VERIFIED | tabs/styles مستقلة عن AdminUI وبدون selected-state ARIA pattern واضح. |
 | AUD-A04-008 | Student recording context | P2 | VERIFIED | Student Detail يرسل المشرف إلى audio-review العامة دون filter/deep-link خاص بالطالب. |
-| AUD-BADGE-001 | Student badges | P1 | VERIFIED INITIAL | Backend/API يملكان BadgeEvent لكن Student home لا يعرض الشارات بصريًا. |
-| AUD-BADGE-002 | Admin badge visual | P2 | VERIFIED INITIAL | Student Detail يعرض label/chip فقط دون asset canonical. |
-| AUD-BADGE-003 | Badge assets | P1 | VERIFIED INITIAL | الحزمة المعتمدة للشارات/المستويات غير مدمجة حاليًا في `apps/web/public` كـreward catalog. |
-| AUD-BADGE-004 | L3 badge naming | P1 | VERIFIED INITIAL | Backend `قارئ متميز` مقابل BDG-06 المعتمد `نجم الفهم`. |
-| AUD-BADGE-005 | Completion semantics | P1 | VERIFIED INITIAL | early promotion يمكن أن يجعل المستوى completed بينما badge logic ما زال يشترط 10 core. |
+| AUD-BADGE-001 | Student badges | P1 | VERIFIED | Backend/API يملكان BadgeEvent لكن Student home لا يعرض الشارات بصريًا. |
+| AUD-BADGE-002 | Admin badge visual | P2 | VERIFIED | Student Detail يعرض label/chip فقط دون asset canonical. |
+| AUD-BADGE-003 | Badge assets | P1 | VERIFIED | الحزمة المعتمدة للشارات/المستويات غير مدمجة في `apps/web/public` كـreward catalog. |
+| AUD-BADGE-004 | L3 badge naming | P1 | VERIFIED | Backend `قارئ متميز` مقابل BDG-06 المعتمد `نجم الفهم`. |
+| AUD-BADGE-005 | Completion semantics | P1 | VERIFIED | early promotion في L1/L2 يثبت completion عند 6–9 Core بينما badge logic لا يمنح إلا عند 10؛ lifecycle الحالي يترك المستوى completed بلا badge. |
 | AUD-BADGE-006 | Badge E2E | P1 | OPEN | لا E2E يغلق award→asset→Student/Admin→refresh/idempotency كاملًا. |
-| AUD-MEDIA-001 | Images | P2 | IN PROGRESS | يلزم referenced/unreferenced/repeated inventory ومقارنة دلالية قبل الاستبدال. |
+| AUD-BADGE-007 | Student reward state | P2 | VERIFIED | فشل `/api/rewards` في Student Home يبقي rewards فارغة فيظهر رصيد 0 بدل حالة unavailable صريحة. |
+| AUD-BADGE-008 | Reward presentation contract | P1 | VERIFIED | Reward API لا يحمل catalog/asset identity/version مستقرة، ما يجبر UI على mapping موازٍ إن أضيفت الصور مباشرة. |
+| AUD-BADGE-009 | Reward history FK | P2 | CARRY_TO_A10_A07 | star RewardEvent يرتبط بـAttempt مع `ON DELETE CASCADE`; لا delete path طبيعي مثبت الآن، لكنه schema risk يجب حمايته قبل أي cleanup/reset. |
+| AUD-MEDIA-001 | Images | P2 | IN PROGRESS | referenced/unreferenced/repeated inventory موجود مبدئيًا ويحتاج إغلاق semantic/dependency classification في A06 قبل الاستبدال. |
 | AUD-GIT-001 | Branch governance | P1 | VERIFIED | default branch ليس فرع التكامل الحديث؛ يحسم بعد A09 وقبل الإصدار. |
 | AUD-GIT-002 | Branches | P1 | IN PROGRESS | فروع stage/integration/codex/feature كثيرة تحتاج تصنيفًا كاملًا. |
 | AUD-REL-001 | Release | P0 | OPEN | لا نشر أو استبدال Railway قبل اكتمال التدقيق والتحسين والتوحيد والبوابات. |
@@ -177,50 +180,60 @@ Recovery helper لـPRE-Q05 يشغل `seed.run_seed()` التاريخي 105 بد
 
 **الحالة:** `AUDIT COMPLETE / FINDINGS VERIFIED / NO PRODUCTION FIX APPLIED`  
 **التقرير التفصيلي:** `docs/maintenance/HIMMA_A04_ADMIN_MOBILE_DEEP_AUDIT_2026-09-10_AR.md`  
-**التقرير التمهيدي المشترك:** `docs/maintenance/HIMMA_A04_A05_ADMIN_BADGES_AUDIT_2026-09-10_AR.md`
+**التقرير المشترك:** `docs/maintenance/HIMMA_A04_A05_ADMIN_BADGES_AUDIT_2026-09-10_AR.md`
 
 ### 8.1 ملكية الواجهة
 `components/admin/AdminUI` موجود ويُستخدم فعليًا في `/admin`, `/admin/students`, `/admin/students/new` وصفحات أخرى. لكن Student Details وSettings يعيدان بناء primitives محلية، و`/admin/account` يحتفظ بطبقة legacy إضافية. الاتجاه الجذري في A10 هو:
 
 `global tokens → AdminUI primitives → page-specific composition`
 
-لا يعني ذلك جعل الصفحات متطابقة، بل جعل spacing/forms/buttons/panels/mobile behavior ذات owner واحد.
-
 ### 8.2 Student Details لا يجوز أن يحول error إلى empty
 الصفحة تجمع ثلاث APIs. إذا نجح student وفشل history أو rewards، تحول الفشل إلى `[]`. عندها تعرض “لا يوجد سجل” أو 0 نجوم/شارات. هذا تضليل للـevidence ويجب أن يصبح partial-source state صريحًا أو view-model endpoint موحدًا.
 
 ### 8.3 Journey completion ليس `current_level`
-الواجهة الحالية تعتبر كل مستوى أقل من `current_level` مكتملًا. في المقابل manual override يسمح بتغيير level 1/2/3 ويمكن أن يغلق core session وينشئ التالية دون اشتراط completion evidence لكل مستوى أدنى. لذلك يجب أن يأتي per-level completion من Journey/completion owner canonical، لا من رقم المستوى.
+الواجهة الحالية تعتبر كل مستوى أقل من `current_level` مكتملًا. manual override يستطيع تغيير المستوى؛ لذلك يجب أن يأتي per-level completion من Journey/completion owner canonical، لا من رقم المستوى.
 
 ### 8.4 `/admin/account`
-تم فحصه قبل أي حذف. هو read-only profile/logout، غير موجود في sidebar، يستخدم legacy CSS/inline styles، ويتداخل مع Settings. `/api/me` للمشرف يعيد `full_name` مساويًا لـusername. الحكم: `LEGACY DUPLICATE / ARCHIVE-CANDIDATE` فقط؛ لا حذف حتى dependency scan/redirect proof في A10.
+تم فحصه قبل أي حذف. هو route حي read-only profile/logout، غير موجود في sidebar، يستخدم legacy CSS/inline styles، ويتداخل مع Settings. الحكم: `LEGACY DUPLICATE / ARCHIVE-CANDIDATE` فقط؛ لا حذف حتى dependency scan/redirect proof في A10.
 
 ### 8.5 Responsive evidence
-- `admin-responsive.spec.ts`: 390 و768 للـAdmin؛ Student Details مشروط بوجود طالب.
-- `responsive-smoke.spec.ts`: 360/390/768/1024/1440 لكن للـlanding/login فقط.
-- `p03-screenshots.spec.ts`: Admin 390/768/1440 لكنه لا يشمل Student Details.
-- `accessibility-integration.spec.ts`: dashboard/focus/RTL، menu 390، 720 zoom-equivalent؛ لا focus trap/Escape/return-focus للdialog.
-
-إذًا بوابة Student Details المطلوبة ما زالت تنفيذية لاحقًا: 320/360/390/430/768/desktop بfixture deterministic وoverflow/tabs/forms/actions/keyboard assertions.
+الاختبارات الحالية تغطي أجزاء من Admin/responsive، لكنها لا تغلق Student Details عند 320/360/390/430/768/Desktop بfixture deterministic وoverflow/tabs/forms/actions/keyboard assertions.
 
 ### 8.6 قرار A04
-A04 مغلق كتدقيق. لا Production code، لا Merge، لا Deploy. نقطة الاستكمال أصبحت **A05 — Rewards/Badges end-to-end**.
+A04 مغلق كتدقيق. لا Production code، لا Merge، لا Deploy.
 
 ---
 
-## 9. A05 — الحالة الأولية قبل التعميق
+## 9. A05 — Rewards / Badges
 
-التقرير المشترك أثبت مسبقًا:
-- `RewardEvent` persistent مع `UNIQUE(student_id, reward_key)`.
-- stars/badge events وAPIs موجودة وليست نظامًا مفقودًا من Backend.
-- Student home يجلب rewards لكنه لا يعرض badge assets.
-- Admin Student Detail يعرض badge labels/chips فقط.
-- حزمة BDG-01..06 الرسمية غير مربوطة بـpublic/reward contract.
-- L3 label مختلف بين Backend (`قارئ متميز`) والحزمة (`نجم الفهم`).
-- Journey يمكن أن يعتبر early-promotion level completed بينما badge logic ما زال legacy `>=10 core`.
-- Badge E2E الكامل غير مغلق.
+**الحالة:** `STATIC/SOURCE AUDIT COMPLETE / FINDINGS VERIFIED / NO PRODUCTION FIX APPLIED`  
+**التقرير التفصيلي:** `docs/maintenance/HIMMA_A04_A05_ADMIN_BADGES_AUDIT_2026-09-10_AR.md`
 
-A05 الحالي يجب أن يحسم owner-of-truth لـlevel completion وreward catalog والعلاقة بين التاريخ الحالي والـasset/display contract قبل أي تعديل.
+### 9.1 ما هو موجود ويجب الحفاظ عليه
+- `RewardEvent` persistent وقيد `UNIQUE(student_id, reward_key)`.
+- `ensure_rewards()` يمنح نجومًا من evidence صالح فقط ويستبعد media-gap/unresolved audio.
+- النجوم تستخدم stable key per Attempt وتوجد حماية idempotency منطقية + DB.
+- Student `/rewards` وResearcher student rewards APIs موجودة.
+- `test_adaptation_runtime.py` يثبت stars once/idempotency واستبعاد evidence غير الصالح.
+
+### 9.2 split-brain في milestone completion
+`decide_transition()` يسمح L1/L2 early promotion من 6 Core بعد استيفاء mastery/critical-skill/gates. `ensure_rewards()` يعمل قبل transition ويشترط `_completed_core_count >= 10` للشارة. `journey.py` لاحقًا يقرأ persisted transition evidence ويعتبر المستوى completed حتى لو كان 6–9 Core. `test_m09_full_single_candidate_journey.py` يثبت أن L1/L2 يترقيان فعليًا تحت 10 Core.
+
+النتيجة: completion milestone وbadge milestone لهما مالكان مختلفان، ويجب توحيدهما في A10 دون إعادة early-promotion إلى legacy 10/10.
+
+### 9.3 Visual/catalog contract غير مكتمل
+حزمة BDG الرسمية تحتوي ست مكافآت وSVGs مع BDG-04/05/06 للمستويات، لكنها غير مدمجة في `apps/web/public`. Student لا يعرض badges، Admin يعرض text chip فقط، والـAPI لا يملك catalog/asset identity مستقرة. L3 backend label `قارئ متميز` بينما BDG-06 `نجم الفهم`.
+
+الحل الجذري: Reward Catalog canonical واحد يملك `catalog_id/key/type/level/label/asset/version` ويغذي API وStudent/Admin، مع إبقاء تاريخ RewardEvent محفوظًا وعدم إعادة كتابة labels القديمة صامتًا.
+
+### 9.4 حالات الخطأ والاختبارات
+Student Home يحول rewards fetch failure عمليًا إلى قائمة فارغة/totalStars=0، فيخلط unavailable مع true zero. كما أن `student/page.test.tsx` لا يختبر badge rendering. لا يوجد E2E كامل award→asset→Student/Admin→refresh.
+
+### 9.5 مخاطرة history schema
+`reward_events.attempt_id` عليه `ON DELETE CASCADE`. لا يوجد delete path طبيعي مثبت في هذه الجولة، وretake contract يحافظ على history؛ لذا لا نصنفه data-loss defect حاليًا، لكن يمنع أي cleanup مستقبلًا قبل حسم سياسة Reward history/FK.
+
+### 9.6 قرار A05
+A05 مغلق كتدقيق static/source. التنفيذ مؤجل إلى A10، والـBadge E2E إلى A08 بعد الإصلاح. نقطة الاستكمال انتقلت إلى **A06 — Images / Media**.
 
 ---
 
@@ -237,15 +250,16 @@ A05 الحالي يجب أن يحسم owner-of-truth لـlevel completion وrewa
 9. media canonical guard/generated sequence tests موجودة ونجحت في التشغيل المرجعي.
 10. AdminUI/responsive table/mobile-card pattern موجود ولا حاجة لإنشاء Design System جديد.
 11. التاريخ الأكاديمي والصوتي والمكافآت الحالية لا يحذف لمجرد التوحيد.
+12. Early promotion المعتمد في L1/L2 لا يكسر أثناء توحيد rewards/completion.
 
 ---
 
 ## 11. سياسة الصور أثناء المراجعة
 
-A06 سينتج:
+A06 ينتج/يثبت:
 `asset_id | file | semantic label | usages | use_count | current locations | orphan? | duplicate semantics? | candidate replacement?`
 
-التكرار المقبول يُحكم دلاليًا. لا تستبدل صورة لمجرد التنوع. الصورة غير المستخدمة تصبح مرشحًا فقط إذا طابقت المعنى بدقة.
+التكرار المقبول يُحكم دلاليًا. لا تستبدل صورة لمجرد التنوع. الصورة غير المستخدمة تصبح مرشحًا فقط إذا طابقت المعنى بدقة، ولا حذف لأي asset قبل dependency proof.
 
 ---
 
@@ -268,13 +282,13 @@ A06 سينتج:
 
 ## 14. نقطة الاستكمال الحالية
 
-A03 وA04 مغلقان كـaudit-only. لم يبدأ A10 ولم يحدث Merge/Deploy.
+A03 وA04 وA05 مغلقة كـaudit-only. لم يبدأ A10 ولم يحدث Merge/Deploy.
 
-**نقطة الاستكمال الآن: A05 — Rewards / Badges.**
+**نقطة الاستكمال الآن: A06 — Images / Media.**
 
 الأولوية الفورية:
-1. تتبع `_core_flow_complete` و`ensure_rewards` مقابل Journey/early-promotion completion.
-2. إثبات كل reward consumer في Student/Admin.
-3. تثبيت catalog/asset ownership من الحزمة المعتمدة دون إعادة رسم أو إعادة تسمية اعتباطية.
-4. فحص tests الخاصة بالمكافآت والشارات وidempotency وإثبات missing E2E بدقة.
-5. تسجيل القرار في تقرير A05/هذا السجل ثم الانتقال إلى A06 دون تنفيذ ترقيعات Production.
+1. إعادة قراءة تقرير A06 الحالي والجرد A02/A06 بدل إعادة الجرد من الصفر.
+2. مطابقة canonical image IDs مع الملفات الفعلية والـsemantic maps والـruntime/public serving.
+3. فصل: referenced، unused-approved، duplicate-by-bytes، repeated-use، semantic-conflict، orphan/dead-candidate.
+4. مراجعة الـ23 original-approved unused assets و18 multi-semantic repeated assets يدويًا من حيث الدلالة، لا العدد فقط.
+5. عدم حذف/استبدال أي أصل أثناء التدقيق؛ تسجيل owner/root fix/test requirements ثم الانتقال إلى A07.
