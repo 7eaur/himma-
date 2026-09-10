@@ -9,6 +9,9 @@ An active Core session always takes precedence over older completed evidence at
 the same level. This matters when a supervisor deliberately reopens learning:
 historical achievements stay visible in storage, but they must not make the
 current journey or posttest look complete while remediation is active.
+
+Level completion itself is owned exclusively by ``level_completion.py``.
+Journey only projects that canonical evidence into UI-facing states.
 """
 
 from __future__ import annotations
@@ -16,34 +19,17 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from db.adaptation_models import AdaptationDecision
-from db.models import AssessmentSession, Attempt, ContentItem, Student
+from db.models import AssessmentSession, Student
 from dependencies import get_current_student, get_db
+from level_completion import CORE_ACTIVITY_COUNT, completed_core_count, session_level_completion
 
 router = APIRouter(prefix="/journey", tags=["Student Journey"])
-CORE_ACTIVITY_COUNT = 10
 
 LEVEL_NAMES = {
     1: "الاستعداد للقراءة",
     2: "بناء الكلمة",
     3: "الطلاقة والفهم",
 }
-
-
-def _completed_core_count(db: Session, session_id: int, level_id: int) -> int:
-    rows = (
-        db.query(ContentItem.id)
-        .join(Attempt, Attempt.item_id == ContentItem.id)
-        .filter(
-            Attempt.session_id == session_id,
-            Attempt.status == "completed",
-            ContentItem.kind == "core_activity",
-            ContentItem.level_id == level_id,
-        )
-        .distinct()
-        .all()
-    )
-    return len(rows)
 
 
 def _pretest_state(db: Session, student_id: int) -> tuple[bool, int | None]:
@@ -74,40 +60,9 @@ def _posttest_completed(db: Session, student_id: int) -> bool:
     )
 
 
-def _promotion_closed_session_ids(db: Session, student_id: int) -> set[int]:
-    """Return sessions closed by a persisted one-level automatic promotion.
-
-    L1/L2 may legitimately close after the V4 early-promotion gate (six or more
-    Core activities). Presentation uses that persisted transition evidence
-    rather than re-imposing the legacy ten-Core requirement. L3 is excluded
-    because journey completion still requires all ten Core activities.
-    """
-    session_ids: set[int] = set()
-    decisions = (
-        db.query(AdaptationDecision)
-        .filter(
-            AdaptationDecision.student_id == student_id,
-            AdaptationDecision.decision_source == "automatic",
-            AdaptationDecision.action == "promote",
-        )
-        .order_by(AdaptationDecision.id)
-        .all()
-    )
-    for decision in decisions:
-        if decision.previous_level not in {1, 2} or decision.new_level != decision.previous_level + 1:
-            continue
-        explanation = decision.explanation or {}
-        previous_session_id = explanation.get("previous_session_id")
-        expected_transition = f"L{decision.previous_level}->L{decision.new_level}"
-        if isinstance(previous_session_id, int) and explanation.get("journey_transition") == expected_transition:
-            session_ids.add(previous_session_id)
-    return session_ids
-
-
 def build_journey_summary(db: Session, student: Student) -> dict:
     pretest_completed, placed_level = _pretest_state(db, student.id)
     starting_level = placed_level if placed_level in {1, 2, 3} else (student.current_level if pretest_completed else None)
-    promotion_closed_sessions = _promotion_closed_session_ids(db, student.id)
 
     sessions = (
         db.query(AssessmentSession)
@@ -134,13 +89,11 @@ def build_journey_summary(db: Session, student: Student) -> dict:
         completed_candidates: list[tuple[AssessmentSession, int]] = []
         latest_count = 0
         for session in candidates:
-            count = _completed_core_count(db, session.id, level_id)
+            evidence = session_level_completion(db, session)
             if session is candidates[-1]:
-                latest_count = count
-            completed_by_full_evidence = count >= CORE_ACTIVITY_COUNT
-            completed_by_early_promotion = level_id in {1, 2} and session.id in promotion_closed_sessions
-            if session.status == "completed" and (completed_by_full_evidence or completed_by_early_promotion):
-                completed_candidates.append((session, count))
+                latest_count = evidence.completed_core_count
+            if evidence.completed:
+                completed_candidates.append((session, evidence.completed_core_count))
 
         completed_entry = completed_candidates[-1] if completed_candidates else None
 
@@ -152,7 +105,7 @@ def build_journey_summary(db: Session, student: Student) -> dict:
             # A supervisor-reopened/remedial session is the current truth even
             # when an older session at this level was previously completed.
             state = "active"
-            completed_items = _completed_core_count(db, active.id, level_id)
+            completed_items = completed_core_count(db, active.id, level_id)
             session_id = active.id
         elif completed_entry:
             state = "completed"
