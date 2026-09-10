@@ -14,9 +14,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from db.models import AssessmentSession, AuditLog, Attempt, AttemptResponse, AudioSubmission, ContentItem, Student, User
+from audio_review_state import session_audio_review_summary
+from db.models import AssessmentSession, AuditLog, Attempt, ContentItem, Student, User
 from dependencies import get_db, get_current_user, get_current_student, get_any_authenticated
 from journey import build_journey_summary
+from level_completion import CORE_ACTIVITY_COUNT, session_level_completion
 from study_capacity import capacity, lock_admissions
 import schemas
 
@@ -136,19 +138,15 @@ def _completed_session(db: Session, student_id: int, session_type: str) -> bool:
 
 
 def _core_progress(db: Session, student_id: int) -> tuple[int, bool]:
+    """Project the latest Core session through the canonical completion owner."""
     session = db.query(AssessmentSession).filter(
         AssessmentSession.student_id == student_id,
         AssessmentSession.session_type == "core",
     ).order_by(AssessmentSession.id.desc()).first()
     if not session:
         return 0, False
-    completed = db.query(Attempt.id).join(ContentItem, ContentItem.id == Attempt.item_id).filter(
-        Attempt.session_id == session.id,
-        Attempt.status == "completed",
-        ContentItem.kind == "core_activity",
-        ContentItem.level_id == session.assigned_level,
-    ).count()
-    return completed, session.status == "completed" and completed >= 10
+    evidence = session_level_completion(db, session)
+    return evidence.completed_core_count, evidence.completed
 
 
 def _student_payload(db: Session, student: Student) -> dict:
@@ -166,7 +164,7 @@ def _student_payload(db: Session, student: Student) -> dict:
         "posttest_enabled": student.posttest_enabled,
         "posttest_eligible": pretest_completed and journey["learning_journey_completed"] and not posttest_completed,
         "core_completed_items": core_completed_items,
-        "core_total_items": 10,
+        "core_total_items": CORE_ACTIVITY_COUNT,
         "core_completed": core_completed,
         "created_at": student.created_at,
     }
@@ -189,20 +187,14 @@ def _ensure_unique_access_code(db: Session, code: str, *, excluding_student_id: 
 
 
 def _assessment_display_status(db: Session, session: AssessmentSession | None) -> str | None:
-    """Describe an active assessment without confusing review wait with answering."""
+    """Describe an active assessment using only latest audio state per response."""
     if not session or session.session_type not in {"pretest", "posttest"}:
         return None
 
-    submissions = (
-        db.query(AudioSubmission)
-        .join(AttemptResponse, AttemptResponse.id == AudioSubmission.response_id)
-        .join(Attempt, Attempt.id == AttemptResponse.attempt_id)
-        .filter(Attempt.session_id == session.id)
-        .all()
-    )
-    if any(submission.status == "rerecord_required" for submission in submissions):
+    summary = session_audio_review_summary(db, session.id)
+    if summary.rerecord_required_count:
         return "rerecord_required"
-    if any(submission.status == "uploaded" for submission in submissions):
+    if summary.pending_count:
         return "waiting_audio_review"
 
     required_kind = "pretest_question" if session.session_type == "pretest" else "posttest_question"
@@ -380,7 +372,7 @@ def set_posttest_access(
     if body.enabled and not journey["learning_journey_completed"]:
         raise HTTPException(
             status_code=409,
-            detail="يجب إكمال الأنشطة التعليمية العشرة لكل مستوى في رحلة التعلم حتى المستوى الثالث قبل فتح الاختبار البعدي",
+            detail="يجب إكمال مسار التعلم المعتمد حتى المستوى الثالث قبل فتح الاختبار البعدي",
         )
     student.posttest_enabled = body.enabled
     student.posttest_enabled_at = datetime.now(timezone.utc) if body.enabled else None
