@@ -2,7 +2,8 @@
 
 The assessment session stays academically ``in_progress`` while the profile
 exposes whether the learner is still answering, waiting for manual audio
-review, needs a rerecord, or is ready to finalize.
+review, needs a rerecord, or is ready to finalize. Historical AudioSubmissions
+never become active state again once a newer submission exists.
 """
 
 from db.database import SessionLocal
@@ -62,6 +63,22 @@ def test_assessment_display_status_exposes_audio_wait_before_all_questions_are_d
         submission.status = "rerecord_required"
         db.flush()
         assert _assessment_display_status(db, session) == "rerecord_required"
+        assert session.status == "in_progress"
+
+        # The rejected recording remains immutable history. Once a newer graded
+        # submission exists, that old rerecord_required state must not surface in
+        # profile/assessment state again.
+        latest = AudioSubmission(
+            response_id=response.id,
+            storage_key="tests/mid-assessment-rerecord-graded.webm",
+            file_size=2048,
+            mime_type="audio/webm",
+            status="graded",
+        )
+        db.add(latest)
+        db.flush()
+        assert submission.status == "rerecord_required"
+        assert _assessment_display_status(db, session) == "answering"
         assert session.status == "in_progress"
     finally:
         db.close()
