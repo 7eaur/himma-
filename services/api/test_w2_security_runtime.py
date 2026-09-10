@@ -1,4 +1,4 @@
-"""A10/W2 regression coverage for runtime and recording security boundaries."""
+"""A10/W2 regression coverage for runtime, auth and recording security boundaries."""
 
 from types import SimpleNamespace
 
@@ -11,6 +11,9 @@ import auth
 import auth_rate_limit
 import main
 import recordings
+from conftest import TestingSessionLocal
+from auth_session_state import current_auth_epoch
+from db.models import Student
 from runtime_flags import (
     runtime_security_ready,
     secure_session_cookie_required,
@@ -110,6 +113,34 @@ def test_auth_limiter_blocks_burst_recovers_and_never_stores_raw_identifier(monk
 
     auth_rate_limit.clear_identifier_rate_limit(scope="student-login", identifier=identifier)
     auth_rate_limit.enforce_auth_rate_limit(request, scope="student-login", identifier=identifier)
+
+
+def test_student_access_code_rotation_revokes_pre_rotation_jwt(student_client):
+    assert student_client.get("/profile").status_code == 200
+    db = TestingSessionLocal()
+    try:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        assert current_auth_epoch(db, actor_role="student", actor_id=student.id) == 0
+        student.access_code = "654321"
+        db.commit()
+        assert current_auth_epoch(db, actor_role="student", actor_id=student.id) == 1
+    finally:
+        db.close()
+
+    assert student_client.get("/profile").status_code == 401
+
+
+def test_supervisor_password_rotation_revokes_pre_rotation_jwt(researcher_client):
+    assert researcher_client.get("/researcher/account").status_code == 200
+    response = researcher_client.post(
+        "/researcher/account/password",
+        json={
+            "current_password": "test-only-researcher-password",
+            "new_password": "new-test-only-researcher-password-2026",
+        },
+    )
+    assert response.status_code == 200
+    assert researcher_client.get("/researcher/account").status_code == 401
 
 
 def test_legacy_recording_completion_rejects_and_removes_oversized_object(monkeypatch):
