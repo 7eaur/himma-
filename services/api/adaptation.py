@@ -30,7 +30,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from audio_review_state import latest_audio_submission, session_audio_review_summary
+from audio_review_state import latest_audio_review, latest_audio_submission, session_audio_review_summary
 from db.adaptation_models import AdaptationDecision, RewardEvent
 from db.activity_models import ActivityStepResponse
 from db.models import (
@@ -45,6 +45,7 @@ from db.models import (
 )
 from db.reinforcement_models import ReinforcementCycle
 from dependencies import get_current_student, get_current_user, get_db
+from level_completion import level_was_completed
 from reinforcement_mapping import recommended_reinforcement_for_skill
 
 router = APIRouter(tags=["Adaptation"])
@@ -165,10 +166,19 @@ def decide_transition(
 
 
 def _attempt_signal(db: Session, attempt: Attempt, item: ContentItem) -> Optional[AttemptSignal]:
+    """Build one activity score without collapsing reviewed audio to Boolean.
+
+    Structured/non-audio correctness remains binary per step (0/100). For an
+    audio response, only the latest graded AudioSubmission and its latest human
+    AudioReview are academic evidence. ``rubric_score`` is preserved as its
+    numeric 0..1 value and normalized to 0..100 before step averaging. Historical
+    submissions and the compatibility ``AttemptResponse.is_correct`` flag never
+    drive audio mastery.
+    """
     if attempt.status != "completed":
         return None
 
-    scores: list[bool] = []
+    scores: list[float] = []
     for step in db.query(ContentStep).filter(ContentStep.item_id == item.id).order_by(ContentStep.order_index).all():
         structured = (
             db.query(ActivityStepResponse)
@@ -183,7 +193,7 @@ def _attempt_signal(db: Session, attempt: Attempt, item: ContentItem) -> Optiona
             payload = structured.response_payload or {}
             if payload.get("declared_media_gap_skip") or payload.get("temporary_audio_skip"):
                 continue
-            scores.append(bool(structured.is_correct))
+            scores.append(100.0 if bool(structured.is_correct) else 0.0)
             continue
 
         response = db.query(AttemptResponse).filter(
@@ -192,19 +202,32 @@ def _attempt_signal(db: Session, attempt: Attempt, item: ContentItem) -> Optiona
         ).first()
         if not response:
             return None
+
         audio = latest_audio_submission(db, response)
-        if audio and audio.status in {"pending", "rerecord_required", "uploaded"}:
-            return None
+        if audio is not None:
+            if audio.status in {"pending", "rerecord_required", "uploaded"}:
+                return None
+            if audio.status != "graded":
+                return None
+            review = latest_audio_review(db, audio)
+            if review is None or review.rubric_score is None:
+                return None
+            rubric = float(review.rubric_score)
+            if rubric < 0.0 or rubric > 1.0:
+                return None
+            scores.append(round(rubric * 100.0, 4))
+            continue
+
         if response.is_correct is None:
             continue
-        scores.append(bool(response.is_correct))
+        scores.append(100.0 if bool(response.is_correct) else 0.0)
 
     if not scores:
         return None
     return AttemptSignal(
         attempt_id=attempt.id,
         skill_id=item.skill_id,
-        score=round((sum(1 for value in scores if value) / len(scores)) * 100.0, 4),
+        score=round(sum(scores) / len(scores), 4),
     )
 
 
@@ -259,10 +282,6 @@ def _completed_core_count(
     if session_id is not None:
         query = query.filter(AssessmentSession.id == session_id)
     return query.distinct().count()
-
-
-def _core_flow_complete(db: Session, student_id: int, level_id: int) -> bool:
-    return _completed_core_count(db, student_id, level_id) >= CORE_ACTIVITY_COUNT
 
 
 def _critical_skill_gate_state(
@@ -442,8 +461,11 @@ def ensure_rewards(db: Session, student_id: int) -> list[RewardEvent]:
                 ),
             ) or changed
 
+    # Badge eligibility consumes the same canonical Level Completion owner used
+    # by Journey. Early automatic promotion in L1/L2 therefore earns the level
+    # badge, while manual override never does and L3 still requires 10 Core.
     for level_id, label in BADGE_BY_LEVEL.items():
-        if not _core_flow_complete(db, student_id, level_id):
+        if not level_was_completed(db, student_id, level_id):
             continue
         key = f"level:{level_id}:core-complete"
         if not db.query(RewardEvent.id).filter(
@@ -517,7 +539,6 @@ def evaluate_student(
 
     signals = _valid_signals(db, student.id, level_id, session_id=session_id)
     completed_core_count = _completed_core_count(db, student.id, level_id, session_id=session_id)
-
     if len(signals) < 3:
         if signals and signals[-1].score < REINFORCEMENT_THRESHOLD:
             latest = signals[-1]
