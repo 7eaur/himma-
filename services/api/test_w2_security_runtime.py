@@ -5,8 +5,10 @@ from types import SimpleNamespace
 import pytest
 from botocore.exceptions import ClientError
 from fastapi import HTTPException
+from starlette.requests import Request
 
 import auth
+import auth_rate_limit
 import main
 import recordings
 from runtime_flags import (
@@ -70,6 +72,44 @@ def test_cookie_writer_uses_protected_runtime_security_policy(monkeypatch):
     auth._set_token_cookie(ResponseStub(), "token")
     assert captured["secure"] is True
     assert captured["httponly"] is True
+
+
+def test_auth_limiter_blocks_burst_recovers_and_never_stores_raw_identifier(monkeypatch):
+    counters = {}
+    ttls = {}
+    observed_keys = []
+
+    class RedisStub:
+        def eval(self, script, key_count, key, window):
+            observed_keys.append(key)
+            counters[key] = counters.get(key, 0) + 1
+            ttls[key] = int(window)
+            return [counters[key], ttls[key]]
+
+        def delete(self, key):
+            counters.pop(key, None)
+            ttls.pop(key, None)
+            return 1
+
+    monkeypatch.setenv("ENV", "trial")
+    monkeypatch.setenv("API_SECRET_KEY", "s" * 40)
+    monkeypatch.setattr(auth_rate_limit, "_client", RedisStub())
+    monkeypatch.setattr(auth_rate_limit, "IP_LIMIT", 20)
+    monkeypatch.setattr(auth_rate_limit, "IDENTIFIER_LIMIT", 2)
+    request = Request({"type": "http", "client": ("203.0.113.5", 50000), "headers": []})
+    identifier = "123456"
+
+    auth_rate_limit.enforce_auth_rate_limit(request, scope="student-login", identifier=identifier)
+    auth_rate_limit.enforce_auth_rate_limit(request, scope="student-login", identifier=identifier)
+    with pytest.raises(HTTPException) as exc_info:
+        auth_rate_limit.enforce_auth_rate_limit(request, scope="student-login", identifier=identifier)
+
+    assert exc_info.value.status_code == 429
+    assert "Retry-After" in exc_info.value.headers
+    assert all(identifier not in key for key in observed_keys)
+
+    auth_rate_limit.clear_identifier_rate_limit(scope="student-login", identifier=identifier)
+    auth_rate_limit.enforce_auth_rate_limit(request, scope="student-login", identifier=identifier)
 
 
 def test_legacy_recording_completion_rejects_and_removes_oversized_object(monkeypatch):
