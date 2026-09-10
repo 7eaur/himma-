@@ -16,10 +16,11 @@ Continuous-learning adaptation is a separate V4 policy (80/70 per-activity,
 three valid signals weighted 50/30/20, 6-Core/85/70 promotion gates, no
 automatic demotion). It must not be mixed into initial placement.
 
-Any uploaded or rerecord-required assessment audio blocks completion until the
-supervisor review is resolved. Neutral historical/media-gap evidence is
-excluded from the academic denominator and makes the score provisional rather
-than incorrect.
+Any latest uploaded or rerecord-required assessment audio blocks completion until
+the supervisor review is resolved. Older submissions remain immutable history
+and never override the newest submission state. Neutral historical/media-gap
+evidence is excluded from the academic denominator and makes the score
+provisional rather than incorrect.
 """
 
 from __future__ import annotations
@@ -31,13 +32,16 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 import assessment
+from audio_review_state import (
+    latest_audio_review,
+    latest_audio_submission,
+    session_latest_audio_submissions,
+)
 from db.activity_models import ActivityStepResponse
 from db.models import (
     AssessmentSession,
     Attempt,
     AttemptResponse,
-    AudioReview,
-    AudioSubmission,
     ContentItem,
     OperationIdempotency,
     Student,
@@ -89,25 +93,14 @@ def _section_id(item: ContentItem) -> int:
 
 
 def _preflight_audio_state(db: Session, session_id: int) -> None:
-    """Surface actionable review states before generic completeness errors."""
-    submissions = (
-        db.query(AudioSubmission)
-        .join(AttemptResponse, AttemptResponse.id == AudioSubmission.response_id)
-        .join(Attempt, Attempt.id == AttemptResponse.attempt_id)
-        .filter(Attempt.session_id == session_id)
-        .all()
-    )
-    for submission in submissions:
+    """Surface actionable latest-review states before completeness errors."""
+    for _, submission in session_latest_audio_submissions(db, session_id):
         if submission.status == "rerecord_required":
             raise HTTPException(status_code=409, detail="يوجد تسجيل يحتاج إلى إعادة قبل إنهاء الاختبار")
-        if submission.status == "uploaded":
+        if submission.status in {"uploaded", "pending"}:
             raise HTTPException(status_code=409, detail="يوجد تسجيل صوتي في انتظار المراجعة")
-        if submission.status == "graded":
-            review = db.query(AudioReview).filter(
-                AudioReview.submission_id == submission.id,
-            ).order_by(AudioReview.id.desc()).first()
-            if not review:
-                raise HTTPException(status_code=409, detail="تقييم التسجيل الصوتي غير مكتمل")
+        if submission.status == "graded" and latest_audio_review(db, submission) is None:
+            raise HTTPException(status_code=409, detail="تقييم التسجيل الصوتي غير مكتمل")
 
 
 def _attempt_score(
@@ -122,16 +115,14 @@ def _attempt_score(
     neutral_count = 0
 
     for response in db.query(AttemptResponse).filter(AttemptResponse.attempt_id == attempt.id).all():
-        audio_sub = db.query(AudioSubmission).filter(AudioSubmission.response_id == response.id).first()
+        audio_sub = latest_audio_submission(db, response)
         if audio_sub:
             if audio_sub.status == "rerecord_required":
                 raise HTTPException(status_code=409, detail="يوجد تسجيل يحتاج إلى إعادة قبل إنهاء الاختبار")
-            if audio_sub.status == "uploaded":
+            if audio_sub.status in {"uploaded", "pending"}:
                 raise HTTPException(status_code=409, detail="يوجد تسجيل صوتي في انتظار المراجعة")
             if audio_sub.status == "graded":
-                review = db.query(AudioReview).filter(
-                    AudioReview.submission_id == audio_sub.id,
-                ).order_by(AudioReview.id.desc()).first()
+                review = latest_audio_review(db, audio_sub)
                 if not review:
                     raise HTTPException(status_code=409, detail="تقييم التسجيل الصوتي غير مكتمل")
                 units += Decimal("1")
