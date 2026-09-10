@@ -74,8 +74,19 @@ interface ProgressPayload {
   has_pending_item: boolean;
   elapsed_seconds: number;
 }
+interface RerecordTask {
+  submission_id: number;
+  session_id: number;
+  attempt_id: number;
+  item_id: number;
+  step_id: number;
+  stable_key: string;
+  title: string;
+  expected_reading_text?: string | null;
+  opened?: boolean;
+}
 
-type Phase = "loading" | "active" | "submitting" | "finishing" | "waiting" | "done" | "error";
+type Phase = "loading" | "active" | "submitting" | "finishing" | "waiting" | "rerecord" | "done" | "error";
 
 const SINGLE = new Set<Interaction>(["choose_one", "listen_choose_one", "choose_image", "listen_choose_image"]);
 const MULTI = new Set<Interaction>(["choose_many", "listen_choose_many"]);
@@ -95,6 +106,7 @@ export default function SessionPage() {
   const [phase, setPhase] = useState<Phase>("loading");
   const [item, setItem] = useState<ContentItem | null>(null);
   const [progress, setProgress] = useState<ProgressPayload | null>(null);
+  const [rerecordTask, setRerecordTask] = useState<RerecordTask | null>(null);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [error, setError] = useState("");
   const [isRecording, setIsRecording] = useState(false);
@@ -159,6 +171,17 @@ export default function SessionPage() {
     if (response.ok) setProgress(await response.json());
   }, [sessionId]);
 
+  const fetchRerecordTask = useCallback(async () => {
+    const response = await fetch(`/api/assessment/session/${sessionId}/rerecord-tasks`, { cache: "no-store" });
+    const data = await response.json().catch(() => null);
+    if (!response.ok) throw new Error(data?.detail || "تعذر تحميل مهمة إعادة التسجيل");
+    const task = Array.isArray(data) ? data[0] as RerecordTask | undefined : undefined;
+    if (!task) return false;
+    setRerecordTask(task);
+    setPhase("rerecord");
+    return true;
+  }, [sessionId]);
+
   const finishSession = useCallback(async () => {
     setPhase("finishing");
     setError("");
@@ -170,6 +193,9 @@ export default function SessionPage() {
         setPhase("waiting");
         return;
       }
+      if (response.status === 409 && detail.includes("إعادة التسجيل")) {
+        if (await fetchRerecordTask()) return;
+      }
       if (!response.ok) throw new Error(detail || "تعذر إنهاء الاختبار");
       setFinalScore(Number(data.final_score));
       setAssignedLevel(Number(data.assigned_level));
@@ -178,7 +204,7 @@ export default function SessionPage() {
       setError(err instanceof Error ? err.message : "تعذر إنهاء الاختبار");
       setPhase("error");
     }
-  }, [sessionId]);
+  }, [fetchRerecordTask, sessionId]);
 
   const fetchNext = useCallback(async () => {
     setPhase("loading");
@@ -192,11 +218,15 @@ export default function SessionPage() {
         setPhase("waiting");
         return;
       }
+      if (response.status === 409 && detail.includes("إعادة التسجيل")) {
+        if (await fetchRerecordTask()) return;
+      }
       if (!response.ok) throw new Error(detail || "تعذر تحميل السؤال");
       if (!data) {
         await finishSession();
         return;
       }
+      setRerecordTask(null);
       setItem(data);
       clearQuestionState();
       stepStartedAtRef.current = Date.now();
@@ -206,7 +236,26 @@ export default function SessionPage() {
       setError(err instanceof Error ? err.message : "تعذر تحميل السؤال");
       setPhase("error");
     }
-  }, [clearQuestionState, fetchProgress, finishSession, sessionId, stopPlayback]);
+  }, [clearQuestionState, fetchProgress, fetchRerecordTask, finishSession, sessionId, stopPlayback]);
+
+  const openRerecordTask = useCallback(async () => {
+    if (!rerecordTask) return;
+    setError("");
+    setPhase("loading");
+    try {
+      const response = await fetch(
+        `/api/assessment/session/${sessionId}/attempt/${rerecordTask.item_id}/step/${rerecordTask.step_id}/rerecord/start`,
+        { method: "POST" },
+      );
+      const data = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(data?.detail || "تعذر فتح مهمة إعادة التسجيل");
+      setRerecordTask(null);
+      await fetchNext();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "تعذر فتح مهمة إعادة التسجيل");
+      setPhase("rerecord");
+    }
+  }, [fetchNext, rerecordTask, sessionId]);
 
   useEffect(() => {
     const kickoff = window.setTimeout(() => void fetchNext(), 0);
@@ -354,6 +403,29 @@ export default function SessionPage() {
     return <div className={styles.resultPage} dir="rtl" data-testid="assessment-session" data-phase="waiting_audio_review"><div className={styles.resultCard}><div className={styles.resultContent}><span className={styles.resultBadge}>تم حفظ تسجيلك</span><h1 className={styles.resultTitle}>عمل رائع</h1><p className={styles.resultText}>تم حفظ تسجيلك. سيُراجع المشرف القراءة، وبعد اعتمادها يمكنك متابعة الاختبار من نفس المكان.</p><button className={styles.primary} onClick={() => router.push("/student")}>العودة إلى مساري</button></div><div className={styles.resultVisual}><Image src="/characters/girl/encourage.png" alt="شخصية هِمّة تشجع الطالب" width={330} height={400}/></div></div></div>;
   }
 
+  if (phase === "rerecord" && rerecordTask) {
+    const taskNumber = Math.min(answered + 1, total);
+    const taskPercent = Math.min(100, Math.round((answered / Math.max(1, total)) * 100));
+    return (
+      <div className={styles.page} dir="rtl" data-testid="assessment-session" data-phase="rerecord_task">
+        <header className={styles.header}><div className={styles.headerInner}><div className={styles.brandCluster}><Image src="/brand/logo-navy.svg" alt="هِمّة" width={124} height={44} priority/></div><button className={styles.exit} type="button" onClick={() => router.push("/student")}><LogOut size={21}/><span>خروج</span></button></div></header>
+        <div className={styles.progressPanel}><div className={styles.progressTop}><span className={styles.assessmentBadge}><ClipboardList size={20}/>مهمة متابعة</span><span className={styles.progressCount}>{taskNumber} من {total}</span></div><div className={styles.progressTrack} aria-label={`التقدم ${taskPercent}%`}><div className={styles.progressFill} style={{ width: `${Math.max(taskPercent, 2)}%` }}/></div></div>
+        <main className={styles.shell}><section className={styles.card}>
+          <div className={styles.skillChip}><Mic size={19}/>إعادة تسجيل القراءة</div>
+          <div className={styles.contentColumn}>
+            <h1 className={styles.questionTitle}>لديك مهمة إعادة تسجيل جاهزة</h1>
+            <div className={styles.notice}>طلب المشرف إعادة هذه القراءة. التسجيل السابق محفوظ في السجل، ولن يُستبدل. افتح المهمة فقط عندما تكون مستعدًا لتسجيل قراءة جديدة.</div>
+            {rerecordTask.expected_reading_text && <div className={`${styles.readingBox} ${rerecordTask.expected_reading_text.length > 55 ? styles.readingBoxLong : ""}`}>{rerecordTask.expected_reading_text}</div>}
+            <div className={styles.instructionRow}><Info size={21} aria-hidden="true"/><p>عند فتح المهمة ستعود إلى سؤال القراءة نفسه، ثم تسجل وترسل محاولة جديدة.</p></div>
+            {error && <div className={styles.error} role="alert">{error}</div>}
+            <div className={styles.inlineActions}><button className={styles.secondary} type="button" onClick={() => router.push("/student")}>العودة إلى مساري</button><button className={styles.primary} type="button" onClick={() => void openRerecordTask()}><Mic size={18}/>فتح مهمة إعادة التسجيل</button></div>
+          </div>
+          <aside className={styles.coach} aria-label="نصيحة هِمّة"><div className={styles.tip}><Star size={21} fill="currentColor" aria-hidden="true"/><span>خذ وقتك، وعندما تكون جاهزًا افتح المهمة وسجّل من جديد.</span></div><Image className={styles.character} src="/characters/girl/encourage.png" alt="شخصية هِمّة تشجع الطالب" width={180} height={245} priority/></aside>
+        </section></main>
+      </div>
+    );
+  }
+
   if (phase === "finishing" || phase === "loading") {
     return <div className={styles.page} dir="rtl" data-testid="assessment-session" data-phase={phase}><div className={styles.loadingState}><Image src="/brand/logo-navy.svg" alt="هِمّة" width={128} height={46} priority/><div className={styles.spinner}/><p>{phase === "finishing" ? "جاري إنهاء الاختبار..." : "جاري تجهيز السؤال التالي..."}</p></div></div>;
   }
@@ -397,7 +469,6 @@ export default function SessionPage() {
         <div className={styles.skillChip}><Target size={19}/>{skillText}</div>
         <div className={styles.contentColumn}>
           <h1 className={styles.questionTitle} data-testid="question-title">{questionText}</h1>
-
           {!LISTEN.has(interaction) && !READ.has(interaction) && stimulusKind === "text" && stimulusText && <div className={`${styles.stimulusBox} ${stimulusText.length <= 3 ? styles.letterStimulus : ""}`} data-testid="question-stimulus">{stimulusText}</div>}
 
           {visualAsset && <div className={styles.contextImage} data-testid="question-image"><Image src={visualAsset.url} alt={visualAsset.semantic_text || presentation.media_semantics?.stimulus || "صورة مرتبطة بالسؤال"} width={420} height={260} unoptimized/></div>}
