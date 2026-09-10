@@ -6,7 +6,7 @@ invalidate JWTs without rewriting identity/history rows.
 
 from datetime import datetime, timezone
 
-from sqlalchemy import CheckConstraint, Column, DateTime, Integer, String, UniqueConstraint
+from sqlalchemy import CheckConstraint, Column, DateTime, Integer, String, UniqueConstraint, text
 
 from db.models import Base
 
@@ -22,6 +22,7 @@ class AuthSessionState(Base):
         DateTime(timezone=True),
         nullable=False,
         default=lambda: datetime.now(timezone.utc),
+        server_default=text("CURRENT_TIMESTAMP"),
     )
 
     __table_args__ = (
