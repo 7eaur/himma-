@@ -15,6 +15,7 @@ from dependencies import (
     get_any_authenticated,
     get_db,
 )
+from runtime_flags import secure_session_cookie_required
 from schemas import MeResponse, ResearcherLogin, StudentLogin
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -31,13 +32,12 @@ def verify_password(password: str, hashed: str) -> bool:
 
 
 def _set_token_cookie(response: Response, token: str) -> None:
-    is_prod = os.getenv("ENV") == "production"
     response.set_cookie(
         key="access_token",
         value=token,
         httponly=True,
         samesite="lax",
-        secure=is_prod,
+        secure=secure_session_cookie_required(),
         path="/",
         max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
@@ -121,7 +121,7 @@ def logout(response: Response):
     response.delete_cookie(
         "access_token",
         path="/",
-        secure=os.getenv("ENV") == "production",
+        secure=secure_session_cookie_required(),
         httponly=True,
         samesite="lax",
     )
