@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
+import os
 
+from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 
 from asr_governance import machine_review_decision
@@ -22,6 +24,7 @@ import storage
 
 
 RETRY_SECONDS = (30, 120, 600)
+LEASE_SECONDS = int(os.getenv("HIMMA_ASR_JOB_LEASE_SECONDS", "600"))
 
 
 def enqueue_submission(db: Session, submission_id: int) -> SpeechAnalysisJob:
@@ -61,7 +64,7 @@ def _audio_bytes(submission: AudioSubmission) -> bytes:
             Key=submission.storage_key,
         )
         payload = response["Body"].read(storage.MAX_AUDIO_BYTES + 1)
-    except Exception as exc:  # boto errors are retryable infrastructure failures
+    except Exception as exc:
         raise ProviderTemporaryError("Private audio storage is unavailable") from exc
     if not payload or len(payload) > storage.MAX_AUDIO_BYTES:
         raise ProviderPermanentError("Stored audio is empty or outside the allowed size")
@@ -88,19 +91,69 @@ def _token_payload(aligned, provider_words):
     return payload
 
 
+def _clear_lease(job: SpeechAnalysisJob) -> None:
+    job.lease_owner = None
+    job.lease_expires_at = None
+
+
+def claim_next_job(
+    db: Session,
+    *,
+    worker_id: str,
+    now: datetime | None = None,
+) -> SpeechAnalysisJob | None:
+    """Atomically lease one due job using the database as queue authority.
+
+    PostgreSQL workers use ``FOR UPDATE SKIP LOCKED`` so concurrent workers can
+    never claim the same row. A crashed worker's ``processing`` row becomes
+    claimable only after its persisted lease expires. The caller must commit the
+    claim before performing the external provider call.
+    """
+    now = now or datetime.now(timezone.utc)
+    if not worker_id.strip():
+        raise ValueError("worker_id is required")
+    due = or_(
+        SpeechAnalysisJob.status == "queued",
+        and_(
+            SpeechAnalysisJob.status == "retry_wait",
+            SpeechAnalysisJob.next_attempt_at <= now,
+        ),
+        and_(
+            SpeechAnalysisJob.status == "processing",
+            SpeechAnalysisJob.lease_expires_at.is_not(None),
+            SpeechAnalysisJob.lease_expires_at <= now,
+        ),
+    )
+    job = (
+        db.query(SpeechAnalysisJob)
+        .filter(due)
+        .order_by(SpeechAnalysisJob.created_at, SpeechAnalysisJob.id)
+        .with_for_update(skip_locked=True)
+        .first()
+    )
+    if job is None:
+        return None
+    job.status = "processing"
+    job.lease_owner = worker_id
+    job.lease_expires_at = now + timedelta(seconds=LEASE_SECONDS)
+    job.updated_at = now
+    db.flush()
+    return job
+
+
 def process_job(
     db: Session,
     job_id: int,
     *,
     provider: SpeechProvider | None = None,
     now: datetime | None = None,
+    worker_id: str | None = None,
 ) -> SpeechAnalysisJob:
     """Process exactly one job; safe to call repeatedly.
 
-    Runtime provider absence is an explicit blocked state, not a fake result.
-    Machine analysis remains advisory unless an explicit approved provider/model
-    calibration exists in the ASR governance registry. No student score is
-    mutated here and deployment environment variables cannot grant acceptance.
+    Production workers pass ``worker_id`` after a committed durable lease. Direct
+    calls without a worker id remain available to isolated tests/operator code,
+    but the worker runtime never performs an unclaimed provider call.
     """
     now = now or datetime.now(timezone.utc)
     job = db.query(SpeechAnalysisJob).filter(SpeechAnalysisJob.id == job_id).first()
@@ -108,7 +161,15 @@ def process_job(
         raise ValueError("Speech analysis job not found")
     if job.status in {"completed", "review_required", "failed", "dead_letter"}:
         return job
-    if job.status == "retry_wait" and job.next_attempt_at and job.next_attempt_at > now:
+    if worker_id is not None:
+        if (
+            job.status != "processing"
+            or job.lease_owner != worker_id
+            or job.lease_expires_at is None
+            or job.lease_expires_at <= now
+        ):
+            raise RuntimeError("Speech analysis job is not leased by this worker")
+    elif job.status == "retry_wait" and job.next_attempt_at and job.next_attempt_at > now:
         return job
 
     existing = db.query(SpeechAnalysis).filter(SpeechAnalysis.job_id == job.id).first()
@@ -116,6 +177,7 @@ def process_job(
         job.status = "completed" if existing.decision == "auto_accepted" else "review_required"
         job.completed_at = job.completed_at or now
         job.updated_at = now
+        _clear_lease(job)
         db.flush()
         return job
 
@@ -125,12 +187,14 @@ def process_job(
         job.last_error_code = "submission_missing"
         job.last_error_message = "Audio submission not found"
         job.updated_at = now
+        _clear_lease(job)
         db.flush()
         return job
 
-    job.status = "processing"
-    job.updated_at = now
-    db.flush()
+    if worker_id is None:
+        job.status = "processing"
+        job.updated_at = now
+        db.flush()
 
     try:
         reference = _reference_for_submission(db, submission)
@@ -176,6 +240,7 @@ def process_job(
         job.next_attempt_at = None
         job.completed_at = now
         job.updated_at = now
+        _clear_lease(job)
         db.flush()
         return job
     except ProviderNotConfigured as exc:
@@ -184,6 +249,7 @@ def process_job(
         job.last_error_message = str(exc)
         job.next_attempt_at = None
         job.updated_at = now
+        _clear_lease(job)
         db.flush()
         return job
     except ProviderTemporaryError as exc:
@@ -198,6 +264,7 @@ def process_job(
             job.status = "retry_wait"
             job.next_attempt_at = now + timedelta(seconds=delay)
         job.updated_at = now
+        _clear_lease(job)
         db.flush()
         return job
     except ProviderPermanentError as exc:
@@ -207,14 +274,23 @@ def process_job(
         job.last_error_message = str(exc)
         job.next_attempt_at = None
         job.updated_at = now
+        _clear_lease(job)
         db.flush()
         return job
 
 
 def claimable_job_ids(db: Session, *, now: datetime | None = None, limit: int = 10) -> list[int]:
+    """Read-only diagnostics; production workers use ``claim_next_job``."""
     now = now or datetime.now(timezone.utc)
     rows = db.query(SpeechAnalysisJob.id).filter(
-        (SpeechAnalysisJob.status == "queued")
-        | ((SpeechAnalysisJob.status == "retry_wait") & (SpeechAnalysisJob.next_attempt_at <= now))
+        or_(
+            SpeechAnalysisJob.status == "queued",
+            and_(SpeechAnalysisJob.status == "retry_wait", SpeechAnalysisJob.next_attempt_at <= now),
+            and_(
+                SpeechAnalysisJob.status == "processing",
+                SpeechAnalysisJob.lease_expires_at.is_not(None),
+                SpeechAnalysisJob.lease_expires_at <= now,
+            ),
+        )
     ).order_by(SpeechAnalysisJob.created_at, SpeechAnalysisJob.id).limit(limit).all()
     return [row.id for row in rows]
