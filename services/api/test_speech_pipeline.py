@@ -1,17 +1,21 @@
 from datetime import datetime, timezone
+from types import SimpleNamespace
 
 from conftest import TestingSessionLocal
 from db.models import (
     AssessmentSession,
     Attempt,
     AttemptResponse,
+    AudioReview,
     AudioSubmission,
     ContentItem,
     ContentStep,
     Skill,
     Student,
+    User,
 )
 from db.speech_models import SpeechAnalysis, SpeechAnalysisJob
+from speech_analysis import _analysis_payload
 from speech_pipeline import enqueue_submission, process_job
 from speech_provider import ProviderResult, ProviderTemporaryError, ProviderWord, UnconfiguredSpeechProvider
 
@@ -159,6 +163,42 @@ def test_arbitrary_environment_threshold_cannot_grant_academic_acceptance(monkey
         assert job.status == "review_required"
         assert analysis.decision == "review_required"
         assert analysis.calibration_version is None
+    finally:
+        db.close()
+
+
+def test_machine_analysis_payload_exposes_human_supervisor_as_academic_authority(monkeypatch):
+    monkeypatch.setattr("speech_pipeline._audio_bytes", lambda submission: b"real-audio-placeholder")
+    db = TestingSessionLocal()
+    try:
+        audio = _submission(db)
+        job = enqueue_submission(db, audio.id)
+        db.commit()
+        process_job(db, job.id, provider=FakeProvider(confidence=0.99))
+        db.commit()
+        analysis = db.query(SpeechAnalysis).filter(SpeechAnalysis.job_id == job.id).one()
+        reviewer = db.query(User).filter(User.role == "researcher").first()
+        assert reviewer is not None
+        audio.status = "graded"
+        db.add(AudioReview(
+            submission_id=audio.id,
+            reviewer_id=reviewer.id,
+            target_units=4,
+            deletions=0,
+            substitutions=1,
+            insertions=0,
+            rubric_score=0.75,
+        ))
+        db.commit()
+        db.refresh(audio)
+
+        payload = _analysis_payload(db, job, analysis, audio)
+
+        assert payload["analysis"]["decision"] == "review_required"
+        assert payload["adjudication"]["machine_role"] == "advisory"
+        assert payload["adjudication"]["academic_authority"] == "human_supervisor"
+        assert payload["adjudication"]["academic_decision_available"] is True
+        assert payload["adjudication"]["human_review"]["rubric_score"] == 0.75
     finally:
         db.close()
 
