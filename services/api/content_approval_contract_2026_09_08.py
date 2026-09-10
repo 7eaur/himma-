@@ -81,6 +81,19 @@ LEARNING_ROUND_STIMULI = {
     "L3-REIN-11":["ذَهَبَ سَالِمٌ إِلَى الْمَدْرَسَةِ صَبَاحًا.","حَمَلَ مَاجِدٌ حَقِيبَتَهُ وَخَرَجَ مِنَ الْبَيْتِ.","قَرَأَ خَالِدٌ كِتَابًا فِي الْمَكْتَبَةِ.","سَقَتْ هِنْدٌ الزَّهْرَةَ بِالْمَاءِ.","لَعِبَ مَاجِدٌ بِالْكُرَةِ فِي الْحَدِيقَةِ."],
 }
 
+# Student Experience R2 fields that were not changed by the Sep-08 wording
+# approval. Keeping them here makes the final canonical release self-contained;
+# runtime never imports the retired DB projection seeder.
+LEARNING_VISIBLE_STIMULI = {
+    "L1-CORE-01":["ب","ج","س","ق","د"],
+    "L1-CORE-03":["ب","م","س","ك","ل"],
+    "L1-CORE-07":["ب","كِتَاب","ذَهَبَ سَالِمٌ.","م","شَجَرَة"],
+    "L1-REIN-01":["ب","ج","س","ق","د"],
+    "L2-REIN-01":["_اب","ق_م","س_ك","كِتَا_","نُ_ر"],
+    "L3-CORE-09":["هَادِئ","أَعَادَ","مُخَلَّفَات","صَافِيَة","قُرْبَ"],
+    "L3-REIN-02":["المطر","اهتمام مريم","حفاظ خالد على الكتب"],
+}
+
 POSTTEST_QUESTIONS = {
     "POST-Q01":"اختر الحرف المطلوب.", "POST-Q02":"اختر الحرف المطلوب.",
     "POST-Q03":"اختر الشكل الآخر للحرف نفسه.", "POST-Q04":"اختر الحرف الذي سمعته.",
@@ -193,6 +206,13 @@ STEP_MEDIA = {
     "L3-CORE-10":{1:[("STY-03","image","context","خالد في المكتبة")],2:[("STY-02","image","context","مريم والبذرة")],3:[("STY-04","image","context","رحلة الوادي")]},
     "L3-REIN-04":{1:[("STY-06","image","context","هند والزهرة")]},
     "L3-REIN-05":{1:[("STY-03","image","context","المكتبة")],2:[("STY-05","image","context","الشاطئ")],3:[("STY-02","image","context","البذرة")]},
+    "L3-REIN-10":{
+        1:[("SEQ-07","image","choice","أخذ الكتاب"),("SEQ-08","image","choice","قرأ الكتاب")],
+        2:[("SEQ-01","image","choice","زرعت البذرة"),("SEQ-02","image","choice","سقتها")],
+        3:[("HIMMA-GEN-SEQ-007","image","choice","دخول المكتبة"),("SEQ-08","image","choice","القراءة"),("SEQ-09","image","choice","إعادة الكتاب")],
+        4:[("HIMMA-GEN-SEQ-008","image","choice","ذهب"),("HIMMA-GEN-SEQ-009","image","choice","لعب"),("HIMMA-GEN-SEQ-010","image","choice","نظف")],
+        5:[("SEQ-04","image","choice","غسلت"),("SEQ-05","image","choice","قطعت"),("SEQ-06","image","choice","أكلت")],
+    },
     "POST-Q05":{1:[("VOC-03","image","choice","باب"),("VOC-04","image","choice","قلم"),("VOC-01","image","choice","موزة"),("VOC-06","image","choice","شمس")]},
     "POST-Q10":{1:[("SEQ-07","image","choice","إخراج الكتاب"),("SEQ-08","image","choice","قراءة الكتاب"),("SEQ-09","image","choice","إعادة الكتاب")]},
     "POST-Q11":{1:[("LET-01","audio","prompt","مَ")]}, "POST-Q14":{1:[("VOC-09","image","context","نخلة")]},

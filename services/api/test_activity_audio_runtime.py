@@ -118,7 +118,7 @@ class TestLearningAudioRuntime:
 
         current = client.get(f"/activities/session/{session_id}/next")
         assert current.status_code == 200, current.text
-        assert current.json()["item"]["id"] != item_id
+        assert current.json()["step"]["id"] != step_id
 
         learning_view = client.get(f"/learning-experience/session/{session_id}")
         assert learning_view.status_code == 200, learning_view.text
@@ -193,7 +193,7 @@ class TestLearningAudioRuntime:
 
         current = client.get(f"/activities/session/{session_id}/next")
         assert current.status_code == 200, current.text
-        assert current.json()["item"]["id"] != item_id
+        assert current.json()["step"]["id"] != step_id
 
         opened = client.post(
             f"/activities/session/{session_id}/attempt/{item_id}/step/{step_id}/rerecord/start"

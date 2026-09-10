@@ -120,6 +120,10 @@ def test_every_listening_round_has_an_explicit_semantic_prompt_contract():
                 value for value in step["media"]
                 if value["asset_type"] == "audio" and value["usage"] == "prompt"
             ]
+            intro = item.get("context_intro") or {}
+            if intro.get("kind") == "audio_story":
+                assert prompt_audio == []
+                continue
             if sequences is not None:
                 targets = sequences[int(step["order_index"]) - 1]
                 assert len(prompt_audio) == len(targets)

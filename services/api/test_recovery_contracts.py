@@ -109,7 +109,7 @@ def test_listen_choose_image_restores_audio_and_clickable_image_mapping(student_
     audio = [asset for asset in step["assets"] if asset["asset_type"] == "audio"]
     images = [asset for asset in step["assets"] if asset["asset_type"] == "image"]
     assert [asset["asset_id"] for asset in audio] == ["LET-01"]
-    assert {asset["asset_id"] for asset in images} == {"VOC-01", "VOC-02", "VOC-03"}
+    assert {asset["asset_id"] for asset in images} == {"VOC-01", "VOC-02", "VOC-03", "VOC-04"}
     assert all(asset["url"].startswith("/api/media/") for asset in step["assets"])
     assert all(asset["option_id"] for asset in images)
     assert {asset["option_id"] for asset in images} == {option["id"] for option in step["options"]}

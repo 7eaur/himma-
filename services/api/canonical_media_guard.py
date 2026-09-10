@@ -47,8 +47,17 @@ AUDIO_MANIFEST = AUDIO_ROOT / "manifest.csv"
 # represents the same visual event under a shorter/newer learner-facing label.
 # Keeping them explicit is safer than fuzzy matching arbitrary Arabic phrases.
 IMAGE_SEMANTIC_ALIASES: dict[str, set[str]] = {
+    "SEQ-01": {"زرع البذرة", "زرعت البذرة"},
+    "SEQ-02": {"سقي البذرة", "سقتها"},
     "SEQ-03": {"نمو الزهرة", "ظهور النبتة"},
-    "SEQ-08": {"قراءة الكتاب", "القراءة"},
+    "SEQ-04": {"غسل التفاحة", "غسلت"},
+    "SEQ-05": {"تقطيع التفاحة", "قطعت"},
+    "SEQ-06": {"أكل التفاحة", "أكلت"},
+    "SEQ-07": {"إخراج الكتاب", "أخذ الكتاب"},
+    "SEQ-08": {"قراءة الكتاب", "القراءة", "قرأ الكتاب"},
+    "HIMMA-GEN-SEQ-008": {"الذهاب إلى الشاطئ", "ذهب ماجد إلى الشاطئ", "ذهب"},
+    "HIMMA-GEN-SEQ-009": {"اللعب بالرمل", "لعب بالرمل", "لعب"},
+    "HIMMA-GEN-SEQ-010": {"تنظيف المكان", "نظف مكانه", "نظف"},
 }
 
 

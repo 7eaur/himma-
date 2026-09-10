@@ -31,6 +31,7 @@ from content_approval_contract_2026_09_08 import (
     LEARNING_QUESTIONS,
     LEARNING_ROUND_QUESTIONS,
     LEARNING_ROUND_STIMULI,
+    LEARNING_VISIBLE_STIMULI,
     OPTION_CONTRACTS,
     POSTTEST_QUESTIONS,
     POSTTEST_STIMULUS_OVERRIDES,
@@ -431,9 +432,26 @@ def _apply_student_v2(items: dict[str, dict[str, Any]]) -> None:
                 "options":[{"text":v,"is_correct":v == answer} for v in values], "media":[], "media_gaps":[],
             })
         item["rounds"] = rebuilt
-    for canonical, correction in (payload.get("explicit_corrections") or {}).items():
-        if canonical in items and correction.get("interaction"):
+    corrections = payload.get("explicit_corrections") or {}
+    for canonical, correction in corrections.items():
+        if canonical not in items:
+            continue
+        if correction.get("interaction"):
             items[canonical]["interaction_type"] = str(correction["interaction"])
+        if correction.get("title"):
+            items[canonical]["title"] = str(correction["title"])
+
+    # Student Experience v2 explicitly reconciled POST-Q14 to the pictured word
+    # نَخْلَة. Sep-08 did not replace this field, so carry the approved sequence
+    # into the single canonical source instead of falling back to legacy text.
+    post_q14 = corrections.get("POST-Q14") or {}
+    sequence = [str(value) for value in post_q14.get("answer_sequence") or []]
+    if sequence:
+        if len(sequence) != 4 or "".join(sequence) != "نخلة":
+            raise RuntimeError(f"POST-Q14 approved answer sequence is invalid: {sequence}")
+        step = items["POST-Q14"]["rounds"][0]
+        step["options"] = [{"text": value, "is_correct": False} for value in sequence]
+        items["POST-Q14"]["criterion"] = " ثم ".join(sequence)
 
 
 def _apply_auditory_story_source(items: dict[str, dict[str, Any]]) -> None:
@@ -556,6 +574,13 @@ def _apply_approval(items: dict[str, dict[str, Any]]) -> None:
             raise RuntimeError(f"{canonical}: stimulus round count mismatch")
         for step, text in zip(item["rounds"], stimuli, strict=True):
             step["stimulus"] = {"kind":"text","text":text}
+    for canonical, values in LEARNING_VISIBLE_STIMULI.items():
+        item = items[canonical]
+        if len(item["rounds"]) != len(values):
+            raise RuntimeError(f"{canonical}: visible stimulus round count mismatch")
+        for step, value in zip(item["rounds"], values, strict=True):
+            step["stimulus"] = {"kind": "text", "text": str(value)}
+
     for canonical, rounds in OPTION_CONTRACTS.items():
         item = items[canonical]
         if len(item["rounds"]) != len(rounds):

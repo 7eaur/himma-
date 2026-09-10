@@ -5,7 +5,7 @@ student-facing runtime never falls back to vague copy or empty choice tasks.
 """
 
 import seed_all
-from content_runtime import canonical_id, canonical_interaction, instruction_text, presentation_data
+from content_runtime import canonical_id, canonical_interaction, instruction_text, presentation_data, step_assets
 from db.database import SessionLocal
 from db.models import ContentItem
 
@@ -120,8 +120,15 @@ def test_known_ambiguous_questions_are_explained_by_their_real_intent():
         }
         assert {"الصوت نفسه", "صوتان مختلفان"} <= option_texts
 
-        pair = (onset.template_data or {}).get("onset_pair_compare") or {}
-        assert [round_data["audio_words"] for round_data in pair.get("rounds", [])] == [
+        steps = sorted(onset.steps, key=lambda value: value.order_index)
+        assert [
+            [
+                str(asset.get("semantic_text") or "")
+                for asset in step_assets(onset, step)
+                if asset.get("asset_type") == "audio" and asset.get("usage") == "prompt"
+            ]
+            for step in steps
+        ] == [
             ["موز", "ماء"],
             ["باب", "بطة"],
             ["قلم", "كرة"],
@@ -167,9 +174,12 @@ def test_level_one_direction_content_is_fully_replaced_by_auditory_comprehension
             (rein, "استمع واختر الإجابة"),
         ]:
             data = item.template_data or {}
-            story = data.get("auditory_story") or {}
-            assert story.get("student_visible_story_text") is False
-            assert story.get("skill") == "الفهم السمعي المباشر"
+            assert "auditory_story" not in data
+            approval = data.get("content_approval_2026_09_08") or {}
+            intro = approval.get("context_intro") or {}
+            assert intro.get("kind") == "audio_story"
+            assert not str(intro.get("text") or "").strip()
+            assert item.skill is not None and item.skill.name == "الفهم السمعي المباشر"
             assert data.get("canonical_interaction_type") == "listen_choose_one"
             assert expected_title in str(data.get("title") or "")
             rounds = _learning_rounds(item)

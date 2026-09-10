@@ -16,7 +16,7 @@ def _by_key(db, key: str) -> ContentItem:
 
 def _round(item: ContentItem, number: int) -> dict:
     experience = dict((item.template_data or {}).get("learning_experience") or {})
-    assert experience.get("projection_contract") == "structured_db_runtime_v1"
+    assert experience.get("projection_contract") == "canonical_release_v3"
     rounds = list(experience.get("rounds") or [])
     assert 1 <= number <= len(rounds)
     return dict(rounds[number - 1])
@@ -66,11 +66,11 @@ def test_structured_projection_keeps_answers_out_of_student_stimuli():
         evidence = _round(_by_key(db, "L3-REIN-02"), 1)
         assert evidence["stimulus_text"] == "المطر"
         assert "حمل سالم مظلته" not in evidence["stimulus_text"]
-        assert evidence["question_text"] == "اختر جملة الدليل المناسبة."
+        assert evidence["question_text"] == "اختر الجملة التي تدل على أن الجو ممطر."
 
         title = _round(_by_key(db, "L3-REIN-05"), 1)
         assert title["stimulus_text"] == ""
-        assert title["question_text"] == "اختر عنوان النص المناسب."
+        assert title["question_text"] == "اختر العنوان المناسب للصورة."
     finally:
         db.close()
 
@@ -82,10 +82,10 @@ def test_structured_addition_prompt_and_approved_onset_pair_are_preserved():
         addition = _round(_by_key(db, "L3-REIN-09"), 1)
         assert addition["stimulus_text"].startswith("جَلَسَ خَالِدٌ قُرْبَ الْبَابِ.")
         assert "بجانب" not in addition["stimulus_text"]
-        assert addition["question_text"] == "اختر معنى الكلمة من الجملة."
+        assert addition["question_text"] == "ما معنى كلمة «قُرْبَ»؟"
 
         onset = _round(_by_key(db, "L1-CORE-06"), 1)
-        assert onset["question_text"] == "استمع إلى الكلمتين، ثم حدّد: هل تبدأان بالصوت نفسه أم بصوتين مختلفين؟"
+        assert onset["question_text"] == "هل تبدأ الكلمتان بالصوت نفسه أم بصوتين مختلفين؟"
         assert onset["instruction_text"] == "استمع إلى الكلمتين كاملتين، ثم قارن أول صوت في كل كلمة."
         assert onset["stimulus_text"] == ""
     finally:

@@ -33,8 +33,8 @@ def _runtime_identity_snapshot():
         inactive_option_count = db.query(ContentOption).filter(ContentOption.is_active.is_(False)).count()
         media = tuple(sorted(
             (
-                int(link.item_id) if link.item_id is not None else None,
-                int(link.step_id) if link.step_id is not None else None,
+                int(link.item_id) if link.item_id is not None else 0,
+                int(link.step_id) if link.step_id is not None else 0,
                 str(link.manifest_asset_id), str(link.asset_type), str(link.usage_context or ""),
             )
             for link in db.query(ContentAssetLink).all()

@@ -13,7 +13,7 @@ import unicodedata
 
 import seed_all
 from canonical_content_publisher import DB_RUNTIME_VERSION
-from content_runtime import active_options, canonical_id, canonical_interaction, media_gaps, presentation_data, step_assets
+from content_runtime import active_options, canonical_id, canonical_interaction, item_assets, media_gaps, presentation_data, step_assets
 from content_student_view import assessment_student_payload
 from db.database import SessionLocal
 from db.models import ContentItem
@@ -121,7 +121,30 @@ def test_complete_student_runtime_has_no_presentation_or_choice_overlap():
 
                 if interaction in LISTEN:
                     prompt_audio = [asset for asset in audio_assets if asset.get("usage") == "prompt"]
-                    if len(prompt_audio) != 1 and not gaps:
+                    round_presentation = presentation_data(item, step)
+                    stimulus_contract = round_presentation.get("stimulus") or {}
+                    approval = (item.template_data or {}).get("content_approval_2026_09_08") or {}
+                    intro = approval.get("context_intro") or {}
+                    if intro.get("kind") == "audio_story":
+                        if prompt_audio:
+                            _issue(errors, canonical, step.order_index, "story audio leaked into a comprehension round")
+                        story_audio = [
+                            asset for asset in item_assets(item)
+                            if asset.get("asset_type") == "audio" and asset.get("usage") == "story_prompt"
+                        ]
+                        if len(story_audio) != 1:
+                            _issue(errors, canonical, None, f"story-context audio count is {len(story_audio)}")
+                    elif stimulus_contract.get("kind") == "audio_sequence":
+                        targets = [str(value) for value in stimulus_contract.get("audio_targets") or []]
+                        actual_targets = [str(asset.get("semantic_text") or "") for asset in prompt_audio]
+                        if len(targets) < 2 or actual_targets != targets:
+                            _issue(
+                                errors,
+                                canonical,
+                                step.order_index,
+                                f"audio-sequence contract mismatch targets={targets} actual={actual_targets}",
+                            )
+                    elif len(prompt_audio) != 1 and not gaps:
                         _issue(errors, canonical, step.order_index, f"listening round prompt-audio count is {len(prompt_audio)}")
 
                 if interaction in IMAGE_CHOICE and not gaps:
