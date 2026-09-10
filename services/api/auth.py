@@ -4,10 +4,11 @@ from datetime import datetime, timedelta, timezone
 import os
 
 import bcrypt
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from joserfc import jwt
 from sqlalchemy.orm import Session
 
+from auth_rate_limit import clear_identifier_rate_limit, enforce_auth_rate_limit
 from db.models import AuditLog, Student, User
 from dependencies import (
     ALGORITHM,
@@ -69,9 +70,11 @@ def _audit(db: Session, *, actor_role: str, actor_id: int, action: str,
 @router.post("/login")
 def supervisor_login(
     creds: ResearcherLogin,
+    request: Request,
     response: Response,
     db: Session = Depends(get_db),
 ):
+    enforce_auth_rate_limit(request, scope="supervisor-login", identifier=creds.username)
     user = db.query(User).filter(User.username == creds.username).first()
     if (
         not user
@@ -83,6 +86,7 @@ def supervisor_login(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="اسم المستخدم أو كلمة المرور غير صحيحة",
         )
+    clear_identifier_rate_limit(scope="supervisor-login", identifier=creds.username)
     token = _create_access_token(sub=user.id, role="researcher")
     _set_token_cookie(response, token)
     _audit(db, actor_role="researcher", actor_id=user.id,
@@ -93,15 +97,18 @@ def supervisor_login(
 @router.post("/student-login")
 def student_login(
     creds: StudentLogin,
+    request: Request,
     response: Response,
     db: Session = Depends(get_db),
 ):
+    enforce_auth_rate_limit(request, scope="student-login", identifier=creds.access_code)
     student = db.query(Student).filter(Student.access_code == creds.access_code).first()
     if not student or not student.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="رمز الدخول غير صحيح، تحقق منه وحاول مرة أخرى",
         )
+    clear_identifier_rate_limit(scope="student-login", identifier=creds.access_code)
     token = _create_access_token(sub=student.id, role="student")
     _set_token_cookie(response, token)
     _audit(db, actor_role="student", actor_id=student.id,
