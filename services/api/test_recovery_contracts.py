@@ -75,11 +75,13 @@ def test_student_access_code_can_be_manual_or_regenerated(researcher_client):
 
 
 def _seed_session_with_pending_item(student_client, canonical_id: str):
-    import seed
+    import seed_all
     from db.database import SessionLocal
     from db.models import Attempt, ContentItem
 
-    seed.run_seed()
+    # Recovery contracts must exercise the production canonical publication,
+    # not the retired 105-item projection used by legacy-stage tests.
+    seed_all.run_seed_all()
     session = student_client.post(
         "/assessment/start",
         json={"session_type": "pretest"},
