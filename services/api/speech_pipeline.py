@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-import os
 
 from sqlalchemy.orm import Session
 
+from asr_governance import machine_review_decision
 from db.models import AudioSubmission, AttemptResponse, ContentStep
 from db.speech_models import SpeechAnalysis, SpeechAnalysisJob
 from speech_alignment import align_reference, alignment_counts
@@ -68,26 +68,6 @@ def _audio_bytes(submission: AudioSubmission) -> bytes:
     return payload
 
 
-def _calibrated_decision(confidence: float | None) -> tuple[str, str | None]:
-    """Return a conservative machine decision.
-
-    The project source requires the confidence threshold to be calibrated on
-    representative samples. Until both a threshold and calibration version are
-    explicitly configured, every valid ASR result remains review_required.
-    """
-    raw_threshold = os.getenv("HIMMA_ASR_CONFIDENCE_THRESHOLD", "").strip()
-    calibration_version = os.getenv("HIMMA_ASR_CALIBRATION_VERSION", "").strip() or None
-    if not raw_threshold or not calibration_version or confidence is None:
-        return "review_required", calibration_version
-    try:
-        threshold = float(raw_threshold)
-    except ValueError:
-        return "review_required", calibration_version
-    if not 0.0 <= threshold <= 1.0:
-        return "review_required", calibration_version
-    return ("auto_accepted" if confidence >= threshold else "review_required"), calibration_version
-
-
 def _token_payload(aligned, provider_words):
     words = list(provider_words or ())
     payload = []
@@ -118,8 +98,9 @@ def process_job(
     """Process exactly one job; safe to call repeatedly.
 
     Runtime provider absence is an explicit blocked state, not a fake result.
-    Temporary failures back off and eventually dead-letter. Permanent failures
-    fail closed. No student score is mutated here.
+    Machine analysis remains advisory unless an explicit approved provider/model
+    calibration exists in the ASR governance registry. No student score is
+    mutated here and deployment environment variables cannot grant acceptance.
     """
     now = now or datetime.now(timezone.utc)
     job = db.query(SpeechAnalysisJob).filter(SpeechAnalysisJob.id == job_id).first()
@@ -163,7 +144,11 @@ def process_job(
         )
         aligned = align_reference(reference, result.transcript)
         counts = alignment_counts(aligned)
-        decision, calibration_version = _calibrated_decision(result.confidence)
+        decision, calibration_version = machine_review_decision(
+            provider_name=result.provider_name,
+            model=result.model,
+            confidence=result.confidence,
+        )
         analysis = SpeechAnalysis(
             job_id=job.id,
             submission_id=submission.id,
