@@ -98,7 +98,7 @@ def session_level_completion(
         return LevelCompletionEvidence(
             True,
             count,
-            method="early_promotion",
+            method="automatic_early_promotion",
             promotion_decision_id=promotion.id,
         )
     return LevelCompletionEvidence(False, count)
