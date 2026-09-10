@@ -2,6 +2,8 @@
 
 Provider execution is deliberately not performed inside HTTP requests. The
 worker owns ASR calls; these endpoints expose queue state and explicit retries.
+Machine analysis is advisory. Human Supervisor Review is the current academic
+authority and is exposed alongside the same immutable AudioSubmission.
 """
 
 from datetime import datetime, timezone
@@ -9,6 +11,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from audio_review_state import latest_audio_review
 from db.models import AudioSubmission, AuditLog, User
 from db.speech_models import SpeechAnalysis, SpeechAnalysisJob
 from dependencies import get_current_researcher, get_db
@@ -18,7 +21,31 @@ from speech_pipeline import enqueue_submission
 router = APIRouter(prefix="/speech-analysis", tags=["Speech Analysis"])
 
 
-def _analysis_payload(job: SpeechAnalysisJob, analysis: SpeechAnalysis | None) -> dict:
+def _human_review_payload(db: Session, submission: AudioSubmission | None) -> dict | None:
+    review = latest_audio_review(db, submission)
+    if review is None:
+        return None
+    return {
+        "id": review.id,
+        "submission_id": review.submission_id,
+        "reviewer_id": review.reviewer_id,
+        "target_units": review.target_units,
+        "deletions": review.deletions,
+        "substitutions": review.substitutions,
+        "insertions": review.insertions,
+        "rubric_score": float(review.rubric_score),
+        "supersedes_review_id": review.supersedes_review_id,
+        "created_at": review.created_at,
+    }
+
+
+def _analysis_payload(
+    db: Session,
+    job: SpeechAnalysisJob,
+    analysis: SpeechAnalysis | None,
+    submission: AudioSubmission | None,
+) -> dict:
+    human_review = _human_review_payload(db, submission)
     return {
         "job": {
             "id": job.id,
@@ -48,6 +75,17 @@ def _analysis_payload(job: SpeechAnalysisJob, analysis: SpeechAnalysis | None) -
             "tokens": analysis.tokens_json,
             "calibration_version": analysis.calibration_version,
             "created_at": analysis.created_at,
+        },
+        "adjudication": {
+            "machine_role": "advisory",
+            "academic_authority": "human_supervisor",
+            "submission_status": submission.status if submission else None,
+            "human_review": human_review,
+            "academic_decision_available": bool(
+                submission is not None
+                and submission.status == "graded"
+                and human_review is not None
+            ),
         },
     }
 
@@ -105,13 +143,16 @@ def submission_analysis(
     db: Session = Depends(get_db),
     researcher: User = Depends(get_current_researcher),
 ):
+    submission = db.query(AudioSubmission).filter(AudioSubmission.id == submission_id).first()
+    if not submission:
+        raise HTTPException(status_code=404, detail="Audio submission not found")
     job = db.query(SpeechAnalysisJob).filter(
         SpeechAnalysisJob.submission_id == submission_id
     ).first()
     if not job:
         raise HTTPException(status_code=404, detail="Speech analysis job not found")
     analysis = db.query(SpeechAnalysis).filter(SpeechAnalysis.job_id == job.id).first()
-    return _analysis_payload(job, analysis)
+    return _analysis_payload(db, job, analysis, submission)
 
 
 @router.post("/job/{job_id}/retry")
