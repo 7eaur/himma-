@@ -1,4 +1,6 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+
+import pytest
 
 from conftest import TestingSessionLocal
 from db.models import (
@@ -15,7 +17,7 @@ from db.models import (
 )
 from db.speech_models import SpeechAnalysis, SpeechAnalysisJob
 from speech_analysis import _analysis_payload
-from speech_pipeline import enqueue_submission, process_job
+from speech_pipeline import LEASE_SECONDS, claim_next_job, enqueue_submission, process_job
 from speech_provider import ProviderResult, ProviderTemporaryError, ProviderWord, UnconfiguredSpeechProvider
 
 
@@ -102,6 +104,36 @@ def test_enqueue_is_idempotent():
         db.flush()
         second = enqueue_submission(db, audio.id)
         assert first.id == second.id
+    finally:
+        db.close()
+
+
+def test_durable_claim_is_exclusive_until_lease_expiry():
+    db = TestingSessionLocal()
+    try:
+        audio = _submission(db)
+        enqueue_submission(db, audio.id)
+        db.commit()
+        now = datetime.now(timezone.utc)
+
+        first = claim_next_job(db, worker_id="worker-a", now=now)
+        assert first is not None
+        job_id = first.id
+        db.commit()
+
+        assert claim_next_job(db, worker_id="worker-b", now=now) is None
+        with pytest.raises(RuntimeError, match="not leased by this worker"):
+            process_job(db, job_id, provider=FakeProvider(), now=now, worker_id="worker-b")
+        db.rollback()
+
+        reclaimed = claim_next_job(
+            db,
+            worker_id="worker-b",
+            now=now + timedelta(seconds=LEASE_SECONDS + 1),
+        )
+        assert reclaimed is not None
+        assert reclaimed.id == job_id
+        assert reclaimed.lease_owner == "worker-b"
     finally:
         db.close()
 
