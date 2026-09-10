@@ -1,0 +1,221 @@
+name: Himma Audit — Static Repository Inventory
+
+permissions:
+  contents: write
+
+on:
+  push:
+    branches: ['audit/comprehensive-repository-review-2026-09-10']
+    paths: ['.github/workflows/audit-static-inventory.yml']
+
+jobs:
+  inventory:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: audit/comprehensive-repository-review-2026-09-10
+          fetch-depth: 1
+
+      - name: Generate legacy dependency and asset inventory
+        shell: bash
+        run: |
+          python - <<'PY'
+          from __future__ import annotations
+
+          import hashlib
+          import os
+          import re
+          import subprocess
+          from collections import defaultdict
+          from pathlib import Path
+
+          ROOT = Path('.').resolve()
+          REPORT = ROOT / 'docs/maintenance/HIMMA_A02_A06_STATIC_INVENTORY_2026-09-10.md'
+
+          tracked = [Path(p) for p in subprocess.check_output(['git', 'ls-files'], text=True).splitlines()]
+          text_suffixes = {'.py', '.ts', '.tsx', '.js', '.jsx', '.css', '.scss', '.json', '.md', '.yml', '.yaml', '.toml', '.ini', '.txt'}
+
+          text_cache: dict[Path, str] = {}
+          for path in tracked:
+              if path.suffix.lower() not in text_suffixes:
+                  continue
+              try:
+                  text_cache[path] = path.read_text(encoding='utf-8')
+              except (UnicodeDecodeError, OSError):
+                  pass
+
+          def refs_for(token: str, owner: Path) -> tuple[list[str], list[str], list[str]]:
+              prod, tests, docs = [], [], []
+              for path, text in text_cache.items():
+                  if path == owner or token not in text:
+                      continue
+                  p = path.as_posix()
+                  if '/test_' in p or p.endswith('.test.tsx') or p.endswith('.test.ts') or p.endswith('.spec.ts') or '/tests/' in p:
+                      tests.append(p)
+                  elif p.startswith('docs/') or p.endswith('.md'):
+                      docs.append(p)
+                  else:
+                      prod.append(p)
+              return sorted(prod), sorted(tests), sorted(docs)
+
+          legacy_re = re.compile(r'(seed|repair|overlay|projection|recovery|legacy)', re.I)
+          legacy_files = [
+              p for p in tracked
+              if p.as_posix().startswith('services/api/')
+              and p.suffix == '.py'
+              and legacy_re.search(p.name)
+          ]
+
+          legacy_rows = []
+          for path in sorted(legacy_files, key=lambda p: p.as_posix()):
+              stem = path.stem
+              prod, tests, docs = refs_for(stem, path)
+              if path.name == 'seed_all.py':
+                  hint = 'ACTIVE_CANONICAL_ENTRYPOINT'
+              elif prod:
+                  hint = 'PRODUCTION_REFERENCED_REVIEW_REQUIRED'
+              elif tests:
+                  hint = 'TEST_ONLY_REFERENCED_REVIEW_REQUIRED'
+              elif docs:
+                  hint = 'DOC_ONLY_OR_STANDALONE_CANDIDATE'
+              else:
+                  hint = 'UNREFERENCED_STANDALONE_CANDIDATE'
+              legacy_rows.append((path.as_posix(), prod, tests, docs, hint))
+
+          # Admin page standardization inventory.
+          admin_pages = [
+              p for p in tracked
+              if p.as_posix().startswith('apps/web/src/app/admin/') and p.name == 'page.tsx'
+          ]
+          admin_rows = []
+          for path in sorted(admin_pages, key=lambda p: p.as_posix()):
+              text = text_cache.get(path, '')
+              uses_adminui = ('components/admin/AdminUI' in text or 'AdminPage' in text or 'AdminPanel' in text)
+              module_imports = sorted(set(re.findall(r'import\s+\w+\s+from\s+["\']([^"\']+\.module\.css)["\']', text)))
+              admin_rows.append((path.as_posix(), uses_adminui, module_imports))
+
+          source_texts = {
+              p: text for p, text in text_cache.items()
+              if p.as_posix().startswith('apps/web/src/')
+          }
+
+          def asset_ref_count(relative_public: str) -> tuple[int, list[str]]:
+              url = '/' + relative_public.replace(os.sep, '/')
+              filename = Path(relative_public).name
+              refs = []
+              for p, text in source_texts.items():
+                  if url in text or filename in text:
+                      refs.append(p.as_posix())
+              return len(refs), sorted(set(refs))
+
+          public_files = [
+              p for p in tracked
+              if p.as_posix().startswith('apps/web/public/') and p.is_file()
+          ]
+          public_rows = []
+          sha_groups: dict[str, list[str]] = defaultdict(list)
+          for path in sorted(public_files, key=lambda p: p.as_posix()):
+              payload = path.read_bytes()
+              sha = hashlib.sha256(payload).hexdigest()
+              rel = path.relative_to('apps/web/public').as_posix()
+              count, refs = asset_ref_count(rel)
+              public_rows.append((path.as_posix(), len(payload), sha, count, refs))
+              sha_groups[sha].append(path.as_posix())
+
+          duplicate_groups = [paths for paths in sha_groups.values() if len(paths) > 1]
+          unused_public = [row for row in public_rows if row[3] == 0]
+
+          education_files = [
+              p for p in tracked
+              if p.as_posix().startswith('assets/education/') and p.is_file()
+          ]
+          education_sha: dict[str, list[str]] = defaultdict(list)
+          for path in education_files:
+              education_sha[hashlib.sha256(path.read_bytes()).hexdigest()].append(path.as_posix())
+          education_duplicate_groups = [paths for paths in education_sha.values() if len(paths) > 1]
+
+          lines: list[str] = []
+          lines += [
+              '# هِمّة — A02/A06 Static Inventory',
+              '',
+              '**Generated from tracked files on the audit branch; no Docker and no runtime mutation.**',
+              '',
+              f'- Tracked files: **{len(tracked)}**',
+              f'- Legacy-named Python candidates: **{len(legacy_rows)}**',
+              f'- Admin page routes scanned: **{len(admin_rows)}**',
+              f'- `apps/web/public` files: **{len(public_rows)}**',
+              f'- Public assets with zero direct source references: **{len(unused_public)}**',
+              f'- Exact duplicate public SHA groups: **{len(duplicate_groups)}**',
+              f'- `assets/education` files: **{len(education_files)}**',
+              f'- Exact duplicate education SHA groups: **{len(education_duplicate_groups)}**',
+              '',
+              '> `UNREFERENCED_*` هنا لا يعني «احذف». يعني فقط أن الملف لا يملك مرجعًا نصيًا مباشرًا من ملف tracked آخر ويحتاج فهمًا يدويًا قبل القرار.',
+              '',
+              '## 1. Legacy / Seed / Repair / Overlay / Projection candidates',
+              '',
+              '| file | prod refs | test refs | docs refs | static hint |',
+              '|---|---:|---:|---:|---|',
+          ]
+          for path, prod, tests, docs, hint in legacy_rows:
+              lines.append(f'| `{path}` | {len(prod)} | {len(tests)} | {len(docs)} | `{hint}` |')
+              if prod:
+                  lines.append(f'<!-- PROD {path}: {"; ".join(prod)} -->')
+              if tests:
+                  lines.append(f'<!-- TEST {path}: {"; ".join(tests)} -->')
+
+          lines += ['', '## 2. Admin page standardization static scan', '', '| page | imports/uses AdminUI primitives? | local CSS modules |', '|---|---|---|']
+          for path, uses, css in admin_rows:
+              lines.append(f'| `{path}` | {"yes" if uses else "no"} | {", ".join(f"`{v}`" for v in css) or "—"} |')
+
+          lines += ['', '## 3. Public assets with zero direct references from `apps/web/src`', '']
+          if unused_public:
+              for path, size, sha, _, _ in unused_public:
+                  lines.append(f'- `{path}` — {size} bytes — sha `{sha[:12]}…`')
+          else:
+              lines.append('- None')
+
+          lines += ['', '## 4. Exact duplicate public binaries', '']
+          if duplicate_groups:
+              for group in sorted(duplicate_groups):
+                  lines.append('- ' + ' == '.join(f'`{p}`' for p in group))
+          else:
+              lines.append('- None')
+
+          lines += ['', '## 5. Referenced public assets', '', '| asset | source files referencing it |', '|---|---:|']
+          for path, _size, _sha, count, refs in public_rows:
+              if count:
+                  lines.append(f'| `{path}` | {count} |')
+                  lines.append(f'<!-- REF {path}: {"; ".join(refs)} -->')
+
+          lines += ['', '## 6. Exact duplicate binaries under `assets/education`', '']
+          if education_duplicate_groups:
+              for group in sorted(education_duplicate_groups):
+                  lines.append('- ' + ' == '.join(f'`{p}`' for p in group))
+          else:
+              lines.append('- None')
+
+          lines += [
+              '',
+              '## 7. Interpretation rules',
+              '',
+              '1. لا يحذف أي Legacy candidate اعتمادًا على هذا التقرير وحده.',
+              '2. المرجع النصي المباشر لا يثبت أن المسار يُنفذ Runtime؛ يجب متابعة call graph والـentrypoints.',
+              '3. asset غير المشار إليه مباشرة قد يُستخدم عبر manifest/runtime mapping؛ لذلك A06 اليدوي يراجع manifests قبل وصفه orphan.',
+              '4. SHA duplicate يثبت تطابق bytes فقط، وليس أن حذف نسخة آمن؛ يجب فحص URLs/contracts أولًا.',
+              '5. AdminUI scan ثابت/تقريبي ويستخدم لتوجيه المراجعة اليدوية، لا كحكم UX نهائي.',
+              '',
+          ]
+
+          REPORT.write_text('\n'.join(lines), encoding='utf-8')
+          PY
+
+      - name: Commit audit inventory and remove one-shot workflow
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/audit-static-inventory.yml
+          git add docs/maintenance/HIMMA_A02_A06_STATIC_INVENTORY_2026-09-10.md
+          git commit -m 'docs(audit): inventory legacy layers and static assets'
+          git push origin HEAD:audit/comprehensive-repository-review-2026-09-10
