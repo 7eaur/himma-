@@ -2,8 +2,9 @@
 recordings.py — legacy MinIO-backed recording compatibility routes.
 
 The canonical activity/assessment upload path lives in ``storage.py``. These
-routes remain mounted for compatibility, so they must enforce the same size
-boundary and must never expose raw object-store exceptions to clients.
+routes remain mounted for compatibility, so they enforce the same size boundary
+before a presigned upload is issued and revalidate the stored object afterward.
+Raw object-store exceptions are never exposed to clients.
 """
 
 import logging
@@ -28,6 +29,7 @@ S3_SECRET_KEY = os.getenv("S3_SECRET_KEY")
 S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME", "himma-audio")
 UPLOAD_URL_EXPIRY = 900
 STREAM_URL_EXPIRY = 300
+MIN_AUDIO_BYTES = 1000
 
 if not S3_ACCESS_KEY or not S3_SECRET_KEY:
     raise RuntimeError("S3_ACCESS_KEY and S3_SECRET_KEY are required")
@@ -51,10 +53,16 @@ def _storage_unavailable(exc: Exception, *, operation: str) -> HTTPException:
     )
 
 
+class InitRequest(BaseModel):
+    file_size: int
+    mime_type: str = "audio/webm"
+
+
 class InitResponse(BaseModel):
     recording_id: str
     upload_url: str
     storage_key: str
+    required_headers: dict[str, str]
 
 
 class CompleteRequest(BaseModel):
@@ -74,15 +82,37 @@ class StreamResponse(BaseModel):
     expires_in: int
 
 
-@router.post("/init", response_model=InitResponse)
-def init_recording(student: Student = Depends(get_current_student)):
-    """Generate a compatibility presigned PUT URL for a student recording.
+def _validate_audio_metadata(*, file_size: int, mime_type: str) -> None:
+    if file_size < MIN_AUDIO_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="ملف التسجيل فارغ أو أصغر من الحد المقبول",
+        )
+    if file_size > MAX_AUDIO_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="حجم التسجيل يتجاوز الحد المسموح",
+        )
+    if mime_type != "audio/webm":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="نوع ملف التسجيل غير مدعوم",
+        )
 
-    The object is revalidated on ``/complete`` against the canonical 10 MiB
-    limit. New runtime clients must use the canonical upload path in
-    ``storage.py``; this compatibility route is retained until W5 dependency
-    cleanup proves it can be removed safely.
+
+@router.post("/init", response_model=InitResponse)
+def init_recording(
+    req: InitRequest,
+    student: Student = Depends(get_current_student),
+):
+    """Issue a PUT URL whose signed headers bind MIME and exact content length.
+
+    A caller must declare the object size before receiving a presigned URL. The
+    same ``Content-Length`` and ``Content-Type`` values are part of the signed
+    request, so an oversized object cannot use this compatibility URL. The
+    object is independently revalidated again on ``/complete``.
     """
+    _validate_audio_metadata(file_size=req.file_size, mime_type=req.mime_type)
     recording_id = str(uuid.uuid4())
     storage_key = f"audio/{student.id}/{recording_id}.webm"
 
@@ -93,7 +123,8 @@ def init_recording(student: Student = Depends(get_current_student)):
             Params={
                 "Bucket": S3_BUCKET_NAME,
                 "Key": storage_key,
-                "ContentType": "audio/webm",
+                "ContentType": req.mime_type,
+                "ContentLength": req.file_size,
             },
             ExpiresIn=UPLOAD_URL_EXPIRY,
         )
@@ -104,6 +135,10 @@ def init_recording(student: Student = Depends(get_current_student)):
         "recording_id": recording_id,
         "storage_key": storage_key,
         "upload_url": upload_url,
+        "required_headers": {
+            "Content-Type": req.mime_type,
+            "Content-Length": str(req.file_size),
+        },
     }
 
 
@@ -131,29 +166,19 @@ def complete_recording(
     file_size = int(head.get("ContentLength") or 0)
     mime_type = str(head.get("ContentType") or "")
 
-    if file_size < 1000:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="ملف التسجيل فارغ أو أصغر من الحد المقبول",
-        )
-    if file_size > MAX_AUDIO_BYTES:
-        try:
-            s3.delete_object(Bucket=S3_BUCKET_NAME, Key=req.storage_key)
-        except Exception as exc:
-            logger.warning(
-                "Failed to remove oversized recording object %s: %s",
-                req.storage_key,
-                type(exc).__name__,
-            )
-        raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail="حجم التسجيل يتجاوز الحد المسموح",
-        )
-    if mime_type != "audio/webm":
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="نوع ملف التسجيل غير مدعوم",
-        )
+    try:
+        _validate_audio_metadata(file_size=file_size, mime_type=mime_type)
+    except HTTPException as validation_error:
+        if validation_error.status_code == status.HTTP_413_REQUEST_ENTITY_TOO_LARGE:
+            try:
+                s3.delete_object(Bucket=S3_BUCKET_NAME, Key=req.storage_key)
+            except Exception as exc:
+                logger.warning(
+                    "Failed to remove oversized recording object %s: %s",
+                    req.storage_key,
+                    type(exc).__name__,
+                )
+        raise
 
     return {
         "status": "ok",
