@@ -7,10 +7,17 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, File, Header, HTTPException, UploadFile
 from pydantic import BaseModel, Field
-from sqlalchemy import func, or_
+from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload
 
+from audio_review_state import (
+    latest_audio_submission,
+    open_rerecord_task_once,
+    rerecord_task_is_open,
+    session_attempt_ids_with_latest_audio_status,
+    session_latest_audio_submissions,
+)
 from content_runtime import (
     canonical_id,
     canonical_interaction,
@@ -204,32 +211,18 @@ def _attempt_ids_with_audio_status(
     session_id: int,
     statuses: set[str],
 ) -> set[int]:
-    if not statuses:
-        return set()
-    return {
-        row[0]
-        for row in db.query(Attempt.id)
-        .join(AttemptResponse, AttemptResponse.attempt_id == Attempt.id)
-        .join(AudioSubmission, AudioSubmission.response_id == AttemptResponse.id)
-        .filter(
-            Attempt.session_id == session_id,
-            AudioSubmission.status.in_(tuple(statuses)),
-        )
-        .all()
-    }
+    """Compatibility wrapper that always interprets only the latest submission."""
+    return session_attempt_ids_with_latest_audio_status(db, session_id, statuses)
 
 
 def _answered_step_ids(db: Session, attempt_id: int) -> set[int]:
-    classic = {
-        row.step_id
-        for row in db.query(AttemptResponse.step_id).outerjoin(
-            AudioSubmission,
-            AudioSubmission.response_id == AttemptResponse.id,
-        ).filter(
-            AttemptResponse.attempt_id == attempt_id,
-            or_(AudioSubmission.id.is_(None), AudioSubmission.status == "graded"),
-        ).all()
-    }
+    classic: set[int] = set()
+    responses = db.query(AttemptResponse).filter(AttemptResponse.attempt_id == attempt_id).all()
+    for response in responses:
+        submission = latest_audio_submission(db, response)
+        if submission is None or submission.status == "graded":
+            classic.add(int(response.step_id))
+
     structured = {
         row.step_id
         for row in db.query(ActivityStepResponse.step_id).filter(
@@ -285,6 +278,71 @@ def _validate_option_ids(step: ContentStep, selected_ids: list[int]) -> None:
         raise HTTPException(status_code=400, detail="الإجابة المختارة لا تنتمي إلى هذا السؤال")
     if len(set(selected_ids)) != len(selected_ids):
         raise HTTPException(status_code=400, detail="لا يمكن اختيار العنصر نفسه أكثر من مرة")
+
+
+def _assessment_rerecord_tasks(
+    db: Session,
+    *,
+    session_id: int,
+    student_id: int,
+    include_open: bool = False,
+) -> list[dict]:
+    tasks: list[dict] = []
+    for response, submission in session_latest_audio_submissions(db, session_id):
+        if submission.status != "rerecord_required":
+            continue
+        opened = rerecord_task_is_open(
+            db,
+            student_id=student_id,
+            submission_id=submission.id,
+        )
+        if opened and not include_open:
+            continue
+        attempt = db.query(Attempt).filter(Attempt.id == response.attempt_id).first()
+        if attempt is None:
+            continue
+        item = _load_item(db, attempt.item_id)
+        if item is None:
+            continue
+        step = next((candidate for candidate in item.steps if candidate.id == response.step_id), None)
+        if step is None:
+            continue
+        tasks.append({
+            "submission_id": submission.id,
+            "session_id": session_id,
+            "attempt_id": attempt.id,
+            "item_id": item.id,
+            "step_id": step.id,
+            "stable_key": item.stable_key,
+            "title": (item.template_data or {}).get("title") or "إعادة تسجيل القراءة",
+            "expected_reading_text": step.expected_reading_text,
+            "opened": opened,
+        })
+    return tasks
+
+
+def _opened_assessment_rerecord_payload(
+    db: Session,
+    *,
+    session_id: int,
+    student_id: int,
+) -> dict | None:
+    tasks = _assessment_rerecord_tasks(
+        db,
+        session_id=session_id,
+        student_id=student_id,
+        include_open=True,
+    )
+    task = next((value for value in tasks if value["opened"]), None)
+    if task is None:
+        return None
+    item = _load_item(db, int(task["item_id"]))
+    if item is None:
+        return None
+    step = next((candidate for candidate in item.steps if candidate.id == int(task["step_id"])), None)
+    if step is None:
+        return None
+    return _item_step_payload(item, step)
 
 
 @router.post("/start", response_model=schemas.AssessmentSessionResponse)
@@ -356,6 +414,61 @@ def get_active_session(
     ).first()
 
 
+@router.get("/session/{session_id}/rerecord-tasks")
+def assessment_rerecord_tasks(
+    session_id: int,
+    db: Session = Depends(get_db),
+    student: Student = Depends(get_current_student),
+):
+    _session_for_student(db, session_id, student.id)
+    return _assessment_rerecord_tasks(
+        db,
+        session_id=session_id,
+        student_id=student.id,
+    )
+
+
+@router.post("/session/{session_id}/attempt/{item_id}/step/{step_id}/rerecord/start")
+def start_assessment_rerecord_task(
+    session_id: int,
+    item_id: int,
+    step_id: int,
+    db: Session = Depends(get_db),
+    student: Student = Depends(get_current_student),
+):
+    _session_for_student(db, session_id, student.id)
+    attempt = db.query(Attempt).filter(
+        Attempt.session_id == session_id,
+        Attempt.item_id == item_id,
+    ).first()
+    if attempt is None:
+        raise HTTPException(status_code=404, detail="مهمة إعادة التسجيل غير موجودة")
+    response = db.query(AttemptResponse).filter(
+        AttemptResponse.attempt_id == attempt.id,
+        AttemptResponse.step_id == step_id,
+    ).first()
+    submission = latest_audio_submission(db, response)
+    if submission is None or submission.status != "rerecord_required":
+        raise HTTPException(status_code=409, detail="هذه القراءة لا تنتظر إعادة تسجيل")
+
+    opened = open_rerecord_task_once(
+        db,
+        student_id=student.id,
+        submission=submission,
+        details=f"assessment_session={session_id};item={item_id};step={step_id}",
+    )
+    if opened:
+        db.commit()
+    return {
+        "status": "ok",
+        "opened": True,
+        "session_id": session_id,
+        "item_id": item_id,
+        "step_id": step_id,
+        "submission_id": submission.id,
+    }
+
+
 @router.get("/session/{session_id}/next", response_model=Optional[schemas.ContentItemResponse])
 def get_next_item(
     session_id: int,
@@ -364,8 +477,22 @@ def get_next_item(
 ):
     session = _session_for_student(db, session_id, student.id)
 
-    if _attempt_ids_with_audio_status(db, session_id, {"uploaded"}):
+    # Assessment policy intentionally waits for human review before advancing to
+    # another assessment item. The check is latest-only so historical uploads do
+    # not resurrect a resolved block after a rerecord.
+    if _attempt_ids_with_audio_status(db, session_id, {"uploaded", "pending"}):
         raise HTTPException(status_code=409, detail="يوجد تسجيل صوتي في انتظار المراجعة")
+
+    opened_rerecord = _opened_assessment_rerecord_payload(
+        db,
+        session_id=session_id,
+        student_id=student.id,
+    )
+    if opened_rerecord is not None:
+        return opened_rerecord
+
+    if _attempt_ids_with_audio_status(db, session_id, {"rerecord_required"}):
+        raise HTTPException(status_code=409, detail="يوجد تسجيل يحتاج إلى إعادة التسجيل")
 
     pending_attempt = db.query(Attempt).filter(
         Attempt.session_id == session_id,
@@ -427,7 +554,7 @@ def get_session_progress(
     blocked_attempt_ids = _attempt_ids_with_audio_status(
         db,
         session_id,
-        {"uploaded", "rerecord_required"},
+        {"uploaded", "pending", "rerecord_required"},
     )
     completed_query = db.query(Attempt).filter(
         Attempt.session_id == session_id,
@@ -443,15 +570,19 @@ def get_session_progress(
     total_items = db.query(ContentItem).filter(
         ContentItem.kind == KIND_BY_SESSION_TYPE[session.session_type],
     ).count()
-    classic_steps = db.query(AttemptResponse.id).join(
-        Attempt, Attempt.id == AttemptResponse.attempt_id,
-    ).outerjoin(
-        AudioSubmission,
-        AudioSubmission.response_id == AttemptResponse.id,
-    ).filter(
-        Attempt.session_id == session_id,
-        or_(AudioSubmission.id.is_(None), AudioSubmission.status == "graded"),
-    ).count()
+
+    classic_steps = 0
+    responses = (
+        db.query(AttemptResponse)
+        .join(Attempt, Attempt.id == AttemptResponse.attempt_id)
+        .filter(Attempt.session_id == session_id)
+        .all()
+    )
+    for response in responses:
+        submission = latest_audio_submission(db, response)
+        if submission is None or submission.status == "graded":
+            classic_steps += 1
+
     structured_steps = db.query(ActivityStepResponse.id).join(
         Attempt, Attempt.id == ActivityStepResponse.attempt_id,
     ).filter(Attempt.session_id == session_id).count()
@@ -527,15 +658,26 @@ def submit_attempt(
             raise HTTPException(status_code=503, detail="خدمة حفظ التسجيلات غير متاحة الآن")
 
         if existing_response:
-            audio = db.query(AudioSubmission).filter(AudioSubmission.response_id == existing_response.id).first()
-            if not audio or audio.status != "rerecord_required":
+            previous = latest_audio_submission(db, existing_response)
+            if previous is None or previous.status != "rerecord_required":
                 raise HTTPException(status_code=409, detail="تم إرسال هذه القراءة مسبقًا")
-            audio.storage_key = submission.audio_storage_key
-            audio.file_size = submission.audio_file_size
-            audio.mime_type = submission.audio_mime_type
-            audio.duration_seconds = submission.audio_duration_seconds
-            audio.status = "uploaded"
-            audio.submitted_at = datetime.now(timezone.utc)
+            if not rerecord_task_is_open(
+                db,
+                student_id=student.id,
+                submission_id=previous.id,
+            ):
+                raise HTTPException(status_code=409, detail="افتح مهمة إعادة التسجيل من مسارك أولًا")
+
+            # Append-only history: never mutate the rejected recording. The new
+            # submission becomes active solely because it has the newest id.
+            db.add(AudioSubmission(
+                response_id=existing_response.id,
+                storage_key=submission.audio_storage_key,
+                file_size=submission.audio_file_size,
+                mime_type=submission.audio_mime_type or "audio/webm",
+                duration_seconds=submission.audio_duration_seconds,
+                status="uploaded",
+            ))
             existing_response.is_correct = None
             existing_response.submitted_at = datetime.now(timezone.utc)
             existing_response.elapsed_seconds += submission.elapsed_seconds
@@ -601,7 +743,7 @@ def submit_attempt(
     total_steps = len(item.steps)
     if _completed_response_count(db, attempt.id) >= total_steps:
         attempt.status = "completed"
-        attempt.completed_at = datetime.now(timezone.utc)
+        attempt.completed_at = attempt.completed_at or datetime.now(timezone.utc)
     attempt.elapsed_seconds += submission.elapsed_seconds
     session.elapsed_seconds += submission.elapsed_seconds
     session.updated_at = datetime.now(timezone.utc)
