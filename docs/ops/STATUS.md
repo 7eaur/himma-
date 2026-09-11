@@ -1,9 +1,9 @@
 # STATUS — Himma Platform
 
-**Last updated:** 2026-09-10  
+**Last updated:** 2026-09-11  
 **Repository:** `7eaur/himma-`  
 **Active branch:** `audit/comprehensive-repository-review-2026-09-10`  
-**Current state:** `A00–A09 AUDIT CLOSED — A10/W1 GREEN — A10/W2 IN PROGRESS — NO MERGE / NO DEPLOY`
+**Current state:** `A00–A09 AUDIT CLOSED — A10/W1 GREEN — A10/W2 GREEN — A10/W3 ACTIVE — NO MERGE / NO DEPLOY`
 
 > هذا الملف يعكس نقطة التنفيذ الحالية. Recovery/Integration الأقدم أدلة تاريخية فقط وليست release authority للحالة الحالية.
 
@@ -30,35 +30,68 @@ Quality Gate:
 
 `34467329988` / run `813`
 
-نتيجة البوابة على SHA نفسه:
-
-- Security PASS.
-- Frontend PASS.
-- Backend PASS.
-- Integration / Playwright E2E PASS.
+النتيجة على SHA نفسه: Security PASS، Frontend PASS، Backend PASS، Integration / Playwright E2E PASS.
 
 تم إغلاق عقود W1 الخاصة بـ append-only rerecord history، latest AudioSubmission، deferred explicit rerecord، numeric rubric evidence، pending-audio aggregate، canonical Level Completion، Journey/Rewards/completion truth، واختبارات الحدود. كما أُصلح أصل WebP الفاسد لـ `HIMMA-GEN-VOC-001` دون تغيير Stable ID أو الدلالة الأكاديمية `بيت`.
 
-## A10 / W2 — IN PROGRESS
+## A10 / W2 — CLOSED GREEN
 
 W2 = Security / Speech Boundaries.
 
-التنفيذ الجاري على فرع التدقيق يشمل:
+Exact-SHA verified code:
 
-- Protected runtime security mode: `trial` و`production` يستخدمان Secure session cookies.
-- `/ready` أصبح fail-closed إذا لم يكن runtime في protected security mode أو كان سر JWT غير كافٍ.
-- legacy recordings compatibility route أصبح يعيد أخطاء تخزين عامة للعميل بدل تسريب تفاصيل مزود التخزين.
-- oversized legacy recording يُرفض عند completion ويُحذف best-effort؛ ما زال `AUD-SEC-004` مفتوحًا جزئيًا لأن `/recordings/init` نفسه ما زال presigned PUT compatibility path حتى إثبات إمكانية إزالته أو استبداله بعقد upload يفرض الحجم قبل الرفع.
-- أضيف ASR governance registry صريح وفارغ عمدًا؛ Environment threshold/version لا يمنح `auto_accepted`.
-- SpeechAnalysis أصبح advisory ويعرض Human Supervisor Review كـ academic authority لنفس AudioSubmission.
-- Regression tests أضيفت لهذه الحدود.
+`77ac72174a9e21163f6341ea8e0fcc172269eac3`
 
-W2 لم يُغلق بعد. ما زال مطلوبًا: auth abuse/rate limiting، revocable auth epoch، speech worker atomic claim/lease، retry/dead-letter operational hardening، وإغلاق SEC-004 جذريًا أو إثبات route retirement.
+Quality Gate:
+
+`34548388760` / run `822`
+
+النتيجة على SHA نفسه:
+
+- Security PASS.
+- Frontend PASS.
+- Backend PASS — 852 tests successful on the final W2 run.
+- Integration / Playwright E2E PASS.
+- Alembic upgrade -> downgrade -> upgrade PASS.
+- Alembic model drift PASS.
+- canonical content validation and seed idempotency PASS.
+
+تم إغلاق نطاق W2 البرمجي:
+
+- centralized auth abuse/rate limiting without storing raw student access codes.
+- revocable auth/session epochs for student access-code and supervisor credential rotation.
+- protected runtime security mode with Secure cookies and fail-closed readiness.
+- legacy recording upload size/type enforcement before presign plus post-upload verification and sanitized storage failures.
+- explicit ASR governance registry; arbitrary env threshold/version cannot grant academic acceptance.
+- SpeechAnalysis remains advisory; Human Supervisor Review remains academic authority.
+- durable speech worker claim leases and exclusive recovery after lease expiry.
+- bounded retry/dead-letter and audited manual recovery contract.
+
+`AUD-A03-008` remains intentionally deferred outside W2: Production ASR provider/model/calibration/privacy/cost/governance is not approved, therefore no Production ASR integration is authorized.
+
+## A10 / W3 — ACTIVE
+
+W3 = Admin / Student UX / Accessibility / Web Reliability.
+
+Next implementation scope is driven by the Master Gap Register, including:
+
+- unify fragmented Admin presentation on shared AdminUI/tokens where ownership is proven.
+- make Student Detail partial-source failures explicit instead of silently rendering empty/zero values.
+- render canonical per-level Journey/completion state rather than inferring completion from `level < current_level`.
+- deterministic responsive coverage for Student Detail across 320/360/390/430/768/Desktop.
+- accessible dialog lifecycle: focus trap, Escape close, focus return.
+- Settings tabs/navigation with correct keyboard and ARIA semantics.
+- student-context-preserving review deep links/filters.
+- route-aware safe media caching while private JSON stays no-store.
+- remove runtime Google Fonts dependency in favor of local/build-time typography strategy.
+- global reduced-motion policy, accessible semantic color tokens, progress semantics and remaining W3 accessibility regressions.
+
+W3 is not yet Green and no release claim is made.
 
 ## Active academic contract
 
-- Placement: `<50` → L1، `50..<80` → L2، `80..100` → L3.
-- Activity `>=80` success، `70..<80` guided retry، `<70` reinforcement.
+- Placement: `<50` -> L1, `50..<80` -> L2, `80..100` -> L3.
+- Activity `>=80` success, `70..<80` guided retry, `<70` reinforcement.
 - L1/L2 early promotion: >=6 Core + mastery >=85 + critical coverage + critical floor >=70 + no unresolved blockers at irreversible boundary.
 - no automatic demotion.
 - L3 requires 10 Core.
@@ -100,4 +133,4 @@ Do not revert to historical 105-item runtime assumptions.
 
 ## Release boundary
 
-No Merge, Release, Deploy, Railway finalization or Docker use is authorized. W2 must be closed with exact-SHA evidence, then W3–W6 follow the Master Gap Register; A11 starts only after W6 Green.
+No Merge, Release, Deploy, Railway finalization or Docker use is authorized. W3–W6 follow the Master Gap Register; A11 starts only after W6 Green.
