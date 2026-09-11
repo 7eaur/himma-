@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { BarChart3, ClipboardList, Eye, LayoutDashboard, LogOut, Menu, Mic, Settings, UserPlus, Users, X } from "lucide-react";
 import ReinforcementReviewPanel from "@/components/ReinforcementReviewPanel";
 import AdminNotifications from "@/components/admin/AdminNotifications";
+import { useAccessibleDialog } from "@/hooks/useAccessibleDialog";
 import styles from "./dashboard-layout.module.css";
 
 const navSections = [
@@ -23,10 +24,25 @@ function SidebarContent({ pathname, supervisorName, onNavigate, onLogout }: Side
 }
 
 export default function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname(); const router = useRouter(); const [mobileMenuOpen, setMobileMenuOpen] = useState(false); const [authState, setAuthState] = useState<"checking" | "ready">("checking"); const [supervisorName, setSupervisorName] = useState("");
+  const pathname = usePathname();
+  const router = useRouter();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [authState, setAuthState] = useState<"checking" | "ready">("checking");
+  const [supervisorName, setSupervisorName] = useState("");
+  const mobileDialogRef = useRef<HTMLDivElement>(null);
+  const menuTriggerRef = useRef<HTMLButtonElement>(null);
+  const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
+
+  useAccessibleDialog({
+    open: mobileMenuOpen,
+    dialogRef: mobileDialogRef,
+    returnFocusRef: menuTriggerRef,
+    onClose: closeMobileMenu,
+  });
+
   useEffect(() => { let alive = true; const verify = async () => { try { const response = await fetch("/api/auth/me", { cache: "no-store" }); const data = await response.json().catch(() => null); if (!response.ok || data?.role !== "researcher") { router.replace("/admin/login"); return; } if (alive) { setSupervisorName(data.display_name || "المشرف"); setAuthState("ready"); } } catch { router.replace("/admin/login"); } }; void verify(); return () => { alive = false; }; }, [router]);
   const handleLogout = async () => { try { await fetch("/api/auth/logout", { method: "POST" }); } finally { router.replace("/admin/login"); router.refresh(); } };
   if (authState !== "ready") return <div className={styles.guard} dir="rtl" data-testid="admin-auth-guard"><Image src="/brand/logo-navy.svg" alt="هِمّة" width={130} height={46} priority /><div className="spinner w-12 h-12 border-4" /><p>جاري التحقق من جلسة المشرف...</p></div>;
-  const sidebarProps = { pathname, supervisorName, onNavigate: () => setMobileMenuOpen(false), onLogout: handleLogout };
-  return <div className={styles.dashboardShell} dir="rtl"><aside className={styles.sidebarDesktop}><SidebarContent {...sidebarProps} /></aside>{mobileMenuOpen && <div className={styles.mobileOverlay}><button className={styles.mobileBackdrop} onClick={() => setMobileMenuOpen(false)} aria-label="إغلاق القائمة" /><div className={styles.mobilePanel} role="dialog" aria-modal="true" aria-label="قائمة لوحة المشرف"><button onClick={() => setMobileMenuOpen(false)} className={styles.mobileClose} aria-label="إغلاق القائمة"><X size={24} /></button><SidebarContent {...sidebarProps} /></div></div>}<main className={styles.content}><div className={styles.mobileBar}><button onClick={() => setMobileMenuOpen(true)} className={styles.menuButton} aria-label="فتح القائمة"><Menu size={23} /></button><Image src="/brand/logo-navy.svg" alt="هِمّة" width={92} height={30} /><span className={styles.mobileBarText}>الإدارة</span><AdminNotifications /></div><ReinforcementReviewPanel />{children}</main></div>;
+  const sidebarProps = { pathname, supervisorName, onNavigate: closeMobileMenu, onLogout: handleLogout };
+  return <div className={styles.dashboardShell} dir="rtl"><aside className={styles.sidebarDesktop}><SidebarContent {...sidebarProps} /></aside>{mobileMenuOpen && <div className={styles.mobileOverlay}><button className={styles.mobileBackdrop} onClick={closeMobileMenu} aria-label="إغلاق القائمة" tabIndex={-1} /><div ref={mobileDialogRef} className={styles.mobilePanel} role="dialog" aria-modal="true" aria-label="قائمة لوحة المشرف" tabIndex={-1}><button onClick={closeMobileMenu} className={styles.mobileClose} aria-label="إغلاق القائمة"><X size={24} /></button><SidebarContent {...sidebarProps} /></div></div>}<main className={styles.content}><div className={styles.mobileBar}><button ref={menuTriggerRef} onClick={() => setMobileMenuOpen(true)} className={styles.menuButton} aria-label="فتح القائمة" aria-haspopup="dialog" aria-expanded={mobileMenuOpen}><Menu size={23} /></button><Image src="/brand/logo-navy.svg" alt="هِمّة" width={92} height={30} /><span className={styles.mobileBarText}>الإدارة</span><AdminNotifications /></div><ReinforcementReviewPanel />{children}</main></div>;
 }
