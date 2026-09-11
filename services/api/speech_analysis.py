@@ -161,7 +161,7 @@ def retry_job(
     db: Session = Depends(get_db),
     researcher: User = Depends(get_current_researcher),
 ):
-    job = db.query(SpeechAnalysisJob).filter(SpeechAnalysisJob.id == job_id).first()
+    job = db.query(SpeechAnalysisJob).filter(SpeechAnalysisJob.id == job_id).with_for_update().first()
     if not job:
         raise HTTPException(status_code=404, detail="Speech analysis job not found")
     if db.query(SpeechAnalysis.id).filter(SpeechAnalysis.job_id == job.id).first():
@@ -169,10 +169,16 @@ def retry_job(
     if job.status not in {"failed", "dead_letter", "blocked_provider", "retry_wait"}:
         raise HTTPException(status_code=409, detail="Job is not in a retryable state")
 
+    previous_status = job.status
+    previous_attempt_count = job.attempt_count
     job.status = "queued"
+    job.attempt_count = 0
     job.next_attempt_at = None
+    job.lease_owner = None
+    job.lease_expires_at = None
     job.last_error_code = None
     job.last_error_message = None
+    job.completed_at = None
     job.updated_at = datetime.now(timezone.utc)
     db.add(AuditLog(
         actor_role="researcher",
@@ -180,7 +186,10 @@ def retry_job(
         action="retry_speech_analysis",
         entity_type="SpeechAnalysisJob",
         entity_id=str(job.id),
-        details="Manual queue retry requested",
+        details=(
+            f"Manual recovery requeued job from status={previous_status}; "
+            f"previous_attempt_count={previous_attempt_count}; new_attempt_count=0"
+        ),
     ))
     db.commit()
-    return {"job_id": job.id, "status": job.status}
+    return {"job_id": job.id, "status": job.status, "attempt_count": job.attempt_count}
