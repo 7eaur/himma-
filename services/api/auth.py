@@ -17,6 +17,7 @@ from dependencies import (
     get_any_authenticated,
     get_db,
 )
+from observability import log_auth_security_signal
 from runtime_flags import secure_session_cookie_required
 from schemas import MeResponse, ResearcherLogin, StudentLogin
 
@@ -89,6 +90,12 @@ def supervisor_login(
         or user.role != "researcher"
         or not verify_password(creds.password, user.password_hash)
     ):
+        log_auth_security_signal(
+            request,
+            scope="supervisor-login",
+            outcome="invalid_credentials",
+            identifier=creds.username,
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="اسم المستخدم أو كلمة المرور غير صحيحة",
@@ -115,6 +122,12 @@ def student_login(
     enforce_auth_rate_limit(request, scope="student-login", identifier=creds.access_code)
     student = db.query(Student).filter(Student.access_code == creds.access_code).first()
     if not student or not student.is_active:
+        log_auth_security_signal(
+            request,
+            scope="student-login",
+            outcome="invalid_credentials",
+            identifier=creds.access_code,
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="رمز الدخول غير صحيح، تحقق منه وحاول مرة أخرى",
