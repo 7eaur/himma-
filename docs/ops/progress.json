@@ -1,12 +1,12 @@
 {
-  "schema_version": 9,
+  "schema_version": 10,
   "plan_version": "HIMMA-COMPREHENSIVE-AUDIT-AND-ROOT-REMEDIATION-2026-09-10",
   "repository": "7eaur/himma-",
   "branch": "audit/comprehensive-repository-review-2026-09-10",
   "phase": "A10_ROOT_REMEDIATION",
-  "wave": "W2_SECURITY_SPEECH_BOUNDARIES",
-  "status": "W1_CLOSED_GREEN_W2_ACTIVE_NOT_RELEASE_READY",
-  "last_updated": "2026-09-10",
+  "wave": "W3_ADMIN_STUDENT_UX_ACCESSIBILITY_WEB_RELIABILITY",
+  "status": "W1_CLOSED_GREEN_W2_CLOSED_GREEN_W3_ACTIVE_NOT_RELEASE_READY",
+  "last_updated": "2026-09-11",
   "refetch_current_head_before_work": true,
   "continuity_handoff": "docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-10_A10_W1_FULL_AR.md",
   "execution_checkpoint": "docs/maintenance/HIMMA_A10_W1_EXECUTION_CHECKPOINT_2026-09-10_AR.md",
@@ -23,7 +23,7 @@
     "A07": "CLOSED_AUDIT",
     "A08": "CLOSED_AUDIT",
     "A09": "CLOSED_AUDIT",
-    "A10": "IN_PROGRESS_W2",
+    "A10": "IN_PROGRESS_W3",
     "A11": "BLOCKED_UNTIL_W6_GREEN"
   },
   "runtime": {
@@ -75,13 +75,12 @@
     "frontend": "PASS",
     "backend": "PASS",
     "integration_playwright_e2e": "PASS",
-    "exact_sha_green": true,
-    "notes": "CI was triggered through stage/a10-w1-ci pointing at the same exact SHA because push workflow filters exclude audit/*"
+    "exact_sha_green": true
   },
   "w2": {
-    "status": "IN_PROGRESS",
+    "status": "CLOSED_GREEN",
     "scope": "Security / Speech boundaries",
-    "priority_gaps": [
+    "scope_ids": [
       "AUD-SEC-001",
       "AUD-SEC-002",
       "AUD-SEC-003",
@@ -93,7 +92,34 @@
       "AUD-A03-007"
     ],
     "external_deferred": ["AUD-A03-008"],
-    "next": "implement centralized auth abuse controls and revocable auth/session epoch before speech-governance runtime hardening"
+    "verified_sha": "77ac72174a9e21163f6341ea8e0fcc172269eac3",
+    "quality_gate_run": 34548388760,
+    "quality_gate_run_number": 822,
+    "security": "PASS",
+    "frontend": "PASS",
+    "backend": "PASS",
+    "integration_playwright_e2e": "PASS",
+    "exact_sha_green": true,
+    "notes": "Production ASR remains intentionally blocked pending independent provider/calibration/privacy/cost/governance approval."
+  },
+  "w3": {
+    "status": "IN_PROGRESS",
+    "scope": "Admin / Student UX / Accessibility / Web reliability",
+    "priority_gaps": [
+      "AUD-A04-001",
+      "AUD-A04-002",
+      "AUD-A04-003",
+      "AUD-A04-005",
+      "AUD-A04-006",
+      "AUD-A04-007",
+      "AUD-A04-008",
+      "AUD-PERF-001",
+      "AUD-PERF-004",
+      "AUD-A11Y-001",
+      "AUD-A11Y-002",
+      "AUD-A11Y-003"
+    ],
+    "next": "inspect current AdminUI, Student Detail, Settings, BFF media cache policy and global accessibility tokens before root-fix implementation"
   },
   "branch_governance": {
     "blind_merge_forbidden": true,
@@ -116,5 +142,5 @@
     "supervising organization details/logo before final report signoff",
     "credential rotation before production/deployment if historically exposed"
   ],
-  "next_step": "Continue A10/W2. Do not merge/deploy. Keep Production ASR blocked until explicit approval."
+  "next_step": "Continue A10/W3. Do not merge/deploy. Keep Production ASR blocked until explicit approval."
 }
