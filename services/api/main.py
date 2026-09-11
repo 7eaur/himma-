@@ -17,6 +17,7 @@ from reinforcement_review import router as reinforcement_review_router
 from media import router as media_router
 from speech_analysis import router as speech_analysis_router
 from journey import router as journey_router
+from researcher_journey import router as researcher_journey_router
 from reports import router as reports_router
 from skill_reports import router as skill_reports_router
 from admin_notifications import router as admin_notifications_router
@@ -55,6 +56,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(protected_router)
 app.include_router(journey_router)
+app.include_router(researcher_journey_router)
 app.include_router(assessment_retake_router)
 app.include_router(assessment_completion_router)
 app.include_router(assessment_router)
