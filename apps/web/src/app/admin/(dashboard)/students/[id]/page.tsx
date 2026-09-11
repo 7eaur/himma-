@@ -7,7 +7,6 @@ import {
   Activity,
   ArrowRight,
   BookOpen,
-  Calendar,
   Check,
   ClipboardList,
   Copy,
@@ -15,7 +14,6 @@ import {
   History,
   KeyRound,
   LockKeyhole,
-  PencilLine,
   Play,
   Power,
   RefreshCw,
@@ -66,6 +64,27 @@ interface RewardEvent {
   created_at: string;
 }
 
+type JourneyLevelState = "locked" | "active" | "completed" | "skipped" | "ready";
+interface JourneyLevel {
+  level_id: number;
+  name: string;
+  state: JourneyLevelState;
+  completed_items: number;
+  total_items: number;
+  session_id: number | null;
+}
+interface JourneySummary {
+  pretest_completed: boolean;
+  starting_level: number | null;
+  current_level: number;
+  levels: JourneyLevel[];
+  learning_journey_completed: boolean;
+  posttest_enabled: boolean;
+  posttest_completed: boolean;
+  posttest_ready: boolean;
+}
+
+type SourceState = "loading" | "loaded" | "error";
 type TabKey = "overview" | "journey" | "tests" | "recordings" | "adaptation" | "account" | "history";
 
 const TABS: Array<{ key: TabKey; label: string; icon: typeof User }> = [
@@ -98,6 +117,14 @@ const REASON_LABEL: Record<string, string> = {
   researcher_manual_override: "قرار يدوي موثق من المشرف",
 };
 
+const JOURNEY_STATE_LABEL: Record<JourneyLevelState, string> = {
+  completed: "مكتمل",
+  active: "قيد التعلم",
+  ready: "جاهز للبدء",
+  skipped: "تم تجاوزه وفق نقطة البداية",
+  locked: "لاحقًا",
+};
+
 function apiError(data: unknown, fallback: string) {
   if (typeof data === "object" && data !== null && "detail" in data) {
     const detail = (data as { detail?: unknown }).detail;
@@ -112,8 +139,12 @@ export default function StudentDetailPage() {
   const id = params.id as string;
   const [activeTab, setActiveTab] = useState<TabKey>("overview");
   const [student, setStudent] = useState<Student | null>(null);
+  const [journey, setJourney] = useState<JourneySummary | null>(null);
   const [history, setHistory] = useState<AdaptationDecision[]>([]);
   const [rewards, setRewards] = useState<RewardEvent[]>([]);
+  const [historyState, setHistoryState] = useState<SourceState>("loading");
+  const [rewardsState, setRewardsState] = useState<SourceState>("loading");
+  const [journeyState, setJourneyState] = useState<SourceState>("loading");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState("");
   const [overrideLevel, setOverrideLevel] = useState("1");
@@ -123,15 +154,25 @@ export default function StudentDetailPage() {
   const [copied, setCopied] = useState(false);
   const [message, setMessage] = useState<{ kind: "success" | "error"; text: string }>({ kind: "success", text: "" });
 
+  const loadSecondarySource = async <T,>(response: Response, setter: (value: T) => void, stateSetter: (state: SourceState) => void) => {
+    if (!response.ok) {
+      stateSetter("error");
+      return;
+    }
+    setter(await response.json() as T);
+    stateSetter("loaded");
+  };
+
   useEffect(() => {
     let cancelled = false;
     if (!id) return;
     void Promise.all([
       fetch(`/api/researcher/students/${id}`, { cache: "no-store" }),
+      fetch(`/api/researcher/students/${id}/journey`, { cache: "no-store" }),
       fetch(`/api/researcher/students/${id}/adaptation/history`, { cache: "no-store" }),
       fetch(`/api/researcher/students/${id}/rewards`, { cache: "no-store" }),
     ])
-      .then(async ([studentResponse, historyResponse, rewardsResponse]) => {
+      .then(async ([studentResponse, journeyResponse, historyResponse, rewardsResponse]) => {
         if (!studentResponse.ok) {
           const body = await studentResponse.json().catch(() => null);
           throw new Error(apiError(body, studentResponse.status === 404 ? "لم يتم العثور على الطالب" : "تعذر تحميل بيانات الطالب"));
@@ -141,8 +182,11 @@ export default function StudentDetailPage() {
         setStudent(studentData);
         setEditName(studentData.full_name);
         setOverrideLevel(String(studentData.current_level));
-        setHistory(historyResponse.ok ? await historyResponse.json() : []);
-        setRewards(rewardsResponse.ok ? await rewardsResponse.json() : []);
+        await Promise.all([
+          loadSecondarySource<JourneySummary>(journeyResponse, setJourney, setJourneyState),
+          loadSecondarySource<AdaptationDecision[]>(historyResponse, setHistory, setHistoryState),
+          loadSecondarySource<RewardEvent[]>(rewardsResponse, setRewards, setRewardsState),
+        ]);
       })
       .catch((error: unknown) => {
         if (!cancelled) setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر تحميل بيانات الطالب" });
@@ -155,14 +199,34 @@ export default function StudentDetailPage() {
   const totalStars = rewards.reduce((sum, reward) => sum + (reward.stars ?? 0), 0);
   const badges = rewards.filter((reward) => reward.type === "badge");
 
+  const refreshJourney = async () => {
+    if (!student) return;
+    setJourneyState("loading");
+    try {
+      const response = await fetch(`/api/researcher/students/${student.id}/journey`, { cache: "no-store" });
+      await loadSecondarySource<JourneySummary>(response, setJourney, setJourneyState);
+    } catch {
+      setJourneyState("error");
+    }
+  };
+
   const refreshAdaptiveEvidence = async () => {
     if (!student) return;
-    const [historyResponse, rewardsResponse] = await Promise.all([
-      fetch(`/api/researcher/students/${student.id}/adaptation/history`, { cache: "no-store" }),
-      fetch(`/api/researcher/students/${student.id}/rewards`, { cache: "no-store" }),
-    ]);
-    if (historyResponse.ok) setHistory(await historyResponse.json());
-    if (rewardsResponse.ok) setRewards(await rewardsResponse.json());
+    setHistoryState("loading");
+    setRewardsState("loading");
+    try {
+      const [historyResponse, rewardsResponse] = await Promise.all([
+        fetch(`/api/researcher/students/${student.id}/adaptation/history`, { cache: "no-store" }),
+        fetch(`/api/researcher/students/${student.id}/rewards`, { cache: "no-store" }),
+      ]);
+      await Promise.all([
+        loadSecondarySource<AdaptationDecision[]>(historyResponse, setHistory, setHistoryState),
+        loadSecondarySource<RewardEvent[]>(rewardsResponse, setRewards, setRewardsState),
+      ]);
+    } catch {
+      setHistoryState("error");
+      setRewardsState("error");
+    }
   };
 
   const saveStudentName = async () => {
@@ -214,7 +278,7 @@ export default function StudentDetailPage() {
       const response = await fetch(`/api/researcher/students/${student.id}/posttest-access`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ enabled: !student.posttest_enabled }) });
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(apiError(data, "تعذر تحديث إتاحة الاختبار البعدي"));
-      setStudent(data); setMessage({ kind: "success", text: data.posttest_enabled ? "تم فتح الاختبار البعدي للطالب." : "تم إيقاف الاختبار البعدي للطالب." });
+      setStudent(data); await refreshJourney(); setMessage({ kind: "success", text: data.posttest_enabled ? "تم فتح الاختبار البعدي للطالب." : "تم إيقاف الاختبار البعدي للطالب." });
     } catch (error) { setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر تحديث إتاحة الاختبار البعدي" }); }
     finally { setBusy(""); }
   };
@@ -228,7 +292,7 @@ export default function StudentDetailPage() {
       if (!response.ok) throw new Error(apiError(data, "تعذر حفظ التعديل اليدوي"));
       const refreshed = await fetch(`/api/researcher/students/${student.id}`, { cache: "no-store" });
       if (refreshed.ok) { const updated: Student = await refreshed.json(); setStudent(updated); setEditName(updated.full_name); }
-      setOverrideReason(""); await refreshAdaptiveEvidence(); setMessage({ kind: "success", text: "تم حفظ قرار المشرف مع سببه في السجل." });
+      setOverrideReason(""); await Promise.all([refreshAdaptiveEvidence(), refreshJourney()]); setMessage({ kind: "success", text: "تم حفظ قرار المشرف مع سببه في السجل." });
     } catch (error) { setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر حفظ التعديل اليدوي" }); }
     finally { setBusy(""); }
   };
@@ -236,96 +300,106 @@ export default function StudentDetailPage() {
   if (loading) return <div className={styles.loading}><span /><span /><span /></div>;
   if (!student) return <div className={styles.page}><div className="alert-error">{message.text || "لم يتم العثور على الطالب"}</div><Link href="/admin/students" className="btn-primary mt-4">العودة إلى الطلاب</Link></div>;
 
-  const progressPercent = Math.round((student.core_completed_items / Math.max(1, student.core_total_items)) * 100);
+  const activeJourneyLevel = journey?.levels.find((level) => level.state === "active" || level.state === "ready") ?? journey?.levels.find((level) => level.level_id === student.current_level);
+  const progressCompleted = activeJourneyLevel?.completed_items ?? student.core_completed_items;
+  const progressTotal = activeJourneyLevel?.total_items ?? student.core_total_items;
+  const progressPercent = Math.round((progressCompleted / Math.max(1, progressTotal)) * 100);
   const reasonKey = typeof latestDecision?.explanation?.reason === "string" ? latestDecision.explanation.reason : "";
+
+  const sourceError = (label: string, retry: () => void) => <div className="alert-error" role="status">تعذر تحميل {label}. <button type="button" className={styles.secondary} onClick={retry}>إعادة المحاولة</button></div>;
 
   const tabContent = (() => {
     if (activeTab === "overview") return (
       <section className={styles.panel}>
-        <div className={styles.panelHeader}><div><h2>ملخص الطالب</h2><p>أهم المعلومات التي يحتاجها المشرف بسرعة.</p></div><User size={20} /></div>
+        <div className={styles.panelHeader}><div><h2>ملخص الطالب</h2><p>أهم المعلومات التي يحتاجها المشرف بسرعة.</p></div><User size={20} aria-hidden="true" /></div>
         <div className={styles.grid3}>
           <div className={styles.infoCard}><span>الصف</span><strong>الثالث الابتدائي</strong></div>
           <div className={styles.infoCard}><span>المستوى الحالي</span><strong>المستوى {student.current_level}</strong></div>
           <div className={styles.infoCard}><span>تاريخ الإضافة</span><strong>{new Date(student.created_at).toLocaleDateString("ar-SA")}</strong></div>
         </div>
         <div className={styles.rewardRow} style={{ marginTop: 14 }}>
-          <div className={styles.reward}><span className={styles.muted}>النجوم المكتسبة</span><strong>{totalStars}</strong></div>
-          <div className={styles.reward}><span className={styles.muted}>الشارات</span><strong>{badges.length}</strong></div>
-          <div className={styles.reward}><span className={styles.muted}>تقدم المستوى</span><strong>{progressPercent}%</strong></div>
+          <div className={styles.reward}><span className={styles.muted}>النجوم المكتسبة</span><strong>{rewardsState === "loaded" ? totalStars : "—"}</strong></div>
+          <div className={styles.reward}><span className={styles.muted}>الشارات</span><strong>{rewardsState === "loaded" ? badges.length : "—"}</strong></div>
+          <div className={styles.reward}><span className={styles.muted}>تقدم المستوى</span><strong>{journeyState === "loaded" ? `${progressPercent}%` : "—"}</strong></div>
         </div>
-        {badges.length > 0 && <div className={styles.rewardRow} style={{ marginTop: 12 }}>{badges.map((badge) => <span key={badge.id} className={`${styles.badge} ${styles.good}`}>{badge.label}</span>)}</div>}
+        {rewardsState === "error" && <div style={{ marginTop: 12 }}>{sourceError("المكافآت", () => void refreshAdaptiveEvidence())}</div>}
+        {rewardsState === "loaded" && badges.length > 0 && <div className={styles.rewardRow} style={{ marginTop: 12 }}>{badges.map((badge) => <span key={badge.id} className={`${styles.badge} ${styles.good}`}>{badge.label}</span>)}</div>}
       </section>
     );
 
     if (activeTab === "journey") return (
       <section className={styles.panel}>
-        <div className={styles.panelHeader}><div><h2>المسار والتقدم</h2><p>المستوى الحالي وما أنجزه الطالب داخله.</p></div><BookOpen size={20} /></div>
-        <div className={styles.progressBlock}>
-          <div className={styles.progressMeta}><span>الأنشطة الأساسية المكتملة</span><strong>{student.core_completed_items} من {student.core_total_items}</strong></div>
-          <div className={styles.track} aria-label={`تقدم الأنشطة ${progressPercent}%`}><div className={styles.fill} style={{ width: `${progressPercent}%` }} /></div>
-        </div>
-        <div className={styles.journey}>
-          {[1,2,3].map((level) => {
-            const completed = level < student.current_level;
-            const current = level === student.current_level;
-            const cls = completed ? styles.levelDone : current ? styles.levelCurrent : styles.levelLocked;
-            return <div key={level} className={`${styles.level} ${cls}`}><small>المستوى {level}</small><strong>{completed ? "مكتمل" : current ? "المستوى الحالي" : "لاحقًا"}</strong></div>;
-          })}
-        </div>
-        <p className={styles.muted} style={{ marginTop: 14 }}>المسار بعد تحديد نقطة البداية في الاختبار القبلي يتقدم للأعلى حتى المستوى الثالث. لا يفتح الاختبار البعدي قبل اكتمال المستوى الثالث.</p>
+        <div className={styles.panelHeader}><div><h2>المسار والتقدم</h2><p>الحالة الأكاديمية الفعلية لكل مستوى وفق سجل الطالب.</p></div><BookOpen size={20} aria-hidden="true" /></div>
+        {journeyState === "loading" && <p className={styles.muted}>جاري تحميل المسار الأكاديمي...</p>}
+        {journeyState === "error" && sourceError("المسار الأكاديمي", () => void refreshJourney())}
+        {journeyState === "loaded" && journey && <>
+          <div className={styles.progressBlock}>
+            <div className={styles.progressMeta}><span>الأنشطة الأساسية في المستوى النشط</span><strong>{progressCompleted} من {progressTotal}</strong></div>
+            <div className={styles.track} role="progressbar" aria-label="تقدم الأنشطة الأساسية في المستوى النشط" aria-valuemin={0} aria-valuemax={progressTotal} aria-valuenow={progressCompleted} aria-valuetext={`${progressCompleted} من ${progressTotal}`}><div className={styles.fill} style={{ width: `${progressPercent}%` }} /></div>
+          </div>
+          <div className={styles.journey}>
+            {journey.levels.map((level) => {
+              const cls = level.state === "completed" ? styles.levelDone : (level.state === "active" || level.state === "ready") ? styles.levelCurrent : styles.levelLocked;
+              return <div key={level.level_id} className={`${styles.level} ${cls}`} data-level-state={level.state}><small>المستوى {level.level_id} · {level.name}</small><strong>{JOURNEY_STATE_LABEL[level.state]}</strong>{level.state !== "skipped" && <span className={styles.muted}>{level.completed_items} من {level.total_items} أساسي</span>}</div>;
+            })}
+          </div>
+          <p className={styles.muted} style={{ marginTop: 14 }}>{journey.starting_level ? `نقطة البداية المعتمدة: المستوى ${journey.starting_level}. ` : ""}الاختبار البعدي لا يصبح جاهزًا إلا بعد اكتمال رحلة التعلم المعتمدة حتى المستوى الثالث.</p>
+        </>}
       </section>
     );
 
     if (activeTab === "tests") return (
       <section className={styles.panel}>
-        <div className={styles.panelHeader}><div><h2>الاختبارات</h2><p>إتاحة الاختبار البعدي وحالة الجاهزية.</p></div><ClipboardList size={20} /></div>
+        <div className={styles.panelHeader}><div><h2>الاختبارات</h2><p>إتاحة الاختبار البعدي وحالة الجاهزية.</p></div><ClipboardList size={20} aria-hidden="true" /></div>
         <div className={styles.grid2}>
           <div className={styles.infoCard}><span>الاختبار القبلي</span><strong>جزء من مسار الطالب وتحديد نقطة البداية</strong></div>
           <div className={styles.infoCard}><span>الاختبار البعدي</span><strong>{student.posttest_enabled ? "مفتوح الآن" : student.posttest_eligible ? "جاهز للفتح" : "غير جاهز بعد"}</strong></div>
         </div>
         <div className={styles.notice} style={{ marginTop: 14 }}>{student.posttest_enabled ? "الاختبار البعدي متاح للطالب الآن." : student.posttest_eligible ? "اكتمل المستوى الثالث ويمكن للمشرف فتح الاختبار البعدي." : "لا يمكن فتح الاختبار البعدي قبل إكمال رحلة التعلم حتى المستوى الثالث."}</div>
-        <div className={styles.actions} style={{ marginTop: 14 }}><button className={styles.primary} onClick={() => void updatePosttestAccess()} disabled={busy === "posttest" || (!student.posttest_eligible && !student.posttest_enabled)}><Play size={17} />{busy === "posttest" ? "جاري الحفظ..." : student.posttest_enabled ? "إيقاف الإتاحة" : "فتح الاختبار البعدي"}</button></div>
+        <div className={styles.actions} style={{ marginTop: 14 }}><button className={styles.primary} onClick={() => void updatePosttestAccess()} disabled={busy === "posttest" || (!student.posttest_eligible && !student.posttest_enabled)}><Play size={17} aria-hidden="true" />{busy === "posttest" ? "جاري الحفظ..." : student.posttest_enabled ? "إيقاف الإتاحة" : "فتح الاختبار البعدي"}</button></div>
       </section>
     );
 
     if (activeTab === "recordings") return (
       <section className={styles.panel}>
-        <div className={styles.panelHeader}><div><h2>التسجيلات الصوتية</h2><p>الوصول إلى مراجعة قراءات الطالب.</p></div><Headphones size={20} /></div>
-        <div className={styles.linkCard}><div><strong>مراجعة التسجيلات المنتظرة</strong><p>قائمة المراجعة تعرض اسم الطالب والنص المتوقع ونوع الجلسة عند توفر تسجيل ينتظر القرار.</p></div><Link href="/admin/audio-review" className={styles.primary}><Headphones size={17} /> فتح مراجعة الصوت</Link></div>
-        <p className={styles.muted} style={{ marginTop: 12 }}>لا تعرض هذه الصفحة رقمًا غير موثق للتسجيلات؛ بيانات المراجعة تؤخذ من قائمة التسجيلات الفعلية.</p>
+        <div className={styles.panelHeader}><div><h2>التسجيلات الصوتية</h2><p>الوصول إلى مراجعة قراءات هذا الطالب مع الاحتفاظ بسياقه.</p></div><Headphones size={20} aria-hidden="true" /></div>
+        <div className={styles.linkCard}><div><strong>مراجعة تسجيلات {student.full_name}</strong><p>تفتح قائمة المراجعة في سياق هذا الطالب بدل الانتقال إلى قائمة عامة غير مفلترة.</p></div><Link href={`/admin/audio-review?student_id=${student.id}`} className={styles.primary}><Headphones size={17} aria-hidden="true" /> فتح مراجعة الصوت</Link></div>
+        <p className={styles.muted} style={{ marginTop: 12 }}>بيانات المراجعة تؤخذ من قائمة التسجيلات الفعلية، ولا تُعرض أرقام تقديرية.</p>
       </section>
     );
 
     if (activeTab === "adaptation") return (
       <section className={styles.panel} data-testid="adaptation-panel">
-        <div className={styles.panelHeader}><div><h2>التقوية والتكيف</h2><p>آخر قرار محفوظ والتدخل اليدوي عند الحاجة.</p></div><Activity size={20} /></div>
-        {!latestDecision ? <p className={styles.muted}>لا يوجد قرار تكيف محفوظ بعد.</p> : (
+        <div className={styles.panelHeader}><div><h2>التقوية والتكيف</h2><p>آخر قرار محفوظ والتدخل اليدوي عند الحاجة.</p></div><Activity size={20} aria-hidden="true" /></div>
+        {historyState === "loading" && <p className={styles.muted}>جاري تحميل قرارات التكيف...</p>}
+        {historyState === "error" && sourceError("سجل التكيف", () => void refreshAdaptiveEvidence())}
+        {historyState === "loaded" && !latestDecision ? <p className={styles.muted}>لا يوجد قرار تكيف محفوظ بعد.</p> : historyState === "loaded" && latestDecision ? (
           <div className={styles.grid3}>
             <div className={styles.infoCard}><span>آخر قرار</span><strong>{ACTION_LABEL[latestDecision.action] || latestDecision.action}</strong></div>
             <div className={styles.infoCard}><span>الإتقان المتحرك</span><strong>{latestDecision.mastery_score == null ? "—" : `${latestDecision.mastery_score.toFixed(1)}%`}</strong></div>
             <div className={styles.infoCard}><span>المستوى</span><strong>{latestDecision.previous_level} ← {latestDecision.new_level}</strong></div>
           </div>
-        )}
-        {latestDecision && <p className={styles.muted} style={{ marginTop: 12 }}>{REASON_LABEL[reasonKey] || reasonKey || "سبب القرار محفوظ ضمن السجل."}</p>}
-        <div className={styles.notice} style={{ marginTop: 14 }}>التعديل اليدوي لا يحذف القرار الآلي؛ يُحفظ كحدث مستقل مع السبب والتاريخ.</div>
+        ) : null}
+        {historyState === "loaded" && latestDecision && <p className={styles.muted} style={{ marginTop: 12 }}>{REASON_LABEL[reasonKey] || reasonKey || "سبب القرار محفوظ ضمن السجل."}</p>}
+        <div className={styles.notice} style={{ marginTop: 14 }}>التعديل اليدوي لا يحذف القرار الآلي ولا يعني إكمال المستوى؛ يُحفظ كحدث مستقل مع السبب والتاريخ.</div>
         <div className={styles.grid2} style={{ marginTop: 14 }}>
           <div className={styles.field}><label htmlFor="override-level">المستوى</label><select id="override-level" className={styles.select} value={overrideLevel} onChange={(event) => setOverrideLevel(event.target.value)}><option value="1">المستوى 1</option><option value="2">المستوى 2</option><option value="3">المستوى 3</option></select></div>
           <div className={styles.field}><label htmlFor="override-reason">سبب التعديل</label><input id="override-reason" className={styles.input} value={overrideReason} onChange={(event) => setOverrideReason(event.target.value)} placeholder="اكتب سبب القرار" maxLength={1000} /></div>
         </div>
-        <div className={styles.actions} style={{ marginTop: 12 }}><button className={styles.primary} onClick={() => void saveManualOverride()} disabled={busy === "override" || overrideReason.trim().length < 5}><ShieldCheck size={17} />{busy === "override" ? "جاري الحفظ..." : "حفظ القرار اليدوي"}</button></div>
+        <div className={styles.actions} style={{ marginTop: 12 }}><button className={styles.primary} onClick={() => void saveManualOverride()} disabled={busy === "override" || overrideReason.trim().length < 5}><ShieldCheck size={17} aria-hidden="true" />{busy === "override" ? "جاري الحفظ..." : "حفظ القرار اليدوي"}</button></div>
       </section>
     );
 
     if (activeTab === "account") return (
       <section className={styles.panel}>
-        <div className={styles.panelHeader}><div><h2>الحساب والدخول</h2><p>اسم الطالب ورمز الدخول وحالة الحساب.</p></div><LockKeyhole size={20} /></div>
+        <div className={styles.panelHeader}><div><h2>الحساب والدخول</h2><p>اسم الطالب ورمز الدخول وحالة الحساب.</p></div><LockKeyhole size={20} aria-hidden="true" /></div>
         <div className={styles.formGrid}>
           <div className={styles.field}><label htmlFor="student-name">اسم الطالب</label><input id="student-name" className={styles.input} value={editName} onChange={(event) => setEditName(event.target.value)} minLength={2} maxLength={80} /></div>
-          <button className={styles.primary} onClick={() => void saveStudentName()} disabled={busy === "name" || editName.trim() === student.full_name}><Save size={17} />{busy === "name" ? "جاري الحفظ..." : "حفظ الاسم"}</button>
+          <button className={styles.primary} onClick={() => void saveStudentName()} disabled={busy === "name" || editName.trim() === student.full_name}><Save size={17} aria-hidden="true" />{busy === "name" ? "جاري الحفظ..." : "حفظ الاسم"}</button>
         </div>
-        <div className={styles.codeBox} style={{ marginTop: 16 }}><div><span className={styles.muted}>رمز الدخول الحالي</span><strong className={styles.code}>{student.access_code}</strong></div><button className={styles.secondary} onClick={() => void copyAccessCode()}>{copied ? <Check size={17} /> : <Copy size={17} />}{copied ? "تم النسخ" : "نسخ الرمز"}</button></div>
+        <div className={styles.codeBox} style={{ marginTop: 16 }}><div><span className={styles.muted}>رمز الدخول الحالي</span><strong className={styles.code}>{student.access_code}</strong></div><button className={styles.secondary} onClick={() => void copyAccessCode()}>{copied ? <Check size={17} aria-hidden="true" /> : <Copy size={17} aria-hidden="true" />}{copied ? "تم النسخ" : "نسخ الرمز"}</button></div>
         <div className={styles.grid2}>
-          <button className={styles.secondary} onClick={() => void changeAccessCode(false)} disabled={busy === "code"}><RefreshCw size={17} /> توليد رمز جديد</button>
+          <button className={styles.secondary} onClick={() => void changeAccessCode(false)} disabled={busy === "code"}><RefreshCw size={17} aria-hidden="true" /> توليد رمز جديد</button>
           <div className={styles.formGrid}><div className={styles.field}><label htmlFor="manual-code">رمز يدوي من 6 أرقام</label><input id="manual-code" className={styles.input} inputMode="numeric" maxLength={6} value={manualCode} onChange={(event) => setManualCode(event.target.value.replace(/\D/g, "").slice(0,6))} placeholder="123456" dir="ltr" /></div><button className={styles.primary} onClick={() => void changeAccessCode(true)} disabled={busy === "code" || manualCode.length !== 6}>حفظ</button></div>
         </div>
       </section>
@@ -333,8 +407,10 @@ export default function StudentDetailPage() {
 
     return (
       <section className={styles.panel}>
-        <div className={styles.panelHeader}><div><h2>السجل</h2><p>قرارات التكيف والتعديلات المحفوظة زمنيًا.</p></div><History size={20} /></div>
-        {history.length === 0 ? <p className={styles.muted}>لا يوجد سجل قرارات حتى الآن.</p> : <div className={styles.history}>{[...history].reverse().map((decision) => <div key={decision.decision_id} className={styles.historyItem}><div><strong>{ACTION_LABEL[decision.action] || decision.action}</strong><p className={styles.muted}>{decision.source === "manual" ? "قرار يدوي" : "قرار آلي"}{decision.manual_reason ? ` · ${decision.manual_reason}` : ""}</p></div><small>{new Date(decision.created_at).toLocaleString("ar-SA")}</small></div>)}</div>}
+        <div className={styles.panelHeader}><div><h2>السجل</h2><p>قرارات التكيف والتعديلات المحفوظة زمنيًا.</p></div><History size={20} aria-hidden="true" /></div>
+        {historyState === "loading" && <p className={styles.muted}>جاري تحميل السجل...</p>}
+        {historyState === "error" && sourceError("سجل القرارات", () => void refreshAdaptiveEvidence())}
+        {historyState === "loaded" && history.length === 0 ? <p className={styles.muted}>لا يوجد سجل قرارات حتى الآن.</p> : historyState === "loaded" ? <div className={styles.history}>{[...history].reverse().map((decision) => <div key={decision.decision_id} className={styles.historyItem}><div><strong>{ACTION_LABEL[decision.action] || decision.action}</strong><p className={styles.muted}>{decision.source === "manual" ? "قرار يدوي" : "قرار آلي"}{decision.manual_reason ? ` · ${decision.manual_reason}` : ""}</p></div><small>{new Date(decision.created_at).toLocaleString("ar-SA")}</small></div>)}</div> : null}
       </section>
     );
   })();
@@ -343,24 +419,24 @@ export default function StudentDetailPage() {
     <div className={styles.page} dir="rtl">
       <header className={styles.header}>
         <div className={styles.identity}>
-          <Link href="/admin/students" className={styles.back} aria-label="العودة إلى الطلاب"><ArrowRight size={22} /></Link>
-          <div className={styles.avatar}><User size={25} /></div>
+          <Link href="/admin/students" className={styles.back} aria-label="العودة إلى الطلاب"><ArrowRight size={22} aria-hidden="true" /></Link>
+          <div className={styles.avatar}><User size={25} aria-hidden="true" /></div>
           <div className={styles.identityText}><small>ملف الطالب</small><h1>{student.full_name}</h1><p>الصف الثالث الابتدائي · المعرف #{student.id}</p></div>
         </div>
-        <button className={`${styles.statusButton} ${student.status === "active" ? styles.statusButtonActive : styles.statusButtonInactive}`} onClick={() => void toggleStudentStatus()} disabled={busy === "status"}><Power size={17} />{busy === "status" ? "جاري الحفظ..." : student.status === "active" ? "إيقاف الحساب" : "تفعيل الحساب"}</button>
+        <button className={`${styles.statusButton} ${student.status === "active" ? styles.statusButtonActive : styles.statusButtonInactive}`} onClick={() => void toggleStudentStatus()} disabled={busy === "status"}><Power size={17} aria-hidden="true" />{busy === "status" ? "جاري الحفظ..." : student.status === "active" ? "إيقاف الحساب" : "تفعيل الحساب"}</button>
       </header>
 
       {message.text && <div className={styles.message}><div className={message.kind === "success" ? "alert-success" : "alert-error"}>{message.text}</div></div>}
 
       <section className={styles.summary} aria-label="ملخص الطالب">
-        <div className={styles.summaryCard}><span className={styles.summaryIcon}><User size={20} /></span><div><strong>{student.status === "active" ? "حساب نشط" : "حساب موقوف"}</strong><span>حالة الطالب</span></div></div>
-        <div className={styles.summaryCard}><span className={styles.summaryIcon}><BookOpen size={20} /></span><div><strong>المستوى {student.current_level}</strong><span>المستوى الحالي</span></div></div>
-        <div className={styles.summaryCard}><span className={styles.summaryIcon}><Star size={20} /></span><div><strong>{totalStars}</strong><span>النجوم</span></div></div>
-        <div className={styles.summaryCard}><span className={styles.summaryIcon}><KeyRound size={20} /></span><div><strong className={styles.code}>{student.access_code}</strong><span>رمز الدخول</span></div></div>
+        <div className={styles.summaryCard}><span className={styles.summaryIcon}><User size={20} aria-hidden="true" /></span><div><strong>{student.status === "active" ? "حساب نشط" : "حساب موقوف"}</strong><span>حالة الطالب</span></div></div>
+        <div className={styles.summaryCard}><span className={styles.summaryIcon}><BookOpen size={20} aria-hidden="true" /></span><div><strong>المستوى {student.current_level}</strong><span>المستوى الحالي</span></div></div>
+        <div className={styles.summaryCard}><span className={styles.summaryIcon}><Star size={20} aria-hidden="true" /></span><div><strong>{rewardsState === "loaded" ? totalStars : "—"}</strong><span>النجوم</span></div></div>
+        <div className={styles.summaryCard}><span className={styles.summaryIcon}><KeyRound size={20} aria-hidden="true" /></span><div><strong className={styles.code}>{student.access_code}</strong><span>رمز الدخول</span></div></div>
       </section>
 
       <nav className={styles.tabs} aria-label="أقسام ملف الطالب">
-        {TABS.map((tab) => { const Icon = tab.icon; return <button key={tab.key} className={`${styles.tab} ${activeTab === tab.key ? styles.tabActive : ""}`} onClick={() => setActiveTab(tab.key)} aria-current={activeTab === tab.key ? "page" : undefined}><Icon size={16} />{tab.label}</button>; })}
+        {TABS.map((tab) => { const Icon = tab.icon; return <button key={tab.key} className={`${styles.tab} ${activeTab === tab.key ? styles.tabActive : ""}`} onClick={() => setActiveTab(tab.key)} aria-current={activeTab === tab.key ? "page" : undefined}><Icon size={16} aria-hidden="true" />{tab.label}</button>; })}
       </nav>
 
       {tabContent}
