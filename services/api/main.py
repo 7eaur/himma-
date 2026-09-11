@@ -21,6 +21,7 @@ from reports import router as reports_router
 from skill_reports import router as skill_reports_router
 from admin_notifications import router as admin_notifications_router
 from content_preview import router as content_preview_router
+from observability import request_correlation_middleware
 from readiness import readiness_report
 from runtime_flags import runtime_security_ready, validate_runtime_safety
 
@@ -35,6 +36,10 @@ app = FastAPI(
     description="API service for Himma Educational Platform",
     version="0.1.0",
 )
+
+# Correlation is the API operational boundary. The middleware sanitizes inbound
+# IDs, creates one when absent and returns it on every normal response.
+app.middleware("http")(request_correlation_middleware)
 
 _origins = os.environ.get("CORS_ORIGINS", "http://localhost:3000").split(",")
 app.add_middleware(
