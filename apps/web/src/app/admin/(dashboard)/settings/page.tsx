@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { KeyRound, ShieldCheck, UserPlus, UsersRound } from "lucide-react";
 import styles from "./settings.module.css";
 
@@ -12,6 +12,7 @@ interface Supervisor {
 }
 
 type SettingsTab = "account" | "security" | "supervisors";
+const TAB_ORDER: SettingsTab[] = ["account", "security", "supervisors"];
 
 function Message({ kind, text }: { kind: "success" | "error"; text: string }) {
   if (!text) return null;
@@ -31,6 +32,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState("");
   const [message, setMessage] = useState<{ kind: "success" | "error"; text: string }>({ kind: "success", text: "" });
+  const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -57,6 +59,22 @@ export default function SettingsPage() {
   const parseError = async (response: Response, fallback: string) => {
     const data = await response.json().catch(() => null);
     return typeof data?.detail === "string" ? data.detail : fallback;
+  };
+
+  const selectTab = (tab: SettingsTab, focus = false) => {
+    setActiveTab(tab);
+    if (focus) tabRefs.current[TAB_ORDER.indexOf(tab)]?.focus();
+  };
+
+  const handleTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+    let targetIndex: number | null = null;
+    if (event.key === "ArrowLeft") targetIndex = (index + 1) % TAB_ORDER.length;
+    if (event.key === "ArrowRight") targetIndex = (index - 1 + TAB_ORDER.length) % TAB_ORDER.length;
+    if (event.key === "Home") targetIndex = 0;
+    if (event.key === "End") targetIndex = TAB_ORDER.length - 1;
+    if (targetIndex === null) return;
+    event.preventDefault();
+    selectTab(TAB_ORDER[targetIndex], true);
   };
 
   const saveProfile = async (event: React.FormEvent) => {
@@ -96,6 +114,12 @@ export default function SettingsPage() {
 
   if (loading) return <div className={styles.loading} dir="rtl"><span /><span /><span /></div>;
 
+  const tabs: Array<{ key: SettingsTab; label: string; icon: typeof ShieldCheck }> = [
+    { key: "account", label: "الحساب", icon: ShieldCheck },
+    { key: "security", label: "الأمان", icon: KeyRound },
+    { key: "supervisors", label: "المشرفون", icon: UsersRound },
+  ];
+
   return (
     <div className={styles.page} dir="rtl">
       <header className={styles.header}>
@@ -106,15 +130,29 @@ export default function SettingsPage() {
 
       <Message kind={message.kind} text={message.text} />
 
-      <nav className={styles.tabs} aria-label="أقسام إعدادات المشرف">
-        <button className={`${styles.tab} ${activeTab === "account" ? styles.tabActive : ""}`} onClick={() => setActiveTab("account")}><ShieldCheck size={17} /> الحساب</button>
-        <button className={`${styles.tab} ${activeTab === "security" ? styles.tabActive : ""}`} onClick={() => setActiveTab("security")}><KeyRound size={17} /> الأمان</button>
-        <button className={`${styles.tab} ${activeTab === "supervisors" ? styles.tabActive : ""}`} onClick={() => setActiveTab("supervisors")}><UsersRound size={17} /> المشرفون</button>
-      </nav>
+      <div className={styles.tabs} role="tablist" aria-label="أقسام إعدادات المشرف">
+        {tabs.map((tab, index) => {
+          const Icon = tab.icon;
+          const selected = activeTab === tab.key;
+          return <button
+            key={tab.key}
+            ref={(element) => { tabRefs.current[index] = element; }}
+            id={`settings-tab-${tab.key}`}
+            role="tab"
+            type="button"
+            aria-selected={selected}
+            aria-controls={`settings-panel-${tab.key}`}
+            tabIndex={selected ? 0 : -1}
+            className={`${styles.tab} ${selected ? styles.tabActive : ""}`}
+            onClick={() => selectTab(tab.key)}
+            onKeyDown={(event) => handleTabKeyDown(event, index)}
+          ><Icon size={17} aria-hidden="true" /> {tab.label}</button>;
+        })}
+      </div>
 
       {activeTab === "account" && (
-        <section className={styles.panel} aria-labelledby="profile-title">
-          <div className={styles.panelHeader}><span className={styles.icon}><ShieldCheck size={21} /></span><div><h2 id="profile-title">بيانات الحساب</h2><p>اسم الدخول والاسم الظاهر لهذا الحساب.</p></div></div>
+        <section id="settings-panel-account" role="tabpanel" tabIndex={0} aria-labelledby="settings-tab-account" className={styles.panel}>
+          <div className={styles.panelHeader}><span className={styles.icon}><ShieldCheck size={21} aria-hidden="true" /></span><div><h2>بيانات الحساب</h2><p>اسم الدخول والاسم الظاهر لهذا الحساب.</p></div></div>
           <form onSubmit={saveProfile} className={styles.form}>
             <div className={styles.field}><label htmlFor="account-name">اسم المشرف / اسم المستخدم</label><input id="account-name" className={styles.input} value={username} onChange={(e) => setUsername(e.target.value)} required minLength={2} /></div>
             <button className={styles.primary} disabled={busy === "profile" || username.trim() === account?.username}>{busy === "profile" ? "جاري الحفظ..." : "حفظ بيانات الحساب"}</button>
@@ -123,8 +161,8 @@ export default function SettingsPage() {
       )}
 
       {activeTab === "security" && (
-        <section className={styles.panel} aria-labelledby="password-title">
-          <div className={styles.panelHeader}><span className={styles.icon}><KeyRound size={21} /></span><div><h2 id="password-title">الأمان وكلمة المرور</h2><p>غيّر كلمة المرور دون خلطها بإعدادات بقية المنصة.</p></div></div>
+        <section id="settings-panel-security" role="tabpanel" tabIndex={0} aria-labelledby="settings-tab-security" className={styles.panel}>
+          <div className={styles.panelHeader}><span className={styles.icon}><KeyRound size={21} aria-hidden="true" /></span><div><h2>الأمان وكلمة المرور</h2><p>غيّر كلمة المرور دون خلطها بإعدادات بقية المنصة.</p></div></div>
           <form onSubmit={changePassword} className={styles.form}>
             <div className={styles.field}><label htmlFor="current-password">كلمة المرور الحالية</label><input id="current-password" type="password" className={styles.input} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required autoComplete="current-password" /></div>
             <div className={styles.grid2}>
@@ -137,19 +175,19 @@ export default function SettingsPage() {
       )}
 
       {activeTab === "supervisors" && (
-        <section className={styles.panel} aria-labelledby="supervisors-title">
-          <div className={styles.panelHeader}><span className={styles.icon}><UsersRound size={21} /></span><div><h2 id="supervisors-title">المشرفون</h2><p>كل مشرف يملك حساب دخول مستقلًا.</p></div><span className={styles.count}>{supervisors.length} مشرف</span></div>
+        <section id="settings-panel-supervisors" role="tabpanel" tabIndex={0} aria-labelledby="settings-tab-supervisors" className={styles.panel}>
+          <div className={styles.panelHeader}><span className={styles.icon}><UsersRound size={21} aria-hidden="true" /></span><div><h2>المشرفون</h2><p>كل مشرف يملك حساب دخول مستقلًا.</p></div><span className={styles.count}>{supervisors.length} مشرف</span></div>
           <div className={styles.supervisorList}>
             {supervisors.map((supervisor) => <div key={supervisor.id} className={styles.supervisor}><div><strong>{supervisor.username}</strong><small>{supervisor.is_active ? "حساب نشط" : "حساب موقوف"}</small></div><span className={styles.badge}>{supervisor.id === account?.id ? "حسابك" : "مشرف"}</span></div>)}
           </div>
           <div className={styles.divider}>
-            <div className={styles.subhead}><UserPlus size={19} color="#347FD9" /> إضافة مشرف جديد</div>
+            <div className={styles.subhead}><UserPlus size={19} color="#347FD9" aria-hidden="true" /> إضافة مشرف جديد</div>
             <form onSubmit={addSupervisor} className={styles.form}>
               <div className={styles.grid2}>
                 <div className={styles.field}><label htmlFor="new-supervisor-name">اسم المستخدم</label><input id="new-supervisor-name" className={styles.input} value={newSupervisorName} onChange={(e) => setNewSupervisorName(e.target.value)} required minLength={2} placeholder="مثال: supervisor2" /></div>
                 <div className={styles.field}><label htmlFor="new-supervisor-password">كلمة المرور المؤقتة</label><input id="new-supervisor-password" type="password" className={styles.input} value={newSupervisorPassword} onChange={(e) => setNewSupervisorPassword(e.target.value)} required minLength={8} autoComplete="new-password" /></div>
               </div>
-              <button className={styles.primary} disabled={busy === "supervisor"}><UserPlus size={17} />{busy === "supervisor" ? "جاري الإضافة..." : "إضافة المشرف"}</button>
+              <button className={styles.primary} disabled={busy === "supervisor"}><UserPlus size={17} aria-hidden="true" />{busy === "supervisor" ? "جاري الإضافة..." : "إضافة المشرف"}</button>
             </form>
           </div>
         </section>
