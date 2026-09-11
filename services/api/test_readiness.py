@@ -38,7 +38,6 @@ def _patch_component_checks(monkeypatch, *, content=True, approved_audio=True, s
 def test_student_audio_bypass_route_is_absent(monkeypatch):
     _set_required_env(monkeypatch)
     monkeypatch.setenv("ENV", "trial")
-    # A stale deployment setting cannot re-enable the deleted feature.
     monkeypatch.setenv("HIMMA_TEMP_AUDIO_SKIP", "true")
     validate_runtime_safety()
 
@@ -58,16 +57,13 @@ def test_production_runtime_requires_strong_api_secret(monkeypatch):
 def test_trial_runtime_accepts_strong_secret(monkeypatch):
     _set_required_env(monkeypatch)
     monkeypatch.setenv("ENV", "trial")
-
     validate_runtime_safety()
 
 
 def test_readiness_report_is_sanitized_and_requires_all_components(monkeypatch):
     _set_required_env(monkeypatch)
     _patch_component_checks(monkeypatch, storage=False)
-
     report = readiness.readiness_report()
-
     assert report == {
         "status": "not_ready",
         "service": "himma-api",
@@ -87,9 +83,7 @@ def test_readiness_report_is_sanitized_and_requires_all_components(monkeypatch):
 def test_readiness_fails_closed_when_content_projection_is_stale(monkeypatch):
     _set_required_env(monkeypatch)
     _patch_component_checks(monkeypatch, content=False)
-
     report = readiness.readiness_report()
-
     assert report["status"] == "not_ready"
     assert report["checks"]["content"] == "unavailable"
 
@@ -109,14 +103,12 @@ def test_content_readiness_accepts_canonical_seed_and_detects_semantic_db_drift(
         db.commit()
     finally:
         db.close()
-
     assert readiness._content_ready() is False
 
 
 def test_content_readiness_requires_one_current_canonical_release():
     seed_all.run_seed_all()
     assert readiness._content_ready() is True
-
     db = SessionLocal()
     try:
         release = db.query(ContentRelease).filter(ContentRelease.is_active.is_(True)).one()
@@ -124,16 +116,13 @@ def test_content_readiness_requires_one_current_canonical_release():
         db.commit()
     finally:
         db.close()
-
     assert readiness._content_ready() is False
 
 
 def test_readiness_fails_closed_when_approved_audio_contract_is_missing(monkeypatch):
     _set_required_env(monkeypatch)
     _patch_component_checks(monkeypatch, approved_audio=False)
-
     report = readiness.readiness_report()
-
     assert report["status"] == "not_ready"
     assert report["checks"]["approved_audio"] == "unavailable"
 
@@ -172,6 +161,7 @@ def test_approved_audio_probe_requires_exact_semantics_and_both_binary_variants(
 
 
 def test_ready_endpoint_returns_200_or_503_from_readiness_state(client, monkeypatch):
+    monkeypatch.setattr(main, "runtime_security_ready", lambda: True)
     monkeypatch.setattr(
         main,
         "readiness_report",
@@ -188,7 +178,9 @@ def test_ready_endpoint_returns_200_or_503_from_readiness_state(client, monkeypa
             },
         },
     )
-    assert client.get("/ready").status_code == 200
+    response = client.get("/ready")
+    assert response.status_code == 200
+    assert response.json()["checks"]["security_mode"] == "ok"
 
     monkeypatch.setattr(
         main,
@@ -209,3 +201,4 @@ def test_ready_endpoint_returns_200_or_503_from_readiness_state(client, monkeypa
     response = client.get("/ready")
     assert response.status_code == 503
     assert response.json()["checks"]["content"] == "unavailable"
+    assert response.json()["checks"]["security_mode"] == "ok"

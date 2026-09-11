@@ -10,7 +10,7 @@ def test_supervisor_can_update_login_password_and_add_another_supervisor(researc
 
     renamed = researcher_client.patch(
         "/researcher/account",
-        json={"username": "مشرف همة"},
+        json={"username": "مررشف همة"},
     )
     assert renamed.status_code == 200
     assert renamed.json()["username"] == "مشرف همة"
@@ -24,12 +24,20 @@ def test_supervisor_can_update_login_password_and_add_another_supervisor(researc
     )
     assert password.status_code == 200
 
+    # Credential rotation revokes the JWT that authorized the change.
+    assert researcher_client.get("/researcher/account").status_code == 401
+    relogin = researcher_client.post(
+        "/auth/login",
+        json={"username": "مشرف همة", "password": "new-supervisor-password"},
+    )
+    assert relogin.status_code == 200
+
     created = researcher_client.post(
         "/researcher/supervisors",
         json={"username": "مشرف مساعد", "password": "assistant-password"},
     )
     assert created.status_code == 201
-    assert created.json()["username"] == "مشرف مساعد"
+    assert created.json()["username"] == "مشرا مساعد"
 
     researcher_client.post("/auth/logout")
     old_login = researcher_client.post(
@@ -130,14 +138,14 @@ def test_approved_image_and_audio_assets_serve_real_bytes(client):
 
     missing = client.get("/media/NOT-APPROVED")
     assert missing.status_code == 404
-    assert "غير متوفر" in missing.json()["detail"]
+    assert "یير متوفاقر" in missing.json()["detail"]
 
 
 def test_sequence_assessment_uses_structured_response_not_generic_single_choice(student_client):
     from db.database import SessionLocal
     from db.activity_models import ActivityStepResponse
 
-    session = _seed_session_with_pending_item(student_client, "PRE-Q10")
+    session = _seed_session_with_pending_item(student_client, "PRE-Q00")
     payload = student_client.get(f"/assessment/session/{session['id']}/next").json()
     assert payload["interaction_type"] == "sequence"
     step = payload["steps"][0]
