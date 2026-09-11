@@ -1,4 +1,4 @@
-import { responseCacheControl } from "./route";
+import { responseCacheControl } from "./cachePolicy";
 
 describe("BFF response cache policy", () => {
   it("preserves a safe public cache policy for approved media reads", () => {
