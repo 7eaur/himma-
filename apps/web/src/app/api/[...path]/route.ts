@@ -1,47 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { responseCacheControl } from "./cachePolicy";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const REQUEST_ID_PATTERN = /^[A-Za-z0-9._-]{8,128}$/;
-const PRIVATE_NO_STORE = "private, no-store";
-const APPROVED_MEDIA_PREFIX = "media/";
 
 function correlationId(req: NextRequest): string {
   const incoming = req.headers.get("x-request-id")?.trim() ?? "";
   return REQUEST_ID_PATTERN.test(incoming) ? incoming : crypto.randomUUID();
-}
-
-/**
- * Only the read-only approved media surface may be shared-cacheable.
- * Everything else remains private/no-store because the BFF carries session
- * cookies and serves student/supervisor data.
- *
- * A Set-Cookie header always forces a private response even on a media-looking
- * path, preventing authentication state from ever entering a shared cache.
- */
-export function responseCacheControl({
-  upstreamPath,
-  method,
-  ok,
-  upstreamCacheControl,
-  hasSetCookie,
-}: {
-  upstreamPath: string;
-  method: string;
-  ok: boolean;
-  upstreamCacheControl: string | null;
-  hasSetCookie: boolean;
-}): string {
-  const mediaRead = upstreamPath.startsWith(APPROVED_MEDIA_PREFIX) && ["GET", "HEAD"].includes(method);
-  if (!mediaRead || !ok || hasSetCookie) return PRIVATE_NO_STORE;
-
-  const upstreamPolicy = upstreamCacheControl?.trim();
-  if (upstreamPolicy && /(^|,)\s*public\b/i.test(upstreamPolicy) && !/\b(no-store|private)\b/i.test(upstreamPolicy)) {
-    return upstreamPolicy;
-  }
-
-  // The backend approved-media registry is ID allow-listed and static. Keep a
-  // conservative one-day browser policy if an upstream cache header is absent.
-  return "public, max-age=86400";
 }
 
 async function proxy(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
@@ -60,9 +25,7 @@ async function proxy(req: NextRequest, { params }: { params: Promise<{ path: str
     cookie: cookieHeader,
     "x-request-id": requestId,
   };
-  if (idempotencyKey) {
-    headers["idempotency-key"] = idempotencyKey;
-  }
+  if (idempotencyKey) headers["idempotency-key"] = idempotencyKey;
 
   const init: RequestInit = {
     method: req.method,
@@ -70,9 +33,7 @@ async function proxy(req: NextRequest, { params }: { params: Promise<{ path: str
     headers,
   };
 
-  if (!["GET", "HEAD"].includes(req.method)) {
-    init.body = await req.blob();
-  }
+  if (!["GET", "HEAD"].includes(req.method)) init.body = await req.blob();
 
   const upstream = await fetch(url, init);
   const body = await upstream.arrayBuffer();
@@ -95,12 +56,7 @@ async function proxy(req: NextRequest, { params }: { params: Promise<{ path: str
     },
   });
 
-  // Forward Set-Cookie (critical for auth). Responses carrying it are forced
-  // private by responseCacheControl above.
-  if (setCookie) {
-    res.headers.set("set-cookie", setCookie);
-  }
-
+  if (setCookie) res.headers.set("set-cookie", setCookie);
   return res;
 }
 
