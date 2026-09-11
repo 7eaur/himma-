@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from audio_review_state import latest_audio_submission
@@ -24,6 +24,7 @@ router = APIRouter(prefix="/review", tags=["Review"])
 
 @router.get("/pending-audio")
 def get_pending_audio(
+    student_id: int | None = Query(default=None, ge=1),
     db: Session = Depends(get_db),
     supervisor: User = Depends(get_current_user),
 ):
@@ -31,7 +32,8 @@ def get_pending_audio(
 
     Historical uploaded rows can exist after a rerecord. They stay in storage,
     but once a newer submission exists they must never re-enter the actionable
-    review queue.
+    review queue. ``student_id`` is an optional supervisor-only view filter and
+    never changes review eligibility or academic state.
     """
     submissions = db.query(AudioSubmission).filter(
         AudioSubmission.status == "uploaded"
@@ -53,6 +55,8 @@ def get_pending_audio(
             AssessmentSession.id == attempt.session_id
         ).first() if attempt else None
         student = db.query(Student).filter(Student.id == session.student_id).first() if session else None
+        if student_id is not None and (student is None or student.id != student_id):
+            continue
         item = db.query(ContentItem).filter(ContentItem.id == attempt.item_id).first() if attempt else None
         step = db.query(ContentStep).filter(ContentStep.id == response.step_id).first()
         payload.append({
