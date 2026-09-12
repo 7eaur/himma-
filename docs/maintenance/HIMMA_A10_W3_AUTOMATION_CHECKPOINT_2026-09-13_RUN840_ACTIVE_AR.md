@@ -35,13 +35,17 @@
 
 - exact code-bearing SHA: `56854c5a903a6b86dcec1653129f8ca91d3b6ea7`.
 - helper branch `stage/a10-w3-ci` نُقل fast-forward إلى هذا SHA.
-- Quality Gate #840 / Run ID `34721724505` بدأ على نفس SHA.
-- حالته عند إنشاء هذا checkpoint: `QUEUED`.
+- Quality Gate #840 / Run ID `34721724505` يعمل على نفس SHA.
+- آخر حالة مفحوصة: `IN_PROGRESS`.
+- `security` = SUCCESS.
+- `frontend` = SUCCESS، بما في ذلك TypeScript + ESLint + unit tests + Next.js build.
+- `backend` = IN_PROGRESS في خطوة `Run backend tests` بعد نجاح PostgreSQL startup + canonical validation + migrations/drift + seed idempotency.
+- Integration لم يبدأ بعد لأن الـworkflow ينتظر backend.
 
 ## قاعدة الاستكمال
 
 ابدأ بفحص Run #840 فقط:
-- إذا ACTIVE/QUEUED: لا تبدأ أي batch أخرى.
+- إذا ACTIVE: لا تبدأ أي batch أخرى.
 - إذا FAILURE: افتح أول job/step فاشل وأصلح root cause فقط، دون إضعاف الاختبارات.
 - إذا SUCCESS: أغلق `AUD-A04-008` بدليل exact-SHA، حدّث Gap Register/STATUS/progress/continuity، ثم اختر أول gap W3 غير مغلق فقط.
 
