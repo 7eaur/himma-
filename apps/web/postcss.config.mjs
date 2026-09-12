@@ -1,6 +1,12 @@
+import { fileURLToPath } from "node:url";
+
+const stripRuntimeGoogleFontsPlugin = fileURLToPath(
+  new URL("./postcss-strip-google-fonts.cjs", import.meta.url),
+);
+
 const config = {
   plugins: {
-    "./postcss-strip-google-fonts.cjs": {},
+    [stripRuntimeGoogleFontsPlugin]: {},
     "@tailwindcss/postcss": {},
   },
 };
