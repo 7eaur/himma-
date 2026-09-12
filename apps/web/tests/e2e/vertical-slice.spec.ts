@@ -357,7 +357,6 @@ test.describe("Himma recovered vertical slice", () => {
     expect(createdStudent?.full_name).toBe(studentName);
     const studentId = createdStudent?.id;
     expect(studentId).toBeTruthy();
-
     await context.clearCookies();
     await loginAsStudent(request, context, accessCode);
     await page.goto("/student");
@@ -539,7 +538,7 @@ test.describe("Himma recovered vertical slice", () => {
     await expect(page.getByRole("heading", { name: studentName })).toBeVisible({ timeout: 12000 });
 
     await page.getByRole("button", { name: "المسار والتقدم" }).click();
-    await expect(page.getByText(`${studentState.core_completed_items} من ${studentState.core_total_items}`)).toBeVisible({ timeout: 12000 });
+    await expect(page.getByText(`${studentState.core_completed_items} من ${studentState.core_total_items}`, { exact: true })).toBeVisible({ timeout: 12000 });
     await expect(page.getByText(`المستوى ${studentState.current_level}`, { exact: true }).first()).toBeVisible();
 
     await page.getByRole("button", { name: "التقوية والتكيف" }).click();
