@@ -1,15 +1,15 @@
 {
-  "schema_version": 14,
+  "schema_version": 15,
   "plan_version": "HIMMA-COMPREHENSIVE-AUDIT-AND-ROOT-REMEDIATION-2026-09-10",
   "repository": "7eaur/himma-",
   "branch": "audit/comprehensive-repository-review-2026-09-10",
   "phase": "A10_ROOT_REMEDIATION",
   "wave": "W3_ADMIN_STUDENT_UX_ACCESSIBILITY_WEB_RELIABILITY",
-  "status": "W1_GREEN_W2_GREEN_W3_ACTIVE_RUN_834_GREEN_NOT_RELEASE_READY",
+  "status": "W1_GREEN_W2_GREEN_W3_ACTIVE_RUN_835_IN_PROGRESS_NOT_RELEASE_READY",
   "last_updated": "2026-09-12",
-  "continuity_handoff": "docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-12_A10_W3_RUN834_GREEN_AR.md",
+  "continuity_handoff": "docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-12_A10_W3_RUN835_ACTIVE_AR.md",
   "next_conversation_prompt": "NEXT_CONVERSATION_PROMPT.md",
-  "execution_checkpoint": "docs/maintenance/HIMMA_A10_W3_AUTOMATION_CHECKPOINT_2026-09-12_RUN834_GREEN_AR.md",
+  "execution_checkpoint": "docs/maintenance/HIMMA_A10_W3_AUTOMATION_CHECKPOINT_2026-09-12_RUN835_ACTIVE_AR.md",
   "master_gap_register": "docs/maintenance/HIMMA_MASTER_GAP_REGISTER_2026-09-10_AR.md",
   "audit_stages": {
     "A00": "CLOSED_AUDIT",
@@ -49,7 +49,7 @@
     "human_supervisor_review_authoritative": true
   },
   "w3": {
-    "status": "ACTIVE_AFTER_RUN_834_GREEN",
+    "status": "ACTIVE_RUN_835_IN_PROGRESS",
     "closed_items": [
       {
         "id": "AUD-A11Y-001",
@@ -80,8 +80,16 @@
       "sha": "c180146b10467199e6833bacb77873eddcea2143",
       "conclusion": "SUCCESS"
     },
-    "current_batch": null,
-    "do_not_start_parallel_batch": false,
+    "current_batch": {
+      "id": "AUD-A11Y-003",
+      "code_sha": "50a02d250adc1f45a0e1f2577b40dd59ce18c0c1",
+      "commit": "test(a11y): verify student progressbar semantics",
+      "quality_gate_run_number": 835,
+      "quality_gate_run_id": 34712992018,
+      "quality_gate_status": "IN_PROGRESS",
+      "evidence": "Playwright verifies Student Detail progressbar role/name, aria-valuemin/max/now/valuetext, and visible-value consistency"
+    },
+    "do_not_start_parallel_batch": true,
     "remaining": [
       "AUD-A04-001 remaining AdminUI/presentation unification where ownership is proven",
       "AUD-A04-002 partial-source failure/retry regressions",
@@ -90,7 +98,7 @@
       "AUD-A04-006 final keyboard/dialog regression",
       "AUD-A04-008 filtered audio-review context E2E",
       "AUD-PERF-004 local/build-time fonts; runtime Google Fonts import still exists",
-      "AUD-A11Y-003 progressbar executable verification",
+      "AUD-A11Y-003 closes only if Run 835 succeeds",
       "cross-device scenario integrity",
       "final exact-SHA W3 Green gate"
     ]
@@ -110,5 +118,5 @@
     "no_production": true,
     "pass_requires_exact_sha_evidence": true
   },
-  "next_step": "Fetch current HEAD and latest CI. If no newer batch is active, continue one remaining W3 gap only. AUD-PERF-004 is confirmed open because globals.css still runtime-imports Google Fonts; AUD-A11Y-003 still requires executable progressbar verification."
+  "next_step": "Fetch Run #835 first. While it is active, do not edit code. On SUCCESS close AUD-A11Y-003 with exact-SHA evidence; on FAILURE inspect and root-fix the first real failure without weakening the test."
 }
