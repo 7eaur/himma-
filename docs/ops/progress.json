@@ -1,15 +1,15 @@
 {
-  "schema_version": 12,
+  "schema_version": 13,
   "plan_version": "HIMMA-COMPREHENSIVE-AUDIT-AND-ROOT-REMEDIATION-2026-09-10",
   "repository": "7eaur/himma-",
   "branch": "audit/comprehensive-repository-review-2026-09-10",
   "phase": "A10_ROOT_REMEDIATION",
   "wave": "W3_ADMIN_STUDENT_UX_ACCESSIBILITY_WEB_RELIABILITY",
-  "status": "W1_GREEN_W2_GREEN_W3_ACTIVE_RUN_833_QUEUED_NOT_RELEASE_READY",
+  "status": "W1_GREEN_W2_GREEN_W3_ACTIVE_RUN_834_IN_PROGRESS_NOT_RELEASE_READY",
   "last_updated": "2026-09-12",
-  "continuity_handoff": "docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-12_A10_W3_ACTIVE_AR.md",
+  "continuity_handoff": "docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-12_A10_W3_RUN834_ACTIVE_AR.md",
   "next_conversation_prompt": "NEXT_CONVERSATION_PROMPT.md",
-  "execution_checkpoint": "docs/maintenance/HIMMA_A10_W3_AUTOMATION_CHECKPOINT_2026-09-12_RUN833_AR.md",
+  "execution_checkpoint": "docs/maintenance/HIMMA_A10_W3_AUTOMATION_CHECKPOINT_2026-09-12_RUN834_AR.md",
   "master_gap_register": "docs/maintenance/HIMMA_MASTER_GAP_REGISTER_2026-09-10_AR.md",
   "audit_stages": {
     "A00": "CLOSED_AUDIT",
@@ -49,38 +49,50 @@
     "human_supervisor_review_authoritative": true
   },
   "w3": {
-    "status": "ACTIVE_VERIFYING_A11Y_001",
+    "status": "ACTIVE_VERIFYING_SETTINGS_ADMINUI_BATCH",
+    "closed_items": [
+      {
+        "id": "AUD-A11Y-001",
+        "verified_sha": "79f154f9a3cdee51a713459790d1695aba08d6d7",
+        "run_number": 833,
+        "run_id": 34708600408,
+        "conclusion": "SUCCESS"
+      }
+    ],
     "latest_completed_gate": {
-      "run_number": 832,
-      "run_id": 34707136263,
-      "sha": "82e0bd216ab3d4f3af9d5737b5e29d2102254843",
+      "run_number": 833,
+      "run_id": 34708600408,
+      "sha": "79f154f9a3cdee51a713459790d1695aba08d6d7",
       "conclusion": "SUCCESS"
     },
     "current_batch": {
-      "id": "AUD-A11Y-001",
-      "scope": "global prefers-reduced-motion policy",
-      "latest_code_bearing_sha": "79f154f9a3cdee51a713459790d1695aba08d6d7",
-      "files": [
-        "apps/web/src/app/reduced-motion.css",
-        "apps/web/src/app/layout.tsx"
+      "id": "AUD-A04-007_WITH_AUD-A04-001_DEPENDENCY_REDUCTION",
+      "scope": "Settings shared AdminUI presentation ownership while preserving feature-specific tabs/forms and semantics",
+      "latest_code_bearing_sha": "c180146b10467199e6833bacb77873eddcea2143",
+      "commits": [
+        "f4038014301d03defa00835193a70fb9e4685dd3",
+        "c180146b10467199e6833bacb77873eddcea2143"
       ],
-      "verification_run_number": 833,
-      "verification_run_id": 34708600408,
-      "verification_status_at_checkpoint": "QUEUED",
+      "files": [
+        "apps/web/src/app/admin/(dashboard)/settings/page.tsx",
+        "apps/web/src/app/admin/(dashboard)/settings/settings.module.css"
+      ],
+      "verification_run_number": 834,
+      "verification_run_id": 34710221396,
+      "verification_status_at_checkpoint": "IN_PROGRESS",
       "helper_branch": "stage/a10-w3-ci"
     },
     "do_not_start_parallel_batch": true,
     "remaining": [
-      "AUD-A04-001 AdminUI/presentation unification",
+      "AUD-A04-001 remaining AdminUI/presentation unification where ownership is proven",
       "AUD-A04-002 partial-source failure/retry regressions",
       "AUD-A04-003 canonical Journey scenarios",
       "AUD-A04-005 responsive matrix 320/360/390/430/768/Desktop",
       "AUD-A04-006 final keyboard/dialog regression",
-      "AUD-A04-007 Settings shared tokens/presentation verification",
       "AUD-A04-008 filtered audio-review context E2E",
       "AUD-PERF-004 local/build-time fonts",
       "AUD-A11Y-002 semantic accessible colors/contrast",
-      "AUD-A11Y-003 progressbar semantics",
+      "AUD-A11Y-003 progressbar executable verification",
       "cross-device scenario integrity",
       "final exact-SHA W3 Green gate"
     ]
@@ -100,5 +112,5 @@
     "no_production": true,
     "pass_requires_exact_sha_evidence": true
   },
-  "next_step": "Check Quality Gate #833 / ID 34708600408 first. If queued/running, do not start parallel work. If failed, root-fix first real failure. If successful, close AUD-A11Y-001 and continue the first remaining W3 gap only."
+  "next_step": "Check Quality Gate #834 / ID 34710221396 first. If queued/running, do not start parallel work. If failed, root-fix the first real failure. If successful, close AUD-A04-007 if no regression is exposed, keep AUD-A04-001 open for remaining proven presentation duplication, then continue the first remaining W3 gap only."
 }
