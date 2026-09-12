@@ -23,8 +23,10 @@ export function responseCacheControl({
   if (!mediaRead || !ok || hasSetCookie) return PRIVATE_NO_STORE;
 
   const upstreamPolicy = upstreamCacheControl?.trim();
-  if (upstreamPolicy && /(^|,)\s*public\b/i.test(upstreamPolicy) && !/\b(no-store|private)\b/i.test(upstreamPolicy)) {
-    return upstreamPolicy;
+  if (upstreamPolicy) {
+    if (/\b(no-store|private)\b/i.test(upstreamPolicy)) return PRIVATE_NO_STORE;
+    if (/(^|,)\s*public\b/i.test(upstreamPolicy)) return upstreamPolicy;
+    return PRIVATE_NO_STORE;
   }
 
   return "public, max-age=86400";
