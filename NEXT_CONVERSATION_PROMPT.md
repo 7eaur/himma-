@@ -5,8 +5,8 @@
 فرع التنفيذ: `audit/comprehensive-repository-review-2026-09-10`.
 
 ابدأ دائمًا بجلب HEAD الحالي وآخر CI قبل أي تعديل، ثم اقرأ بالترتيب:
-1. `docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-12_A10_W3_RUN834_GREEN_AR.md`
-2. `docs/maintenance/HIMMA_A10_W3_AUTOMATION_CHECKPOINT_2026-09-12_RUN834_GREEN_AR.md`
+1. `docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-12_A10_W3_RUN835_ACTIVE_AR.md`
+2. `docs/maintenance/HIMMA_A10_W3_AUTOMATION_CHECKPOINT_2026-09-12_RUN835_ACTIVE_AR.md`
 3. `docs/maintenance/HIMMA_A10_W3_EXECUTION_CHECKPOINT_2026-09-12_AR.md`
 4. `docs/ops/STATUS.md`
 5. `docs/ops/progress.json`
@@ -21,26 +21,29 @@
 - W2 = CLOSED GREEN على SHA `77ac72174a9e21163f6341ea8e0fcc172269eac3`, Run #822 / ID `34548388760`.
 - W3 = ACTIVE / NOT GREEN.
 - Run #833 / ID `34708600408` = SUCCESS على `79f154f9a3cdee51a713459790d1695aba08d6d7`; `AUD-A11Y-001` CLOSED.
-- Run #834 / ID `34710221396` = SUCCESS على exact code SHA `c180146b10467199e6833bacb77873eddcea2143`; Security + Frontend + Backend + Integration/Playwright PASS.
-- `AUD-A04-007` CLOSED بواسطة #834.
-- `AUD-A11Y-002` CLOSED بواسطة executable contrast evidence داخل #834.
-- `AUD-A04-001` ما يزال OPEN لبقية admin presentation ownership خارج Settings.
+- Run #834 / ID `34710221396` = SUCCESS على `c180146b10467199e6833bacb77873eddcea2143`; `AUD-A04-007` و`AUD-A11Y-002` CLOSED.
+- Batch الحالية هي `AUD-A11Y-003` executable progressbar verification.
+- Code SHA الحالي للـbatch: `50a02d250adc1f45a0e1f2577b40dd59ce18c0c1`.
+- Quality Gate #835 / ID `34712992018` كان `IN PROGRESS` عند آخر توثيق.
 
 ## أول إجراء إلزامي
 
-اجلب HEAD الحالي وآخر Quality Gate. إذا وجدت commit/batch/CI أحدث من هذا التوثيق وكان ACTIVE أو غير مغلق، **لا تبدأ batch موازية**؛ افهمه وأكمل منه فقط.
+اجلب HEAD الحالي وافحص Run #835 قبل أي تعديل.
 
-إذا لم يوجد عمل أحدث متداخل، أكمل gap واحدًا فقط من W3 وفق severity/dependency، ثم اختبر exact SHA ووثّق قبل فتح غيره.
+- إذا كان #835 ما يزال ACTIVE: لا تبدأ أي تغيير كود ولا batch موازية.
+- إذا SUCCESS: أغلق `AUD-A11Y-003` بواسطة exact-SHA evidence، حدّث continuity/status/progress، ثم اختر gap واحدة فقط تالية من W3.
+- إذا FAILURE: افتح jobs وحدد أول failure حقيقي، أصلحه من root cause، ولا تضعف الاختبار.
 
-المتبقي يشمل:
+## W3 المتبقي
+
 - `AUD-A04-001` remaining AdminUI/presentation unification.
 - `AUD-A04-002` partial-source error/retry regressions.
 - `AUD-A04-003` canonical Journey scenarios.
 - `AUD-A04-005` responsive matrix 320/360/390/430/768/Desktop.
 - `AUD-A04-006` final keyboard/dialog regression.
 - `AUD-A04-008` filtered audio-review context E2E.
-- `AUD-PERF-004`: runtime Google Fonts import ما يزال موجودًا في `globals.css`; المطلوب local/build-time strategy.
-- `AUD-A11Y-003`: progressbar executable verification.
+- `AUD-PERF-004`: runtime Google Fonts import ما يزال موجودًا؛ المطلوب local/build-time strategy.
+- `AUD-A11Y-003`: لا يغلق إلا بنجاح Run #835.
 - scenario integrity + final exact-SHA W3 Green gate.
 
 لا تعتبر W3 Green حتى تُغلق كل بنودها ويصبح Security + Frontend + Backend + Integration/Playwright Green على exact SHA واحد بعد آخر تعديل.
