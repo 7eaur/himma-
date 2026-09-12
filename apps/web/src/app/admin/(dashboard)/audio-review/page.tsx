@@ -32,9 +32,17 @@ function queueUrl(studentId: number | null) {
   return studentId ? `/api/review/pending-audio?student_id=${studentId}` : "/api/review/pending-audio";
 }
 
+function studentFilterFromLocation(): number | null {
+  if (typeof window === "undefined") return null;
+  const raw = new URLSearchParams(window.location.search).get("student_id");
+  if (!raw || !/^\d+$/.test(raw)) return null;
+  const parsed = Number(raw);
+  return parsed > 0 ? parsed : null;
+}
+
 export default function AudioReviewPage() {
   const [submissions, setSubmissions] = useState<AudioSubmission[]>([]);
-  const [studentFilter, setStudentFilter] = useState<number | null>(null);
+  const [studentFilter] = useState<number | null>(studentFilterFromLocation);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [message, setMessage] = useState<{ kind: "success" | "error"; text: string }>({ kind: "success", text: "" });
@@ -53,14 +61,9 @@ export default function AudioReviewPage() {
 
   useEffect(() => {
     let cancelled = false;
-    const raw = new URLSearchParams(window.location.search).get("student_id");
-    const parsed = raw && /^\d+$/.test(raw) ? Number(raw) : null;
-    const filter = parsed && parsed > 0 ? parsed : null;
-    setStudentFilter(filter);
-
     const fetchQueue = () => {
       if (editingRef.current !== null) return;
-      void fetch(queueUrl(filter), { cache: "no-store" }).then(async (response) => {
+      void fetch(queueUrl(studentFilter), { cache: "no-store" }).then(async (response) => {
         if (!response.ok) throw new Error("تعذر تحميل التسجيلات المنتظرة");
         const data: AudioSubmission[] = await response.json();
         if (!cancelled && editingRef.current === null) setSubmissions(data);
@@ -71,7 +74,7 @@ export default function AudioReviewPage() {
     fetchQueue();
     const interval = window.setInterval(fetchQueue, 30000);
     return () => { cancelled = true; window.clearInterval(interval); };
-  }, []);
+  }, [studentFilter]);
 
   const refreshQueue = async () => {
     if (editingId !== null) { setMessage({ kind: "error", text: "أكمل المراجعة الحالية أو ألغها قبل تحديث القائمة." }); return; }
@@ -100,20 +103,23 @@ export default function AudioReviewPage() {
     finally { setGradingId(null); }
   };
 
-  const filteredStudentName = submissions.find((submission) => submission.student_id === studentFilter)?.student_name;
-
   return <AdminPage>
-    <AdminPageHeader eyebrow="المراجعة اليدوية" icon={Headphones} title={studentFilter ? `تسجيلات ${filteredStudentName || `الطالب #${studentFilter}`}` : "التسجيلات الصوتية"} description={studentFilter ? "تعرض هذه الصفحة التسجيلات المنتظرة لهذا الطالب فقط. المراجعة لا تغيّر التاريخ؛ إعادة التسجيل تصبح مهمة مؤجلة يفتحها الطالب صراحة." : "استمع إلى قراءة الطالب مع النص المرجعي، ثم سجّل الأخطاء أو اطلب إعادة التسجيل. الإشعارات الجديدة تقودك مباشرة إلى هذه القائمة."} actions={<div className="flex gap-2 flex-wrap">{studentFilter && <AdminAction href={`/admin/students/${studentFilter}`} icon={UserRound}>العودة إلى ملف الطالب</AdminAction>}<AdminAction icon={RefreshCw} disabled={refreshing || editingId !== null} onClick={() => void refreshQueue()}>{refreshing ? "جاري التحديث..." : "تحديث القائمة"}</AdminAction></div>} />
+    <AdminPageHeader eyebrow="المراجعة الأكاديمية" title="مراجعة التسجيلات" description={studentFilter ? `تسجيلات الطالب #${studentFilter} التي تنتظر قرار المشرف.` : "استمع إلى قراءات الطلاب وسجّل القرار الأكاديمي دون تغيير التاريخ السابق."} actions={<AdminAction icon={<RefreshCw size={16} />} onClick={() => void refreshQueue()} disabled={refreshing || editingId !== null}>{refreshing ? "جاري التحديث..." : "تحديث القائمة"}</AdminAction>} />
     {message.text && <div className={message.kind === "success" ? "alert-success" : "alert-error"}>{message.text}</div>}
-    {loading ? <AdminPanel><div className="min-h-64 flex flex-col items-center justify-center gap-3"><div className="spinner w-10 h-10" /><p className="text-muted">جاري تحميل التسجيلات...</p></div></AdminPanel> : submissions.length === 0 ? <AdminPanel><AdminEmptyState title={studentFilter ? "لا توجد تسجيلات لهذا الطالب بانتظار المراجعة" : "لا توجد تسجيلات بانتظار المراجعة"} description="كل التسجيلات المطابقة تمت معالجتها حاليًا." action={<CheckCircle2 size={46} className="text-green" />} /></AdminPanel> : <div className="space-y-4">{submissions.map((submission, index) => <AdminPanel key={submission.id} title={submission.student_name || "طالب"} description={`${sessionLabel(submission.session_type)}${submission.item_title ? ` · ${submission.item_title}` : ""}`} actions={<span className="text-xs text-muted">{index + 1}/{submissions.length} · {new Date(submission.submitted_at).toLocaleString("ar-SA")}</span>}>
-      {submission.student_id && <Link href={`/admin/students/${submission.student_id}`} className="inline-flex items-center gap-2 text-primary text-sm font-semibold mb-4"><UserRound size={16} aria-hidden="true" /> فتح ملف الطالب</Link>}
-      {submission.expected_reading_text && <div className="rounded-2xl bg-bg border border-border p-4 mb-4"><p className="text-xs text-muted mb-2">النص المرجعي</p><p className="text-xl sm:text-2xl font-bold text-navy leading-loose break-words">{submission.expected_reading_text}</p></div>}
-      <div className="rounded-2xl border border-border bg-white p-4 mb-4"><AudioPlayer storageKey={submission.storage_key} /></div>
-      {editingId !== submission.id ? <AdminAction tone="primary" onClick={() => openReview(submission.id)} disabled={editingId !== null}>بدء المراجعة</AdminAction> : <div className="rounded-2xl bg-bg border border-border p-4 sm:p-5 space-y-5" data-testid={`audio-review-editor-${submission.id}`}>
-        <div><p className="font-bold text-navy mb-3">صلاحية التسجيل</p><div className="flex gap-3 flex-wrap"><button type="button" className={`btn-secondary ${isValid ? "border-green text-green" : ""}`} onClick={() => setIsValid(true)}><CheckCircle2 size={17} aria-hidden="true" /> تسجيل صالح</button><button type="button" className={`btn-secondary ${!isValid ? "border-red-300 text-red-600" : ""}`} onClick={() => setIsValid(false)}><XCircle size={17} aria-hidden="true" /> يحتاج إعادة تسجيل</button></div></div>
-        {isValid ? <><div className="grid grid-cols-2 lg:grid-cols-4 gap-3"><label className="text-sm text-navy">الوحدات المستهدفة<input type="number" min={1} className="input-field mt-2" value={targetUnits} onChange={(event) => setTargetUnits(Number(event.target.value))} /></label><label className="text-sm text-navy">الحذف<input type="number" min={0} className="input-field mt-2" value={deletions} onChange={(event) => setDeletions(Number(event.target.value))} /></label><label className="text-sm text-navy">الاستبدال<input type="number" min={0} className="input-field mt-2" value={substitutions} onChange={(event) => setSubstitutions(Number(event.target.value))} /></label><label className="text-sm text-navy">الإضافة<input type="number" min={0} className="input-field mt-2" value={insertions} onChange={(event) => setInsertions(Number(event.target.value))} /></label></div><div className="grid md:grid-cols-2 gap-3"><label className="text-sm text-navy">ملاحظات النطق<textarea className="input-field mt-2 min-h-24" value={pronunciationNotes} onChange={(event) => setPronunciationNotes(event.target.value)} /></label><label className="text-sm text-navy">ملاحظات الطلاقة<textarea className="input-field mt-2 min-h-24" value={fluencyNotes} onChange={(event) => setFluencyNotes(event.target.value)} /></label></div></> : <div className="rounded-xl bg-white border border-border p-4 flex items-start gap-3 text-sm text-muted"><RotateCcw size={18} className="text-primary mt-0.5" aria-hidden="true" /><p>عند الحفظ يُعلَّم التسجيل الحالي بأنه يحتاج إعادة تسجيل ويظل محفوظًا كتاريخ. تظهر للطالب مهمة مؤجلة، ولا تصبح قابلة للتنفيذ إلا عندما يفتحها الطالب صراحة؛ عندها يُنشأ تسجيل جديد مستقل.</p></div>}
-        <div className="flex justify-end gap-3 flex-wrap"><AdminAction tone="ghost" onClick={closeReview} disabled={gradingId === submission.id}>إلغاء</AdminAction><AdminAction tone="primary" onClick={() => void handleGrade(submission.id)} disabled={gradingId === submission.id}>{gradingId === submission.id ? "جاري الحفظ..." : isValid ? "حفظ التقييم" : "طلب إعادة التسجيل"}</AdminAction></div>
-      </div>}
+    {studentFilter && <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4"><UserRound size={18} aria-hidden="true" /><span className="text-sm text-slate-700">القائمة مفلترة لهذا الطالب فقط.</span><Link href="/admin/audio-review" className="btn-secondary">عرض جميع التسجيلات</Link></div>}
+    {loading ? <AdminPanel><p>جاري تحميل التسجيلات...</p></AdminPanel> : submissions.length === 0 ? <AdminEmptyState icon={<Headphones size={24} />} title="لا توجد تسجيلات تنتظر المراجعة" description={studentFilter ? "لا توجد حاليًا تسجيلات معلقة لهذا الطالب." : "ستظهر هنا التسجيلات الحالية فقط عندما تحتاج إلى قرار المشرف."} /> : <div className="space-y-4">{submissions.map((submission) => <AdminPanel key={submission.id}>
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-start justify-between gap-3"><div><div className="flex flex-wrap items-center gap-2"><strong>{submission.student_name || "طالب غير معروف"}</strong>{submission.student_id && <Link href={`/admin/students/${submission.student_id}`} className="text-sm font-medium text-teal-700 hover:underline">فتح ملف الطالب</Link>}</div><p className="text-sm text-slate-500">{sessionLabel(submission.session_type)}{submission.item_title ? ` · ${submission.item_title}` : ""}</p></div><span className="text-xs text-slate-500">{new Date(submission.submitted_at).toLocaleString("ar-SA")}</span></div>
+        {submission.expected_reading_text && <div className="rounded-xl bg-slate-50 p-3"><span className="text-xs text-slate-500">النص المتوقع</span><p className="mt-1 font-medium">{submission.expected_reading_text}</p></div>}
+        <AudioPlayer storageKey={submission.storage_key} />
+        {editingId !== submission.id ? <button type="button" className="btn-primary" onClick={() => openReview(submission.id)}><Headphones size={16} aria-hidden="true" /> بدء المراجعة</button> : <div className="space-y-4 rounded-2xl border border-slate-200 p-4">
+          <div className="flex flex-wrap gap-3"><button type="button" className={isValid ? "btn-primary" : "btn-secondary"} onClick={() => setIsValid(true)}><CheckCircle2 size={16} aria-hidden="true" /> تسجيل صالح</button><button type="button" className={!isValid ? "btn-primary" : "btn-secondary"} onClick={() => setIsValid(false)}><RotateCcw size={16} aria-hidden="true" /> يحتاج إعادة تسجيل</button></div>
+          {isValid && <div className="grid gap-3 md:grid-cols-4"><label className="space-y-1"><span className="text-sm">الوحدات المستهدفة</span><input className="input" type="number" min={1} value={targetUnits} onChange={(event) => setTargetUnits(Number(event.target.value))} /></label><label className="space-y-1"><span className="text-sm">الحذف</span><input className="input" type="number" min={0} value={deletions} onChange={(event) => setDeletions(Number(event.target.value))} /></label><label className="space-y-1"><span className="text-sm">الاستبدال</span><input className="input" type="number" min={0} value={substitutions} onChange={(event) => setSubstitutions(Number(event.target.value))} /></label><label className="space-y-1"><span className="text-sm">الإضافة</span><input className="input" type="number" min={0} value={insertions} onChange={(event) => setInsertions(Number(event.target.value))} /></label></div>}
+          <div className="grid gap-3 md:grid-cols-2"><label className="space-y-1"><span className="text-sm">ملاحظات النطق</span><textarea className="input min-h-24" value={pronunciationNotes} onChange={(event) => setPronunciationNotes(event.target.value)} /></label><label className="space-y-1"><span className="text-sm">ملاحظات الطلاقة</span><textarea className="input min-h-24" value={fluencyNotes} onChange={(event) => setFluencyNotes(event.target.value)} /></label></div>
+          {!isValid && <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">سيُحفظ التسجيل الحالي في التاريخ وتُنشأ مهمة إعادة تسجيل مؤجلة؛ لا تُعاد المحاولة تلقائيًا.</p>}
+          <div className="flex flex-wrap gap-3"><button type="button" className="btn-primary" onClick={() => void handleGrade(submission.id)} disabled={gradingId === submission.id}>{gradingId === submission.id ? "جاري الحفظ..." : isValid ? "حفظ التقييم" : "طلب إعادة التسجيل"}</button><button type="button" className="btn-secondary" onClick={closeReview} disabled={gradingId === submission.id}><XCircle size={16} aria-hidden="true" /> إلغاء</button></div>
+        </div>}
+      </div>
     </AdminPanel>)}</div>}
   </AdminPage>;
 }
