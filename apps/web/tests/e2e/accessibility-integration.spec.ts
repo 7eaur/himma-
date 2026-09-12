@@ -156,6 +156,45 @@ test.describe("M06 responsive and accessibility integration", () => {
     expect(contrast(tokens.navy, tokens.background)).toBeGreaterThanOrEqual(4.5);
   });
 
+  test("student level progress exposes complete progressbar semantics", async ({ page, context, request }) => {
+    await loginAsSupervisor(request, context);
+    await page.goto("/admin/students/new");
+    const studentName = `طالب دلالات التقدم ${Date.now()}`;
+    await page.getByTestId("input-student-name").fill(studentName);
+    await page.getByTestId("submit-create-student").click();
+
+    const codeEl = page.getByTestId("student-access-code");
+    await expect(codeEl).toBeVisible({ timeout: 10000 });
+    const accessCode = (await codeEl.textContent())?.trim() ?? "";
+    expect(accessCode).toMatch(/^\d{6}$/);
+
+    const studentsResponse = await request.get(`${API_URL}/researcher/students`);
+    expect(studentsResponse.status()).toBe(200);
+    const students: Array<{ id: number; access_code: string; full_name: string }> = await studentsResponse.json();
+    const createdStudent = students.find((candidate) => candidate.access_code === accessCode);
+    expect(createdStudent?.full_name).toBe(studentName);
+    expect(createdStudent?.id).toBeTruthy();
+
+    await page.goto(`/admin/students/${createdStudent?.id}`);
+    await expect(page.getByRole("heading", { name: studentName })).toBeVisible({ timeout: 10000 });
+    await page.getByRole("button", { name: "المسار والتقدم" }).click();
+
+    const progress = page.getByRole("progressbar", { name: "تقدم الأنشطة الأساسية في المستوى النشط" });
+    await expect(progress).toBeVisible({ timeout: 10000 });
+    await expect(progress).toHaveAttribute("aria-valuemin", "0");
+
+    const max = Number(await progress.getAttribute("aria-valuemax"));
+    const now = Number(await progress.getAttribute("aria-valuenow"));
+    const valueText = await progress.getAttribute("aria-valuetext");
+    expect(Number.isFinite(max)).toBe(true);
+    expect(Number.isFinite(now)).toBe(true);
+    expect(max).toBeGreaterThan(0);
+    expect(now).toBeGreaterThanOrEqual(0);
+    expect(now).toBeLessThanOrEqual(max);
+    expect(valueText).toBe(`${now} من ${max}`);
+    await expect(page.getByText(`${now} من ${max}`, { exact: true })).toBeVisible();
+  });
+
   test("child entry surfaces do not expose implementation vocabulary", async ({ page }) => {
     for (const route of ["/", "/student/login"]) {
       await page.goto(route);
