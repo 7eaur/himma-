@@ -29,7 +29,9 @@
 - Run #839 / ID `34718862139` = SUCCESS على `4d66d0d72f1685e04d1adfc42d855289ba76419f`؛ `AUD-A04-005` CLOSED.
 - Batch الحالية فقط: `AUD-A04-008 — filtered audio-review context`.
 - exact code-bearing SHA: `56854c5a903a6b86dcec1653129f8ca91d3b6ea7`.
-- Quality Gate #840 / ID `34721724505` بدأ على هذا SHA وكان `QUEUED` عند آخر توثيق.
+- Quality Gate #840 / ID `34721724505` = `IN_PROGRESS` على هذا SHA عند آخر فحص.
+- `security` و`frontend` = SUCCESS.
+- `backend` كان في `Run backend tests` بعد نجاح PostgreSQL/canonical/migrations/drift/seed checks؛ Integration ينتظر backend.
 - أضيف backend regression حقيقي للفلترة/metadata/pending→rerecord/replacement→graded/history preservation.
 - أضيف Playwright regression للسياق المفلتر، profile return link، valid grading، وrerecord UI.
 - `AUD-PERF-004` ما يزال OPEN؛ المحاولة الجزئية السابقة أُعيدت بالكامل.
@@ -38,7 +40,7 @@
 
 اجلب HEAD الحالي وافحص Run #840 قبل أي تعديل.
 
-- إذا كان #840 ما يزال ACTIVE/QUEUED: لا تبدأ أي تغيير كود ولا batch موازية.
+- إذا كان #840 ما يزال ACTIVE: لا تبدأ أي تغيير كود ولا batch موازية.
 - إذا SUCCESS: أغلق `AUD-A04-008` بواسطة exact-SHA evidence، حدّث Master Gap Register وcontinuity/status/progress، ثم اختر gap واحدة فقط تالية من W3.
 - إذا FAILURE: افتح jobs وحدد أول failure حقيقي، أصلحه من root cause، ولا تضعف الاختبار.
 
