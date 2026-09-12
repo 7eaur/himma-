@@ -165,8 +165,18 @@ def test_filtered_audio_queue_preserves_review_lifecycle_and_metadata(researcher
         }
         assert statuses[first_submission_id] == "rerecord_required"
         assert statuses[replacement_id] == "graded"
+
         second = db.query(AudioSubmission).filter(AudioSubmission.id == second_submission_id).one()
         assert second.status == "uploaded"
-        assert second.response.attempt.session.student_id == second_student_id
+        second_response = db.query(AttemptResponse).filter(
+            AttemptResponse.id == second.response_id
+        ).one()
+        second_attempt = db.query(Attempt).filter(
+            Attempt.id == second_response.attempt_id
+        ).one()
+        second_session = db.query(AssessmentSession).filter(
+            AssessmentSession.id == second_attempt.session_id
+        ).one()
+        assert second_session.student_id == second_student_id
     finally:
         db.close()
