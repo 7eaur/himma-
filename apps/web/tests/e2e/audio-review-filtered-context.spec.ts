@@ -81,11 +81,10 @@ test.describe("Filtered audio review context", () => {
     await expect(page.getByText(`تسجيلات الطالب #${studentId} التي تنتظر قرار المشرف.`)).toBeVisible();
     await expect(page.getByText("القائمة مفلترة لهذا الطالب فقط.")).toBeVisible();
     await expect(page.getByRole("link", { name: "عرض جميع التسجيلات" })).toHaveAttribute("href", "/admin/audio-review");
+    await expect(page.getByRole("link", { name: "فتح ملف الطالب" }).first()).toHaveAttribute("href", `/admin/students/${studentId}`);
     expect(filteredQueueRequests.length).toBeGreaterThan(0);
     expect(filteredQueueRequests.every((url) => url.includes(`student_id=${studentId}`))).toBe(true);
 
-    const firstPanel = page.getByText("قراءة أولى").locator("xpath=ancestor::*[contains(@class,'admin') or self::section or self::div][1]");
-    await page.getByText("قراءة أولى").getByText("قراءة أولى").isVisible().catch(() => false);
     const reviewButtons = page.getByRole("button", { name: "بدء المراجعة" });
     await expect(reviewButtons).toHaveCount(2);
 
@@ -107,11 +106,5 @@ test.describe("Filtered audio review context", () => {
     expect(gradePayloads[0].body.is_valid).toBe(true);
     expect(gradePayloads[1].id).toBe(9102);
     expect(gradePayloads[1].body.is_valid).toBe(false);
-
-    const profileLinks = page.getByRole("link", { name: "فتح ملف الطالب" });
-    // Both rows expose the same canonical back-navigation target before review.
-    // The assertions above remove rows only after the respective persisted action.
-    await page.goto(`/admin/audio-review?student_id=${studentId}`);
-    await expect(profileLinks.first()).toHaveAttribute("href", `/admin/students/${studentId}`);
   });
 });
