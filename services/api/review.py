@@ -112,7 +112,10 @@ def grade_audio_submission(
             details="Recording marked invalid; rerecord deferred until learner explicitly opens the task",
         ))
         db.commit()
-        return {"status": "ok", "message": "تم طلب إعادة التسجيل"}
+        return {
+            "status": submission.status,
+            "message": "تم طلب إعادة التسجيل",
+        }
 
     if not request.target_units or request.target_units <= 0:
         raise HTTPException(status_code=400, detail="أدخل عدد الوحدات أو الكلمات المستهدفة")
@@ -159,4 +162,7 @@ def grade_audio_submission(
     ))
 
     db.commit()
-    return {"status": "ok", "rubric_score": float(rubric_score)}
+    return {
+        "status": submission.status,
+        "rubric_score": float(rubric_score),
+    }
