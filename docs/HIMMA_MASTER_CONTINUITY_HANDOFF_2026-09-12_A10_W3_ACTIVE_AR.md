@@ -2,603 +2,430 @@
 
 **الإصدار:** 2026-09-12 — A10/W3 Active  
 **المستودع:** `7eaur/himma-`  
-**فرع التنفيذ الرسمي لهذه المرحلة:** `audit/comprehensive-repository-review-2026-09-10`  
-**الحالة:** `A00–A09 CLOSED — W1 GREEN — W2 GREEN — W3 ACTIVE/RED — NO MERGE / NO DEPLOY`  
+**فرع التنفيذ:** `audit/comprehensive-repository-review-2026-09-10`  
+**الحالة:** `A00–A09 CLOSED — W1 GREEN — W2 GREEN — W3 ACTIVE/CI RED — NO MERGE / NO DEPLOY`
 
-> **هذا الملف هو مرجع الاستكمال الأساسي للمحادثات الجديدة، ويحل محل handoff القديم المؤرخ 2026-09-10 من حيث نقطة الاستكمال.** لا تحذف المرجع القديم لأنه History، لكن لا تستخدم تعليماته القديمة التي تقول إن W1 ما زالت In Progress أو تمنع بدء W2؛ هذه المراحل تجاوزت ذلك وأُغلقت بأدلة Exact-SHA.
+> **هذا هو مرجع الاستكمال الرئيسي للمحادثات الجديدة.** handoff المؤرخ 2026-09-10 محفوظ كتاريخ فقط وقد تجاوزه التنفيذ. اجلب HEAD الحالي دائمًا قبل العمل لأن commits التوثيق قد تكون بعد آخر code-bearing SHA.
 
 ---
 
-# 0. أمر الاستكمال السريع
+## 1. بروتوكول البدء في محادثة جديدة
 
-إذا بدأت محادثة جديدة، نفّذ أولًا وليس تقريرًا فقط:
+نفّذ بالترتيب:
 
-1. اجلب HEAD الحالي للفرع `audit/comprehensive-repository-review-2026-09-10`.
-2. اقرأ هذا الملف كاملًا.
-3. اقرأ:
+1. Fetch HEAD لـ`audit/comprehensive-repository-review-2026-09-10`.
+2. اقرأ:
+   - `NEXT_CONVERSATION_PROMPT.md`
+   - هذا الملف.
+   - `docs/maintenance/HIMMA_A10_W3_EXECUTION_CHECKPOINT_2026-09-12_AR.md`
    - `docs/ops/STATUS.md`
    - `docs/ops/progress.json`
    - `docs/maintenance/HIMMA_MASTER_GAP_REGISTER_2026-09-10_AR.md`
-   - `docs/maintenance/HIMMA_A10_W1_EXECUTION_CHECKPOINT_2026-09-10_AR.md`
-   - `docs/maintenance/HIMMA_A10_W2_EXECUTION_CHECKPOINT_2026-09-12_AR.md`
-   - `docs/maintenance/HIMMA_A10_W3_EXECUTION_CHECKPOINT_2026-09-12_AR.md`
-4. لا تعِد A00–A09.
-5. لا تعِد W1 أو W2؛ كلاهما Closed Green.
-6. افحص هل أضيف code commit بعد آخر code-bearing checkpoint المذكور هنا.
-7. تابع من **أول gap غير مغلق فعليًا في W3**، مع إصلاح root cause واختبار exact SHA.
-8. لا Merge/Deploy/Docker/Railway حتى الحدود النهائية.
+3. لا تعِد A00–A09.
+4. لا تعِد W1/W2؛ كلاهما Closed Green.
+5. حدد أحدث code-bearing commit، ولا تعتبر documentation commit code gate.
+6. تابع من أول W3 gap غير مغلق، أصلح root cause، واختبر exact SHA.
+7. لا Merge/Deploy/Docker/Railway قبل الحدود النهائية.
 
 ---
 
-# 1. ما هو مشروع هِمّة؟
+## 2. تعريف المشروع وSource of Truth
 
-هِمّة منصة تعليمية عربية موجهة لتقييم وتنمية القراءة لدى طلاب لديهم صعوبات في القراءة، بمسار تفاعلي منظم يعتمد المحتوى المعتمد، قراءة/كتابة/صوت، تصنيف مستوى، تعلم أساسي، تقوية موجهة، ثم قياس بعدي وتقارير إشرافية.
+هِمّة منصة تعليمية عربية لقياس وتنمية القراءة، بمسار:
 
-المسار المفاهيمي:
+`دخول بكود → اختبار قبلي → تصنيف → تعلم المستوى → تقوية موجهة → ترقية/استكمال → اختبار بعدي → تقارير المشرف`
 
-`دخول الطالب بكود → اختبار قبلي → تحليل/تصنيف → مستوى 1/2/3 → أنشطة Core → تقوية عند الضعف → ترقية/استكمال → اختبار بعدي → تقارير المشرف`
-
-المنتج ليس مجرد Quiz. أهم invariants هي الحفاظ على التاريخ، عدم تزوير التحليل الصوتي، عدم خلط current pointer مع completion، وعدم جعل واجهة المستخدم تعرض حالة أكاديمية غير صحيحة.
-
----
-
-# 2. Source of Truth والمعمارية
-
-المسار المعتمد للمحتوى:
+المعمارية المعتمدة للمحتوى:
 
 `approved/versioned source → deterministic structured projection → PostgreSQL runtime → structured API → deterministic renderer`
 
-Canonical compiler/publisher هو owner للمحتوى. ممنوع إنشاء repair chains أو overlays جديدة فوق runtime لتغطية مشاكل المصدر.
+Canonical compiler/publisher هو owner للمحتوى؛ ممنوع repair/overlay chains جديدة فوق runtime.
 
-الأرقام المعتمدة حاليًا:
+العقد الحالي:
 
 - Canonical/runtime total = **125**.
-- Pretest = **30**.
-- Posttest = **30**.
-- Learning runtime = **65**.
-- Reinforcement = **35**.
-- Skills = **44**.
-- Projection contract = `structured_db_runtime_v1`.
+- Pretest = 30.
+- Posttest = 30.
+- Learning runtime = 65.
+- Reinforcement = 35.
+- Skills = 44.
+- Projection = `structured_db_runtime_v1`.
 
-أي فرضية تاريخية عن 105 عنصرًا ليست source of truth الحالي؛ إن ظهرت في test قديم تعامل معها كـtest ownership/history compatibility لا كسبب للرجوع عن 125.
+أي 105-world assumptions قديمة = historical test/migration context، وليست runtime truth الحالية.
 
 ---
 
-# 3. العقد الأكاديمي الثابت
+## 3. العقد الأكاديمي
 
-## 3.1 Placement بعد الاختبار القبلي
+### Placement
 
-- `< 50%` → المستوى الأول.
-- `50% <= score < 80%` → المستوى الثاني.
-- `80% <= score <= 100%` → المستوى الثالث.
+- `<50%` → L1.
+- `50..<80%` → L2.
+- `80..100%` → L3.
 
-## 3.2 Adaptation V4
+### Adaptation V4
 
-- Activity score `>=80` → success.
-- `70..<80` → guided retry.
-- `<70` → guided reinforcement.
+- `>=80` نجاح.
+- `70..<80` guided retry.
+- `<70` guided reinforcement.
 
-## 3.3 Promotion / Completion
+### Promotion / Completion
 
-L1/L2 يسمحان early promotion فقط إذا تحققت جميع الحدود:
+L1/L2 early promotion فقط عند:
 
-- >=6 Core completed في الجلسة الحالية.
+- >=6 Core.
 - weighted mastery >=85.
-- critical-skill coverage موجودة.
-- critical skill floor >=70.
-- لا unresolved reinforcement.
-- لا supervisor blocker عند boundary.
-- لا unresolved learning audio عند قرار irreversible.
+- critical coverage.
+- critical floor >=70.
+- no unresolved reinforcement.
+- no supervisor blocker.
+- no unresolved learning audio عند irreversible boundary.
 
-قواعد إضافية:
+ثوابت:
 
-- لا automatic demotion.
-- الترقية مستوى واحد فقط.
-- L3 لا ينتهي إلا بعد 10 Core.
-- لا يوجد L4.
-- أحدث 3 evidences صالحة من active learning session تدخل mastery بأوزان 50/30/20.
-- `current_level` pointer وليس دليل completion للمستويات السابقة.
-- manual override لا يصنع academic completion ولا badge.
+- no automatic demotion.
+- ترقية مستوى واحد فقط.
+- L3 يحتاج 10 Core ولا يوجد L4.
+- أحدث 3 evidences صالحة في active session بأوزان 50/30/20.
+- `current_level` pointer وليس completion evidence.
+- manual override لا يعني level completion ولا badge.
 
 ---
 
-# 4. عقد الصوت الثابت
+## 4. عقد الصوت والسلطة الأكاديمية
 
-## 4.1 Static approved audio
+Static approved audio:
 
-- Approved static audio IDs = 54.
+- IDs = 54.
 - WAV = 54.
 - MP3 = 54.
-- required static gaps = 0 في العقد المعتمد الحالي.
 
-## 4.2 Student recordings
+Student audio:
 
-- uploaded/pending = neutral academic state.
-- pending learning audio لا يمنع same-level learning/navigation/support.
-- unresolved learning audio يمنع irreversible promotion أو L3 completion فقط.
-- assessment يمكن أن ينتظر Human Review وفق العقد الحالي.
-- `rerecord_required` مهمة مؤجلة لا تصبح actionable حتى يفتحها الطالب صراحة.
-- rerecord append-only: كل إعادة = AudioSubmission جديد.
-- التسجيل السابق immutable history.
-- latest AudioSubmission هو active state.
-- graded فقط يمكن أن يدخل academic evidence.
-- AudioReview rubric يحافظ على القيمة الرقمية؛ لا يحول إلى Boolean.
-- Human Supervisor Review هو academic authority الحالي.
+- uploaded/pending = academically neutral.
+- pending learning audio لا يمنع same-level learning/support/navigation.
+- unresolved learning audio يمنع irreversible promotion/L3 completion.
+- assessment قد ينتظر Human Review وفق العقد الحالي.
+- `rerecord_required` deferred حتى explicit learner open.
+- rerecord append-only؛ كل إعادة = AudioSubmission جديد.
+- previous submissions immutable history.
+- latest AudioSubmission = active state.
+- graded فقط يدخل academic evidence.
+- AudioReview rubric رقمي ولا يتحول Boolean.
+- Human Supervisor Review = academic authority.
 
-## 4.3 ASR governance
+Production ASR:
 
-لا يوجد Production ASR provider معتمد.
-
-Machine SpeechAnalysis = advisory فقط.
-
-ممنوع اعتبار:
-
-- confidence
-- env threshold
-- model version string
-- branch تجريبي
-
-موافقة أكاديمية.
-
-`AUD-A03-008` يبقى BLOCKED EXTERNAL APPROVAL حتى اعتماد provider + calibration + privacy + cost + governance.
+- **غير معتمد**.
+- machine SpeechAnalysis = advisory.
+- env threshold/model string لا يمنح approval.
+- `AUD-A03-008` = BLOCKED EXTERNAL APPROVAL حتى provider + calibration + privacy + cost + governance approval.
 
 ---
 
-# 5. Governance وقواعد التنفيذ
-
-هذه القيود غير قابلة للتجاوز ضمن A10:
+## 5. قواعد التنفيذ والحوكمة
 
 - لا Docker.
 - لا blind merge.
-- لا merge للفروع الأساسية أثناء العمل الحالي.
-- لا deploy / Railway قبل W6 Green وحدود A11.
+- لا deploy/Railway قبل W6 Green/A11.
 - لا fake ASR.
 - لا Temporary Audio Skip.
-- لا حذف Academic history.
-- لا حذف AudioSubmission history.
-- لا حذف Reward evidence لمجرد cleanup.
+- لا حذف academic/audio/reward history.
 - Speech/Pronunciation Lab branches = research only / EXCLUDE FROM MERGE.
-- `deployment/platform-sandbox` = reference only / لا Docker assumptions ولا temporary audio skip revival.
+- `deployment/platform-sandbox` = reference only.
+- CI helper branches = verification pointers only، لا تُدمج.
 - كل PASS يحتاج exact SHA + actual executed gate.
-- لا تعديل test ليقبل bug حقيقي؛ أصلح root cause.
-
-CI helper branches مثل `stage/a10-w3-ci` verification pointers فقط وليست release branches ولا تُدمج.
+- لا تغيّر test لإخفاء bug حقيقي.
 
 ---
 
-# 6. A00–A09 — CLOSED AUDIT
+## 6. A00–A09 — CLOSED AUDIT
 
-A00–A09 انتهت كتدقيق ولا تُعاد.
+لا تعاد. Master Gap Register هو خريطة التنفيذ:
 
-المراجع الرئيسية:
+`docs/maintenance/HIMMA_MASTER_GAP_REGISTER_2026-09-10_AR.md`
 
-- `docs/maintenance/HIMMA_COMPREHENSIVE_REPOSITORY_AUDIT_2026-09-10_AR.md`
-- `docs/maintenance/HIMMA_MASTER_GAP_REGISTER_2026-09-10_AR.md`
-- `docs/maintenance/HIMMA_A03_AUDIO_SPEECH_REVIEW_ADAPTATION_AUDIT_2026-09-10_AR.md`
-- `docs/maintenance/HIMMA_A04_ADMIN_MOBILE_DEEP_AUDIT_2026-09-10_AR.md`
-- `docs/maintenance/HIMMA_A04_A05_ADMIN_BADGES_AUDIT_2026-09-10_AR.md`
-- `docs/maintenance/HIMMA_A06_IMAGE_MEDIA_DEEP_AUDIT_2026-09-10_AR.md`
-- `docs/maintenance/HIMMA_A07_SECURITY_PERFORMANCE_ACCESSIBILITY_OBSERVABILITY_AUDIT_2026-09-10_AR.md`
-- `docs/maintenance/HIMMA_A08_FULL_JOURNEY_INTEGRATION_E2E_AUDIT_2026-09-10_AR.md`
-- `docs/maintenance/HIMMA_A09_BRANCH_CLASSIFICATION_2026-09-10_AR.md`
-
-A10 هو التنفيذ الجذري للـMaster Gap Register.
+وملفات A03/A04/A05/A06/A07/A08/A09 تبقى أدلة تدقيق تاريخية عند الحاجة.
 
 ---
 
-# 7. A10 / W1 — CLOSED GREEN
+## 7. W1 — CLOSED GREEN
 
 **Scope:** Academic / History Integrity.
 
-Exact verified SHA:
-
-`ea132c9afbe152d0afa5ae581c058ce3248a0c48`
-
-Quality Gate:
-
-- Run number: `813`
-- Run ID: `34467329988`
+- Exact SHA: `ea132c9afbe152d0afa5ae581c058ce3248a0c48`
+- Run #813
+- Run ID `34467329988`
 - Security PASS.
 - Frontend PASS.
 - Backend PASS.
-- Integration / Playwright PASS.
+- Integration/Playwright PASS.
 
-W1 أغلق جذريًا:
+أغلق:
 
-- append-only assessment rerecord.
-- explicit learner open before rerecord.
 - latest AudioSubmission owner.
+- append-only rerecord + explicit/deferred open.
 - old submissions immutable.
-- numeric AudioReview rubric evidence 0.0/0.1/0.7/1.0 بدون Boolean collapse.
-- pending audio aggregate مستقل عن navigation target.
+- numeric rubric evidence 0.0/0.1/0.7/1.0.
+- pending-audio aggregate مستقل عن navigation.
 - canonical Level Completion owner.
-- Journey وRewards يستهلكان completion truth نفسه.
-- manual override لا يصنع completion/badge.
-- L1/L2 early promotion 6–9 Core وفق البوابات.
+- Journey/Rewards completion truth موحد.
+- manual override ≠ completion/badge.
+- L1/L2 early promotion 6–9 Core حسب gates.
 - L3 10 Core.
-- corrupt house WebP لـ `HIMMA-GEN-VOC-001` أُصلح دون تغيير Stable ID أو معنى `بيت`.
+- corrupt house WebP fixed دون تغيير Stable ID/دلالة `بيت`.
 
-المرجع:
+Checkpoint:
 
 `docs/maintenance/HIMMA_A10_W1_EXECUTION_CHECKPOINT_2026-09-10_AR.md`
 
 ---
 
-# 8. A10 / W2 — CLOSED GREEN
+## 8. W2 — CLOSED GREEN
 
 **Scope:** Security / Speech Boundaries.
 
-Exact verified SHA:
-
-`77ac72174a9e21163f6341ea8e0fcc172269eac3`
-
-Quality Gate:
-
-- Run number `822`
+- Exact SHA: `77ac72174a9e21163f6341ea8e0fcc172269eac3`
+- Run #822
 - Run ID `34548388760`
-- conclusion `success`
 - Security PASS.
 - Frontend PASS.
-- Backend PASS — 852 tests successful.
-- Integration / Playwright PASS.
-- Alembic upgrade/downgrade/upgrade PASS.
-- Alembic model drift PASS.
+- Backend PASS — 852 tests.
+- Integration/Playwright PASS.
+- Alembic upgrade→downgrade→upgrade PASS.
+- model drift PASS.
 - canonical validation + seed idempotency PASS.
 
-W2 أغلق:
+أغلق:
 
 - Redis/HMAC auth rate limiting.
-- no raw access-code identifier storage.
-- JWT/session auth epoch revocation on credential rotation.
-- protected runtime Secure cookie/readiness fail-closed.
-- recording upload ContentLength/MIME limits pre-presign + completion recheck.
-- raw storage errors sanitized.
-- ASR source-controlled governance; env cannot grant approval.
-- machine advisory + human academic authority.
-- durable worker lease/claim.
-- bounded retry/dead-letter/manual audit recovery.
+- revocable auth epoch بعد credential rotation.
+- protected readiness + Secure cookies.
+- recording pre-upload size/type boundary + completion recheck.
+- sanitized storage errors.
+- source-controlled ASR governance.
+- machine advisory / human authority.
+- durable worker leases/claim.
+- bounded retry/dead-letter/manual audited recovery.
 - request correlation API+BFF.
 - privacy-safe auth failure signals.
 
-استثناء:
+`AUD-A03-008` يبقى external blocked.
 
-`AUD-A03-008` remains BLOCKED EXTERNAL APPROVAL.
-
-المرجع:
+Checkpoint:
 
 `docs/maintenance/HIMMA_A10_W2_EXECUTION_CHECKPOINT_2026-09-12_AR.md`
 
 ---
 
-# 9. A10 / W3 — ACTIVE
+## 9. W3 — ACTIVE / CI RED
 
 **Scope:** Admin / Student UX / Accessibility / Web Reliability.
 
-## 9.1 آخر Code-bearing checkpoint قبل هذا التوثيق
+### آخر code-bearing checkpoint قبل التوثيق
 
 `3962d101b2c1ba4c5294235dfac797687209cbfb`
 
-Commit:
+Commit: `fix(admin): align audio review with shared admin component contracts`
 
-`fix(admin): align audio review with shared admin component contracts`
+W3 code من W2 إلى هذا SHA = 19 commits.
 
-من W2 SHA حتى هذا SHA توجد 19 commits W3.
+### ما تم تنفيذه
 
-التغييرات الأساسية طالت:
+- `useAccessibleDialog` مشترك: focus entry/trap، Escape، return focus، scroll lock + unit test.
+- Admin mobile dialog ARIA/focus lifecycle.
+- Settings tablist/tab/tabpanel + roving tabindex + arrows/Home/End.
+- `services/api/researcher_journey.py`: canonical supervisor Journey من `build_journey_summary()`.
+- Student Detail: canonical per-level Journey + explicit loading/loaded/error لـjourney/history/rewards.
+- `review.py`: optional `student_id` filter للمشرف دون تغيير academic/review state.
+- Audio Review UI يحتفظ بسياق الطالب.
+- BFF route-aware cache policy + tests أضيفت، لكنها ما زالت تحوي bug حقيقي.
 
-- Admin audio review.
-- Admin layout/mobile dialog.
-- Settings tabs.
-- Admin Student Detail.
-- BFF cache policy + unit test.
-- accessible dialog hook + test.
-- canonical researcher journey route + test.
-- review API student filter.
-- status/progress docs.
+### Exact CI stop point
 
-## 9.2 ما تم في W3
+Helper: `stage/a10-w3-ci` — verification only.
 
-### Accessible dialogs
+Run:
 
-`apps/web/src/hooks/useAccessibleDialog.ts`
-
-- initial focus.
-- Tab trap.
-- Shift+Tab trap.
-- Escape close.
-- return focus.
-- body scroll lock.
-
-Admin mobile panel يستخدمه مع `role=dialog` و`aria-modal=true`.
-
-### Settings accessibility
-
-`apps/web/src/app/admin/(dashboard)/settings/page.tsx`
-
-- tablist/tab/tabpanel semantics.
-- aria-selected/controls/labelledby.
-- roving tabindex.
-- Left/Right/Home/End keyboard navigation.
-
-### Canonical Admin Journey
-
-`services/api/researcher_journey.py`
-
-يعرض `build_journey_summary()` نفسه للمشرف بدل إعادة استنتاج completion من current_level.
-
-### Student Detail truth/error states
-
-Student Detail أصبح يفرق بين:
-
-- loading.
-- loaded-empty.
-- error.
-
-لـJourney/history/rewards، ويستهلك canonical per-level state.
-
-### Audio review student context
-
-`/pending-audio?student_id=...` supervisor filter مع الحفاظ على academic eligibility نفسها.
-
-Admin Audio Review يحتفظ بسياق الطالب ويتيح العودة/إزالة الفلتر.
-
-### BFF cache policy
-
-تم فصل route-aware policy في:
-
-`apps/web/src/app/api/[...path]/cachePolicy.ts`
-
-لكن يوجد bug حقيقي حالي موضح أدناه.
-
----
-
-# 10. نقطة التوقف الحالية بالضبط
-
-لتحقق W3 استُخدم helper:
-
-`stage/a10-w3-ci`
-
-وتم تحريكه إلى:
-
-`3962d101b2c1ba4c5294235dfac797687209cbfb`
-
-Quality Gate الحالي:
-
-- Run #`829`
+- Quality Gate #829
 - Run ID `34703574228`
-- SHA `3962d101b2c1ba4c5294235dfac797687209cbfb`
+- Exact SHA `3962d101b2c1ba4c5294235dfac797687209cbfb`
 
-آخر حالة موثقة أثناء إنشاء ملفات الاستمرارية:
+النتيجة النهائية:
 
-- Security = PASS.
-- Frontend TypeScript = PASS.
-- ESLint = PASS.
-- Frontend unit tests = FAIL.
-- Build skipped بعد unit failure.
-- Backend full tests كانت still in progress عند آخر poll.
-- Integration لا يمكن اعتباره Green في هذا run بسبب Frontend failure.
+- Security PASS.
+- Backend PASS، بما يشمل migrations/drift/canonical/seed/full tests.
+- TypeScript PASS.
+- ESLint PASS.
+- Frontend unit tests **FAIL** باختبار واحد.
+- Build skipped.
+- Integration/Playwright skipped.
 
-## الفشل الحالي
+إذن W3 ليست Green.
 
-`apps/web/src/app/api/[...path]/route.test.ts`
+### Current first blocker
 
-الحالة الفاشلة:
+الملفات:
 
-approved media GET + upstream `Cache-Control: private, no-store`.
+- `apps/web/src/app/api/[...path]/cachePolicy.ts`
+- `apps/web/src/app/api/[...path]/route.test.ts`
 
-المتوقع:
+Bug:
 
-`private, no-store`
+approved media GET + successful upstream + explicit `Cache-Control: private, no-store` يعاد خطأ كـ`public, max-age=86400`.
 
-الحالي:
+Root fix:
 
-`public, max-age=86400`
+- non-media/non-GET-HEAD/non-success/Set-Cookie → private no-store.
+- explicit upstream private/no-store → private no-store.
+- explicit safe public → preserve.
+- public 86400 fallback فقط عند **غياب** upstream Cache-Control في approved successful media GET/HEAD.
+- لا تضعف test.
+- commit → move helper إلى exact SHA الجديد → full Quality Gate.
 
-### Root cause
+هذا هو **أول عمل** إذا لم يوجد commit أحدث أصلح المشكلة.
 
-`responseCacheControl()` في `cachePolicy.ts` يستخدم fallback public حتى عندما upstream **صرّح صراحة** بعدم التخزين.
+### W3 remaining بالكامل
 
-### أول عمل يجب تنفيذه عند الاستكمال
+- `AUD-A04-001`: AdminUI/presentation unification حيث ownership مثبت.
+- `AUD-A04-002`: partial-source failure/retry tests؛ لا empty/zero misleading state.
+- `AUD-A04-003`: canonical Journey UI scenarios: override/skipped/early-promotion/active/completed.
+- `AUD-A04-005`: viewport matrix 320/360/390/430/768/Desktop.
+- `AUD-A04-006`: final keyboard dialog regression.
+- `AUD-A04-007`: Settings shared tokens/presentation + final semantics.
+- `AUD-A04-008`: Student Detail→filtered review→pending/graded/rerecord→back context E2E.
+- `AUD-PERF-001`: current cache root fix.
+- `AUD-PERF-004`: إزالة runtime Google Fonts dependency؛ local/build-time typography.
+- `AUD-A11Y-001`: global reduced motion.
+- `AUD-A11Y-002`: semantic accessible colors/contrast.
+- `AUD-A11Y-003`: progressbar semantics.
+- scenario integrity across desktop/mobile/keyboard.
+- exact-SHA Security+Frontend+Backend+Integration/Playwright Green.
 
-إذا لم يوجد commit أحدث أصلحها:
-
-- لا تغير الاختبار لقبول public.
-- إذا upstream header يحتوي private/no-store → return private/no-store.
-- explicit safe public يمكن تمريره.
-- fallback public يستخدم فقط عندما header غائب، ولـsuccessful approved media GET/HEAD دون Set-Cookie.
-- commit root fix.
-- move `stage/a10-w3-ci` إلى SHA الجديد.
-- شغّل full Quality Gate exact SHA.
-- حل أي failure حقيقي جديد ثم أعد full gate.
-
-W3 لا تصبح Green قبل Security+Frontend+Backend+Integration/Playwright جميعها Green على exact SHA نفسه.
-
-راجع:
+تفاصيل التنفيذ:
 
 `docs/maintenance/HIMMA_A10_W3_EXECUTION_CHECKPOINT_2026-09-12_AR.md`
 
 ---
 
-# 11. W3 — جميع الأعمال المتبقية
+## 10. W4 — Rewards / Badges / Media Semantics
 
-لا يكفي إصلاح cache وحده. أغلق هذه المجموعة كلها:
+هذه الملاحظات ثبتت في مراجعة المستخدم الأخيرة ولا تُنسى بعد W3.
 
-1. **AUD-A04-001** — استكمال AdminUI/presentation unification؛ لا تترك Student Detail/Settings/Account في style islands غير مبررة.
-2. **AUD-A04-002** — اختبارات partial source failure وعدم عرض zero/empty كأنه حقيقة.
-3. **AUD-A04-003** — verify canonical Journey rendering للـoverride/skipped/early promotion/active/completed scenarios.
-4. **AUD-A04-005** — deterministic responsive Student Detail عند 320/360/390/430/768/Desktop.
-5. **AUD-A04-006** — final keyboard-only dialog regression على exact gate.
-6. **AUD-A04-007** — Settings shared tokens + ARIA/keyboard final verification.
-7. **AUD-A04-008** — Student Detail → filtered Audio Review → state/back-context flow.
-8. **AUD-PERF-001** — BFF cache bug الحالي + safe media/private JSON contract.
-9. **AUD-PERF-004** — إزالة runtime Google Fonts dependency واعتماد local/build-time strategy.
-10. **AUD-A11Y-001** — global `prefers-reduced-motion` behavior.
-11. **AUD-A11Y-002** — semantic accessible text/action colors مع الحفاظ على brand palette.
-12. **AUD-A11Y-003** — progressbar semantics للحالات الرقمية الحقيقية.
-13. Scenario integrity E2E: skipped ≠ completed؛ manual override ≠ completion؛ pending audio لا يصنع completion؛ rerecord history immutable؛ partial failure ليس success؛ mobile/keyboard نفس الحقيقة الأكاديمية.
+### Approved badge catalog المطلوب
 
-بعد exact W3 Green: حدث W3 checkpoint + STATUS + progress + Gap Register status/evidence، ثم انتقل W4.
+- `BDG-01` = نجمة واحدة.
+- `BDG-02` = نجمتان.
+- `BDG-03` = ثلاث نجوم.
+- `BDG-04` = مستكشف الحروف.
+- `BDG-05` = بطل الكلمات.
+- `BDG-06` = نجم الفهم.
 
----
+### الحالة الحالية الصحيحة جزئيًا
 
-# 12. W4 — Rewards / Badges / Media Semantics
+- RewardEvent لديه unique `(student_id, reward_key)` للـidempotency.
+- badge eligibility تعتمد canonical `level_was_completed()`.
+- early promotion L1/L2 يمكن أن يصنع completion-dependent badge.
+- manual override وحده لا يصنع badge.
+- L3 يحتاج 10 Core.
+- pending/ungraded audio لا يجب أن ينتج reward evidence مبكرًا.
+- Star logic الحالي: 3 بلا structured help/retry، 2 hint بلا retry، 1 structured retry.
 
-هذه الموجة مهمة جدًا بناءً على آخر مراجعة من المستخدم.
+### gaps المتبقية
 
-## 12.1 النظام الحالي للمكافآت
+- `AUD-BADGE-001`: Student Home لا يعرض canonical badge assets كاملًا.
+- `AUD-BADGE-002`: Admin badge presentation يحتاج shared visual catalog.
+- `AUD-BADGE-003`: approved assets يجب دمجها بـstable IDs/metadata.
+- `AUD-BADGE-004`: L3 backend label الحالي `قارئ متميز` مقابل approved `نجم الفهم`؛ migration/history-compatible resolution.
+- `AUD-BADGE-007`: reward API failure ≠ zero rewards.
+- `AUD-BADGE-008`: stable catalog/version/asset identity في API.
+- `AUD-BADGE-006`: full award→asset→Student/Admin→refresh/idempotency E2E في W6.
 
-Backend لديه `RewardEvent` idempotent مع unique `(student_id, reward_key)`.
+### Star logic gap مهم
 
-نجوم النشاط الحالية:
+`_stars_for_attempt()` يعتمد structured step retries/hints، ولا يحسب audio rerecord بوضوح كـretry. قد يحصل الطالب نظريًا على 3 نجوم رغم إعادة التسجيل.
 
-- 3 = completed without help/retry.
-- 2 = hint without retry.
-- 1 = completed after retries.
+Root fix W4:
 
-Badge eligibility تستخدم canonical `level_was_completed()`، وهذه نقطة صحيحة من W1:
+- audio rerecord يدخل effort/retry semantics.
+- لا حذف history.
+- pending/ungraded audio لا يمنح نجومًا مبكرًا.
+- idempotency يبقى.
+- regression لتراكم وتسلسل النجوم وعدم duplicate reward.
 
-- early promotion في L1/L2 يمكن أن يعطي completion badge.
-- manual override وحده لا يعطي badge.
-- L3 يتطلب 10 Core.
+### Media semantics
 
-Pending/ungraded audio لا يجب أن يمنح reward أكاديميًا مبكرًا لأن `_attempt_signal()` لا يعد evidence صالحًا حتى graded.
+`AUD-MEDIA-002` = Academic Review Required. لا تستبدل lexical stimulus image آليًا دون اعتماد أكاديمي.
 
-## 12.2 Approved badge assets
+واجهة الصور النهائية يجب أن تحقق:
 
-المطلوب اعتماد catalog مركزي واحد يربط:
-
-- `BDG-01` نجمة واحدة.
-- `BDG-02` نجمتان.
-- `BDG-03` ثلاث نجوم.
-- `BDG-04` مستكشف الحروف.
-- `BDG-05` بطل الكلمات.
-- `BDG-06` نجم الفهم.
-
-لا تولد assets بديلة طالما الـapproved kit موجود.
-
-## 12.3 الفجوات المؤكدة
-
-- Student Home يعرض total stars لكنه لا يعرض badge gallery/canonical assets بصورة مكتملة.
-- Admin Student Detail badge presentation نصي أكثر من كونه shared catalog presentation.
-- L3 backend label حاليًا `قارئ متميز` بينما approved catalog `نجم الفهم`؛ يجب migration-compatible display لا حذف التاريخ.
-- Reward API لا يحمل stable asset/catalog identity/version بصورة كافية.
-- Reward API failure لا يجوز أن يظهر `0` كأن الطالب لم يكسب شيئًا.
-- full reward lifecycle E2E غير مكتمل.
-
-## 12.4 فجوة منطق النجوم المهمة
-
-`_stars_for_attempt()` يعتمد structured retries/hints، لكنه لا يربط audio rerecord history كـretry.
-
-خطر حالي:
-
-طالب يعيد تسجيل الصوت ثم يحصل نظريًا على 3 نجوم وكأنه أنجز بلا إعادة.
-
-Root fix في W4:
-
-- audio rerecord الفعلي يدخل effort/retry semantics.
-- لا تحذف submissions القديمة.
-- لا تستخدم machine confidence لذلك.
-- reward event يظل idempotent.
-- pending audio لا يمنح نجومًا مبكرًا.
-- اختبر تراكم النجوم وتسلسلها وعدم duplicate award.
-
-## 12.5 Media semantics
-
-`AUD-MEDIA-002` = Academic Review Required.
-
-لا تغيّر lexical stimulus asset آليًا دون اعتماد أكاديمي.
-
-الواجهة يجب أن تضمن:
-
-- الصور التعليمية بدون distortion.
+- no distortion.
 - responsive sizing.
-- semantic role محفوظ.
-- alt meaningful للمحتوى الدلالي.
-- decorative images بـalt فارغ عند المناسب.
+- semantic role صحيح.
+- meaningful alt للدلالي.
+- empty alt للزخرفي.
 
 ---
 
-# 13. Typography / images / responsive logic المطلوب تثبيته
+## 11. Typography / responsive / scenario quality
 
-الـCSS الحالي يستخدم Tajawal للطالب وIBM Plex Sans Arabic للإدارة، لكن يوجد runtime Google Fonts import في `globals.css`.
+`globals.css` لا يزال يحمّل Google Fonts runtime (`Tajawal`, `IBM Plex Sans Arabic`)؛ W3 يجب أن يزيل الاعتماد الخارجي runtime ويثبت local/build-time strategy.
 
-W3 يجب أن ينقل الخطوط إلى local/build-time strategy حتى لا يتغير التصميم عند فشل الشبكة الخارجية.
+التحقق النهائي يشمل:
 
-الفحص النهائي يجب أن يشمل:
-
-- Arabic line wrapping.
-- no clipping عند zoom/mobile.
-- `rem`/responsive scale بدل اعتماد pixel جامد في الواجهات المهمة.
-- `clamp()` حيث يخدم الهرمية بدون تعقيد.
-- الصور لا تتمدد بنسبة خاطئة.
-- object-fit مناسب حسب الدلالة.
-- 320px حتى Desktop.
-- reduced motion.
-- accessible focus/contrast.
+- Arabic wrapping بدون clipping.
+- responsive type scale/rem/clamp عند الحاجة.
+- images بنسبة صحيحة/object-fit مناسب.
+- 320px إلى Desktop.
+- keyboard/focus/contrast/reduced-motion.
+- نفس الحقيقة الأكاديمية على كل viewport/input method.
 
 ---
 
-# 14. W5 — Historical Cleanup / Performance / Test Ownership
+## 12. W5 — Historical Cleanup / Performance / Test Ownership
 
-بعد W4، لا تبدأ cleanup أعمى.
+بعد W4 فقط، وبدون cleanup أعمى:
 
-المجالات:
-
-- `AUD-BE-001`: تصنيف runtime service generations وتوحيد shared primitives قبل retire.
-- `AUD-BE-002`: old seed/projection/correction scripts إلى runtime/migration/test/dead مع dependency proof.
+- `AUD-BE-001`: runtime service generations classification قبل retire.
+- `AUD-BE-002`: old seeds/repairs تصنيف runtime/migration/test/dead مع dependency proof.
 - `AUD-BE-004`: legacy 105-world tests منفصلة عن canonical 125.
-- `AUD-BADGE-009`: reward history cascade risk قبل destructive cleanup/reset.
-- `AUD-MEDIA-003/004/005`: unused/duplicate assets لا تحذف دون proof؛ approved unused قد تكون reserve.
-- `AUD-PERF-002`: N+1 في researcher students projection.
-- `AUD-PERF-003`: Notifications GET لا ينبغي أن يقوم sync/upsert/commit في read polling path.
-- `/admin/account` duplicate retirement فقط بعد إثبات عدم وجود unique dependency.
-- legacy recording path cleanup فقط إن ثبت dead، وإلا يحافظ على الحدود الأمنية الحالية.
+- `AUD-BADGE-009`: Reward history cascade risk قبل destructive reset/cleanup.
+- media unused/duplicates لا تُحذف لمجرد textual no-reference.
+- `AUD-PERF-002`: researcher students N+1.
+- `AUD-PERF-003`: Notifications GET mutation/polling contract.
+- duplicate `/admin/account` فقط بعد proof.
 
 ---
 
-# 15. W6 — Final Exact-SHA Quality Gates
+## 13. W6 — Final Exact-SHA Gates
 
-W6 هو بوابة الإطلاق، وليس مجرد documentation.
+لا release قبل SHA واحد ينجح فيه:
 
-المطلوب على SHA واحد:
-
-- Security PASS.
-- Frontend TypeScript PASS.
-- ESLint PASS.
-- Frontend unit tests PASS.
-- Next build PASS.
-- Backend full tests PASS.
-- Alembic upgrade/downgrade/upgrade PASS.
-- model drift PASS.
-- canonical validation + seed idempotency PASS.
-- Integration/Playwright PASS.
-- responsive viewport matrix PASS.
-- accessibility regressions PASS.
-- full reward award→asset→Student/Admin→refresh/idempotency E2E PASS.
-- scenario integrity PASS.
-
-لا Merge/Release/Deploy قبل W6 Green.
+- Security.
+- Frontend TS/Lint/Unit/Build.
+- Backend full tests.
+- Alembic upgrade/downgrade/upgrade.
+- model drift.
+- canonical validation + seed idempotency.
+- Integration/Playwright.
+- responsive matrix.
+- accessibility regressions.
+- full reward lifecycle E2E.
+- scenario integrity.
 
 ---
 
-# 16. A11 — Deployment / Railway
+## 14. A11 — Deployment/Railway
 
-A11 يبدأ فقط بعد W6 Green.
+Blocked until W6 Green.
 
-حتى ذلك الوقت:
-
-- لا deploy.
-- لا final Railway configuration.
-- لا Docker.
-- لا اعتبار sandbox reference production authority.
-
-Deploy-specific items مثل security headers النهائية، domain/hosting وcredential rotation تُحسم عند الحدود المناسبة وبعد Green codebase.
+لا Docker ولا deployment finalization قبل ذلك. platform sandbox ليس production authority.
 
 ---
 
-# 17. القرارات الخارجية المفتوحة
+## 15. External decisions المفتوحة
 
-هذه لا تُحل بالتخمين:
+لا تحل بالتخمين:
 
 - Production ASR provider/model/calibration/privacy/cost/governance.
 - intervention/session duration قبل study activation.
@@ -607,56 +434,23 @@ Deploy-specific items مثل security headers النهائية، domain/hosting 
 - supervising organization details/logo قبل final report signoff.
 - credential rotation قبل production إذا ثبت historical exposure.
 
-سجّلها BLOCKED/EXTERNAL ولا تخترع values.
-
 ---
 
-# 18. Branch classification المختصر
+## 16. تعريف Done
 
-- `audit/comprehensive-repository-review-2026-09-10` = current remediation work owner.
-- `stage/a10-w3-ci` = temporary CI trigger/verification pointer only.
-- old stage/recovery/integration branches = historical evidence unless Gap Register يثبت dependency محددة.
-- Speech/Pronunciation Lab branches = EXCLUDE FROM MERGE / research only.
-- `deployment/platform-sandbox` = reference only.
+المشروع لا يعتبر مكتملًا لأن UI يفتح أو بعض tests ناجحة. Done يعني:
 
-لا تدمج branch لمجرد أنها أحدث تاريخيًا.
-
----
-
-# 19. ملفات يجب اعتبارها معًا عند أي استكمال
-
-ترتيب القراءة المقترح:
-
-1. `docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-12_A10_W3_ACTIVE_AR.md` — هذا الملف.
-2. `docs/ops/STATUS.md` — الحالة المختصرة التنفيذية.
-3. `docs/ops/progress.json` — machine-readable progress.
-4. `docs/maintenance/HIMMA_MASTER_GAP_REGISTER_2026-09-10_AR.md` — جميع gaps والموجات.
-5. `docs/maintenance/HIMMA_A10_W1_EXECUTION_CHECKPOINT_2026-09-10_AR.md` — W1 evidence.
-6. `docs/maintenance/HIMMA_A10_W2_EXECUTION_CHECKPOINT_2026-09-12_AR.md` — W2 evidence.
-7. `docs/maintenance/HIMMA_A10_W3_EXECUTION_CHECKPOINT_2026-09-12_AR.md` — مكان التوقف العملي.
-8. Audit-specific docs عند الحاجة فقط؛ لا تعِد audit من الصفر.
-
----
-
-# 20. تعريف Done الحقيقي
-
-لا تعتبر المشروع مكتملًا لأن الصفحات تعمل يدويًا أو لأن بعض tests خضراء.
-
-Done يعني:
-
-- كل Gap في scope A10 إما CLOSED مع evidence أو BLOCKED EXTERNAL موثق.
-- Academic contracts متسقة بين Backend/UI/Reports/Rewards.
+- كل A10 gap = CLOSED evidence أو BLOCKED EXTERNAL موثق.
+- Backend/UI/Reports/Rewards لا تتناقض أكاديميًا.
 - no hidden bypasses.
-- no misleading UX state.
-- approved media/rewards integrated semantically.
+- no misleading UX states.
+- approved media/reward semantics صحيحة.
 - accessibility/responsive/performance gates مثبتة.
-- exact-SHA W6 Green.
-- ثم فقط تبدأ release/deploy governance.
+- W6 exact-SHA Green.
+- بعدها فقط release/deploy governance.
 
 ---
 
-# 21. Prompt جاهز لمحادثة جديدة
+## 17. Exact resume instruction
 
-انسخ الفكرة التالية أو استخدم `NEXT_CONVERSATION_PROMPT.md` بعد إنشائه في المستودع:
-
-> اعمل كالمسؤول الهندسي الكامل عن منصة هِمّة في `7eaur/himma-`. ابدأ بجلب HEAD الحالي للفرع `audit/comprehensive-repository-review-2026-09-10` ثم اقرأ `docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-12_A10_W3_ACTIVE_AR.md` و`docs/ops/STATUS.md` و`docs/ops/progress.json` وMaster Gap Register وW1/W2/W3 checkpoints. لا تعِد A00–A09 ولا W1/W2. تابع من أول مهمة W3 غير مكتملة، أصلح root cause واختبر exact SHA. لا Docker ولا Merge ولا Deploy ولا Production ASR افتراضي. لا تقل Green بدون Security+Frontend+Backend+Integration/Playwright على SHA نفسه. بعد W3 أكمل W4 ثم W5 ثم W6، وA11 فقط بعد W6 Green.
+Fetch audit HEAD → اقرأ W3 checkpoint/STATUS/progress → تحقق هل يوجد code commit بعد `3962...` أصلح BFF cache bug → إن لم يوجد أصلحه من root cause → commit → move `stage/a10-w3-ci` → full exact-SHA gate → أكمل كل W3 → W4 → W5 → W6 → A11 فقط بعد W6 Green.
