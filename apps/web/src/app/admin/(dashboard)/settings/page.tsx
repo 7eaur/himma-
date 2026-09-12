@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { KeyRound, ShieldCheck, UserPlus, UsersRound } from "lucide-react";
+import { AdminAction, AdminPage, AdminPageHeader, AdminPanel } from "@/components/admin/AdminUI";
 import styles from "./settings.module.css";
 
 interface Supervisor {
@@ -121,12 +122,13 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className={styles.page} dir="rtl">
-      <header className={styles.header}>
-        <small>إدارة المنصة</small>
-        <h1>إعدادات المشرف</h1>
-        <p>الحساب والأمان وإدارة المشرفين مقسمة إلى أقسام مستقلة وواضحة.</p>
-      </header>
+    <AdminPage className={styles.pageNarrow}>
+      <AdminPageHeader
+        eyebrow="إدارة المنصة"
+        icon={ShieldCheck}
+        title="إعدادات المشرف"
+        description="الحساب والأمان وإدارة المشرفين مقسمة إلى أقسام مستقلة وواضحة."
+      />
 
       <Message kind={message.kind} text={message.text} />
 
@@ -151,47 +153,50 @@ export default function SettingsPage() {
       </div>
 
       {activeTab === "account" && (
-        <section id="settings-panel-account" role="tabpanel" tabIndex={0} aria-labelledby="settings-tab-account" className={styles.panel}>
-          <div className={styles.panelHeader}><span className={styles.icon}><ShieldCheck size={21} aria-hidden="true" /></span><div><h2>بيانات الحساب</h2><p>اسم الدخول والاسم الظاهر لهذا الحساب.</p></div></div>
-          <form onSubmit={saveProfile} className={styles.form}>
-            <div className={styles.field}><label htmlFor="account-name">اسم المشرف / اسم المستخدم</label><input id="account-name" className={styles.input} value={username} onChange={(e) => setUsername(e.target.value)} required minLength={2} /></div>
-            <button className={styles.primary} disabled={busy === "profile" || username.trim() === account?.username}>{busy === "profile" ? "جاري الحفظ..." : "حفظ بيانات الحساب"}</button>
-          </form>
-        </section>
+        <div id="settings-panel-account" role="tabpanel" tabIndex={0} aria-labelledby="settings-tab-account">
+          <AdminPanel title="بيانات الحساب" description="اسم الدخول والاسم الظاهر لهذا الحساب." actions={<span className={styles.icon}><ShieldCheck size={21} aria-hidden="true" /></span>}>
+            <form onSubmit={saveProfile} className={styles.form}>
+              <div className={styles.field}><label htmlFor="account-name">اسم المشرف / اسم المستخدم</label><input id="account-name" className={styles.input} value={username} onChange={(e) => setUsername(e.target.value)} required minLength={2} /></div>
+              <AdminAction type="submit" tone="primary" disabled={busy === "profile" || username.trim() === account?.username}>{busy === "profile" ? "جاري الحفظ..." : "حفظ بيانات الحساب"}</AdminAction>
+            </form>
+          </AdminPanel>
+        </div>
       )}
 
       {activeTab === "security" && (
-        <section id="settings-panel-security" role="tabpanel" tabIndex={0} aria-labelledby="settings-tab-security" className={styles.panel}>
-          <div className={styles.panelHeader}><span className={styles.icon}><KeyRound size={21} aria-hidden="true" /></span><div><h2>الأمان وكلمة المرور</h2><p>غيّر كلمة المرور دون خلطها بإعدادات بقية المنصة.</p></div></div>
-          <form onSubmit={changePassword} className={styles.form}>
-            <div className={styles.field}><label htmlFor="current-password">كلمة المرور الحالية</label><input id="current-password" type="password" className={styles.input} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required autoComplete="current-password" /></div>
-            <div className={styles.grid2}>
-              <div className={styles.field}><label htmlFor="new-password">كلمة المرور الجديدة</label><input id="new-password" type="password" className={styles.input} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required minLength={8} autoComplete="new-password" /></div>
-              <div className={styles.field}><label htmlFor="confirm-password">تأكيد كلمة المرور</label><input id="confirm-password" type="password" className={styles.input} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required minLength={8} autoComplete="new-password" /></div>
-            </div>
-            <button className={styles.primary} disabled={busy === "password"}>{busy === "password" ? "جاري التغيير..." : "تغيير كلمة المرور"}</button>
-          </form>
-        </section>
+        <div id="settings-panel-security" role="tabpanel" tabIndex={0} aria-labelledby="settings-tab-security">
+          <AdminPanel title="الأمان وكلمة المرور" description="غيّر كلمة المرور دون خلطها بإعدادات بقية المنصة." actions={<span className={styles.icon}><KeyRound size={21} aria-hidden="true" /></span>}>
+            <form onSubmit={changePassword} className={styles.form}>
+              <div className={styles.field}><label htmlFor="current-password">كلمة المرور الحالية</label><input id="current-password" type="password" className={styles.input} value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required autoComplete="current-password" /></div>
+              <div className={styles.grid2}>
+                <div className={styles.field}><label htmlFor="new-password">كلمة المرور الجديدة</label><input id="new-password" type="password" className={styles.input} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required minLength={8} autoComplete="new-password" /></div>
+                <div className={styles.field}><label htmlFor="confirm-password">تأكيد كلمة المرور</label><input id="confirm-password" type="password" className={styles.input} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required minLength={8} autoComplete="new-password" /></div>
+              </div>
+              <AdminAction type="submit" tone="primary" disabled={busy === "password"}>{busy === "password" ? "جاري التغيير..." : "تغيير كلمة المرور"}</AdminAction>
+            </form>
+          </AdminPanel>
+        </div>
       )}
 
       {activeTab === "supervisors" && (
-        <section id="settings-panel-supervisors" role="tabpanel" tabIndex={0} aria-labelledby="settings-tab-supervisors" className={styles.panel}>
-          <div className={styles.panelHeader}><span className={styles.icon}><UsersRound size={21} aria-hidden="true" /></span><div><h2>المشرفون</h2><p>كل مشرف يملك حساب دخول مستقلًا.</p></div><span className={styles.count}>{supervisors.length} مشرف</span></div>
-          <div className={styles.supervisorList}>
-            {supervisors.map((supervisor) => <div key={supervisor.id} className={styles.supervisor}><div><strong>{supervisor.username}</strong><small>{supervisor.is_active ? "حساب نشط" : "حساب موقوف"}</small></div><span className={styles.badge}>{supervisor.id === account?.id ? "حسابك" : "مشرف"}</span></div>)}
-          </div>
-          <div className={styles.divider}>
-            <div className={styles.subhead}><UserPlus size={19} color="#347FD9" aria-hidden="true" /> إضافة مشرف جديد</div>
-            <form onSubmit={addSupervisor} className={styles.form}>
-              <div className={styles.grid2}>
-                <div className={styles.field}><label htmlFor="new-supervisor-name">اسم المستخدم</label><input id="new-supervisor-name" className={styles.input} value={newSupervisorName} onChange={(e) => setNewSupervisorName(e.target.value)} required minLength={2} placeholder="مثال: supervisor2" /></div>
-                <div className={styles.field}><label htmlFor="new-supervisor-password">كلمة المرور المؤقتة</label><input id="new-supervisor-password" type="password" className={styles.input} value={newSupervisorPassword} onChange={(e) => setNewSupervisorPassword(e.target.value)} required minLength={8} autoComplete="new-password" /></div>
-              </div>
-              <button className={styles.primary} disabled={busy === "supervisor"}><UserPlus size={17} aria-hidden="true" />{busy === "supervisor" ? "جاري الإضافة..." : "إضافة المشرف"}</button>
-            </form>
-          </div>
-        </section>
+        <div id="settings-panel-supervisors" role="tabpanel" tabIndex={0} aria-labelledby="settings-tab-supervisors">
+          <AdminPanel title="المشرفون" description="كل مشرف يملك حساب دخول مستقلًا." actions={<div className={styles.panelMeta}><span className={styles.count}>{supervisors.length} مشرف</span><span className={styles.icon}><UsersRound size={21} aria-hidden="true" /></span></div>}>
+            <div className={styles.supervisorList}>
+              {supervisors.map((supervisor) => <div key={supervisor.id} className={styles.supervisor}><div><strong>{supervisor.username}</strong><small>{supervisor.is_active ? "حساب نشط" : "حساب موقوف"}</small></div><span className={styles.badge}>{supervisor.id === account?.id ? "حسابك" : "مشرف"}</span></div>)}
+            </div>
+            <div className={styles.divider}>
+              <div className={styles.subhead}><UserPlus size={19} aria-hidden="true" /> إضافة مشرف جديد</div>
+              <form onSubmit={addSupervisor} className={styles.form}>
+                <div className={styles.grid2}>
+                  <div className={styles.field}><label htmlFor="new-supervisor-name">اسم المستخدم</label><input id="new-supervisor-name" className={styles.input} value={newSupervisorName} onChange={(e) => setNewSupervisorName(e.target.value)} required minLength={2} placeholder="مثال: supervisor2" /></div>
+                  <div className={styles.field}><label htmlFor="new-supervisor-password">كلمة المرور المؤقتة</label><input id="new-supervisor-password" type="password" className={styles.input} value={newSupervisorPassword} onChange={(e) => setNewSupervisorPassword(e.target.value)} required minLength={8} autoComplete="new-password" /></div>
+                </div>
+                <AdminAction type="submit" tone="primary" icon={UserPlus} disabled={busy === "supervisor"}>{busy === "supervisor" ? "جاري الإضافة..." : "إضافة المشرف"}</AdminAction>
+              </form>
+            </div>
+          </AdminPanel>
+        </div>
       )}
-    </div>
+    </AdminPage>
   );
 }
