@@ -5,8 +5,8 @@
 فرع التنفيذ: `audit/comprehensive-repository-review-2026-09-10`.
 
 ابدأ دائمًا بجلب HEAD الحالي وآخر CI قبل أي تعديل، ثم اقرأ بالترتيب:
-1. `docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-13_A10_W3_RUN839_ACTIVE_AR.md`
-2. `docs/maintenance/HIMMA_A10_W3_AUTOMATION_CHECKPOINT_2026-09-13_RUN839_ACTIVE_AR.md`
+1. `docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-13_A10_W3_RUN840_ACTIVE_AR.md`
+2. `docs/maintenance/HIMMA_A10_W3_AUTOMATION_CHECKPOINT_2026-09-13_RUN840_ACTIVE_AR.md`
 3. `docs/maintenance/HIMMA_A10_W3_EXECUTION_CHECKPOINT_2026-09-12_AR.md`
 4. `docs/ops/STATUS.md`
 5. `docs/ops/progress.json`
@@ -25,26 +25,29 @@
 - Run #835 = SUCCESS؛ `AUD-A11Y-003` CLOSED.
 - Run #836 = SUCCESS؛ `AUD-A04-006` CLOSED.
 - Run #837 = SUCCESS؛ `AUD-A04-002` CLOSED.
-- Run #838 / ID `34717561661` = SUCCESS على `08ae3ce4ca0634a448943d7af03dcd8137b6ac8f`؛ `AUD-A04-003` CLOSED.
-- Batch الحالية هي `AUD-A04-005` deterministic responsive matrix.
-- Code SHA الحالي للـbatch: `4d66d0d72f1685e04d1adfc42d855289ba76419f`.
-- Quality Gate #839 / ID `34718862139` كان `IN PROGRESS` عند آخر توثيق.
+- Run #838 / ID `34717561661` = SUCCESS؛ `AUD-A04-003` CLOSED.
+- Run #839 / ID `34718862139` = SUCCESS على `4d66d0d72f1685e04d1adfc42d855289ba76419f`؛ `AUD-A04-005` CLOSED.
+- Batch الحالية فقط: `AUD-A04-008 — filtered audio-review context`.
+- exact code-bearing SHA: `56854c5a903a6b86dcec1653129f8ca91d3b6ea7`.
+- Quality Gate #840 / ID `34721724505` بدأ على هذا SHA وكان `QUEUED` عند آخر توثيق.
+- أضيف backend regression حقيقي للفلترة/metadata/pending→rerecord/replacement→graded/history preservation.
+- أضيف Playwright regression للسياق المفلتر، profile return link، valid grading، وrerecord UI.
 - `AUD-PERF-004` ما يزال OPEN؛ المحاولة الجزئية السابقة أُعيدت بالكامل.
 
 ## أول إجراء إلزامي
 
-اجلب HEAD الحالي وافحص Run #839 قبل أي تعديل.
+اجلب HEAD الحالي وافحص Run #840 قبل أي تعديل.
 
-- إذا كان #839 ما يزال ACTIVE: لا تبدأ أي تغيير كود ولا batch موازية.
-- إذا SUCCESS: أغلق `AUD-A04-005` بواسطة exact-SHA evidence، حدّث continuity/status/progress، ثم اختر gap واحدة فقط تالية من W3.
+- إذا كان #840 ما يزال ACTIVE/QUEUED: لا تبدأ أي تغيير كود ولا batch موازية.
+- إذا SUCCESS: أغلق `AUD-A04-008` بواسطة exact-SHA evidence، حدّث Master Gap Register وcontinuity/status/progress، ثم اختر gap واحدة فقط تالية من W3.
 - إذا FAILURE: افتح jobs وحدد أول failure حقيقي، أصلحه من root cause، ولا تضعف الاختبار.
 
-## W3 المتبقي بعد نجاح #839
+## W3 المتبقي بعد نجاح #840
 
 - `AUD-A04-001` remaining AdminUI/presentation unification where ownership is proven.
-- `AUD-A04-008` filtered audio-review context E2E.
 - `AUD-PERF-004`: complete local/build-time font strategy; runtime Google Fonts dependency ما يزال OPEN.
-- cross-device/scenario integrity + final exact-SHA W3 Green gate.
+- cross-device/scenario integrity وفق Master Gap Register.
+- final exact-SHA W3 Green gate.
 
 لا تعتبر W3 Green حتى تُغلق كل بنودها ويصبح Security + Frontend + Backend + Integration/Playwright Green على exact SHA واحد بعد آخر تعديل.
 
