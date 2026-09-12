@@ -1,55 +1,38 @@
 {
-  "schema_version": 21,
+  "schema_version": 22,
   "plan_version": "HIMMA-COMPREHENSIVE-AUDIT-AND-ROOT-REMEDIATION-2026-09-10",
   "repository": "7eaur/himma-",
   "branch": "audit/comprehensive-repository-review-2026-09-10",
   "phase": "A10_ROOT_REMEDIATION",
   "wave": "W3_ADMIN_STUDENT_UX_ACCESSIBILITY_WEB_RELIABILITY",
-  "status": "W1_GREEN_W2_GREEN_W3_ACTIVE_RUN_841_ACTIVE_NOT_RELEASE_READY",
+  "status": "W1_GREEN_W2_GREEN_W3_ACTIVE_RUN_842_ACTIVE_NOT_RELEASE_READY",
   "last_updated": "2026-09-13",
-  "continuity_handoff": "docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-13_A10_W3_RUN841_ACTIVE_AR.md",
+  "continuity_handoff": "docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-13_A10_W3_RUN842_ACTIVE_AR.md",
   "next_conversation_prompt": "NEXT_CONVERSATION_PROMPT.md",
-  "execution_checkpoint": "docs/maintenance/HIMMA_A10_W3_AUTOMATION_CHECKPOINT_2026-09-13_RUN841_ACTIVE_AR.md",
+  "execution_checkpoint": "docs/maintenance/HIMMA_A10_W3_AUTOMATION_CHECKPOINT_2026-09-13_RUN842_ACTIVE_AR.md",
   "master_gap_register": "docs/maintenance/HIMMA_MASTER_GAP_REGISTER_2026-09-10_AR.md",
   "audit_stages": {
-    "A00": "CLOSED_AUDIT",
-    "A01": "CLOSED_AUDIT",
-    "A02": "CLOSED_AUDIT",
-    "A03": "CLOSED_AUDIT",
-    "A04": "CLOSED_AUDIT",
-    "A05": "CLOSED_AUDIT",
-    "A06": "CLOSED_AUDIT",
-    "A07": "CLOSED_AUDIT",
-    "A08": "CLOSED_AUDIT",
-    "A09": "CLOSED_AUDIT",
-    "A10": "IN_PROGRESS_W3",
+    "A00": "CLOSED_AUDIT", "A01": "CLOSED_AUDIT", "A02": "CLOSED_AUDIT", "A03": "CLOSED_AUDIT",
+    "A04": "CLOSED_AUDIT", "A05": "CLOSED_AUDIT", "A06": "CLOSED_AUDIT", "A07": "CLOSED_AUDIT",
+    "A08": "CLOSED_AUDIT", "A09": "CLOSED_AUDIT", "A10": "IN_PROGRESS_W3",
     "A11": "OUT_OF_SCHEDULE_BLOCKED_UNTIL_W6_GREEN"
   },
   "runtime": {
-    "canonical_total": 125,
-    "pretest_total": 30,
-    "posttest_total": 30,
-    "learning_total": 65,
-    "reinforcement_total": 35,
-    "skills": 44,
+    "canonical_total": 125, "pretest_total": 30, "posttest_total": 30,
+    "learning_total": 65, "reinforcement_total": 35, "skills": 44,
     "projection_contract": "structured_db_runtime_v1"
   },
   "w1": {
-    "status": "CLOSED_GREEN",
-    "verified_sha": "ea132c9afbe152d0afa5ae581c058ce3248a0c48",
-    "quality_gate_run": 34467329988,
-    "quality_gate_run_number": 813
+    "status": "CLOSED_GREEN", "verified_sha": "ea132c9afbe152d0afa5ae581c058ce3248a0c48",
+    "quality_gate_run": 34467329988, "quality_gate_run_number": 813
   },
   "w2": {
-    "status": "CLOSED_GREEN",
-    "verified_sha": "77ac72174a9e21163f6341ea8e0fcc172269eac3",
-    "quality_gate_run": 34548388760,
-    "quality_gate_run_number": 822,
-    "production_asr_approved": false,
-    "human_supervisor_review_authoritative": true
+    "status": "CLOSED_GREEN", "verified_sha": "77ac72174a9e21163f6341ea8e0fcc172269eac3",
+    "quality_gate_run": 34548388760, "quality_gate_run_number": 822,
+    "production_asr_approved": false, "human_supervisor_review_authoritative": true
   },
   "w3": {
-    "status": "ACTIVE_RUN_841",
+    "status": "ACTIVE_RUN_842",
     "closed_items": [
       {"id": "AUD-A11Y-001", "verified_sha": "79f154f9a3cdee51a713459790d1695aba08d6d7", "run_number": 833, "run_id": 34708600408, "conclusion": "SUCCESS"},
       {"id": "AUD-A04-007", "verified_sha": "c180146b10467199e6833bacb77873eddcea2143", "run_number": 834, "run_id": 34710221396, "conclusion": "SUCCESS"},
@@ -58,41 +41,50 @@
       {"id": "AUD-A04-006", "verified_sha": "818930aef34fd26a5cc059e316b0f7224844e542", "run_number": 836, "run_id": 34714516971, "conclusion": "SUCCESS"},
       {"id": "AUD-A04-002", "verified_sha": "5b6bf14e2970999c680dcfe40cf383f7d0992d11", "run_number": 837, "run_id": 34715934635, "conclusion": "SUCCESS"},
       {"id": "AUD-A04-003", "verified_sha": "08ae3ce4ca0634a448943d7af03dcd8137b6ac8f", "run_number": 838, "run_id": 34717561661, "conclusion": "SUCCESS"},
-      {"id": "AUD-A04-005", "verified_sha": "4d66d0d72f1685e04d1adfc42d855289ba76419f", "run_number": 839, "run_id": 34718862139, "conclusion": "SUCCESS", "evidence": "Deterministic real-student responsive matrix at 320/360/390/430/768/1440 with Security/Frontend/Backend/Integration PASS"}
+      {"id": "AUD-A04-005", "verified_sha": "4d66d0d72f1685e04d1adfc42d855289ba76419f", "run_number": 839, "run_id": 34718862139, "conclusion": "SUCCESS"}
     ],
     "latest_completed_gate": {
-      "run_number": 840,
-      "run_id": 34721724505,
-      "sha": "56854c5a903a6b86dcec1653129f8ca91d3b6ea7",
+      "run_number": 841,
+      "run_id": 34723091853,
+      "sha": "0afcb5e157038e0453f146afb9d1521f1156c347",
       "conclusion": "FAILURE",
       "jobs": {
-        "security": "SUCCESS",
-        "frontend": "SUCCESS",
-        "backend": "FAILURE_RUN_BACKEND_TESTS",
-        "integration": "SKIPPED_AFTER_BACKEND_FAILURE"
-      }
+        "security": "SUCCESS", "frontend": "SUCCESS",
+        "backend": "FAILURE_1_OF_855_TESTS", "integration": "SKIPPED_AFTER_BACKEND_FAILURE"
+      },
+      "failure": "test_audio_review_queue_w3 used nonexistent AudioSubmission.response relationship; official model exposes response_id only"
     },
     "current_batch": {
       "id": "AUD-A04-008",
-      "previous_failed_sha": "56854c5a903a6b86dcec1653129f8ca91d3b6ea7",
-      "previous_failed_run_number": 840,
-      "previous_failed_run_id": 34721724505,
-      "root_cause": "Audio review persisted graded/rerecord_required but returned generic status=ok, contradicting executable API/UI response-state contract",
-      "root_fix_sha": "0afcb5e157038e0453f146afb9d1521f1156c347",
-      "root_fix": "Return persisted canonical AudioSubmission.status after rerecord or valid grading without changing eligibility, scoring, history, or academic state",
-      "quality_gate_run_number": 841,
-      "quality_gate_run_id": 34723091853,
+      "run_840": {
+        "run_id": 34721724505,
+        "sha": "56854c5a903a6b86dcec1653129f8ca91d3b6ea7",
+        "conclusion": "FAILURE",
+        "root_cause": "Audio review persisted graded/rerecord_required but returned generic status=ok",
+        "root_fix_sha": "0afcb5e157038e0453f146afb9d1521f1156c347"
+      },
+      "run_841": {
+        "run_id": 34723091853,
+        "sha": "0afcb5e157038e0453f146afb9d1521f1156c347",
+        "conclusion": "FAILURE",
+        "backend_result": "1 failed, 854 passed",
+        "root_cause": "New regression test traversed nonexistent ORM relationship AudioSubmission.response",
+        "root_correction_sha": "562b4eb3ef831cf7b8b51bd7d5e33145917cb382"
+      },
+      "quality_gate_run_number": 842,
+      "quality_gate_run_id": 34723513642,
+      "verification_sha": "562b4eb3ef831cf7b8b51bd7d5e33145917cb382",
       "quality_gate_status": "ACTIVE_LAST_SEEN_QUEUED",
-      "backend_evidence": "test_audio_review_queue_w3.py: real student filter, metadata, pending/rerecord/replacement/graded lifecycle and immutable history",
-      "frontend_evidence": "audio-review-filtered-context.spec.ts: filtered query context, profile return link, valid grade and rerecord UI decisions"
+      "test_strength_preserved": true,
+      "backend_evidence": "filtered student queue + metadata + rerecord/replacement/graded lifecycle + immutable history + untouched second student via canonical ID traversal",
+      "frontend_evidence": "audio-review-filtered-context.spec.ts validates filtered query context, return navigation, grade and rerecord decisions"
     },
     "atomic_reverted_attempts": [
       {
         "gap": "AUD-PERF-004",
         "attempt_commit": "3ea66ed12139ed38846c46adc9e9d04a74276a03",
         "revert_commit": "e9cb07ebefb75473d2c2afb57b775f0ee01551aa",
-        "result": "NO_EFFECT_GAP_REMAINS_OPEN",
-        "reason": "layout-only next/font change was incomplete because runtime CSS @import also owns the dependency"
+        "result": "NO_EFFECT_GAP_REMAINS_OPEN"
       }
     ],
     "do_not_start_parallel_batch": true,
@@ -107,16 +99,10 @@
   "w5": {"status": "QUEUED_AFTER_W4"},
   "w6": {"status": "QUEUED_FINAL_GATE"},
   "constraints": {
-    "no_docker": true,
-    "no_fake_asr": true,
-    "no_temporary_audio_skip": true,
-    "no_history_deletion": true,
-    "speech_pronunciation_lab_merge": false,
-    "no_final_merge": true,
-    "no_deploy": true,
-    "no_railway": true,
-    "no_production": true,
-    "pass_requires_exact_sha_evidence": true
+    "no_docker": true, "no_fake_asr": true, "no_temporary_audio_skip": true,
+    "no_history_deletion": true, "speech_pronunciation_lab_merge": false,
+    "no_final_merge": true, "no_deploy": true, "no_railway": true,
+    "no_production": true, "pass_requires_exact_sha_evidence": true
   },
-  "next_step": "Fetch Run #841 first. While active/queued, do not edit code. On SUCCESS close AUD-A04-008 using exact SHA evidence and update Gap Register/continuity; on FAILURE inspect and root-fix the first real failure without weakening tests."
+  "next_step": "Fetch Run #842 first. While active/queued do not edit code. On SUCCESS close AUD-A04-008 with exact-SHA evidence and update Gap Register/continuity; on FAILURE inspect exact job logs and root-fix only the first real failure."
 }
