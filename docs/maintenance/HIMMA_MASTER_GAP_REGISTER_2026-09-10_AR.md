@@ -46,7 +46,7 @@
 | AUD-A04-005 | P1 | VERIFIED | responsive E2E | Student Detail not deterministically gated on 320/360/390/430/768/Desktop | historical fragmented responsive tests | A08-005 | QA + Admin responsive contract | deterministic student fixture + full viewport matrix | None | no-overflow/touch/forms/tabs/actions | HIGH | W3/W6 |
 | AUD-A04-006 | P2 | VERIFIED | mobile Admin dialog | no explicit focus trap/Escape/return focus | visual shell before keyboard lifecycle | A11Y-004 | Admin shell | shared accessible dialog lifecycle | None | keyboard-only open/tab/escape/return | MEDIUM | W3 |
 | AUD-A04-007 | P2 | VERIFIED | Settings tabs/styles | no clear tab ARIA semantics + second style system | page-local implementation | A04-001 | AdminUI/accessibility patterns | shared tabs/navigation semantics + tokens | None | keyboard/SR selected state | MEDIUM | W3 |
-| AUD-A04-008 | P2 | VERIFIED | Student Detail recordings | generic audio-review loses student context | no student-filtered review contract | review queue | review API/deep-link | student filter/summary without fake counters | Low | pending/graded/rerecord back-nav | MEDIUM | W3 |
+| AUD-A04-008 | P2 | CLOSED GREEN | Run #842 / ID `34723513642`, SHA `562b4eb3ef831cf7b8b51bd7d5e33145917cb382` | student-filtered review context verified end-to-end | closed by canonical filter/status/history contract + executable tests | review queue | review API/deep-link | student filter/summary without fake counters | Low | pending/graded/rerecord back-nav PASS | CLOSED | W3 |
 | AUD-BADGE-001 | P1 | VERIFIED | Student Home | badges fetched but not rendered | reward persistence preceded visual layer | BADGE-003/008 | Reward UI + catalog | render canonical badge assets/states | Low | student reward refresh/error | HIGH product | W4 |
 | AUD-BADGE-002 | P2 | VERIFIED | Admin Student Detail | badge is text chip only | visual catalog absent | BADGE-003/008 | Reward UI | shared reward presentation component | Low | admin visual/state tests | MEDIUM | W4 |
 | AUD-BADGE-003 | P1 | VERIFIED | public assets vs approved kit | approved badge assets not integrated | asset kit outside runtime catalog | BADGE-004/008 | canonical Reward Catalog | import approved SVGs with stable IDs/metadata | Low | asset 200/semantic mapping | HIGH | W4 |
@@ -96,44 +96,27 @@
 ## Execution Waves
 
 ### W1 — Academic / History Integrity
-
-أول موجة لأنها تحتوي P0 وتؤثر على معنى البيانات:
-
 `AUD-A03-001/002/003/009`, `AUD-BE-003`, `AUD-A04-003`, `AUD-BADGE-005`.
 
-الهدف: canonical audio latest/history lifecycle + numeric academic evidence + one level-completion truth. لا UI تجميلي قبل إغلاق هذه الحدود.
-
 ### W2 — Security / Speech Infrastructure Boundaries
-
-`AUD-A03-004/005/006/007`, `AUD-SEC-001..005`, `AUD-OBS-001/003`.  
-`AUD-A03-008` و`AUD-OBS-002` يبقيان HOLD حتى اعتماد ASR.
+`AUD-A03-004/005/006/007`, `AUD-SEC-001..005`, `AUD-OBS-001/003`. `AUD-A03-008` و`AUD-OBS-002` يبقيان HOLD حتى اعتماد ASR.
 
 ### W3 — Admin / Student UX / Accessibility / Web Reliability
-
 `AUD-A04-001/002/005/006/007/008`, `AUD-PERF-001/004`, `AUD-A11Y-001..004`, مع توحيد AdminUI وعدم بناء Design System ثانٍ.
 
 ### W4 — Rewards / Badges / Media Semantics
-
-`AUD-BADGE-001..008`, `AUD-MEDIA-002` بعد قرار أكاديمي. دمج الحزمة البصرية يتم عبر Reward Catalog واحد لا mapping موازي في كل صفحة.
+`AUD-BADGE-001..008`, `AUD-MEDIA-002` بعد قرار أكاديمي.
 
 ### W5 — Historical Cleanup / Performance / Test Ownership
-
-`AUD-BE-001/002/004`, `AUD-A04-004`, `AUD-BADGE-009`, `AUD-MEDIA-003/004/005`, `AUD-PERF-002/003`, `AUD-A08-004/006`. لا حذف قبل dependency proof.
+`AUD-BE-001/002/004`, `AUD-A04-004`, `AUD-BADGE-009`, `AUD-MEDIA-003/004/005`, `AUD-PERF-002/003`, `AUD-A08-004/006`.
 
 ### W6 — Final Quality Gates
-
 `AUD-CI-001`, `AUD-A11Y-005`, `AUD-A08-001/002/003/005/007/008/009`, `AUD-SEC-006`, `AUD-GIT-001`.
 
-يجب أن تشمل: Backend، Frontend، Security، Migrations، Drift، Seed-twice، Media، Audio، Integration، E2E، Mobile، Badges، Full Student Journey على exact SHA.
-
 ### A11 — Production / Railway
-
-فقط بعد W6 Green: Backup/Rollback، Railway PostgreSQL/runtime/storage/worker حسب الاعتماد، migrations، canonical publication، readiness/smoke، post-deploy E2E. لا استخدام Docker أو Temporary Audio Skip من sandbox القديم.
+فقط بعد W6 Green. ممنوع ضمن الجدولة الحالية.
 
 ---
 
 ## قرار بدء A10
-
 **A00–A09 مكتملة كتدقيق، وMaster Gap Register موجود. يبدأ A10 من W1 فقط.**
-
-لا يتم Merge لأي فرع تاريخي قبل الصيانة. فروع Speech Lab مستبعدة. أي commit في A10 يجب أن يعالج root cause ويضيف/يحدث regression tests بدل إضافة repair layer جديدة.
