@@ -36,18 +36,22 @@ Repository code + PostgreSQL migrations + executable tests/CI + canonical contra
 - `services/api/test_audio_review_queue_w3.py`
 - `apps/web/tests/e2e/audio-review-filtered-context.spec.ts`
 
-### exact code state
+### exact code state وCI
 
 - code-bearing SHA: `56854c5a903a6b86dcec1653129f8ca91d3b6ea7`.
 - `stage/a10-w3-ci` = نفس SHA.
-- Quality Gate #840 / Run ID `34721724505` بدأ على هذا SHA وكان `QUEUED` عند آخر توثيق.
+- Quality Gate #840 / Run ID `34721724505` = `IN_PROGRESS` على نفس SHA عند آخر فحص.
+- `security` = SUCCESS.
+- `frontend` = SUCCESS، بما في ذلك TypeScript/ESLint/unit/build.
+- `backend` = IN_PROGRESS في `Run backend tests` بعد نجاح PostgreSQL startup وcanonical validation وmigrations/model drift وseed idempotency.
+- Integration لم يبدأ بعد في آخر فحص.
 
 ## الاستكمال الإلزامي
 
 1. اجلب HEAD الحالي.
 2. اقرأ `NEXT_CONVERSATION_PROMPT.md` ثم هذا الملف ثم `docs/maintenance/HIMMA_A10_W3_AUTOMATION_CHECKPOINT_2026-09-13_RUN840_ACTIVE_AR.md` ثم W3 execution checkpoint ثم STATUS/progress/Gap Register.
 3. افحص Run #840 قبل أي كود.
-4. إذا ما زال ACTIVE/QUEUED فلا تفتح عملًا موازيًا.
+4. إذا ما زال ACTIVE فلا تفتح عملًا موازيًا.
 5. إذا FAILURE أصلح أول failure حقيقي من root cause فقط.
 6. إذا SUCCESS أغلق `AUD-A04-008` بالـexact SHA، ثم حدّث continuity وGap Register واختر gap W3 واحدة فقط تالية.
 
