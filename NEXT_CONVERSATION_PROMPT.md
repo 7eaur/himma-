@@ -5,8 +5,8 @@
 فرع التنفيذ: `audit/comprehensive-repository-review-2026-09-10`.
 
 ابدأ دائمًا بجلب HEAD الحالي وآخر CI قبل أي تعديل، ثم اقرأ بالترتيب:
-1. `docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-13_A10_W3_RUN840_ACTIVE_AR.md`
-2. `docs/maintenance/HIMMA_A10_W3_AUTOMATION_CHECKPOINT_2026-09-13_RUN840_ACTIVE_AR.md`
+1. `docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-13_A10_W3_RUN841_ACTIVE_AR.md`
+2. `docs/maintenance/HIMMA_A10_W3_AUTOMATION_CHECKPOINT_2026-09-13_RUN841_ACTIVE_AR.md`
 3. `docs/maintenance/HIMMA_A10_W3_EXECUTION_CHECKPOINT_2026-09-12_AR.md`
 4. `docs/ops/STATUS.md`
 5. `docs/ops/progress.json`
@@ -28,23 +28,21 @@
 - Run #838 / ID `34717561661` = SUCCESS؛ `AUD-A04-003` CLOSED.
 - Run #839 / ID `34718862139` = SUCCESS على `4d66d0d72f1685e04d1adfc42d855289ba76419f`؛ `AUD-A04-005` CLOSED.
 - Batch الحالية فقط: `AUD-A04-008 — filtered audio-review context`.
-- exact code-bearing SHA: `56854c5a903a6b86dcec1653129f8ca91d3b6ea7`.
-- Quality Gate #840 / ID `34721724505` = `IN_PROGRESS` على هذا SHA عند آخر فحص.
-- `security` و`frontend` = SUCCESS.
-- `backend` كان في `Run backend tests` بعد نجاح PostgreSQL/canonical/migrations/drift/seed checks؛ Integration ينتظر backend.
-- أضيف backend regression حقيقي للفلترة/metadata/pending→rerecord/replacement→graded/history preservation.
-- أضيف Playwright regression للسياق المفلتر، profile return link، valid grading، وrerecord UI.
+- Run #840 / ID `34721724505` = FAILURE على `56854c5a903a6b86dcec1653129f8ca91d3b6ea7`؛ Security/Frontend نجحا، Backend فشل في tests، Integration تخطاه الـworkflow.
+- root cause: review endpoint كان يحفظ `rerecord_required/graded` لكنه يعيد response عام `status: ok` خلاف executable API contract.
+- root-fix code SHA: `0afcb5e157038e0453f146afb9d1521f1156c347`؛ endpoint يعيد canonical persisted submission status دون تغيير Business Rules أو history/scoring.
+- Quality Gate #841 / ID `34723091853` يعمل على exact SHA `0afcb5e...`؛ آخر حالة موثقة `QUEUED`.
 - `AUD-PERF-004` ما يزال OPEN؛ المحاولة الجزئية السابقة أُعيدت بالكامل.
 
 ## أول إجراء إلزامي
 
-اجلب HEAD الحالي وافحص Run #840 قبل أي تعديل.
+اجلب HEAD الحالي وافحص Run #841 قبل أي تعديل.
 
-- إذا كان #840 ما يزال ACTIVE: لا تبدأ أي تغيير كود ولا batch موازية.
+- إذا كان #841 ما يزال ACTIVE/QUEUED: لا تبدأ أي تغيير كود ولا batch موازية.
 - إذا SUCCESS: أغلق `AUD-A04-008` بواسطة exact-SHA evidence، حدّث Master Gap Register وcontinuity/status/progress، ثم اختر gap واحدة فقط تالية من W3.
 - إذا FAILURE: افتح jobs وحدد أول failure حقيقي، أصلحه من root cause، ولا تضعف الاختبار.
 
-## W3 المتبقي بعد نجاح #840
+## W3 المتبقي بعد نجاح #841
 
 - `AUD-A04-001` remaining AdminUI/presentation unification where ownership is proven.
 - `AUD-PERF-004`: complete local/build-time font strategy; runtime Google Fonts dependency ما يزال OPEN.
