@@ -5,7 +5,7 @@
   "branch": "audit/comprehensive-repository-review-2026-09-10",
   "phase": "A10_ROOT_REMEDIATION",
   "wave": "W3_ADMIN_STUDENT_UX_ACCESSIBILITY_WEB_RELIABILITY",
-  "status": "W1_GREEN_W2_GREEN_W3_ACTIVE_RUN_840_QUEUED_NOT_RELEASE_READY",
+  "status": "W1_GREEN_W2_GREEN_W3_ACTIVE_RUN_840_IN_PROGRESS_NOT_RELEASE_READY",
   "last_updated": "2026-09-13",
   "continuity_handoff": "docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-13_A10_W3_RUN840_ACTIVE_AR.md",
   "next_conversation_prompt": "NEXT_CONVERSATION_PROMPT.md",
@@ -49,7 +49,7 @@
     "human_supervisor_review_authoritative": true
   },
   "w3": {
-    "status": "ACTIVE_RUN_840_QUEUED",
+    "status": "ACTIVE_RUN_840_IN_PROGRESS",
     "closed_items": [
       {"id": "AUD-A11Y-001", "verified_sha": "79f154f9a3cdee51a713459790d1695aba08d6d7", "run_number": 833, "run_id": 34708600408, "conclusion": "SUCCESS"},
       {"id": "AUD-A04-007", "verified_sha": "c180146b10467199e6833bacb77873eddcea2143", "run_number": 834, "run_id": 34710221396, "conclusion": "SUCCESS"},
@@ -71,7 +71,13 @@
       "code_sha": "56854c5a903a6b86dcec1653129f8ca91d3b6ea7",
       "quality_gate_run_number": 840,
       "quality_gate_run_id": 34721724505,
-      "quality_gate_status": "QUEUED",
+      "quality_gate_status": "IN_PROGRESS",
+      "job_status": {
+        "security": "SUCCESS",
+        "frontend": "SUCCESS",
+        "backend": "IN_PROGRESS_RUN_BACKEND_TESTS",
+        "integration": "PENDING_AFTER_BACKEND"
+      },
       "backend_evidence": "test_audio_review_queue_w3.py: real student filter, metadata, pending/rerecord/replacement/graded lifecycle and immutable history",
       "frontend_evidence": "audio-review-filtered-context.spec.ts: filtered query context, profile return link, valid grade and rerecord UI decisions"
     },
@@ -107,5 +113,5 @@
     "no_production": true,
     "pass_requires_exact_sha_evidence": true
   },
-  "next_step": "Fetch Run #840 first. While active/queued, do not edit code. On SUCCESS close AUD-A04-008 using exact SHA evidence and update Gap Register/continuity; on FAILURE inspect and root-fix the first real failure without weakening the tests."
+  "next_step": "Fetch Run #840 first. While active, do not edit code. On SUCCESS close AUD-A04-008 using exact SHA evidence and update Gap Register/continuity; on FAILURE inspect and root-fix the first real failure without weakening the tests."
 }
