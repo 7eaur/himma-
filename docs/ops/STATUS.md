@@ -3,7 +3,7 @@
 **Last updated:** 2026-09-13  
 **Repository:** `7eaur/himma-`  
 **Active branch:** `audit/comprehensive-repository-review-2026-09-10`  
-**Current state:** `A00–A09 CLOSED — W1 GREEN — W2 GREEN — W3 ACTIVE / NOT GREEN — RUN #840 ACTIVE — NO MERGE / NO DEPLOY`
+**Current state:** `A00–A09 CLOSED — W1 GREEN — W2 GREEN — W3 ACTIVE / NOT GREEN — RUN #840 IN PROGRESS — NO MERGE / NO DEPLOY`
 
 ## Current continuity
 
@@ -48,7 +48,11 @@
 - Added Playwright regression `apps/web/tests/e2e/audio-review-filtered-context.spec.ts` for filtered context, canonical profile link, valid grading, rerecord decision, payloads, messages, and pending-row removal.
 - exact code-bearing SHA: `56854c5a903a6b86dcec1653129f8ca91d3b6ea7`.
 - helper `stage/a10-w3-ci` points to exact SHA.
-- Quality Gate #840 / Run ID `34721724505` started on the same SHA and was `QUEUED` at this status update.
+- Quality Gate #840 / Run ID `34721724505` = `IN_PROGRESS` on the same SHA.
+- `security` = SUCCESS.
+- `frontend` = SUCCESS, including TypeScript, ESLint, unit tests, and Next.js build.
+- `backend` = IN_PROGRESS at `Run backend tests`; PostgreSQL startup, canonical validation, migrations/model drift, and seed idempotency already passed.
+- Integration/Playwright has not started yet at the latest inspection.
 - Do not open another W3 batch until #840 resolves.
 
 ### Atomic font note
@@ -64,7 +68,7 @@ The previous layout-only font attempt remains fully reverted. `AUD-PERF-004` is 
 
 ## Next execution rule
 
-Fetch current HEAD and Run #840 first. If #840 is still active/queued, do not edit code. If SUCCESS, close `AUD-A04-008` using exact-SHA evidence and update Gap Register/continuity/status/progress before selecting one next W3 gap. If FAILURE, inspect the failed job/step and root-fix the first real failure without weakening the test.
+Fetch current HEAD and Run #840 first. If #840 is still active, do not edit code. If SUCCESS, close `AUD-A04-008` using exact-SHA evidence and update Gap Register/continuity/status/progress before selecting one next W3 gap. If FAILURE, inspect the failed job/step and root-fix the first real failure without weakening the test.
 
 ## Future waves
 - W4 only after W3 Green.
