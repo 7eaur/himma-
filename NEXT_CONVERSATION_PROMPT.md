@@ -5,8 +5,8 @@
 فرع التنفيذ: `audit/comprehensive-repository-review-2026-09-10`.
 
 ابدأ دائمًا بجلب HEAD الحالي، ثم اقرأ بالترتيب:
-1. `docs/maintenance/HIMMA_A10_W3_AUTOMATION_CHECKPOINT_2026-09-12_RUN833_AR.md`
-2. `docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-12_A10_W3_ACTIVE_AR.md`
+1. `docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-12_A10_W3_RUN834_ACTIVE_AR.md`
+2. `docs/maintenance/HIMMA_A10_W3_AUTOMATION_CHECKPOINT_2026-09-12_RUN834_AR.md`
 3. `docs/maintenance/HIMMA_A10_W3_EXECUTION_CHECKPOINT_2026-09-12_AR.md`
 4. `docs/ops/STATUS.md`
 5. `docs/ops/progress.json`
@@ -20,19 +20,19 @@
 - W1 = CLOSED GREEN على SHA `ea132c9afbe152d0afa5ae581c058ce3248a0c48`, Run #813 / ID `34467329988`.
 - W2 = CLOSED GREEN على SHA `77ac72174a9e21163f6341ea8e0fcc172269eac3`, Run #822 / ID `34548388760`.
 - W3 = ACTIVE / NOT GREEN.
-- Run #832 / ID `34707136263` على SHA `82e0bd216ab3d4f3af9d5737b5e29d2102254843` انتهى SUCCESS، وأغلق blocker السابق الخاص بـvertical-slice locator ambiguity.
-- الـbatch الحالي هو `AUD-A11Y-001` global reduced-motion policy.
-- latest code-bearing SHA = `79f154f9a3cdee51a713459790d1695aba08d6d7`.
-- `stage/a10-w3-ci` حُرّك إلى هذا SHA.
-- Quality Gate #833 / Run ID `34708600408` كان `QUEUED` عند آخر checkpoint.
+- Run #832 / ID `34707136263` = SUCCESS على SHA `82e0bd216ab3d4f3af9d5737b5e29d2102254843`.
+- Run #833 / ID `34708600408` = SUCCESS على SHA `79f154f9a3cdee51a713459790d1695aba08d6d7`; `AUD-A11Y-001` CLOSED.
+- current batch = Settings AdminUI ownership / `AUD-A04-007` + reduction of `AUD-A04-001` duplication.
+- latest code-bearing SHA = `c180146b10467199e6833bacb77873eddcea2143`.
+- Quality Gate #834 / Run ID `34710221396` على exact SHA نفسه كان `IN_PROGRESS` عند آخر checkpoint.
 
 ## أول إجراء إلزامي
 
-افحص Run #833 / ID `34708600408` قبل أي تعديل.
+افحص Run #834 / ID `34710221396` قبل أي تعديل.
 
 - إذا QUEUED/IN_PROGRESS: لا تبدأ أي batch موازية.
 - إذا FAIL: أصلح أول failure حقيقي من root cause ولا تضعف الاختبارات.
-- إذا SUCCESS: وثّق exact-SHA evidence، أغلق `AUD-A11Y-001` إذا gate الكامل مر، ثم أكمل أول W3 gap غير مغلق فقط.
+- إذا SUCCESS: وثّق exact-SHA evidence، أغلق `AUD-A04-007` إذا لم يظهر regression، ثم أكمل أول W3 gap غير مغلق فقط. لا تغلق `AUD-A04-001` إلا بعد إثبات بقية admin surfaces ونقل presentation العام المكرر فقط إلى AdminUI.
 
 لا تعتبر W3 Green حتى تُغلق كل بنود W3 ويصبح Security + Frontend + Backend + Integration/Playwright Green على exact SHA واحد.
 
