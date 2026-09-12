@@ -1,15 +1,18 @@
 {
-  "schema_version": 10,
+  "schema_version": 11,
   "plan_version": "HIMMA-COMPREHENSIVE-AUDIT-AND-ROOT-REMEDIATION-2026-09-10",
   "repository": "7eaur/himma-",
   "branch": "audit/comprehensive-repository-review-2026-09-10",
   "phase": "A10_ROOT_REMEDIATION",
   "wave": "W3_ADMIN_STUDENT_UX_ACCESSIBILITY_WEB_RELIABILITY",
-  "status": "W1_CLOSED_GREEN_W2_CLOSED_GREEN_W3_ACTIVE_NOT_RELEASE_READY",
-  "last_updated": "2026-09-11",
+  "status": "W1_CLOSED_GREEN_W2_CLOSED_GREEN_W3_ACTIVE_CI_RED_NOT_RELEASE_READY",
+  "last_updated": "2026-09-12",
   "refetch_current_head_before_work": true,
-  "continuity_handoff": "docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-10_A10_W1_FULL_AR.md",
-  "execution_checkpoint": "docs/maintenance/HIMMA_A10_W1_EXECUTION_CHECKPOINT_2026-09-10_AR.md",
+  "continuity_handoff": "docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-12_A10_W3_ACTIVE_AR.md",
+  "next_conversation_prompt": "NEXT_CONVERSATION_PROMPT.md",
+  "execution_checkpoint": "docs/maintenance/HIMMA_A10_W3_EXECUTION_CHECKPOINT_2026-09-12_AR.md",
+  "w1_checkpoint": "docs/maintenance/HIMMA_A10_W1_EXECUTION_CHECKPOINT_2026-09-10_AR.md",
+  "w2_checkpoint": "docs/maintenance/HIMMA_A10_W2_EXECUTION_CHECKPOINT_2026-09-12_AR.md",
   "comprehensive_audit": "docs/maintenance/HIMMA_COMPREHENSIVE_REPOSITORY_AUDIT_2026-09-10_AR.md",
   "master_gap_register": "docs/maintenance/HIMMA_MASTER_GAP_REGISTER_2026-09-10_AR.md",
   "audit_stages": {
@@ -49,7 +52,9 @@
     "critical_skill_floor": 70,
     "automatic_demotion": false,
     "level_3_completion_core": 10,
-    "evidence_weights_newest_first": [50, 30, 20]
+    "evidence_weights_newest_first": [50, 30, 20],
+    "current_level_is_completion_evidence": false,
+    "manual_override_implies_completion": false
   },
   "audio": {
     "fixed_approved_assets": 54,
@@ -89,7 +94,9 @@
       "AUD-A03-004",
       "AUD-A03-005",
       "AUD-A03-006",
-      "AUD-A03-007"
+      "AUD-A03-007",
+      "AUD-OBS-001",
+      "AUD-OBS-003"
     ],
     "external_deferred": ["AUD-A03-008"],
     "verified_sha": "77ac72174a9e21163f6341ea8e0fcc172269eac3",
@@ -98,33 +105,95 @@
     "security": "PASS",
     "frontend": "PASS",
     "backend": "PASS",
+    "backend_tests": 852,
     "integration_playwright_e2e": "PASS",
     "exact_sha_green": true,
     "notes": "Production ASR remains intentionally blocked pending independent provider/calibration/privacy/cost/governance approval."
   },
   "w3": {
-    "status": "IN_PROGRESS",
+    "status": "ACTIVE_CI_RED",
     "scope": "Admin / Student UX / Accessibility / Web reliability",
-    "priority_gaps": [
-      "AUD-A04-001",
-      "AUD-A04-002",
-      "AUD-A04-003",
-      "AUD-A04-005",
-      "AUD-A04-006",
-      "AUD-A04-007",
-      "AUD-A04-008",
-      "AUD-PERF-001",
-      "AUD-PERF-004",
-      "AUD-A11Y-001",
-      "AUD-A11Y-002",
-      "AUD-A11Y-003"
+    "latest_code_bearing_sha_before_docs": "3962d101b2c1ba4c5294235dfac797687209cbfb",
+    "helper_branch": "stage/a10-w3-ci",
+    "quality_gate_run": 34703574228,
+    "quality_gate_run_number": 829,
+    "quality_gate_sha": "3962d101b2c1ba4c5294235dfac797687209cbfb",
+    "security": "PASS",
+    "backend": "PASS",
+    "frontend_typescript": "PASS",
+    "frontend_eslint": "PASS",
+    "frontend_unit": "FAIL",
+    "frontend_build": "SKIPPED_DEPENDENCY_FAILURE",
+    "integration_playwright_e2e": "SKIPPED_DEPENDENCY_FAILURE",
+    "current_blocker": {
+      "file": "apps/web/src/app/api/[...path]/cachePolicy.ts",
+      "test": "apps/web/src/app/api/[...path]/route.test.ts",
+      "symptom": "approved media GET with explicit upstream private,no-store is incorrectly changed to public,max-age=86400",
+      "root_fix": "honor explicit upstream private/no-store; preserve explicit safe public; use public 86400 fallback only when approved-media upstream Cache-Control is absent"
+    },
+    "implemented_not_yet_wave_closed": [
+      "shared accessible dialog lifecycle and unit test",
+      "Admin mobile dialog ARIA/focus lifecycle",
+      "Settings tablist/tab/tabpanel keyboard semantics",
+      "canonical researcher student journey projection",
+      "Student Detail explicit journey/history/rewards source states",
+      "Student Detail canonical per-level journey rendering",
+      "student-context-preserving pending-audio filter and review UI",
+      "route-aware BFF cache policy with regression tests"
     ],
-    "next": "inspect current AdminUI, Student Detail, Settings, BFF media cache policy and global accessibility tokens before root-fix implementation"
+    "remaining": [
+      "fix current BFF cache private/no-store root cause and rerun exact SHA",
+      "complete AdminUI/presentation unification",
+      "add partial-source failure/retry regressions",
+      "verify canonical Journey scenarios including override/skipped/early-promotion",
+      "deterministic Student Detail responsive matrix 320/360/390/430/768/Desktop",
+      "final keyboard-only accessible dialog regression",
+      "finish Settings shared token/presentation ownership",
+      "filtered audio-review context E2E",
+      "remove runtime Google Fonts dependency with local/build-time typography",
+      "global prefers-reduced-motion policy",
+      "accessible semantic text/action color variants and contrast tests",
+      "progressbar semantics",
+      "cross-device scenario integrity pass",
+      "full exact-SHA W3 Security+Frontend+Backend+Integration/Playwright Green"
+    ]
+  },
+  "w4_queued": {
+    "scope": "Rewards / Badges / Media semantics",
+    "badge_catalog": {
+      "BDG-01": "one_star",
+      "BDG-02": "two_stars",
+      "BDG-03": "three_stars",
+      "BDG-04": "مستكشف الحروف",
+      "BDG-05": "بطل الكلمات",
+      "BDG-06": "نجم الفهم"
+    },
+    "known_gaps": [
+      "Student Home does not yet render the full canonical badge asset experience",
+      "Admin badge presentation needs shared catalog visual rendering",
+      "L3 backend label قارئ متميز conflicts with approved catalog نجم الفهم and needs migration-compatible resolution",
+      "Reward API needs stable catalog/version/asset identity",
+      "Reward API failure must be distinct from zero rewards",
+      "audio rerecord must count in star retry/effort semantics",
+      "pending/ungraded audio must not award stars early",
+      "reward accumulation/idempotency regressions required",
+      "AUD-MEDIA-002 requires academic review before lexical asset changes"
+    ]
+  },
+  "w5": {
+    "status": "QUEUED_AFTER_W4",
+    "scope": "Historical cleanup / Performance / Test ownership",
+    "rules": "No destructive cleanup without dependency and history proof"
+  },
+  "w6": {
+    "status": "QUEUED_FINAL_GATE",
+    "requires": "one exact SHA with Security, Frontend TS/Lint/Unit/Build, Backend, migrations/drift/seed/canonical, Integration/Playwright, responsive/accessibility and full reward lifecycle E2E all green"
   },
   "branch_governance": {
     "blind_merge_forbidden": true,
     "speech_pronunciation_lab_branches": "EXCLUDE_FROM_MERGE_RESEARCH_ONLY",
-    "deployment_platform_sandbox": "REFERENCE_ONLY_NO_DOCKER_NO_TEMP_AUDIO_SKIP"
+    "deployment_platform_sandbox": "REFERENCE_ONLY_NO_DOCKER_NO_TEMP_AUDIO_SKIP",
+    "ci_stage_branches": "VERIFICATION_POINTERS_ONLY_DO_NOT_MERGE"
   },
   "verification_policy": {
     "pass_requires_exact_sha_evidence": true,
@@ -132,7 +201,8 @@
     "no_release_before_final_gates": true,
     "no_deploy_before_final_gates": true,
     "no_docker": true,
-    "no_test_pass_claim_without_run": true
+    "no_test_pass_claim_without_run": true,
+    "do_not_weaken_tests_to_hide_real_bug": true
   },
   "external_open_items": [
     "production ASR provider/calibration/privacy/cost/governance if automatic speech decisions are pursued",
@@ -142,5 +212,5 @@
     "supervising organization details/logo before final report signoff",
     "credential rotation before production/deployment if historically exposed"
   ],
-  "next_step": "Continue A10/W3. Do not merge/deploy. Keep Production ASR blocked until explicit approval."
+  "next_step": "Refetch audit HEAD. If no newer code already fixes it, root-fix BFF cache policy so explicit upstream private/no-store remains private; commit; move stage/a10-w3-ci to the new exact SHA; run full Quality Gate; then continue every remaining W3 gap before W4."
 }
