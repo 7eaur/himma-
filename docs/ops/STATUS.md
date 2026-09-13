@@ -3,13 +3,13 @@
 **Last updated:** 2026-09-13  
 **Repository:** `7eaur/himma-`  
 **Active branch:** `audit/comprehensive-repository-review-2026-09-10`  
-**Current state:** `A00–A09 CLOSED — W1 GREEN — W2 GREEN — W3 GREEN — W4 ACTIVE — AUD-BADGE-004 CLOSED GREEN — AUD-BADGE-003 BLOCKED ON APPROVED ASSETS — NO MERGE / NO DEPLOY`
+**Current state:** `A00–A09 CLOSED — W1 GREEN — W2 GREEN — W3 GREEN — W4 ACTIVE — AUD-BADGE-005 CLOSED — AUD-BADGE-007 ACTIVE RUN 853 — AUD-BADGE-003 BLOCKED ON APPROVED ASSETS — NO MERGE / NO DEPLOY`
 
 ## Continuity
 Read first:
 - `NEXT_CONVERSATION_PROMPT.md`
-- `docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-13_A10_W4_BADGE_004_CLOSED_AR.md`
-- `docs/maintenance/HIMMA_A10_W4_AUTOMATION_CHECKPOINT_2026-09-13_BADGE_004_CLOSED_AR.md`
+- `docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-13_A10_W4_BADGE_007_ACTIVE_AR.md`
+- `docs/maintenance/HIMMA_A10_W4_AUTOMATION_CHECKPOINT_2026-09-13_BADGE_007_ACTIVE_AR.md`
 - `docs/ops/progress.json`
 - `docs/maintenance/HIMMA_MASTER_GAP_REGISTER_2026-09-10_AR.md`
 
@@ -20,9 +20,14 @@ Read first:
 
 ## W4 exact state
 - `AUD-BADGE-008` CLOSED GREEN — code SHA `57495fb804d4f52f684aded176474155dace07d9`, Quality Gate #850 / Run ID `34731134319`.
-- `AUD-BADGE-004` CLOSED GREEN — code SHA `fddc8a59190d1f6522f1639d4f8156982fbaf293`, Quality Gate #851 / Run ID `34732091325`. Security, Frontend, Backend including migrations/drift/seed/tests, and Integration/Playwright all SUCCESS.
-- `AUD-BADGE-003` BLOCKED_PENDING_APPROVED_ASSET_FILES. The approved asset map references six `BDG-01..BDG-06` SVGs under `assets/rewards/svg`, but those binaries are absent from the branch and the inspected exact path has no branch commit history. Do not fabricate replacements.
-- First independent incomplete candidate: `AUD-BADGE-005`; verify canonical level completion is consumed consistently by Journey and Rewards for early promotion, 10/10, and manual cases before any code change.
+- `AUD-BADGE-004` CLOSED GREEN — code SHA `fddc8a59190d1f6522f1639d4f8156982fbaf293`, Quality Gate #851 / Run ID `34732091325`; Security, Frontend, Backend including migrations/drift/seed/tests, and Integration/Playwright all SUCCESS.
+- `AUD-BADGE-005` CLOSED GREEN — existing canonical completion owner/evidence on the #851-verified baseline proves Journey/Rewards consistency for early promotion 6–9, L3 10/10, and manual override; no duplicate patch added.
+- `AUD-BADGE-003` BLOCKED_PENDING_APPROVED_ASSET_FILES. Approved `BDG-01..BDG-06` SVG binaries under `assets/rewards/svg` are absent from the branch. Do not fabricate replacements.
+- `AUD-BADGE-007` ACTIVE — exact code SHA `970416d707639a3cab2f0dfa930b9f78990afe20`; reward failure is now distinct from successful zero, with frontend tests for HTTP 500 / empty / populated rewards.
+- Quality Gate #853 / Run ID `34733663693` ACTIVE on exact SHA `970416d707639a3cab2f0dfa930b9f78990afe20`. Latest observed Security/Frontend/Backend IN PROGRESS; Integration/Playwright waits on prerequisites.
+
+## Resume rule
+Inspect #853 first. No parallel batch while it is ACTIVE/QUEUED. FAILURE => root-fix first true failure inside `AUD-BADGE-007` only. SUCCESS => close `AUD-BADGE-007`, update documentation, then choose exactly one next independent W4 gap.
 
 ## Order
 W4 -> W5 -> W6. If W6 becomes Green, stop. A11 / Deploy / Railway / Production / final merge remain outside this schedule.
