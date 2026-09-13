@@ -22,6 +22,7 @@ from reports import router as reports_router
 from skill_reports import router as skill_reports_router
 from admin_notifications import router as admin_notifications_router
 from content_preview import router as content_preview_router
+from reward_catalog_api import router as reward_catalog_router
 from observability import request_correlation_middleware
 from readiness import readiness_report
 from runtime_flags import runtime_security_ready, validate_runtime_safety
@@ -74,6 +75,7 @@ app.include_router(reports_router)
 app.include_router(skill_reports_router)
 app.include_router(admin_notifications_router)
 app.include_router(content_preview_router)
+app.include_router(reward_catalog_router)
 
 
 @app.get("/health")
