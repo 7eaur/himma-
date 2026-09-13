@@ -7,6 +7,7 @@ from db.adaptation_models import RewardEvent
 from reward_catalog import (
     REWARD_CATALOG_VERSION,
     badge_entry_for_level,
+    catalog_payload,
     present_reward,
     star_entry,
 )
@@ -43,6 +44,31 @@ def test_catalog_has_stable_star_and_level_badge_identity():
     assert [star_entry(value).asset_id for value in (1, 2, 3)] == ["BDG-01", "BDG-02", "BDG-03"]
     assert [badge_entry_for_level(value).asset_id for value in (1, 2, 3)] == ["BDG-04", "BDG-05", "BDG-06"]
     assert badge_entry_for_level(3).label == "نجم الفهم"
+
+    payload = catalog_payload()
+    assert payload["version"] == REWARD_CATALOG_VERSION
+    assert len(payload["entries"]) == 6
+    l3 = next(row for row in payload["entries"] if row["catalog_key"] == "level:3:core-complete")
+    assert l3 == {
+        "catalog_key": "level:3:core-complete",
+        "reward_type": "badge",
+        "stars": None,
+        "reward_key": "level:3:core-complete",
+        "level_id": 3,
+        "label": "نجم الفهم",
+        "asset_id": "BDG-06",
+        "asset_slug": "comprehension-star",
+    }
+
+
+def test_reward_catalog_endpoint_requires_auth_and_returns_same_version(student_client):
+    response = student_client.get("/reward-catalog")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["version"] == REWARD_CATALOG_VERSION
+    assert {row["asset_id"] for row in payload["entries"]} == {
+        "BDG-01", "BDG-02", "BDG-03", "BDG-04", "BDG-05", "BDG-06"
+    }
 
 
 def test_historical_l3_label_is_preserved_but_api_uses_canonical_catalog_label():
