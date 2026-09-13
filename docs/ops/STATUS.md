@@ -3,7 +3,7 @@
 **Last updated:** 2026-09-13  
 **Repository:** `7eaur/himma-`  
 **Active branch:** `audit/comprehensive-repository-review-2026-09-10`  
-**Current state:** `A00–A09 CLOSED — W1 GREEN — W2 GREEN — W3 ACTIVE — AUD-A04-001 ACTIVE — NO MERGE / NO DEPLOY`
+**Current state:** `A00–A09 CLOSED — W1 GREEN — W2 GREEN — W3 ACTIVE — AUD-A04-001 / RUN #846 ACTIVE — NO MERGE / NO DEPLOY`
 
 ## Continuity
 Read first:
@@ -20,16 +20,14 @@ W2 GREEN: `77ac72174a9e21163f6341ea8e0fcc172269eac3`, Run #822 / ID `34548388760
 
 ## W3 closed evidence
 - `AUD-A04-008` CLOSED GREEN on `562b4eb3ef831cf7b8b51bd7d5e33145917cb382`, Run #842 / ID `34723513642`.
-- `AUD-PERF-004` CLOSED GREEN on exact code SHA `33263107047447ae758ca2092209100ab541efdd`, Quality Gate #845 / Run ID `34725817618`.
-  - Security SUCCESS.
-  - Frontend SUCCESS: TypeScript, ESLint, unit tests, Next.js build.
-  - Backend SUCCESS: native PostgreSQL, canonical validation, Alembic upgrade/downgrade/upgrade, model drift, canonical seed idempotency, full backend tests.
-  - Integration SUCCESS: native PostgreSQL/Redis, pinned MinIO, migrations/full runtime seed, FastAPI + Next.js, Playwright E2E.
+- `AUD-PERF-004` CLOSED GREEN on exact code SHA `33263107047447ae758ca2092209100ab541efdd`, Quality Gate #845 / Run ID `34725817618`; Security + Frontend + Backend + Integration/Playwright all SUCCESS.
 
 ## Current W3 batch: AUD-A04-001 only
-Goal: unify proven shared Admin presentation ownership on `AdminUI + global tokens`, retaining local CSS only for genuinely unique page patterns. Current source inspection shows Student Detail still duplicates shared page/header/panel/action/stat presentation despite existing `AdminUI.tsx` / `AdminUI.module.css` owners.
+Exact code SHA: `c8fb6277527558c185167ba6d7a5059a1c9e90aa`.
 
-No parallel W3 gap may start until the exact-SHA Quality Gate for this batch resolves.
+Student Detail now reuses shared `AdminUI.module.css` primitives for page, panel, stat/stat icon, and primary/secondary actions; page-specific identity/tabs/journey/forms/history/notices/responsive rules remain local. This batch is presentation-only and did not alter canonical Journey/reward/audio/history/mutation behavior.
+
+Quality Gate #846 / Run ID `34726957359` is ACTIVE on the exact code SHA. Latest observed jobs: Security, Frontend, Backend in progress; Integration not started. No parallel W3 gap may start while #846 is active.
 
 ## Order
 W3 Green only → W4 → W5 → W6. A11 / Deploy / Railway / Production remain outside this schedule.
