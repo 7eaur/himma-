@@ -5,8 +5,8 @@
 فرع التنفيذ: `audit/comprehensive-repository-review-2026-09-10`.
 
 قبل أي تعديل اجلب HEAD الحالي وآخر Quality Gate/CI، ثم اقرأ حرفيًا بالترتيب:
-1. `docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-13_A10_W4_BADGE_004_CLOSED_AR.md`
-2. `docs/maintenance/HIMMA_A10_W4_AUTOMATION_CHECKPOINT_2026-09-13_BADGE_004_CLOSED_AR.md`
+1. `docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-13_A10_W4_BADGE_007_ACTIVE_AR.md`
+2. `docs/maintenance/HIMMA_A10_W4_AUTOMATION_CHECKPOINT_2026-09-13_BADGE_007_ACTIVE_AR.md`
 3. `docs/ops/STATUS.md`
 4. `docs/ops/progress.json`
 5. `docs/maintenance/HIMMA_MASTER_GAP_REGISTER_2026-09-10_AR.md`
@@ -20,12 +20,16 @@ Repository code + migrations + executable tests/CI + canonical contracts هي So
 - W3 CLOSED GREEN — `62e34b151e46b406cf3936201f80010abbe9d8d1`, Run #848 / ID `34729450663`.
 - W4 ACTIVE.
 - `AUD-BADGE-008` CLOSED GREEN — `57495fb804d4f52f684aded176474155dace07d9`, Run #850 / ID `34731134319`.
-- `AUD-BADGE-004` CLOSED GREEN — exact code SHA `fddc8a59190d1f6522f1639d4f8156982fbaf293`, Quality Gate #851 / Run ID `34732091325`; Security/Frontend/Backend/Integration-Playwright SUCCESS.
-- `AUD-BADGE-003` is BLOCKED_PENDING_APPROVED_ASSET_FILES: the approved map references `BDG-01..BDG-06` under `assets/rewards/svg`, but the binaries are absent from the current branch. Do not fabricate replacements.
-- First independent incomplete candidate: `AUD-BADGE-005`.
+- `AUD-BADGE-004` CLOSED GREEN — `fddc8a59190d1f6522f1639d4f8156982fbaf293`, Run #851 / ID `34732091325`.
+- `AUD-BADGE-005` CLOSED GREEN by existing executable canonical completion evidence on the #851-verified baseline; no duplicate code patch was needed.
+- `AUD-BADGE-003` BLOCKED_PENDING_APPROVED_ASSET_FILES. Approved `BDG-01..BDG-06` SVG binaries under `assets/rewards/svg` are absent; do not fabricate replacements.
+- Current batch only: `AUD-BADGE-007`.
+- Exact code SHA: `970416d707639a3cab2f0dfa930b9f78990afe20`.
+- Student Home now distinguishes reward failure/malformed data from legitimate successful zero, and focused frontend tests cover HTTP 500 / empty / populated responses.
+- Quality Gate #853 / Run ID `34733663693` ACTIVE on the exact SHA.
 
 ## إلزامي
-Inspect `AUD-BADGE-005` literally before changing code: read `services/api/level_completion.py`, `services/api/adaptation.py`, `services/api/journey.py` and their executable tests. Verify one canonical completion truth drives both Journey and Rewards for early promotion after 6–9 successful main activities, ordinary 10/10 completion, and manual/override cases. If acceptance is already satisfied, close only with explicit executable evidence; if not, root-fix only this gap and add focused tests, then run an exact-SHA Quality Gate and document it before choosing another W4 gap.
+Inspect #853 first. If ACTIVE/QUEUED, do not start code or another W4 gap. If FAILURE, inspect the first true failure and root-fix `AUD-BADGE-007` only without weakening tests. If SUCCESS including Integration/Playwright, close `AUD-BADGE-007`, update STATUS/progress/continuity/checkpoint/NEXT with exact SHA and Run ID, then select exactly one next independent W4 gap from the Master Gap Register.
 
 Do not work around `AUD-BADGE-003` by generating substitute badge artwork.
 
