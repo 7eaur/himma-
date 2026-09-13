@@ -16,7 +16,7 @@ Exact code SHA: `1df3a25b751ad5782b5064ae7c7b6b9353dece86`.
 Added executable Playwright coverage at `apps/web/tests/e2e/student-detail-cross-device-integrity.spec.ts`. It creates a real student, supplies one canonical Journey truth, and verifies the same semantic state at 320px mobile, 768px tablet, and 1440px desktop: three canonical level states, exact 6/10 completed evidence, active progress value 2, no invented skipped level, and no horizontal overflow. This is test-only; no domain/data/academic behavior changed.
 
 ## Current gate
-Quality Gate #847 / Run ID `34728109762` was triggered on exact code SHA `1df3a25b751ad5782b5064ae7c7b6b9353dece86`. Latest observed state in this checkpoint: QUEUED/ACTIVE; workflow jobs were not yet available from the jobs endpoint.
+Quality Gate #847 / Run ID `34728306429` is running on exact code SHA `1df3a25b751ad5782b5064ae7c7b6b9353dece86`. Latest observed state: `IN_PROGRESS`.
 
 ## Resume rule
 Inspect #847 first. If QUEUED/ACTIVE, do not start any code or another W3 batch. If FAILURE, inspect the first true failure and root-fix only this cross-device integrity batch without weakening tests. If SUCCESS across the full Quality Gate, close `CROSS_DEVICE_SCENARIO_INTEGRITY`, update STATUS/progress/continuity/checkpoint, and proceed only to the final exact-SHA W3 Green gate required by the continuity plan.
