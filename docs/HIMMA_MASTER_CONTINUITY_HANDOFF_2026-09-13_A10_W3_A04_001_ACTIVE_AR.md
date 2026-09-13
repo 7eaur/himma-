@@ -20,20 +20,21 @@ Run #845 completed `success` on exact SHA `33263107047447ae758ca2092209100ab541e
 - Backend: SUCCESS — native PostgreSQL, canonical validation, Alembic upgrade→downgrade→upgrade, model drift, canonical seed idempotency, full backend tests.
 - Integration: SUCCESS — native PostgreSQL/Redis, pinned MinIO, migrations + full runtime seed, FastAPI + Next.js, Playwright E2E.
 
-This closes `AUD-PERF-004`: Arabic typography is build-time/self-hosted through Next font handling and the executable runtime-network regression remains intact; no runtime Google Fonts browser dependency is accepted.
+This closes `AUD-PERF-004`.
 
-## Current W3 batch
-`AUD-A04-001` only — Admin presentation unification where ownership is proven.
+## Current W3 batch — AUD-A04-001 only
+Source inspection proved duplicated presentation ownership in Student Detail. Exact code SHA `c8fb6277527558c185167ba6d7a5059a1c9e90aa` refactors `student-detail.module.css` to compose the shared `AdminUI.module.css` primitives for page, panel, stat/stat icon, and primary/secondary actions. Unique Student Detail patterns (identity header, tabs, journey, forms, history, notices, responsive specifics) remain local. No JSX, API, Journey, reward, audio, history, or mutation semantics changed.
 
-The current source inspection shows `AdminUI.tsx` / `AdminUI.module.css` already own shared Admin page/header/action/panel/stat/toolbar patterns, while Student Detail still carries parallel page/header/panel/action/stat presentation CSS in `student-detail.module.css`. The current task is to migrate only proven shared presentation ownership to AdminUI/global tokens while retaining page-local CSS for genuinely unique Student Detail patterns and preserving all canonical academic/data behavior.
+`stage/a10-w3-ci` now points to exact code SHA `c8fb6277527558c185167ba6d7a5059a1c9e90aa`.
+
+Quality Gate #846 / Run ID `34726957359` started for this exact SHA. At the latest checkpoint it is ACTIVE: Security, Frontend, and Backend are in progress; Integration has not started. No other W3 gap may begin while #846 is active.
 
 ## Mandatory continuation
-1. Re-fetch audit HEAD before every write and verify no newer active CI/batch conflicts.
-2. Keep current work limited to `AUD-A04-001` until an exact-SHA gate resolves it.
-3. Do not change Journey/reward/audio academic truth, status semantics, or history behavior while refactoring presentation.
-4. Do not weaken existing responsive/accessibility/partial-failure tests.
-5. After code change, move `stage/a10-w3-ci` to the exact code SHA and run the full Quality Gate; document exact SHA, Run ID, gates, and remaining W3 work.
-6. Do not start W4 until W3 is fully Green.
+1. Fetch audit HEAD and inspect #846 first.
+2. If #846 is ACTIVE/QUEUED: no code changes.
+3. If FAILURE: inspect the first true failing job/step and root-fix only within `AUD-A04-001`; do not weaken tests.
+4. If SUCCESS including Integration/Playwright: formally close or further assess `AUD-A04-001` only against remaining proven parallel presentation ownership, then update status/progress/continuity/checkpoint before selecting another W3 item.
+5. Do not start W4 until W3 is fully Green.
 
 ## Fixed prohibitions
 No Docker, fake ASR, Temporary Audio Skip, history deletion, Speech/Pronunciation Lab merge, final merge, A11, Deploy, Railway, or Production.
