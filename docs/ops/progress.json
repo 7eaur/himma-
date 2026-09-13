@@ -23,7 +23,7 @@
       "status":"GATE_ACTIVE_AFTER_EXECUTABLE_CROSS_DEVICE_TEST",
       "code_sha":"1df3a25b751ad5782b5064ae7c7b6b9353dece86",
       "run_number":847,
-      "run_id":34728109762,
+      "run_id":34728306429,
       "gate_status":"ACTIVE",
       "change":"Executable Playwright verifies one canonical Student Detail/Journey truth across 320px mobile, 768px tablet and 1440px desktop with canonical states, exact completion evidence, progress semantics and no horizontal overflow; test-only change",
       "acceptance":"same canonical Student Detail/Journey truth remains semantically intact across device classes; no invented state; exact-SHA full Quality Gate required"
@@ -34,5 +34,5 @@
   "w5": {"status":"QUEUED_AFTER_W4"},
   "w6": {"status":"QUEUED_FINAL_GATE"},
   "constraints": {"no_docker":true,"no_fake_asr":true,"no_temporary_audio_skip":true,"no_history_deletion":true,"speech_pronunciation_lab_merge":false,"no_final_merge":true,"no_deploy":true,"no_railway":true,"no_production":true,"pass_requires_exact_sha_evidence":true},
-  "next_step": "Inspect Quality Gate #847 first. Do not start another batch while it is active."
+  "next_step": "Inspect Quality Gate #847 / Run ID 34728306429 first. Do not start another batch while it is active."
 }
