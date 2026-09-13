@@ -26,7 +26,7 @@ Exact code SHA: `1df3a25b751ad5782b5064ae7c7b6b9353dece86`.
 
 Executable evidence added in `apps/web/tests/e2e/student-detail-cross-device-integrity.spec.ts`. The test creates a real student and verifies one canonical Journey state remains semantically identical at mobile 320px, tablet 768px, and desktop 1440px, including canonical level states, exact completed count, active progress semantics, absence of invented skipped state, and horizontal-overflow protection.
 
-Quality Gate #847 / Run ID `34728109762` is the only active gate for this batch. Latest observed state at handoff creation: QUEUED/ACTIVE.
+Quality Gate #847 / Run ID `34728306429` is the only active gate for this batch. Latest observed state: `IN_PROGRESS`.
 
 ## Mandatory resume sequence
 1. Fetch current HEAD of `audit/comprehensive-repository-review-2026-09-10`.
@@ -34,7 +34,7 @@ Quality Gate #847 / Run ID `34728109762` is the only active gate for this batch.
 3. Read this Master Continuity Handoff.
 4. Read `docs/maintenance/HIMMA_A10_W3_AUTOMATION_CHECKPOINT_2026-09-13_CROSS_DEVICE_INTEGRITY_ACTIVE_AR.md`.
 5. Read the W3 execution checkpoint, `docs/ops/STATUS.md`, `docs/ops/progress.json`, and Master Gap Register.
-6. Inspect Quality Gate #847 / Run ID `34728109762` before any modification.
+6. Inspect Quality Gate #847 / Run ID `34728306429` before any modification.
 
 If #847 is still ACTIVE/QUEUED, do not write code. If it fails, fix the first true failure from root cause inside this batch only. If it succeeds fully, close cross-device scenario integrity, document exact evidence, then proceed only to the final exact-SHA W3 Green gate. W4 may start only after W3 is formally GREEN.
 
