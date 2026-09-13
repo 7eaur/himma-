@@ -1,38 +1,34 @@
 {
-  "schema_version": 26,
+  "schema_version": 27,
   "plan_version": "HIMMA-COMPREHENSIVE-AUDIT-AND-ROOT-REMEDIATION-2026-09-10",
   "repository": "7eaur/himma-",
   "branch": "audit/comprehensive-repository-review-2026-09-10",
   "phase": "A10_ROOT_REMEDIATION",
   "wave": "W3_ADMIN_STUDENT_UX_ACCESSIBILITY_WEB_RELIABILITY",
-  "status": "W1_GREEN_W2_GREEN_W3_ACTIVE_AUD_PERF_004_RUN_845_ACTIVE",
+  "status": "W1_GREEN_W2_GREEN_W3_ACTIVE_AUD_A04_001",
   "last_updated": "2026-09-13",
-  "continuity_handoff": "docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-13_A10_W3_RUN845_ACTIVE_AR.md",
+  "continuity_handoff": "docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-13_A10_W3_A04_001_ACTIVE_AR.md",
   "next_conversation_prompt": "NEXT_CONVERSATION_PROMPT.md",
-  "execution_checkpoint": "docs/maintenance/HIMMA_A10_W3_AUTOMATION_CHECKPOINT_2026-09-13_RUN845_ACTIVE_AR.md",
+  "execution_checkpoint": "docs/maintenance/HIMMA_A10_W3_AUTOMATION_CHECKPOINT_2026-09-13_A04_001_ACTIVE_AR.md",
   "master_gap_register": "docs/maintenance/HIMMA_MASTER_GAP_REGISTER_2026-09-10_AR.md",
   "audit_stages": {"A00":"CLOSED_AUDIT","A01":"CLOSED_AUDIT","A02":"CLOSED_AUDIT","A03":"CLOSED_AUDIT","A04":"CLOSED_AUDIT","A05":"CLOSED_AUDIT","A06":"CLOSED_AUDIT","A07":"CLOSED_AUDIT","A08":"CLOSED_AUDIT","A09":"CLOSED_AUDIT","A10":"IN_PROGRESS_W3","A11":"OUT_OF_SCHEDULE_BLOCKED_UNTIL_W6_GREEN"},
   "w1": {"status":"CLOSED_GREEN","verified_sha":"ea132c9afbe152d0afa5ae581c058ce3248a0c48","quality_gate_run":34467329988,"quality_gate_run_number":813},
   "w2": {"status":"CLOSED_GREEN","verified_sha":"77ac72174a9e21163f6341ea8e0fcc172269eac3","quality_gate_run":34548388760,"quality_gate_run_number":822,"production_asr_approved":false,"human_supervisor_review_authoritative":true},
   "w3": {
-    "status": "ACTIVE_AUD_PERF_004_RUN_845",
-    "latest_closed_item": {"id":"AUD-A04-008","verified_sha":"562b4eb3ef831cf7b8b51bd7d5e33145917cb382","run_number":842,"run_id":34723513642,"conclusion":"SUCCESS"},
+    "status": "ACTIVE_AUD_A04_001",
+    "latest_closed_item": {"id":"AUD-PERF-004","verified_sha":"33263107047447ae758ca2092209100ab541efdd","run_number":845,"run_id":34725817618,"conclusion":"SUCCESS","gates":{"security":"SUCCESS","frontend":"SUCCESS","backend":"SUCCESS","integration_playwright":"SUCCESS"}},
+    "previous_closed_item": {"id":"AUD-A04-008","verified_sha":"562b4eb3ef831cf7b8b51bd7d5e33145917cb382","run_number":842,"run_id":34723513642,"conclusion":"SUCCESS"},
     "current_batch": {
-      "id":"AUD-PERF-004",
-      "status":"GATE_ACTIVE_AFTER_ROOT_FIX",
-      "prior_failed_attempt":{"code_sha":"e10dfe7bba8ea47ebc3fc6fca92c015d80ffe115","run_number":843,"run_id":34724452979,"conclusion":"FAILURE","first_failure":"frontend next build: Turbopack bundled native Tailwind/LightningCSS due direct PostCSS ESM import"},
-      "failed_attempt":{"code_sha":"10620651b96947dd1b2f8d215dbf9acce78e929d","run_number":844,"run_id":34724716140,"conclusion":"FAILURE","first_failure":"frontend next build: local PostCSS plugin relative path resolved from Turbopack generated build chunk, causing Cannot find module ./postcss-strip-google-fonts.cjs"},
-      "code_sha":"33263107047447ae758ca2092209100ab541efdd",
-      "run_number":845,
-      "run_id":34725817618,
-      "gate_status":"ACTIVE_QUEUED",
-      "acceptance":"Next self-hosted/build-time Arabic fonts + no runtime Google Fonts browser requests"
+      "id":"AUD-A04-001",
+      "status":"ACTIVE_SOURCE_REVIEW_AND_IMPLEMENTATION",
+      "owner":"AdminUI + global tokens",
+      "acceptance":"shared Admin presentation uses common owner; local CSS remains only for unique page patterns; canonical data/academic semantics unchanged; exact-SHA full Quality Gate required"
     },
-    "remaining_after_current_if_green": ["AUD-A04-001 remaining AdminUI/presentation unification where ownership is proven","cross-device scenario integrity per Master Gap Register","final exact-SHA W3 Green gate"]
+    "remaining_after_current_if_green": ["cross-device scenario integrity per Master Gap Register","final exact-SHA W3 Green gate"]
   },
   "w4": {"status":"QUEUED_AFTER_W3_GREEN"},
   "w5": {"status":"QUEUED_AFTER_W4"},
   "w6": {"status":"QUEUED_FINAL_GATE"},
   "constraints": {"no_docker":true,"no_fake_asr":true,"no_temporary_audio_skip":true,"no_history_deletion":true,"speech_pronunciation_lab_merge":false,"no_final_merge":true,"no_deploy":true,"no_railway":true,"no_production":true,"pass_requires_exact_sha_evidence":true},
-  "next_step": "Inspect Quality Gate #845 first. Do not start another batch while it is active."
+  "next_step": "Complete AUD-A04-001 only, then run the full Quality Gate on its exact code SHA. Do not start another gap while that gate is active."
 }
