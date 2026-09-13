@@ -54,6 +54,33 @@ def badge_levels() -> tuple[int, ...]:
     return tuple(_BADGES_BY_LEVEL)
 
 
+def catalog_payload() -> dict:
+    """Return the versioned public contract used by Student/Admin clients."""
+    entries: list[dict] = []
+    for stars, entry in _STARS_BY_COUNT.items():
+        entries.append({
+            "catalog_key": f"stars:{stars}",
+            "reward_type": "stars",
+            "stars": stars,
+            "reward_key": None,
+            "label": entry.label,
+            "asset_id": entry.asset_id,
+            "asset_slug": entry.asset_slug,
+        })
+    for level_id, entry in _BADGES_BY_LEVEL.items():
+        entries.append({
+            "catalog_key": f"level:{level_id}:core-complete",
+            "reward_type": "badge",
+            "stars": None,
+            "reward_key": f"level:{level_id}:core-complete",
+            "level_id": level_id,
+            "label": entry.label,
+            "asset_id": entry.asset_id,
+            "asset_slug": entry.asset_slug,
+        })
+    return {"version": REWARD_CATALOG_VERSION, "entries": entries}
+
+
 def _entry_for_reward(reward: Any) -> RewardCatalogEntry | None:
     if str(getattr(reward, "reward_type", "")) == "stars":
         value = getattr(reward, "stars", None)
