@@ -20,12 +20,14 @@ Repository code + migrations + executable tests/CI + canonical contracts هي So
 - W2 CLOSED GREEN — `77ac72174a9e21163f6341ea8e0fcc172269eac3`, Run #822 / ID `34548388760`.
 - W3 ACTIVE / NOT GREEN.
 - `AUD-A04-008` CLOSED GREEN — `562b4eb3ef831cf7b8b51bd7d5e33145917cb382`, Run #842 / ID `34723513642`.
-- `AUD-PERF-004` CLOSED GREEN — exact code SHA `33263107047447ae758ca2092209100ab541efdd`, Quality Gate #845 / Run ID `34725817618`.
-- #845 succeeded completely: Security + Frontend TypeScript/ESLint/unit/build + Backend PostgreSQL/migrations/drift/seed/tests + Integration/Playwright.
-- Current batch only: `AUD-A04-001` — Admin presentation unification where ownership is proven.
+- `AUD-PERF-004` CLOSED GREEN — exact code SHA `33263107047447ae758ca2092209100ab541efdd`, Quality Gate #845 / Run ID `34725817618`; جميع Security/Frontend/Backend/Integration-Playwright نجحت.
+- Current batch only: `AUD-A04-001`.
+- Exact code SHA الحالي: `c8fb6277527558c185167ba6d7a5059a1c9e90aa`.
+- التعديل الحالي يجعل Student Detail يعيد استخدام shared AdminUI primitives للـpage/panel/stat/action مع بقاء الأنماط الفريدة محلية ودون تغيير منطق البيانات/الأكاديمية.
+- Quality Gate #846 / Run ID `34726957359` ACTIVE على نفس الـSHA.
 
 ## إلزامي
-استمر فقط في `AUD-A04-001`. افحص `AdminUI.tsx`/`AdminUI.module.css` مع Student Detail/Settings وغيرها، وانقل فقط الأنماط المشتركة المثبتة إلى owner المشترك مع إبقاء الأنماط الفريدة محلية. لا تغيّر أي canonical academic/data semantics ولا تضعف اختبارات responsive/accessibility/partial failure. بعد code batch حرّك `stage/a10-w3-ci` إلى exact SHA وشغّل full Quality Gate؛ أثناء الـRun لا تبدأ gap أخرى.
+افحص #846 أولًا. إذا بقي ACTIVE/QUEUED فلا تبدأ أي كود آخر. إذا FAILURE اقرأ أول failure حقيقي وأصلحه داخل `AUD-A04-001` فقط ولا تضعف الاختبارات. إذا SUCCESS بالكامل بما فيه Integration/Playwright، قيّم ما إذا بقي presentation duplication مثبت داخل `AUD-A04-001` وأغلقه فقط عند استيفاء acceptance، ثم حدّث STATUS/progress/continuity/checkpoint قبل اختيار gap واحدة أخرى من W3.
 
 بعد W3 فقط: W4 ثم W5 ثم W6. ممنوع A11 أو Deploy/Railway/Production أو final merge.
 
