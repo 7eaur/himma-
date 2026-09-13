@@ -47,6 +47,7 @@ from db.reinforcement_models import ReinforcementCycle
 from dependencies import get_current_student, get_current_user, get_db
 from level_completion import level_was_completed
 from reinforcement_mapping import recommended_reinforcement_for_skill
+from reward_catalog import badge_entry_for_level, badge_levels, present_reward
 
 router = APIRouter(tags=["Adaptation"])
 ROOT = Path(__file__).resolve().parents[2]
@@ -60,12 +61,6 @@ CRITICAL_SKILL_FLOOR = 70.0
 EARLY_PROMOTION_MIN_CORE = 6
 CORE_ACTIVITY_COUNT = 10
 POLICY_VERSION = "HIMMA_ADAPTIVE_V4_PILOT"
-
-BADGE_BY_LEVEL = {
-    1: "مستكشف الحروف",
-    2: "بطل الكلمات",
-    3: "قارئ متميز",
-}
 
 
 @dataclass(frozen=True)
@@ -464,7 +459,8 @@ def ensure_rewards(db: Session, student_id: int) -> list[RewardEvent]:
     # Badge eligibility consumes the same canonical Level Completion owner used
     # by Journey. Early automatic promotion in L1/L2 therefore earns the level
     # badge, while manual override never does and L3 still requires 10 Core.
-    for level_id, label in BADGE_BY_LEVEL.items():
+    # Presentation identity comes only from the canonical Reward Catalog.
+    for level_id in badge_levels():
         if not level_was_completed(db, student_id, level_id):
             continue
         key = f"level:{level_id}:core-complete"
@@ -480,7 +476,7 @@ def ensure_rewards(db: Session, student_id: int) -> list[RewardEvent]:
                     reward_type="badge",
                     reward_key=key,
                     stars=None,
-                    label=label,
+                    label=badge_entry_for_level(level_id).label,
                     details={"event": "level_core_flow_completed", "level_id": level_id},
                 ),
             ) or changed
@@ -712,15 +708,7 @@ def _decision_payload(decision: AdaptationDecision) -> dict:
 
 
 def _reward_payload(reward: RewardEvent) -> dict:
-    return {
-        "id": reward.id,
-        "type": reward.reward_type,
-        "key": reward.reward_key,
-        "stars": reward.stars,
-        "label": reward.label,
-        "details": reward.details,
-        "created_at": reward.created_at,
-    }
+    return present_reward(reward)
 
 
 @router.get("/adaptation/status")

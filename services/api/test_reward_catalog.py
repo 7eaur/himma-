@@ -3,6 +3,8 @@
 import json
 from pathlib import Path
 
+import adaptation
+from adaptation import _reward_payload
 from db.adaptation_models import RewardEvent
 from reward_catalog import (
     REWARD_CATALOG_VERSION,
@@ -90,6 +92,32 @@ def test_historical_l3_label_is_preserved_but_api_uses_canonical_catalog_label()
     assert payload["catalog_version"] == REWARD_CATALOG_VERSION
     assert payload["asset_id"] == "BDG-06"
     assert payload["asset_slug"] == "comprehension-star"
+
+
+def test_runtime_reward_serializer_uses_canonical_catalog_for_historical_rows():
+    historical = RewardEvent(
+        id=79,
+        student_id=1,
+        attempt_id=None,
+        reward_type="badge",
+        reward_key="level:3:core-complete",
+        stars=None,
+        label="قارئ متميز",
+        details={"event": "level_core_flow_completed", "level_id": 3},
+    )
+
+    payload = _reward_payload(historical)
+
+    assert payload["label"] == "نجم الفهم"
+    assert payload["recorded_label"] == "قارئ متميز"
+    assert payload["catalog_version"] == REWARD_CATALOG_VERSION
+    assert payload["asset_id"] == "BDG-06"
+    assert payload["asset_slug"] == "comprehension-star"
+
+
+def test_adaptation_has_no_parallel_badge_label_owner():
+    assert not hasattr(adaptation, "BADGE_BY_LEVEL")
+    assert adaptation.badge_entry_for_level(3).label == "نجم الفهم"
 
 
 def test_unknown_historical_reward_remains_readable_without_fake_asset_identity():
