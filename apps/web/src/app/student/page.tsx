@@ -76,7 +76,7 @@ export default function StudentHomePage() {
   const [student, setStudent] = useState<StudentMe | null>(null);
   const [learning, setLearning] = useState<LearningStatus | null>(null);
   const [journey, setJourney] = useState<JourneySummary | null>(null);
-  const [rewards, setRewards] = useState<RewardEvent[]>([]);
+  const [rewards, setRewards] = useState<RewardEvent[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState("");
@@ -104,9 +104,16 @@ export default function StudentHomePage() {
           }),
         );
         requests.push(
-          fetch("/api/rewards", { cache: "no-store" }).then(async (response) => {
-            if (response.ok) setRewards(await response.json());
-          }),
+          fetch("/api/rewards", { cache: "no-store" })
+            .then(async (response) => {
+              if (!response.ok) {
+                setRewards(null);
+                return;
+              }
+              const rewardData = await response.json().catch(() => null);
+              setRewards(Array.isArray(rewardData) ? rewardData : null);
+            })
+            .catch(() => setRewards(null)),
         );
         await Promise.all(requests);
       } catch (err) {
@@ -170,7 +177,7 @@ export default function StudentHomePage() {
     }
   };
 
-  const totalStars = useMemo(() => rewards.reduce((sum, reward) => sum + (reward.stars || 0), 0), [rewards]);
+  const totalStars = useMemo(() => rewards?.reduce((sum, reward) => sum + (reward.stars || 0), 0) ?? 0, [rewards]);
 
   if (loading) {
     return (
@@ -262,7 +269,11 @@ export default function StudentHomePage() {
             <h1>مرحبًا يا {firstName}</h1>
             <p>خطوتك التالية واضحة أمامك، وهِمّة تحفظ تقدمك تلقائيًا.</p>
           </div>
-          <div className={styles.stars} aria-label={`لديك ${totalStars} نجمة`}><strong>{totalStars} ⭐</strong><span>نجومك حتى الآن</span></div>
+          {rewards === null ? (
+            <div className={styles.stars} role="status" aria-label="تعذر تحميل النجوم"><strong>— ⭐</strong><span>تعذر تحميل نجومك</span></div>
+          ) : (
+            <div className={styles.stars} aria-label={`لديك ${totalStars} نجمة`}><strong>{totalStars} ⭐</strong><span>نجومك حتى الآن</span></div>
+          )}
         </section>
 
         <div className={styles.grid}>
