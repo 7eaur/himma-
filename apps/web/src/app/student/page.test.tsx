@@ -9,12 +9,33 @@ jest.mock("next/navigation", () => ({
   useRouter: () => ({ push, replace, refresh }),
 }));
 
-function response(body: unknown) {
+function response(body: unknown, ok = true) {
   return {
-    ok: true,
+    ok,
     json: async () => body,
   };
 }
+
+const profile = {
+  id: 1,
+  full_name: "طالب تجريبي",
+  grade_level: 3,
+  current_level: 1,
+  posttest_enabled: false,
+  next_action: "pretest" as const,
+  active_session: null,
+};
+
+const journey = {
+  pretest_completed: false,
+  starting_level: null,
+  current_level: 1,
+  levels: [],
+  learning_journey_completed: false,
+  posttest_enabled: false,
+  posttest_completed: false,
+  posttest_ready: false,
+};
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -24,32 +45,49 @@ describe("Student page", () => {
   it("renders the student's first name and pretest before placement", async () => {
     global.fetch = jest
       .fn()
-      .mockResolvedValueOnce(response({
-        id: 1,
-        full_name: "طالب تجريبي",
-        grade_level: 3,
-        current_level: 1,
-        posttest_enabled: false,
-        next_action: "pretest",
-        active_session: null,
-      }))
-      .mockResolvedValueOnce(response({
-        pretest_completed: false,
-        starting_level: null,
-        current_level: 1,
-        levels: [],
-        learning_journey_completed: false,
-        posttest_enabled: false,
-        posttest_completed: false,
-        posttest_ready: false,
-      }))
+      .mockResolvedValueOnce(response(profile))
+      .mockResolvedValueOnce(response(journey))
       .mockResolvedValueOnce(response([]));
 
     render(<StudentPage />);
     expect(await screen.findByRole("heading", { name: "مرحبًا يا طالب" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "ابدأ الاختبار" })).toBeEnabled();
     expect(screen.getByRole("heading", { name: "الاختبار القبلي" })).toBeInTheDocument();
+    expect(screen.getByLabelText("لديك 0 نجمة")).toBeInTheDocument();
     expect(screen.queryByTestId("level-journey")).not.toBeInTheDocument();
+  });
+
+  it("renders reward API failure as unavailable instead of a false zero", async () => {
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce(response(profile))
+      .mockResolvedValueOnce(response(journey))
+      .mockResolvedValueOnce(response({ detail: "temporary failure" }, false));
+
+    render(<StudentPage />);
+
+    expect(await screen.findByRole("heading", { name: "مرحبًا يا طالب" })).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "تعذر تحميل النجوم" })).toBeInTheDocument();
+    expect(screen.getByText("تعذر تحميل نجومك")).toBeInTheDocument();
+    expect(screen.queryByLabelText("لديك 0 نجمة")).not.toBeInTheDocument();
+  });
+
+  it("renders the canonical reward total when rewards load successfully", async () => {
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce(response(profile))
+      .mockResolvedValueOnce(response(journey))
+      .mockResolvedValueOnce(response([
+        { id: 1, type: "activity_star", stars: 2, label: "نجمتان" },
+        { id: 2, type: "level_badge", stars: 3, label: "شارة المستوى" },
+      ]));
+
+    render(<StudentPage />);
+
+    expect(await screen.findByRole("heading", { name: "مرحبًا يا طالب" })).toBeInTheDocument();
+    expect(screen.getByLabelText("لديك 5 نجمة")).toBeInTheDocument();
+    expect(screen.getByText("5 ⭐")).toBeInTheDocument();
+    expect(screen.queryByText("تعذر تحميل نجومك")).not.toBeInTheDocument();
   });
 
   it("shows skipped, completed and active levels without claiming skipped work was completed", async () => {
