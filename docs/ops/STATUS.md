@@ -3,7 +3,7 @@
 **Last updated:** 2026-09-13  
 **Repository:** `7eaur/himma-`  
 **Active branch:** `audit/comprehensive-repository-review-2026-09-10`  
-**Current state:** `A00–A09 CLOSED — W1 GREEN — W2 GREEN — W3 ACTIVE — FINAL EXACT-SHA GATE PENDING — NO MERGE / NO DEPLOY`
+**Current state:** `A00–A09 CLOSED — W1 GREEN — W2 GREEN — W3 ACTIVE — FINAL QUALITY GATE #848 ACTIVE — NO MERGE / NO DEPLOY`
 
 ## Continuity
 Read first:
@@ -20,12 +20,12 @@ W2 GREEN: `77ac72174a9e21163f6341ea8e0fcc172269eac3`, Run #822 / ID `34548388760
 
 ## W3 latest closed evidence
 - `AUD-A04-001` CLOSED GREEN on exact code SHA `c8fb6277527558c185167ba6d7a5059a1c9e90aa`, Quality Gate #846 / Run ID `34726957359`.
-- `CROSS_DEVICE_SCENARIO_INTEGRITY` CLOSED GREEN on exact code SHA `1df3a25b751ad5782b5064ae7c7b6b9353dece86`, Quality Gate #847 / Run ID `34728306429`; the workflow completed SUCCESS and validated the executable cross-device Student Detail/Journey integrity test.
+- `CROSS_DEVICE_SCENARIO_INTEGRITY` CLOSED GREEN on exact code SHA `1df3a25b751ad5782b5064ae7c7b6b9353dece86`, Quality Gate #847 / Run ID `34728306429`, conclusion SUCCESS.
 
 ## Current W3 batch: final exact-SHA gate only
-No product or domain change belongs to this batch. Move the CI pointer to the exact current audit HEAD after closure documentation and run one full Quality Gate. W3 is not formally GREEN until Security, Frontend, Backend, and Integration/Playwright all pass on the same exact SHA.
+Quality Gate #848 / Run ID `34729450663` is running on exact SHA `62e34b151e46b406cf3936201f80010abbe9d8d1`. Latest observed status: `QUEUED`.
 
-No W4 work may start while that gate is queued or running. On failure, root-fix the first true failure and run a new exact-SHA full gate. On success, close W3 formally and continue to W4.
+No W4 work may start while #848 is queued or active. W3 becomes formally GREEN only if Security, Frontend, Backend, and Integration/Playwright all pass on this same exact SHA. On failure, root-fix the first true failure and run a new exact-SHA full gate.
 
 ## Order
 W3 final Green → W4 → W5 → W6. If W6 becomes Green, stop. A11 / Deploy / Railway / Production remain outside this schedule.
