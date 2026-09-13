@@ -24,7 +24,7 @@ Repository code + migrations + executable tests/CI + canonical contracts هي So
 - Current batch only: `CROSS_DEVICE_SCENARIO_INTEGRITY`.
 - Exact code SHA الحالي: `1df3a25b751ad5782b5064ae7c7b6b9353dece86`.
 - أضيف اختبار Playwright تنفيذي يثبت بقاء canonical Student Detail/Journey truth متطابقًا عند 320px و768px و1440px، دون تغيير domain/data behavior.
-- Quality Gate #847 / Run ID `34728109762` بدأ على نفس exact code SHA، وآخر حالة موثقة QUEUED/ACTIVE.
+- Quality Gate #847 / Run ID `34728306429` يعمل على نفس exact code SHA، وآخر حالة موثقة `IN_PROGRESS`.
 
 ## إلزامي
 افحص #847 أولًا. إذا بقي ACTIVE/QUEUED فلا تبدأ أي كود آخر. إذا FAILURE اقرأ أول failure حقيقي وأصلحه من root cause داخل `CROSS_DEVICE_SCENARIO_INTEGRITY` فقط ولا تضعف الاختبارات. إذا SUCCESS بالكامل، أغلق هذا البند ووثّق exact evidence ثم نفّذ فقط final exact-SHA W3 Green gate قبل أي انتقال إلى W4.
