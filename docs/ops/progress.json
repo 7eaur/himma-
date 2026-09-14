@@ -10,11 +10,12 @@
     "W3": {"status": "GREEN", "sha": "62e34b151e46b406cf3936201f80010abbe9d8d1", "run_number": 848, "run_id": 34729450663},
     "W4": {
       "status": "IN_PROGRESS_UNBLOCKED",
-      "last_closed_code_sha": "8736372f855e55646ce50712615b6274af94a9a8",
-      "last_closed_batch": "AUD-BADGE-003",
-      "last_green_run_number": 854,
-      "last_green_run_id": 34803602294,
-      "open_implementation_items": ["AUD-BADGE-001", "AUD-BADGE-002", "AUD-MEDIA-002"],
+      "last_closed_code_sha": "1f343eb213ccc29c5802d56301319d5d9a5f2132",
+      "last_closed_batch": "AUD-BADGE-001",
+      "last_green_run_number": 855,
+      "last_green_run_id": 34805797495,
+      "closed_implementation_items": ["AUD-BADGE-008", "AUD-BADGE-004", "AUD-BADGE-005", "AUD-BADGE-007", "AUD-BADGE-003", "AUD-BADGE-001"],
+      "open_implementation_items": ["AUD-BADGE-002", "AUD-MEDIA-002"],
       "open_external_blockers": []
     },
     "W5": {"status": "PENDING_NOT_STARTED"},
@@ -26,14 +27,14 @@
     "asr": {"status": "EXTERNAL_APPROVAL_BLOCKED", "gap_id": "AUD-A03-008"}
   },
   "latest_closed_batch": {
-    "gap_id": "AUD-BADGE-003",
-    "code_sha": "8736372f855e55646ce50712615b6274af94a9a8",
-    "quality_gate_run_number": 854,
-    "quality_gate_run_id": 34803602294,
+    "gap_id": "AUD-BADGE-001",
+    "code_sha": "1f343eb213ccc29c5802d56301319d5d9a5f2132",
+    "quality_gate_run_number": 855,
+    "quality_gate_run_id": 34805797495,
     "status": "GREEN"
   },
-  "latest_checkpoint": "docs/maintenance/HIMMA_A10_W4_AUTOMATION_CHECKPOINT_2026-09-14_BADGE_003_GREEN_AR.md",
+  "latest_checkpoint": "docs/maintenance/HIMMA_A10_W4_BADGE_001_GREEN_2026-09-14_AR.md",
   "continuity_handoff": "docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-14_A10_W4_BADGE_003_GREEN_AR.md",
-  "next_action": "Execute AUD-BADGE-001 first. After exact-SHA GREEN gate and documentation, execute AUD-BADGE-002, then AUD-MEDIA-002. Do not start W5 until W4 is GREEN.",
+  "next_action": "Execute AUD-BADGE-002 next. After its exact-SHA GREEN gate and documentation, execute AUD-MEDIA-002. Do not start W5 until W4 is GREEN.",
   "hard_stop": "Do not execute A11, deploy, Railway, Production, or final merge. Stop when W6 becomes GREEN."
 }
