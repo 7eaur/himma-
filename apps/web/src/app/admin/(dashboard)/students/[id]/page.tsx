@@ -22,6 +22,7 @@ import {
   Star,
   User,
 } from "lucide-react";
+import CanonicalRewardBadge from "@/components/rewards/CanonicalRewardBadge";
 import styles from "./student-detail.module.css";
 
 interface Student {
@@ -58,8 +59,13 @@ interface AdaptationDecision {
 interface RewardEvent {
   id: number;
   type: "stars" | "badge";
+  key?: string | null;
   stars: number | null;
   label: string;
+  catalog_version?: string | null;
+  asset_id?: string | null;
+  asset_slug?: string | null;
+  asset_path?: string | null;
   details: Record<string, unknown>;
   created_at: string;
 }
@@ -198,6 +204,7 @@ export default function StudentDetailPage() {
   const latestDecision = useMemo(() => history.at(-1) ?? null, [history]);
   const totalStars = rewards.reduce((sum, reward) => sum + (reward.stars ?? 0), 0);
   const badges = rewards.filter((reward) => reward.type === "badge");
+  const visualBadges = badges.filter((reward): reward is RewardEvent & { asset_path: string } => Boolean(reward.asset_path));
 
   const refreshJourney = async () => {
     if (!student) return;
@@ -323,7 +330,9 @@ export default function StudentDetailPage() {
           <div className={styles.reward}><span className={styles.muted}>تقدم المستوى</span><strong>{journeyState === "loaded" ? `${progressPercent}%` : "—"}</strong></div>
         </div>
         {rewardsState === "error" && <div style={{ marginTop: 12 }}>{sourceError("المكافآت", () => void refreshAdaptiveEvidence())}</div>}
-        {rewardsState === "loaded" && badges.length > 0 && <div className={styles.rewardRow} style={{ marginTop: 12 }}>{badges.map((badge) => <span key={badge.id} className={`${styles.badge} ${styles.good}`}>{badge.label}</span>)}</div>}
+        {rewardsState === "loaded" && badges.length === 0 && <p className={styles.muted} style={{ marginTop: 12 }}>لا توجد شارات مكتسبة لهذا الطالب بعد.</p>}
+        {rewardsState === "loaded" && visualBadges.length > 0 && <div className={styles.badgeGallery} style={{ marginTop: 12 }}>{visualBadges.map((badge) => <CanonicalRewardBadge key={badge.id} label={badge.label} assetPath={badge.asset_path} rewardKey={badge.key} variant="admin" />)}</div>}
+        {rewardsState === "loaded" && badges.length > visualBadges.length && <div className={styles.notice} style={{ marginTop: 12 }}>توجد شارة تاريخية بلا أصل مرئي معروف في النسخة الحالية من Reward Catalog؛ لم يتم اختلاق صورة بديلة لها.</div>}
       </section>
     );
 
