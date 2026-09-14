@@ -17,16 +17,20 @@ from reward_catalog import (
 
 ROOT = Path(__file__).resolve().parents[2]
 ASSET_MAP = ROOT / "assets" / "characters" / "developer" / "asset-map.json"
+WEB_PUBLIC = ROOT / "apps" / "web" / "public"
 
 
-def test_reward_catalog_matches_approved_badge_asset_map():
+def _approved_rewards() -> dict[str, dict]:
     payload = json.loads(ASSET_MAP.read_text(encoding="utf-8"))
-    approved = {
+    return {
         row["id"]: row
         for row in payload["assets"]
         if row.get("kind") == "reward"
     }
 
+
+def test_reward_catalog_matches_approved_badge_asset_map():
+    approved = _approved_rewards()
     expected = {
         "BDG-01": ("star-one", "نجمة واحدة"),
         "BDG-02": ("stars-two", "نجمتان"),
@@ -39,6 +43,23 @@ def test_reward_catalog_matches_approved_badge_asset_map():
     for asset_id, (slug, title) in expected.items():
         assert approved[asset_id]["slug"] == slug
         assert approved[asset_id]["title_ar"] == title
+
+
+def test_approved_badge_svg_paths_are_runtime_public_and_semantically_match():
+    approved = _approved_rewards()
+    catalog = {row["asset_id"]: row for row in catalog_payload()["entries"]}
+
+    assert set(catalog) == set(approved)
+    for asset_id, metadata in approved.items():
+        expected_url = f"/{metadata['recommended_web']}"
+        entry = catalog[asset_id]
+        assert entry["asset_path"] == expected_url
+
+        runtime_file = WEB_PUBLIC / metadata["recommended_web"]
+        assert runtime_file.is_file(), f"missing runtime badge asset: {runtime_file}"
+        svg = runtime_file.read_text(encoding="utf-8")
+        assert "<svg" in svg
+        assert f"<title id=\"title\">{metadata['title_ar']}</title>" in svg
 
 
 def test_catalog_has_stable_star_and_level_badge_identity():
@@ -60,6 +81,7 @@ def test_catalog_has_stable_star_and_level_badge_identity():
         "label": "نجم الفهم",
         "asset_id": "BDG-06",
         "asset_slug": "comprehension-star",
+        "asset_path": "/assets/rewards/svg/hem-bdg-06-comprehension-star.svg",
     }
 
 
@@ -71,6 +93,7 @@ def test_reward_catalog_endpoint_requires_auth_and_returns_same_version(student_
     assert {row["asset_id"] for row in payload["entries"]} == {
         "BDG-01", "BDG-02", "BDG-03", "BDG-04", "BDG-05", "BDG-06"
     }
+    assert all(row["asset_path"].startswith("/assets/rewards/svg/") for row in payload["entries"])
 
 
 def test_historical_l3_label_is_preserved_but_api_uses_canonical_catalog_label():
@@ -92,6 +115,7 @@ def test_historical_l3_label_is_preserved_but_api_uses_canonical_catalog_label()
     assert payload["catalog_version"] == REWARD_CATALOG_VERSION
     assert payload["asset_id"] == "BDG-06"
     assert payload["asset_slug"] == "comprehension-star"
+    assert payload["asset_path"] == "/assets/rewards/svg/hem-bdg-06-comprehension-star.svg"
 
 
 def test_runtime_reward_serializer_uses_canonical_catalog_for_historical_rows():
@@ -113,6 +137,7 @@ def test_runtime_reward_serializer_uses_canonical_catalog_for_historical_rows():
     assert payload["catalog_version"] == REWARD_CATALOG_VERSION
     assert payload["asset_id"] == "BDG-06"
     assert payload["asset_slug"] == "comprehension-star"
+    assert payload["asset_path"] == "/assets/rewards/svg/hem-bdg-06-comprehension-star.svg"
 
 
 def test_adaptation_has_no_parallel_badge_label_owner():
@@ -138,3 +163,4 @@ def test_unknown_historical_reward_remains_readable_without_fake_asset_identity(
     assert payload["catalog_version"] == REWARD_CATALOG_VERSION
     assert payload["asset_id"] is None
     assert payload["asset_slug"] is None
+    assert payload["asset_path"] is None
