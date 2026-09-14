@@ -42,7 +42,7 @@ beforeEach(() => {
 });
 
 describe("Student page", () => {
-  it("renders the student's first name and pretest before placement", async () => {
+  it("renders the student's first name and explicit empty reward state before placement", async () => {
     global.fetch = jest
       .fn()
       .mockResolvedValueOnce(response(profile))
@@ -54,10 +54,12 @@ describe("Student page", () => {
     expect(screen.getByRole("button", { name: "ابدأ الاختبار" })).toBeEnabled();
     expect(screen.getByRole("heading", { name: "الاختبار القبلي" })).toBeInTheDocument();
     expect(screen.getByLabelText("لديك 0 نجمة")).toBeInTheDocument();
+    expect(screen.getByLabelText("لا توجد شارات مكتسبة")).toBeInTheDocument();
+    expect(screen.getByText("لم تحصل على شارة بعد")).toBeInTheDocument();
     expect(screen.queryByTestId("level-journey")).not.toBeInTheDocument();
   });
 
-  it("renders reward API failure as unavailable instead of a false zero", async () => {
+  it("renders reward API failure as unavailable instead of a false zero or empty badge state", async () => {
     global.fetch = jest
       .fn()
       .mockResolvedValueOnce(response(profile))
@@ -68,25 +70,49 @@ describe("Student page", () => {
 
     expect(await screen.findByRole("heading", { name: "مرحبًا يا طالب" })).toBeInTheDocument();
     expect(screen.getByRole("status", { name: "تعذر تحميل النجوم" })).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "تعذر تحميل الشارات" })).toBeInTheDocument();
     expect(screen.getByText("تعذر تحميل نجومك")).toBeInTheDocument();
+    expect(screen.getByText("الشارات غير متاحة الآن")).toBeInTheDocument();
     expect(screen.queryByLabelText("لديك 0 نجمة")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("لا توجد شارات مكتسبة")).not.toBeInTheDocument();
   });
 
-  it("renders the canonical reward total when rewards load successfully", async () => {
+  it("renders canonical star total and badge asset from the reward catalog API contract", async () => {
     global.fetch = jest
       .fn()
       .mockResolvedValueOnce(response(profile))
       .mockResolvedValueOnce(response(journey))
       .mockResolvedValueOnce(response([
-        { id: 1, type: "activity_star", stars: 2, label: "نجمتان" },
-        { id: 2, type: "level_badge", stars: 3, label: "شارة المستوى" },
+        {
+          id: 1,
+          type: "stars",
+          key: "activity:11:stars",
+          stars: 2,
+          label: "نجمتان",
+          catalog_version: "HIMMA_REWARD_CATALOG_1.0.0",
+          asset_id: "BDG-02",
+          asset_path: "/assets/rewards/svg/hem-bdg-02-stars-two.svg",
+        },
+        {
+          id: 2,
+          type: "badge",
+          key: "level:1:core-complete",
+          stars: null,
+          label: "مستكشف الحروف",
+          catalog_version: "HIMMA_REWARD_CATALOG_1.0.0",
+          asset_id: "BDG-04",
+          asset_path: "/assets/rewards/svg/hem-bdg-04-letter-explorer.svg",
+        },
       ]));
 
     render(<StudentPage />);
 
     expect(await screen.findByRole("heading", { name: "مرحبًا يا طالب" })).toBeInTheDocument();
-    expect(screen.getByLabelText("لديك 5 نجمة")).toBeInTheDocument();
-    expect(screen.getByText("5 ⭐")).toBeInTheDocument();
+    expect(screen.getByLabelText("لديك 2 نجمة")).toBeInTheDocument();
+    expect(screen.getByText("2 ⭐")).toBeInTheDocument();
+    expect(screen.getByLabelText("لديك 1 شارة")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "شارة مستكشف الحروف" })).toBeInTheDocument();
+    expect(screen.getByText("مستكشف الحروف")).toBeInTheDocument();
     expect(screen.queryByText("تعذر تحميل نجومك")).not.toBeInTheDocument();
   });
 
