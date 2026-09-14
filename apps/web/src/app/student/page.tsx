@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { BookOpenCheck, Check, Headphones, LogOut, Map, Star } from "lucide-react";
+import { Award, BookOpenCheck, Check, Headphones, LogOut, Map, Star } from "lucide-react";
 import styles from "./home.module.css";
 
 interface StudentMe {
@@ -33,8 +33,13 @@ interface LearningStatus {
 interface RewardEvent {
   id: number;
   type: string;
-  stars: number;
+  key?: string | null;
+  stars: number | null;
   label: string;
+  catalog_version?: string | null;
+  asset_id?: string | null;
+  asset_slug?: string | null;
+  asset_path?: string | null;
 }
 
 interface JourneyLevel {
@@ -177,7 +182,8 @@ export default function StudentHomePage() {
     }
   };
 
-  const totalStars = useMemo(() => rewards?.reduce((sum, reward) => sum + (reward.stars || 0), 0) ?? 0, [rewards]);
+  const totalStars = useMemo(() => rewards?.reduce((sum, reward) => sum + (Number.isFinite(Number(reward.stars)) ? Number(reward.stars) : 0), 0) ?? 0, [rewards]);
+  const earnedBadges = useMemo(() => rewards?.filter((reward) => reward.type === "badge" && Boolean(reward.asset_path)) ?? [], [rewards]);
 
   if (loading) {
     return (
@@ -273,6 +279,39 @@ export default function StudentHomePage() {
             <div className={styles.stars} role="status" aria-label="تعذر تحميل النجوم"><strong>— ⭐</strong><span>تعذر تحميل نجومك</span></div>
           ) : (
             <div className={styles.stars} aria-label={`لديك ${totalStars} نجمة`}><strong>{totalStars} ⭐</strong><span>نجومك حتى الآن</span></div>
+          )}
+        </section>
+
+        <section className={styles.rewardsPanel} aria-labelledby="student-badges-title" data-testid="student-badges">
+          <div className={styles.rewardsHeader}>
+            <div className={styles.rewardsTitleIcon}><Award size={20} aria-hidden="true" /></div>
+            <div>
+              <h2 id="student-badges-title">شاراتك</h2>
+              <p>تظهر هنا الشارات التي كسبتها بعد إكمال مستوياتك وفق تقدمك الحقيقي.</p>
+            </div>
+          </div>
+          {rewards === null ? (
+            <div className={styles.rewardState} role="status" aria-label="تعذر تحميل الشارات">
+              <strong>الشارات غير متاحة الآن</strong>
+              <span>تقدمك محفوظ. حاول تحديث الصفحة لاحقًا لعرض شاراتك.</span>
+            </div>
+          ) : earnedBadges.length === 0 ? (
+            <div className={styles.rewardState} aria-label="لا توجد شارات مكتسبة">
+              <strong>لم تحصل على شارة بعد</strong>
+              <span>أكمل مستوى تعليميًا وستظهر شارتك هنا تلقائيًا.</span>
+            </div>
+          ) : (
+            <div className={styles.badgeGrid} aria-label={`لديك ${earnedBadges.length} شارة`}>
+              {earnedBadges.map((badge) => (
+                <article className={styles.badgeCard} key={badge.id} data-reward-key={badge.key || undefined}>
+                  <div className={styles.badgeVisual}>
+                    <Image src={badge.asset_path!} alt={`شارة ${badge.label}`} width={118} height={118} />
+                  </div>
+                  <strong>{badge.label}</strong>
+                  <span>شارة مكتسبة</span>
+                </article>
+              ))}
+            </div>
           )}
         </section>
 
