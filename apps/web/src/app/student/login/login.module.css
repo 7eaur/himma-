@@ -1,0 +1,16 @@
+.mutedText {
+  color: #5f7487;
+}
+
+.label {
+  color: #20364d;
+}
+
+.codeInput::placeholder {
+  color: #5f7487;
+  opacity: 1;
+}
+
+.help {
+  color: #5f7487;
+}
