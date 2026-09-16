@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { KeyRound } from "lucide-react";
+import styles from "./login.module.css";
 
 export default function StudentLogin() {
   const router = useRouter();
@@ -77,7 +78,7 @@ export default function StudentLogin() {
         </div>
 
         <h1 className="student-login-title">مرحبًا يا بطل!</h1>
-        <p className="student-login-sub">أدخل رمزك الرقمي المكوّن من 6 أرقام لنبدأ رحلتك.</p>
+        <p className={`student-login-sub ${styles.mutedText}`}>أدخل رمزك الرقمي المكوّن من 6 أرقام لنبدأ رحلتك.</p>
 
         {error && (
           <div data-testid="error-message" className="alert-error text-center mb-6 font-bold" role="alert">
@@ -86,7 +87,7 @@ export default function StudentLogin() {
         )}
 
         <form onSubmit={handleSubmit}>
-          <label htmlFor="student-access-code" className="block text-sm text-navy font-semibold mb-2 text-right">
+          <label htmlFor="student-access-code" className={`block text-sm font-semibold mb-2 text-right ${styles.label}`}>
             رمز الدخول
           </label>
           <div className="relative mb-4">
@@ -95,7 +96,7 @@ export default function StudentLogin() {
               type="text"
               inputMode="numeric"
               autoComplete="one-time-code"
-              className="student-login-code-input"
+              className={`student-login-code-input ${styles.codeInput}`}
               data-testid="input-access-code"
               value={accessCode}
               onChange={(event) => setAccessCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
@@ -106,9 +107,9 @@ export default function StudentLogin() {
               dir="ltr"
               aria-describedby="access-code-help"
             />
-            <KeyRound size={19} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted pointer-events-none" aria-hidden="true" />
+            <KeyRound size={19} className={`absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none ${styles.mutedText}`} aria-hidden="true" />
           </div>
-          <p id="access-code-help" className="text-xs text-muted mb-5 text-right">ستجد الرمز عند المشرف المسؤول عن حسابك.</p>
+          <p id="access-code-help" className={`text-xs mb-5 text-right ${styles.help}`}>ستجد الرمز عند المشرف المسؤول عن حسابك.</p>
 
           <button
             type="submit"
