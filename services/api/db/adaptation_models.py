@@ -39,13 +39,16 @@ class AdaptationDecision(Base):
 
 
 class RewardEvent(Base):
-    """Idempotent reward event tied to a real completed activity or milestone."""
+    """Idempotent reward history independent from mutable attempt rows."""
 
     __tablename__ = "reward_events"
 
     id = Column(Integer, primary_key=True, index=True)
     student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False, index=True)
-    attempt_id = Column(Integer, ForeignKey("attempts.id", ondelete="CASCADE"), nullable=True)
+    # Attempts are operational evidence that may be cleaned/reset. The reward
+    # event itself is durable history; deleting an attempt only removes this
+    # optional pointer and must never cascade-delete the earned reward.
+    attempt_id = Column(Integer, ForeignKey("attempts.id", ondelete="SET NULL"), nullable=True)
     reward_type = Column(String(20), nullable=False)  # stars | badge
     reward_key = Column(String(120), nullable=False)
     stars = Column(Integer, nullable=True)
