@@ -1,7 +1,8 @@
-"""V4 adaptive Core-selection regressions."""
+"""Canonical adaptive Core-selection regressions."""
 
 import seed
-from activities_v4 import _next_unused_core_item, _preferred_core_skill_id
+from activities_v4 import _preferred_core_skill_id
+from activity_runtime import _next_unattempted_core_item
 from adaptation import _load_policy
 from db.database import SessionLocal
 from db.models import AssessmentSession, ContentItem, Skill, Student
@@ -36,7 +37,7 @@ def test_first_core_targets_first_configured_critical_skill_when_candidate_exist
             session_id=session.id,
             level_id=1,
         ) == expected_skill.id
-        item = _next_unused_core_item(
+        item = _next_unattempted_core_item(
             db,
             student_id=student.id,
             session_id=session.id,
@@ -73,7 +74,7 @@ def test_selection_fails_safe_to_deterministic_approved_order_when_policy_has_no
             session_id=session.id,
             level_id=99,
         ) is None
-        assert _next_unused_core_item(
+        assert _next_unattempted_core_item(
             db,
             student_id=student.id,
             session_id=session.id,
