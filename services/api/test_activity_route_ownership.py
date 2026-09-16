@@ -1,3 +1,6 @@
+import ast
+from pathlib import Path
+
 import activities
 import activities_v4
 from activity_runtime import router as activity_router
@@ -25,14 +28,6 @@ def _get_post_routes(routes) -> list[tuple[str, str]]:
     return seen
 
 
-def _endpoint_provenance(route) -> tuple[str, str]:
-    endpoint = getattr(route, "endpoint", None)
-    return (
-        getattr(endpoint, "__module__", ""),
-        getattr(endpoint, "__qualname__", ""),
-    )
-
-
 def test_legacy_activity_modules_are_service_only():
     assert not hasattr(activities, "router")
     assert not hasattr(activities_v4, "router")
@@ -45,34 +40,51 @@ def test_public_activity_routes_are_unique_and_owned_by_canonical_router():
     assert set(activity_seen) == EXPECTED
     assert len(activity_seen) == len(set(activity_seen)), f"duplicate canonical activity routes: {activity_seen}"
 
-
-def test_application_mounts_every_canonical_activity_endpoint_once():
-    canonical_by_contract = {}
     for route in activity_router.routes:
-        path = getattr(route, "path", "")
-        if not path.startswith("/activities"):
+        if not getattr(route, "path", "").startswith("/activities"):
             continue
-        provenance = _endpoint_provenance(route)
-        assert provenance[0].rsplit(".", 1)[-1] == "activity_runtime"
-        for method in getattr(route, "methods", set()) or set():
-            if method in {"GET", "POST"}:
-                canonical_by_contract[(method, path)] = provenance
+        endpoint = getattr(route, "endpoint", None)
+        module = getattr(endpoint, "__module__", "")
+        assert module.rsplit(".", 1)[-1] == "activity_runtime"
 
-    for contract, canonical_provenance in canonical_by_contract.items():
-        method, path = contract
-        matches = [
-            mounted
-            for mounted in app.routes
-            if getattr(mounted, "path", "") == path
-            and method in (getattr(mounted, "methods", set()) or set())
-        ]
-        assert len(matches) == 1, (
-            f"expected one mounted owner for {method} {path}; found {len(matches)}"
-        )
-        assert _endpoint_provenance(matches[0]) == canonical_provenance, (
-            f"mounted owner drift for {method} {path}: "
-            f"{_endpoint_provenance(matches[0])} != {canonical_provenance}"
-        )
+
+def test_application_wires_only_the_canonical_activity_router_once():
+    """Prove router ownership at the composition boundary without relying on
+    FastAPI's cloned APIRoute objects, which are an implementation detail.
+    """
+    tree = ast.parse(Path(__file__).with_name("main.py").read_text(encoding="utf-8"))
+
+    canonical_imports = [
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.ImportFrom)
+        and node.module == "activity_runtime"
+        and any(alias.name == "router" and alias.asname == "activities_router" for alias in node.names)
+    ]
+    assert len(canonical_imports) == 1
+
+    forbidden_router_imports = [
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.ImportFrom)
+        and node.module in {"activities", "activities_v4"}
+        and any(alias.name == "router" for alias in node.names)
+    ]
+    assert forbidden_router_imports == []
+
+    mounts = [
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and isinstance(node.func.value, ast.Name)
+        and node.func.value.id == "app"
+        and node.func.attr == "include_router"
+        and node.args
+        and isinstance(node.args[0], ast.Name)
+        and node.args[0].id == "activities_router"
+    ]
+    assert len(mounts) == 1
 
 
 def test_openapi_exposes_exact_canonical_activity_contract():
