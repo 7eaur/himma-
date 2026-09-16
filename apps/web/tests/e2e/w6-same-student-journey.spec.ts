@@ -68,9 +68,11 @@ async function answerVisibleQuestion(page: Page, item: RichItem) {
     const confirm = page.getByRole("button", { name: "تأكيد والمتابعة" });
     const images = page.getByTestId("sequence-image-options");
     if (await images.count()) {
-      const buttons = images.getByRole("button");
-      for (let index = 0; index < await buttons.count() && !(await confirm.isEnabled()); index += 1) {
-        await buttons.nth(index).click();
+      while (!(await confirm.isEnabled())) {
+        const remaining = images.getByRole("button");
+        const count = await remaining.count();
+        if (!count) break;
+        await remaining.first().click();
       }
     } else {
       for (const option of [...step.options].sort((a, b) => a.order_index - b.order_index)) {
