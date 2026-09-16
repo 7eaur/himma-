@@ -1,8 +1,9 @@
-"""Project every declared 2026-09-08 approval into the final release.
+"""Project approved content contracts into the current final release.
 
-This is intentionally table-driven from the pure approval contract. It protects
-against applying only a visible subset of the approved wording/options/media
-changes while leaving another declared item on a historical runtime value.
+Most expectations are table-driven from the immutable 2026-09-08 approval
+contract. Media has one newer, owner-approved W4 authority (2026-09-14), so the
+final-release projection composes that narrow authority over the historical
+STEP_MEDIA tuples instead of forcing the product back to a superseded role.
 """
 from __future__ import annotations
 
@@ -19,11 +20,44 @@ from content_approval_contract_2026_09_08 import (
     TIMED_WORD_SELECTIONS,
 )
 from content_option_lifecycle import visible_key
+from w4_media_semantics import LEXICAL_STIMULUS_CONTRACT
 
 
 def _by_id():
     release = build_canonical_release()
     return {item["canonical_id"]: item for item in release["items"]}
+
+
+def _current_expected_images(canonical: str, round_number: int, specs):
+    """Compose current image expectations without rewriting Sep-08 history.
+
+    STEP_MEDIA remains the historical Sep-08 source. Only locations covered by
+    the later W4 owner/client decision are projected to their current semantic
+    role/text. Asset identity must still match the historical source exactly;
+    otherwise the test fails closed instead of blessing an unrelated image.
+    """
+    expected_images = [tuple(spec) for spec in specs if spec[1] == "image"]
+    current = LEXICAL_STIMULUS_CONTRACT.get((canonical, int(round_number)))
+    if current is None:
+        return expected_images
+
+    matching_indexes = [
+        index
+        for index, spec in enumerate(expected_images)
+        if spec[0] == current["asset_id"]
+    ]
+    assert len(expected_images) == 1 and len(matching_indexes) == 1, (
+        canonical,
+        round_number,
+        "current W4 lexical authority no longer matches Sep-08 source identity",
+    )
+    expected_images[matching_indexes[0]] = (
+        current["asset_id"],
+        "image",
+        "lexical_stimulus",
+        current["semantic_text"],
+    )
+    return expected_images
 
 
 def test_every_declared_option_contract_is_the_current_release_option_set():
@@ -64,7 +98,7 @@ def test_every_declared_image_relationship_is_semantic_and_exact():
         steps = {int(step["order_index"]): step for step in items[canonical]["rounds"]}
         for round_number, specs in by_round.items():
             step = steps[int(round_number)]
-            expected_images = [tuple(spec) for spec in specs if spec[1] == "image"]
+            expected_images = _current_expected_images(canonical, int(round_number), specs)
             actual_images = [
                 (
                     asset["asset_id"],
