@@ -1,13 +1,14 @@
 """Preserve reward history when operational attempts are deleted.
 
-Revision ID: 0014_reward_event_attempt_history
+Revision ID: 0014_reward_attempt_history
 Revises: 0013_speech_job_leases
 """
 
 from alembic import op
 
 
-revision = "0014_reward_event_attempt_history"
+# Alembic's version_num column is varchar(32) in the current schema.
+revision = "0014_reward_attempt_history"
 down_revision = "0013_speech_job_leases"
 branch_labels = None
 depends_on = None
