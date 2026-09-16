@@ -61,7 +61,7 @@ export default function StudentLogin() {
       <div className="student-login-amb-1" />
       <div className="student-login-amb-2" />
 
-      <div className="student-login-card">
+      <div className={`student-login-card ${styles.card}`}>
         <div className="flex justify-center student-login-logo">
           <Image src="/brand/logo-gradient.svg" alt="منصة هِمّة" width={180} height={60} priority />
         </div>
