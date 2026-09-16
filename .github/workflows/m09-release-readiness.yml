@@ -84,6 +84,7 @@ jobs:
       - name: Run backend product regression
         working-directory: services/api
         env:
+          ENV: development
           HIMMA_TEST_DATABASE_URL: postgresql://himma_test:himma_test_pass@localhost:5432/himma_test_db
         run: pytest -v --tb=short
 
