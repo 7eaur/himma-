@@ -1,79 +1,142 @@
 # ابدأ من هنا — مستودع هِمّة
 
-هذه نقطة الدخول التنفيذية لأي محادثة أو وكيل جديد يعمل على منصة هِمّة.
+هذه نقطة الدخول التنفيذية لأي محادثة أو وكيل جديد يعمل على منصة **هِمّة**.
 
-> لا تعتمد على SHA أو حالة محفوظة قبل Fetch للمستودع الحي. اقرأ الحالة الحالية ثم استخدم الوثائق التاريخية لفهم السبب، لا لاستبدال الحقيقة الحالية.
+> لا تعتمد على ذاكرة المحادثات أو SHA قديم. ابدأ دائمًا من المستودع الحي ثم استخدم التوثيق الحالي لتحديد نقطة الاستئناف.
 
 ## 1) المستودع والفروع
 
 - Repository: `7eaur/himma-`
 - Default branch: `stage/02-content`
-- Current execution branch: `audit/comprehensive-repository-review-2026-09-10`
-- Current W4 CI helper: `stage/a10-w4-ci`
+- Execution branch: `audit/comprehensive-repository-review-2026-09-10`
+- Current execution phase: `A10`
+- Current wave: `W6 / Final Exact-SHA Acceptance`
+- Current state: `W1–W5 GREEN; W6 Quality Gate GREEN but M09 Release Readiness RED; NO A11 / NO MERGE / NO DEPLOY`
 
-فرع الـCI helper هو pointer لتشغيل GitHub Actions فقط؛ لا يُدمج. لا تعدّل base branches مباشرة، ولا force push/reset destructive.
+لا تعدّل الفروع الأساسية مباشرة، ولا تستخدم force-push/reset destructive، ولا تعتبر helper branches فروع تسليم نهائية.
 
-## 2) اقرأ هذه المراجع أولًا
+## 2) ترتيب القراءة الإلزامي
 
-بالترتيب:
+ابدأ بالترتيب التالي:
 
 1. `NEXT_CONVERSATION_PROMPT.md`
 2. `docs/ops/STATUS.md`
 3. `docs/ops/progress.json`
-4. `docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-16_A10_W4_MEDIA_002_GATE_FAIL_AR.md`
-5. `docs/maintenance/HIMMA_A10_W4_MEDIA_002_GATE_FAIL_2026-09-16_AR.md`
+4. `docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-17_A10_W6_FINAL_READINESS_BLOCKER_AR.md`
+5. `docs/maintenance/HIMMA_MASTER_GAP_REGISTER_STATUS_UPDATE_2026-09-16_AR.md`
 6. `docs/maintenance/HIMMA_MASTER_GAP_REGISTER_2026-09-10_AR.md`
-7. `docs/maintenance/HIMMA_MASTER_GAP_REGISTER_STATUS_UPDATE_2026-09-16_AR.md`
-8. `docs/ops/HIMMA_W4_OWNER_CLIENT_APPROVAL_2026-09-14.md`
-9. `HIMMA_CORRECTIVE_EXECUTION_ROADMAP_V2_AR.md`
-10. `docs/specs/SOURCE_OF_TRUTH.md`
-11. `AGENTS.md` ثم `.agents/rules/` المشار إليها فيه.
+7. `docs/maintenance/HIMMA_MASTER_GAP_REGISTER_EXECUTION_ADDENDUM_2026-09-12_AR.md`
+8. `HIMMA_CORRECTIVE_EXECUTION_ROADMAP_V2_AR.md`
+9. `docs/specs/SOURCE_OF_TRUTH.md`
+10. `AGENTS.md` ثم `.agents/rules/00-himma-core.md`, `.agents/rules/10-delivery-protocol.md`, `.agents/rules/20-security-quality.md`.
 
-الـMaster Continuity Handoff يحتوي خريطة قراءة تفصيلية لملفات A00–A09 وW1/W2/W3/W4 القديمة عندما تحتاج فهم تاريخ قرار أو root cause.
+ملفات A00–A09 والـhandoffs القديمة تبقى تاريخًا ومرجع root-cause فقط؛ لا تُستخدم كنقطة استئناف إذا تعارضت مع الحالة الحالية.
 
 ## 3) Source of Truth
 
-عند التعارض، استخدم:
+عند التعارض استخدم هذا الترتيب:
 
-`live code → PostgreSQL schema/Alembic → executable tests/exact-SHA CI → current canonical contracts/approved decisions → STATUS/progress → audit/history docs`
+`live code → PostgreSQL schema/Alembic migrations → executable tests + exact-SHA CI → canonical contracts/approved decisions → current STATUS/progress/handoff → historical audit docs`
 
-المحادثات والـhandoffs القديمة ليست بديلًا عن الحقيقة الحية.
+لا تعلن PASS/CLOSED اعتمادًا على وثيقة فقط.
 
-## 4) الحالة الحالية المختصرة
+## 4) الحالة التنفيذية الحالية
 
-- A00–A09: audit closed؛ لا تعاد.
+- A00–A09: CLOSED AUDIT؛ لا تعاد.
 - W1: GREEN.
 - W2: GREEN.
 - W3: GREEN.
-- W4: IN PROGRESS؛ كل badge implementation items أُغلقت حتى `AUD-BADGE-002`، و`AUD-MEDIA-002` منفذ لكن Quality Gate #857 فشل في stale Sep-08 projection expectation واحدة؛ لذلك W4 ليست Green بعد.
-- W5: لم يبدأ.
-- W6: لم يبدأ.
+- W4: GREEN.
+- W5: GREEN.
+- W6: **IN PROGRESS — final Release Readiness blocker only**.
 
-التفاصيل والـSHA/run IDs في `docs/ops/STATUS.md` و`docs/ops/progress.json`.
+Exact evidence للـwaves المغلقة موجود في `docs/ops/STATUS.md` و`docs/ops/progress.json`.
 
-## 5) المنتج والمسار الأكاديمي
+آخر functional candidate مثبت قبل التوثيق الحالي:
 
-المسار العام:
+`565ba4092c4312c55e7e57a8c45e32f8997afd8d`
 
-`دخول الطالب → Pretest → placement → level activities → adaptation/reinforcement → canonical completion/promotion → Posttest`
+على نفس SHA:
 
-العقود الأساسية:
+- Quality Gate #885 / Run `35136617396` = **SUCCESS**.
+- M04 Responsive #347 / Run `35136619472` = **SUCCESS**.
+- M09 Release Readiness #207 / Run `35136619488` = **FAILURE**.
 
-- Placement: `<50=L1`, `50..<80=L2`, `80..100=L3`.
+Quality Gate #885 يثبت Security + Frontend + Backend + Integration/Playwright على نفس SHA. لذلك لا تعِد إصلاحات W6 السابقة المتعلقة بالـoverflow أو student-login contrast أو sequence interaction إلا إذا ظهر evidence جديد.
+
+## 5) نقطة التوقف الدقيقة
+
+الـblocker الحالي الوحيد داخل W6 هو `AUD-A08-003` / M09 Release Readiness.
+
+في M09 #207، step:
+
+`Run backend product regression`
+
+انتهى بـ:
+
+`3 failed, 891 passed, 2 skipped, 5 warnings`
+
+الاختبارات الفاشلة الوحيدة:
+
+1. `tests/test_account_lockouts.py::test_admin_lockout_threshold_expiry_and_recovery`
+2. `tests/test_account_lockouts.py::test_student_lockout_clears_after_successful_authentication`
+3. `tests/test_account_lockouts.py::test_admin_and_student_lockout_namespaces_are_isolated`
+
+كلها تفشل عند `services/api/services/account_lockouts.py:40` أثناء `db.flush()` بسبب PostgreSQL:
+
+`UndefinedTable: relation "account_lockout_states" does not exist`
+
+الـworkflow الحالي يشغّل full backend regression قبل schema migration/bootstrap المطلوب. هذه هي root-cause hypothesis الحالية التي يجب التحقق منها مقابل migration owner والـQuality Gate setup قبل أي تعديل.
+
+## 6) أول ملفات يجب فحصها عند الاستئناف
+
+- `.github/workflows/m09-release-readiness.yml`
+- `.github/workflows/ci.yml`
+- `services/api/tests/test_account_lockouts.py`
+- `services/api/services/account_lockouts.py`
+- model + Alembic migration التي تملك `account_lockout_states`
+- shared backend test/schema bootstrap المستخدم في Quality Gate
+- `apps/web/tests/TEST_OWNERSHIP.md`
+
+الهدف هو مقارنة setup الناجح في Quality Gate مع M09 وإصلاح schema bootstrap/order من الجذر، لا اختراع مسار ثالث.
+
+## 7) ما تم بالفعل في W6 ولا يعاد
+
+W6 الحالي يحتوي ويختبر:
+
+- security headers contract + local live-header verification؛ deployed verification لاحق/A11 فقط.
+- full reward lifecycle E2E: award → canonical asset → Student/Admin → refresh → idempotency.
+- deterministic same-student pretest → canonical learning evidence → supervisor authorization → live posttest.
+- responsive matrices 320/360/390/430/768/Desktop بما فيها Admin Student Detail.
+- Axe + keyboard + RTL + reduced-motion + zoom/contrast/progress semantics.
+- explicit release-test ownership في `apps/web/tests/TEST_OWNERSHIP.md`؛ `browser-flow.spec.ts` legacy/debug فقط.
+- Backend + Integration passed together في Quality Gate #885.
+
+Manual human screen-reader verification لم يُنفذ ولا يجوز الادعاء به.
+
+## 8) المنتج والعقود الأساسية التي يجب الحفاظ عليها
+
+المسار الأكاديمي العام:
+
+`Student login → Pretest → placement → level activities → adaptation/reinforcement → canonical completion/promotion → Posttest`
+
+القواعد الحالية:
+
+- Placement: `<50 → L1`, `50..<80 → L2`, `80..100 → L3`.
 - Activity: `>=80 success`, `70..<80 guided retry`, `<70 reinforcement`.
 - L1/L2 early promotion بعد >=6 Core عند تحقق mastery/critical evidence الكانونية.
 - L3 requires 10 Core.
-- لا automatic demotion.
+- No automatic demotion.
 - Manual override لا يعني completion أو badge.
-- آخر 3 valid active-session evidence بوزن 50/30/20.
+- latest three valid active-session Core evidences تستخدم weights 50/30/20.
 
-## 6) المحتوى الكانوني
+## 9) المحتوى والصوت والميديا
 
-الإصدار الحالي:
+الإصدار الكانوني للمحتوى:
 
 `HIMMA-CONTENT-APPROVAL-2026-09-08`
 
-الـruntime الحالي يثبت 125 item:
+الـruntime يثبت 125 item:
 
 - 30 Pretest
 - 30 Posttest
@@ -81,77 +144,60 @@
 - 35 Reinforcement
 - 44 skills
 
-المسار المعماري:
+المسار الصحيح:
 
 `approved/versioned contracts → canonical compile/release → deterministic publication → PostgreSQL runtime → structured APIs → deterministic UI`
 
-لا تستبدل هذا المسار بـruntime patch/overlay أو seeder تاريخي جديد.
+لا runtime overlays ولا seeders تاريخية كـauthority جديدة.
 
-## 7) الصوت والمراجعة
-
-الأصول الصوتية الثابتة الحالية موثقة في:
-
-`docs/maintenance/AUDIO_RUNTIME_AND_REVIEW_CONTRACT_2026-09-04_AR.md`
-
-القواعد الحالية:
+الصوت:
 
 - لا Student Audio Skip.
-- latest AudioSubmission هو active، والقديم immutable.
-- rerecord append-only ومؤجل حتى يفتح الطالب المهمة صراحة.
-- uploaded/pending learning audio محايد أكاديميًا؛ same-level learning/support يمكن أن يستمر.
+- latest AudioSubmission هو active والقديم immutable.
+- rerecord append-only.
 - human Supervisor Review هي السلطة الأكاديمية الحالية.
-- SpeechAnalysis/ASR الآلي advisory فقط.
-- Production ASR غير معتمد بعد؛ `AUD-A03-008` external approval boundary مستقل.
+- automated ASR advisory فقط.
+- Production ASR (`AUD-A03-008`) blocked حتى provider/calibration/privacy/cost/governance approval.
 
-## 8) الشارات والمكافآت
+W4 media lexical decisions مغلقة ومعتمدة؛ لا تعِد طلب الموافقة.
 
-Reward Catalog هو owner لهوية الشارات الحالية. الحزمة الرسمية `BDG-01..BDG-06` مدمجة ومعتمدة. Student Home وAdmin Student Detail يعرضان canonical badge assets ولا يُنشأ hardcoded parallel map جديد.
+## 10) قاعدة الإغلاق لـW6
 
-الموافقة الكانونية:
+أي تعديل code/workflow ينتج SHA جديدًا.
 
-`docs/ops/HIMMA_W4_OWNER_CLIENT_APPROVAL_2026-09-14.md`
+لا تُغلق W6 إلا عندما يمر على **نفس exact SHA**:
 
-## 9) الصور الدلالية الحالية
+1. full Quality Gate: Security + Frontend + Backend + Integration/Playwright.
+2. full M09 Release Readiness حتى النهاية، بما فيه:
+   - backend product regression
+   - canonical release/migration/readiness/idempotency
+   - runtime readiness
+   - declared release Playwright suite
+   - PostgreSQL backup/restore
+   - object-storage backup/restore
 
-قرار W4 المعتمد يفرق بين:
+عندها فقط:
 
-- `lexical_stimulus`: تمثيل مباشر لمعنى الكلمة.
-- `story_context`: صورة سياقية/مساندة.
+- أنشئ W6 GREEN closure.
+- حدّث `STATUS.md`, `progress.json`, gap overlay, `NEXT_CONVERSATION_PROMPT.md`, `RESUME_HERE.md`.
+- سجّل exact tested code SHA منفصلًا عن أي docs-only descendant.
+- **STOP.**
 
-الحالتان المقصودتان حاليًا في `L2-CORE-09`:
-
-- R03 `سَمَك` → `VOC-05` → `lexical_stimulus`.
-- R05 `نُور` → `VOC-15` → `lexical_stimulus`.
-
-نقطة التوقف الحالية هي توحيد هذا القرار الأحدث مع اختبار Sep-08 القديم ثم إعادة exact-SHA Quality Gate. راجع `NEXT_CONVERSATION_PROMPT.md`.
-
-## 10) البوابات والاختبارات
-
-لا تعلن PASS/CLOSED من وثيقة فقط:
-
-1. Fetch SHA الحالي.
-2. شغّل/اعثر على `Himma CI — Quality Gate` لنفس SHA.
-3. Backend/Frontend/Security يجب أن تنجح.
-4. عندما تكون Integration مطلوبة يجب أن تنجح بما فيها Playwright.
-5. أصلح root cause؛ لا تغير السلوك الصحيح لإرضاء stale test.
-6. لا skip/xpass/weaken للحراس بدل تصحيح owner-of-truth.
-
-CI الحالي يعمل بدون Docker ويستخدم native PostgreSQL/Redis وpinned MinIO في Integration.
-
-## 11) قيود التنفيذ
+## 11) القيود الثابتة
 
 - No Docker.
-- No Deploy / Railway / Production أثناء A10.
-- No final merge.
 - No fake ASR.
 - No Temporary Audio Skip.
 - No history deletion.
 - No Speech/Pronunciation Lab merge.
-- `deployment/platform-sandbox` reference-only.
+- No final merge.
+- No weakened tests / skip / xpass.
 - No runtime repair overlays.
-- No weakened tests.
-- Stop when W6 becomes GREEN؛ A11 يأتي فقط بتكليف صريح لاحق.
+- No PASS/CLOSED without exact-SHA evidence.
+- No A11 / Deploy / Railway / Production ضمن هذا الجدول.
 
 ## 12) قاعدة الاستئناف
 
-إذا فتحت جلسة جديدة الآن، لا تبدأ بتقرير عام ولا تعيد ما أُنجز. بعد Fetch وقراءة ملفات الاستئناف، نفّذ أول gap غير مغلق من الحالة الحية. عند كتابة هذا الملف هو `AUD-MEDIA-002` بسبب Quality Gate #857 وليس بسبب غياب موافقة أكاديمية.
+لا تبدأ بتقرير عام ولا تعيد A00–A09 أو W1–W5.
+
+ابدأ من live HEAD، افهم أي descendants بعد آخر functional candidate، ثم نفّذ فقط إصلاح M09 schema/bootstrap blocker. بعد كل تغيير تحقق من exact-head Quality Gate + M09 على نفس SHA. توقف عند W6 GREEN.
