@@ -22,6 +22,41 @@ os.environ.setdefault("ENV", "development")
 import uvicorn
 
 
+CANONICAL_RUNTIME_COUNTS = {
+    "total_items": 125,
+    "canonical_release_items": 125,
+    "db_runtime_items": 125,
+    "pretest_experience_items": 30,
+    "learning_experience_items": 65,
+    "posttest_experience_items": 30,
+}
+
+
+def validate_local_runtime_content_result(result: dict) -> None:
+    """Fail closed unless the canonical publisher returned the current contract.
+
+    ``seed_all.run_seed_all`` is the only local content synchronization entrypoint.
+    Historical correction/projection seeds deliberately are not consulted here.
+    """
+    mismatches = {
+        key: (result.get(key), expected)
+        for key, expected in CANONICAL_RUNTIME_COUNTS.items()
+        if result.get(key) != expected
+    }
+    release_sha = str(result.get("canonical_release_sha256") or "")
+    if len(release_sha) != 64:
+        mismatches["canonical_release_sha256"] = (release_sha or None, "64-char sha256")
+    if mismatches:
+        details = ", ".join(
+            f"{key}={actual!r} (expected {expected!r})"
+            for key, (actual, expected) in sorted(mismatches.items())
+        )
+        raise RuntimeError(
+            "Local Himma content synchronization did not reach the approved canonical runtime contract: "
+            + details
+        )
+
+
 def sync_local_runtime_content() -> None:
     """Idempotently project the approved 125-item runtime into the existing DB.
 
@@ -33,8 +68,7 @@ def sync_local_runtime_content() -> None:
     from seed_all import run_seed_all
 
     result = run_seed_all()
-    if result["total_items"] != 125 or result["student_experience_v2_items"] != 125:
-        raise RuntimeError("Local Himma content synchronization did not reach the approved runtime contract")
+    validate_local_runtime_content_result(result)
 
 
 if __name__ == "__main__":
