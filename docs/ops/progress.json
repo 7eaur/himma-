@@ -1,40 +1,148 @@
 {
-  "current_phase": "A10",
-  "current_wave": "W4 / Rewards-Badges-Design-System",
-  "current_state": "W4_IN_PROGRESS_UNBLOCKED_NO_W5_START",
+  "schema_version": 11,
+  "last_updated": "2026-09-16",
+  "repository": "7eaur/himma-",
+  "default_branch": "stage/02-content",
   "execution_branch": "audit/comprehensive-repository-review-2026-09-10",
+  "current_phase": "A10",
+  "current_wave": "W4 / Rewards-Badges-Media-Semantics",
+  "current_state": "W4_IN_PROGRESS_MEDIA_002_EXACT_SHA_GATE_FAILED_NO_W5_START",
   "staging_branch": "stage/a10-w4-ci",
   "waves": {
-    "W1": {"status": "GREEN", "sha": "ea132c9afbe152d0afa5ae581c058ce3248a0c48", "run_number": 813, "run_id": 34467329988},
-    "W2": {"status": "GREEN", "sha": "77ac72174a9e21163f6341ea8e0fcc172269eac3", "run_number": 822, "run_id": 34548388760},
-    "W3": {"status": "GREEN", "sha": "62e34b151e46b406cf3936201f80010abbe9d8d1", "run_number": 848, "run_id": 34729450663},
-    "W4": {
-      "status": "IN_PROGRESS_UNBLOCKED",
-      "last_closed_code_sha": "1f343eb213ccc29c5802d56301319d5d9a5f2132",
-      "last_closed_batch": "AUD-BADGE-001",
-      "last_green_run_number": 855,
-      "last_green_run_id": 34805797495,
-      "closed_implementation_items": ["AUD-BADGE-008", "AUD-BADGE-004", "AUD-BADGE-005", "AUD-BADGE-007", "AUD-BADGE-003", "AUD-BADGE-001"],
-      "open_implementation_items": ["AUD-BADGE-002", "AUD-MEDIA-002"],
-      "open_external_blockers": []
+    "W1": {
+      "status": "GREEN",
+      "sha": "ea132c9afbe152d0afa5ae581c058ce3248a0c48",
+      "run_number": 813,
+      "run_id": 34467329988
     },
-    "W5": {"status": "PENDING_NOT_STARTED"},
-    "W6": {"status": "PENDING_NOT_STARTED"}
+    "W2": {
+      "status": "GREEN",
+      "sha": "77ac72174a9e21163f6341ea8e0fcc172269eac3",
+      "run_number": 822,
+      "run_id": 34548388760
+    },
+    "W3": {
+      "status": "GREEN",
+      "sha": "62e34b151e46b406cf3936201f80010abbe9d8d1",
+      "run_number": 848,
+      "run_id": 34729450663
+    },
+    "W4": {
+      "status": "IN_PROGRESS_MEDIA_002_GATE_FAILED",
+      "last_closed_code_sha": "f7c6885518e206266bcb1d8805b636931f3ac554",
+      "last_closed_batch": "AUD-BADGE-002",
+      "last_green_run_number": 856,
+      "last_green_run_id": 34807098480,
+      "closed_implementation_items": [
+        "AUD-BADGE-008",
+        "AUD-BADGE-004",
+        "AUD-BADGE-005",
+        "AUD-BADGE-007",
+        "AUD-BADGE-003",
+        "AUD-BADGE-001",
+        "AUD-BADGE-002"
+      ],
+      "open_implementation_items": [
+        "AUD-MEDIA-002"
+      ],
+      "open_external_blockers": [],
+      "media_002": {
+        "approval_status": "RESOLVED_OWNER_CLIENT_APPROVED",
+        "implementation_status": "IMPLEMENTED_NOT_CLOSED",
+        "last_code_candidate_sha": "e642aa4b27974c2ec11970fa768f58195188f3f1",
+        "quality_gate_run_number": 857,
+        "quality_gate_run_id": 35040922310,
+        "quality_gate_conclusion": "failure",
+        "frontend": "success",
+        "security": "success",
+        "backend": "failure",
+        "integration": "skipped",
+        "backend_test_summary": "1 failed, 866 passed",
+        "only_failed_test": "test_sep8_approval_projection.py::test_every_declared_image_relationship_is_semantic_and_exact",
+        "root_cause": "Historical Sep-08 STEP_MEDIA still expects context/سمك for L2-CORE-09/R03 while the later owner-approved current semantic authority emits lexical_stimulus/سَمَك. Reconcile owner-of-truth in final-release projection verification; do not revert the approved semantic role and do not weaken tests.",
+        "approved_contract": {
+          "L2-CORE-09/R03": {
+            "asset_id": "VOC-05",
+            "semantic_text": "سَمَك",
+            "usage": "lexical_stimulus"
+          },
+          "L2-CORE-09/R05": {
+            "asset_id": "VOC-15",
+            "semantic_text": "نُور",
+            "usage": "lexical_stimulus"
+          }
+        },
+        "candidate_release_sha256": "d23153f45fd8ad5ad6d5eed234d515dc8ec53e0b51c514506619a842277bc1cc",
+        "candidate_projection_sha256": "a9a2873307e9bebc24680edaaaf5250d98cca1f84c15a93f9538878a371cd3f3"
+      }
+    },
+    "W5": {
+      "status": "PENDING_NOT_STARTED",
+      "known_scope": [
+        "AUD-BE-001",
+        "AUD-BE-002",
+        "AUD-BE-004",
+        "AUD-A04-004",
+        "AUD-BADGE-009",
+        "AUD-MEDIA-003",
+        "AUD-MEDIA-004",
+        "AUD-MEDIA-005",
+        "AUD-PERF-002",
+        "AUD-PERF-003"
+      ]
+    },
+    "W6": {
+      "status": "PENDING_NOT_STARTED",
+      "known_acceptance": [
+        "AUD-CI-001",
+        "AUD-BADGE-006",
+        "final responsive/accessibility verification",
+        "final audio/review lifecycle verification",
+        "exact-SHA backend/frontend/security/integration/Playwright gate"
+      ]
+    }
   },
   "external_approvals": {
-    "badge_assets": {"status": "APPROVED_AND_INTEGRATED", "decision": "docs/ops/HIMMA_W4_OWNER_CLIENT_APPROVAL_2026-09-14.md"},
-    "media_semantics": {"status": "APPROVED_OWNER_CLIENT_DECISION", "decision": "docs/ops/HIMMA_W4_OWNER_CLIENT_APPROVAL_2026-09-14.md"},
-    "asr": {"status": "EXTERNAL_APPROVAL_BLOCKED", "gap_id": "AUD-A03-008"}
+    "badge_assets": {
+      "status": "APPROVED_AND_INTEGRATED",
+      "decision": "docs/ops/HIMMA_W4_OWNER_CLIENT_APPROVAL_2026-09-14.md"
+    },
+    "media_semantics": {
+      "status": "APPROVED_OWNER_CLIENT_DECISION_IMPLEMENTED_GATE_PENDING",
+      "decision": "docs/ops/HIMMA_W4_OWNER_CLIENT_APPROVAL_2026-09-14.md"
+    },
+    "asr": {
+      "status": "EXTERNAL_APPROVAL_BLOCKED",
+      "gap_id": "AUD-A03-008"
+    }
   },
   "latest_closed_batch": {
-    "gap_id": "AUD-BADGE-001",
-    "code_sha": "1f343eb213ccc29c5802d56301319d5d9a5f2132",
-    "quality_gate_run_number": 855,
-    "quality_gate_run_id": 34805797495,
+    "gap_id": "AUD-BADGE-002",
+    "code_sha": "f7c6885518e206266bcb1d8805b636931f3ac554",
+    "quality_gate_run_number": 856,
+    "quality_gate_run_id": 34807098480,
     "status": "GREEN"
   },
-  "latest_checkpoint": "docs/maintenance/HIMMA_A10_W4_BADGE_001_GREEN_2026-09-14_AR.md",
-  "continuity_handoff": "docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-14_A10_W4_BADGE_003_GREEN_AR.md",
-  "next_action": "Execute AUD-BADGE-002 next. After its exact-SHA GREEN gate and documentation, execute AUD-MEDIA-002. Do not start W5 until W4 is GREEN.",
-  "hard_stop": "Do not execute A11, deploy, Railway, Production, or final merge. Stop when W6 becomes GREEN."
+  "active_batch": {
+    "gap_id": "AUD-MEDIA-002",
+    "status": "IMPLEMENTED_GATE_FAILED_NOT_CLOSED",
+    "last_code_candidate_sha": "e642aa4b27974c2ec11970fa768f58195188f3f1",
+    "run_number": 857,
+    "run_id": 35040922310
+  },
+  "latest_checkpoint": "docs/maintenance/HIMMA_A10_W4_MEDIA_002_GATE_FAIL_2026-09-16_AR.md",
+  "continuity_handoff": "docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-16_A10_W4_MEDIA_002_GATE_FAIL_AR.md",
+  "gap_status_overlay": "docs/maintenance/HIMMA_MASTER_GAP_REGISTER_STATUS_UPDATE_2026-09-16_AR.md",
+  "next_action": "Fetch live execution HEAD, reconcile the newer owner-approved W4 lexical media authority with the stale Sep-08 STEP_MEDIA expectation used by test_sep8_approval_projection.py without weakening tests or reverting approved semantics, then move stage/a10-w4-ci to the exact new audit SHA and require a complete GREEN Quality Gate including integration/Playwright. Only then close AUD-MEDIA-002 and W4 and start W5.",
+  "hard_stop": "Do not execute A11, deploy, Railway, Production, or final merge. Stop when W6 becomes GREEN.",
+  "fixed_constraints": [
+    "NO_DOCKER",
+    "NO_FAKE_ASR",
+    "NO_TEMPORARY_AUDIO_SKIP",
+    "NO_HISTORY_DELETION",
+    "NO_SPEECH_PRONUNCIATION_LAB_MERGE",
+    "NO_FINAL_MERGE",
+    "NO_WEAKENED_TESTS",
+    "NO_PASS_WITHOUT_EXACT_SHA_EVIDENCE"
+  ]
 }
