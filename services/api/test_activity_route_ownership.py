@@ -25,6 +25,14 @@ def _get_post_routes(routes) -> list[tuple[str, str]]:
     return seen
 
 
+def _endpoint_provenance(route) -> tuple[str, str]:
+    endpoint = getattr(route, "endpoint", None)
+    return (
+        getattr(endpoint, "__module__", ""),
+        getattr(endpoint, "__qualname__", ""),
+    )
+
+
 def test_legacy_activity_modules_are_service_only():
     assert not hasattr(activities, "router")
     assert not hasattr(activities_v4, "router")
@@ -39,27 +47,31 @@ def test_public_activity_routes_are_unique_and_owned_by_canonical_router():
 
 
 def test_application_mounts_every_canonical_activity_endpoint_once():
-    canonical_routes = [
-        route
-        for route in activity_router.routes
-        if getattr(route, "path", "").startswith("/activities")
-    ]
-    mounted_routes = list(app.routes)
+    canonical_by_contract = {}
+    for route in activity_router.routes:
+        path = getattr(route, "path", "")
+        if not path.startswith("/activities"):
+            continue
+        provenance = _endpoint_provenance(route)
+        assert provenance[0].rsplit(".", 1)[-1] == "activity_runtime"
+        for method in getattr(route, "methods", set()) or set():
+            if method in {"GET", "POST"}:
+                canonical_by_contract[(method, path)] = provenance
 
-    for canonical in canonical_routes:
-        canonical_methods = {
-            method for method in (getattr(canonical, "methods", set()) or set())
-            if method in {"GET", "POST"}
-        }
+    for contract, canonical_provenance in canonical_by_contract.items():
+        method, path = contract
         matches = [
             mounted
-            for mounted in mounted_routes
-            if getattr(mounted, "endpoint", None) is getattr(canonical, "endpoint", None)
-            and canonical_methods.issubset(getattr(mounted, "methods", set()) or set())
+            for mounted in app.routes
+            if getattr(mounted, "path", "") == path
+            and method in (getattr(mounted, "methods", set()) or set())
         ]
         assert len(matches) == 1, (
-            f"expected one mounted owner for {canonical_methods} {canonical.path}; "
-            f"found {len(matches)}"
+            f"expected one mounted owner for {method} {path}; found {len(matches)}"
+        )
+        assert _endpoint_provenance(matches[0]) == canonical_provenance, (
+            f"mounted owner drift for {method} {path}: "
+            f"{_endpoint_provenance(matches[0])} != {canonical_provenance}"
         )
 
 
