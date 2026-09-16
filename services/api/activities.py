@@ -1,9 +1,9 @@
-"""Adaptive learning activity runtime.
+"""Stage-2 adaptive-learning service primitives.
 
-The accepted Stage-2 core runner remains the durable execution base. This
-recovery layer restores the canonical interaction/media contract so each
-approved learning activity is rendered as designed instead of collapsing into
-a generic text-choice screen.
+This module is intentionally not an HTTP router. ``activity_runtime.py`` is the
+single owner of mounted ``/activities`` endpoints. The functions retained here
+are proven scoring, persistence, payload, and compatibility services consumed by
+the canonical runtime while historical route generations are retired.
 """
 
 from __future__ import annotations
@@ -11,7 +11,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any, Optional
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import Depends, Header, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload
@@ -47,8 +47,6 @@ from reinforcement_cycles import (
     finish_verification_step,
     verification_response_count,
 )
-
-router = APIRouter(prefix="/activities", tags=["Activities"])
 
 MAX_STEP_ATTEMPTS = 2
 CORE_ACTIVITY_COUNT = 10
@@ -278,7 +276,6 @@ def _finalize_session_if_done(db: Session, session: AssessmentSession, level_id:
         session.updated_at = datetime.now(timezone.utc)
 
 
-@router.get("/status")
 def learning_status(
     db: Session = Depends(get_db),
     student: Student = Depends(get_current_student),
@@ -312,7 +309,6 @@ def learning_status(
     }
 
 
-@router.post("/start")
 def start_learning(
     db: Session = Depends(get_db),
     student: Student = Depends(get_current_student),
@@ -361,7 +357,6 @@ def start_learning(
     return _progress_payload(db, session, student.current_level)
 
 
-@router.get("/session/{session_id}/progress")
 def learning_progress(
     session_id: int,
     db: Session = Depends(get_db),
@@ -394,7 +389,6 @@ def _rich_item_query(db: Session):
     )
 
 
-@router.get("/session/{session_id}/next")
 def next_activity_step(
     session_id: int,
     db: Session = Depends(get_db),
@@ -510,7 +504,6 @@ def _score_submission(item: ContentItem, step: ContentStep, option_ids: list[int
     raise HTTPException(status_code=400, detail="نوع هذا النشاط غير مدعوم حاليًا")
 
 
-@router.post("/session/{session_id}/attempt/{item_id}/submit")
 def submit_activity_step(
     session_id: int,
     item_id: int,
