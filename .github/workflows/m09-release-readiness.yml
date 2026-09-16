@@ -5,7 +5,7 @@ permissions:
 
 on:
   push:
-    branches: ['recovery/*', 'integration/*']
+    branches: ['recovery/*', 'integration/*', 'audit/*']
     paths:
       - 'services/api/**'
       - 'packages/content/**'
