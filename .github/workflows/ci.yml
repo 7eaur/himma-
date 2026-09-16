@@ -5,7 +5,7 @@ permissions:
 
 on:
   push:
-    branches: [main, 'stage/*', 'recovery/*', 'b*/*', 'integration/*']
+    branches: [main, 'stage/*', 'recovery/*', 'b*/*', 'integration/*', 'audit/*']
   pull_request:
     branches: [main]
 
@@ -306,7 +306,13 @@ jobs:
         run: >-
           npx playwright test
           tests/e2e/vertical-slice.spec.ts
+          tests/e2e/w6-same-student-journey.spec.ts
+          tests/e2e/reward-lifecycle.spec.ts
           tests/e2e/accessibility-integration.spec.ts
+          tests/e2e/w6-axe.spec.ts
+          tests/e2e/student-detail-responsive-matrix.spec.ts
+          tests/e2e/w6-responsive.spec.ts
+          tests/e2e/admin-dialog-keyboard.spec.ts
           tests/e2e/media-fidelity.spec.ts
           tests/e2e/question-experience.spec.ts
           tests/e2e/admin-responsive.spec.ts
