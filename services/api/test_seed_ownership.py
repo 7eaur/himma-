@@ -57,6 +57,14 @@ def test_canonical_publication_path_does_not_execute_historical_seed_chain():
     assert publisher_imports.isdisjoint(HISTORICAL_SEED_MODULES)
 
 
+def test_recovery_contract_runs_against_current_canonical_publication_world():
+    """Current recovery behavior must not silently recreate the historical 105 world."""
+    imports = _imports("test_recovery_contracts.py")
+
+    assert "seed_all" in imports
+    assert imports.isdisjoint(HISTORICAL_SEED_MODULES)
+
+
 def test_local_dev_sync_points_to_seed_all_not_historical_repairs():
     imports = _imports("run_dev.py")
     source = (ROOT / "run_dev.py").read_text(encoding="utf-8")
