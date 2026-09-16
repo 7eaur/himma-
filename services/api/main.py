@@ -26,6 +26,7 @@ from reward_catalog_api import router as reward_catalog_router
 from observability import request_correlation_middleware
 from readiness import readiness_report
 from runtime_flags import runtime_security_ready, validate_runtime_safety
+import notification_events  # noqa: F401 — registers transactional notification projections
 
 
 # Runtime configuration still fails closed for unsafe provider/test settings.
