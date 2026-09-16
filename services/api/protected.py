@@ -14,6 +14,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from admin_student_projection import build_student_list_payloads
 from audio_review_state import session_audio_review_summary
 from db.models import AssessmentSession, AuditLog, Attempt, ContentItem, Student, User
 from dependencies import get_db, get_current_user, get_current_student, get_any_authenticated
@@ -254,7 +255,7 @@ def student_profile(student: Student = Depends(get_current_student), db: Session
 @router.get("/researcher/students", response_model=list[schemas.StudentResponse])
 def list_students(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     students = db.query(Student).order_by(Student.created_at, Student.id).all()
-    return [_student_payload(db, student) for student in students]
+    return build_student_list_payloads(db, students)
 
 
 @router.get("/researcher/student-capacity")
