@@ -7,6 +7,7 @@ This file owns the release classification for `apps/web/tests/e2e`. A test may r
 These are deterministic executable acceptance tests and must be named explicitly in the final W6 Quality Gate:
 
 - `vertical-slice.spec.ts` — real browser/MinIO/human-review vertical slice from student creation through pretest and adaptive learning.
+- `w6-same-student-journey.spec.ts` — one persistent student identity through live pretest, canonical longitudinal learning evidence, supervisor posttest authorization and live posttest completion. The bounded middle-learning accelerator persists only canonical completion evidence; production learning transitions remain independently exercised by M09 and adaptation/level-completion tests.
 - `reward-lifecycle.spec.ts` — canonical reward award → asset → Student/Admin → refresh/idempotency acceptance.
 - `accessibility-integration.spec.ts` — keyboard, reduced motion, zoom, contrast and progress semantics.
 - `w6-axe.spec.ts` — broad automated WCAG A/AA serious/critical scan on public entry routes.
@@ -16,8 +17,6 @@ These are deterministic executable acceptance tests and must be named explicitly
 - `media-fidelity.spec.ts` — approved media fidelity.
 - `question-experience.spec.ts` — current question experience contract.
 - `admin-responsive.spec.ts` — Admin shell critical responsive acceptance.
-
-A deterministic same-student longitudinal acceptance through posttest is also required before W6 can close; its replacement test must be added to this section and to `.github/workflows/ci.yml` before final GREEN.
 
 ## Targeted regression
 
@@ -38,7 +37,7 @@ These remain executable for focused changes but are not individually required in
 
 ## Superseded legacy flow
 
-- `browser-flow.spec.ts` — **LEGACY / NOT RELEASE EVIDENCE**. It contains optional selectors and fallback clicks that can finish without proving the intended assessment journey. It is retained temporarily as historical debugging material only. It may be deleted/archived only after the deterministic same-student W6 journey replacement is GREEN on an exact SHA.
+- `browser-flow.spec.ts` — **LEGACY / NOT RELEASE EVIDENCE**. It contains optional selectors and fallback clicks that can finish without proving the intended assessment journey. It is retained as historical debugging material and is not part of W6 release evidence. `w6-same-student-journey.spec.ts` + `vertical-slice.spec.ts` are its deterministic current-contract replacements; deletion remains optional and is not required to prove W6.
 
 ## Gate rule
 
