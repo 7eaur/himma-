@@ -11,7 +11,7 @@ on:
       - 'packages/content/**'
       - 'assets/**'
       - 'apps/web/src/**'
-      - 'apps/web/tests/e2e/vertical-slice.spec.ts'
+      - 'apps/web/tests/e2e/**'
       - 'scripts/ops/**'
       - 'docs/ops/M09_RELEASE_UAT_RUNBOOK.md'
       - '.github/workflows/m09-release-readiness.yml'
@@ -26,6 +26,8 @@ jobs:
       API_SECRET_KEY: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
       ADMIN_USERNAME: admin
       ADMIN_PASSWORD: m09-ci-only-researcher-password
+      E2E_RESEARCHER_USERNAME: admin
+      E2E_RESEARCHER_PASSWORD: m09-ci-only-researcher-password
       SEED_DEMO_STUDENTS: 'false'
       S3_ENDPOINT: http://localhost:9000
       S3_ACCESS_KEY: m09-minio-access-key
@@ -33,6 +35,7 @@ jobs:
       S3_BUCKET_NAME: himma-audio-m09
       RESTORE_S3_BUCKET_NAME: himma-audio-m09-restore
       REDIS_URL: redis://localhost:6379/0
+      NEXT_PUBLIC_API_URL: http://localhost:8000
       ENV: trial
     steps:
       - uses: actions/checkout@v4
@@ -72,7 +75,23 @@ jobs:
           python-version: '3.12'
 
       - name: Install backend dependencies
-        run: pip install -r services/api/requirements.txt
+        run: pip install -r services/api/requirements.txt pytest httpx
+
+      - name: Run backend product regression
+        working-directory: services/api
+        env:
+          HIMMA_TEST_DATABASE_URL: postgresql://himma_test:himma_test_pass@localhost:5432/himma_test_db
+        run: pytest -v --tb=short
+
+      - name: Reset product database after regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo -u postgres psql -v ON_ERROR_STOP=1 <<'SQL'
+          SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'himma_test_db' AND pid <> pg_backend_pid();
+          DROP DATABASE IF EXISTS himma_test_db;
+          CREATE DATABASE himma_test_db OWNER himma_test;
+          SQL
 
       - name: Validate canonical content and build seeded database twice
         working-directory: services/api
@@ -135,6 +154,51 @@ jobs:
           assert all(value == 'ok' for value in payload['checks'].values()), payload
           print('Readiness probe verified')
           PY
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: apps/web
+        run: npm ci
+
+      - name: Build frontend release candidate
+        working-directory: apps/web
+        run: npm run build
+
+      - name: Start frontend release candidate
+        working-directory: apps/web
+        run: |
+          npm start >/tmp/himma-m09-web.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://localhost:3000 && break; sleep 2; done
+          curl -sf http://localhost:3000 || (cat /tmp/himma-m09-web.log && exit 1)
+
+      - name: Install Playwright browser
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+
+      - name: Run deterministic browser product regression
+        working-directory: apps/web
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:3000
+          CI: true
+        run: >-
+          npx playwright test
+          tests/e2e/vertical-slice.spec.ts
+          tests/e2e/w6-same-student-journey.spec.ts
+          tests/e2e/reward-lifecycle.spec.ts
+          tests/e2e/accessibility-integration.spec.ts
+          tests/e2e/w6-axe.spec.ts
+          tests/e2e/student-detail-responsive-matrix.spec.ts
+          tests/e2e/w6-responsive.spec.ts
+          tests/e2e/admin-dialog-keyboard.spec.ts
+          tests/e2e/media-fidelity.spec.ts
+          tests/e2e/question-experience.spec.ts
+          tests/e2e/admin-responsive.spec.ts
+          --reporter=list
 
       - name: Backup and restore PostgreSQL into an isolated database
         run: |
