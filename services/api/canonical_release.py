@@ -31,6 +31,7 @@ from content_approval_contract_2026_09_08 import (
 from learning_presentation_2026_09_01 import apply_learning_presentation
 from listening_sequence_contract_2026_09_03 import LISTENING_AUDIO_SEQUENCES
 from posttest_presentation_2026_09_01 import POSTTEST_PRESENTATION
+from w4_media_semantics import apply_w4_lexical_media_semantics
 
 ROOT = Path(__file__).resolve().parents[2]
 BASELINE_SOURCE = ROOT / "packages" / "content" / "src" / "catalog.json"
@@ -342,6 +343,7 @@ def build_canonical_release() -> dict[str, Any]:
     _apply_posttest_presentation(release)
     assert_question_contract_coverage(release)
     _resolve_listening_audio(release)
+    apply_w4_lexical_media_semantics(release)
     release = _rehash(release)
     assert_media_contract(release)
     return release
