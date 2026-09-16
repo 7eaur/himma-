@@ -17,8 +17,18 @@ async function expectNoBlockingAxeViolations(page: Page, label: string) {
   expect(blocking, `${label}: ${JSON.stringify(blocking)}`).toEqual([]);
 }
 
-test("W6 public entry routes pass broad axe WCAG A/AA blocking scan", async ({ page }) => {
-  await page.goto("/");
+test("W6 public entry routes expose security headers and pass broad axe WCAG A/AA blocking scan", async ({ page }) => {
+  const landing = await page.goto("/");
+  expect(landing).not.toBeNull();
+  const headers = landing!.headers();
+  const csp = headers["content-security-policy"] ?? "";
+  expect(csp).toContain("default-src 'self'");
+  expect(csp).toContain("frame-ancestors 'none'");
+  expect(csp).toContain("object-src 'none'");
+  expect(headers["x-frame-options"]).toBe("DENY");
+  expect(headers["x-content-type-options"]).toBe("nosniff");
+  expect(headers["referrer-policy"]).toBe("strict-origin-when-cross-origin");
+  expect(headers["permissions-policy"]).toContain("microphone=(self)");
   await expect(page.locator("main")).toBeVisible();
   await expectNoBlockingAxeViolations(page, "landing");
 
