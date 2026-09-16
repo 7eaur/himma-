@@ -77,6 +77,10 @@ jobs:
       - name: Install backend dependencies
         run: pip install -r services/api/requirements.txt pytest httpx
 
+      - name: Prepare migrated schema for backend product regression
+        working-directory: services/api
+        run: alembic upgrade head
+
       - name: Run backend product regression
         working-directory: services/api
         env:
