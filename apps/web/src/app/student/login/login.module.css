@@ -1,3 +1,16 @@
+:global(.student-login-card).card {
+  animation: studentLoginCardEnter 350ms ease-out both;
+}
+
+@keyframes studentLoginCardEnter {
+  from {
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    transform: translateY(0) scale(1);
+  }
+}
+
 .mutedText {
   color: #5f7487;
 }
@@ -13,4 +26,10 @@
 
 .help {
   color: #5f7487;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :global(.student-login-card).card {
+    animation: none;
+  }
 }
