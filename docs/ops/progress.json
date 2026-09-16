@@ -1,13 +1,13 @@
 {
-  "schema_version": 11,
+  "schema_version": 12,
   "last_updated": "2026-09-16",
   "repository": "7eaur/himma-",
   "default_branch": "stage/02-content",
   "execution_branch": "audit/comprehensive-repository-review-2026-09-10",
   "current_phase": "A10",
-  "current_wave": "W4 / Rewards-Badges-Media-Semantics",
-  "current_state": "W4_IN_PROGRESS_MEDIA_002_EXACT_SHA_GATE_FAILED_NO_W5_START",
-  "staging_branch": "stage/a10-w4-ci",
+  "current_wave": "W6 / Final Exact-SHA Acceptance",
+  "current_state": "W5_GREEN_W6_IN_PROGRESS_NO_A11_NO_DEPLOY",
+  "staging_branch": "stage/a10-w6-ci",
   "waves": {
     "W1": {
       "status": "GREEN",
@@ -28,57 +28,28 @@
       "run_id": 34729450663
     },
     "W4": {
-      "status": "IN_PROGRESS_MEDIA_002_GATE_FAILED",
-      "last_closed_code_sha": "f7c6885518e206266bcb1d8805b636931f3ac554",
-      "last_closed_batch": "AUD-BADGE-002",
-      "last_green_run_number": 856,
-      "last_green_run_id": 34807098480,
-      "closed_implementation_items": [
+      "status": "GREEN",
+      "sha": "c26fc9f9f2995d3fa5acea1d01b2e68041577534",
+      "run_number": 858,
+      "run_id": 35043108503,
+      "closed_items": [
         "AUD-BADGE-008",
         "AUD-BADGE-004",
         "AUD-BADGE-005",
         "AUD-BADGE-007",
         "AUD-BADGE-003",
         "AUD-BADGE-001",
-        "AUD-BADGE-002"
-      ],
-      "open_implementation_items": [
+        "AUD-BADGE-002",
         "AUD-MEDIA-002"
-      ],
-      "open_external_blockers": [],
-      "media_002": {
-        "approval_status": "RESOLVED_OWNER_CLIENT_APPROVED",
-        "implementation_status": "IMPLEMENTED_NOT_CLOSED",
-        "last_code_candidate_sha": "e642aa4b27974c2ec11970fa768f58195188f3f1",
-        "quality_gate_run_number": 857,
-        "quality_gate_run_id": 35040922310,
-        "quality_gate_conclusion": "failure",
-        "frontend": "success",
-        "security": "success",
-        "backend": "failure",
-        "integration": "skipped",
-        "backend_test_summary": "1 failed, 866 passed",
-        "only_failed_test": "test_sep8_approval_projection.py::test_every_declared_image_relationship_is_semantic_and_exact",
-        "root_cause": "Historical Sep-08 STEP_MEDIA still expects context/سمك for L2-CORE-09/R03 while the later owner-approved current semantic authority emits lexical_stimulus/سَمَك. Reconcile owner-of-truth in final-release projection verification; do not revert the approved semantic role and do not weaken tests.",
-        "approved_contract": {
-          "L2-CORE-09/R03": {
-            "asset_id": "VOC-05",
-            "semantic_text": "سَمَك",
-            "usage": "lexical_stimulus"
-          },
-          "L2-CORE-09/R05": {
-            "asset_id": "VOC-15",
-            "semantic_text": "نُور",
-            "usage": "lexical_stimulus"
-          }
-        },
-        "candidate_release_sha256": "d23153f45fd8ad5ad6d5eed234d515dc8ec53e0b51c514506619a842277bc1cc",
-        "candidate_projection_sha256": "a9a2873307e9bebc24680edaaaf5250d98cca1f84c15a93f9538878a371cd3f3"
-      }
+      ]
     },
     "W5": {
-      "status": "PENDING_NOT_STARTED",
-      "known_scope": [
+      "status": "GREEN",
+      "sha": "728025a8fd5ff1fa182db4085ad18dd45142041a",
+      "run_number": 869,
+      "run_id": 35053591742,
+      "backend_tests": "890 passed, 5 warnings",
+      "closed_items": [
         "AUD-BE-001",
         "AUD-BE-002",
         "AUD-BE-004",
@@ -89,17 +60,27 @@
         "AUD-MEDIA-005",
         "AUD-PERF-002",
         "AUD-PERF-003"
-      ]
+      ],
+      "checkpoint": "docs/maintenance/HIMMA_A10_W5_GREEN_2026-09-16_AR.md"
     },
     "W6": {
-      "status": "PENDING_NOT_STARTED",
-      "known_acceptance": [
+      "status": "IN_PROGRESS",
+      "required_acceptance": [
         "AUD-CI-001",
+        "AUD-A08-001",
+        "AUD-A08-002",
+        "AUD-A08-004",
+        "AUD-A08-005",
+        "AUD-A08-006",
+        "AUD-A08-007",
+        "AUD-A08-008",
+        "AUD-A08-009",
         "AUD-BADGE-006",
-        "final responsive/accessibility verification",
-        "final audio/review lifecycle verification",
+        "AUD-A11Y-005",
+        "AUD-SEC-006",
         "exact-SHA backend/frontend/security/integration/Playwright gate"
-      ]
+      ],
+      "current_focus": "Implement deterministic reward lifecycle + same-student current browser acceptance, broad responsive/accessibility acceptance, and local security-header contract; supersede loose legacy browser-flow only after replacement proof."
     }
   },
   "external_approvals": {
@@ -108,7 +89,7 @@
       "decision": "docs/ops/HIMMA_W4_OWNER_CLIENT_APPROVAL_2026-09-14.md"
     },
     "media_semantics": {
-      "status": "APPROVED_OWNER_CLIENT_DECISION_IMPLEMENTED_GATE_PENDING",
+      "status": "APPROVED_IMPLEMENTED_GREEN",
       "decision": "docs/ops/HIMMA_W4_OWNER_CLIENT_APPROVAL_2026-09-14.md"
     },
     "asr": {
@@ -116,24 +97,16 @@
       "gap_id": "AUD-A03-008"
     }
   },
-  "latest_closed_batch": {
-    "gap_id": "AUD-BADGE-002",
-    "code_sha": "f7c6885518e206266bcb1d8805b636931f3ac554",
-    "quality_gate_run_number": 856,
-    "quality_gate_run_id": 34807098480,
+  "latest_closed_wave": {
+    "wave": "W5",
+    "sha": "728025a8fd5ff1fa182db4085ad18dd45142041a",
+    "quality_gate_run_number": 869,
+    "quality_gate_run_id": 35053591742,
     "status": "GREEN"
   },
-  "active_batch": {
-    "gap_id": "AUD-MEDIA-002",
-    "status": "IMPLEMENTED_GATE_FAILED_NOT_CLOSED",
-    "last_code_candidate_sha": "e642aa4b27974c2ec11970fa768f58195188f3f1",
-    "run_number": 857,
-    "run_id": 35040922310
-  },
-  "latest_checkpoint": "docs/maintenance/HIMMA_A10_W4_MEDIA_002_GATE_FAIL_2026-09-16_AR.md",
-  "continuity_handoff": "docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-16_A10_W4_MEDIA_002_GATE_FAIL_AR.md",
+  "latest_checkpoint": "docs/maintenance/HIMMA_A10_W5_GREEN_2026-09-16_AR.md",
   "gap_status_overlay": "docs/maintenance/HIMMA_MASTER_GAP_REGISTER_STATUS_UPDATE_2026-09-16_AR.md",
-  "next_action": "Fetch live execution HEAD, reconcile the newer owner-approved W4 lexical media authority with the stale Sep-08 STEP_MEDIA expectation used by test_sep8_approval_projection.py without weakening tests or reverting approved semantics, then move stage/a10-w4-ci to the exact new audit SHA and require a complete GREEN Quality Gate including integration/Playwright. Only then close AUD-MEDIA-002 and W4 and start W5.",
+  "next_action": "Continue W6 only: implement missing executable final acceptance starting with full reward lifecycle E2E and deterministic same-student browser journey, then broad responsive/accessibility and local security-header contracts; run exact-head complete Quality Gate on stage/a10-w6-ci and stop at W6 GREEN.",
   "hard_stop": "Do not execute A11, deploy, Railway, Production, or final merge. Stop when W6 becomes GREEN.",
   "fixed_constraints": [
     "NO_DOCKER",
@@ -143,6 +116,7 @@
     "NO_SPEECH_PRONUNCIATION_LAB_MERGE",
     "NO_FINAL_MERGE",
     "NO_WEAKENED_TESTS",
+    "NO_RUNTIME_REPAIR_OVERLAYS",
     "NO_PASS_WITHOUT_EXACT_SHA_EVIDENCE"
   ]
 }
