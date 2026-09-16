@@ -1,85 +1,120 @@
 # هِمّة — Master Gap Register — Execution Status Update
 
-**التاريخ:** 2026-09-16  
+**التاريخ:** 2026-09-17  
 **النوع:** `STATUS OVERLAY / EXECUTION UPDATE`  
 **المرجع الأساسي:** `docs/maintenance/HIMMA_MASTER_GAP_REGISTER_2026-09-10_AR.md`
 
 ## وظيفة هذا الملف
 
-Master Gap Register الأصلي يوثق نتائج A00–A09 كما كانت عند نهاية التدقيق. لا نعيد كتابة التاريخ كلما أُغلق Gap. هذا الملف يضيف **حالة التنفيذ الحالية** فوق سجل التدقيق الأصلي.
+Master Gap Register الأصلي يحفظ نتائج A00–A09 التاريخية ولا يُعاد تحرير التاريخ كلما تغير التنفيذ. هذا الملف هو طبقة الحالة التنفيذية الحالية. عند التعارض في `Status` فقط تكون الأولوية للكود الحي + migrations/schema + executable exact-SHA CI، ثم `docs/ops/STATUS.md` و`docs/ops/progress.json`، ثم هذا الـoverlay.
 
-عند التعارض في حقل `Status` فقط:
-
-1. الكود الحي + executable tests + exact-SHA CI هي الحقيقة التنفيذية.
-2. `docs/ops/STATUS.md` و`docs/ops/progress.json` هما حالة الاستئناف الحالية.
-3. هذا الملف يحدّث Status للصفوف التي تغيّرت بعد التدقيق.
-4. Master Gap Register الأصلي يبقى مرجع symptom/root-cause/dependencies/tests/wave ولا يُحذف.
-
-## موجات التنفيذ
+## موجات التنفيذ الحالية
 
 - W1: CLOSED GREEN.
 - W2: CLOSED GREEN.
 - W3: CLOSED GREEN.
-- W4: IN PROGRESS؛ آخر code candidate لـMEDIA-002 فشل Gate واحدًا قديمًا، لذلك W4 ليست Green بعد.
-- W5: NOT STARTED.
-- W6: NOT STARTED.
+- W4: CLOSED GREEN.
+- W5: CLOSED GREEN.
+- W6: **IN PROGRESS — FINAL RELEASE READINESS BLOCKER**.
 
-## W4 — الحالة الحالية الدقيقة
+لا تبدأ A11 ولا deploy/final merge ضمن هذا الجدول.
 
-| Gap | الحالة التنفيذية الحالية | Exact evidence | ملاحظة |
-|---|---|---|---|
-| `AUD-BADGE-008` | CLOSED GREEN | `57495fb804d4f52f684aded176474155dace07d9`, #850 / `34731134319` | stable reward/catalog identity/version |
-| `AUD-BADGE-004` | CLOSED GREEN | `fddc8a59190d1f6522f1639d4f8156982fbaf293`, #851 / `34732091325` | canonical catalog owns current labels/assets |
-| `AUD-BADGE-005` | CLOSED GREEN | executable canonical completion evidence on #851 baseline | Journey/Rewards consume canonical completion semantics |
-| `AUD-BADGE-007` | CLOSED GREEN | `970416d707639a3cab2f0dfa930b9f78990afe20`, #853 / `34733663693` | reward API error no longer masquerades as zero |
-| `AUD-BADGE-003` | CLOSED GREEN | `8736372f855e55646ce50712615b6274af94a9a8`, #854 / `34803602294` | official `BDG-01..BDG-06` integrated |
-| `AUD-BADGE-001` | CLOSED GREEN | `1f343eb213ccc29c5802d56301319d5d9a5f2132`, #855 / `34805797495` | Student Home renders canonical earned badges |
-| `AUD-BADGE-002` | CLOSED GREEN | `f7c6885518e206266bcb1d8805b636931f3ac554`, #856 / `34807098480` | Admin Student Detail uses shared canonical badge presentation |
-| `AUD-MEDIA-002` | IMPLEMENTED / GATE FAILED / OPEN | candidate `e642aa4b27974c2ec11970fa768f58195188f3f1`, #857 / `35040922310` = FAILURE | 866 backend tests pass, 1 stale Sep-08 expectation fails; integration skipped |
-| `AUD-BADGE-006` | OPEN / W6 ACCEPTANCE | n/a | full award→asset→Student/Admin→refresh/idempotency E2E belongs to W6 |
+## W4 — closed historical execution state
 
-## AUD-MEDIA-002 — التصحيح على سجل التدقيق
+| Gap | الحالة الحالية | Exact evidence |
+|---|---|---|
+| `AUD-BADGE-008` | CLOSED GREEN | `57495fb804d4f52f684aded176474155dace07d9`, #850 / `34731134319` |
+| `AUD-BADGE-004` | CLOSED GREEN | `fddc8a59190d1f6522f1639d4f8156982fbaf293`, #851 / `34732091325` |
+| `AUD-BADGE-005` | CLOSED GREEN | canonical completion evidence on #851 baseline |
+| `AUD-BADGE-007` | CLOSED GREEN | `970416d707639a3cab2f0dfa930b9f78990afe20`, #853 / `34733663693` |
+| `AUD-BADGE-003` | CLOSED GREEN | `8736372f855e55646ce50712615b6274af94a9a8`, #854 / `34803602294` |
+| `AUD-BADGE-001` | CLOSED GREEN | `1f343eb213ccc29c5802d56301319d5d9a5f2132`, #855 / `34805797495` |
+| `AUD-BADGE-002` | CLOSED GREEN | `f7c6885518e206266bcb1d8805b636931f3ac554`, #856 / `34807098480` |
+| `AUD-MEDIA-002` | CLOSED GREEN | exact code SHA `c26fc9f9f2995d3fa5acea1d01b2e68041577534`, Quality Gate #858 / `35043108503` |
 
-Master Gap Register الأصلي يسجل:
+`AUD-BADGE-006` كان مقصودًا أن يُقبل في W6 ولم يعد يعيد فتح W4.
 
-`ACADEMIC REVIEW REQUIRED`
+## W5 — CLOSED GREEN
 
-هذا **لم يعد blocker قائمًا**. قرار المالك/العميل أصبح موثقًا في:
+Exact code SHA:
 
-`docs/ops/HIMMA_W4_OWNER_CLIENT_APPROVAL_2026-09-14.md`
+`728025a8fd5ff1fa182db4085ad18dd45142041a`
 
-الحالة الصحيحة الآن:
+Quality Gate #869 / Run `35053591742` = SUCCESS، backend `890 passed, 5 warnings`.
 
-`APPROVAL RESOLVED → IMPLEMENTED → EXACT-SHA GATE FAILED → NOT CLOSED`
+أُغلقت في W5:
 
-سبب عدم الإغلاق ليس انتظار قرار أكاديمي؛ السبب أن اختبار `test_sep8_approval_projection.py` ما يزال يطلب tuple تاريخيًا من `STEP_MEDIA` (`context`) بينما القرار الأحدث يطلب `lexical_stimulus` لحالتي R03/R05.
+- `AUD-BE-001`
+- `AUD-BE-002`
+- `AUD-BE-004`
+- `AUD-A04-004`
+- `AUD-BADGE-009`
+- `AUD-MEDIA-003`
+- `AUD-MEDIA-004`
+- `AUD-MEDIA-005`
+- `AUD-PERF-002`
+- `AUD-PERF-003`
 
-لا يجوز تغيير القرار الأحدث لإرضاء الاختبار. المطلوب توحيد authority في العقود والاختبارات ثم rerun كامل.
+`AUD-SEC-004` upload-size/storage-cleanup controls كانت مغلقة أصلًا في W2 وأُعيد إثباتها؛ لا تعِد فتحها في W6.
 
-## W5 — لا تبدأ قبل W4 Green
+## W6 — exact current candidate
 
-العناصر المعروفة من Master Gap Register التي تنتظر W5:
+Functional/code candidate:
 
-- `AUD-BE-001` — توحيد ownership لطبقات activity runtime، ثم retire فقط ما ثبت موته.
-- `AUD-BE-002` — تصنيف legacy correction/projection seeds وحذف dependency-free فقط مع حفظ migration/history.
-- `AUD-BE-004` — فصل legacy recovery fixture عن canonical current-runtime contract.
-- `AUD-A04-004` — إثبات عدم وجود dependency فريد في `/admin/account` ثم redirect/archive.
-- `AUD-BADGE-009` — حماية RewardEvent/history من destructive attempt cleanup/cascade.
-- `AUD-MEDIA-003` — الاحتفاظ بالـ23 approved unused images كـreserve ما لم توجد حاجة دلالية مثبتة.
-- `AUD-MEDIA-004` — canonicalize duplicate character URLs فقط بعد إثبات dependency/path safety.
-- `AUD-MEDIA-005` — لا حذف للـ17 public files غير ذات direct refs قبل runtime/build/source proof.
-- `AUD-PERF-002` — إزالة N+1 في `/researcher/students` بbatched projection/query budget.
-- `AUD-PERF-003` — جعل notifications GET read-only ونقل materialization إلى event/job lifecycle.
-- أي جزء W5 متبقٍ من `AUD-SEC-004` يكون فقط prove/remove legacy recording route إذا ثبت أنه dead؛ حدود الرفع نفسها أُغلقت في W2.
+`565ba4092c4312c55e7e57a8c45e32f8997afd8d`
 
-قبل تنفيذ أي صف، ارجع إلى Master Gap Register الأصلي لقراءة symptom/root cause/dependencies/required tests كاملة، ولا تعتمد على هذا الملخص وحده.
+Evidence على نفس SHA:
 
-## W6 — Final Acceptance
+- Quality Gate #885 / Run `35136617396` — **SUCCESS**.
+- M04 Responsive #347 / Run `35136619472` — **SUCCESS**.
+- M09 Release Readiness #207 / Run `35136619488` — **FAILURE** في `Run backend product regression`.
 
-- `AUD-CI-001` final exact-SHA complete Quality Gate.
-- `AUD-BADGE-006` full reward lifecycle E2E.
-- final responsive/accessibility verification.
-- audio/review lifecycle final verification.
-- security headers local/config contract، مع deployed verification في A11 فقط عندما يسمح المستخدم لاحقًا.
+### W6 gap overlay
 
-عند W6 Green: **توقف**. A11/Deploy/Railway/Production/final merge خارج هذه الخطة الحالية.
+| Gap | الحالة التنفيذية الحالية | Evidence / boundary |
+|---|---|---|
+| `AUD-CI-001` | EXECUTABLE ACCEPTANCE PASS / W6 GLOBAL CLOSURE PENDING | Quality Gate #885 exact SHA SUCCESS |
+| `AUD-A08-001` | EXECUTABLE ACCEPTANCE PASS / W6 GLOBAL CLOSURE PENDING | exact-head full Quality Gate #885 SUCCESS |
+| `AUD-A08-002` | EXECUTABLE ACCEPTANCE PASS | deterministic same-student release E2E passed in #885 Integration |
+| `AUD-A08-003` | **OPEN / CURRENT BLOCKER** | M09 #207 failed before migrations/readiness/Playwright/backup-restore could complete |
+| `AUD-A08-004` | IMPLEMENTED / ACCEPTED IN CURRENT CANDIDATE | `apps/web/tests/TEST_OWNERSHIP.md` owns release evidence |
+| `AUD-A08-005` | EXECUTABLE ACCEPTANCE PASS | M04 #347 + Quality Gate #885 responsive evidence |
+| `AUD-A08-006` | IMPLEMENTED / SUPERSEDED | loose `browser-flow.spec.ts` retained as historical/debug only; deterministic replacement is release evidence |
+| `AUD-A08-007` | EXECUTABLE ACCEPTANCE PASS | Axe/accessibility release coverage passed in #885 |
+| `AUD-A08-008` | EXECUTABLE ACCEPTANCE PASS | full reward lifecycle passed in #885 |
+| `AUD-A08-009` | EXECUTABLE ACCEPTANCE PASS | Backend + Integration both successful in #885 |
+| `AUD-BADGE-006` | EXECUTABLE ACCEPTANCE PASS | award→asset→Student/Admin→refresh→idempotency E2E passed in #885 |
+| `AUD-A11Y-005` | AUTOMATED/EXECUTABLE PORTION PASS; MANUAL HUMAN SR NOT CLAIMED | Axe + keyboard/RTL/reduced-motion/zoom/contrast/semantics passed in #885; manual human SR remains later/manual boundary |
+| `AUD-SEC-006` | SOURCE/LOCAL PORTION PASS; DEPLOY VERIFY LATER | source-controlled security headers + local live response verification; deployed verification is A11-only |
+| `AUD-GIT-001` | CURRENT W6 GOVERNANCE EVIDENCE PRESENT; FINAL MERGE NOT EXECUTED | current plan explicitly forbids final merge; final release branch governance remains owner/A11 boundary |
+
+## AUD-A08-003 — current blocker details
+
+M09 #207 job `104930486030` collected 896 backend tests and ended:
+
+`3 failed, 891 passed, 2 skipped, 5 warnings`
+
+Only failures:
+
+- `tests/test_account_lockouts.py::test_admin_lockout_threshold_expiry_and_recovery`
+- `tests/test_account_lockouts.py::test_student_lockout_clears_after_successful_authentication`
+- `tests/test_account_lockouts.py::test_admin_and_student_lockout_namespaces_are_isolated`
+
+All fail at `services/api/services/account_lockouts.py:40` during `db.flush()` with PostgreSQL `UndefinedTable` because relation `account_lockout_states` does not exist.
+
+Current M09 workflow evidence shows backend product regression runs after starting native PostgreSQL/Redis and installing dependencies, but **before** the workflow's database reset + canonical validation + Alembic migration sequence. Therefore the current root-cause candidate is M09 schema-bootstrap/order, not permission to weaken the account-lockout tests.
+
+Because this failure occurs early, M09 did not complete the remaining readiness chain, declared Playwright release suite, PostgreSQL backup/restore, or object-storage backup/restore. W6 therefore remains OPEN.
+
+## Closure rule from here
+
+The next candidate must fix the M09 schema/bootstrap root cause without skip/xpass or weakening tests. Any workflow/code change creates a new SHA, and the new exact SHA must pass both:
+
+1. full Quality Gate — Security + Frontend + Backend + Integration/Playwright; and
+2. full M09 Release Readiness — including backend regression, canonical/migration/runtime readiness, declared release Playwright suite, PostgreSQL backup/restore, and object-storage backup/restore.
+
+Only then may W6 be marked GREEN. After W6 GREEN: update continuity evidence and **STOP**.
+
+## Fixed boundaries
+
+No Docker. No fake ASR. No Temporary Audio Skip. No history deletion. No Speech/Pronunciation Lab merge. No final merge. No weakened tests. No runtime repair overlays. No PASS/CLOSED without exact-SHA evidence. Production ASR (`AUD-A03-008`) remains external-approval blocked. A11/Deploy/Railway/Production are outside the current execution schedule.

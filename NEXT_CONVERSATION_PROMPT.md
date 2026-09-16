@@ -8,148 +8,171 @@
 
 `audit/comprehensive-repository-review-2026-09-10`
 
-فرع CI المؤقت للموجة الحالية:
+لا تعتمد على ذاكرة محادثات سابقة. **ابدأ من المستودع الحي مباشرة.**
 
-`stage/a10-w4-ci`
+## أول شيء إلزامي
 
-**مهم:** لا تعتمد على SHA محفوظ هنا قبل التحقق. أول خطوة إلزامية هي Fetch للـlive execution HEAD ثم Fetch لآخر Quality Gate وCI helper branch. توجد commits توثيق بعد آخر code candidate.
-
-## اقرأ أولًا — بالترتيب
-
-1. `docs/ops/STATUS.md`
-2. `docs/ops/progress.json`
-3. `docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-16_A10_W4_MEDIA_002_GATE_FAIL_AR.md`
-4. `docs/maintenance/HIMMA_A10_W4_MEDIA_002_GATE_FAIL_2026-09-16_AR.md`
-5. `docs/maintenance/HIMMA_MASTER_GAP_REGISTER_STATUS_UPDATE_2026-09-16_AR.md`
-6. `docs/maintenance/HIMMA_MASTER_GAP_REGISTER_2026-09-10_AR.md`
-7. `docs/maintenance/HIMMA_MASTER_GAP_REGISTER_EXECUTION_ADDENDUM_2026-09-12_AR.md`
-8. `docs/ops/HIMMA_W4_OWNER_CLIENT_APPROVAL_2026-09-14.md`
-9. `HIMMA_CORRECTIVE_EXECUTION_ROADMAP_V2_AR.md`
-10. `START_HERE_AR.md`
-11. `AGENTS.md` ثم ملفات `.agents/rules/` المشار إليها فيه.
-
-إذا احتجت فهم التاريخ/root cause قبل تعديل W5/W6، اقرأ ملفات A00–A09 وW1/W2/W3 المذكورة بالتفصيل داخل الـMaster Continuity Handoff. لا تعيد تنفيذ التدقيق؛ اقرأه لفهم سبب القرارات فقط.
+1. Fetch للـlive execution branch HEAD. لا تفترض أن SHA أدناه ما زال HEAD لأن بعده قد توجد commits توثيق فقط.
+2. اقرأ بالترتيب:
+   - `docs/ops/STATUS.md`
+   - `docs/ops/progress.json`
+   - `docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-17_A10_W6_FINAL_READINESS_BLOCKER_AR.md`
+   - `docs/maintenance/HIMMA_MASTER_GAP_REGISTER_STATUS_UPDATE_2026-09-16_AR.md`
+   - `docs/maintenance/HIMMA_MASTER_GAP_REGISTER_2026-09-10_AR.md`
+   - `docs/maintenance/HIMMA_MASTER_GAP_REGISTER_EXECUTION_ADDENDUM_2026-09-12_AR.md`
+   - `HIMMA_CORRECTIVE_EXECUTION_ROADMAP_V2_AR.md`
+   - `START_HERE_AR`
+   - `AGENTS.md` وملفات `.agents/rules/` المشار إليها فيه.
+3. تحقق حيًا من Actions على آخر functional/code candidate، ولا تعتبر commits التوثيق exact tested code SHA.
+4. لا تعيد A00–A09 ولا W1–W5. نقطة الاستئناف الوحيدة هي **W6 final Release Readiness blocker**.
 
 ## Source of Truth
 
-الترتيب التنفيذي:
+الترتيب التنفيذي للحقيقة:
 
 `live code + PostgreSQL migrations/schema + executable tests/CI + current canonical contracts/approved decisions + current STATUS/progress + historical audit docs`
 
 المحادثات السابقة ليست Source of Truth.
 
-## الحالة المثبتة
+## الحالة المثبتة التي لا تعيد تنفيذها
 
 - A00–A09: CLOSED AUDIT.
-- W1: GREEN — `ea132c9afbe152d0afa5ae581c058ce3248a0c48`, #813 / `34467329988`.
-- W2: GREEN — `77ac72174a9e21163f6341ea8e0fcc172269eac3`, #822 / `34548388760`.
-- W3: GREEN — `62e34b151e46b406cf3936201f80010abbe9d8d1`, #848 / `34729450663`.
-- W4: **IN PROGRESS؛ لا تعتبرها Green بعد**.
-- W5: NOT STARTED.
-- W6: NOT STARTED.
+- W1 GREEN — `ea132c9afbe152d0afa5ae581c058ce3248a0c48`, Quality Gate #813 / Run `34467329988`.
+- W2 GREEN — `77ac72174a9e21163f6341ea8e0fcc172269eac3`, Quality Gate #822 / Run `34548388760`.
+- W3 GREEN — `62e34b151e46b406cf3936201f80010abbe9d8d1`, Quality Gate #848 / Run `34729450663`.
+- W4 GREEN — exact code SHA `c26fc9f9f2995d3fa5acea1d01b2e68041577534`, Quality Gate #858 / Run `35043108503`.
+- W5 GREEN — exact code SHA `728025a8fd5ff1fa182db4085ad18dd45142041a`, Quality Gate #869 / Run `35053591742`.
+- W6: **IN PROGRESS — final Release Readiness blocker only.**
 
-W4 المغلق Green:
+## آخر functional candidate مثبت
 
-- `AUD-BADGE-008`
-- `AUD-BADGE-004`
-- `AUD-BADGE-005`
-- `AUD-BADGE-007`
-- `AUD-BADGE-003`
-- `AUD-BADGE-001`
-- `AUD-BADGE-002`
+Exact functional/code candidate:
 
-آخر W4 Green batch:
+`565ba4092c4312c55e7e57a8c45e32f8997afd8d`
 
-`AUD-BADGE-002`
+Commit:
 
-Exact code SHA:
+`ci(w6): run M09 readiness on audit exact head`
 
-`f7c6885518e206266bcb1d8805b636931f3ac554`
+على هذا الـSHA نفسه:
 
-Quality Gate #856 / Run ID `34807098480` = full SUCCESS بما فيه Integration + Playwright.
+- Quality Gate #885 / Run `35136617396` = **SUCCESS**.
+- M04 Responsive #347 / Run `35136619472` = **SUCCESS**.
+- M09 Release Readiness #207 / Run `35136619488` = **FAILURE**.
 
-## الموافقات التي لا يجوز طلبها مرة أخرى
+Quality Gate #885 يثبت أن Security + Frontend + Backend + Integration/Playwright أصبحت كلها خضراء على SHA واحد بعد إصلاحات W6 السابقة.
 
-`docs/ops/HIMMA_W4_OWNER_CLIENT_APPROVAL_2026-09-14.md` معتمد:
+## ما تم في W6 ولا تعِده
 
-- `BDG-01..BDG-06` هي حزمة الشارات الرسمية.
-- `lexical_stimulus` يمثل معنى الكلمة مباشرة.
-- `story_context` سياقي/مساند.
-- `سَمَك` يستخدم direct fish representation.
-- `نُور` يستخدم direct light/illumination representation.
+تم تنفيذ وإثبات الآتي في Quality Gate #885:
 
-`AUD-MEDIA-002` لم يعد ينتظر academic approval.
+- security headers source contract + local live-header verification.
+- full reward lifecycle E2E: award → canonical asset → Student/Admin → refresh → idempotency.
+- deterministic same-student live pretest → canonical learning evidence → supervisor posttest authorization → live posttest.
+- responsive matrices على 320/360/390/430/768/Desktop بما فيها Admin Student Detail.
+- automated Axe + keyboard + RTL + reduced-motion + zoom/contrast/progress semantics.
+- `apps/web/tests/TEST_OWNERSHIP.md` يحدد release evidence؛ `browser-flow.spec.ts` legacy/debug وليس release evidence.
+- Backend/Integration الحاليان لا يحملان blocker قديمًا في Quality Gate.
 
-## نقطة التوقف الفعلية — AUD-MEDIA-002
+لا ترجع لإصلاحات overflow/sequence/opacity السابقة إلا إذا ظهر evidence جديد على SHA جديد.
 
-آخر **code candidate** قبل commits التوثيق:
+## نقطة التوقف الدقيقة الآن — M09 #207
 
-`e642aa4b27974c2ec11970fa768f58195188f3f1`
+Workflow:
 
-تم تنفيذ:
+`.github/workflows/m09-release-readiness.yml`
 
-- `services/api/w4_media_semantics.py`
-- تعديل `services/api/canonical_release.py`
-- `services/api/test_w4_lexical_media_semantics.py`
+Run:
 
-العقد الحالي المقصود:
+`#207 / 35136619488`
 
-- `L2-CORE-09/R03` → `VOC-05` → `سَمَك` → `lexical_stimulus`.
-- `L2-CORE-09/R05` → `VOC-15` → `نُور` → `lexical_stimulus`.
+Job:
 
-Quality Gate #857 / Run ID `35040922310` على exact SHA `e642aa4...` = **FAILURE**:
+`104930486030`
 
-- Frontend SUCCESS.
-- Security SUCCESS.
-- Backend canonical validation/migrations/model drift/seed idempotency SUCCESS.
-- pytest: `1 failed, 866 passed`.
-- Integration SKIPPED بسبب backend failure.
+فشل في step:
 
-الاختبار الوحيد الفاشل:
+`Run backend product regression`
 
-`test_sep8_approval_projection.py::test_every_declared_image_relationship_is_semantic_and_exact`
+الأمر يجمع full backend regression، والنتيجة:
 
-الـActual الحالي وفق القرار الأحدث:
+`3 failed, 891 passed, 2 skipped, 5 warnings`
 
-`VOC-05 / image / lexical_stimulus / سَمَك`
+الاختبارات الثلاثة الوحيدة الفاشلة:
 
-بينما `STEP_MEDIA` التاريخي داخل `content_approval_contract_2026_09_08.py` ما يزال يتوقع:
+1. `tests/test_account_lockouts.py::test_admin_lockout_threshold_expiry_and_recovery`
+2. `tests/test_account_lockouts.py::test_student_lockout_clears_after_successful_authentication`
+3. `tests/test_account_lockouts.py::test_admin_and_student_lockout_namespaces_are_isolated`
 
-`VOC-05 / image / context / سمك`
+كلها تفشل في:
 
-الاختبارات الجديدة الخاصة بـW4 media semantics نجحت. **لا ترجع المنتج إلى context ولا تضعف/تتخطى الاختبار القديم.** المطلوب حل Root Cause: توحيد owner-of-truth للـfinal release بحيث تحفظ Sep-08 كتاريخ عند الحاجة وتستهلك authority الأحدث المعتمدة في التحقق النهائي.
+`services/api/services/account_lockouts.py:40`
 
-## أول مهمة الآن
+عند `db.flush()` بسبب PostgreSQL:
 
-ابدأ من هذه النقطة فقط:
+`UndefinedTable: relation "account_lockout_states" does not exist`
 
-1. Fetch live execution HEAD وفرق commits بعد `e642aa4...` للتأكد أن ما بعده توثيق فقط قبل لمس الكود.
-2. اقرأ:
-   - `services/api/content_approval_contract_2026_09_08.py`
-   - `services/api/w4_media_semantics.py`
-   - `services/api/canonical_release.py`
-   - `services/api/test_sep8_approval_projection.py`
-   - `services/api/test_w4_lexical_media_semantics.py`
-   - owner/client approval doc.
-3. أصلح تضارب authority من الجذر، لا symptom.
-4. لا تغيّر R01/R02/R04 بدون evidence؛ العقد الحالي يغيّر R03/R05 فقط.
-5. لا skip/xpass/delete للاختبارات.
-6. بعد root fix، commit على execution branch.
-7. حرّك `stage/a10-w4-ci` **fast-forward** إلى exact new audit HEAD؛ هذا فرع تشغيل فقط ولا يُدمج.
-8. تحقق أن Quality Gate الجديد يحمل نفس `head_sha`.
-9. لا تغلق `AUD-MEDIA-002` أو W4 إلا بعد نجاح Backend + Frontend + Security + Integration/Playwright كلها على نفس SHA.
-10. بعد Green فقط: حدّث checkpoint/STATUS/progress/gap overlay إلى W4 GREEN ثم ابدأ W5 وفق Master Gap Register.
+## Root-cause evidence الحالي
 
-## بعد W4
+الـM09 الحالي يرتب التنفيذ هكذا تقريبًا:
 
-الترتيب إلزامي:
+1. Start native PostgreSQL/Redis.
+2. Install backend dependencies.
+3. **Run full backend product regression.**
+4. Reset database.
+5. Canonical release validation.
+6. Alembic migration/readiness/idempotency.
+7. MinIO/runtime/frontend/Playwright/backup-restore.
 
-`W4 → W5 → W6`
+إذًا الـpytest الحالي يبدأ قبل migration/bootstrap الذي ينشئ schema الحالي. هذه **مرشحة root cause قوية مدعومة بالـworkflow والـfailure**، لكن قبل التعديل تحقق من migration/schema owner الفعلي لـ`account_lockout_states` ومن testing policy.
 
-عند W6 Green توقف. لا تنفذ A11/Deploy/Railway/Production/final merge إلا بتكليف صريح جديد.
+لا تصلحها عبر skip/xpass، ولا بإنشاء الجدول يدويًا داخل الاختبار، ولا بإضعاف lockout behavior، ولا بإزالة backend regression من M09.
 
-## قيود ثابتة
+## أول مهمة تنفيذية الآن
 
-No Docker. No fake ASR. No Temporary Audio Skip. No history deletion. No Speech/Pronunciation Lab merge. No final merge. No weakened tests. No runtime repair overlays. لا PASS/CLOSED بلا exact-SHA evidence. Production ASR (`AUD-A03-008`) يبقى blocked حتى external provider/calibration/privacy/cost/governance approval.
+1. Fetch live HEAD وتحقق أن التغييرات بعد `565ba409...` توثيق فقط؛ إذا وُجد كود أحدث افهمه أولًا.
+2. اقرأ تحديدًا:
+   - `.github/workflows/m09-release-readiness.yml`
+   - `services/api/tests/test_account_lockouts.py`
+   - `services/api/services/account_lockouts.py`
+   - model/migration التي تملك `account_lockout_states`
+   - Quality Gate backend schema/bootstrap steps في `.github/workflows/ci.yml`
+3. حدّد لماذا Quality Gate backend يمر بينما M09 backend regression يبدأ بدون الجدول.
+4. أصلح **workflow/schema bootstrap root cause** بحيث product regression يعمل على schema migrated صحيح، مع بقاء clean reset اللاحق واختبارات canonical release/migrations/idempotency كما هي.
+5. لا تستخدم Docker؛ PostgreSQL/Redis native وMinIO pinned كما هو موثق.
+6. Commit الإصلاح على execution branch.
+7. لأن SHA تغيّر، شغّل/تحقق من **Quality Gate كامل + M09 Release Readiness على نفس exact new SHA**.
+8. لا تعتبر W6 Green إذا نجح Quality Gate وحده. يجب أن يصل M09 إلى نهايته ويجتاز أيضًا:
+   - backend product regression
+   - canonical release/migration/readiness checks
+   - declared release Playwright suite
+   - PostgreSQL backup/restore
+   - object-storage backup/restore
+9. إذا فشل أي جزء، أصلح root cause وكرر على SHA جديد، بدون retries تُستخدم لإخفاء deterministic failure.
+10. فقط عندما يكون Quality Gate وM09 كاملين GREEN على نفس exact SHA: حدّث W6 closure docs/STATUS/progress/gap overlay، سجّل exact passing SHA/run IDs، ثم **STOP**.
 
-**لا تكتفِ بتقرير حالة. بعد قراءة الملفات والتحقق الحي، نفّذ الإصلاح الفعلي وتابع Quality Gate حتى النتيجة.**
+## حدود لا يجوز تجاوزها
+
+- لا A11.
+- لا Deploy / Railway / Production.
+- لا final merge.
+- لا Docker.
+- لا fake ASR.
+- لا Temporary Audio Skip.
+- لا history deletion.
+- لا Speech/Pronunciation Lab merge.
+- لا weakened tests / skip / xpass.
+- لا runtime repair overlays.
+- لا PASS/CLOSED بلا exact-SHA evidence.
+
+Production ASR (`AUD-A03-008`) يبقى blocked حتى external provider/calibration/privacy/cost/governance approval.
+
+`AUD-SEC-006`: source/local header contract منفذ؛ deployed-header verification يبقى A11 فقط.
+
+`AUD-A11Y-005`: automated executable acceptance منفذ؛ لا تدّعِ manual human screen-reader verification لأنها لم تُنفذ.
+
+`AUD-GIT-001`: لا تعمل final merge تحت هذه الخطة؛ final branch/release governance يبقى ضمن الحد اللاحق/قرار المالك.
+
+## قاعدة الاستمرار
+
+لا تكتفِ بتقرير. بعد قراءة المصادر والتحقق الحي، نفّذ إصلاح M09 من الجذر وتابع الـexact-head gates حتى W6 GREEN أو حتى يظهر blocker خارجي حقيقي. عند W6 GREEN توقف ولا تنتقل إلى A11.

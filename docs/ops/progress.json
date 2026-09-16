@@ -1,13 +1,12 @@
 {
-  "schema_version": 12,
-  "last_updated": "2026-09-16",
+  "schema_version": 13,
+  "last_updated": "2026-09-17",
   "repository": "7eaur/himma-",
   "default_branch": "stage/02-content",
   "execution_branch": "audit/comprehensive-repository-review-2026-09-10",
   "current_phase": "A10",
   "current_wave": "W6 / Final Exact-SHA Acceptance",
-  "current_state": "W5_GREEN_W6_IN_PROGRESS_NO_A11_NO_DEPLOY",
-  "staging_branch": "stage/a10-w6-ci",
+  "current_state": "W5_GREEN_W6_RELEASE_READINESS_BLOCKED_NO_A11_NO_DEPLOY",
   "waves": {
     "W1": {
       "status": "GREEN",
@@ -65,10 +64,41 @@
     },
     "W6": {
       "status": "IN_PROGRESS",
+      "functional_candidate_sha": "565ba4092c4312c55e7e57a8c45e32f8997afd8d",
+      "quality_gate": {
+        "run_number": 885,
+        "run_id": 35136617396,
+        "conclusion": "SUCCESS",
+        "same_sha": true
+      },
+      "responsive_gate": {
+        "workflow": "M04 Responsive",
+        "run_number": 347,
+        "run_id": 35136619472,
+        "conclusion": "SUCCESS",
+        "same_sha": true
+      },
+      "release_readiness": {
+        "workflow": "M09 Release Readiness",
+        "run_number": 207,
+        "run_id": 35136619488,
+        "conclusion": "FAILURE",
+        "failed_step": "Run backend product regression",
+        "test_summary": "3 failed, 891 passed, 2 skipped, 5 warnings",
+        "failed_tests": [
+          "tests/test_account_lockouts.py::test_admin_lockout_threshold_expiry_and_recovery",
+          "tests/test_account_lockouts.py::test_student_lockout_clears_after_successful_authentication",
+          "tests/test_account_lockouts.py::test_admin_and_student_lockout_namespaces_are_isolated"
+        ],
+        "failure": "PostgreSQL UndefinedTable: relation account_lockout_states does not exist during services/api/services/account_lockouts.py db.flush()",
+        "root_cause_candidate": "M09 invokes backend product regression before the workflow database migration/bootstrap sequence; verify the schema owner and initialize the required migration state before pytest without weakening tests, while preserving the later clean reset and canonical readiness checks.",
+        "later_steps": "SKIPPED after backend product regression failure: canonical readiness continuation, release Playwright suite, PostgreSQL backup/restore, object-storage backup/restore"
+      },
       "required_acceptance": [
         "AUD-CI-001",
         "AUD-A08-001",
         "AUD-A08-002",
+        "AUD-A08-003",
         "AUD-A08-004",
         "AUD-A08-005",
         "AUD-A08-006",
@@ -76,26 +106,21 @@
         "AUD-A08-008",
         "AUD-A08-009",
         "AUD-BADGE-006",
-        "AUD-A11Y-005",
-        "AUD-SEC-006",
-        "exact-SHA backend/frontend/security/integration/Playwright gate"
+        "AUD-A11Y-005 executable/automated portion",
+        "AUD-SEC-006 source/local portion",
+        "exact-SHA Quality Gate + exact-SHA M09 Release Readiness"
       ],
-      "current_focus": "Implement deterministic reward lifecycle + same-student current browser acceptance, broad responsive/accessibility acceptance, and local security-header contract; supersede loose legacy browser-flow only after replacement proof."
+      "current_focus": "Fix only the M09 final-readiness schema/bootstrap blocker, then require fresh exact-SHA Quality Gate and M09 success on the same new candidate before W6 closure."
     }
   },
-  "external_approvals": {
-    "badge_assets": {
-      "status": "APPROVED_AND_INTEGRATED",
-      "decision": "docs/ops/HIMMA_W4_OWNER_CLIENT_APPROVAL_2026-09-14.md"
-    },
-    "media_semantics": {
-      "status": "APPROVED_IMPLEMENTED_GREEN",
-      "decision": "docs/ops/HIMMA_W4_OWNER_CLIENT_APPROVAL_2026-09-14.md"
-    },
+  "external_or_later_boundaries": {
     "asr": {
       "status": "EXTERNAL_APPROVAL_BLOCKED",
       "gap_id": "AUD-A03-008"
-    }
+    },
+    "deployed_security_headers": "A11_ONLY_NOT_EXECUTED",
+    "manual_human_screen_reader": "NOT_CLAIMED_A11_OR_MANUAL_OPERATIONAL_VERIFICATION",
+    "final_branch_governance_merge": "NOT_EXECUTED_CURRENT_STOP_BOUNDARY"
   },
   "latest_closed_wave": {
     "wave": "W5",
@@ -104,9 +129,15 @@
     "quality_gate_run_id": 35053591742,
     "status": "GREEN"
   },
-  "latest_checkpoint": "docs/maintenance/HIMMA_A10_W5_GREEN_2026-09-16_AR.md",
+  "latest_functional_candidate": {
+    "sha": "565ba4092c4312c55e7e57a8c45e32f8997afd8d",
+    "quality_gate": "SUCCESS",
+    "release_readiness": "FAILURE",
+    "w6_status": "IN_PROGRESS"
+  },
+  "latest_checkpoint": "docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-17_A10_W6_FINAL_READINESS_BLOCKER_AR.md",
   "gap_status_overlay": "docs/maintenance/HIMMA_MASTER_GAP_REGISTER_STATUS_UPDATE_2026-09-16_AR.md",
-  "next_action": "Continue W6 only: implement missing executable final acceptance starting with full reward lifecycle E2E and deterministic same-student browser journey, then broad responsive/accessibility and local security-header contracts; run exact-head complete Quality Gate on stage/a10-w6-ci and stop at W6 GREEN.",
+  "next_action": "Fetch live HEAD, verify migration/schema ownership for account_lockout_states and M09 workflow order, correct the schema bootstrap before backend product regression without weakening tests, then run exact-head complete Quality Gate and M09 Release Readiness on the same new SHA. Close W6 only if both are green and all M09 readiness/Playwright/backup-restore steps execute successfully.",
   "hard_stop": "Do not execute A11, deploy, Railway, Production, or final merge. Stop when W6 becomes GREEN.",
   "fixed_constraints": [
     "NO_DOCKER",
