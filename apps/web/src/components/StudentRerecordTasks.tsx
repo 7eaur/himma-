@@ -21,7 +21,14 @@ type RerecordTask = {
   stable_key: string;
   title: string;
   expected_reading_text?: string | null;
+  flow: "assessment" | "activity";
 };
+
+function taskEndpoint(sessionType: string, sessionId: number) {
+  return sessionType === "core"
+    ? `/api/activities/session/${sessionId}/rerecord-tasks`
+    : `/api/assessment/session/${sessionId}/rerecord-tasks`;
+}
 
 export default function StudentRerecordTasks() {
   const router = useRouter();
@@ -38,16 +45,19 @@ export default function StudentRerecordTasks() {
       }
       const profile = await profileResponse.json() as StudentProfile;
       const session = profile.active_session;
-      if (!session || session.session_type !== "core") {
+      if (!session || !["core", "pretest", "posttest"].includes(session.session_type)) {
         setTasks([]);
         return;
       }
-      const response = await fetch(`/api/activities/session/${session.id}/rerecord-tasks`, { cache: "no-store" });
+
+      const response = await fetch(taskEndpoint(session.session_type, session.id), { cache: "no-store" });
       if (!response.ok) {
         setTasks([]);
         return;
       }
-      setTasks(await response.json() as RerecordTask[]);
+      const flow: RerecordTask["flow"] = session.session_type === "core" ? "activity" : "assessment";
+      const rows = await response.json() as Omit<RerecordTask, "flow">[];
+      setTasks(rows.map((row) => ({ ...row, flow })));
     } catch {
       // The underlying student screen owns network recovery; this task cue is supplemental.
     }
@@ -66,14 +76,17 @@ export default function StudentRerecordTasks() {
     setOpening(task.submission_id);
     setError("");
     try {
+      const prefix = task.flow === "activity" ? "/api/activities" : "/api/assessment";
       const response = await fetch(
-        `/api/activities/session/${task.session_id}/attempt/${task.item_id}/step/${task.step_id}/rerecord/start`,
+        `${prefix}/session/${task.session_id}/attempt/${task.item_id}/step/${task.step_id}/rerecord/start`,
         { method: "POST" },
       );
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(data?.detail || "تعذر فتح مهمة إعادة التسجيل");
       setTasks((current) => current.filter((value) => value.submission_id !== task.submission_id));
-      router.push(`/student/activity/${task.session_id}`);
+      router.push(task.flow === "activity"
+        ? `/student/activity/${task.session_id}`
+        : `/student/session/${task.session_id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "تعذر فتح مهمة إعادة التسجيل");
       setOpening(null);
@@ -88,7 +101,7 @@ export default function StudentRerecordTasks() {
       <div className={styles.icon}><Mic2 size={22} aria-hidden="true" /></div>
       <div className={styles.copy}>
         <strong>{task.title || "إعادة تسجيل القراءة"}</strong>
-        <span>التسجيل السابق يحتاج محاولة جديدة. يمكنك متابعة مسارك وفتح هذه المهمة عندما تكون مستعدًا.</span>
+        <span>طلب المشرف محاولة جديدة لهذه القراءة. أكمل مسارك بشكل طبيعي، وافتح المهمة عندما تكون مستعدًا.</span>
         {tasks.length > 1 && <small>لديك {tasks.length} مهام إعادة تسجيل جاهزة.</small>}
         {error && <small className={styles.error} role="alert">{error}</small>}
       </div>
