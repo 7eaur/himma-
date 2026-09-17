@@ -69,10 +69,10 @@ describe("Student page", () => {
     render(<StudentPage />);
 
     expect(await screen.findByRole("heading", { name: "مرحبًا يا طالب" })).toBeInTheDocument();
-    expect(screen.getByRole("status", { name: "تعذر تحميل النجوم" })).toBeInTheDocument();
-    expect(screen.getByRole("status", { name: "تعذر تحميل الشارات" })).toBeInTheDocument();
-    expect(screen.getByText("تعذر تحميل نجومك")).toBeInTheDocument();
-    expect(screen.getByText("الشارات غير متاحة الآن")).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "تعذر تحميل النجوم" })).toHaveTextContent("—");
+    expect(screen.getByRole("status", { name: "تعذر تحميل النجوم" })).toHaveTextContent("نجمة");
+    expect(screen.getByRole("status", { name: "تعذر تحميل الشارات" })).toHaveTextContent("الشارات غير متاحة الآن");
+    expect(screen.getByText("تقدمك محفوظ. حاول تحديث الصفحة لاحقًا لعرض شاراتك.")).toBeInTheDocument();
     expect(screen.queryByLabelText("لديك 0 نجمة")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("لا توجد شارات مكتسبة")).not.toBeInTheDocument();
   });
@@ -108,12 +108,12 @@ describe("Student page", () => {
     render(<StudentPage />);
 
     expect(await screen.findByRole("heading", { name: "مرحبًا يا طالب" })).toBeInTheDocument();
-    expect(screen.getByLabelText("لديك 2 نجمة")).toBeInTheDocument();
-    expect(screen.getByText("2 ⭐")).toBeInTheDocument();
+    expect(screen.getByLabelText("لديك 2 نجمة")).toHaveTextContent("2");
+    expect(screen.getByLabelText("لديك 2 نجمة")).toHaveTextContent("نجمة");
     expect(screen.getByLabelText("لديك 1 شارة")).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "شارة مستكشف الحروف" })).toBeInTheDocument();
     expect(screen.getByText("مستكشف الحروف")).toBeInTheDocument();
-    expect(screen.queryByText("تعذر تحميل نجومك")).not.toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: "تعذر تحميل النجوم" })).not.toBeInTheDocument();
   });
 
   it("shows skipped, completed and active levels without claiming skipped work was completed", async () => {
@@ -190,9 +190,10 @@ describe("Student page", () => {
 
     expect(await screen.findByRole("heading", { name: "بانتظار مراجعة التسجيلات" })).toBeInTheDocument();
     expect(screen.getByText("أنهيت أسئلة الاختبار. نتيجتك محفوظة جزئيًا ولن تعتمد أكاديميًا حتى ينتهي المشرف من مراجعة التسجيلات.")).toBeInTheDocument();
+    expect(screen.getByText("بانتظار المراجعة البشرية")).toBeInTheDocument();
+    expect(screen.getByText("إجاباتك محفوظة، واعتماد النتيجة ينتظر مراجعة التسجيلات فقط.")).toBeInTheDocument();
     expect(screen.getByText("تم حفظ إجاباتك")).toBeInTheDocument();
     expect(screen.getByText("المراجعة جارية")).toBeInTheDocument();
-    expect(screen.getByText("تم حفظ تسجيلاتك. لا تحتاج لإعادة الأسئلة، وستظهر النتيجة بعد اكتمال المراجعة.")).toBeInTheDocument();
     const action = screen.getByRole("button", { name: "بانتظار المراجعة" });
     expect(action).toBeDisabled();
     fireEvent.click(action);
