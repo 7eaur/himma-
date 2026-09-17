@@ -197,10 +197,40 @@ test.describe("Himma UX system visual QA regression", () => {
     ]) {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
       await page.goto("/admin/audio-review");
+      const workspace = page.getByTestId("audio-review-queue");
+      const queueItem = page.getByTestId("audio-review-item");
+      await expect(workspace).toBeVisible();
+      await expect(queueItem).toHaveCount(1);
+      await expect(page.getByText("قائمة الانتظار")).toBeVisible();
       await expect(page.getByRole("button", { name: "بدء المراجعة" })).toBeVisible();
+      await expectNoHorizontalOverflow(page);
+
       await page.getByRole("button", { name: "بدء المراجعة" }).click();
-      await expect(page.getByRole("button", { name: "اعتماد القراءة" })).toBeVisible();
-      await expect(page.getByRole("button", { name: "طلب إعادة تسجيل", exact: true })).toBeVisible();
+      const form = page.getByTestId("audio-review-form");
+      await expect(form).toBeVisible();
+      await expect(form.getByRole("heading", { name: "طالب فحص بصري" })).toBeVisible();
+      await expect(form.getByText("يَقْرَأُ سَالِمٌ كِتَابًا.")).toBeVisible();
+      await expect(form.getByRole("button", { name: /تشغيل التسجيل/ })).toBeVisible();
+      await expect(form.getByRole("button", { name: /اعتماد القراءة/ })).toBeVisible();
+      await expect(form.getByRole("button", { name: /طلب إعادة تسجيل/ })).toBeVisible();
+
+      const approveBox = await form.getByRole("button", { name: /اعتماد القراءة/ }).boundingBox();
+      const rerecordBox = await form.getByRole("button", { name: /طلب إعادة تسجيل/ }).boundingBox();
+      expect(approveBox?.height ?? 0).toBeGreaterThanOrEqual(72);
+      expect(rerecordBox?.height ?? 0).toBeGreaterThanOrEqual(72);
+
+      const workspaceBox = await workspace.boundingBox();
+      const itemBox = await queueItem.boundingBox();
+      const formBox = await form.boundingBox();
+      expect(workspaceBox).toBeTruthy();
+      expect(itemBox).toBeTruthy();
+      expect(formBox).toBeTruthy();
+      if (viewport.width >= 760) {
+        expect((formBox?.x ?? 0) + (formBox?.width ?? 0)).toBeLessThanOrEqual((workspaceBox?.x ?? 0) + (workspaceBox?.width ?? 0) + 1);
+      } else {
+        expect(formBox?.y ?? 0).toBeGreaterThan((itemBox?.y ?? 0));
+      }
+
       await expectNoHorizontalOverflow(page);
       await page.screenshot({ path: path.join(SCREENSHOT_DIR, `${viewport.name}-audio-review-decision.png`), fullPage: true });
     }
