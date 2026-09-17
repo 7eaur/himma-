@@ -1,5 +1,6 @@
 /* Shared operational hierarchy for Admin workflows.
- * Keep the dashboard summary-oriented and make review forms decision-first.
+ * Keep the dashboard summary-oriented, make review forms decision-first, and
+ * keep Content Preview visually faithful to the student question system.
  */
 
 [data-testid="audio-review-queue"] {
@@ -64,6 +65,58 @@
   min-height: 5.25rem;
 }
 
+/* Content Preview mirrors the same density rules as the student surface. */
+[data-testid="admin-content-preview-stage"] {
+  box-shadow: none !important;
+}
+
+[data-testid="admin-content-preview-stage"] [data-preview-question] {
+  max-width: 46rem;
+  margin-inline: auto;
+  font-size: clamp(1.5rem, 2.8vw, 2.25rem) !important;
+  line-height: 1.5 !important;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+[data-testid="admin-content-preview-stage"] [data-preview-stimulus] {
+  width: fit-content;
+  min-width: min(10rem, 100%);
+  max-width: min(100%, 42rem);
+  margin-inline: auto;
+  padding: clamp(0.75rem, 2vw, 1.1rem) clamp(1rem, 3vw, 1.5rem) !important;
+  font-size: clamp(1.3rem, 3vw, 2rem) !important;
+  line-height: 1.55 !important;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+[data-testid="admin-content-preview-stage"] [data-testid="preview-image-options"] {
+  width: min(100%, 46rem);
+  margin-inline: auto;
+  grid-template-columns: repeat(auto-fit, minmax(min(9.5rem, 100%), 1fr));
+  gap: 0.7rem;
+}
+
+[data-testid="admin-content-preview-stage"] [data-testid="preview-image-options"] > div {
+  min-height: 0;
+  height: auto;
+  padding: 0.5rem;
+}
+
+[data-testid="admin-content-preview-stage"] [data-testid="preview-image-options"] img {
+  width: 100%;
+  height: auto;
+  max-height: 9rem;
+  object-fit: contain;
+}
+
+[data-testid="preview-context-reading-text"] {
+  max-width: 46rem;
+  margin-inline: auto;
+  text-wrap: pretty;
+}
+
 @media (max-width: 720px) {
   [data-testid="audio-review-item"] > div:first-child {
     gap: 0.5rem;
@@ -87,5 +140,26 @@
 
   [data-testid="admin-attention-summary"] {
     grid-template-columns: 1fr;
+  }
+
+  [data-testid="admin-content-preview-stage"] [data-preview-question] {
+    max-width: 22rem;
+    font-size: clamp(1.15rem, 5.5vw, 1.5rem) !important;
+  }
+
+  [data-testid="admin-content-preview-stage"] [data-preview-stimulus] {
+    max-width: min(100%, 21rem);
+    padding: 0.7rem 0.9rem !important;
+    border-radius: 1rem;
+    font-size: clamp(1.2rem, 5.7vw, 1.7rem) !important;
+  }
+
+  [data-testid="admin-content-preview-stage"] [data-testid="preview-image-options"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+  }
+
+  [data-testid="admin-content-preview-stage"] [data-testid="preview-image-options"] img {
+    max-height: 7.25rem;
   }
 }
