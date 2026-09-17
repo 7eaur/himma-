@@ -188,9 +188,11 @@ describe("Student page", () => {
     render(<StudentPage />);
 
     expect(await screen.findByRole("heading", { name: "بانتظار مراجعة التسجيلات" })).toBeInTheDocument();
-    expect(screen.getByText("بانتظار التقييم الصوتي")).toBeInTheDocument();
-    expect(screen.getByText("اكتملت الأسئلة، والمتبقي مراجعة التسجيلات فقط.")).toBeInTheDocument();
-    const action = screen.getByRole("button", { name: "تم إرسال التسجيلات للمراجعة" });
+    expect(screen.getByText("أنهيت أسئلة الاختبار. نتيجتك محفوظة جزئيًا ولن تعتمد أكاديميًا حتى ينتهي المشرف من مراجعة التسجيلات.")).toBeInTheDocument();
+    expect(screen.getByText("تم حفظ إجاباتك")).toBeInTheDocument();
+    expect(screen.getByText("المراجعة جارية")).toBeInTheDocument();
+    expect(screen.getByText("تم حفظ تسجيلاتك. لا تحتاج لإعادة الأسئلة، وستظهر النتيجة بعد اكتمال المراجعة.")).toBeInTheDocument();
+    const action = screen.getByRole("button", { name: "بانتظار المراجعة" });
     expect(action).toBeDisabled();
     fireEvent.click(action);
     expect(push).not.toHaveBeenCalled();
