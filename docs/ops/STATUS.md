@@ -2,57 +2,128 @@
 
 **Last updated:** 2026-09-17  
 **Repository:** `7eaur/himma-`  
-**Execution branch:** `audit/comprehensive-repository-review-2026-09-10`  
-**Current state:** `A00–A09 CLOSED — W1–W6 GREEN — STOP — NO A11 / NO MERGE / NO DEPLOY`
+**Official branch:** `stage/02-content`  
+**Active UX branch:** `fix/ux-system-rebuild-2026-09-17`
 
-## W6 closure evidence
+## Current state
 
-Exact tested functional SHA:
+The previous W1–W6 audit/release sequence is closed. The platform has since been merged and deployed to Railway, and a new UX-system rebuild is now active on a separate branch.
 
-`c5174f33b11be80500fdd72c0456efbef062f5ad`
+### Official / Production baseline
 
-Commit: `fix(auth): count only failed login attempts`.
+Official branch SHA currently verified before this UX batch:
 
-| Gate | Exact evidence | Conclusion |
-|---|---|---|
-| Quality Gate | #902 / Run `35198824643` | SUCCESS |
-| M09 Release Readiness | #211 / Run `35198824646` / job `105128375595` | SUCCESS |
-| QG backend | `893 passed, 5 warnings` | PASS |
-| QG Integration Playwright | `20 passed (3.8m)` | PASS |
-| M09 declared Playwright suite | `19 passed (4.4m)` | PASS |
-| PostgreSQL backup/restore | `PostgreSQL restore verification passed.` | PASS |
-| Object storage backup/restore | 43 objects backed up and restored/verified | PASS |
-| Backup artifact policy | no data backup artifact uploaded from CI | PASS |
+`765c42d769624ad13683798f68177f6597f2149f`
 
-Any later documentation commit is docs-only and does not replace this tested SHA.
+Evidence:
 
-## Root cause and fix
+- Integration Quality Gate #911 / Run `35241996615`: SUCCESS.
+- M09 #215 / Run `35241996654`: SUCCESS.
+- Official Quality Gate #912 / Run `35243714139`: SUCCESS.
+- Railway deployed the same official SHA for `himma-api` and `himma-web`.
+- PostgreSQL, Redis and `himma-audio` object storage were present and healthy at the verified deployment checkpoint.
+- Production `/api/health` returned 200.
+- Production `/api/ready` returned 200 with config/database/content/approved_audio/storage/redis/security_mode checks healthy.
+- Canonical runtime remained 125 items / 44 skills.
 
-M09 #210 failed because three release tests received `429` from `POST /auth/login`; the first was `vertical-slice.spec.ts` in `loginAsSupervisor`. The protected runtime limiter incremented both IP and identifier counters before credential validation, but successful authentication cleared only the identifier counter. Valid logins from the shared CI IP therefore exhausted the 20-attempt IP budget.
+This production baseline remains the currently published version until the UX branch is merged and redeployed.
 
-The fix separates checking from recording: pre-auth calls only check existing counters, and `record_auth_rate_limit_failure()` increments IP and identifier only after invalid credentials. Successful authentication still clears the identifier failure counter; the shared IP counter still aggregates invalid attempts across rotating identifiers; Redis remains fail-closed.
+## Active UX rebuild
 
-Changed functional files:
+Branch:
 
-- `services/api/auth_rate_limit.py`
-- `services/api/auth.py`
-- `services/api/test_w2_security_runtime.py`
-- `docs/ops/STATUS.md` in the functional commit for active-slice traceability
+`fix/ux-system-rebuild-2026-09-17`
 
-No schema/migration, content, academic rule, audio contract, retry, timeout, skip, xfail, assertion weakening, or runtime repair overlay changed.
+Latest exact **functional** SHA tested before documentation-only continuation commits:
 
-## Closed work
+`09be49102d1aab8f09cf1a3267ccd073c46c7397`
 
-A00–A09 and W1–W6 are closed. Do not reopen without new regression evidence. Historical M09 #210 and earlier PostgreSQL/trial/MinIO blockers remain documented as history, not current blockers.
+Quality Gate #917 / Run `35261495545`: **SUCCESS**.
 
-## Remaining outside W6
+All four jobs passed on that exact SHA:
 
-- `AUD-A03-008`: Production ASR external approval.
-- `AUD-SEC-006`: deployed-header verification in A11/later.
-- `AUD-A11Y-005`: manual human screen-reader verification not claimed.
-- `AUD-GIT-001`: final merge not executed.
-- A11 / Deploy / Railway / Production require explicit new authorization.
+- Security: SUCCESS.
+- Frontend: SUCCESS (TypeScript, ESLint, unit tests, Next.js build).
+- Backend: SUCCESS (PostgreSQL, canonical validation, Alembic roundtrip/drift, seed idempotency, backend tests).
+- Integration: SUCCESS, including Playwright.
 
-## Hard stop
+Playwright report artifact:
 
-No Docker. No fake ASR. No Temporary/Student Audio Skip. No history deletion. No Speech/Pronunciation Lab merge. No final merge. No weakened tests. No runtime repair overlays. **STOP after W6 GREEN.**
+- Artifact ID `10515801114`.
+- Digest `sha256:12ce698a4bda93921eec73414b15f59efb24050c648a9a02d90ef370df145a74`.
+
+## UX batch scope approved from owner screenshots/review
+
+The current work is not a set of screenshot-specific patches. It is split into five root-cause batches:
+
+### A — Student Question System
+
+- Responsive stimulus typography/container sizing.
+- Smaller mobile question title.
+- Image-option cards that follow image/content rather than creating tall empty boxes.
+- Compact ordered/sequence image interaction.
+- Preserve rapid audio switching/race-condition fixes.
+- Apply the same visual rules to Assessment, Activity and Admin Content Preview.
+
+### B — Student Dashboard & Journey
+
+- Dashboard is a journey surface, not equal-weight cards.
+- Identity/current level/current state first.
+- Primary next action second.
+- Pretest → learning level → activities/reinforcement → posttest journey hierarchy.
+- Real progress/results/stars/badges only.
+- Pending Audio and explicit Rerecord remain visible without hijacking unrelated current work.
+
+### C — Admin Audio Review Workflow
+
+- Compact queue layout on mobile/desktop.
+- Clear listen/start-review actions.
+- Decision-first review form: approve or request rerecord, then relevant evidence fields.
+- Reduce empty space and oversized buttons/forms.
+
+### D — Admin Dashboard & Notifications
+
+- Do not repeat one dashboard card for every pending recording.
+- Dashboard shows aggregate operational counts.
+- Individual events remain in Notification Center / Review Queue.
+
+### E — Remaining Admin UX
+
+- Student profile mobile tabs/layout.
+- Add Student flow.
+- Content Preview fidelity.
+- Unified transient feedback/toast behavior.
+
+## Audio journey contract — must not regress
+
+- Submitted assessment recording does **not** block later unanswered questions.
+- Academic finalization remains blocked while required recordings are pending supervisor review.
+- Rerecord is an explicit task; it does not automatically hijack the current question/activity.
+- Previous recordings remain historical evidence.
+- Human Supervisor Review remains the academic authority while production ASR provider approval is pending.
+- No Fake ASR, Student Audio Skip, Temporary Audio Skip or bypass.
+
+## Current boundary / what remains
+
+The UX candidate is **not merged and not deployed** yet.
+
+Required before merge/release:
+
+1. Review Playwright screenshots/visual evidence on phone + tablet + desktop against the owner-reported screenshots and A–E contracts.
+2. Fix any visual mismatch found; rerun exact-head Quality Gate if code changes.
+3. Run M09 Release Readiness on the final UX functional SHA.
+4. Only after QG + M09 + Visual QA are green, fast-forward/merge to `stage/02-content`.
+5. Run official exact-head CI after merge if the SHA changes.
+6. Deploy Railway and verify deployed SHA, `/health`, `/ready`, login, Student Dashboard, question sizing, Audio Review, Pending Audio and Rerecord on Production.
+7. Update final release evidence docs.
+
+Do not mark this UX batch CLOSED before those steps complete.
+
+## Persistent open/external items
+
+- Production ASR provider approval remains external/deferred.
+- Manual human screen-reader acceptance remains not claimed.
+
+## Hard constraints
+
+No fake ASR. No Student/Temporary Audio Skip. No history deletion. No Speech/Pronunciation Lab merge. No weakened tests, skip/xfail, retry-based masking, or runtime repair overlays. No PASS/CLOSED claim without exact-SHA evidence.
