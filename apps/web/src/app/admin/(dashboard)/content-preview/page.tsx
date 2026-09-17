@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { BookOpenCheck, Eye, Headphones, ImageIcon, RefreshCw, Volume2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpenCheck, Eye, Headphones, ImageIcon, RefreshCw, Volume2 } from "lucide-react";
 import { AdminAction, AdminEmptyState, AdminPage, AdminPageHeader, AdminPanel } from "@/components/admin/AdminUI";
 
 type Kind = "pretest_question" | "posttest_question" | "core_activity" | "reinforcement_activity";
@@ -105,7 +105,7 @@ function ReadOnlyOptions({ interaction, options, assets }: { interaction: Intera
   if (imageMode) {
     return <div className="grid grid-cols-2 lg:grid-cols-4 gap-3" data-testid="preview-image-options">{options.map((option) => {
       const asset = imageByOption.get(option.id);
-      return <div key={option.id} className="min-h-40 rounded-2xl border border-border bg-white p-3 flex items-center justify-center overflow-hidden">{asset ? <Image src={asset.url} alt={asset.semantic_text || option.text || "خيار مصور"} width={220} height={160} className="max-h-40 w-auto object-contain" unoptimized /> : <div className="text-muted text-sm flex flex-col items-center gap-2"><ImageIcon size={26} /><span>صورة غير متاحة</span></div>}</div>;
+      return <div key={option.id} className="min-h-0 rounded-2xl border border-border bg-white p-2 flex items-center justify-center overflow-hidden">{asset ? <Image src={asset.url} alt={asset.semantic_text || option.text || "خيار مصور"} width={220} height={160} className="max-h-40 w-auto object-contain" unoptimized /> : <div className="text-muted text-sm flex flex-col items-center gap-2"><ImageIcon size={26} /><span>صورة غير متاحة</span></div>}</div>;
     })}</div>;
   }
 
@@ -115,7 +115,7 @@ function ReadOnlyOptions({ interaction, options, assets }: { interaction: Intera
 function PromptAudio({ assets }: { assets: Asset[] }) {
   const audio = assets.filter((asset) => asset.asset_type === "audio");
   if (!audio.length) return null;
-  return <div className="rounded-2xl border border-border bg-white p-4 space-y-3"><div className="flex items-center gap-2 text-sm font-bold text-navy"><Volume2 size={18} className="text-primary" /> الصوت المعتمد</div>{audio.map((asset) => <audio key={asset.asset_id} src={asset.url} controls preload="metadata" className="w-full" />)}</div>;
+  return <div className="rounded-2xl border border-border bg-white p-4 space-y-3"><div className="flex items-center gap-2 text-sm font-bold text-navy"><Volume2 size={18} className="text-primary" /> الصوت الذي يسمعه الطالب</div>{audio.map((asset) => <audio key={asset.asset_id} src={asset.url} controls preload="metadata" className="w-full" />)}</div>;
 }
 
 function AssessmentPreview({ payload }: { payload: AssessmentPayload }) {
@@ -124,15 +124,15 @@ function AssessmentPreview({ payload }: { payload: AssessmentPayload }) {
   const stimulusText = String(p.stimulus?.text || "");
   const contextImage = payload.item_assets.find((asset) => asset.asset_type === "image")
     || step.assets.find((asset) => asset.asset_type === "image" && !asset.option_id);
-  return <div className="max-w-4xl mx-auto rounded-[28px] border border-border bg-bg p-4 sm:p-6 lg:p-8 shadow-sm" dir="rtl">
+  return <div className="max-w-4xl mx-auto rounded-[28px] border border-border bg-bg p-4 sm:p-6 lg:p-8 shadow-sm" dir="rtl" data-testid="admin-content-preview-stage">
     <div className="flex flex-wrap items-center justify-between gap-3 mb-6"><div><p className="text-sm text-primary font-bold">{p.section}</p><h2 className="text-xl sm:text-2xl font-extrabold text-navy mt-1">{p.skill}</h2></div><span className="rounded-full bg-white border border-border px-4 py-2 text-sm font-bold text-navy">السؤال {p.question_number}</span></div>
     <div className="rounded-3xl bg-white border border-border p-5 sm:p-7 space-y-5">
       <p className="text-primary font-bold">{p.encouragement}</p>
-      <h3 className="text-2xl sm:text-3xl font-extrabold text-navy leading-relaxed">{p.question_text}</h3>
+      <h3 className="text-2xl sm:text-3xl font-extrabold text-navy leading-relaxed" data-preview-question>{p.question_text}</h3>
       {contextImage && <div className="flex justify-center"><Image src={contextImage.url} alt={contextImage.semantic_text || "صورة توضيحية"} width={520} height={300} className="max-h-72 w-auto object-contain rounded-2xl" unoptimized /></div>}
-      {stimulusText && <div className="rounded-2xl bg-bg border border-border px-5 py-5 text-center text-2xl font-bold text-navy leading-loose">{stimulusText}</div>}
+      {stimulusText && <div className="rounded-2xl bg-bg border border-border px-5 py-5 text-center text-2xl font-bold text-navy leading-loose" data-preview-stimulus>{stimulusText}</div>}
       <PromptAudio assets={step.assets} />
-      {step.expected_reading_text && <div className="rounded-2xl bg-bg border border-border px-5 py-5 text-center text-2xl font-bold text-navy leading-loose">{step.expected_reading_text}</div>}
+      {step.expected_reading_text && <div className="rounded-2xl bg-bg border border-border px-5 py-5 text-center text-2xl font-bold text-navy leading-loose" data-preview-stimulus>{step.expected_reading_text}</div>}
       <div className="rounded-2xl bg-bg border border-border px-4 py-3 text-sm sm:text-base text-navy"><span className="font-bold">التعليمة: </span>{p.instruction_text}</div>
       <ReadOnlyOptions interaction={payload.interaction_type} options={step.options} assets={step.assets} />
     </div>
@@ -156,10 +156,10 @@ function LearningPreview({ payload }: { payload: LearningPayload }) {
     const imageAsset = intro.image_asset_id
       ? payload.item.assets.find((asset) => asset.asset_id === intro.image_asset_id && asset.asset_type === "image")
       : undefined;
-    return <div className="max-w-4xl mx-auto rounded-[28px] border border-border bg-bg p-4 sm:p-6 lg:p-8 shadow-sm" dir="rtl" data-testid="preview-context-intro">
-      <div className="rounded-3xl bg-white border border-border p-5 sm:p-7 space-y-5">
-        <div className="flex items-center gap-3"><Headphones className="text-primary" /><div><p className="text-xs text-muted">{isAudioStory ? "مرحلة استماع مستقلة قبل الأسئلة" : "سياق مستقل قبل الأسئلة"}</p><h3 className="font-extrabold text-navy text-2xl">{intro.title || "استعد للنشاط"}</h3></div></div>
-        {intro.kind === "reading_context" && intro.text && <div className="rounded-2xl bg-bg border border-border px-5 py-5 text-xl font-bold text-navy leading-loose" data-testid="preview-context-reading-text">{intro.text}</div>}
+    return <div className="max-w-4xl mx-auto rounded-[28px] border border-border bg-bg p-4 sm:p-6 lg:p-8 shadow-sm" dir="rtl" data-testid="admin-content-preview-stage">
+      <div className="rounded-3xl bg-white border border-border p-5 sm:p-7 space-y-5" data-testid="preview-context-intro">
+        <div className="flex items-center gap-3"><Headphones className="text-primary" /><div><p className="text-xs text-muted">{isAudioStory ? "مرحلة استماع مستقلة قبل الأسئلة" : "سياق مستقل قبل الأسئلة"}</p><h3 className="font-extrabold text-navy text-2xl" data-preview-question>{intro.title || "استعد للنشاط"}</h3></div></div>
+        {intro.kind === "reading_context" && intro.text && <div className="rounded-2xl bg-bg border border-border px-5 py-5 text-xl font-bold text-navy leading-loose" data-testid="preview-context-reading-text" data-preview-stimulus>{intro.text}</div>}
         {imageAsset && <div className="flex justify-center"><Image src={imageAsset.url} alt={imageAsset.semantic_text || "صورة تمهيدية"} width={520} height={300} className="max-h-72 w-auto object-contain rounded-2xl" unoptimized /></div>}
         {isAudioStory && audioAsset && <audio src={audioAsset.url} controls preload="metadata" className="w-full" data-testid="preview-context-audio" onEnded={() => setIntroPlaybackComplete(true)} />}
         {isAudioStory && !audioAsset && <div className="alert-error">الصوت المعتمد لشاشة الاستماع غير مرتبط بهذا النشاط، لذلك لا يمكن تجاوز المقدمة في المعاينة.</div>}
@@ -175,19 +175,19 @@ function LearningPreview({ payload }: { payload: LearningPayload }) {
   const imageFirst = payload.item.layout_hint === "image_stimulus";
   const stimulusFirst = payload.item.layout_hint === "stimulus_then_question";
   const contextNode = contextImage ? <div className="flex justify-center"><Image src={contextImage.url} alt={contextImage.semantic_text || "صورة النشاط"} width={520} height={300} className="max-h-72 w-auto object-contain rounded-2xl" unoptimized /></div> : null;
-  const stimulusNode = stimulusText ? <div className="rounded-2xl bg-bg border border-border px-5 py-5 text-center text-2xl font-bold text-navy leading-loose">{stimulusText}</div> : null;
-  return <div className="max-w-4xl mx-auto space-y-5" dir="rtl">
+  const stimulusNode = stimulusText ? <div className="rounded-2xl bg-bg border border-border px-5 py-5 text-center text-2xl font-bold text-navy leading-loose" data-preview-stimulus>{stimulusText}</div> : null;
+  return <div className="max-w-4xl mx-auto space-y-5" dir="rtl" data-testid="admin-content-preview-stage">
     <div className="rounded-[28px] border border-border bg-bg p-4 sm:p-6 lg:p-8 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6"><div><p className="text-sm text-primary font-bold">{KIND_LABEL[payload.item.kind]}</p><h2 className="text-xl sm:text-2xl font-extrabold text-navy mt-1">{payload.item.title}</h2></div><span className="rounded-full bg-white border border-border px-4 py-2 text-sm font-bold text-navy">الجولة {round + 1} من {payload.rounds.length}</span></div>
       <div className="rounded-3xl bg-white border border-border p-5 sm:p-7 space-y-5">
         {step.encouragement && <p className="text-primary font-bold">{step.encouragement}</p>}
         {imageFirst && contextNode}
         {stimulusFirst && stimulusNode}
-        <h3 className="text-2xl sm:text-3xl font-extrabold text-navy leading-relaxed">{step.question_text || step.prompt_text}</h3>
+        <h3 className="text-2xl sm:text-3xl font-extrabold text-navy leading-relaxed" data-preview-question>{step.question_text || step.prompt_text}</h3>
         {!stimulusFirst && stimulusNode}
         {!imageFirst && contextNode}
         <PromptAudio assets={step.assets} />
-        {step.expected_reading_text && <div className="rounded-2xl bg-bg border border-border px-5 py-5 text-center text-2xl font-bold text-navy leading-loose">{step.expected_reading_text}</div>}
+        {step.expected_reading_text && <div className="rounded-2xl bg-bg border border-border px-5 py-5 text-center text-2xl font-bold text-navy leading-loose" data-preview-stimulus>{step.expected_reading_text}</div>}
         <div className="rounded-2xl bg-bg border border-border px-4 py-3 text-sm sm:text-base text-navy"><span className="font-bold">التعليمة: </span>{step.instruction_text}</div>
         <ReadOnlyOptions interaction={payload.item.interaction_type} options={step.options} assets={step.assets} />
         {step.hint && <div className="rounded-2xl border border-dashed border-border p-4 text-sm text-muted"><span className="font-bold text-navy">تلميح الخطأ: </span>{step.hint}</div>}
@@ -262,18 +262,57 @@ export default function ContentPreviewPage() {
     setSelected(canonicalId);
   };
 
-  const filtered = useMemo(() => (index?.items || []).filter((item) => (kind === "all" || item.kind === kind) && (level === "all" || Number(item.level_id || 0) === Number(level))), [index, kind, level]);
+  const filtered = useMemo(
+    () => (index?.items || []).filter((item) => (kind === "all" || item.kind === kind) && (level === "all" || Number(item.level_id || 0) === Number(level))),
+    [index, kind, level],
+  );
+  const selectedPosition = filtered.findIndex((item) => item.canonical_id === selected);
 
-  return <AdminPage><AdminPageHeader eyebrow="المحتوى المعتمد" icon={Eye} title="معاينة محتوى الطالب" description="معاينة قراءة فقط من نفس عقد المحتوى المنشور للطالب. لا تنشئ جلسات أو محاولات ولا تغيّر التقدم أو الدرجات." actions={<AdminAction icon={RefreshCw} onClick={() => void loadIndex()} disabled={loading}>{loading ? "جاري التحديث..." : "تحديث"}</AdminAction>} />
-    {error && <div className="alert-error">{error}</div>}
+  useEffect(() => {
+    if (!filtered.length) return;
+    if (selectedPosition >= 0) return;
+    setDetailLoading(true);
+    setSelected(filtered[0].canonical_id);
+  }, [filtered, selectedPosition]);
+
+  const movePreview = (offset: -1 | 1) => {
+    if (!filtered.length || selectedPosition < 0) return;
+    const target = filtered[selectedPosition + offset];
+    if (target) selectItem(target.canonical_id);
+  };
+
+  return <AdminPage>
+    <AdminPageHeader
+      eyebrow="المحتوى المعتمد"
+      icon={Eye}
+      title="معاينة محتوى الطالب"
+      description="تنقّل في المحتوى المنشور كما سيظهر للطالب، من نفس بيانات العرض الفعلية وبدون إنشاء جلسة أو محاولة أو تغيير أي تقدم."
+      actions={<AdminAction icon={RefreshCw} onClick={() => void loadIndex()} disabled={loading}>{loading ? "جاري التحديث..." : "تحديث"}</AdminAction>}
+    />
+    {error && <div className="alert-error" role="alert">{error}</div>}
     <div className="grid xl:grid-cols-[330px_minmax(0,1fr)] gap-5 items-start">
       <AdminPanel title="فهرس المحتوى" description={`${filtered.length} عنصرًا في العرض الحالي`}>
-        <div className="grid grid-cols-2 gap-3 mb-4"><label className="text-xs text-muted">النوع<select className="input-field mt-2" value={kind} onChange={(event) => setKind(event.target.value as "all" | Kind)}><option value="all">الكل</option><option value="pretest_question">قبلي</option><option value="core_activity">أساسي</option><option value="reinforcement_activity">تقوية</option><option value="posttest_question">بعدي</option></select></label><label className="text-xs text-muted">المستوى<select className="input-field mt-2" value={level} onChange={(event) => setLevel(event.target.value as "all" | "1" | "2" | "3")}><option value="all">الكل</option><option value="1">الأول</option><option value="2">الثاني</option><option value="3">الثالث</option></select></label></div>
-        {loading ? <div className="min-h-48 flex items-center justify-center"><div className="spinner w-9 h-9" /></div> : filtered.length === 0 ? <AdminEmptyState title="لا توجد عناصر" description="غيّر المرشحات لعرض محتوى آخر." /> : <div className="space-y-2 max-h-[68vh] overflow-auto pe-1">{filtered.map((item) => <button key={item.canonical_id} type="button" onClick={() => selectItem(item.canonical_id)} className={`w-full text-right rounded-2xl border p-3 transition ${selected === item.canonical_id ? "border-primary bg-teal-soft" : "border-border bg-white hover:border-primary/40"}`}><div className="flex items-center justify-between gap-2"><span className="font-bold text-navy text-sm">{item.canonical_id}</span><span className="text-[11px] text-muted">#{item.order_index}</span></div><p className="text-xs text-muted mt-1 line-clamp-2">{KIND_LABEL[item.kind]} · {item.title}</p></button>)}</div>}
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <label className="text-xs text-muted">النوع<select className="input-field mt-2" value={kind} onChange={(event) => setKind(event.target.value as "all" | Kind)}><option value="all">الكل</option><option value="pretest_question">قبلي</option><option value="core_activity">أساسي</option><option value="reinforcement_activity">تقوية</option><option value="posttest_question">بعدي</option></select></label>
+          <label className="text-xs text-muted">المستوى<select className="input-field mt-2" value={level} onChange={(event) => setLevel(event.target.value as "all" | "1" | "2" | "3")}><option value="all">الكل</option><option value="1">الأول</option><option value="2">الثاني</option><option value="3">الثالث</option></select></label>
+        </div>
+        {loading ? <div className="min-h-48 flex items-center justify-center"><div className="spinner w-9 h-9" /></div> : filtered.length === 0 ? <AdminEmptyState title="لا توجد عناصر" description="غيّر المرشحات لعرض محتوى آخر." /> : <div className="space-y-2 max-h-[68vh] overflow-auto pe-1">{filtered.map((item, itemIndex) => <button key={item.canonical_id} type="button" onClick={() => selectItem(item.canonical_id)} className={`w-full text-right rounded-2xl border p-3 transition ${selected === item.canonical_id ? "border-primary bg-teal-soft" : "border-border bg-white hover:border-primary/40"}`} aria-current={selected === item.canonical_id ? "true" : undefined}><div className="flex items-center justify-between gap-2"><span className="font-bold text-navy text-sm">{item.canonical_id}</span><span className="text-[11px] text-muted">{itemIndex + 1} / {filtered.length}</span></div><p className="text-xs text-muted mt-1 line-clamp-2">{KIND_LABEL[item.kind]} · {item.title}</p></button>)}</div>}
       </AdminPanel>
-      <AdminPanel title="شاشة الطالب" description={detail ? `${detail.summary.canonical_id} · ${KIND_LABEL[detail.summary.kind]}` : "اختر عنصرًا من الفهرس"} actions={<span className="inline-flex items-center gap-2 text-xs text-muted"><BookOpenCheck size={16} /> قراءة فقط</span>}>
+
+      <AdminPanel
+        title="شاشة الطالب"
+        description={detail ? `${detail.summary.canonical_id} · ${KIND_LABEL[detail.summary.kind]}` : "اختر عنصرًا من الفهرس"}
+        actions={<span className="inline-flex items-center gap-2 text-xs text-muted"><BookOpenCheck size={16} /> عرض قراءة فقط</span>}
+      >
+        {filtered.length > 0 && selectedPosition >= 0 && (
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-bg px-3 py-2">
+            <button type="button" className="btn-secondary" disabled={selectedPosition === 0 || detailLoading} onClick={() => movePreview(-1)}><ArrowRight size={16} aria-hidden="true" /> السابق</button>
+            <div className="text-center text-xs text-muted"><strong className="block text-sm text-navy">كما يراه الطالب</strong>{selectedPosition + 1} من {filtered.length}</div>
+            <button type="button" className="btn-secondary" disabled={selectedPosition >= filtered.length - 1 || detailLoading} onClick={() => movePreview(1)}>التالي <ArrowLeft size={16} aria-hidden="true" /></button>
+          </div>
+        )}
         {detailLoading ? <div className="min-h-[520px] flex flex-col items-center justify-center gap-3"><div className="spinner w-10 h-10" /><p className="text-muted">جاري تجهيز نفس عقد الطالب...</p></div> : !detail ? <AdminEmptyState title="اختر عنصرًا للمعاينة" description="ستظهر هنا بنية السؤال أو النشاط والوسائط الحالية دون تسجيل أي تقدم." /> : detail.surface === "assessment" ? <AssessmentPreview payload={detail.payload as AssessmentPayload} /> : <LearningPreview key={detail.summary.canonical_id} payload={detail.payload as LearningPayload} />}
-        {detail && <div className="mt-5 rounded-2xl border border-border bg-bg px-4 py-3 text-xs text-muted flex items-center gap-2"><Eye size={16} className="text-primary" /> هذه الصفحة لا ترسل إجابات ولا تنشئ Attempt أو Progress أو AudioSubmission.</div>}
+        {detail && <div className="mt-5 rounded-2xl border border-border bg-bg px-4 py-3 text-xs text-muted flex items-center gap-2"><Eye size={16} className="text-primary" /> المعاينة تستخدم بيانات العرض الفعلية ولا ترسل إجابات ولا تنشئ Attempt أو Progress أو AudioSubmission.</div>}
       </AdminPanel>
     </div>
   </AdminPage>;
