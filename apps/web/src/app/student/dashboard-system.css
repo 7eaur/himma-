@@ -87,8 +87,9 @@
   min-height: 0;
   grid-template-columns: minmax(0, 1fr) 180px;
   border-radius: 1.45rem;
-  background: linear-gradient(105deg, #fff 0 76%, #edf6ff 76%);
-  box-shadow: 0 10px 28px rgba(32, 54, 77, 0.07);
+  background: #fff;
+  border: 1px solid #d8e6f1;
+  box-shadow: 0 6px 20px rgba(32, 54, 77, 0.045);
 }
 
 [data-testid="student-next-action"] > div:first-child {
@@ -110,6 +111,8 @@
 [data-testid="student-next-action"] > div:last-child {
   min-height: 0;
   padding: 0.8rem 0.5rem 0;
+  border-inline-start: 1px solid #e4edf4;
+  background: #f3f8fd;
 }
 
 [data-testid="student-next-action"] > div:last-child::before {
@@ -334,6 +337,8 @@
     min-height: 0;
     padding: 0.8rem 0.15rem 0;
     align-items: flex-end;
+    border-inline-start: 0;
+  
   }
 
   [data-testid="student-next-action"] > div:last-child::before {
