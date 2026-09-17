@@ -1,12 +1,12 @@
 {
-  "schema_version": 14,
+  "schema_version": 15,
   "last_updated": "2026-09-17",
   "repository": "7eaur/himma-",
   "default_branch": "stage/02-content",
   "execution_branch": "audit/comprehensive-repository-review-2026-09-10",
   "current_phase": "A10",
-  "current_wave": "W6 / Final Exact-SHA Acceptance",
-  "current_state": "W5_GREEN_W6_PLAYWRIGHT_RELEASE_READINESS_BLOCKED_NO_A11_NO_DEPLOY",
+  "current_wave": "W6 / Closed Exact-SHA Acceptance",
+  "current_state": "A00_A09_CLOSED_W1_W6_GREEN_STOP_NO_A11_NO_DEPLOY_NO_MERGE",
   "waves": {
     "W1": {
       "status": "GREEN",
@@ -36,72 +36,69 @@
       "status": "GREEN",
       "sha": "728025a8fd5ff1fa182db4085ad18dd45142041a",
       "run_number": 869,
-      "run_id": 35053591742,
-      "backend_tests": "890 passed, 5 warnings",
-      "checkpoint": "docs/maintenance/HIMMA_A10_W5_GREEN_2026-09-16_AR.md"
+      "run_id": 35053591742
     },
     "W6": {
-      "status": "IN_PROGRESS",
-      "functional_candidate_sha": "c67aaadf004b8dbadac6f3849719e5ccdcbcf6f2",
-      "functional_candidate_commit": "ci(w6): build pinned MinIO for M09 readiness",
+      "status": "GREEN",
+      "tested_functional_sha": "c5174f33b11be80500fdd72c0456efbef062f5ad",
+      "functional_commit": "fix(auth): count only failed login attempts",
       "quality_gate": {
-        "run_number": 894,
-        "run_id": 35167788906,
+        "run_number": 902,
+        "run_id": 35198824643,
         "conclusion": "SUCCESS",
-        "same_sha": true
+        "same_sha": true,
+        "security": "SUCCESS",
+        "frontend": "SUCCESS",
+        "backend": "893 passed, 5 warnings",
+        "integration_playwright": "20 passed (3.8m)",
+        "playwright_report_artifact_id": 10487337192
       },
       "release_readiness": {
         "workflow": "M09 Release Readiness",
-        "run_number": 210,
-        "run_id": 35167789050,
-        "job_id": 105032657002,
-        "conclusion": "FAILURE",
-        "failed_step": "Run deterministic browser product regression",
-        "blocker": "playwright_browser_product_regression",
-        "exact_root_cause": "NOT_YET_EXTRACTED_FROM_RUN_LOGS_OR_ARTIFACTS",
-        "successful_before_failure": [
-          "native PostgreSQL and Redis startup",
-          "pinned MinIO source build",
-          "migrations and drift checks",
-          "backend product regression",
-          "clean database reset",
-          "canonical content and release validation",
-          "deterministic publication and idempotency",
-          "MinIO private test bucket initialization",
-          "deterministic runtime database",
-          "frontend build",
-          "API and Web startup",
-          "runtime readiness",
-          "security header and origin checks"
-        ],
-        "downstream_pending": [
-          "PostgreSQL backup/restore",
-          "object-storage backup/restore"
-        ]
+        "run_number": 211,
+        "run_id": 35198824646,
+        "job_id": 105128375595,
+        "conclusion": "SUCCESS",
+        "same_sha": true,
+        "backend_product_regression": "893 passed, 5 warnings",
+        "declared_playwright_product_regression": "19 passed (4.4m)",
+        "postgresql_backup_restore": "PostgreSQL restore verification passed",
+        "object_storage_backup_restore": "43 objects restored and verified",
+        "backup_artifacts": "EPHEMERAL_NOT_UPLOADED"
       },
-      "resolved_readiness_blockers": [
-        "PostgreSQL account_lockout_states migration/bootstrap ordering",
-        "backend regression isolation from protected trial runtime controls without weakening tests",
-        "dead MinIO archived binary URL returning HTTP 410, replaced by pinned source build"
+      "root_cause": "Protected-runtime auth limiting incremented shared IP and identifier counters before credential validation; successful auth cleared only the identifier counter, so valid shared-IP logins exhausted the 20-attempt IP budget and received HTTP 429.",
+      "fix": "Check counters before authentication and increment IP plus identifier counters only after invalid credentials; retain shared-IP aggregation for rotating invalid identifiers, identifier clear on success, and Redis fail-closed behavior.",
+      "functional_files_changed": [
+        "services/api/auth_rate_limit.py",
+        "services/api/auth.py",
+        "services/api/test_w2_security_runtime.py",
+        "docs/ops/STATUS.md"
       ],
-      "required_acceptance": [
-        "AUD-CI-001",
-        "AUD-A08-001",
-        "AUD-A08-002",
-        "AUD-A08-003",
-        "AUD-A08-004",
-        "AUD-A08-005",
-        "AUD-A08-006",
-        "AUD-A08-007",
-        "AUD-A08-008",
-        "AUD-A08-009",
-        "AUD-BADGE-006",
-        "AUD-A11Y-005 executable/automated portion",
-        "AUD-SEC-006 source/local portion",
-        "same exact-SHA full Quality Gate + full M09 Release Readiness"
-      ],
-      "current_focus": "Extract the exact deterministic Playwright failure from M09 #210 logs/artifacts, root-fix it without weakening release evidence, then require fresh full Quality Gate and full M09 on the same new functional SHA. M09 must also complete PostgreSQL and object-storage backup/restore before W6 closure."
+      "unchanged": [
+        "database schema and Alembic migrations",
+        "canonical content and academic rules",
+        "audio governance",
+        "Playwright release coverage and assertions",
+        "timeouts and retries"
+      ]
     }
+  },
+  "latest_closed_wave": {
+    "wave": "W6",
+    "sha": "c5174f33b11be80500fdd72c0456efbef062f5ad",
+    "quality_gate_run_number": 902,
+    "quality_gate_run_id": 35198824643,
+    "release_readiness_run_number": 211,
+    "release_readiness_run_id": 35198824646,
+    "status": "GREEN"
+  },
+  "latest_tested_functional_candidate": {
+    "sha": "c5174f33b11be80500fdd72c0456efbef062f5ad",
+    "quality_gate": "SUCCESS",
+    "quality_gate_run_id": 35198824643,
+    "release_readiness": "SUCCESS",
+    "release_readiness_run_id": 35198824646,
+    "w6_status": "GREEN"
   },
   "external_or_later_boundaries": {
     "asr": {
@@ -109,32 +106,19 @@
       "gap_id": "AUD-A03-008"
     },
     "deployed_security_headers": "A11_ONLY_NOT_EXECUTED",
-    "manual_human_screen_reader": "NOT_CLAIMED_A11_OR_MANUAL_OPERATIONAL_VERIFICATION",
-    "final_branch_governance_merge": "NOT_EXECUTED_CURRENT_STOP_BOUNDARY"
+    "manual_human_screen_reader": "NOT_CLAIMED",
+    "final_branch_governance_merge": "NOT_EXECUTED",
+    "deploy_railway_production": "NOT_AUTHORIZED"
   },
-  "latest_closed_wave": {
-    "wave": "W5",
-    "sha": "728025a8fd5ff1fa182db4085ad18dd45142041a",
-    "quality_gate_run_number": 869,
-    "quality_gate_run_id": 35053591742,
-    "status": "GREEN"
-  },
-  "latest_functional_candidate": {
-    "sha": "c67aaadf004b8dbadac6f3849719e5ccdcbcf6f2",
-    "quality_gate": "SUCCESS",
-    "quality_gate_run_id": 35167788906,
-    "release_readiness": "FAILURE_AT_DETERMINISTIC_BROWSER_PRODUCT_REGRESSION",
-    "release_readiness_run_id": 35167789050,
-    "w6_status": "IN_PROGRESS"
-  },
-  "latest_checkpoint": "docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-17_A10_W6_PLAYWRIGHT_BLOCKER_AR.md",
+  "latest_checkpoint": "docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-17_A10_W6_GREEN_AR.md",
   "gap_status_overlay": "docs/maintenance/HIMMA_MASTER_GAP_REGISTER_STATUS_UPDATE_2026-09-16_AR.md",
-  "next_action": "Fetch live HEAD; keep docs-only descendants distinct from c67aaadf functional evidence; inspect M09 #210 Run 35167789050 job 105032657002 logs/artifacts; extract exact Playwright failure; trace to root cause; fix without skip/xfail/xpass/retries/weakened assertions; create a new functional SHA; require full Quality Gate and full M09 on that same exact SHA; close W6 only after deterministic Playwright plus PostgreSQL and object-storage backup/restore all pass.",
-  "hard_stop": "Do not execute A11, deploy, Railway, Production, manual screen-reader acceptance, or final merge. Stop when W6 becomes GREEN.",
+  "next_action": "STOP. Wait for explicit owner authorization for any A11, deploy, Railway, Production, deployed-header verification, manual screen-reader acceptance, or final merge work.",
+  "hard_stop": "W6 is GREEN. Do not execute A11, deploy, Railway, Production, manual screen-reader acceptance, or final merge without a new explicit assignment.",
   "fixed_constraints": [
     "NO_DOCKER",
     "NO_FAKE_ASR",
     "NO_TEMPORARY_AUDIO_SKIP",
+    "NO_STUDENT_AUDIO_SKIP",
     "NO_HISTORY_DELETION",
     "NO_SPEECH_PRONUNCIATION_LAB_MERGE",
     "NO_FINAL_MERGE",

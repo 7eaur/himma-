@@ -1,124 +1,66 @@
 # ابدأ من هنا — مستودع هِمّة
 
-هذه نقطة الدخول التنفيذية لأي محادثة أو وكيل جديد يعمل على منصة **هِمّة**.
+هذه نقطة الدخول التنفيذية الحالية لمنصة **هِمّة**.
 
-> لا تعتمد على ذاكرة المحادثات أو SHA قديم. ابدأ دائمًا من المستودع الحي ثم استخدم التوثيق الحالي لتحديد نقطة الاستئناف.
-
-## 1) المستودع والفروع
+## المستودع والحالة
 
 - Repository: `7eaur/himma-`
-- Default branch: `stage/02-content`
 - Execution branch: `audit/comprehensive-repository-review-2026-09-10`
 - Current phase: `A10`
-- Current wave: `W6 / Final Exact-SHA Acceptance`
-- Current state: `W1–W5 GREEN; W6 Quality Gate GREEN but M09 blocked at deterministic Playwright; NO A11 / NO MERGE / NO DEPLOY`
+- A00–A09: CLOSED AUDIT.
+- W1–W6: **CLOSED GREEN**.
+- Stop boundary: **NO A11 / NO DEPLOY / NO MERGE** دون تكليف جديد صريح.
 
-قد يكون live HEAD أحدث من آخر functional candidate بسبب commits توثيق فقط. لا تعتبر docs-only SHA دليل اختبار.
-
-## 2) ترتيب القراءة الإلزامي
+## ترتيب القراءة
 
 1. `NEXT_CONVERSATION_PROMPT.md`
 2. `docs/ops/STATUS.md`
 3. `docs/ops/progress.json`
-4. `docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-17_A10_W6_PLAYWRIGHT_BLOCKER_AR.md`
-5. `docs/maintenance/HIMMA_MASTER_GAP_REGISTER_STATUS_UPDATE_2026-09-16_AR.md`
-6. `docs/maintenance/HIMMA_MASTER_GAP_REGISTER_2026-09-10_AR.md`
-7. `docs/maintenance/HIMMA_MASTER_GAP_REGISTER_EXECUTION_ADDENDUM_2026-09-12_AR.md`
-8. `docs/specs/SOURCE_OF_TRUTH.md`
-9. `HIMMA_CORRECTIVE_EXECUTION_ROADMAP_V2_AR.md`
-10. `AGENTS.md` ثم `.agents/rules/00-himma-core.md`, `.agents/rules/10-delivery-protocol.md`, `.agents/rules/20-security-quality.md`.
+4. `docs/ops/RESUME_HERE.md`
+5. `docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-17_A10_W6_GREEN_AR.md`
+6. `docs/maintenance/HIMMA_MASTER_GAP_REGISTER_STATUS_UPDATE_2026-09-16_AR.md`
+7. `docs/specs/SOURCE_OF_TRUTH.md`
+8. السجل التاريخي بعد ذلك فقط.
 
-الـhandoff القديم الخاص بـPostgreSQL/account-lockout يبقى history فقط؛ blockerه تم حله.
+Source of Truth:
 
-## 3) Source of Truth
+`live code → PostgreSQL schema/Alembic → executable tests + exact-SHA CI → canonical contracts → current status/handoff → history`
 
-`live code → PostgreSQL schema/Alembic migrations → executable tests + exact-SHA CI → canonical contracts/approved decisions → current STATUS/progress/handoff → historical audit docs`
+## W6 — exact tested evidence
 
-لا تعلن PASS/CLOSED اعتمادًا على وثيقة فقط.
+Tested functional SHA:
 
-## 4) الحالة الحالية المثبتة
+`c5174f33b11be80500fdd72c0456efbef062f5ad`
 
-- A00–A09: CLOSED AUDIT؛ لا تعاد.
-- W1–W5: GREEN؛ لا تعاد بدون regression evidence جديد.
-- W6: **IN PROGRESS — final M09 Release Readiness blocker only**.
+Commit: `fix(auth): count only failed login attempts`
 
-آخر functional candidate مثبت:
+على هذا SHA نفسه:
 
-`c67aaadf004b8dbadac6f3849719e5ccdcbcf6f2`
+- Quality Gate #902 / Run `35198824643`: **SUCCESS**.
+- M09 Release Readiness #211 / Run `35198824646`, job `105128375595`: **SUCCESS**.
+- Quality Gate backend: `893 passed, 5 warnings`.
+- Quality Gate Integration Playwright: `20 passed (3.8m)`.
+- M09 declared Playwright product regression: `19 passed (4.4m)`.
+- PostgreSQL restore verification: passed.
+- Object-store restore: verified for 43 objects.
+- Backup artifacts remained ephemeral in CI.
 
-Commit:
+أي commit توثيق لاحق هو docs-only وليس functional evidence. استخدم SHA أعلاه كدليل W6.
 
-`ci(w6): build pinned MinIO for M09 readiness`
+## Root cause المغلق
 
-على نفس SHA:
+في M09 #210 كانت ثلاثة اختبارات Playwright تحصل على `429` من `POST /auth/login`. كان `enforce_auth_rate_limit()` يزيد عداد IP قبل التحقق من كلمة المرور، بينما النجاح يمسح عداد المعرّف فقط؛ لذلك كانت تسجيلات الدخول الصحيحة من runner مشترك تستهلك ميزانية IP وتمنع تسجيلًا صحيحًا لاحقًا.
 
-- Quality Gate #894 / Run `35167788906` = **SUCCESS**.
-- M09 Release Readiness #210 / Run `35167789050` = **FAILURE**.
-- M09 job `105032657002`.
+الإصلاح أبقى pre-auth blocking وRedis fail-closed، لكنه سجّل عدادات IP/identifier فقط بعد فشل بيانات الاعتماد. ما زال هجوم المعرفات المتناوبة يستهلك ميزانية IP المشتركة. لم تتغير schema أو عقود المنتج أو الاختبارات/التغطية.
 
-## 5) ما تم حله ولا يعاد
+## العقود والحدود
 
-- PostgreSQL/account-lockout bootstrap/order blocker: **RESOLVED**.
-- Backend regression أصبح يمر على PostgreSQL migrated schema بدون weakening للtests.
-- protected `trial` runtime controls عُزلت عن backend product regression بشكل متعمد، بينما runtime readiness بقي protected/trial.
-- MinIO archive HTTP 410 blocker: **RESOLVED** عبر pinned source-build، بدون Docker.
-
-في M09 #210 كل ما قبل browser regression وصل ونجح، بما يشمل migrations/backend regression/canonical publication/idempotency/MinIO/runtime/frontend/readiness/security/origin checks.
-
-## 6) نقطة التوقف الدقيقة الآن
-
-الـblocker الحالي داخل `AUD-A08-003` هو step:
-
-`Run deterministic browser product regression`
-
-في M09 #210 / Run `35167789050` / job `105032657002`.
-
-لا يوجد في هذا التوثيق ادعاء بسبب Playwright أدق من ذلك. يجب على المنفذ التالي استخراج **exact failure** من logs/artifacts لنفس الـRun ثم تتبع الاختبار والكود/route/API المرتبط إلى root cause.
-
-بسبب هذا الفشل لم يصل M09 إلى proof كامل لـ:
-
-- PostgreSQL backup/restore.
-- object-storage backup/restore.
-
-لذلك W6 ليست GREEN بعد.
-
-## 7) أول عمل عند الاستئناف
-
-1. Fetch live HEAD وصنّف أي descendants بعد `c67aaad...` إلى docs-only أو functional.
-2. افحص M09 #210 / Run `35167789050`, job `105032657002` logs/artifacts.
-3. استخرج failing Playwright test + exact assertion/locator/request/error وأول application failure حقيقي.
-4. افحص `.github/workflows/m09-release-readiness.yml`, `.github/workflows/ci.yml`, `apps/web/tests/TEST_OWNERSHIP.md` والملفات التي يشير إليها failure فقط.
-5. أصلح root cause بدون skip/xfail/xpass/retries/weakened assertions/runtime overlays.
-6. أي code/workflow change = functional SHA جديد.
-7. اطلب **full Quality Gate + full M09 على نفس exact new SHA**.
-8. لا تغلق W6 إلا بعد مرور declared Playwright release suite وPostgreSQL backup/restore وobject-storage backup/restore أيضًا.
-9. عند GREEN الكامل فقط: W6 closure + STATUS/progress/gap/continuity update، مع فصل exact tested SHA عن docs-only commits.
-10. **STOP؛ لا تنتقل إلى A11.**
-
-## 8) عقود المنتج الأساسية
-
-- Placement: `<50 → L1`, `50..<80 → L2`, `80..100 → L3`.
+- Placement: `<50=L1`, `50..<80=L2`, `80..100=L3`.
 - Activity: `>=80 success`, `70..<80 guided retry`, `<70 reinforcement`.
-- L1/L2 early promotion بعد >=6 Core فقط مع canonical mastery/critical evidence.
-- L3 requires 10 Core.
-- No automatic demotion.
-- Manual override ≠ completion/badge.
-- Latest three valid active-session Core evidences تستخدم 50/30/20.
+- L1/L2 promotion بعد >=6 Core مع evidence؛ L3 يتطلب 10 Core؛ لا automatic demotion.
+- Manual override لا يعني completion/badge؛ أحدث ثلاث evidences فعالة بأوزان 50/30/20.
+- Runtime: 125 items و44 skills؛ approval `HIMMA-CONTENT-APPROVAL-2026-09-08`.
+- لا Student Audio Skip؛ Human Supervisor Review authority؛ Production ASR `AUD-A03-008` ما زال external-approval blocked.
+- `AUD-SEC-006` deployed-header verification و`AUD-A11Y-005` manual human screen-reader و`AUD-GIT-001` final merge لم تُنفذ.
 
-Canonical approval: `HIMMA-CONTENT-APPROVAL-2026-09-08`.
-
-Runtime: `125 items = 30 Pretest + 30 Posttest + 30 Core + 35 Reinforcement`, `44 skills`.
-
-المسار الصحيح:
-
-`approved/versioned contracts → canonical compile/release → deterministic publication → PostgreSQL runtime → structured APIs → deterministic UI`
-
-Audio: لا Student Audio Skip؛ submissions append-only؛ latest active؛ Human Supervisor Review هي authority؛ ASR automated advisory فقط؛ Production ASR `AUD-A03-008` يبقى external-approval blocked.
-
-## 9) القيود الثابتة
-
-No Docker. No fake ASR. No Temporary Audio Skip. No history deletion. No Speech/Pronunciation Lab merge. No final merge. No weakened tests. No runtime repair overlays. No PASS/CLOSED without exact-SHA evidence. No A11 / Deploy / Railway / Production ضمن هذا الجدول. Manual human screen-reader غير منفذ. Deployed-header verification يبقى A11.
-
-## 10) شرط الإغلاق
-
-`same exact functional SHA: Quality Gate GREEN + full M09 GREEN including deterministic Playwright + PostgreSQL restore + object-storage restore → document W6 GREEN → STOP.`
+No Docker. No fake ASR. No weakened tests. No runtime repair overlays. No history deletion. لا تبدأ A11/Deploy/Railway/Production/final merge دون تكليف جديد.

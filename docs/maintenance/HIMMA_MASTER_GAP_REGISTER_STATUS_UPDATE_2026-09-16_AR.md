@@ -2,104 +2,68 @@
 
 **التاريخ:** 2026-09-17  
 **النوع:** `STATUS OVERLAY / EXECUTION UPDATE`  
-**المرجع الأساسي:** `docs/maintenance/HIMMA_MASTER_GAP_REGISTER_2026-09-10_AR.md`
+**المرجع التاريخي:** `docs/maintenance/HIMMA_MASTER_GAP_REGISTER_2026-09-10_AR.md`
 
-## وظيفة هذا الملف
+يحفظ Master Gap Register الأصلي نتائج A00–A09. هذا الملف يحدّث حالة التنفيذ فقط ولا يعيد كتابة التاريخ.
 
-Master Gap Register الأصلي يحفظ نتائج A00–A09 التاريخية. هذا الملف هو طبقة الحالة التنفيذية الحالية. عند التعارض في `Status` تكون الأولوية للكود الحي + PostgreSQL migrations/schema + executable exact-SHA CI، ثم `docs/ops/STATUS.md` و`docs/ops/progress.json`، ثم هذا الـoverlay.
+## الحالة
 
-## موجات التنفيذ الحالية
+- A00–A09: CLOSED AUDIT.
+- W1–W6: **CLOSED GREEN**.
+- Tested W6 functional SHA: `c5174f33b11be80500fdd72c0456efbef062f5ad`.
+- Quality Gate #902 / Run `35198824643`: SUCCESS.
+- M09 #211 / Run `35198824646`, job `105128375595`: SUCCESS.
+- Stop: لا A11 ولا deploy/final merge دون تكليف جديد.
 
-- W1: CLOSED GREEN.
-- W2: CLOSED GREEN.
-- W3: CLOSED GREEN.
-- W4: CLOSED GREEN.
-- W5: CLOSED GREEN.
-- W6: **IN PROGRESS — FINAL M09 PLAYWRIGHT READINESS BLOCKER**.
+## W6 acceptance evidence
 
-لا تبدأ A11 ولا deploy/final merge ضمن هذا الجدول.
-
-## W5 — CLOSED GREEN
-
-Exact code SHA:
-
-`728025a8fd5ff1fa182db4085ad18dd45142041a`
-
-Quality Gate #869 / Run `35053591742` = SUCCESS؛ backend `890 passed, 5 warnings`.
-
-لا تعِد W1–W5 بدون regression evidence جديد.
-
-## W6 — exact current functional candidate
-
-Functional/code candidate:
-
-`c67aaadf004b8dbadac6f3849719e5ccdcbcf6f2`
-
-Commit:
-
-`ci(w6): build pinned MinIO for M09 readiness`
-
-Evidence على نفس SHA:
-
-- Quality Gate #894 / Run `35167788906` — **SUCCESS**.
-- M09 Release Readiness #210 / Run `35167789050` — **FAILURE**.
-- M09 job `105032657002`.
-
-أي docs-only descendant بعد `c67aaad...` ليس tested functional SHA.
-
-### Resolved release-readiness blockers
-
-- M09 PostgreSQL/account-lockout schema-bootstrap/order failure — **RESOLVED**.
-- backend regression interference from protected trial runtime controls — **RESOLVED** دون weakening tests.
-- dead MinIO archive URL / HTTP 410 — **RESOLVED** عبر pinned source-build بدون Docker.
-
-M09 #210 أثبت نجاح السلسلة السابقة للمتصفح: setup, PostgreSQL/Redis, migrations/drift, backend product regression, clean reset, canonical release/publication/idempotency, private MinIO setup, deterministic runtime DB, frontend build, API/Web startup, readiness, security/origin checks.
-
-## W6 gap overlay
-
-| Gap | الحالة التنفيذية الحالية | Evidence / boundary |
+| Gap | الحالة التنفيذية | Evidence / boundary |
 |---|---|---|
-| `AUD-CI-001` | EXECUTABLE ACCEPTANCE PASS / W6 GLOBAL CLOSURE PENDING | Quality Gate #894 exact SHA SUCCESS |
-| `AUD-A08-001` | EXECUTABLE ACCEPTANCE PASS / W6 GLOBAL CLOSURE PENDING | exact-head full Quality Gate #894 SUCCESS |
-| `AUD-A08-002` | EXECUTABLE ACCEPTANCE PASS | deterministic release journey already accepted in W6 Quality Gate evidence |
-| `AUD-A08-003` | **OPEN / CURRENT BLOCKER** | M09 #210 fails at deterministic browser product regression; downstream restore evidence not reached |
-| `AUD-A08-004` | IMPLEMENTED / ACCEPTED IN CURRENT W6 BASELINE | `apps/web/tests/TEST_OWNERSHIP.md` owns release evidence |
-| `AUD-A08-005` | EXECUTABLE ACCEPTANCE PASS | responsive acceptance already proved in W6 evidence |
-| `AUD-A08-006` | IMPLEMENTED / SUPERSEDED | deterministic declared release suite is authority; loose `browser-flow.spec.ts` remains historical/debug only |
-| `AUD-A08-007` | EXECUTABLE ACCEPTANCE PASS | automated accessibility coverage accepted in Quality Gate evidence |
-| `AUD-A08-008` | EXECUTABLE ACCEPTANCE PASS | reward lifecycle accepted in W6 evidence |
-| `AUD-A08-009` | EXECUTABLE ACCEPTANCE PASS | backend + integration pass in current Quality Gate |
-| `AUD-BADGE-006` | EXECUTABLE ACCEPTANCE PASS | canonical reward lifecycle acceptance already proved |
-| `AUD-A11Y-005` | AUTOMATED/EXECUTABLE PORTION PASS; MANUAL HUMAN SR NOT CLAIMED | manual human screen-reader remains later/manual boundary |
-| `AUD-SEC-006` | SOURCE/LOCAL PORTION PASS; DEPLOY VERIFY LATER | deployed header verification remains A11-only |
-| `AUD-GIT-001` | CURRENT W6 GOVERNANCE EVIDENCE PRESENT; FINAL MERGE NOT EXECUTED | current plan forbids final merge |
+| `AUD-CI-001` | CLOSED / EXECUTABLE PASS | full Quality Gate #902 على tested SHA |
+| `AUD-A08-001` | CLOSED / EXECUTABLE PASS | Security + Frontend + Backend + Integration SUCCESS |
+| `AUD-A08-002` | CLOSED / EXECUTABLE PASS | deterministic release journey accepted |
+| `AUD-A08-003` | **CLOSED / EXECUTABLE PASS** | M09 #211 وصل للنهاية: Playwright + PostgreSQL restore + object restore |
+| `AUD-A08-004` | CLOSED / IMPLEMENTED | `apps/web/tests/TEST_OWNERSHIP.md` owns release evidence |
+| `AUD-A08-005` | CLOSED / EXECUTABLE PASS | responsive coverage in exact-SHA Playwright |
+| `AUD-A08-006` | CLOSED / SUPERSEDED | declared deterministic suite is authority |
+| `AUD-A08-007` | CLOSED / AUTOMATED PASS | accessibility automation in Quality Gate |
+| `AUD-A08-008` | CLOSED / EXECUTABLE PASS | reward lifecycle coverage passed |
+| `AUD-A08-009` | CLOSED / EXECUTABLE PASS | backend + integration passed |
+| `AUD-BADGE-006` | CLOSED / EXECUTABLE PASS | canonical reward lifecycle accepted |
+| `AUD-A11Y-005` | AUTOMATED PORTION PASS; MANUAL HUMAN SR NOT CLAIMED | manual boundary remains outside W6 |
+| `AUD-SEC-006` | SOURCE/LOCAL PORTION PASS; DEPLOY VERIFY LATER | A11-only |
+| `AUD-GIT-001` | W6 GOVERNANCE PASS; FINAL MERGE NOT EXECUTED | current stop boundary |
 
-## AUD-A08-003 — current blocker details
+## Final root cause
 
-M09 #210 / Run `35167789050` / job `105032657002` failed at:
+Historical M09 #210 reached the declared browser regression but three specs received `429` from `POST /auth/login`. The auth limiter incremented its shared IP counter before credential validation and cleared only the identifier counter on success. Correct logins from the shared CI address therefore exhausted an abuse budget intended for failed credentials.
 
-`Run deterministic browser product regression`
+The fix records IP/identifier counters only after invalid credentials while preserving pre-auth blocking, shared-IP aggregation for rotating identifiers, identifier clearing on success, and Redis fail-closed behavior.
 
-الـexact Playwright root cause **غير مثبت بعد في التوثيق الحالي**. يجب استخراجه من logs/artifacts لنفس الـRun وربطه بالـspec والـsource/route/API الفعلي قبل أي تعديل. لا يجوز اختراع diagnosis من symptom فقط.
+Regression coverage proves:
 
-Because the browser step failed, M09 did not produce complete acceptance evidence for:
+- repeated valid authentication checks do not consume the shared IP failure budget;
+- invalid attempts across rotating identifiers do share and exhaust the IP budget;
+- the real `/auth/login` route permits valid repetitions, records invalid failures, then blocks by shared IP.
 
-- PostgreSQL backup/restore.
-- private object-storage backup/restore.
+No test, assertion, retry, timeout, business rule, schema, content contract, or audio rule was weakened.
 
-W6 therefore remains OPEN.
+## Final proof
 
-## Closure rule from here
+- Quality Gate backend: `893 passed, 5 warnings`.
+- Quality Gate Integration Playwright: `20 passed (3.8m)`.
+- M09 backend product regression: `893 passed, 5 warnings`.
+- M09 declared Playwright regression: `19 passed (4.4m)`.
+- `PostgreSQL restore verification passed.`
+- `Object-store restore verified for 43 object(s).`
+- Backup/restore data was not uploaded from CI.
 
-1. Fetch live branch HEAD and distinguish docs-only descendants from functional evidence SHA `c67aaad...`.
-2. Inspect M09 #210 logs/artifacts and identify exact deterministic Playwright failure.
-3. Root-fix only; no skip/xfail/xpass, retry masking, weakened assertions, deletion of release coverage, or runtime repair overlays.
-4. Any code/workflow change creates a new functional SHA.
-5. That same exact SHA must pass:
-   - full Quality Gate; and
-   - full M09 Release Readiness including deterministic declared Playwright suite, PostgreSQL backup/restore, and object-storage backup/restore.
-6. Only then may W6 be marked GREEN. Update closure/status/progress/gap/continuity docs with exact tested SHA + Run IDs, clearly separate later docs-only SHA(s), then **STOP**.
+## Historical blockers retained
 
-## Fixed boundaries
+The PostgreSQL/account-lockout bootstrap-order, trial/backend isolation, MinIO HTTP 410, and M09 #210 Playwright failure are resolved historical blockers. Do not re-open them without regression evidence.
 
-No Docker. No fake ASR. No Temporary Audio Skip. No history deletion. No Speech/Pronunciation Lab merge. No final merge. No weakened tests. No runtime repair overlays. No PASS/CLOSED without exact-SHA evidence. Production ASR (`AUD-A03-008`) remains external-approval blocked. A11/Deploy/Railway/Production, deployed-header verification, manual human screen-reader verification, and final merge are outside the current execution schedule.
+## Remaining boundaries
+
+Production ASR `AUD-A03-008` awaits external provider/calibration/privacy/cost/governance approval. Deployed-header verification, manual human screen-reader acceptance, final merge, A11, Railway, deployment, and Production remain outside W6 and were not executed.
+
+No Docker. No fake ASR. No Student Audio Skip. No history deletion. No weakened tests. No runtime repair overlays.
