@@ -1,6 +1,7 @@
 /* Student dashboard hierarchy.
- * The dashboard is a journey surface: identity -> next action -> journey ->
- * level progress -> rewards -> historical results. Keep secondary cards quiet.
+ * This file controls the journey surface as one system, not screenshot-specific
+ * patches. DOM order is authoritative: identity -> level/status -> next action ->
+ * five-stage journey -> level progress -> rewards -> historical results.
  */
 
 [data-testid="student-home"] {
@@ -19,46 +20,105 @@
   padding-top: 0.5rem;
 }
 
-/* Identity is useful context, not another hero. */
-[data-testid="student-home"] > main > section:first-child {
+/* 1. Identity: useful context, never a competing hero. */
+[data-testid="student-identity"] {
   margin: 0;
-  padding: 0.4rem 0.15rem 0.2rem;
+  padding: 0.35rem 0.15rem 0.1rem;
   align-items: center;
 }
 
-[data-testid="student-home"] > main > section:first-child h1 {
+[data-testid="student-identity"] h1 {
   margin-block: 0.2rem 0.3rem;
-  font-size: clamp(1.65rem, 3vw, 2.35rem);
+  font-size: clamp(1.65rem, 3vw, 2.3rem);
   line-height: 1.3;
 }
 
-[data-testid="student-home"] > main > section:first-child p {
+[data-testid="student-identity"] p {
   margin: 0;
   max-width: 42rem;
 }
 
-/* The first direct div is the primary action zone (hero + compact context). */
-[data-testid="student-home"] > main > div:first-of-type {
-  gap: 0.9rem;
-  align-items: stretch;
+/* 2–3. Current level and journey status are compact facts, not CTA cards. */
+.student-status-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
 }
 
-[data-testid="student-home"] > main > div:first-of-type > section {
-  min-height: 19rem;
-  border-radius: 1.5rem;
+.student-status-card {
+  min-width: 0;
+  padding: 1rem 1.1rem;
+  border: 1px solid #dce8f2;
+  border-radius: 1.15rem;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 5px 16px rgba(32, 54, 77, 0.035);
+}
+
+.student-status-card > span {
+  display: block;
+  margin-bottom: 0.3rem;
+  color: #71879a;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.student-status-card > strong {
+  display: block;
+  color: #20364d;
+  font-size: clamp(1rem, 2vw, 1.16rem);
+  line-height: 1.55;
+}
+
+.student-status-card > small {
+  display: block;
+  margin-top: 0.3rem;
+  color: #7c91a3;
+  font-size: 0.74rem;
+  line-height: 1.65;
+}
+
+.student-status-level {
+  border-color: #cfe2f5;
+  background: #fafdff;
+}
+
+/* 4. Primary next action: one clear action, compact character support. */
+[data-testid="student-next-action"] {
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr) 180px;
+  border-radius: 1.45rem;
+  background: linear-gradient(105deg, #fff 0 76%, #edf6ff 76%);
   box-shadow: 0 10px 28px rgba(32, 54, 77, 0.07);
-  background: #fff;
 }
 
-[data-testid="student-home"] > main > div:first-of-type > section h2 {
+[data-testid="student-next-action"] > div:first-child {
+  padding: 1.7rem 1.8rem;
+}
+
+[data-testid="student-next-action"] h2 {
   max-width: 38rem;
-  font-size: clamp(1.75rem, 3vw, 2.45rem);
+  margin-bottom: 0.45rem;
+  font-size: clamp(1.65rem, 3vw, 2.25rem);
   line-height: 1.3;
 }
 
-[data-testid="student-home"] > main > div:first-of-type > section p {
+[data-testid="student-next-action"] p {
   max-width: 42rem;
   line-height: 1.8;
+}
+
+[data-testid="student-next-action"] > div:last-child {
+  min-height: 0;
+  padding: 0.8rem 0.5rem 0;
+}
+
+[data-testid="student-next-action"] > div:last-child::before {
+  width: min(145px, 82%);
+  top: 1.2rem;
+}
+
+[data-testid="student-next-action"] > div:last-child img {
+  max-height: 180px;
 }
 
 [data-testid="student-primary-action"] {
@@ -66,41 +126,129 @@
   min-height: 3.15rem;
 }
 
-[data-testid="student-home"] > main > div:first-of-type > aside {
-  gap: 0.75rem;
+[data-testid="assessment-rerecord-tasks"] {
+  margin: 0;
 }
 
-[data-testid="student-home"] > main > div:first-of-type > aside > div {
-  border-radius: 1.15rem;
-  padding: 1rem;
+/* 5. Canonical journey: Pretest -> Level -> Core -> Conditional support -> Posttest. */
+[data-testid="student-journey-overview"] {
+  margin: 0;
+  overflow: hidden;
   box-shadow: none;
 }
 
-/* A rerecord request is operational and must sit immediately after the next action. */
-[data-testid="assessment-rerecord-tasks"] {
-  order: 3;
+[data-testid="student-journey-steps"] {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+[data-testid="student-journey-steps"]::before {
+  right: 9%;
+  left: 9%;
+}
+
+[data-testid="student-journey-step"][data-journey-state="conditional"] > div:first-child {
+  border-style: dashed;
+  border-color: #e3bd61;
+  background: #fff9ea;
+  color: #8a661b;
+}
+
+[data-testid="student-journey-step"][data-journey-state="conditional"] > strong {
+  color: #765817;
+}
+
+/* 6. Level progress: summary first, detailed three-level map second. */
+[data-testid="student-level-progress-summary"] {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 86px;
+  align-items: center;
+  gap: 0.9rem;
+  min-height: 0;
+  padding: 1rem 1.15rem;
+  border-radius: 1.15rem;
+  box-shadow: none;
+}
+
+[data-testid="student-level-progress-summary"] > div:first-child {
   margin: 0;
 }
 
-/* Journey overview precedes detailed level cards. */
-[data-testid="student-home"] section[aria-label="رحلة الطالب"] {
-  order: 4;
+.student-level-progress-copy h3 {
+  margin: 0 0 0.2rem;
+  font-size: 1rem;
+}
+
+.student-level-progress-copy p {
   margin: 0;
+  color: #71879a;
+  font-size: 0.78rem;
+  line-height: 1.65;
+}
+
+[data-testid="student-level-progress-summary"] > div:last-child {
+  width: 72px;
+  height: 72px;
+  margin: 0;
+}
+
+[data-testid="student-level-progress-summary"] > div:last-child::after {
+  width: 55px;
+  height: 55px;
 }
 
 [data-testid="level-journey"] {
-  order: 5;
   margin: 0;
+  box-shadow: none;
 }
 
+[data-testid="level-journey"] article {
+  box-shadow: none;
+}
+
+[data-testid="level-journey"] article[data-level-state="active"],
+[data-testid="level-journey"] article[data-level-state="ready"] {
+  box-shadow: 0 8px 22px rgba(52, 127, 217, 0.08);
+}
+
+/* 7. Rewards are supportive and include the real star total. */
 [data-testid="student-badges"] {
-  order: 6;
   margin: 0;
+  box-shadow: none;
 }
 
-/* Results are useful history, but not the primary navigation surface. */
+[data-testid="student-badges"] article {
+  box-shadow: none;
+}
+
+[data-testid="student-badges"] > div:first-child {
+  align-items: center;
+}
+
+.student-stars-summary {
+  margin-inline-start: auto;
+  min-width: 72px;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid #f0d996;
+  border-radius: 0.9rem;
+  background: #fff9e8;
+  text-align: center;
+}
+
+.student-stars-summary strong {
+  display: block;
+  color: #7a5a12;
+  font-size: 1.08rem;
+}
+
+.student-stars-summary span {
+  display: block;
+  margin-top: 0.05rem;
+  color: #8b733d;
+  font-size: 0.68rem;
+}
+
+/* 8. Results/history are deliberately secondary. */
 [data-testid="student-results"] {
-  order: 7;
   margin: 0;
   border: 1px solid #e2eaf1;
   border-radius: 1.25rem;
@@ -117,29 +265,21 @@
   background: #fff;
 }
 
-/* Detailed level cards use emphasis only for the current level. */
-[data-testid="level-journey"] article {
-  box-shadow: none;
-}
-
-[data-testid="level-journey"] article[data-level-state="active"],
-[data-testid="level-journey"] article[data-level-state="ready"] {
-  box-shadow: 0 8px 22px rgba(52, 127, 217, 0.08);
-}
-
-/* Keep badges supportive and compact rather than a second dashboard. */
-[data-testid="student-badges"] article {
-  box-shadow: none;
-}
-
-@media (max-width: 960px) {
-  [data-testid="student-home"] > main > div:first-of-type {
+@media (max-width: 760px) {
+  .student-status-grid {
     grid-template-columns: 1fr;
   }
 
-  [data-testid="student-home"] > main > div:first-of-type > aside {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  [data-testid="student-journey-steps"] {
+    grid-template-columns: repeat(5, minmax(7rem, 1fr));
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    padding: 0.25rem 0.1rem 0.7rem;
+    scrollbar-width: thin;
+  }
+
+  [data-testid="student-journey-steps"]::before {
+    display: none;
   }
 }
 
@@ -158,34 +298,92 @@
     padding-inline: 0;
   }
 
-  [data-testid="student-home"] > main > section:first-child {
+  [data-testid="student-identity"] {
     align-items: flex-start;
     gap: 0.6rem;
   }
 
-  [data-testid="student-home"] > main > section:first-child h1 {
+  [data-testid="student-identity"] h1 {
     font-size: clamp(1.45rem, 7vw, 1.9rem);
   }
 
-  [data-testid="student-home"] > main > div:first-of-type > section {
+  .student-status-card {
+    padding: 0.85rem 0.95rem;
+  }
+
+  [data-testid="student-next-action"] {
+    grid-template-columns: minmax(0, 1fr) 102px;
+    border-radius: 1.2rem;
+    background: #fff;
+  }
+
+  [data-testid="student-next-action"] > div:first-child {
+    padding: 1.15rem 1rem;
+  }
+
+  [data-testid="student-next-action"] h2 {
+    font-size: clamp(1.38rem, 6.5vw, 1.72rem);
+  }
+
+  [data-testid="student-next-action"] p {
+    font-size: 0.9rem;
+    line-height: 1.7;
+  }
+
+  [data-testid="student-next-action"] > div:last-child {
     min-height: 0;
-    border-radius: 1.25rem;
+    padding: 0.8rem 0.15rem 0;
+    align-items: flex-end;
   }
 
-  [data-testid="student-home"] > main > div:first-of-type > section h2 {
-    font-size: clamp(1.5rem, 7vw, 1.9rem);
+  [data-testid="student-next-action"] > div:last-child::before {
+    width: 86px;
+    top: 50%;
+    transform: translateY(-45%);
   }
 
-  [data-testid="student-home"] > main > div:first-of-type > aside {
-    grid-template-columns: 1fr;
-  }
-
-  [data-testid="student-home"] > main > div:first-of-type > aside > div:first-child {
-    display: none;
+  [data-testid="student-next-action"] > div:last-child img {
+    max-height: 118px;
   }
 
   [data-testid="student-primary-action"] {
     width: 100%;
+    min-width: 0;
+  }
+
+  [data-testid="student-journey-overview"],
+  [data-testid="level-journey"] {
+    padding: 1rem 0.85rem;
+  }
+
+  [data-testid="student-journey-overview"] > div:first-child,
+  [data-testid="level-journey"] > div:first-child {
+    margin-bottom: 0.8rem;
+  }
+
+  [data-testid="student-level-progress-summary"] {
+    grid-template-columns: 40px minmax(0, 1fr) 66px;
+    gap: 0.7rem;
+    padding: 0.85rem;
+  }
+
+  [data-testid="student-level-progress-summary"] > div:last-child {
+    width: 62px;
+    height: 62px;
+  }
+
+  [data-testid="student-level-progress-summary"] > div:last-child::after {
+    width: 47px;
+    height: 47px;
+  }
+
+  [data-testid="student-badges"] > div:first-child {
+    align-items: flex-start;
+  }
+
+  .student-stars-summary {
+    min-width: 64px;
+    padding: 0.45rem 0.55rem;
   }
 
   [data-testid="student-results"] .student-results-grid {
@@ -194,5 +392,40 @@
 
   [data-testid="student-results"] .student-result-card {
     min-height: 0;
+  }
+}
+
+@media (max-width: 380px) {
+  [data-testid="student-next-action"] {
+    grid-template-columns: minmax(0, 1fr) 84px;
+  }
+
+  [data-testid="student-next-action"] > div:last-child::before {
+    width: 72px;
+  }
+
+  [data-testid="student-next-action"] > div:last-child img {
+    max-height: 98px;
+  }
+
+  [data-testid="student-level-progress-summary"] {
+    grid-template-columns: 38px minmax(0, 1fr) 58px;
+  }
+
+  [data-testid="student-level-progress-summary"] > div:last-child {
+    width: 56px;
+    height: 56px;
+  }
+
+  [data-testid="student-level-progress-summary"] > div:last-child::after {
+    width: 42px;
+    height: 42px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-testid="student-next-action"] button,
+  [data-testid="level-journey"] article {
+    transition: none;
   }
 }
