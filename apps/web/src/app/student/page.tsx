@@ -53,12 +53,14 @@ interface JourneyLevel {
 
 interface JourneySummary {
   pretest_completed: boolean;
+  pretest_score?: number | null;
   starting_level: number | null;
   current_level: number;
   levels: JourneyLevel[];
   learning_journey_completed: boolean;
   posttest_enabled: boolean;
   posttest_completed: boolean;
+  posttest_score?: number | null;
   posttest_ready: boolean;
 }
 
@@ -75,6 +77,10 @@ const LEVEL_STATE_LABELS: Record<JourneyLevel["state"], string> = {
   active: "أنت هنا",
   completed: "مكتمل",
 };
+
+function scoreLabel(score?: number | null) {
+  return score == null ? "—" : `${Math.round(score)}%`;
+}
 
 export default function StudentHomePage() {
   const router = useRouter();
@@ -131,9 +137,11 @@ export default function StudentHomePage() {
   }, []);
 
   const waitingForAudioReview = student?.active_session?.status === "waiting_audio_review";
+  const rerecordRequired = student?.active_session?.status === "rerecord_required";
+  const terminalAssessmentHold = waitingForAudioReview || rerecordRequired;
 
   const handlePrimaryAction = async () => {
-    if (!student || waitingForAudioReview) return;
+    if (!student || terminalAssessmentHold) return;
     setStarting(true);
     setError("");
     try {
@@ -213,6 +221,12 @@ export default function StudentHomePage() {
   const learningCompleted = Boolean(learning?.completed);
   const learningProgress = learning ? Math.min(100, Math.round((learning.completed_items / Math.max(1, learning.total_items)) * 100)) : 0;
   const firstName = student.full_name.split(" ")[0] || "بطل هِمّة";
+  const activeJourneyLevel = journey?.levels.find((level) => level.state === "active" || level.state === "ready")
+    ?? journey?.levels.find((level) => level.level_id === student.current_level)
+    ?? null;
+  const journeyProgress = activeJourneyLevel
+    ? Math.min(100, Math.round((activeJourneyLevel.completed_items / Math.max(1, activeJourneyLevel.total_items)) * 100))
+    : 0;
 
   let heroTitle = "الاختبار القبلي";
   let heroDescription = "أسئلة قصيرة ومتنوعة تساعد هِمّة على اختيار البداية المناسبة لك.";
@@ -244,8 +258,15 @@ export default function StudentHomePage() {
   if (waitingForAudioReview) {
     phaseIndex = student.active_session?.session_type === "posttest" ? 2 : 0;
     heroTitle = "بانتظار مراجعة التسجيلات";
-    heroDescription = "أنهيت جميع الأسئلة، وتم حفظ إجاباتك وتسجيلاتك. لا تحتاج إلى إعادة الاختبار؛ ستظهر نتيجتك ومسارك تلقائيًا بعد اكتمال مراجعة التسجيلات.";
-    primaryLabel = "تم إرسال التسجيلات للمراجعة";
+    heroDescription = "أنهيت أسئلة الاختبار. نتيجتك محفوظة جزئيًا ولن تعتمد أكاديميًا حتى ينتهي المشرف من مراجعة التسجيلات.";
+    primaryLabel = "بانتظار المراجعة";
+    character = "/characters/girl/encourage.png";
+  }
+  if (rerecordRequired) {
+    phaseIndex = student.active_session?.session_type === "posttest" ? 2 : 0;
+    heroTitle = "لديك مهمة إعادة تسجيل";
+    heroDescription = "طلب المشرف إعادة إحدى القراءات. ستجد المهمة بشكل مستقل في الصفحة، ويمكنك فتحها عندما تكون مستعدًا.";
+    primaryLabel = "افتح مهمة التسجيل من التنبيه"
     character = "/characters/girl/encourage.png";
   }
   if (student.next_action === "completed") {
@@ -256,7 +277,7 @@ export default function StudentHomePage() {
     character = "/characters/girl/success.png";
   }
 
-  const primaryDisabled = starting || waitingForAudioReview || student.next_action === "completed" || (isLearning && learningCompleted);
+  const primaryDisabled = starting || terminalAssessmentHold || student.next_action === "completed" || (isLearning && learningCompleted);
 
   return (
     <div className={styles.page} dir="rtl" data-testid="student-home">
@@ -282,39 +303,6 @@ export default function StudentHomePage() {
           )}
         </section>
 
-        <section className={styles.rewardsPanel} aria-labelledby="student-badges-title" data-testid="student-badges">
-          <div className={styles.rewardsHeader}>
-            <div className={styles.rewardsTitleIcon}><Award size={20} aria-hidden="true" /></div>
-            <div>
-              <h2 id="student-badges-title">شاراتك</h2>
-              <p>تظهر هنا الشارات التي كسبتها بعد إكمال مستوياتك وفق تقدمك الحقيقي.</p>
-            </div>
-          </div>
-          {rewards === null ? (
-            <div className={styles.rewardState} role="status" aria-label="تعذر تحميل الشارات">
-              <strong>الشارات غير متاحة الآن</strong>
-              <span>تقدمك محفوظ. حاول تحديث الصفحة لاحقًا لعرض شاراتك.</span>
-            </div>
-          ) : earnedBadges.length === 0 ? (
-            <div className={styles.rewardState} aria-label="لا توجد شارات مكتسبة">
-              <strong>لم تحصل على شارة بعد</strong>
-              <span>أكمل مستوى تعليميًا وستظهر شارتك هنا تلقائيًا.</span>
-            </div>
-          ) : (
-            <div className={styles.badgeGrid} aria-label={`لديك ${earnedBadges.length} شارة`}>
-              {earnedBadges.map((badge) => (
-                <article className={styles.badgeCard} key={badge.id} data-reward-key={badge.key || undefined}>
-                  <div className={styles.badgeVisual}>
-                    <Image src={badge.asset_path!} alt={`شارة ${badge.label}`} width={118} height={118} />
-                  </div>
-                  <strong>{badge.label}</strong>
-                  <span>شارة مكتسبة</span>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
-
         <div className={styles.grid}>
           <section className={`${styles.hero} ${student.next_action === "completed" ? styles.completed : ""}`}>
             <div className={styles.heroContent}>
@@ -322,10 +310,10 @@ export default function StudentHomePage() {
               <h2>{heroTitle}</h2>
               <p>{heroDescription}</p>
               <div className={styles.meta}>
-                {waitingForAudioReview
-                  ? <><span>30 من 30 سؤالًا</span><span>•</span><span>بانتظار التقييم الصوتي</span></>
+                {terminalAssessmentHold
+                  ? <><span>تم حفظ إجاباتك</span><span>•</span><span>{rerecordRequired ? "توجد مهمة تسجيل" : "المراجعة جارية"}</span></>
                   : isLearning
-                    ? <><span>{learning?.completed_items ?? 0} من {learning?.total_items ?? 10} أنشطة</span><span>•</span><span>مهمة واحدة في كل شاشة</span></>
+                    ? <><span>{learning?.completed_items ?? activeJourneyLevel?.completed_items ?? 0} من {learning?.total_items ?? activeJourneyLevel?.total_items ?? 10} أنشطة</span><span>•</span><span>مهمة واحدة في كل شاشة</span></>
                     : <><span>30 سؤالًا</span><span>•</span><span>يحفظ تلقائيًا</span></>}
               </div>
               <button className={styles.button} onClick={() => void handlePrimaryAction()} disabled={primaryDisabled} data-testid="student-primary-action">
@@ -339,19 +327,43 @@ export default function StudentHomePage() {
           <aside className={styles.side}>
             <div className={styles.tipCard}>
               <div className={styles.tipIcon}><Headphones size={21} /></div>
-              <h3>قبل أن تبدأ</h3>
-              <p>{waitingForAudioReview ? "تم حفظ تسجيلاتك. يمكنك العودة لاحقًا، وستتحدث النتيجة تلقائيًا بعد المراجعة." : "اختر مكانًا هادئًا، وارفع صوت الجهاز بدرجة مريحة، ثم اتبع تعليمات كل مهمة كما تظهر لك."}</p>
+              <h3>{terminalAssessmentHold ? "حالتك محفوظة" : "قبل أن تبدأ"}</h3>
+              <p>{waitingForAudioReview ? "تم حفظ تسجيلاتك. لا تحتاج لإعادة الأسئلة، وستظهر النتيجة بعد اكتمال المراجعة." : rerecordRequired ? "إعادة التسجيل مهمة مستقلة ولن تعيدك إلى بداية الاختبار." : "اختر مكانًا هادئًا، وارفع صوت الجهاز بدرجة مريحة، ثم اتبع تعليمات كل مهمة كما تظهر لك."}</p>
             </div>
             <div className={styles.progressCard}>
               <div className={styles.tipIcon}><Map size={21} /></div>
               <h3>تقدم المستوى</h3>
-              <div className={styles.progressRing} style={{ "--progress": `${waitingForAudioReview ? 100 : isLearning ? learningProgress : phaseIndex >= 2 ? 100 : 0}%` } as React.CSSProperties}>
-                <strong>{waitingForAudioReview ? "100%" : isLearning ? `${learningProgress}%` : phaseIndex >= 2 ? "100%" : "جاهز"}</strong>
+              <div className={styles.progressRing} style={{ "--progress": `${isLearning ? learningProgress : journeyProgress}%` } as React.CSSProperties}>
+                <strong>{isLearning || activeJourneyLevel ? `${isLearning ? learningProgress : journeyProgress}%` : "جاهز"}</strong>
               </div>
-              <p>{waitingForAudioReview ? "اكتملت الأسئلة، والمتبقي مراجعة التسجيلات فقط." : isLearning ? "كل نشاط مكتمل يقربك من هدفك." : "سنبدأ بخطوة قصيرة لتحديد مسارك."}</p>
+              <p>{isLearning || activeJourneyLevel ? "هذه النسبة مبنية على الأنشطة الأساسية المكتملة فعليًا." : "سنبدأ بخطوة قصيرة لتحديد مسارك."}</p>
             </div>
           </aside>
         </div>
+
+        <section className="student-results-panel" data-testid="student-results" aria-label="نتائج وتقدم الطالب">
+          <div className="student-results-heading">
+            <div><span>ملخص حقيقي من سجلك</span><h2>نتائجك وتقدمك</h2></div>
+            <div className="student-results-stars"><Star size={18} fill="currentColor" aria-hidden="true" /><strong>{rewards === null ? "—" : totalStars}</strong><span>نجمة</span></div>
+          </div>
+          <div className="student-results-grid">
+            <article className="student-result-card">
+              <span>الاختبار القبلي</span>
+              <strong>{journey?.pretest_completed ? scoreLabel(journey.pretest_score) : "لم يكتمل"}</strong>
+              <small>{journey?.pretest_completed && journey.starting_level ? `نقطة البداية: المستوى ${journey.starting_level}` : "تظهر النتيجة بعد الاعتماد"}</small>
+            </article>
+            <article className="student-result-card student-result-card-current">
+              <span>المستوى الحالي</span>
+              <strong>{LEVEL_NAMES[student.current_level] || `المستوى ${student.current_level}`}</strong>
+              <small>{activeJourneyLevel ? `${activeJourneyLevel.completed_items} من ${activeJourneyLevel.total_items} أنشطة أساسية · ${journeyProgress}%` : "بانتظار بدء أنشطة المستوى"}</small>
+            </article>
+            <article className="student-result-card">
+              <span>الاختبار البعدي</span>
+              <strong>{journey?.posttest_completed ? scoreLabel(journey.posttest_score) : journey?.posttest_ready ? "جاهز" : "لاحقًا"}</strong>
+              <small>{journey?.posttest_completed ? "نتيجة معتمدة" : journey?.posttest_ready ? "يمكن بدء القياس البعدي" : "يفتح بعد اكتمال رحلة التعلم"}</small>
+            </article>
+          </div>
+        </section>
 
         {journey?.pretest_completed && (
           <section className={styles.levelJourney} aria-label="مستويات رحلة التعلم" data-testid="level-journey">
@@ -388,6 +400,39 @@ export default function StudentHomePage() {
             </div>
           </section>
         )}
+
+        <section className={styles.rewardsPanel} aria-labelledby="student-badges-title" data-testid="student-badges">
+          <div className={styles.rewardsHeader}>
+            <div className={styles.rewardsTitleIcon}><Award size={20} aria-hidden="true" /></div>
+            <div>
+              <h2 id="student-badges-title">شاراتك</h2>
+              <p>هذه الشارات تأتي من سجل مكافآتك الفعلي بعد استيفاء شروطها.</p>
+            </div>
+          </div>
+          {rewards === null ? (
+            <div className={styles.rewardState} role="status" aria-label="تعذر تحميل الشارات">
+              <strong>الشارات غير متاحة الآن</strong>
+              <span>تقدمك محفوظ. حاول تحديث الصفحة لاحقًا لعرض شاراتك.</span>
+            </div>
+          ) : earnedBadges.length === 0 ? (
+            <div className={styles.rewardState} aria-label="لا توجد شارات مكتسبة">
+              <strong>لم تحصل على شارة بعد</strong>
+              <span>أكمل مستوى تعليميًا وستظهر شارتك هنا تلقائيًا.</span>
+            </div>
+          ) : (
+            <div className={styles.badgeGrid} aria-label={`لديك ${earnedBadges.length} شارة`}>
+              {earnedBadges.map((badge) => (
+                <article className={styles.badgeCard} key={badge.id} data-reward-key={badge.key || undefined}>
+                  <div className={styles.badgeVisual}>
+                    <Image src={badge.asset_path!} alt={`شارة ${badge.label}`} width={118} height={118} />
+                  </div>
+                  <strong>{badge.label}</strong>
+                  <span>شارة مكتسبة</span>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
 
         <section className={styles.journey} aria-label="رحلة الطالب">
           <div className={styles.journeyHeader}><h3>رحلتك في هِمّة</h3><span>نبني على مستواك الحقيقي</span></div>
