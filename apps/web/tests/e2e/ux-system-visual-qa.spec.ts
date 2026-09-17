@@ -211,11 +211,24 @@ test.describe("Himma UX system visual QA regression", () => {
       await expect(form.getByRole("heading", { name: "طالب فحص بصري" })).toBeVisible();
       await expect(form.getByText("يَقْرَأُ سَالِمٌ كِتَابًا.")).toBeVisible();
       await expect(form.getByRole("button", { name: /تشغيل التسجيل/ })).toBeVisible();
-      await expect(form.getByRole("button", { name: /اعتماد القراءة/ })).toBeVisible();
-      await expect(form.getByRole("button", { name: /طلب إعادة تسجيل/ })).toBeVisible();
+      await expect(form.getByTestId("audio-review-summary")).toBeVisible();
+      await expect(form.getByText("بانتظار المراجعة")).toBeVisible();
 
-      const approveBox = await form.getByRole("button", { name: /اعتماد القراءة/ }).boundingBox();
-      const rerecordBox = await form.getByRole("button", { name: /طلب إعادة تسجيل/ }).boundingBox();
+      const approveDecision = form.getByRole("button", { name: "اعتماد القراءة", exact: true });
+      const rerecordDecision = form.getByRole("button", { name: "طلب إعادة تسجيل", exact: true });
+      await expect(approveDecision).toBeVisible();
+      await expect(rerecordDecision).toBeVisible();
+      await expect(approveDecision).toHaveAttribute("aria-pressed", "true");
+
+      const scoreFields = form.getByTestId("audio-review-score-fields");
+      await expect(scoreFields).toBeVisible();
+      await expect(scoreFields.getByLabel("إجمالي الوحدات")).toHaveValue("10");
+      await expect(scoreFields.getByLabel("الحذف")).toHaveValue("0");
+      await expect(scoreFields.getByLabel("الاستبدال")).toHaveValue("0");
+      await expect(scoreFields.getByLabel("الإضافة")).toHaveValue("0");
+
+      const approveBox = await approveDecision.boundingBox();
+      const rerecordBox = await rerecordDecision.boundingBox();
       expect(approveBox?.height ?? 0).toBeGreaterThanOrEqual(72);
       expect(rerecordBox?.height ?? 0).toBeGreaterThanOrEqual(72);
 
