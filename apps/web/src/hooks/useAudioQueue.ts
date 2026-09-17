@@ -15,12 +15,21 @@ function signature(urls: string[]) {
   return urls.join("\n");
 }
 
+function detachAudio(audio: HTMLAudioElement) {
+  audio.pause();
+  audio.onended = null;
+  audio.onerror = null;
+  audio.src = "";
+}
+
 /**
  * One cancellable audio owner per screen.
  *
- * Playback state is React state so the screen re-renders for play/pause icons.
- * The command functions stay stable; consumers that memoize navigation/reset
- * callbacks should depend on `stop`/`toggle`, not on the returned state object.
+ * A monotonically increasing playback token makes every async `play()` result
+ * belong to exactly one Audio element. Repeated taps can therefore never let an
+ * old rejected promise stop a newer sound or leave the queue in a sticky error
+ * state. While a play/resume request is still pending, duplicate taps for the
+ * same queue are ignored instead of creating a second player.
  *
  * onQueueEnded fires only after natural playback reaches the end of the final
  * asset. Manual stop, navigation cleanup, and playback errors deliberately do
@@ -36,6 +45,9 @@ export function useAudioQueue(
   const urlsRef = useRef<string[]>([]);
   const indexRef = useRef(0);
   const signatureRef = useRef("");
+  const tokenRef = useRef(0);
+  const activeTokenRef = useRef(0);
+  const pendingAudioRef = useRef<HTMLAudioElement | null>(null);
   const disposedRef = useRef(false);
   const onErrorRef = useRef(onError);
   const onQueueEndedRef = useRef(onQueueEnded);
@@ -54,20 +66,30 @@ export function useAudioQueue(
     if (!disposedRef.current) setState(next);
   }, []);
 
+  const isCurrent = useCallback((audio: HTMLAudioElement, token: number) => (
+    !disposedRef.current
+    && audioRef.current === audio
+    && activeTokenRef.current === token
+  ), []);
+
   const stop = useCallback(() => {
+    tokenRef.current += 1;
+    activeTokenRef.current = tokenRef.current;
+    pendingAudioRef.current = null;
     const audio = audioRef.current;
-    if (audio) {
-      audio.pause();
-      audio.onended = null;
-      audio.onerror = null;
-      audio.src = "";
-    }
+    if (audio) detachAudio(audio);
     audioRef.current = null;
     urlsRef.current = [];
     indexRef.current = 0;
     signatureRef.current = "";
     setPlaybackState("idle");
   }, [setPlaybackState]);
+
+  const failCurrent = useCallback((audio: HTMLAudioElement, token: number, message: string) => {
+    if (!isCurrent(audio, token)) return;
+    stop();
+    onErrorRef.current?.(message);
+  }, [isCurrent, stop]);
 
   const playIndex = useCallback((index: number) => {
     const url = urlsRef.current[index];
@@ -76,11 +98,20 @@ export function useAudioQueue(
       return;
     }
 
+    const previous = audioRef.current;
+    if (previous) detachAudio(previous);
+
     const audio = new Audio(url);
+    const token = ++tokenRef.current;
+    activeTokenRef.current = token;
     audioRef.current = audio;
+    pendingAudioRef.current = audio;
     indexRef.current = index;
+    setPlaybackState("idle");
+
     audio.onended = () => {
-      if (disposedRef.current) return;
+      if (!isCurrent(audio, token)) return;
+      pendingAudioRef.current = null;
       const next = indexRef.current + 1;
       if (next >= urlsRef.current.length) {
         const completed = onQueueEndedRef.current;
@@ -90,17 +121,19 @@ export function useAudioQueue(
       }
       playIndexRef.current(next);
     };
+
     audio.onerror = () => {
-      stop();
-      onErrorRef.current?.("تعذر تشغيل الصوت. حاول مرة أخرى.");
+      failCurrent(audio, token, "تعذر تشغيل الصوت. حاول مرة أخرى.");
     };
+
     void audio.play().then(() => {
+      if (!isCurrent(audio, token)) return;
+      pendingAudioRef.current = null;
       setPlaybackState("playing");
     }).catch(() => {
-      stop();
-      onErrorRef.current?.("تعذر تشغيل الصوت. حاول مرة أخرى.");
+      failCurrent(audio, token, "تعذر تشغيل الصوت. حاول مرة أخرى.");
     });
-  }, [setPlaybackState, stop]);
+  }, [failCurrent, isCurrent, setPlaybackState, stop]);
 
   useEffect(() => {
     playIndexRef.current = playIndex;
@@ -112,39 +145,54 @@ export function useAudioQueue(
     const nextSignature = signature(clean);
     const current = audioRef.current;
 
+    // A second tap while the browser is still resolving play() must not replace
+    // the active element. That replacement is what used to create the stale
+    // rejection that stopped the following sound.
+    if (current && signatureRef.current === nextSignature && pendingAudioRef.current === current) {
+      return;
+    }
+
     if (current && signatureRef.current === nextSignature) {
       if (stateRef.current === "playing") {
         current.pause();
         setPlaybackState("paused");
         return;
       }
+
       if (stateRef.current === "paused") {
-        void current.play().then(() => setPlaybackState("playing")).catch(() => {
-          stop();
-          onErrorRef.current?.("تعذر استئناف الصوت. حاول مرة أخرى.");
+        const token = activeTokenRef.current;
+        pendingAudioRef.current = current;
+        void current.play().then(() => {
+          if (!isCurrent(current, token)) return;
+          pendingAudioRef.current = null;
+          setPlaybackState("playing");
+        }).catch(() => {
+          failCurrent(current, token, "تعذر استئناف الصوت. حاول مرة أخرى.");
         });
         return;
       }
     }
 
     stop();
+    // Clear a stale UI error as soon as the student makes a valid new playback
+    // request. The hook reports an empty message intentionally; current callers
+    // use a React string error state.
+    onErrorRef.current?.("");
     urlsRef.current = clean;
     signatureRef.current = nextSignature;
     indexRef.current = 0;
     playIndexRef.current(0);
-  }, [setPlaybackState, stop]);
+  }, [failCurrent, isCurrent, setPlaybackState, stop]);
 
   useEffect(() => {
     disposedRef.current = false;
     return () => {
       disposedRef.current = true;
+      tokenRef.current += 1;
+      activeTokenRef.current = tokenRef.current;
+      pendingAudioRef.current = null;
       const audio = audioRef.current;
-      if (audio) {
-        audio.pause();
-        audio.onended = null;
-        audio.onerror = null;
-        audio.src = "";
-      }
+      if (audio) detachAudio(audio);
       audioRef.current = null;
     };
   }, []);
