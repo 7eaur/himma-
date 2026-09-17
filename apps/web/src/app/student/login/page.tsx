@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { KeyRound } from "lucide-react";
+import { ArrowRight, KeyRound } from "lucide-react";
 import styles from "./login.module.css";
 
 export default function StudentLogin() {
@@ -60,6 +61,11 @@ export default function StudentLogin() {
     <div className="student-login-root" dir="rtl">
       <div className="student-login-amb-1" />
       <div className="student-login-amb-2" />
+
+      <Link href="/" className="login-back-home student-login-back" aria-label="العودة إلى الصفحة الرئيسية">
+        <ArrowRight size={18} aria-hidden="true" />
+        <span>الصفحة الرئيسية</span>
+      </Link>
 
       <div className={`student-login-card ${styles.card}`}>
         <div className="flex justify-center student-login-logo">
