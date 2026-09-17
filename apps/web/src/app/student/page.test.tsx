@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import StudentPage from "./page";
 
 const push = jest.fn();
@@ -183,6 +183,7 @@ describe("Student page", () => {
         posttest_completed: false,
         posttest_ready: false,
       }))
+      .mockResolvedValueOnce(response([]))
       .mockResolvedValueOnce(response([]));
 
     render(<StudentPage />);
@@ -196,6 +197,53 @@ describe("Student page", () => {
     expect(action).toBeDisabled();
     fireEvent.click(action);
     expect(push).not.toHaveBeenCalled();
-    expect(global.fetch).toHaveBeenCalledTimes(3);
+    expect(global.fetch).toHaveBeenCalledTimes(4);
+  });
+
+  it("surfaces rerecord work as a separate dashboard task and opens it only on learner action", async () => {
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce(response({
+        id: 1,
+        full_name: "طالب تجريبي",
+        grade_level: 3,
+        current_level: 1,
+        posttest_enabled: false,
+        next_action: "resume",
+        active_session: { id: 77, session_type: "pretest", status: "answering" },
+      }))
+      .mockResolvedValueOnce(response(journey))
+      .mockResolvedValueOnce(response([]))
+      .mockResolvedValueOnce(response([
+        {
+          submission_id: 501,
+          session_id: 77,
+          attempt_id: 88,
+          item_id: 9,
+          step_id: 19,
+          stable_key: "PRE-Q09",
+          title: "قراءة كلمة",
+          expected_reading_text: "موز",
+          opened: false,
+        },
+      ]))
+      .mockResolvedValueOnce(response({ opened: true, submission_id: 501 }));
+
+    render(<StudentPage />);
+
+    expect(await screen.findByTestId("assessment-rerecord-tasks")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "إعادة تسجيل مطلوبة" })).toBeInTheDocument();
+    expect(screen.getByText("موز")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "متابعة الاختبار" })).toBeEnabled();
+
+    fireEvent.click(screen.getByRole("button", { name: "ابدأ إعادة التسجيل" }));
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        "/api/assessment/session/77/attempt/9/step/19/rerecord/start",
+        { method: "POST" },
+      );
+      expect(push).toHaveBeenCalledWith("/student/session/77?task=rerecord");
+    });
   });
 });
