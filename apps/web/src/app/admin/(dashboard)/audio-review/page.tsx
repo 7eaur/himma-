@@ -386,6 +386,7 @@ export default function AudioReviewPage() {
                       className={`audio-review-decision-card approve ${isValid ? "is-selected" : ""}`}
                       onClick={() => { setIsValid(true); setMessage({ kind: "success", text: "" }); }}
                       aria-pressed={isValid}
+                      aria-label="اعتماد القراءة"
                     >
                       <CheckCircle2 size={22} aria-hidden="true" />
                       <span><strong>اعتماد القراءة</strong><small>القراءة صالحة ويمكن تسجيل نتيجة الأداء.</small></span>
@@ -395,6 +396,7 @@ export default function AudioReviewPage() {
                       className={`audio-review-decision-card rerecord ${!isValid ? "is-selected" : ""}`}
                       onClick={() => { setIsValid(false); setMessage({ kind: "success", text: "" }); }}
                       aria-pressed={!isValid}
+                      aria-label="طلب إعادة تسجيل"
                     >
                       <RotateCcw size={22} aria-hidden="true" />
                       <span><strong>طلب إعادة تسجيل</strong><small>ينشأ للطالب طلب مستقل ويُحفظ التسجيل السابق.</small></span>
