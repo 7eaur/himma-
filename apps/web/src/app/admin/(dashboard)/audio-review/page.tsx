@@ -370,6 +370,36 @@ export default function AudioReviewPage() {
                   )}
                 </header>
 
+                <section className="audio-review-summary-card" aria-label="معلومات التسجيل" data-testid="audio-review-summary">
+                  <div className="audio-review-summary-heading">
+                    <strong>معلومات التسجيل</strong>
+                    <span>بيانات مختصرة قبل بدء المراجعة.</span>
+                  </div>
+                  <div className="audio-review-summary-grid">
+                    <div className="audio-review-summary-item">
+                      <span className="audio-review-summary-icon"><UserRound size={18} aria-hidden="true" /></span>
+                      <div>
+                        <small>الطالب</small>
+                        <strong>{activeSubmission.student_name || "طالب غير معروف"}</strong>
+                      </div>
+                    </div>
+                    <div className="audio-review-summary-item">
+                      <span className="audio-review-summary-icon"><ListMusic size={18} aria-hidden="true" /></span>
+                      <div>
+                        <small>النشاط</small>
+                        <strong>{activeSubmission.item_title || sessionLabel(activeSubmission.session_type)}</strong>
+                      </div>
+                    </div>
+                    <div className="audio-review-summary-item">
+                      <span className="audio-review-summary-icon is-pending"><Clock3 size={18} aria-hidden="true" /></span>
+                      <div>
+                        <small>الحالة</small>
+                        <strong className="audio-review-status-pill">بانتظار المراجعة</strong>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
                 <section className="audio-review-review-block" aria-labelledby="listen-title">
                   <div className="audio-review-block-header">
                     <span className="audio-review-block-number">1</span>
