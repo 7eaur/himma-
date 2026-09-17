@@ -37,6 +37,6 @@ test("W6 public entry routes expose security headers and pass broad axe WCAG A/A
   await expectNoBlockingAxeViolations(page, "student login");
 
   await page.goto("/admin/login");
-  await expect(page.getByRole("heading", { name: "مرحبًا بك" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "مرحبًا بعودتك" })).toBeVisible();
   await expectNoBlockingAxeViolations(page, "admin login");
 });

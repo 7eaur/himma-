@@ -89,16 +89,16 @@ test.describe("Filtered audio review context", () => {
     await expect(reviewButtons).toHaveCount(2);
 
     await reviewButtons.nth(0).click();
-    await page.getByRole("button", { name: "تسجيل صالح" }).click();
-    await page.getByRole("button", { name: "حفظ التقييم" }).click();
-    await expect(page.getByText("تم حفظ تقييم التسجيل.")).toBeVisible();
+    await page.getByRole("button", { name: "اعتماد القراءة" }).click();
+    await page.getByRole("button", { name: "حفظ واعتماد القراءة" }).click();
+    await expect(page.getByText("تم اعتماد التسجيل وحفظ نتيجة المراجعة بنجاح.")).toBeVisible();
     await expect(page.getByText("قراءة أولى")).toHaveCount(0);
 
     await page.getByRole("button", { name: "بدء المراجعة" }).click();
-    await page.getByRole("button", { name: "يحتاج إعادة تسجيل" }).click();
-    await expect(page.getByText("سيُحفظ التسجيل الحالي في التاريخ وتُنشأ مهمة إعادة تسجيل مؤجلة؛ لا تُعاد المحاولة تلقائيًا.")).toBeVisible();
-    await page.getByRole("button", { name: "طلب إعادة التسجيل" }).click();
-    await expect(page.getByText("تم إنشاء مهمة إعادة تسجيل مؤجلة للطالب مع الاحتفاظ بالتسجيل السابق في السجل.")).toBeVisible();
+    await page.getByRole("button", { name: "طلب إعادة تسجيل", exact: true }).click();
+    await expect(page.getByText("الطالب سيشاهد مهمة إعادة التسجيل بشكل مستقل في مساره. لن يُجبر على ترك السؤال أو النشاط الحالي، وسيبقى التسجيل السابق محفوظًا في سجل المراجعة.")).toBeVisible();
+    await page.getByRole("button", { name: "إرسال طلب إعادة التسجيل" }).click();
+    await expect(page.getByText("تم إرسال مهمة إعادة تسجيل للطالب دون إيقاف مساره، مع الاحتفاظ بالتسجيل السابق في السجل.")).toBeVisible();
     await expect(page.getByText("قراءة ثانية")).toHaveCount(0);
 
     expect(gradePayloads).toHaveLength(2);

@@ -160,6 +160,7 @@ async function reviewPendingAssessmentAudio(
   context: import("@playwright/test").BrowserContext,
   request: APIRequestContext,
   accessCode: string,
+  studentId: number,
   assessmentSessionId: string,
   captureEvidence: boolean,
 ) {
@@ -170,14 +171,20 @@ async function reviewPendingAssessmentAudio(
 
   await context.clearCookies();
   await loginAsSupervisor(request, context);
-  await page.goto("/admin/audio-review");
+  await page.goto(`/admin/audio-review?student_id=${studentId}`);
   const startReview = page.getByRole("button", { name: "بدء المراجعة" });
   await expect(startReview.first()).toBeVisible({ timeout: 15000 });
-  await startReview.first().click();
-  const save = page.getByRole("button", { name: "حفظ التقييم" });
-  await expect(save).toBeEnabled({ timeout: 7000 });
-  await save.click();
-  if (captureEvidence) await shot(page, "09-assessment-audio-reviewed-inline");
+  const reviewItems = page.getByTestId("audio-review-item");
+  let pendingCount = await reviewItems.count();
+  while (pendingCount > 0) {
+    await startReview.first().click();
+    const save = page.getByRole("button", { name: "حفظ واعتماد القراءة" });
+    await expect(save).toBeEnabled({ timeout: 7000 });
+    await save.click();
+    await expect(reviewItems).toHaveCount(pendingCount - 1, { timeout: 7000 });
+    pendingCount -= 1;
+  }
+  if (captureEvidence) await shot(page, "09-assessment-audio-reviews-complete");
 
   await context.clearCookies();
   await loginAsStudent(request, context, accessCode);
@@ -308,7 +315,7 @@ async function reviewPendingLearningAudio(
   const startReview = page.getByRole("button", { name: "بدء المراجعة" });
   await expect(startReview.first()).toBeVisible({ timeout: 15000 });
   await startReview.first().click();
-  const save = page.getByRole("button", { name: "حفظ التقييم" });
+  const save = page.getByRole("button", { name: "حفظ واعتماد القراءة" });
   await expect(save).toBeEnabled({ timeout: 7000 });
   await save.click();
 
@@ -328,7 +335,7 @@ test.describe("Himma recovered vertical slice", () => {
 
     await page.goto("/admin");
     await expect(page).toHaveURL(/\/admin\/login/, { timeout: 7000 });
-    await expect(page.getByRole("heading", { name: "مرحبًا بك" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "مرحبًا بعودتك" })).toBeVisible();
     await shot(page, "02-supervisor-login-protected");
 
     await loginAsSupervisor(request, context);
@@ -369,7 +376,8 @@ test.describe("Himma recovered vertical slice", () => {
     expect(sessionId).toBeTruthy();
 
     let answered = 0;
-    let reviewedAssessmentAudio = 0;
+    let submittedAssessmentAudio = 0;
+    let provedMidAssessmentAudioContinuation = false;
     let capturedAssessmentReviewHold = false;
     let capturedImageAssessment = false;
     let capturedReadingAssessment = false;
@@ -402,19 +410,12 @@ test.describe("Himma recovered vertical slice", () => {
       answered += 1;
 
       if (readingRound) {
-        const waitingPhase = await waitForAssessmentQuestion(page);
-        expect(waitingPhase).toBe("waiting_audio_review");
-        const resumedPhase = await reviewPendingAssessmentAudio(
-          page,
-          context,
-          request,
-          accessCode,
-          sessionId!,
-          !capturedAssessmentReviewHold,
-        );
-        capturedAssessmentReviewHold = true;
-        reviewedAssessmentAudio += 1;
-        if (answered < 30) expect(resumedPhase).toBe("question");
+        submittedAssessmentAudio += 1;
+        if (answered < 30) {
+          const continuedPhase = await waitForAssessmentQuestion(page);
+          expect(continuedPhase).toBe("question");
+          provedMidAssessmentAudioContinuation = true;
+        }
         continue;
       }
 
@@ -426,10 +427,22 @@ test.describe("Himma recovered vertical slice", () => {
     }
 
     expect(answered).toBe(30);
-    expect(reviewedAssessmentAudio).toBeGreaterThan(0);
-    expect(capturedAssessmentReviewHold).toBe(true);
+    expect(submittedAssessmentAudio).toBeGreaterThan(0);
+    expect(provedMidAssessmentAudioContinuation).toBe(true);
     expect(capturedImageAssessment).toBe(true);
     expect(capturedReadingAssessment).toBe(true);
+    const resumedPhase = await reviewPendingAssessmentAudio(
+      page,
+      context,
+      request,
+      accessCode,
+      studentId!,
+      sessionId!,
+      true,
+    );
+    capturedAssessmentReviewHold = true;
+    expect(resumedPhase).toBe("done");
+    expect(capturedAssessmentReviewHold).toBe(true);
     await expect(page.getByTestId("assessment-session")).toHaveAttribute("data-phase", "done", { timeout: 20000 });
     await shot(page, "10-assessment-result");
 

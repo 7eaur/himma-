@@ -29,3 +29,26 @@
 ## بوابة الإغلاق
 
 لا تعتبر هذه الحزمة مدمجة أو منشورة حتى ينجح Quality Gate على SHA مطابق، ثم يتم الدمج إلى الفرع الرسمي والتحقق من Railway Runtime بعد النشر.
+
+## CI reconciliation — active slice
+
+Root Cause للـIntegration/M09 الأحمر على `ce8a9e4e802c00f381d308c9171731972a44af3a` ليس رجوعًا في سلوك المنتج:
+
+- `vertical-slice.spec.ts` و`w6-axe.spec.ts` كانا يملكان نص heading قديمًا لصفحة دخول المشرف بدل العقد الدلالي الحالي `مرحبًا بعودتك`.
+- رحلتا `vertical-slice.spec.ts` و`w6-same-student-journey.spec.ts` كانتا تفرضان `waiting_audio_review` مباشرة بعد كل قراءة، وهو العقد القديم الذي يحجز تنقل الطالب.
+- شاشة المراجعة تغير عقد أزرارها ورسائلها إلى قرار واضح: اعتماد القراءة أو طلب إعادة تسجيل؛ بعض targeted E2E بقيت على labels القديمة.
+
+التصحيح يحافظ على مستوى القبول ويرفعه:
+
+- يثبت أن قراءة معلقة في منتصف الاختبار تنتقل إلى السؤال التالي.
+- يؤجل Human Review حتى نهاية جميع الأسئلة، ثم يثبت حجب النتيجة في `waiting_audio_review`.
+- يراجع جميع تسجيلات الطالب عبر queue مفلترة بالطالب، لا أول تسجيل عالمي فقط.
+- يطلب إعادة تسجيل فعلية في رحلة الطالب نفسها، ويثبت بقاء الطالب في Dashboard حتى يفتح المهمة صراحة، ثم يسجل replacement ويعود إلى المراجعة قبل الإكمال.
+- لا skip/xfail/retry/sleep masking ولا تغيير في Business Rules.
+
+التحقق المحلي قبل exact-SHA CI:
+
+- Backend pending/rerecord/profile/API regressions: `42 passed`.
+- Frontend unit tests: `40 passed`.
+- TypeScript: PASS.
+- ESLint: PASS.

@@ -101,26 +101,72 @@ async function answerVisibleQuestion(page: Page, item: RichItem) {
   await page.getByRole("button", { name: "تأكيد والمتابعة" }).click();
 }
 
-async function reviewPendingAudio(page: Page, request: APIRequestContext, context: BrowserContext, accessCode: string, sessionId: string) {
+async function reviewPendingAudio(
+  page: Page,
+  request: APIRequestContext,
+  context: BrowserContext,
+  accessCode: string,
+  studentId: number,
+  sessionId: string,
+  exerciseExplicitRerecord = false,
+) {
   await expect(page.getByTestId("assessment-session")).toHaveAttribute("data-phase", "waiting_audio_review", { timeout: 10000 });
   await context.clearCookies();
   await loginSupervisor(request, context);
-  await page.goto("/admin/audio-review");
-  const start = page.getByRole("button", { name: "بدء المراجعة" }).first();
-  await expect(start).toBeVisible({ timeout: 15000 });
-  await start.click();
-  const save = page.getByRole("button", { name: "حفظ التقييم" });
-  await expect(save).toBeEnabled({ timeout: 7000 });
-  await save.click();
+  await page.goto(`/admin/audio-review?student_id=${studentId}`);
+  const start = page.getByRole("button", { name: "بدء المراجعة" });
+  await expect(start.first()).toBeVisible({ timeout: 15000 });
+  const reviewItems = page.getByTestId("audio-review-item");
+  let pendingCount = await reviewItems.count();
+  let rerecordRequested = false;
+  while (pendingCount > 0) {
+    await start.first().click();
+    if (exerciseExplicitRerecord && !rerecordRequested) {
+      await page.getByRole("button", { name: "طلب إعادة تسجيل", exact: true }).click();
+      const requestRerecord = page.getByRole("button", { name: "إرسال طلب إعادة التسجيل" });
+      await expect(requestRerecord).toBeEnabled({ timeout: 7000 });
+      await requestRerecord.click();
+      rerecordRequested = true;
+    } else {
+      const save = page.getByRole("button", { name: "حفظ واعتماد القراءة" });
+      await expect(save).toBeEnabled({ timeout: 7000 });
+      await save.click();
+    }
+    await expect(reviewItems).toHaveCount(pendingCount - 1, { timeout: 7000 });
+    pendingCount -= 1;
+  }
   await context.clearCookies();
   await loginStudent(request, context, accessCode);
+
+  if (rerecordRequested) {
+    await page.goto("/student");
+    await expect(page).toHaveURL(/\/student$/);
+    await expect(page.getByTestId("assessment-rerecord-tasks")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole("heading", { name: "إعادة تسجيل مطلوبة" })).toBeVisible();
+    await page.getByRole("button", { name: "ابدأ إعادة التسجيل" }).click();
+    await expect(page).toHaveURL(new RegExp(`/student/session/${sessionId}`), { timeout: 10000 });
+    await expect(page.getByTestId("reading-text")).toBeVisible({ timeout: 10000 });
+    await recordReading(page);
+    await expect(page.getByTestId("assessment-session")).toHaveAttribute("data-phase", "waiting_audio_review", { timeout: 10000 });
+    return reviewPendingAudio(page, request, context, accessCode, studentId, sessionId, false);
+  }
+
   await page.goto(`/student/session/${sessionId}`);
   return waitForAssessmentPhase(page);
 }
 
-async function completeAssessment(page: Page, request: APIRequestContext, context: BrowserContext, accessCode: string, sessionId: string) {
+async function completeAssessment(
+  page: Page,
+  request: APIRequestContext,
+  context: BrowserContext,
+  accessCode: string,
+  studentId: number,
+  sessionId: string,
+  exerciseExplicitRerecord = false,
+) {
   let answered = 0;
-  let audioReviews = 0;
+  let audioSubmissions = 0;
+  let provedMidAssessmentAudioContinuation = false;
   while (answered < 30) {
     const phase = await waitForAssessmentPhase(page);
     if (phase === "done") break;
@@ -137,15 +183,27 @@ async function completeAssessment(page: Page, request: APIRequestContext, contex
     answered += 1;
 
     if (reading) {
-      const waiting = await waitForAssessmentPhase(page);
-      expect(waiting).toBe("waiting_audio_review");
-      const resumed = await reviewPendingAudio(page, request, context, accessCode, sessionId);
-      audioReviews += 1;
-      if (answered < 30) expect(resumed).toBe("question");
+      audioSubmissions += 1;
+      if (answered < 30) {
+        const continued = await waitForAssessmentPhase(page);
+        expect(continued).toBe("question");
+        provedMidAssessmentAudioContinuation = true;
+      }
     }
   }
   expect(answered).toBe(30);
-  expect(audioReviews).toBeGreaterThan(0);
+  expect(audioSubmissions).toBeGreaterThan(0);
+  expect(provedMidAssessmentAudioContinuation).toBe(true);
+  const resumed = await reviewPendingAudio(
+    page,
+    request,
+    context,
+    accessCode,
+    studentId,
+    sessionId,
+    exerciseExplicitRerecord,
+  );
+  expect(resumed).toBe("done");
   await expect(page.getByTestId("assessment-session")).toHaveAttribute("data-phase", "done", { timeout: 20000 });
 }
 
@@ -189,7 +247,7 @@ test("W6 keeps one student identity from live pretest through learning handoff t
   await expect(page).toHaveURL(/\/student\/session\/\d+/, { timeout: 10000 });
   const pretestId = page.url().match(/\/student\/session\/(\d+)/)?.[1];
   expect(pretestId).toBeTruthy();
-  await completeAssessment(page, request, context, accessCode, pretestId!);
+  await completeAssessment(page, request, context, accessCode, studentId, pretestId!, true);
 
   await page.goto("/student");
   await expect(page.getByRole("button", { name: /ابدأ أنشطة مستواك|متابعة الأنشطة/ })).toBeEnabled({ timeout: 10000 });
@@ -220,7 +278,7 @@ test("W6 keeps one student identity from live pretest through learning handoff t
   const posttestId = page.url().match(/\/student\/session\/(\d+)/)?.[1];
   expect(posttestId).toBeTruthy();
   expect(posttestId).not.toBe(pretestId);
-  await completeAssessment(page, request, context, accessCode, posttestId!);
+  await completeAssessment(page, request, context, accessCode, studentId, posttestId!);
 
   await page.goto("/student");
   await expect(page.getByRole("heading", { name: "أكملت رحلتك" })).toBeVisible({ timeout: 10000 });
