@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Award, BookOpenCheck, Check, Headphones, LogOut, Map, Star } from "lucide-react";
+import { Award, BookOpenCheck, Check, Headphones, LogOut, Map, RotateCcw, Star } from "lucide-react";
 import styles from "./home.module.css";
 
 interface StudentMe {
@@ -40,6 +40,18 @@ interface RewardEvent {
   asset_id?: string | null;
   asset_slug?: string | null;
   asset_path?: string | null;
+}
+
+interface RerecordTask {
+  submission_id: number;
+  session_id: number;
+  attempt_id: number;
+  item_id: number;
+  step_id: number;
+  stable_key: string;
+  title: string;
+  expected_reading_text?: string | null;
+  opened?: boolean;
 }
 
 interface JourneyLevel {
@@ -88,6 +100,8 @@ export default function StudentHomePage() {
   const [learning, setLearning] = useState<LearningStatus | null>(null);
   const [journey, setJourney] = useState<JourneySummary | null>(null);
   const [rewards, setRewards] = useState<RewardEvent[] | null>(null);
+  const [rerecordTasks, setRerecordTasks] = useState<RerecordTask[]>([]);
+  const [openingRerecordId, setOpeningRerecordId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState("");
@@ -126,6 +140,23 @@ export default function StudentHomePage() {
             })
             .catch(() => setRewards(null)),
         );
+        if (
+          profile.active_session?.session_type === "pretest"
+          || profile.active_session?.session_type === "posttest"
+        ) {
+          requests.push(
+            fetch(`/api/assessment/session/${profile.active_session.id}/rerecord-tasks`, { cache: "no-store" })
+              .then(async (response) => {
+                if (!response.ok) {
+                  setRerecordTasks([]);
+                  return;
+                }
+                const taskData = await response.json().catch(() => []);
+                setRerecordTasks(Array.isArray(taskData) ? taskData : []);
+              })
+              .catch(() => setRerecordTasks([])),
+          );
+        }
         await Promise.all(requests);
       } catch (err) {
         setError(err instanceof Error ? err.message : "تعذر تحميل بياناتك. حدّث الصفحة وحاول مرة أخرى.");
@@ -178,6 +209,24 @@ export default function StudentHomePage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "تعذر الاتصال بالخادم");
       setStarting(false);
+    }
+  };
+
+  const handleOpenRerecord = async (task: RerecordTask) => {
+    if (openingRerecordId !== null) return;
+    setOpeningRerecordId(task.submission_id);
+    setError("");
+    try {
+      const response = await fetch(
+        `/api/assessment/session/${task.session_id}/attempt/${task.item_id}/step/${task.step_id}/rerecord/start`,
+        { method: "POST" },
+      );
+      const data = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(data?.detail || "تعذر فتح مهمة إعادة التسجيل");
+      router.push(`/student/session/${task.session_id}?task=rerecord`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "تعذر فتح مهمة إعادة التسجيل");
+      setOpeningRerecordId(null);
     }
   };
 
@@ -266,7 +315,7 @@ export default function StudentHomePage() {
     phaseIndex = student.active_session?.session_type === "posttest" ? 2 : 0;
     heroTitle = "لديك مهمة إعادة تسجيل";
     heroDescription = "طلب المشرف إعادة إحدى القراءات. ستجد المهمة بشكل مستقل في الصفحة، ويمكنك فتحها عندما تكون مستعدًا.";
-    primaryLabel = "افتح مهمة التسجيل من التنبيه"
+    primaryLabel = "افتح مهمة التسجيل أدناه";
     character = "/characters/girl/encourage.png";
   }
   if (student.next_action === "completed") {
@@ -340,6 +389,40 @@ export default function StudentHomePage() {
             </div>
           </aside>
         </div>
+
+        {rerecordTasks.length > 0 && (
+          <section className="rounded-[28px] border border-border bg-white p-4 sm:p-6 shadow-sm" data-testid="assessment-rerecord-tasks" aria-labelledby="assessment-rerecord-title">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+              <div className="flex items-center gap-3">
+                <span className="w-11 h-11 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0"><RotateCcw size={20} aria-hidden="true" /></span>
+                <div>
+                  <h2 id="assessment-rerecord-title" className="font-bold text-navy text-lg">إعادة تسجيل مطلوبة</h2>
+                  <p className="text-sm text-muted mt-1">هذه مهمة منفصلة عن مسارك. افتحها عندما تكون جاهزًا، ولن تعيدك إلى بداية الاختبار.</p>
+                </div>
+              </div>
+              <span className="text-xs font-semibold rounded-full bg-amber-50 text-amber-800 px-3 py-1.5 self-start">{rerecordTasks.length} {rerecordTasks.length === 1 ? "مهمة" : "مهام"}</span>
+            </div>
+            <div className="grid gap-3">
+              {rerecordTasks.map((task) => (
+                <article key={task.submission_id} className="rounded-2xl border border-border bg-bg px-4 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div className="min-w-0">
+                    <span className="text-xs text-muted">{task.title || "مهمة قراءة"}</span>
+                    <strong className="block mt-1 text-navy text-base">{task.expected_reading_text || "أعد تسجيل القراءة المطلوبة"}</strong>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-primary shrink-0"
+                    disabled={openingRerecordId !== null}
+                    onClick={() => void handleOpenRerecord(task)}
+                  >
+                    {openingRerecordId === task.submission_id ? <span className="spinner w-4 h-4" /> : <RotateCcw size={16} aria-hidden="true" />}
+                    {task.opened ? "متابعة إعادة التسجيل" : "ابدأ إعادة التسجيل"}
+                  </button>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="student-results-panel" data-testid="student-results" aria-label="نتائج وتقدم الطالب">
           <div className="student-results-heading">
