@@ -705,9 +705,10 @@ class TestAssessmentAndScoring:
         assert client.post(
             "/auth/student-login", json={"access_code": "STU001"}
         ).status_code == 200
-        blocked = client.get(f"/assessment/session/{session_id}/next")
-        assert blocked.status_code == 409
-        assert "إعادة التسجيل" in blocked.json()["detail"]
+        continued = client.get(f"/assessment/session/{session_id}/next")
+        assert continued.status_code == 200
+        assert continued.json() is not None
+        assert continued.json()["id"] != item_id
 
         tasks = client.get(f"/assessment/session/{session_id}/rerecord-tasks")
         assert tasks.status_code == 200
