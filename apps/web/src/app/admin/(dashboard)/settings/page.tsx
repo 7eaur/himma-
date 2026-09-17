@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { KeyRound, ShieldCheck, UserPlus, UsersRound } from "lucide-react";
+import AdminFeedbackToast from "@/components/admin/AdminFeedbackToast";
 import { AdminAction, AdminPage, AdminPageHeader, AdminPanel } from "@/components/admin/AdminUI";
 import styles from "./settings.module.css";
 
@@ -14,11 +15,6 @@ interface Supervisor {
 
 type SettingsTab = "account" | "security" | "supervisors";
 const TAB_ORDER: SettingsTab[] = ["account", "security", "supervisors"];
-
-function Message({ kind, text }: { kind: "success" | "error"; text: string }) {
-  if (!text) return null;
-  return <div className={kind === "success" ? "alert-success mb-4" : "alert-error mb-4"} role="status">{text}</div>;
-}
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<SettingsTab>("account");
@@ -130,7 +126,7 @@ export default function SettingsPage() {
         description="الحساب والأمان وإدارة المشرفين مقسمة إلى أقسام مستقلة وواضحة."
       />
 
-      <Message kind={message.kind} text={message.text} />
+      <AdminFeedbackToast feedback={message} onDismiss={() => setMessage({ kind: "success", text: "" })} />
 
       <div className={styles.tabs} role="tablist" aria-label="أقسام إعدادات المشرف">
         {tabs.map((tab, index) => {
