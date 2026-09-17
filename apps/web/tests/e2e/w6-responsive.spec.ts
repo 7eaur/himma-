@@ -1,8 +1,11 @@
 import { expect, test, type APIRequestContext, type BrowserContext, type Page } from "@playwright/test";
+import { mkdir } from "node:fs/promises";
+import path from "node:path";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const SUPERVISOR_USERNAME = process.env.E2E_RESEARCHER_USERNAME ?? "admin";
 const SUPERVISOR_PASSWORD = process.env.E2E_RESEARCHER_PASSWORD;
+const SCREENSHOT_DIR = path.join(process.cwd(), "playwright-report", "screenshots", "student-responsive");
 const VIEWPORTS = [
   { name: "phone-320", width: 320, height: 720 },
   { name: "phone-360", width: 360, height: 800 },
@@ -50,6 +53,14 @@ async function expectNoHorizontalOverflow(page: Page) {
   expect(widths.body, JSON.stringify(widths)).toBeLessThanOrEqual(widths.viewport + 1);
 }
 
+async function capture(page: Page, viewport: string, surface: string) {
+  await mkdir(SCREENSHOT_DIR, { recursive: true });
+  await page.screenshot({
+    path: path.join(SCREENSHOT_DIR, `${viewport}-${surface}.png`),
+    fullPage: true,
+  });
+}
+
 test("W6 Student critical surfaces stay usable from 320px through desktop", async ({ page, context, request }) => {
   test.setTimeout(120000);
   const student = await createStudent(page, request, context);
@@ -66,6 +77,7 @@ test("W6 Student critical surfaces stay usable from 320px through desktop", asyn
       await expect(primary).toBeVisible();
       const box = await primary.boundingBox();
       expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
+      await capture(page, viewport.name, "home");
     });
   }
 
@@ -82,10 +94,19 @@ test("W6 Student critical surfaces stay usable from 320px through desktop", asyn
       const root = page.getByTestId("assessment-session");
       await expect(root).toHaveAttribute("data-phase", "question", { timeout: 15000 });
       await expectNoHorizontalOverflow(page);
+
+      const title = page.getByTestId("question-title");
+      await expect(title).toBeVisible();
+      if (viewport.width <= 430) {
+        const titleFontSize = await title.evaluate((node) => Number.parseFloat(getComputedStyle(node).fontSize));
+        expect(titleFontSize).toBeLessThanOrEqual(25);
+      }
+
       const interactive = page.locator('button[aria-pressed="false"], [data-testid="record-reading"]').first();
       await expect(interactive).toBeVisible({ timeout: 7000 });
       const box = await interactive.boundingBox();
       expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
+      await capture(page, viewport.name, "assessment");
     });
   }
 });
