@@ -6,6 +6,7 @@ import "./fonts.css";
 import "./accessibility.css";
 import "./reduced-motion.css";
 import "./ux-corrections.css";
+import "./ux-student-surfaces.css";
 import { ScrollAnimator } from "@/components/ScrollAnimator";
 
 const studentFont = Tajawal({
