@@ -128,7 +128,7 @@ async function reviewPendingAudio(
       await requestRerecord.click();
       rerecordRequested = true;
     } else {
-      const save = page.getByRole("button", { name: "حفظ واعتماد القراءة" });
+      const save = page.getByRole("button", { name: "اعتماد وحفظ التقييم" });
       await expect(save).toBeEnabled({ timeout: 7000 });
       await save.click();
     }
