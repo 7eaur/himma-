@@ -34,11 +34,6 @@ function AudioPlayer({ storageKey }: { storageKey: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    setSrc(null);
-    setError("");
-  }, [storageKey]);
-
   const loadRecording = async () => {
     setLoading(true);
     setError("");
@@ -371,7 +366,7 @@ export default function AudioReviewPage() {
                     <p>{activeSubmission.expected_reading_text || "لا يوجد نص مرجعي محفوظ لهذا التسجيل."}</p>
                   </section>
 
-                  <AudioPlayer storageKey={activeSubmission.storage_key} />
+                  <AudioPlayer key={activeSubmission.storage_key} storageKey={activeSubmission.storage_key} />
                 </div>
 
                 <section className="audio-review-decision" aria-label="نموذج قرار المراجعة">
