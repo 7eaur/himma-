@@ -7,13 +7,13 @@ surfaced as a deferred task until the learner explicitly opens it.
 """
 
 import assessment
-import seed
+import seed_all
 from db.database import SessionLocal
 from db.models import AssessmentSession, Attempt, ContentItem, Student
 
 
 def test_uploaded_assessment_audio_allows_next_but_blocks_finish(client, monkeypatch):
-    seed.run_seed()
+    seed_all.run_seed_all()
     monkeypatch.setattr(assessment.storage, "verify_audio", lambda *_args: None)
 
     assert client.post(
@@ -84,7 +84,7 @@ def test_uploaded_assessment_audio_allows_next_but_blocks_finish(client, monkeyp
 
 
 def test_rerecord_request_is_deferred_until_student_opens_task(client, monkeypatch):
-    seed.run_seed()
+    seed_all.run_seed_all()
     monkeypatch.setattr(assessment.storage, "verify_audio", lambda *_args: None)
 
     assert client.post(
