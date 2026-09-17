@@ -50,12 +50,12 @@ function AudioPlayer({ storageKey }: { storageKey: string }) {
   };
 
   return (
-    <section className="audio-review-player" aria-label="الاستماع إلى التسجيل">
-      <div className="audio-review-section-heading">
-        <span className="audio-review-section-icon"><Headphones size={18} aria-hidden="true" /></span>
+    <section className="audio-review-source-card" aria-label="التسجيل الصوتي">
+      <div className="audio-review-card-heading">
+        <span className="audio-review-card-icon"><Headphones size={19} aria-hidden="true" /></span>
         <div>
-          <strong>التسجيل المرسل</strong>
-          <span>استمع إلى القراءة كاملة قبل اتخاذ القرار.</span>
+          <strong>التسجيل الصوتي</strong>
+          <span>استمع إلى التسجيل كاملًا قبل التقييم.</span>
         </div>
       </div>
 
@@ -63,7 +63,7 @@ function AudioPlayer({ storageKey }: { storageKey: string }) {
         <audio src={src} controls className="audio-review-native-player" preload="metadata" />
       ) : (
         <button type="button" className="audio-review-listen-button" onClick={() => void loadRecording()} disabled={loading}>
-          <Play size={17} aria-hidden="true" />
+          <Play size={18} aria-hidden="true" />
           {loading ? "جاري تجهيز التسجيل..." : "تشغيل التسجيل"}
         </button>
       )}
@@ -99,6 +99,39 @@ function submissionDate(value: string) {
     hour: "numeric",
     minute: "2-digit",
   });
+}
+
+function NumberField({
+  id,
+  label,
+  description,
+  value,
+  min,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  description: string;
+  value: number;
+  min: number;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <label className="audio-review-score-field" htmlFor={id}>
+      <span className="audio-review-score-label">{label}</span>
+      <span className="audio-review-score-description">{description}</span>
+      <input
+        id={id}
+        className="audio-review-score-input"
+        type="number"
+        inputMode="numeric"
+        min={min}
+        step={1}
+        value={value}
+        onChange={(event) => onChange(Number(event.target.value))}
+      />
+    </label>
+  );
 }
 
 export default function AudioReviewPage() {
@@ -236,7 +269,7 @@ export default function AudioReviewPage() {
       <AdminPageHeader
         eyebrow="المراجعة الأكاديمية"
         title="مراجعة التسجيلات"
-        description={studentFilter ? `تسجيلات الطالب #${studentFilter} التي تنتظر قرار المشرف.` : "مساحة عمل واحدة للاستماع، المقارنة بالنص المرجعي، ثم اعتماد القراءة أو طلب إعادة التسجيل."}
+        description={studentFilter ? `تسجيلات الطالب #${studentFilter} التي تنتظر قرار المشرف.` : "استمع إلى القراءة، قارنها بالنص المرجعي، ثم أدخل التقييم واتخذ القرار."}
         actions={<AdminAction icon={RefreshCw} onClick={() => void refreshQueue()} disabled={refreshing || editingId !== null}>{refreshing ? "جاري التحديث..." : "تحديث القائمة"}</AdminAction>}
       />
 
@@ -268,7 +301,7 @@ export default function AudioReviewPage() {
           <aside className="audio-review-sidebar" aria-label="قائمة التسجيلات المنتظرة">
             <div className="audio-review-sidebar-header">
               <div>
-                <span className="audio-review-sidebar-kicker">قائمة الانتظار</span>
+                <span>قائمة الانتظار</span>
                 <strong>{submissions.length} {submissions.length === 1 ? "تسجيل" : "تسجيلات"}</strong>
               </div>
               <ListMusic size={20} aria-hidden="true" />
@@ -315,24 +348,14 @@ export default function AudioReviewPage() {
             {!activeSubmission ? (
               <div className="audio-review-welcome">
                 <span className="audio-review-welcome-icon"><Headphones size={28} aria-hidden="true" /></span>
-                <div>
-                  <h2>اختر تسجيلًا من قائمة الانتظار</h2>
-                  <p>ستظهر هنا هوية الطالب، النص المطلوب، مشغل التسجيل، القرار، ثم الملاحظات والحفظ بالترتيب.</p>
-                </div>
-                <ol className="audio-review-flow" aria-label="خطوات المراجعة">
-                  <li><span>1</span>استمع</li>
-                  <li><span>2</span>قارن بالنص</li>
-                  <li><span>3</span>اتخذ القرار</li>
-                  <li><span>4</span>احفظ</li>
-                </ol>
+                <h2>اختر تسجيلًا لبدء المراجعة</h2>
+                <p>ستظهر بيانات الطالب والتسجيل والنص المرجعي ثم حقول التقييم والقرار بشكل واضح في مساحة واحدة.</p>
               </div>
             ) : (
               <div className="audio-review-detail" data-testid="audio-review-form">
                 <header className="audio-review-detail-header">
                   <div className="audio-review-student-block">
-                    <span className="audio-review-avatar" aria-hidden="true">
-                      {(activeSubmission.student_name || "ط").trim().charAt(0)}
-                    </span>
+                    <span className="audio-review-avatar" aria-hidden="true">{(activeSubmission.student_name || "ط").trim().charAt(0)}</span>
                     <div>
                       <span className="audio-review-detail-kicker">{sessionLabel(activeSubmission.session_type)}</span>
                       <h2>{activeSubmission.student_name || "طالب غير معروف"}</h2>
@@ -342,45 +365,45 @@ export default function AudioReviewPage() {
                   {activeSubmission.student_id && (
                     <Link href={`/admin/students/${activeSubmission.student_id}`} className="audio-review-profile-link">
                       <UserRound size={16} aria-hidden="true" />
-                      فتح ملف الطالب
+                      ملف الطالب
                     </Link>
                   )}
                 </header>
 
-                <div className="audio-review-flow audio-review-flow-inline" aria-label="تسلسل المراجعة">
-                  <span className="is-current"><b>1</b> الاستماع والنص</span>
-                  <span><b>2</b> القرار</span>
-                  <span><b>3</b> الأدلة والملاحظات</span>
-                  <span><b>4</b> الحفظ</span>
-                </div>
-
-                <div className="audio-review-evidence-grid">
-                  <section className="audio-review-reference" aria-label="النص المطلوب">
-                    <div className="audio-review-section-heading">
-                      <span className="audio-review-section-icon">أ</span>
-                      <div>
-                        <strong>النص المطلوب</strong>
-                        <span>قارن القراءة بهذا النص المرجعي.</span>
-                      </div>
-                    </div>
-                    <p>{activeSubmission.expected_reading_text || "لا يوجد نص مرجعي محفوظ لهذا التسجيل."}</p>
-                  </section>
-
-                  <AudioPlayer key={activeSubmission.storage_key} storageKey={activeSubmission.storage_key} />
-                </div>
-
-                <section className="audio-review-decision" aria-label="نموذج قرار المراجعة">
-                  <div className="audio-review-section-title">
+                <section className="audio-review-review-block" aria-labelledby="listen-title">
+                  <div className="audio-review-block-header">
+                    <span className="audio-review-block-number">1</span>
                     <div>
-                      <span className="audio-review-step-number">2</span>
-                      <div>
-                        <h3>قرار المراجعة</h3>
-                        <p>اختر القرار أولًا. الحقول التالية تتغير بحسب القرار.</p>
+                      <h3 id="listen-title">استمع وقارن</h3>
+                      <p>استمع إلى التسجيل ثم قارنه بالنص المطلوب قبل إدخال التقييم.</p>
+                    </div>
+                  </div>
+                  <div className="audio-review-evidence-grid">
+                    <section className="audio-review-source-card" aria-label="النص المطلوب">
+                      <div className="audio-review-card-heading">
+                        <span className="audio-review-card-icon">أ</span>
+                        <div>
+                          <strong>النص المطلوب</strong>
+                          <span>النص المرجعي الذي كان على الطالب قراءته.</span>
+                        </div>
                       </div>
+                      <p className="audio-review-reference-text">{activeSubmission.expected_reading_text || "لا يوجد نص مرجعي محفوظ لهذا التسجيل."}</p>
+                    </section>
+                    <AudioPlayer key={activeSubmission.storage_key} storageKey={activeSubmission.storage_key} />
+                  </div>
+                </section>
+
+                <fieldset className="audio-review-review-block audio-review-decision-block">
+                  <legend className="sr-only">قرار المراجعة</legend>
+                  <div className="audio-review-block-header">
+                    <span className="audio-review-block-number">2</span>
+                    <div>
+                      <h3>اختر نتيجة التسجيل</h3>
+                      <p>حدد النتيجة أولًا؛ سيظهر بعدها ما تحتاجه فقط لإكمال المراجعة.</p>
                     </div>
                   </div>
 
-                  <div className="audio-review-decision-grid" role="group" aria-label="نوع قرار التسجيل">
+                  <div className="audio-review-decision-grid">
                     <button
                       type="button"
                       className={`audio-review-decision-card approve ${isValid ? "is-selected" : ""}`}
@@ -388,9 +411,14 @@ export default function AudioReviewPage() {
                       aria-pressed={isValid}
                       aria-label="اعتماد القراءة"
                     >
-                      <CheckCircle2 size={22} aria-hidden="true" />
-                      <span><strong>اعتماد القراءة</strong><small>القراءة صالحة ويمكن تسجيل نتيجة الأداء.</small></span>
+                      <span className="audio-review-decision-icon"><CheckCircle2 size={25} aria-hidden="true" /></span>
+                      <span className="audio-review-decision-copy">
+                        <strong>اعتماد القراءة</strong>
+                        <small>التسجيل صالح للتقييم ويمكن اعتماد نتيجة القراءة.</small>
+                      </span>
+                      <span className="audio-review-choice-mark" aria-hidden="true">{isValid ? "✓" : ""}</span>
                     </button>
+
                     <button
                       type="button"
                       className={`audio-review-decision-card rerecord ${!isValid ? "is-selected" : ""}`}
@@ -398,70 +426,83 @@ export default function AudioReviewPage() {
                       aria-pressed={!isValid}
                       aria-label="طلب إعادة تسجيل"
                     >
-                      <RotateCcw size={22} aria-hidden="true" />
-                      <span><strong>طلب إعادة تسجيل</strong><small>ينشأ للطالب طلب مستقل ويُحفظ التسجيل السابق.</small></span>
+                      <span className="audio-review-decision-icon"><RotateCcw size={25} aria-hidden="true" /></span>
+                      <span className="audio-review-decision-copy">
+                        <strong>طلب إعادة تسجيل</strong>
+                        <small>التسجيل غير مناسب للاعتماد ويحتاج محاولة جديدة.</small>
+                      </span>
+                      <span className="audio-review-choice-mark" aria-hidden="true">{!isValid ? "✓" : ""}</span>
                     </button>
                   </div>
-                </section>
+                </fieldset>
 
                 {isValid ? (
-                  <section className="audio-review-metrics" aria-label="أدلة تقييم القراءة">
-                    <div className="audio-review-section-title">
+                  <section className="audio-review-review-block" aria-labelledby="score-title">
+                    <div className="audio-review-block-header">
+                      <span className="audio-review-block-number">3</span>
                       <div>
-                        <span className="audio-review-step-number">3</span>
-                        <div>
-                          <h3>أدلة التقييم</h3>
-                          <p>أدخل الوحدات المستهدفة ثم أخطاء الحذف والاستبدال والإضافة.</p>
-                        </div>
+                        <h3 id="score-title">تقييم أداء القراءة</h3>
+                        <p>أدخل الأعداد كما ظهرت في القراءة. الحقول الأساسية واضحة ومستقلة لتقليل الخطأ أثناء الإدخال.</p>
                       </div>
                     </div>
-                    <div className="audio-review-metrics-grid">
-                      <label>
-                        <span>الوحدات المستهدفة</span>
-                        <input className="input" type="number" min={1} step={1} value={targetUnits} onChange={(event) => setTargetUnits(Number(event.target.value))} />
-                        <small>إجمالي الوحدات المقروءة في النص.</small>
-                      </label>
-                      <label>
-                        <span>الحذف</span>
-                        <input className="input" type="number" min={0} step={1} value={deletions} onChange={(event) => setDeletions(Number(event.target.value))} />
-                        <small>وحدات لم يقرأها الطالب.</small>
-                      </label>
-                      <label>
-                        <span>الاستبدال</span>
-                        <input className="input" type="number" min={0} step={1} value={substitutions} onChange={(event) => setSubstitutions(Number(event.target.value))} />
-                        <small>وحدات قُرئت بدلًا من الأصل.</small>
-                      </label>
-                      <label>
-                        <span>الإضافة</span>
-                        <input className="input" type="number" min={0} step={1} value={insertions} onChange={(event) => setInsertions(Number(event.target.value))} />
-                        <small>وحدات زائدة على النص.</small>
-                      </label>
+
+                    <div className="audio-review-score-grid" data-testid="audio-review-score-fields">
+                      <NumberField
+                        id="target-units"
+                        label="إجمالي الوحدات"
+                        description="عدد الوحدات المستهدفة في النص كاملًا."
+                        value={targetUnits}
+                        min={1}
+                        onChange={setTargetUnits}
+                      />
+                      <NumberField
+                        id="deletions"
+                        label="الحذف"
+                        description="وحدات موجودة في النص ولم يقرأها الطالب."
+                        value={deletions}
+                        min={0}
+                        onChange={setDeletions}
+                      />
+                      <NumberField
+                        id="substitutions"
+                        label="الاستبدال"
+                        description="وحدات قرأها الطالب بصورة مختلفة عن الأصل."
+                        value={substitutions}
+                        min={0}
+                        onChange={setSubstitutions}
+                      />
+                      <NumberField
+                        id="insertions"
+                        label="الإضافة"
+                        description="وحدات أضافها الطالب وليست موجودة في النص."
+                        value={insertions}
+                        min={0}
+                        onChange={setInsertions}
+                      />
                     </div>
                   </section>
                 ) : (
-                  <section className="audio-review-rerecord-note" aria-label="أثر طلب إعادة التسجيل">
-                    <RotateCcw size={20} aria-hidden="true" />
+                  <section className="audio-review-rerecord-panel" aria-label="أثر طلب إعادة التسجيل">
+                    <span className="audio-review-rerecord-icon"><RotateCcw size={22} aria-hidden="true" /></span>
                     <div>
-                      <strong>إعادة التسجيل لن توقف مسار الطالب</strong>
-                      <p>يظهر الطلب كمهمة مستقلة، ويبقى السؤال أو النشاط الحالي كما هو، ويُحفظ التسجيل السابق في سجل المراجعة.</p>
+                      <strong>سيُنشأ للطالب طلب إعادة تسجيل مستقل</strong>
+                      <p>لن يتوقف مساره الحالي، وسيبقى التسجيل السابق محفوظًا في السجل. أضف ملاحظة للمشرف أو الطالب إذا كانت هناك نقطة محددة يجب الانتباه لها.</p>
                     </div>
                   </section>
                 )}
 
-                <section className="audio-review-notes" aria-label="ملاحظات المراجعة">
-                  <div className="audio-review-section-title compact">
+                <section className="audio-review-review-block" aria-labelledby="notes-title">
+                  <div className="audio-review-block-header">
+                    <span className="audio-review-block-number">{isValid ? "4" : "3"}</span>
                     <div>
-                      <span className="audio-review-step-number">3</span>
-                      <div>
-                        <h3>ملاحظات المشرف</h3>
-                        <p>سجّل فقط ما يفيد المتابعة الأكاديمية.</p>
-                      </div>
+                      <h3 id="notes-title">ملاحظات المراجعة</h3>
+                      <p>اختيارية. اكتب فقط ما يساعد على المتابعة الأكاديمية.</p>
                     </div>
                   </div>
                   <div className="audio-review-notes-grid">
                     <label>
                       <span>ملاحظات النطق</span>
-                      <textarea className="input" value={pronunciationNotes} onChange={(event) => setPronunciationNotes(event.target.value)} placeholder="مثال: تكرار صعوبة في نطق صوت محدد..." />
+                      <textarea className="input" value={pronunciationNotes} onChange={(event) => setPronunciationNotes(event.target.value)} placeholder="مثال: صعوبة متكررة في نطق صوت محدد..." />
                     </label>
                     <label>
                       <span>ملاحظات الطلاقة</span>
@@ -470,24 +511,30 @@ export default function AudioReviewPage() {
                   </div>
                 </section>
 
-                <footer className="audio-review-actions">
-                  <div>
-                    <span className="audio-review-step-number">4</span>
+                <footer className={`audio-review-submit-bar ${isValid ? "is-approve" : "is-rerecord"}`}>
+                  <div className="audio-review-submit-summary">
+                    <span>{isValid ? <CheckCircle2 size={20} aria-hidden="true" /> : <RotateCcw size={20} aria-hidden="true" />}</span>
                     <div>
-                      <strong>{isValid ? "اعتماد نتيجة المراجعة" : "إرسال طلب إعادة التسجيل"}</strong>
-                      <small>راجع القرار قبل الحفظ؛ سيزال التسجيل من قائمة الانتظار بعد النجاح.</small>
+                      <strong>{isValid ? "سيتم اعتماد التسجيل وحفظ التقييم" : "سيتم إرسال طلب إعادة تسجيل"}</strong>
+                      <small>{isValid ? "راجع أرقام التقييم ثم احفظ القرار." : "لن يُحذف التسجيل الحالي ولن يتوقف مسار الطالب."}</small>
                     </div>
                   </div>
-                  <div className="audio-review-action-buttons">
-                    <button type="button" className="btn-secondary" onClick={closeReview} disabled={gradingId === activeSubmission.id}>
-                      <XCircle size={16} aria-hidden="true" /> إلغاء
+                  <div className="audio-review-submit-actions">
+                    <button type="button" className="audio-review-cancel-button" onClick={closeReview} disabled={gradingId === activeSubmission.id}>
+                      <XCircle size={17} aria-hidden="true" />
+                      إلغاء المراجعة
                     </button>
-                    <button type="button" className="btn-primary" onClick={() => void handleGrade(activeSubmission.id)} disabled={gradingId === activeSubmission.id}>
+                    <button
+                      type="button"
+                      className={isValid ? "audio-review-save-button approve" : "audio-review-save-button rerecord"}
+                      onClick={() => void handleGrade(activeSubmission.id)}
+                      disabled={gradingId === activeSubmission.id}
+                    >
                       {gradingId === activeSubmission.id
                         ? "جاري الحفظ..."
                         : isValid
-                          ? <><Save size={17} aria-hidden="true" /> حفظ واعتماد القراءة</>
-                          : <><RotateCcw size={17} aria-hidden="true" /> إرسال طلب إعادة التسجيل</>}
+                          ? <><Save size={18} aria-hidden="true" /> اعتماد وحفظ التقييم</>
+                          : <><RotateCcw size={18} aria-hidden="true" /> إرسال طلب إعادة التسجيل</>}
                     </button>
                   </div>
                 </footer>
