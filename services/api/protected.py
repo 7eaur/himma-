@@ -188,21 +188,32 @@ def _ensure_unique_access_code(db: Session, code: str, *, excluding_student_id: 
 
 
 def _assessment_display_status(db: Session, session: AssessmentSession | None) -> str | None:
-    """Describe an active assessment using only latest audio state per response."""
+    """Describe the learner-facing phase without turning review into navigation.
+
+    Pending/rejected audio is evidence state, not a reason to replace the active
+    assessment CTA while ordinary questions remain. Once all 30 required items
+    have been submitted, unresolved audio becomes the terminal display state and
+    continues to hold academic finish/scoring fail-closed.
+    """
     if not session or session.session_type not in {"pretest", "posttest"}:
         return None
+
+    required_kind = "pretest_question" if session.session_type == "pretest" else "posttest_question"
+    required_items = db.query(ContentItem.id).filter(ContentItem.kind == required_kind).count()
+    attempts = db.query(Attempt).filter(Attempt.session_id == session.id).all()
+    assessment_questions_done = (
+        required_items == 30
+        and len(attempts) == required_items
+        and all(attempt.status == "completed" for attempt in attempts)
+    )
+    if not assessment_questions_done:
+        return "answering"
 
     summary = session_audio_review_summary(db, session.id)
     if summary.rerecord_required_count:
         return "rerecord_required"
     if summary.pending_count:
         return "waiting_audio_review"
-
-    required_kind = "pretest_question" if session.session_type == "pretest" else "posttest_question"
-    required_items = db.query(ContentItem.id).filter(ContentItem.kind == required_kind).count()
-    attempts = db.query(Attempt).filter(Attempt.session_id == session.id).all()
-    if required_items != 30 or len(attempts) != required_items or any(attempt.status != "completed" for attempt in attempts):
-        return "answering"
     return "ready_to_finalize"
 
 
