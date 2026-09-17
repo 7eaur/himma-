@@ -32,36 +32,42 @@ LEVEL_NAMES = {
 }
 
 
-def _pretest_state(db: Session, student_id: int) -> tuple[bool, int | None]:
-    pretest = (
+def _latest_completed_assessment(
+    db: Session,
+    student_id: int,
+    session_type: str,
+) -> AssessmentSession | None:
+    """Return the newest persisted completed result for the requested assessment."""
+    return (
         db.query(AssessmentSession)
         .filter(
             AssessmentSession.student_id == student_id,
-            AssessmentSession.session_type == "pretest",
-        )
-        .order_by(AssessmentSession.id.desc())
-        .first()
-    )
-    if not pretest or pretest.status != "completed":
-        return False, None
-    return True, pretest.assigned_level
-
-
-def _posttest_completed(db: Session, student_id: int) -> bool:
-    return (
-        db.query(AssessmentSession.id)
-        .filter(
-            AssessmentSession.student_id == student_id,
-            AssessmentSession.session_type == "posttest",
+            AssessmentSession.session_type == session_type,
             AssessmentSession.status == "completed",
         )
+        .order_by(AssessmentSession.assessment_attempt_no.desc(), AssessmentSession.id.desc())
         .first()
-        is not None
     )
+
+
+def _pretest_state(db: Session, student_id: int) -> tuple[bool, int | None, float | None]:
+    pretest = _latest_completed_assessment(db, student_id, "pretest")
+    if not pretest:
+        return False, None, None
+    score = float(pretest.final_score) if pretest.final_score is not None else None
+    return True, pretest.assigned_level, score
+
+
+def _posttest_state(db: Session, student_id: int) -> tuple[bool, float | None]:
+    posttest = _latest_completed_assessment(db, student_id, "posttest")
+    if not posttest:
+        return False, None
+    score = float(posttest.final_score) if posttest.final_score is not None else None
+    return True, score
 
 
 def build_journey_summary(db: Session, student: Student) -> dict:
-    pretest_completed, placed_level = _pretest_state(db, student.id)
+    pretest_completed, placed_level, pretest_score = _pretest_state(db, student.id)
     starting_level = placed_level if placed_level in {1, 2, 3} else (student.current_level if pretest_completed else None)
 
     sessions = (
@@ -140,16 +146,18 @@ def build_journey_summary(db: Session, student: Student) -> dict:
             }
         )
 
-    posttest_completed = _posttest_completed(db, student.id)
+    posttest_completed, posttest_score = _posttest_state(db, student.id)
     learning_journey_completed = level3_completed and not active_core_exists
     return {
         "pretest_completed": pretest_completed,
+        "pretest_score": pretest_score,
         "starting_level": starting_level,
         "current_level": student.current_level,
         "levels": levels,
         "learning_journey_completed": learning_journey_completed,
         "posttest_enabled": bool(student.posttest_enabled),
         "posttest_completed": posttest_completed,
+        "posttest_score": posttest_score,
         "posttest_ready": learning_journey_completed and bool(student.posttest_enabled) and not posttest_completed,
     }
 
