@@ -1,8 +1,9 @@
 """Regression coverage for the student assessment display state.
 
-The assessment session stays academically ``in_progress`` while the profile
-exposes whether the learner is still answering, waiting for manual audio
-review, needs a rerecord, or is ready to finalize. Historical AudioSubmissions
+Audio review state must not hijack the learner dashboard while ordinary
+assessment questions remain. The assessment session stays academically
+``in_progress`` throughout; only after every required item is submitted may the
+profile expose a terminal waiting/rerecord state. Historical AudioSubmissions
 never become active state again once a newer submission exists.
 """
 
@@ -12,7 +13,7 @@ from protected import _assessment_display_status
 import seed
 
 
-def test_assessment_display_status_exposes_audio_wait_before_all_questions_are_done():
+def test_assessment_display_status_keeps_answering_while_questions_remain():
     seed.run_seed()
     db = SessionLocal()
     try:
@@ -57,12 +58,14 @@ def test_assessment_display_status_exposes_audio_wait_before_all_questions_are_d
         db.add(submission)
         db.flush()
 
-        assert _assessment_display_status(db, session) == "waiting_audio_review"
+        # Pending review is visible elsewhere as evidence/task state, but does
+        # not replace the active assessment CTA while 29 questions remain.
+        assert _assessment_display_status(db, session) == "answering"
         assert session.status == "in_progress"
 
         submission.status = "rerecord_required"
         db.flush()
-        assert _assessment_display_status(db, session) == "rerecord_required"
+        assert _assessment_display_status(db, session) == "answering"
         assert session.status == "in_progress"
 
         # The rejected recording remains immutable history. Once a newer graded
@@ -84,7 +87,7 @@ def test_assessment_display_status_exposes_audio_wait_before_all_questions_are_d
         db.close()
 
 
-def test_assessment_display_status_tracks_audio_review_without_mutating_session():
+def test_assessment_display_status_tracks_terminal_audio_review_without_mutating_session():
     seed.run_seed()
     db = SessionLocal()
     try:
