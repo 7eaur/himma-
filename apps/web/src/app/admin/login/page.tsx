@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LockKeyhole, UserRound } from "lucide-react";
+import { ArrowRight, LockKeyhole, ShieldCheck, UserRound } from "lucide-react";
 
 export default function AdminLogin() {
   const router = useRouter();
@@ -56,21 +57,28 @@ export default function AdminLogin() {
 
   return (
     <div className="admin-login-root" dir="rtl">
-      <div className="admin-login-brand">
-        <Image src="/brand/logo-white.svg" alt="هِمّة" width={140} height={48} priority />
-        <h2 className="admin-brand-title">بوابة المشرف</h2>
-        <p className="admin-brand-sub">إدارة الطلاب ومتابعة تقدمهم من مكان واحد</p>
-        <Image src="/characters/girl/welcome.png" alt="شخصية هِمّة" width={160} height={200} className="admin-brand-char" priority />
-        <p className="admin-brand-tagline">أتعلم، أتطور، أصل إلى القمة</p>
+      <div className="admin-login-brand" aria-hidden="true">
+        <Image src="/brand/logo-white.svg" alt="" width={140} height={48} priority />
+        <div className="admin-login-kicker"><ShieldCheck size={17} /> مساحة المشرف الآمنة</div>
+        <h2 className="admin-brand-title">متابعة أوضح، وقرارات أسرع</h2>
+        <p className="admin-brand-sub">أدر الطلاب، راجع التسجيلات، وتابع التقدم من مساحة واحدة مرتبة.</p>
+        <Image src="/characters/girl/welcome.png" alt="" width={176} height={218} className="admin-brand-char" priority />
+        <p className="admin-brand-tagline">منصة هِمّة التعليمية</p>
       </div>
 
       <div className="admin-login-form-wrap">
+        <Link href="/" className="login-back-home" aria-label="العودة إلى الصفحة الرئيسية">
+          <ArrowRight size={18} aria-hidden="true" />
+          <span>الصفحة الرئيسية</span>
+        </Link>
+
         <div className="admin-login-form-box">
-          <div className="md:hidden flex justify-center mb-8">
-            <Image src="/brand/logo-navy.svg" alt="هِمّة" width={140} height={48} />
+          <div className="admin-login-mobile-logo">
+            <Image src="/brand/logo-navy.svg" alt="هِمّة" width={136} height={46} priority />
           </div>
-          <h1>مرحبًا بك</h1>
-          <p>أدخل بيانات حساب المشرف للوصول إلى لوحة الإدارة.</p>
+          <span className="admin-login-eyebrow">دخول المشرف</span>
+          <h1>مرحبًا بعودتك</h1>
+          <p>أدخل بيانات حسابك للوصول إلى مركز المتابعة والإدارة.</p>
 
           {error && (
             <div data-testid="error-message" className="alert-error text-center mb-4" role="alert">
@@ -78,9 +86,9 @@ export default function AdminLogin() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-navy font-medium mb-2" htmlFor="supervisor-username">اسم المستخدم</label>
+          <form onSubmit={handleSubmit} className="admin-login-form">
+            <div className="admin-login-field">
+              <label htmlFor="supervisor-username">اسم المستخدم</label>
               <div className="relative">
                 <input
                   id="supervisor-username"
@@ -94,12 +102,12 @@ export default function AdminLogin() {
                   dir="rtl"
                   placeholder="اكتب اسم المستخدم"
                 />
-                <UserRound size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" aria-hidden="true" />
+                <UserRound size={18} className="admin-login-field-icon" aria-hidden="true" />
               </div>
             </div>
 
-            <div>
-              <label className="block text-navy font-medium mb-2" htmlFor="supervisor-password">كلمة المرور</label>
+            <div className="admin-login-field">
+              <label htmlFor="supervisor-password">كلمة المرور</label>
               <div className="relative">
                 <input
                   id="supervisor-password"
@@ -113,20 +121,20 @@ export default function AdminLogin() {
                   dir="ltr"
                   placeholder="••••••••"
                 />
-                <LockKeyhole size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" aria-hidden="true" />
+                <LockKeyhole size={18} className="admin-login-field-icon" aria-hidden="true" />
               </div>
             </div>
 
             <button
               type="submit"
-              className="btn-primary w-full mt-6"
+              className="btn-primary admin-login-submit"
               data-testid="login-submit"
               disabled={isLoading}
             >
-              {isLoading ? <span className="spinner" /> : "تسجيل الدخول"}
+              {isLoading ? <><span className="spinner" /> جاري التحقق...</> : "دخول لوحة المشرف"}
             </button>
           </form>
-          <p className="admin-login-hint">الدخول مخصص للمشرفين المخولين بإدارة المنصة.</p>
+          <p className="admin-login-hint"><ShieldCheck size={15} aria-hidden="true" /> الدخول مخصص للمشرفين المخولين بإدارة المنصة.</p>
         </div>
       </div>
     </div>
