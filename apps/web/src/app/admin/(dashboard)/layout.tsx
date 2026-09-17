@@ -9,6 +9,7 @@ import ReinforcementReviewPanel from "@/components/ReinforcementReviewPanel";
 import AdminNotifications from "@/components/admin/AdminNotifications";
 import { useAccessibleDialog } from "@/hooks/useAccessibleDialog";
 import styles from "./dashboard-layout.module.css";
+import "./admin-workflow.css";
 
 const navSections = [
   { label: "المتابعة", items: [{ href: "/admin", label: "نظرة عامة", icon: LayoutDashboard }, { href: "/admin/audio-review", label: "مراجعة التسجيلات", icon: Mic }] },
