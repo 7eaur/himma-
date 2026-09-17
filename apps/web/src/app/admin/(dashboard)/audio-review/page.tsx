@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, Headphones, Play, RefreshCw, RotateCcw, Save, UserRound, X, XCircle } from "lucide-react";
+import { CheckCircle2, Headphones, Play, RefreshCw, RotateCcw, Save, UserRound, XCircle } from "lucide-react";
+import AdminFeedbackToast from "@/components/admin/AdminFeedbackToast";
 import { AdminAction, AdminEmptyState, AdminPage, AdminPageHeader, AdminPanel } from "@/components/admin/AdminUI";
 
 interface AudioSubmission {
@@ -204,15 +205,7 @@ export default function AudioReviewPage() {
         actions={<AdminAction icon={RefreshCw} onClick={() => void refreshQueue()} disabled={refreshing || editingId !== null}>{refreshing ? "جاري التحديث..." : "تحديث القائمة"}</AdminAction>}
       />
 
-      {message.text && (
-        <div className={message.kind === "success" ? "alert-success" : "alert-error"} role={message.kind === "error" ? "alert" : "status"} aria-live="polite">
-          <div className="flex items-start gap-2">
-            {message.kind === "success" ? <CheckCircle2 size={18} className="mt-0.5 shrink-0" aria-hidden="true" /> : <XCircle size={18} className="mt-0.5 shrink-0" aria-hidden="true" />}
-            <span className="flex-1">{message.text}</span>
-            <button type="button" className="shrink-0 opacity-70 hover:opacity-100" onClick={() => setMessage({ kind: "success", text: "" })} aria-label="إغلاق الإشعار"><X size={16} /></button>
-          </div>
-        </div>
-      )}
+      <AdminFeedbackToast feedback={message} onDismiss={() => setMessage({ kind: "success", text: "" })} />
 
       {studentFilter && (
         <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4">
