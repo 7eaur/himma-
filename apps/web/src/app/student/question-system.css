@@ -1,0 +1,128 @@
+/* Shared student-question primitives.
+ * Scope every rule to explicit product test hooks so responsive behavior stays
+ * consistent without depending on CSS-module hash names.
+ */
+
+[data-testid="assessment-session"] [data-testid="question-title"] {
+  max-width: 46rem;
+  margin-inline: auto;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+/*
+ * Text stimuli should size to their content, not reserve a poster-sized box.
+ * Very short stimuli still receive the dedicated letterStimulus treatment from
+ * the session component; this base rule is for words, phrases and sentences.
+ */
+[data-testid="assessment-session"] [data-testid="question-stimulus"] {
+  width: fit-content;
+  min-width: min(10rem, 100%);
+  max-width: min(100%, 42rem);
+  min-height: 0;
+  margin-inline: auto;
+  padding: clamp(0.75rem, 2vw, 1.15rem) clamp(1rem, 3vw, 1.65rem);
+  font-size: clamp(1.35rem, 3.2vw, 2.25rem);
+  line-height: 1.45;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+/* Image answers use the image itself as the visual unit. Avoid tall empty cards. */
+[data-testid="assessment-session"] [data-testid="image-options"],
+[data-testid="assessment-session"] [data-testid="sequence-image-options"] {
+  width: min(100%, 46rem);
+  grid-template-columns: repeat(auto-fit, minmax(min(9.5rem, 100%), 1fr));
+  align-items: start;
+  justify-items: stretch;
+  gap: clamp(0.55rem, 1.8vw, 0.85rem);
+}
+
+[data-testid="assessment-session"] [data-testid="image-options"] > button,
+[data-testid="assessment-session"] [data-testid="sequence-image-options"] > button {
+  min-height: 0;
+  height: auto;
+  padding: 0.5rem;
+  aspect-ratio: auto;
+  align-self: start;
+}
+
+[data-testid="assessment-session"] [data-testid="image-options"] > button img,
+[data-testid="assessment-session"] [data-testid="sequence-image-options"] > button img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 9rem;
+  object-fit: contain;
+  border-radius: 0.75rem;
+}
+
+/* Ordered-image questions remain compact as selections accumulate. */
+[data-testid="assessment-session"] [data-testid="sequence-board"] {
+  width: min(100%, 46rem);
+  min-height: 0;
+  padding: clamp(0.55rem, 1.6vw, 0.8rem);
+  gap: 0.5rem;
+}
+
+[data-testid="assessment-session"] [data-testid="sequence-board"] > span:not(:only-child),
+[data-testid="assessment-session"] [data-testid="sequence-board"] > span:has(img) {
+  max-width: min(100%, 11.5rem);
+}
+
+[data-testid="assessment-session"] [data-testid="sequence-board"] img {
+  width: clamp(3.5rem, 12vw, 5.25rem);
+  height: clamp(2.5rem, 8vw, 3.75rem);
+  object-fit: contain;
+  border-radius: 0.55rem;
+}
+
+@media (max-width: 640px) {
+  [data-testid="assessment-session"] [data-testid="question-title"] {
+    max-width: 22rem;
+    margin-block: 0.35rem 0.7rem;
+    font-size: clamp(1.15rem, 5.5vw, 1.5rem);
+    line-height: 1.5;
+  }
+
+  [data-testid="assessment-session"] [data-testid="question-stimulus"] {
+    max-width: min(100%, 21rem);
+    padding: 0.7rem 0.9rem;
+    font-size: clamp(1.2rem, 5.7vw, 1.75rem);
+    line-height: 1.5;
+    border-radius: 1rem;
+  }
+
+  [data-testid="assessment-session"] [data-testid="image-options"],
+  [data-testid="assessment-session"] [data-testid="sequence-image-options"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+  }
+
+  [data-testid="assessment-session"] [data-testid="image-options"] > button,
+  [data-testid="assessment-session"] [data-testid="sequence-image-options"] > button {
+    padding: 0.4rem;
+    border-radius: 0.95rem;
+  }
+
+  [data-testid="assessment-session"] [data-testid="image-options"] > button img,
+  [data-testid="assessment-session"] [data-testid="sequence-image-options"] > button img {
+    max-height: 7.25rem;
+  }
+
+  [data-testid="assessment-session"] [data-testid="sequence-board"] {
+    padding: 0.55rem;
+    border-radius: 1rem;
+  }
+}
+
+@media (max-width: 390px) {
+  [data-testid="assessment-session"] [data-testid="image-options"],
+  [data-testid="assessment-session"] [data-testid="sequence-image-options"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  [data-testid="assessment-session"] [data-testid="question-title"] {
+    font-size: 1.12rem;
+  }
+}
