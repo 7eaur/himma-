@@ -1,0 +1,91 @@
+/* Shared operational hierarchy for Admin workflows.
+ * Keep the dashboard summary-oriented and make review forms decision-first.
+ */
+
+[data-testid="audio-review-queue"] {
+  display: grid;
+  gap: 0.85rem;
+}
+
+[data-testid="audio-review-item"] {
+  display: grid;
+  gap: 0.85rem;
+}
+
+[data-testid="audio-review-item"] > div:first-child {
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e5edf4;
+}
+
+[data-testid="audio-review-item"] audio {
+  min-height: 3rem;
+}
+
+[data-testid="audio-review-form"] {
+  margin-top: 0.25rem;
+  padding: clamp(0.9rem, 2vw, 1.25rem);
+  border-color: #cfdce8;
+  border-radius: 1rem;
+  background: #fbfdff;
+  box-shadow: none;
+}
+
+[data-testid="audio-review-form"] > div:first-child {
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid #e4ebf2;
+}
+
+[data-testid="audio-review-form"] [role="group"] {
+  gap: 0.65rem;
+}
+
+[data-testid="audio-review-form"] [role="group"] button {
+  min-height: 3.25rem;
+  border-radius: 0.8rem;
+  box-shadow: none;
+}
+
+[data-testid="audio-review-form"] input,
+[data-testid="audio-review-form"] textarea {
+  background: #fff;
+}
+
+[data-testid="audio-review-form"] textarea {
+  min-height: 5.5rem;
+  resize: vertical;
+}
+
+/* Dashboard attention cards are summaries, not a stream of duplicate events. */
+[data-testid="admin-attention-summary"] {
+  align-items: stretch;
+}
+
+[data-testid="admin-attention-summary"] > a {
+  min-height: 5.25rem;
+}
+
+@media (max-width: 720px) {
+  [data-testid="audio-review-item"] > div:first-child {
+    gap: 0.5rem;
+  }
+
+  [data-testid="audio-review-form"] {
+    padding: 0.8rem;
+  }
+
+  [data-testid="audio-review-form"] [role="group"] {
+    grid-template-columns: 1fr;
+  }
+
+  [data-testid="audio-review-form"] [role="group"] button {
+    width: 100%;
+  }
+
+  [data-testid="audio-review-form"] > div:last-child button {
+    width: 100%;
+  }
+
+  [data-testid="admin-attention-summary"] {
+    grid-template-columns: 1fr;
+  }
+}
