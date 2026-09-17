@@ -215,13 +215,28 @@ def _attempt_ids_with_audio_status(
     return session_attempt_ids_with_latest_audio_status(db, session_id, statuses)
 
 
-def _answered_step_ids(db: Session, attempt_id: int) -> set[int]:
+def _answered_step_ids(db: Session, attempt_id: int, student_id: int) -> set[int]:
+    """Return steps that are complete for learner navigation, not academic review.
+
+    A submitted recording reserves its step immediately so the learner may keep
+    moving while supervisor review is pending. A rerecord-required step stays
+    deferred until the learner explicitly opens that task; once opened, the step
+    becomes actionable again without erasing the previous immutable submission.
+    """
     classic: set[int] = set()
     responses = db.query(AttemptResponse).filter(AttemptResponse.attempt_id == attempt_id).all()
     for response in responses:
         submission = latest_audio_submission(db, response)
-        if submission is None or submission.status == "graded":
+        if submission is None:
             classic.add(int(response.step_id))
+            continue
+        if submission.status == "rerecord_required" and rerecord_task_is_open(
+            db,
+            student_id=student_id,
+            submission_id=submission.id,
+        ):
+            continue
+        classic.add(int(response.step_id))
 
     structured = {
         row.step_id
@@ -477,12 +492,10 @@ def get_next_item(
 ):
     session = _session_for_student(db, session_id, student.id)
 
-    # Assessment policy intentionally waits for human review before advancing to
-    # another assessment item. The check is latest-only so historical uploads do
-    # not resurrect a resolved block after a rerecord.
-    if _attempt_ids_with_audio_status(db, session_id, {"uploaded", "pending"}):
-        raise HTTPException(status_code=409, detail="يوجد تسجيل صوتي في انتظار المراجعة")
-
+    # Review state is academic evidence, not learner-navigation state. Pending
+    # audio therefore never blocks the next approved assessment item. A rejected
+    # recording becomes actionable only after the learner explicitly opens its
+    # rerecord task from the journey/dashboard surface.
     opened_rerecord = _opened_assessment_rerecord_payload(
         db,
         session_id=session_id,
@@ -490,9 +503,6 @@ def get_next_item(
     )
     if opened_rerecord is not None:
         return opened_rerecord
-
-    if _attempt_ids_with_audio_status(db, session_id, {"rerecord_required"}):
-        raise HTTPException(status_code=409, detail="يوجد تسجيل يحتاج إلى إعادة التسجيل")
 
     pending_attempt = db.query(Attempt).filter(
         Attempt.session_id == session_id,
@@ -502,19 +512,21 @@ def get_next_item(
         item = _load_item(db, pending_attempt.item_id)
         if not item:
             raise HTTPException(status_code=409, detail="تعذر تحميل محتوى السؤال")
-        answered_step_ids = _answered_step_ids(db, pending_attempt.id)
+        answered_step_ids = _answered_step_ids(db, pending_attempt.id, student.id)
         next_step = next((step for step in item.steps if step.id not in answered_step_ids), None)
         if next_step:
             return _item_step_payload(item, next_step)
         pending_attempt.status = "completed"
-        pending_attempt.completed_at = datetime.now(timezone.utc)
+        pending_attempt.completed_at = pending_attempt.completed_at or datetime.now(timezone.utc)
         db.commit()
 
+    # Every attempted item is reserved, including items whose audio evidence is
+    # still pending review or waiting for a deferred rerecord. This prevents an
+    # unresolved item from being selected again while the learner progresses.
     attempted_item_ids = [
         row.item_id
         for row in db.query(Attempt.item_id).filter(
             Attempt.session_id == session_id,
-            Attempt.status == "completed",
         ).all()
     ]
     query = db.query(ContentItem).filter(
@@ -551,19 +563,20 @@ def get_session_progress(
     student: Student = Depends(get_current_student),
 ):
     session = _session_for_student(db, session_id, student.id)
-    blocked_attempt_ids = _attempt_ids_with_audio_status(
+    unresolved_attempt_ids = _attempt_ids_with_audio_status(
         db,
         session_id,
         {"uploaded", "pending", "rerecord_required"},
     )
-    completed_query = db.query(Attempt).filter(
+
+    # Progress shown to the learner reflects submitted/navigated work. Pending
+    # supervisor review remains explicit in has_pending_item and continues to
+    # block academic completion/scoring in assessment_completion.py.
+    completed_items = db.query(Attempt.id).filter(
         Attempt.session_id == session_id,
         Attempt.status == "completed",
-    )
-    if blocked_attempt_ids:
-        completed_query = completed_query.filter(Attempt.id.notin_(blocked_attempt_ids))
-    completed_items = completed_query.count()
-    has_pending_item = bool(blocked_attempt_ids) or db.query(Attempt.id).filter(
+    ).count()
+    has_pending_item = bool(unresolved_attempt_ids) or db.query(Attempt.id).filter(
         Attempt.session_id == session_id,
         Attempt.status == "in_progress",
     ).first() is not None
@@ -571,18 +584,9 @@ def get_session_progress(
         ContentItem.kind == KIND_BY_SESSION_TYPE[session.session_type],
     ).count()
 
-    classic_steps = 0
-    responses = (
-        db.query(AttemptResponse)
-        .join(Attempt, Attempt.id == AttemptResponse.attempt_id)
-        .filter(Attempt.session_id == session_id)
-        .all()
-    )
-    for response in responses:
-        submission = latest_audio_submission(db, response)
-        if submission is None or submission.status == "graded":
-            classic_steps += 1
-
+    classic_steps = db.query(AttemptResponse.id).join(
+        Attempt, Attempt.id == AttemptResponse.attempt_id,
+    ).filter(Attempt.session_id == session_id).count()
     structured_steps = db.query(ActivityStepResponse.id).join(
         Attempt, Attempt.id == ActivityStepResponse.attempt_id,
     ).filter(Attempt.session_id == session_id).count()
