@@ -69,6 +69,15 @@ Because M09 stopped at browser regression, full evidence is still missing for:
 
 W6 therefore remains **IN PROGRESS**, despite Quality Gate #894 being green.
 
+### Active root-fix slice
+
+- Acceptance IDs: `AUD-A08-003`, with `AUD-SEC-001` regression protection.
+- Evidence: M09 #210 ran the protected `trial` runtime and the declared Playwright suite. After earlier valid supervisor logins, three release tests received `429` from `POST /auth/login`; the first failure was `vertical-slice.spec.ts` at `loginAsSupervisor`.
+- Root cause: `enforce_auth_rate_limit()` increments the shared IP counter before credential validation, while successful authentication clears only the identifier counter. Valid logins therefore consume the 20-attempt IP abuse budget and eventually block another valid login. Quality Gate did not expose this because its integration runtime defaults to `development`, where protected-runtime limiting is inactive.
+- Planned root fix: preserve pre-auth block checks, record Redis IP/identifier counters only after invalid credentials, retain the shared IP failure counter across identifiers, and add security regression tests proving both legitimate repeated login checks and rotating-identifier attack blocking.
+- Migration impact: none. No schema, content, academic, session, or product-rule change.
+- Targeted verification: `services/api/test_w2_security_runtime.py`, then full exact-SHA Quality Gate + full M09.
+
 ## Immediate next action
 
 1. Fetch live execution HEAD; classify descendants after `c67aaad...` as docs-only vs functional.

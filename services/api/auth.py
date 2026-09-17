@@ -8,7 +8,11 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from joserfc import jwt
 from sqlalchemy.orm import Session
 
-from auth_rate_limit import clear_identifier_rate_limit, enforce_auth_rate_limit
+from auth_rate_limit import (
+    clear_identifier_rate_limit,
+    enforce_auth_rate_limit,
+    record_auth_rate_limit_failure,
+)
 from auth_session_state import current_auth_epoch
 from db.models import AuditLog, Student, User
 from dependencies import (
@@ -90,6 +94,11 @@ def supervisor_login(
         or user.role != "researcher"
         or not verify_password(creds.password, user.password_hash)
     ):
+        record_auth_rate_limit_failure(
+            request,
+            scope="supervisor-login",
+            identifier=creds.username,
+        )
         log_auth_security_signal(
             request,
             scope="supervisor-login",
@@ -122,6 +131,11 @@ def student_login(
     enforce_auth_rate_limit(request, scope="student-login", identifier=creds.access_code)
     student = db.query(Student).filter(Student.access_code == creds.access_code).first()
     if not student or not student.is_active:
+        record_auth_rate_limit_failure(
+            request,
+            scope="student-login",
+            identifier=creds.access_code,
+        )
         log_auth_security_signal(
             request,
             scope="student-login",

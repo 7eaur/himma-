@@ -83,11 +83,13 @@ def test_auth_limiter_blocks_burst_recovers_and_never_stores_raw_identifier(monk
     observed_keys = []
 
     class RedisStub:
-        def eval(self, script, key_count, key, window):
+        def eval(self, script, key_count, key, *args):
             observed_keys.append(key)
-            counters[key] = counters.get(key, 0) + 1
-            ttls[key] = int(window)
-            return [counters[key], ttls[key]]
+            if script == auth_rate_limit._INCREMENT_SCRIPT:
+                counters[key] = counters.get(key, 0) + 1
+                ttls[key] = int(args[0])
+                return [counters[key], ttls[key]]
+            return [counters.get(key, 0), ttls.get(key, 0)]
 
         def delete(self, key):
             counters.pop(key, None)
@@ -103,7 +105,9 @@ def test_auth_limiter_blocks_burst_recovers_and_never_stores_raw_identifier(monk
     identifier = "123456"
 
     auth_rate_limit.enforce_auth_rate_limit(request, scope="student-login", identifier=identifier)
+    auth_rate_limit.record_auth_rate_limit_failure(request, scope="student-login", identifier=identifier)
     auth_rate_limit.enforce_auth_rate_limit(request, scope="student-login", identifier=identifier)
+    auth_rate_limit.record_auth_rate_limit_failure(request, scope="student-login", identifier=identifier)
     with pytest.raises(HTTPException) as exc_info:
         auth_rate_limit.enforce_auth_rate_limit(request, scope="student-login", identifier=identifier)
 
@@ -113,6 +117,129 @@ def test_auth_limiter_blocks_burst_recovers_and_never_stores_raw_identifier(monk
 
     auth_rate_limit.clear_identifier_rate_limit(scope="student-login", identifier=identifier)
     auth_rate_limit.enforce_auth_rate_limit(request, scope="student-login", identifier=identifier)
+
+
+def test_successful_auth_checks_do_not_consume_shared_ip_failure_budget(monkeypatch):
+    counters = {}
+
+    class RedisStub:
+        def eval(self, script, key_count, key, *args):
+            if script == auth_rate_limit._INCREMENT_SCRIPT:
+                counters[key] = counters.get(key, 0) + 1
+                return [counters[key], int(args[0])]
+            return [counters.get(key, 0), 0]
+
+        def delete(self, key):
+            counters.pop(key, None)
+            return 1
+
+    monkeypatch.setenv("ENV", "trial")
+    monkeypatch.setenv("API_SECRET_KEY", "s" * 40)
+    monkeypatch.setattr(auth_rate_limit, "_client", RedisStub())
+    monkeypatch.setattr(auth_rate_limit, "IP_LIMIT", 2)
+    monkeypatch.setattr(auth_rate_limit, "IDENTIFIER_LIMIT", 2)
+    request = Request({"type": "http", "client": ("203.0.113.5", 50000), "headers": []})
+
+    for _ in range(5):
+        auth_rate_limit.enforce_auth_rate_limit(
+            request, scope="supervisor-login", identifier="admin"
+        )
+        auth_rate_limit.clear_identifier_rate_limit(
+            scope="supervisor-login", identifier="admin"
+        )
+
+    assert counters == {}
+
+
+def test_failed_rotating_identifiers_share_the_ip_failure_budget(monkeypatch):
+    counters = {}
+    ttls = {}
+
+    class RedisStub:
+        def eval(self, script, key_count, key, *args):
+            if script == auth_rate_limit._INCREMENT_SCRIPT:
+                counters[key] = counters.get(key, 0) + 1
+                ttls[key] = int(args[0])
+                return [counters[key], ttls[key]]
+            return [counters.get(key, 0), ttls.get(key, 0)]
+
+        def delete(self, key):
+            counters.pop(key, None)
+            ttls.pop(key, None)
+            return 1
+
+    monkeypatch.setenv("ENV", "trial")
+    monkeypatch.setenv("API_SECRET_KEY", "s" * 40)
+    monkeypatch.setattr(auth_rate_limit, "_client", RedisStub())
+    monkeypatch.setattr(auth_rate_limit, "IP_LIMIT", 2)
+    monkeypatch.setattr(auth_rate_limit, "IDENTIFIER_LIMIT", 20)
+    request = Request({"type": "http", "client": ("203.0.113.5", 50000), "headers": []})
+
+    for identifier in ("first", "second"):
+        auth_rate_limit.enforce_auth_rate_limit(
+            request, scope="supervisor-login", identifier=identifier
+        )
+        auth_rate_limit.record_auth_rate_limit_failure(
+            request, scope="supervisor-login", identifier=identifier
+        )
+
+    with pytest.raises(HTTPException) as exc_info:
+        auth_rate_limit.enforce_auth_rate_limit(
+            request, scope="supervisor-login", identifier="third"
+        )
+
+    assert exc_info.value.status_code == 429
+
+
+def test_login_route_counts_only_invalid_credentials_against_shared_ip(client, monkeypatch):
+    counters = {}
+    ttls = {}
+
+    class RedisStub:
+        def eval(self, script, key_count, key, *args):
+            if script == auth_rate_limit._INCREMENT_SCRIPT:
+                counters[key] = counters.get(key, 0) + 1
+                ttls[key] = int(args[0])
+                return [counters[key], ttls[key]]
+            return [counters.get(key, 0), ttls.get(key, 0)]
+
+        def delete(self, key):
+            counters.pop(key, None)
+            ttls.pop(key, None)
+            return 1
+
+    monkeypatch.setenv("ENV", "trial")
+    monkeypatch.setenv("API_SECRET_KEY", "s" * 40)
+    monkeypatch.setattr(auth_rate_limit, "_client", RedisStub())
+    monkeypatch.setattr(auth_rate_limit, "IP_LIMIT", 2)
+    monkeypatch.setattr(auth_rate_limit, "IDENTIFIER_LIMIT", 20)
+
+    for _ in range(5):
+        response = client.post(
+            "/auth/login",
+            json={
+                "username": "researcher1",
+                "password": "test-only-researcher-password",
+            },
+        )
+        assert response.status_code == 200
+
+    for username in ("missing-one", "missing-two"):
+        response = client.post(
+            "/auth/login",
+            json={"username": username, "password": "invalid-password"},
+        )
+        assert response.status_code == 401
+
+    blocked = client.post(
+        "/auth/login",
+        json={
+            "username": "researcher1",
+            "password": "test-only-researcher-password",
+        },
+    )
+    assert blocked.status_code == 429
+    assert "Retry-After" in blocked.headers
 
 
 def test_student_access_code_rotation_revokes_pre_rotation_jwt(student_client):
