@@ -79,6 +79,70 @@
   border:1px solid #d8e5ee; border-radius:9px; color:#4b6b82; font-size:.74rem; font-weight:800;
 }
 
+.audio-review-summary-card {
+  margin:16px 18px 0;
+  padding:14px;
+  border:1px solid #dfe9f1;
+  border-radius:14px;
+  background:#fbfdff;
+}
+.audio-review-summary-heading {
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:12px;
+}
+.audio-review-summary-heading strong { color:#20364d; font-size:.88rem; }
+.audio-review-summary-heading span { color:#8194a5; font-size:.68rem; }
+.audio-review-summary-grid {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  border:1px solid #e3ebf2;
+  border-radius:12px;
+  overflow:hidden;
+  background:#fff;
+}
+.audio-review-summary-item {
+  min-width:0;
+  min-height:78px;
+  padding:12px;
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+.audio-review-summary-item + .audio-review-summary-item { border-inline-start:1px solid #e8eef4; }
+.audio-review-summary-icon {
+  width:36px;
+  height:36px;
+  flex:0 0 auto;
+  display:grid;
+  place-items:center;
+  border-radius:10px;
+  background:#edf5ff;
+  color:#347fd9;
+}
+.audio-review-summary-icon.is-pending { background:#fff3d7; color:#a66b0a; }
+.audio-review-summary-item > div { min-width:0; display:grid; gap:3px; }
+.audio-review-summary-item small { color:#7f93a4; font-size:.66rem; }
+.audio-review-summary-item strong {
+  overflow:hidden;
+  color:#28445a;
+  font-size:.78rem;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.audio-review-status-pill {
+  width:max-content;
+  max-width:100%;
+  padding:4px 8px;
+  border-radius:999px;
+  background:#fff2cf;
+  color:#8b5a07 !important;
+  font-size:.68rem !important;
+  white-space:nowrap;
+}
+
 .audio-review-review-block { padding:18px; border-top:1px solid #edf2f6; }
 .audio-review-detail-header + .audio-review-review-block { border-top:0; }
 .audio-review-block-header { display:flex; align-items:flex-start; gap:10px; margin-bottom:13px; }
@@ -206,6 +270,11 @@
   .audio-review-list { max-height:250px; }
   .audio-review-detail-header { align-items:flex-start; flex-direction:column; padding:14px; }
   .audio-review-profile-link { width:100%; justify-content:center; }
+  .audio-review-summary-card { margin:12px 14px 0; padding:12px; }
+  .audio-review-summary-heading { align-items:flex-start; flex-direction:column; gap:2px; }
+  .audio-review-summary-grid { grid-template-columns:1fr; }
+  .audio-review-summary-item { min-height:64px; }
+  .audio-review-summary-item + .audio-review-summary-item { border-inline-start:0; border-top:1px solid #e8eef4; }
   .audio-review-review-block { padding:14px; }
   .audio-review-decision-grid,
   .audio-review-notes-grid { grid-template-columns:1fr; }
