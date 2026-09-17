@@ -50,8 +50,8 @@
   padding: 1rem 1.1rem;
   border: 1px solid #dce8f2;
   border-radius: 1.15rem;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 5px 16px rgba(32, 54, 77, 0.035);
+  background: #fff;
+  box-shadow: none;
 }
 
 .student-status-card > span {
