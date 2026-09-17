@@ -80,9 +80,11 @@ def test_assessment_invalid_audio_rerecord_is_explicit_and_append_only(client, m
     assert rejected.status_code == 200, rejected.text
 
     _student_login(client)
+    # A supervisor rerecord request is a deferred task. It must not hijack the
+    # learner's assessment path until the learner deliberately opens that task.
     next_before_open = client.get(f"/assessment/session/{session_id}/next")
-    assert next_before_open.status_code == 409
-    assert "إعادة التسجيل" in next_before_open.json()["detail"]
+    assert next_before_open.status_code == 200, next_before_open.text
+    assert next_before_open.json()["id"] != item_id
 
     tasks = client.get(f"/assessment/session/{session_id}/rerecord-tasks")
     assert tasks.status_code == 200, tasks.text
