@@ -1,12 +1,12 @@
 {
-  "schema_version": 13,
+  "schema_version": 14,
   "last_updated": "2026-09-17",
   "repository": "7eaur/himma-",
   "default_branch": "stage/02-content",
   "execution_branch": "audit/comprehensive-repository-review-2026-09-10",
   "current_phase": "A10",
   "current_wave": "W6 / Final Exact-SHA Acceptance",
-  "current_state": "W5_GREEN_W6_RELEASE_READINESS_BLOCKED_NO_A11_NO_DEPLOY",
+  "current_state": "W5_GREEN_W6_PLAYWRIGHT_RELEASE_READINESS_BLOCKED_NO_A11_NO_DEPLOY",
   "waves": {
     "W1": {
       "status": "GREEN",
@@ -30,17 +30,7 @@
       "status": "GREEN",
       "sha": "c26fc9f9f2995d3fa5acea1d01b2e68041577534",
       "run_number": 858,
-      "run_id": 35043108503,
-      "closed_items": [
-        "AUD-BADGE-008",
-        "AUD-BADGE-004",
-        "AUD-BADGE-005",
-        "AUD-BADGE-007",
-        "AUD-BADGE-003",
-        "AUD-BADGE-001",
-        "AUD-BADGE-002",
-        "AUD-MEDIA-002"
-      ]
+      "run_id": 35043108503
     },
     "W5": {
       "status": "GREEN",
@@ -48,52 +38,52 @@
       "run_number": 869,
       "run_id": 35053591742,
       "backend_tests": "890 passed, 5 warnings",
-      "closed_items": [
-        "AUD-BE-001",
-        "AUD-BE-002",
-        "AUD-BE-004",
-        "AUD-A04-004",
-        "AUD-BADGE-009",
-        "AUD-MEDIA-003",
-        "AUD-MEDIA-004",
-        "AUD-MEDIA-005",
-        "AUD-PERF-002",
-        "AUD-PERF-003"
-      ],
       "checkpoint": "docs/maintenance/HIMMA_A10_W5_GREEN_2026-09-16_AR.md"
     },
     "W6": {
       "status": "IN_PROGRESS",
-      "functional_candidate_sha": "565ba4092c4312c55e7e57a8c45e32f8997afd8d",
+      "functional_candidate_sha": "c67aaadf004b8dbadac6f3849719e5ccdcbcf6f2",
+      "functional_candidate_commit": "ci(w6): build pinned MinIO for M09 readiness",
       "quality_gate": {
-        "run_number": 885,
-        "run_id": 35136617396,
-        "conclusion": "SUCCESS",
-        "same_sha": true
-      },
-      "responsive_gate": {
-        "workflow": "M04 Responsive",
-        "run_number": 347,
-        "run_id": 35136619472,
+        "run_number": 894,
+        "run_id": 35167788906,
         "conclusion": "SUCCESS",
         "same_sha": true
       },
       "release_readiness": {
         "workflow": "M09 Release Readiness",
-        "run_number": 207,
-        "run_id": 35136619488,
+        "run_number": 210,
+        "run_id": 35167789050,
+        "job_id": 105032657002,
         "conclusion": "FAILURE",
-        "failed_step": "Run backend product regression",
-        "test_summary": "3 failed, 891 passed, 2 skipped, 5 warnings",
-        "failed_tests": [
-          "tests/test_account_lockouts.py::test_admin_lockout_threshold_expiry_and_recovery",
-          "tests/test_account_lockouts.py::test_student_lockout_clears_after_successful_authentication",
-          "tests/test_account_lockouts.py::test_admin_and_student_lockout_namespaces_are_isolated"
+        "failed_step": "Run deterministic browser product regression",
+        "blocker": "playwright_browser_product_regression",
+        "exact_root_cause": "NOT_YET_EXTRACTED_FROM_RUN_LOGS_OR_ARTIFACTS",
+        "successful_before_failure": [
+          "native PostgreSQL and Redis startup",
+          "pinned MinIO source build",
+          "migrations and drift checks",
+          "backend product regression",
+          "clean database reset",
+          "canonical content and release validation",
+          "deterministic publication and idempotency",
+          "MinIO private test bucket initialization",
+          "deterministic runtime database",
+          "frontend build",
+          "API and Web startup",
+          "runtime readiness",
+          "security header and origin checks"
         ],
-        "failure": "PostgreSQL UndefinedTable: relation account_lockout_states does not exist during services/api/services/account_lockouts.py db.flush()",
-        "root_cause_candidate": "M09 invokes backend product regression before the workflow database migration/bootstrap sequence; verify the schema owner and initialize the required migration state before pytest without weakening tests, while preserving the later clean reset and canonical readiness checks.",
-        "later_steps": "SKIPPED after backend product regression failure: canonical readiness continuation, release Playwright suite, PostgreSQL backup/restore, object-storage backup/restore"
+        "downstream_pending": [
+          "PostgreSQL backup/restore",
+          "object-storage backup/restore"
+        ]
       },
+      "resolved_readiness_blockers": [
+        "PostgreSQL account_lockout_states migration/bootstrap ordering",
+        "backend regression isolation from protected trial runtime controls without weakening tests",
+        "dead MinIO archived binary URL returning HTTP 410, replaced by pinned source build"
+      ],
       "required_acceptance": [
         "AUD-CI-001",
         "AUD-A08-001",
@@ -108,9 +98,9 @@
         "AUD-BADGE-006",
         "AUD-A11Y-005 executable/automated portion",
         "AUD-SEC-006 source/local portion",
-        "exact-SHA Quality Gate + exact-SHA M09 Release Readiness"
+        "same exact-SHA full Quality Gate + full M09 Release Readiness"
       ],
-      "current_focus": "Fix only the M09 final-readiness schema/bootstrap blocker, then require fresh exact-SHA Quality Gate and M09 success on the same new candidate before W6 closure."
+      "current_focus": "Extract the exact deterministic Playwright failure from M09 #210 logs/artifacts, root-fix it without weakening release evidence, then require fresh full Quality Gate and full M09 on the same new functional SHA. M09 must also complete PostgreSQL and object-storage backup/restore before W6 closure."
     }
   },
   "external_or_later_boundaries": {
@@ -130,15 +120,17 @@
     "status": "GREEN"
   },
   "latest_functional_candidate": {
-    "sha": "565ba4092c4312c55e7e57a8c45e32f8997afd8d",
+    "sha": "c67aaadf004b8dbadac6f3849719e5ccdcbcf6f2",
     "quality_gate": "SUCCESS",
-    "release_readiness": "FAILURE",
+    "quality_gate_run_id": 35167788906,
+    "release_readiness": "FAILURE_AT_DETERMINISTIC_BROWSER_PRODUCT_REGRESSION",
+    "release_readiness_run_id": 35167789050,
     "w6_status": "IN_PROGRESS"
   },
-  "latest_checkpoint": "docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-17_A10_W6_FINAL_READINESS_BLOCKER_AR.md",
+  "latest_checkpoint": "docs/HIMMA_MASTER_CONTINUITY_HANDOFF_2026-09-17_A10_W6_PLAYWRIGHT_BLOCKER_AR.md",
   "gap_status_overlay": "docs/maintenance/HIMMA_MASTER_GAP_REGISTER_STATUS_UPDATE_2026-09-16_AR.md",
-  "next_action": "Fetch live HEAD, verify migration/schema ownership for account_lockout_states and M09 workflow order, correct the schema bootstrap before backend product regression without weakening tests, then run exact-head complete Quality Gate and M09 Release Readiness on the same new SHA. Close W6 only if both are green and all M09 readiness/Playwright/backup-restore steps execute successfully.",
-  "hard_stop": "Do not execute A11, deploy, Railway, Production, or final merge. Stop when W6 becomes GREEN.",
+  "next_action": "Fetch live HEAD; keep docs-only descendants distinct from c67aaadf functional evidence; inspect M09 #210 Run 35167789050 job 105032657002 logs/artifacts; extract exact Playwright failure; trace to root cause; fix without skip/xfail/xpass/retries/weakened assertions; create a new functional SHA; require full Quality Gate and full M09 on that same exact SHA; close W6 only after deterministic Playwright plus PostgreSQL and object-storage backup/restore all pass.",
+  "hard_stop": "Do not execute A11, deploy, Railway, Production, manual screen-reader acceptance, or final merge. Stop when W6 becomes GREEN.",
   "fixed_constraints": [
     "NO_DOCKER",
     "NO_FAKE_ASR",
