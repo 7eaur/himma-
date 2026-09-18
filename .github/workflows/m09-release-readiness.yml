@@ -5,7 +5,7 @@ permissions:
 
 on:
   push:
-    branches: ['recovery/*', 'integration/*', 'audit/*']
+    branches: ['stage/*', 'recovery/*', 'integration/*', 'audit/*']
     paths:
       - 'services/api/**'
       - 'packages/content/**'
@@ -206,6 +206,7 @@ jobs:
           tests/e2e/media-fidelity.spec.ts
           tests/e2e/question-experience.spec.ts
           tests/e2e/admin-responsive.spec.ts
+          tests/e2e/ux-system-visual-qa.spec.ts
           --reporter=list
 
       - name: Backup and restore PostgreSQL into an isolated database

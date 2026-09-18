@@ -1,35 +1,53 @@
-# Delivery protocol
+# Delivery protocol — Himma
 
-## Read small, then drill down
+## Start small
 
-At the start of a session read only: `STATUS.md`, `progress.json`, the current roadmap stage, relevant acceptance rows, and changed files. Open large source references only for the current requirement. Never re-summarize the entire project in chat.
+At the start of a session:
+1. read START_HERE_AR.md;
+2. fetch live stage/02-content HEAD;
+3. read docs/ops/STATUS.md and progress.json;
+4. open only the current spec/acceptance/code needed for the new assignment.
 
-## Stage discipline
+Do not re-run old audits or recovery waves unless there is new regression evidence.
 
-1. Work on one roadmap stage and one vertical slice at a time.
-2. Before coding, record the slice, affected acceptance IDs, plan, migration impact, and tests in `STATUS.md`.
-3. Implement the smallest complete production slice across UI, API, database, audit, and tests.
-4. Run targeted tests first, then the full stage gate.
-5. Fix failures within the stage. Do not move failures to a future stage unless the blocker is external and explicitly recorded.
-6. Update `STATUS.md`, `progress.json`, `DECISIONS.md`, and `OPEN_ITEMS.md` before reporting.
-7. A stage is complete only after `/himma-gate` evidence and a green commit.
+## Execution
+
+1. State the current exact base SHA.
+2. Work on one coherent vertical slice.
+3. Fix root cause, not screenshot-specific symptoms.
+4. Run targeted tests.
+5. Run the required exact-head gate(s).
+6. Update current docs only when truth changes.
+7. Preserve historical docs as evidence; do not rewrite history to pretend old states never existed.
+8. Merge/deploy only after the relevant gates are green and the assignment authorizes it.
 
 ## Human checkpoints
 
-Pause only for: approval of phase-0 architecture; a scope or research-rule change; secrets/accounts; irreversible deletion; production deployment; migration with data-loss risk; external publication; or a real contradiction that changes behavior.
+Pause for:
+- scope/research-rule change;
+- secrets/accounts;
+- irreversible deletion/data-loss migration;
+- external publication;
+- a new Production ASR/provider decision;
+- a contradiction that materially changes behavior.
 
-Within an approved stage, proceed without asking for approval for ordinary file edits, dependency installation, migrations against disposable development data, tests, linting, local browser verification, or bug fixes.
-
-## Communication budget
-
-- Use task artifacts and repository files for progress, not repeated chat narration.
-- Chat update only when the plan is ready, a blocker appears, a gate fails materially, or the stage completes.
-- Completion report fields: Done; Acceptance IDs; Tests; Evidence; Risks/blockers; Next.
-- Do not paste raw logs. Quote only the failing line and point to the artifact.
+Ordinary fixes/tests/docs updates inside an authorized task proceed without repeated confirmation.
 
 ## Git safety
 
-- Keep the default branch green. If this delivery was extracted without Git metadata, run `scripts/init-git.sh` once before creating a stage branch.
-- Use one branch per stage (`stage/00-audit`, `stage/01-foundation`, etc.).
-- Commit coherent vertical slices. The approved static instructional assets in `assets/audio/HIMMA_AUDIO_V1/` are repository assets and may be committed. Never commit child recordings, `.env`, credentials, real child data, database dumps, generated caches, or dependency directories.
-- Inspect existing user changes before editing and never discard unrelated work.
+- Official branch: stage/02-content.
+- Keep it green.
+- Use a dedicated branch for material functional work.
+- A docs-only synchronization may be integrated after CI, while keeping the last functional SHA separately documented.
+- Never commit child recordings, secrets, .env files, real child data, DB dumps, caches, or dependencies.
+- Never force-reset unrelated work.
+
+## Completion report
+
+Report:
+- Done.
+- Exact functional SHA.
+- Tests/gates.
+- Production evidence if relevant.
+- Open external blockers only.
+- Next action or CLOSED/WAITING_FOR_OWNER.

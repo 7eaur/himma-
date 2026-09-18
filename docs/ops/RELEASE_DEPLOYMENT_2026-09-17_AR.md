@@ -1,3 +1,5 @@
+> **HISTORICAL / SUPERSEDED:** هذه الوثيقة محفوظة للتاريخ والدليل فقط. الحالة الحالية بعد 2026-09-18 موجودة في START_HERE_AR.md وdocs/ops/RELEASE_DEPLOYMENT_CURRENT_AR.md. أي عبارة هنا مثل NOT MERGED / NOT DEPLOYED / ACTIVE / STOP أو branch قديم لا تصف الوضع الحالي.
+
 # منصة هِمّة — سجل إصدار Railway — 2026-09-17
 
 الحالة: **BASELINE DEPLOYED + VERIFIED / UX REBUILD NOT DEPLOYED YET**

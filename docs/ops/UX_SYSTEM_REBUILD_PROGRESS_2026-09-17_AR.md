@@ -1,3 +1,5 @@
+> **HISTORICAL / SUPERSEDED:** هذه الوثيقة محفوظة للتاريخ والدليل فقط. الحالة الحالية بعد 2026-09-18 موجودة في START_HERE_AR.md وdocs/ops/STATUS.md. أي عبارة هنا مثل NOT MERGED / NOT DEPLOYED / ACTIVE / STOP أو branch قديم لا تصف الوضع الحالي.
+
 # تقدم إعادة بناء UX — 2026-09-17
 
 الفرع التنفيذي: `fix/ux-system-rebuild-2026-09-17`

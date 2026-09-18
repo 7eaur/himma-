@@ -1,129 +1,77 @@
 # STATUS — Himma Platform
 
-**Last updated:** 2026-09-17  
-**Repository:** `7eaur/himma-`  
-**Official branch:** `stage/02-content`  
-**Active UX branch:** `fix/ux-system-rebuild-2026-09-17`
+**Last synchronized:** 2026-09-18  
+**Repository:** 7eaur/himma-  
+**Official branch:** stage/02-content  
+**Functional release SHA:** 512f0a550eb098f0ce904ec4ed526d9e28098a6a  
+**State:** PRODUCTION_GREEN / CURRENT UX MERGED AND DEPLOYED
 
-## Current state
+## Current truth
 
-The previous W1–W6 audit/release sequence is closed. The platform has since been merged and deployed to Railway, and a new UX-system rebuild is now active on a separate branch.
+آخر دفعة UX التي شملت Student Dashboard، Question System، Admin Dashboard، Audio Review، Student Profile، Add Student، Content Preview وfeedback/toasts أصبحت ضمن الفرع الرسمي ونُشرت على Railway.
 
-### Official / Production baseline
+لا تستخدم handoffs القديمة التي تقول إن UX لم تُدمج أو لم تُنشر.
 
-Official branch SHA currently verified before this UX batch:
+## Exact functional evidence
 
-`765c42d769624ad13683798f68177f6597f2149f`
+- Quality Gate #933 / Run 35301572062: SUCCESS.
+  - Security: SUCCESS.
+  - Frontend: SUCCESS.
+  - Backend: 894 passed, 5 warnings.
+  - Integration Playwright: 20 passed (3.6m).
+  - Playwright artifact: 10530208479.
+- M04 #359 / Run 35299593387: SUCCESS.
+  - responsive screenshots artifact: 10529103623.
+- M09 #224 / Run 35299593312: SUCCESS.
+  - Backend regression: 894 passed, 5 warnings.
+  - Browser regression: 20 passed.
+  - readiness: all checks ok.
+  - PostgreSQL restore: PASS.
+  - Object storage restore: 35 objects.
+  - bypass route: absent.
 
-Evidence:
+## Production
 
-- Integration Quality Gate #911 / Run `35241996615`: SUCCESS.
-- M09 #215 / Run `35241996654`: SUCCESS.
-- Official Quality Gate #912 / Run `35243714139`: SUCCESS.
-- Railway deployed the same official SHA for `himma-api` and `himma-web`.
-- PostgreSQL, Redis and `himma-audio` object storage were present and healthy at the verified deployment checkpoint.
-- Production `/api/health` returned 200.
-- Production `/api/ready` returned 200 with config/database/content/approved_audio/storage/redis/security_mode checks healthy.
-- Canonical runtime remained 125 items / 44 skills.
+Railway project: friendly-dream / production.
 
-This production baseline remains the currently published version until the UX branch is merged and redeployed.
+- himma-api deployment 283feef7-ce46-41c1-84a1-f714e508405e: SUCCESS.
+- himma-web deployment 629571e4-8188-4b91-bfe5-79fe5e1ecae1: SUCCESS.
+- Postgres: SUCCESS.
+- Redis: SUCCESS.
+- himma-audio bucket: present.
+- API /ready healthcheck during deployment: 200.
+- Runtime content: 125 items / 44 skills.
 
-## Active UX rebuild
+## Canonical product state
 
-Branch:
+- 30 Pretest.
+- 30 Posttest.
+- 30 Core.
+- 35 Reinforcement runtime.
+- 44 skills.
+- 50 student default capacity.
+- Human Supervisor Review is current audio authority.
+- Pending reading audio does not block remaining unanswered questions; finalization waits for required review.
+- Rerecord is explicit and history-preserving.
+- No student audio bypass.
 
-`fix/ux-system-rebuild-2026-09-17`
+## Branch reconciliation
 
-Latest exact **functional** SHA tested before documentation-only continuation commits:
+All non-provider branches were compared with official. No missing relevant non-audio work remains outside stage/02-content. The only diverged non-audio branch is deployment/platform-sandbox; its 9 unique commits describe an obsolete experimental deployment topology and are intentionally not merged.
 
-`09be49102d1aab8f09cf1a3267ccd073c46c7397`
+See docs/maintenance/HIMMA_BRANCH_INVENTORY_2026-09-18_AR.md.
 
-Quality Gate #917 / Run `35261495545`: **SUCCESS**.
+## Remaining boundaries
 
-All four jobs passed on that exact SHA:
+Only external/later items remain:
+- production ASR/provider/calibration/governance;
+- final retention policy for child recordings/data before a real study;
+- research-session parameters not yet owner-approved;
+- manual human screen-reader acceptance;
+- optional custom domain/entity branding details.
 
-- Security: SUCCESS.
-- Frontend: SUCCESS (TypeScript, ESLint, unit tests, Next.js build).
-- Backend: SUCCESS (PostgreSQL, canonical validation, Alembic roundtrip/drift, seed idempotency, backend tests).
-- Integration: SUCCESS, including Playwright.
+## Current action
 
-Playwright report artifact:
+No recovery/audit/UX batch is active. Start only from a new owner assignment.
 
-- Artifact ID `10515801114`.
-- Digest `sha256:12ce698a4bda93921eec73414b15f59efb24050c648a9a02d90ef370df145a74`.
-
-## UX batch scope approved from owner screenshots/review
-
-The current work is not a set of screenshot-specific patches. It is split into five root-cause batches:
-
-### A — Student Question System
-
-- Responsive stimulus typography/container sizing.
-- Smaller mobile question title.
-- Image-option cards that follow image/content rather than creating tall empty boxes.
-- Compact ordered/sequence image interaction.
-- Preserve rapid audio switching/race-condition fixes.
-- Apply the same visual rules to Assessment, Activity and Admin Content Preview.
-
-### B — Student Dashboard & Journey
-
-- Dashboard is a journey surface, not equal-weight cards.
-- Identity/current level/current state first.
-- Primary next action second.
-- Pretest → learning level → activities/reinforcement → posttest journey hierarchy.
-- Real progress/results/stars/badges only.
-- Pending Audio and explicit Rerecord remain visible without hijacking unrelated current work.
-
-### C — Admin Audio Review Workflow
-
-- Compact queue layout on mobile/desktop.
-- Clear listen/start-review actions.
-- Decision-first review form: approve or request rerecord, then relevant evidence fields.
-- Reduce empty space and oversized buttons/forms.
-
-### D — Admin Dashboard & Notifications
-
-- Do not repeat one dashboard card for every pending recording.
-- Dashboard shows aggregate operational counts.
-- Individual events remain in Notification Center / Review Queue.
-
-### E — Remaining Admin UX
-
-- Student profile mobile tabs/layout.
-- Add Student flow.
-- Content Preview fidelity.
-- Unified transient feedback/toast behavior.
-
-## Audio journey contract — must not regress
-
-- Submitted assessment recording does **not** block later unanswered questions.
-- Academic finalization remains blocked while required recordings are pending supervisor review.
-- Rerecord is an explicit task; it does not automatically hijack the current question/activity.
-- Previous recordings remain historical evidence.
-- Human Supervisor Review remains the academic authority while production ASR provider approval is pending.
-- No Fake ASR, Student Audio Skip, Temporary Audio Skip or bypass.
-
-## Current boundary / what remains
-
-The UX candidate is **not merged and not deployed** yet.
-
-Required before merge/release:
-
-1. Review Playwright screenshots/visual evidence on phone + tablet + desktop against the owner-reported screenshots and A–E contracts.
-2. Fix any visual mismatch found; rerun exact-head Quality Gate if code changes.
-3. Run M09 Release Readiness on the final UX functional SHA.
-4. Only after QG + M09 + Visual QA are green, fast-forward/merge to `stage/02-content`.
-5. Run official exact-head CI after merge if the SHA changes.
-6. Deploy Railway and verify deployed SHA, `/health`, `/ready`, login, Student Dashboard, question sizing, Audio Review, Pending Audio and Rerecord on Production.
-7. Update final release evidence docs.
-
-Do not mark this UX batch CLOSED before those steps complete.
-
-## Persistent open/external items
-
-- Production ASR provider approval remains external/deferred.
-- Manual human screen-reader acceptance remains not claimed.
-
-## Hard constraints
-
-No fake ASR. No Student/Temporary Audio Skip. No history deletion. No Speech/Pronunciation Lab merge. No weakened tests, skip/xfail, retry-based masking, or runtime repair overlays. No PASS/CLOSED claim without exact-SHA evidence.
+Entry point: START_HERE_AR.md.

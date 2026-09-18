@@ -1,157 +1,111 @@
 {
-  "schema_version": 16,
-  "last_updated": "2026-09-17",
+  "schema_version": 17,
+  "last_updated": "2026-09-18",
   "repository": "7eaur/himma-",
-  "default_branch": "stage/02-content",
-  "execution_branch": "fix/ux-system-rebuild-2026-09-17",
-  "current_phase": "UX_SYSTEM_REBUILD",
-  "current_wave": "UX-A_TO_E_ACTIVE",
-  "current_state": "PRODUCTION_BASELINE_GREEN_UX_REBUILD_ACTIVE_NOT_MERGED_NOT_DEPLOYED",
-  "production_baseline": {
-    "official_sha": "765c42d769624ad13683798f68177f6597f2149f",
-    "official_branch": "stage/02-content",
-    "integration_quality_gate": {
-      "run_number": 911,
-      "run_id": 35241996615,
-      "conclusion": "SUCCESS"
-    },
-    "release_readiness": {
-      "run_number": 215,
-      "run_id": 35241996654,
-      "conclusion": "SUCCESS",
-      "postgresql_restore": "SUCCESS_125_ITEMS_44_SKILLS",
-      "object_storage_restore": "SUCCESS_35_OBJECTS"
-    },
-    "official_quality_gate": {
-      "run_number": 912,
-      "run_id": 35243714139,
-      "conclusion": "SUCCESS"
-    },
-    "railway": {
-      "status": "DEPLOYED_VERIFIED_AT_BASELINE_CHECKPOINT",
-      "same_sha_as_official": true,
-      "health": "HTTP_200",
-      "ready": "HTTP_200"
-    }
+  "official_branch": "stage/02-content",
+  "current_phase": "PRODUCTION_CURRENT",
+  "current_state": "GREEN_MERGED_DEPLOYED",
+  "functional_release_sha": "512f0a550eb098f0ce904ec4ed526d9e28098a6a",
+  "documentation_rule": "Fetch live official HEAD. Docs-only descendants do not replace the exact functional evidence SHA.",
+  "canonical_content": {
+    "approval": "HIMMA-CONTENT-APPROVAL-2026-09-08",
+    "source_catalog_items": 105,
+    "runtime_items": 125,
+    "pretest": 30,
+    "posttest": 30,
+    "core": 30,
+    "reinforcement": 35,
+    "skills": 44
   },
-  "waves": {
-    "W1": {
-      "status": "GREEN",
-      "sha": "ea132c9afbe152d0afa5ae581c058ce3248a0c48",
-      "run_number": 813,
-      "run_id": 34467329988
-    },
-    "W2": {
-      "status": "GREEN",
-      "sha": "77ac72174a9e21163f6341ea8e0fcc172269eac3",
-      "run_number": 822,
-      "run_id": 34548388760
-    },
-    "W3": {
-      "status": "GREEN",
-      "sha": "62e34b151e46b406cf3936201f80010abbe9d8d1",
-      "run_number": 848,
-      "run_id": 34729450663
-    },
-    "W4": {
-      "status": "GREEN",
-      "sha": "c26fc9f9f2995d3fa5acea1d01b2e68041577534",
-      "run_number": 858,
-      "run_id": 35043108503
-    },
-    "W5": {
-      "status": "GREEN",
-      "sha": "728025a8fd5ff1fa182db4085ad18dd45142041a",
-      "run_number": 869,
-      "run_id": 35053591742
-    },
-    "W6": {
-      "status": "GREEN",
-      "tested_functional_sha": "c5174f33b11be80500fdd72c0456efbef062f5ad",
-      "functional_commit": "fix(auth): count only failed login attempts",
-      "quality_gate": {
-        "run_number": 902,
-        "run_id": 35198824643,
-        "conclusion": "SUCCESS",
-        "same_sha": true,
-        "security": "SUCCESS",
-        "frontend": "SUCCESS",
-        "backend": "893 passed, 5 warnings",
-        "integration_playwright": "20 passed (3.8m)",
-        "playwright_report_artifact_id": 10487337192
-      },
-      "release_readiness": {
-        "workflow": "M09 Release Readiness",
-        "run_number": 211,
-        "run_id": 35198824646,
-        "job_id": 105128375595,
-        "conclusion": "SUCCESS",
-        "same_sha": true,
-        "backend_product_regression": "893 passed, 5 warnings",
-        "declared_playwright_product_regression": "19 passed (4.4m)",
-        "postgresql_backup_restore": "PostgreSQL restore verification passed",
-        "object_storage_backup_restore": "43 objects restored and verified",
-        "backup_artifacts": "EPHEMERAL_NOT_UPLOADED"
-      }
-    }
+  "audio_runtime": {
+    "authority": "HUMAN_SUPERVISOR_REVIEW",
+    "static_ids": 54,
+    "wav_files": 54,
+    "mp3_files": 54,
+    "student_audio_skip": false,
+    "pending_audio_blocks_remaining_questions": false,
+    "finalization_requires_required_reviews": true,
+    "rerecord_is_explicit_task": true,
+    "previous_recording_history_preserved": true,
+    "production_asr_provider": "EXTERNAL_DEFERRED_NOT_IN_CURRENT_DELIVERY"
   },
-  "active_workstream": {
-    "name": "UX_SYSTEM_REBUILD_2026_09_17",
-    "branch": "fix/ux-system-rebuild-2026-09-17",
-    "baseline_sha": "765c42d769624ad13683798f68177f6597f2149f",
-    "latest_tested_functional_sha": "09be49102d1aab8f09cf1a3267ccd073c46c7397",
+  "evidence": {
     "quality_gate": {
-      "run_number": 917,
-      "run_id": 35261495545,
+      "run_number": 933,
+      "run_id": 35301572062,
       "conclusion": "SUCCESS",
       "security": "SUCCESS",
       "frontend": "SUCCESS",
-      "backend": "SUCCESS",
-      "integration": "SUCCESS",
-      "playwright_report_artifact_id": 10515801114,
-      "playwright_report_digest": "sha256:12ce698a4bda93921eec73414b15f59efb24050c648a9a02d90ef370df145a74"
+      "backend": "894 passed, 5 warnings",
+      "integration_playwright": "20 passed (3.6m)",
+      "artifact_id": 10530208479
     },
-    "batches": {
-      "A_student_question_system": "IMPLEMENTED_CI_GREEN_VISUAL_QA_PENDING",
-      "B_student_dashboard_journey": "IMPLEMENTED_CI_GREEN_VISUAL_QA_PENDING",
-      "C_admin_audio_review": "IMPLEMENTED_CI_GREEN_VISUAL_QA_PENDING",
-      "D_admin_dashboard_notifications": "IMPLEMENTED_CI_GREEN_VISUAL_QA_PENDING",
-      "E_remaining_admin_ux": "IMPLEMENTED_PARTIAL_SURFACE_REVIEW_PENDING"
+    "responsive_visual_gate": {
+      "run_number": 359,
+      "run_id": 35299593387,
+      "conclusion": "SUCCESS",
+      "artifact_id": 10529103623,
+      "digest": "sha256:04a0b08ac2e25e27405ab24b2ec85bc1229b67909c47eb558c69bd859cd2826b"
     },
-    "release_readiness": "M09_PENDING_FOR_FINAL_UX_SHA",
-    "merge": "NOT_MERGED",
-    "deployment": "NOT_DEPLOYED",
-    "production_qa": "NOT_EXECUTED_FOR_UX_SHA"
+    "release_readiness": {
+      "run_number": 224,
+      "run_id": 35299593312,
+      "conclusion": "SUCCESS",
+      "backend": "894 passed, 5 warnings",
+      "browser": "20 passed (3.6m)",
+      "postgresql_restore": "PASS",
+      "restored_content_items": 125,
+      "restored_skills": 44,
+      "object_store_restore": "35 objects verified",
+      "readiness": "ALL_OK"
+    }
   },
-  "audio_contract": {
-    "pending_recording_blocks_next_questions": false,
-    "final_academic_completion_requires_review": true,
-    "rerecord_is_explicit_task": true,
-    "previous_recording_history_preserved": true,
-    "academic_authority": "HUMAN_SUPERVISOR_REVIEW",
-    "production_asr_provider": "DEFERRED_EXTERNAL_APPROVAL"
+  "production": {
+    "provider": "Railway",
+    "project": "friendly-dream",
+    "environment": "production",
+    "api_service": "himma-api",
+    "web_service": "himma-web",
+    "postgres": "SUCCESS",
+    "redis": "SUCCESS",
+    "audio_bucket": "himma-audio",
+    "api_deployment": "283feef7-ce46-41c1-84a1-f714e508405e",
+    "web_deployment": "629571e4-8188-4b91-bfe5-79fe5e1ecae1",
+    "deployed_functional_sha": "512f0a550eb098f0ce904ec4ed526d9e28098a6a",
+    "ready_http": 200
   },
-  "external_or_later_boundaries": {
-    "asr": {
-      "status": "EXTERNAL_APPROVAL_BLOCKED",
-      "gap_id": "AUD-A03-008"
-    },
-    "manual_human_screen_reader": "NOT_CLAIMED",
-    "ux_visual_qa": "PENDING",
-    "ux_m09": "PENDING",
-    "ux_merge": "PENDING",
-    "ux_railway_deploy": "PENDING"
+  "ux_release": {
+    "status": "MERGED_DEPLOYED",
+    "student_question_system": "CLOSED_GREEN",
+    "student_dashboard_journey": "CLOSED_GREEN",
+    "admin_audio_review": "CLOSED_GREEN",
+    "admin_dashboard_notifications": "CLOSED_GREEN",
+    "remaining_admin_ux": "CLOSED_GREEN"
   },
-  "latest_checkpoint": "docs/ops/HIMMA_UX_SYSTEM_REBUILD_HANDOFF_2026-09-17_AR.md",
-  "ux_plan": "docs/ops/UX_SYSTEM_REBUILD_2026-09-17_AR.md",
-  "ux_progress": "docs/ops/UX_SYSTEM_REBUILD_PROGRESS_2026-09-17_AR.md",
-  "next_action": "Review Playwright visual evidence against owner screenshots and A-E UX contracts; fix any mismatch and rerun exact-head QG if code changes; then run M09 on final UX SHA; merge only after Visual QA + QG + M09; deploy Railway and run Production QA.",
+  "branches": {
+    "non_provider_review": "COMPLETE",
+    "official_contains_relevant_non_provider_work": true,
+    "only_diverged_non_provider_branch": "deployment/platform-sandbox",
+    "diverged_branch_decision": "DO_NOT_MERGE_OBSOLETE_EXPERIMENTAL_DEPLOYMENT",
+    "provider_branches": "EXCLUDED_BY_OWNER"
+  },
+  "open_external_items": [
+    "Production ASR provider/calibration/privacy/governance",
+    "Child recording/data retention policy before real-study launch",
+    "Final research-session parameters if not owner-approved",
+    "Manual human screen-reader acceptance",
+    "Optional custom domain/entity branding details"
+  ],
+  "current_entrypoint": "START_HERE_AR.md",
+  "documentation_index": "docs/ops/DOCUMENTATION_INDEX.md",
+  "next_action": "Wait for a new owner assignment; do not reopen closed recovery/audit/UX work without regression evidence.",
   "fixed_constraints": [
     "NO_FAKE_ASR",
-    "NO_TEMPORARY_AUDIO_SKIP",
     "NO_STUDENT_AUDIO_SKIP",
+    "NO_TEMPORARY_AUDIO_SKIP",
     "NO_HISTORY_DELETION",
-    "NO_SPEECH_PRONUNCIATION_LAB_MERGE",
+    "NO_RANDOM_OR_CROSS_LEVEL_REINFORCEMENT",
+    "NO_AUTOMATIC_DEMOTION",
     "NO_WEAKENED_TESTS",
     "NO_RUNTIME_REPAIR_OVERLAYS",
     "NO_PASS_WITHOUT_EXACT_SHA_EVIDENCE"

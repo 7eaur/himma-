@@ -1,3 +1,5 @@
+> **HISTORICAL / SUPERSEDED:** هذه الوثيقة محفوظة للتاريخ والدليل فقط. الحالة الحالية بعد 2026-09-18 موجودة في START_HERE_AR.md وdocs/ops/STATUS.md. أي عبارة هنا مثل NOT MERGED / NOT DEPLOYED / ACTIVE / STOP أو branch قديم لا تصف الوضع الحالي.
+
 # HANDOFF — Himma UX System Rebuild — 2026-09-17
 
 هذا الملف هو نقطة الاستئناف للمحادثة التالية الخاصة بآخر ملاحظات التصميم والصور التي أرسلها المالك في 2026-09-17.

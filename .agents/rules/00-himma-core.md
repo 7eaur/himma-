@@ -1,28 +1,29 @@
 # Himma core truth
 
-- Product name: **هِمّة**. Tagline: **أتعلم، أتطور، أصل إلى القمة**.
-- Research web platform for grade-three learners with reading difficulties in Oman. The owner-approved default capacity is 50 (HIMMA_MAX_STUDENTS); inactive accounts count toward the study-wide limit.
-- Arabic RTL, responsive on mobile, tablet, and desktop. No native mobile app in scope.
-- Visible roles: student and **المشرف**. The internal value/path name `researcher` remains a compatibility identifier only. Students are created by the supervisor and sign in with a unique simple code; no child self-registration or email.
-- Core flow: pre-test (30) -> initial placement -> adaptive learning from the assigned starting level -> complete the required remaining levels through L3 -> supervisor-enabled post-test (30) -> comparison and reports.
-- Initial placement is based on the final pre-test score only: `<50` -> L1; `50..<80` -> L2; `>=80` -> L3. Superseded readiness/L3 experimental gates must not change this decision.
-- Levels: readiness for reading; word building; fluency and comprehension. Levels below the initial placement are recorded as **skipped by placement**, never falsely marked as completed.
-- Approved academic baseline: 30 pre-test + 30 post-test + 3 levels each with 10 Core and 5 baseline reinforcement activities = 105 source items. Versioned approved reinforcement additions may expand the runtime support pool; they do not change the 10-Core completion contract or authorize random/cross-level fallback.
-- One-activity policy: score `>=80` passes; `70..<80` gets a guided retry; `<70` triggers targeted reinforcement in the same level.
-- Continuous adaptation uses the newest three **valid** evidences from the active Core session only, weighted `50/30/20`. Historical closed-session evidence must never leak into the current progression decision.
-- L1/L2 early promotion requires all of: at least 6 completed Core activities in the active session, weighted mastery `>=85`, configured critical-skill coverage, minimum critical-skill score `>=70`, no unresolved reinforcement cycle, and no pending supervisor/audio review. Promotion is exactly one level at a time.
-- **Automatic demotion is forbidden.** Low performance causes same-level support/reinforcement. A supervisor may change level manually only with a documented reason and preserved audit/history; an active assessment, unresolved audio/reinforcement, or a completed final post-test blocks an unsafe level change.
-- L3 is the terminal learning level. There is no L4. The learning journey completes only after all 10 approved L3 Core activities are completed and no Core session remains active. The post-test remains closed until journey completion and explicit supervisor enablement.
-- Invalid, incomplete, media-gap, pending-audio, uploaded-awaiting-review, or `rerecord_required` evidence is academically neutral/excluded. It must never become a wrong answer, mastery penalty, or automatic transition signal.
-- Reinforcement must come from approved same-level content through an exact/reviewed mapping. If no safe mapping exists, pause and require a documented supervisor choice; never choose random, nearest-looking, or cross-level content.
-- Current student recording authority is human review: `recording -> persisted -> supervisor review -> accepted | rerecord_required -> academic continuation`. Automated ASR/scoring is future/non-authoritative until separately approved and calibrated.
-- Student UI: one instruction, one task, one primary action per screen. Never label a child weak or show research diagnostics.
-- Approved colors: blue `#347FD9`, green `#51B985`, yellow `#FFC857`, navy `#20364D`, light `#F7FBFF`, border `#DCE8F2`.
-- Typography: Tajawal for child UI; IBM Plex Sans Arabic for supervisor UI and reports; Noto Sans Arabic fallback.
-- Approved prerecorded audio package: `assets/audio/HIMMA_AUDIO_V1/` with 54 stable content IDs and 108 binaries (54 WAV masters + 54 MP3 web files): 4 feedback, 6 letter sounds, 13 syllables, 29 words, and 2 auditory stories. Its `manifest.csv` is the current audio source of truth.
-- `INS-01` and `INS-02` are the explicitly approved auditory-story recordings. Historical `INS-03..10` scripts are not delivered assets and must not be synthesized or claimed as delivered without a later approved package and decision.
-- The approved source recording named `SYL-15` is published under the existing stable runtime ID `LET-01` and changes its semantic contract from `مْ` to `مَ`; do not publish a duplicate `SYL-15` runtime asset.
-- `reference/original/` and `reference/ui-prototype/` are read-only. The prototype is visual/interaction reference, not production architecture or domain truth.
-- Resolve reference precedence through `docs/specs/SOURCE_OF_TRUTH.md`; do not choose between same-numbered legacy documents by filename alone.
-- Every content item and asset uses a stable technical ID. Do not rename approved assets after they are linked.
-- Do not claim medical/educational diagnosis or guaranteed speech accuracy.
+- Product: **هِمّة** — «أتعلم، أتطور، أصل إلى القمة».
+- Arabic RTL web platform for grade-three learners with reading difficulties in Oman.
+- Official branch: stage/02-content. Start every session from START_HERE_AR.md and live HEAD.
+- Visible roles: student and **المشرف**. Internal researcher identifiers are compatibility only.
+- Default study capacity: 50 students via HIMMA_MAX_STUDENTS; inactive accounts count.
+- Flow: 30-item pretest → placement → adaptive learning from assigned level through L3 → supervisor-enabled 30-item posttest → reports.
+- Placement: <50 L1; 50..<80 L2; >=80 L3. Lower levels are skipped by placement, not completed.
+- Activity: >=80 pass; 70..<80 guided retry; <70 same-level targeted reinforcement.
+- Adaptation: newest 3 valid active-Core evidences weighted 50/30/20.
+- L1/L2 early promotion: >=6 Core, mastery >=85, critical coverage, critical floor >=70, no unresolved reinforcement/audio review.
+- No automatic demotion.
+- L3 terminal; 10 Core required; no L4.
+- Invalid/incomplete/media-gap/pending-audio evidence is academically neutral.
+- Reinforcement must be approved same-level content; if no safe mapping exists, require supervisor decision.
+- Audio authority: Human Supervisor Review.
+- Assessment audio submission does **not** block remaining unanswered questions; finalization waits for required reviews.
+- Rerecord is an explicit task; it does not hijack current work and previous recordings stay historical.
+- No Student Audio Skip, Temporary Audio Skip, fake ASR, or history deletion.
+- Production ASR/provider is external/deferred and excluded from current delivery.
+- Student UI: one instruction, one task, one primary action; no labeling/diagnosis of the child.
+- Brand colors: #347FD9, #51B985, #FFC857, #20364D, #F7FBFF, #DCE8F2.
+- Tajawal for child UI; IBM Plex Sans Arabic for supervisor/reports; Noto Sans Arabic fallback.
+- Canonical baseline source = 105 items; approved runtime = 125 items / 44 skills.
+- Static audio = 54 IDs / 108 binaries.
+- reference/original and reference/ui-prototype are read-only.
+- Every content item/asset uses stable technical IDs.
+- Do not claim diagnosis or guaranteed speech accuracy.

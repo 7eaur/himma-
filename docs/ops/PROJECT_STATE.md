@@ -1,38 +1,63 @@
-# حالة مشروع هِمّة عند بدء التطوير
+# حالة مشروع هِمّة الحالية
 
-تاريخ الأساس: 6 أغسطس 2026.
+**Current snapshot:** 2026-09-18
 
-## منجز ومعتمد كمرجع
+هذه الوثيقة حلت محل ملف "حالة المشروع عند بدء التطوير" القديم.
 
-- اسم وهوية هِمّة والعبارة «أتعلم، أتطور، أصل إلى القمة».
-- وثائق المحتوى والمنطق: 30 سؤالًا قبليًا، 30 بعديًا، 3 مستويات، 30 نشاطًا أساسيًا، و15 نشاط تقوية.
-- نموذج واجهات تفاعلي مرجعي يشمل تدفق الطالب والباحثة.
-- حزمة شعار للمطور، 60 صورة تعليمية، 10 وضعيات شخصيات، 6 شارات، 3 رموز مستويات، و23 أيقونة واجهة.
-- 90 هدف قراءة موثق للتحليل الصوتي.
-- حزمة الأصوات الإنتاجية المعتمدة `HIMMA_AUDIO_V1`: 50 عنصرًا مستقلًا بنسختي WAV وMP3، بإجمالي 100 ملف صوتي، مع بيان وتقرير جودة.
-- حسم ADR-003 تعارض العدد القديم: نصوص التعليمات العشرة باقية في وثائق التخطيط، لكنها ليست ضمن تسليم V1 الصوتي المعتمد ولا تعامل كملفات مفقودة منه.
+## المنتج الحالي
 
-## غير منجز إنتاجيًا
+هِمّة منصة ويب عربية RTL تعمل بسطحين:
+- طالب.
+- مشرف.
 
-- لا توجد قاعدة بيانات إنتاجية أو مخطط جداول مطبق.
-- لا توجد مصادقة أو صلاحيات حقيقية.
-- الاختبار والأنشطة والتكيف داخل النموذج ليست محركات حقيقية.
-- التسجيل والتحليل الصوتي محاكاة، ولا توجد خدمة ASR مرتبطة.
-- لوحة الباحثة والتقارير والتصدير تعرض بيانات تجريبية.
-- لا توجد حزمة نشر إنتاجي مثبتة، نسخ احتياطي مجرب، أو مراقبة تشغيلية.
+المنصة لم تعد Prototype فقط؛ يوجد backend حقيقي، PostgreSQL migrations، auth، content runtime، student journeys، adaptation، audio review، reporting surfaces، CI release gates، وRailway production deployment.
 
-## قاعدة مهمة
+## الحالة الهندسية
 
-نموذج الواجهة من 82 ملفًا مرجع تصميم فقط؛ يحتوي صفحة رئيسية كبيرة وقاعدة بيانات فارغة وتأخيرات زمنية لمحاكاة التسجيل. لا يمدد مباشرة إلى منصة إنتاجية. يعاد استخدام الأصول والتوكنات والأنماط المفيدة داخل بنية إنتاجية جديدة.
+- Official branch: stage/02-content.
+- Functional release: 512f0a550eb098f0ce904ec4ed526d9e28098a6a.
+- QG/M04/M09: GREEN.
+- Railway API/Web: SUCCESS.
+- PostgreSQL/Redis/audio bucket: present.
+- /ready healthcheck: 200 on deployed API.
+- 15 Alembic migration files.
+- canonical runtime: 125 items / 44 skills.
 
-## قرارات بحثية/تشغيلية ما زالت تحتاج تثبيتًا
+## الحالة الأكاديمية
 
-- مدة التدخل، عدد الجلسات، ومدتها.
-- موعد وآلية تفعيل الاختبار البعدي.
-- عتبة ثقة الصوت بعد المعايرة.
-- مزود التحليل الصوتي أو عقد الوحدة التي سيقدمها فريق الصوت.
-- مدة الاحتفاظ بالتسجيلات وسياسة الأرشفة/الحذف.
-- الدومين وحسابات الاستضافة والخدمات الخارجية.
-- بيانات الجهة المشرفة وشعاراتها إن أريد عرضها.
+- Placement <50 / 50..<80 / >=80.
+- Activity 80/70 thresholds.
+- 50/30/20 active-session evidence weighting.
+- no automatic demotion.
+- same-level targeted reinforcement.
+- L3 terminal after 10 Core.
+- posttest supervisor-enabled after learning completion.
 
-هذه البنود لا توقف بناء النواة إذا نفذت كإعدادات قابلة للتثبيت، لكنها تمنع إطلاق دراسة حقيقية قبل اعتمادها.
+## الصوت
+
+- 54 static IDs / 108 binaries.
+- Human Supervisor Review is authoritative.
+- pending audio does not block remaining unanswered assessment questions.
+- finalization waits for required reviews.
+- rerecord explicit/history-preserving.
+- no audio bypass.
+- Production ASR is external/deferred.
+
+## UX
+
+آخر دفعة أعادت تنظيم:
+- Student Dashboard/journey.
+- question stimulus/options responsive rules.
+- Audio Review.
+- Admin Dashboard pending-audio aggregation.
+- Student Profile.
+- Add Student.
+- Content Preview.
+- feedback/toasts.
+- responsive/mobile/RTL behavior.
+
+## ما ليس جزءًا من الإغلاق
+
+- Production ASR provider.
+- manual human screen-reader acceptance.
+- owner/ethics decisions الخاصة بالاحتفاظ والبروتوكول البحثي النهائي.

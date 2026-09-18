@@ -1,25 +1,25 @@
-# إصدار مستودع هِمّة
+# إصدار وحالة مستودع هِمّة
 
-- حالة السلسلة الحالية: `1.2.0-recovery`
-- التاريخ: 2026-09-04
-- المستودع: `7eaur/himma-`
-- الفرع التنفيذي: `recovery/ui-media-admin-overhaul`
+**Updated:** 2026-09-18
 
-## التغييرات المعتمدة في سلسلة Recovery الحالية
+لا توجد سياسة SemVer إنتاجية معتمدة للمشروع، لذلك لا نخترع رقم إصدار جديد.
 
-- Runtime أكاديمي DB-only مبني من مصادر versioned وإسقاط deterministic.
-- واجهة الطالب تعتمد Structured APIs وقالب تصميم موحد، مع إزالة طبقات `polish` وDOM patching.
-- فصل Assessment completion الدائم عن آليات التطوير وإزالة duplicate route ownership.
-- توحيد Activities route ownership.
-- استبدال نشاط المسار السمعي بالمحتوى المعتمد للفهم السمعي وربطه بمهارة `الفهم السمعي المباشر` مع الحفاظ على التاريخ.
-- إزالة `patch_db_runtime()`؛ القصص السمعية تأتي من المصدر versioned قبل الإسقاط.
-- حذف Temporary Audio Skip بالكامل من UI/API/styles/runtime flags/backend.
-- اعتماد المراجعة البشرية للمشرف لتسجيلات الطالب حتى ربط النموذج الصوتي الآلي المعتمد.
-- إغلاق فجوات الصوت الثابتة: حزمة الصوت الحالية 54 أصلًا = 54 WAV + 54 MP3.
-- `LET-01` أصبح التسجيل المعتمد **مَ** مع الحفاظ على الـID، وجرى اعتماد `SYL-13` = سَا، `WRD-29` = موز، `INS-01` و`INS-02` للقصتين.
+Current release label:
+CURRENT-PRODUCTION-2026-09-18
 
-## ملاحظة الإصدار
+Official branch:
+stage/02-content
 
-`FINAL` لا يعني Production Release. الإطلاق يظل خاضعًا لبوابات CI/UAT وM09 وموافقة المستخدم الصريحة. M08 كتحليل صوت آلي إنتاجي يبقى مستقلًا عن اكتمال الأصول الصوتية الثابتة.
+Latest verified functional SHA:
+512f0a550eb098f0ce904ec4ed526d9e28098a6a
 
-مرجع الصوت: `docs/maintenance/AUDIO_RUNTIME_AND_REVIEW_CONTRACT_2026-09-04_AR.md`.
+State:
+MERGED + QG GREEN + M04 GREEN + M09 GREEN + RAILWAY DEPLOYED
+
+Canonical runtime:
+125 items / 44 skills
+
+Audio:
+54 approved static IDs / 108 binaries; Human Supervisor Review authoritative; Production ASR external/deferred.
+
+Any later docs-only descendant must be distinguished from this functional SHA.

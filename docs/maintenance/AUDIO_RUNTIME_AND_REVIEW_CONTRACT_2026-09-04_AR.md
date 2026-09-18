@@ -1,3 +1,5 @@
+> **HISTORICAL CONTRACT NOTICE:** تفاصيل الأصول الثابتة والبصمات أدناه محفوظة كدليل. أما سلوك Pending Audio / Rerecord والسلطة التشغيلية الحالية فمرجعها docs/maintenance/AUDIO_RUNTIME_AND_REVIEW_CONTRACT_CURRENT_AR.md. لا تستخدم صياغة هذه النسخة المؤرخة لتجاوز العقد الحالي.
+
 # عقد الصوت التشغيلي ومراجعة المشرف — منصة هِمّة
 
 **التاريخ:** 2026-09-04  

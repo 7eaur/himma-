@@ -1,17 +1,21 @@
 ---
-description: Return a compact evidence-based status for Himma without consuming context on a full recap
+description: Return compact evidence-based current Himma status
 ---
 
-Read only `STATUS.md`, `progress.json`, `git status`, the current stage report, and the latest gate result.
+Read:
+1. START_HERE_AR.md
+2. live stage/02-content HEAD
+3. docs/ops/STATUS.md
+4. docs/ops/progress.json
+5. latest GitHub Actions for the relevant functional SHA
+6. Railway status only if production is part of the question
 
-Return exactly:
-
-1. Stage/state.
-2. Completed since the last green commit.
-3. Tests: passed/failed/skipped.
-4. Evidence paths.
-5. Blocker requiring user action, or `None`.
+Return:
+1. Current state.
+2. Official live HEAD and latest verified functional SHA.
+3. What is deployed.
+4. Latest gate evidence.
+5. Open external blocker(s), or None.
 6. Next action.
 
-Do not restate project history, specifications, or future stages.
-
+Do not treat dated handoffs/checkpoints as current state. Do not re-summarize the entire project unless explicitly asked.

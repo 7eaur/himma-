@@ -1,102 +1,94 @@
-# خريطة مصدر الحقيقة — منصة هِمّة
+# مصدر الحقيقة — منصة هِمّة
 
-**آخر تحديث تنفيذي:** 2026-09-17  
-**المستودع:** `7eaur/himma-`  
-**فرع التنفيذ:** `audit/comprehensive-repository-review-2026-09-10`  
-**الحالة:** `A00–A09 CLOSED; W1–W6 GREEN; STOP`
+**Current authority updated:** 2026-09-18
 
-## 1) ترتيب القوة
+## 1. ترتيب القوة
 
-1. live code + PostgreSQL schema/Alembic migrations.
-2. executable tests + exact-SHA GitHub Actions.
-3. canonical contracts and approved decisions.
-4. current `START_HERE_AR.md`, STATUS, progress, RESUME, NEXT prompt, latest continuity handoff.
-5. current specs/status overlays.
-6. assets/manifests.
-7. historical/original/derived documentation.
+1. live code على stage/02-content.
+2. PostgreSQL schema + Alembic migrations.
+3. executable tests + exact-SHA CI.
+4. verified Railway runtime.
+5. canonical product/content/audio contracts.
+6. current documentation set المدرج في docs/ops/DOCUMENTATION_INDEX.md.
+7. historical handoffs/checkpoints/audits.
 
-الوثيقة وحدها لا تغلق Gap، وdocs-only SHA لا يحل محل tested functional SHA.
+START_HERE_AR.md هو نقطة دخول القراءة وليس بديلًا عن الكود الحي.
 
-## 2) W6 exact-SHA authority
+## 2. الفرع والإصدار
 
-Tested functional SHA:
+Official branch: stage/02-content.
 
-`c5174f33b11be80500fdd72c0456efbef062f5ad`
+Current functional evidence SHA:
+512f0a550eb098f0ce904ec4ed526d9e28098a6a
 
-| Evidence | Result |
+أي docs-only descendant لاحق لا يصبح functional authority تلقائيًا.
+
+## 3. المالك التنفيذي لكل مجال
+
+| المجال | المصدر |
 |---|---|
-| Quality Gate #902 / Run `35198824643` | SUCCESS |
-| Security / Frontend / Backend / Integration | all SUCCESS |
-| Backend | 893 passed, 5 warnings |
-| Integration Playwright | 20 passed |
-| M09 #211 / Run `35198824646` / job `105128375595` | SUCCESS |
-| M09 declared Playwright suite | 19 passed |
-| PostgreSQL restore verification | PASS |
-| Object-store restore | 43 objects verified |
-| Backup artifact handling | ephemeral; no data backup uploaded |
+| حالة المشروع | START_HERE_AR.md + docs/ops/STATUS.md + live branch |
+| schema | services/api/alembic/versions + models |
+| authentication/authorization | current FastAPI auth/security code + tests |
+| placement | services/api/placement_scoring.py + tests |
+| adaptation | services/api/adaptation.py + adaptation_runtime.py + tests |
+| completion/promotion | services/api/level_completion.py + current consumers/tests |
+| canonical content | approved/versioned content + canonical_release.py + publisher + PostgreSQL runtime |
+| student UX | apps/web/src/app/student + shared student systems + Playwright |
+| admin UX | apps/web/src/app/admin + AdminUI/admin-workflow + Playwright |
+| audio review | current code + docs/maintenance/AUDIO_RUNTIME_AND_REVIEW_CONTRACT_CURRENT_AR.md |
+| rewards | current reward catalog/APIs/tests |
+| CI/release | .github/workflows/ci.yml + m04-responsive.yml + m09-release-readiness.yml |
+| production | Railway project friendly-dream / production |
+| branch state | docs/maintenance/HIMMA_BRANCH_INVENTORY_2026-09-18_AR.md |
 
-W6 is GREEN. Historical SHA `565ba...`, `c67aaad...` and M09 #207/#210 evidence remain chronology only and are not the current authority.
+## 4. Product contracts
 
-## 3) Current source owners
+- Placement: <50 L1, 50..<80 L2, >=80 L3.
+- Activity: >=80 success; 70..<80 guided retry; <70 reinforcement.
+- L1/L2 promotion: >=6 Core + mastery >=85 + critical coverage + critical floor >=70 + no unresolved reinforcement/review.
+- L3: 10 Core; no L4.
+- Automatic demotion: forbidden.
+- Manual override: reason + audit + history preservation.
+- Latest 3 valid active-session Core evidences: 50/30/20.
 
-| المجال | المصدر التنفيذي |
-|---|---|
-| الحالة والاستئناف | live branch + current entrypoints + latest W6 GREEN handoff |
-| gap history/status | Master Gap Register for historical finding; latest status overlay for execution |
-| academic behavior | current services + tests + effective ADR/decisions |
-| canonical content | approval contract + compiler/release/publisher + PostgreSQL runtime |
-| Placement | `services/api/placement_scoring.py` + tests |
-| Adaptation | `services/api/adaptation.py`, `adaptation_runtime.py` + tests |
-| Completion/Promotion | `services/api/level_completion.py` + consumers/tests |
-| audio/review | current audio/review contract and code; Human Supervisor Review authority |
-| Production ASR | `services/api/asr_governance.py` + `AUD-A03-008` boundary |
-| rewards | `services/api/reward_catalog.py` + APIs/manifests/E2E |
-| frontend | current Next.js app + shared components + E2E |
-| security | current config/middleware/auth limiter + Security tests + Quality Gate |
-| CI/release | `.github/workflows/ci.yml`, M09 workflow, `TEST_OWNERSHIP.md`, exact-SHA runs |
+## 5. Content
 
-## 4) Product contracts
+Approval: HIMMA-CONTENT-APPROVAL-2026-09-08.
 
-- Placement: `<50 → L1`, `50..<80 → L2`, `80..100 → L3`.
-- Activity: `>=80` success, `70..<80` guided retry, `<70` reinforcement.
-- L1/L2 early promotion after >=6 Core only with canonical mastery/critical evidence.
-- L3 requires 10 Core.
-- No automatic demotion.
-- Manual override does not imply completion or badge.
-- Latest three valid active-session Core evidences use 50/30/20 weights.
+Baseline catalog: 105 source items.  
+Approved runtime: 125 items:
+- 30 pretest
+- 30 posttest
+- 30 core
+- 35 reinforcement
+- 44 skills
 
-## 5) Canonical content
+The 20-item difference is approved versioned reinforcement expansion, not duplicate canonical content.
 
-Approval: `HIMMA-CONTENT-APPROVAL-2026-09-08`.
+## 6. Audio
 
-Runtime: 30 Pretest + 30 Posttest + 30 Core + 35 Reinforcement = 125 items; 44 skills.
+Current academic authority: Human Supervisor Review.
 
-`approved/versioned contracts → canonical compile/release → deterministic publication → PostgreSQL runtime → structured APIs → deterministic UI`
+- Pending/uploaded audio is neutral academically.
+- Student may continue remaining unanswered assessment questions.
+- Finalization waits for required reviews.
+- Rerecord is explicit, separate, and history-preserving.
+- No audio bypass.
+- Production ASR is excluded/deferred and must not silently become academic authority.
 
-Runtime patches/overlays or historical seeders are not truth owners.
+## 7. Exact evidence
 
-## 6) Audio
+Functional SHA 512f0a550eb098f0ce904ec4ed526d9e28098a6a:
+- QG #933 / 35301572062: SUCCESS.
+- M04 #359 / 35299593387: SUCCESS.
+- M09 #224 / 35299593312: SUCCESS.
+- Railway API/Web deploy: SUCCESS.
 
-- No Student Audio Skip.
-- Submissions/rerecord are append-only; latest submission is active.
-- Human Supervisor Review is the academic authority.
-- Automated ASR is advisory.
-- Production ASR `AUD-A03-008` remains blocked pending provider, calibration, privacy, cost, and governance approval.
+Full identifiers are in docs/ops/EVIDENCE_INDEX.md.
 
-## 7) Closed W6 root cause
+## 8. Historical documentation rule
 
-Protected-runtime auth rate limiting previously incremented IP and identifier counters before credential validation. Success cleared only the identifier counter, so legitimate shared-IP logins exhausted the IP failure budget and caused deterministic `429` responses in M09 Playwright.
+Any dated handoff/checkpoint describing an earlier branch, unfinished merge, old production baseline, Temporary Audio Skip, obsolete deployment topology, or old W/A stage status is chronology only.
 
-Current authority: pre-auth checks counters; only invalid credentials record IP/identifier failures; rotating invalid identifiers still share the IP budget; success clears identifier failures; Redis remains fail-closed. Tests and exact-SHA CI prove both availability and abuse protection.
-
-## 8) External/later boundaries
-
-- `AUD-A03-008`: external approval blocked.
-- `AUD-SEC-006`: deployed-header verification is A11/later.
-- `AUD-A11Y-005`: manual human screen-reader verification not claimed.
-- `AUD-GIT-001`: final merge not executed.
-- A11, Deploy, Railway, Production require explicit new authorization.
-
-## 9) Current stop rule
-
-W6 closure is complete. **STOP.** Do not begin any later boundary without a new explicit assignment.
+When history conflicts with current truth, do not edit product behavior to match history. Follow this file and live evidence.

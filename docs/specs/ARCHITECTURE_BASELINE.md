@@ -1,50 +1,70 @@
-# خط الأساس المعماري
+# خط الأساس المعماري الحالي — هِمّة
 
-هذه معمارية افتراضية قوية ومتناسبة مع المنصة. يجوز تعديلها في المرحلة 0 فقط بسبب موثق ومراجعة هندسية.
+**Updated:** 2026-09-18
 
 ## الشكل العام
 
-```text
 Browser
-  -> Reverse proxy / HTTPS
-     -> apps/web (Arabic RTL UI)
-     -> services/api (domain API)
-        -> PostgreSQL
-        -> private object storage
-        -> Redis queue
-           -> services/worker -> replaceable speech provider
-```
+→ apps/web (Next.js Arabic RTL)
+→ services/api (FastAPI modular domain API)
+→ PostgreSQL
+→ Redis للتنسيق قصير العمر
+→ private object storage للتسجيلات/الأصول الخاصة
+
+أي speech provider إنتاجي ليس جزءًا من الحالة المغلقة الحالية.
 
 ## الوحدات
 
-- `apps/web`: React/Next.js + TypeScript. تجربة الطالب والباحثة، ولا يحتوي قواعد درجات أو تكيف مرجعية.
-- `services/api`: FastAPI/Python modular monolith. يملك المصادقة والصلاحيات والطلاب والمحتوى والمحاولات والتكيف والتقارير والتدقيق.
-- `services/worker`: عامل Python يستخدم نفس حزمة المجال لمعالجة الصوت والتصدير الطويل.
-- `packages/contracts`: OpenAPI/generated client and shared validation artifacts.
-- `packages/content`: JSON/YAML versioned content bank with schema validation and idempotent seed tooling.
-- PostgreSQL: source of transactional truth.
-- Redis: queue and short-lived coordination only; never source of academic truth.
-- S3-compatible private storage: recordings, generated reports, and immutable approved assets where appropriate.
+### apps/web
+- Next.js 16.3.4 + React 19.2.8 + TypeScript.
+- طالب + مشرف.
+- لا يملك قواعد الدرجات والتكيف المرجعية.
+- يستخدم API كمصدر الحقيقة.
+
+### services/api
+- FastAPI/Python.
+- auth، students، assessments، learning، adaptation، content، audio review، rewards، reports، audit.
+- SQLAlchemy + Alembic.
+- PostgreSQL هو transactional truth.
+
+### packages/content
+- catalog/versioned additions/validators/canonical release.
+- يحول المصادر المعتمدة إلى projection حتمي ثم PostgreSQL.
+
+### Redis
+- rate limiting / short-lived coordination.
+- ليس academic truth.
+
+### Object storage
+- recordings والأصول الخاصة.
+- لا public child-recording paths.
+
+## الهجرات
+
+الشجرة الحالية تحتوي 15 migration files تحت services/api/alembic/versions. أي schema change جديد يجب أن يبقى تراكمياً وآمنًا مع migration/rollback أو restore evidence.
 
 ## حدود إلزامية
 
-- الواجهة لا تتصل بقاعدة البيانات مباشرة ولا تعيد حساب الدرجات أو قرارات التكيف.
-- كل تغيير مؤثر في الدرجة/المستوى/المراجعة/المحتوى يمر بخدمة المجال ويسجل تدقيقًا.
-- المحتوى التعليمي ليس JSX مبعثرًا؛ هو بيانات مُعرّفة ومتحقق منها ومُصدّرة بإصدار.
-- مزود الصوت خلف interface واضح ويحفظ اسم المزود وإصدار النموذج والعتبة مع كل تحليل.
-- نشر موحد عبر Docker Compose في التطوير والإنتاج الأولي، مع إمكانية استبدال البنية دون تغيير المجال.
-- نفس الأصل يولد بيانات اللوحة وExcel وPDF لتجنب اختلاف الأرقام.
+- لا direct DB من الواجهة.
+- لا business scoring داخل JSX.
+- كل تغيير في الدرجة/المستوى/المراجعة له domain service/audit/test.
+- لا runtime patching ليصحح catalog بعد النشر.
+- لا child recordings/secrets/db dumps في Git.
+- reference/ read-only.
+- نفس المصدر يغذي Dashboard/Excel/PDF حيث ينطبق.
 
-## اختبارات المعمارية
+## Docker clarification
 
-- Unit: قواعد الدرجات والتكيف والحالات والمحاذاة.
-- Integration: API + PostgreSQL + queue/storage adapters.
-- Contract: OpenAPI client compatibility and content schemas.
-- Component: تفاعلات القوالب العربية والوصولية.
-- E2E: UC-01..UC-12 في متصفح حقيقي.
-- Restore drill: استعادة قاعدة وملف تسجيل/تقرير من نسخة احتياطية.
+المشروع لا يعتمد Docker كبيئة تشغيل محلية أو كشرط CI؛ البوابات الحالية تبدأ PostgreSQL/Redis وMinIO مباشرة.  
+Railway يستخدم deploy/railway-*.Dockerfile كآلية packaging/build للمنصة المنشورة. هذا استخدام نشر خاص بالمنصة وليس عودة إلى Docker workflow محلي.
 
-## لماذا لا نعتمد نموذج الواجهة مباشرة؟
+## الاختبارات
 
-النموذج الحالي جيد كتغذية بصرية، لكنه يحتوي منطق عرض في صفحة واحدة، بيانات تجريبية، مؤقتات تحاكي الصوت، ومخطط قاعدة بيانات فارغ. تنقل منه الأصول والتوكنات وأنماط التفاعل بعد تفكيكها، ولا تنقل محاكاة المجال.
-
+- Backend/unit/integration/domain.
+- PostgreSQL migration roundtrip + drift.
+- content validation + idempotent publication.
+- frontend type/lint/unit/build.
+- Playwright real-browser journeys.
+- responsive/RTL/keyboard/axe checks.
+- dependency/secret/placeholder/skip guards.
+- PostgreSQL + object-store backup/restore in M09.

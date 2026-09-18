@@ -1,3 +1,5 @@
+> **HISTORICAL / SUPERSEDED:** هذه الوثيقة محفوظة للتاريخ والدليل فقط. الحالة الحالية بعد 2026-09-18 موجودة في START_HERE_AR.md وdocs/maintenance/HIMMA_BRANCH_INVENTORY_2026-09-18_AR.md. أي عبارة هنا مثل NOT MERGED / NOT DEPLOYED / ACTIVE / STOP أو branch قديم لا تصف الوضع الحالي.
+
 # منصة هِمّة — A09 Branch Review & Classification
 
 **التاريخ:** 2026-09-10  

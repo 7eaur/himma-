@@ -1,83 +1,78 @@
-# EVIDENCE INDEX — Himma Recovery
+# EVIDENCE INDEX — Himma Current Production
 
-**Updated:** 2026-09-05  
-**Branch:** `recovery/ui-media-admin-overhaul`  
-**Final executable candidate:** `976b7c2ed8b9c6f1535a22a0b3a94b2c233f75eb`
+**Updated:** 2026-09-18  
+**Functional release SHA:** 512f0a550eb098f0ce904ec4ed526d9e28098a6a
 
-هذه الصفحة هي فهرس مختصر للدليل النهائي. لا تستبدل المواصفات أو سجل القرارات، ولا تعني أن الفرع دُمج أو نُشر.
+## Quality Gate
 
-## Exact-SHA release-readiness evidence
+Himma CI — Quality Gate #933  
+Run: 35301572062  
+Conclusion: SUCCESS
 
-| Evidence | Identifier | Status |
-|---|---|---|
-| Quality Gate | GitHub Actions run `33979846641` | SUCCESS |
-| Responsive Visual Gate | GitHub Actions run `33979846639` | SUCCESS |
-| Release Readiness Gate | GitHub Actions run `33979846640` | SUCCESS |
+- Security: SUCCESS.
+- Frontend: TypeScript + ESLint + unit + Next build = SUCCESS.
+- Backend: 894 passed, 5 warnings.
+- Migrations upgrade/downgrade/upgrade + drift = SUCCESS.
+- canonical validation + seed idempotency = SUCCESS.
+- Integration Playwright: 20 passed (3.6m).
+- Playwright report artifact: 10530208479.
 
-جميعها تخص SHA واحدًا: `976b7c2ed8b9c6f1535a22a0b3a94b2c233f75eb`.
+## Responsive Visual Gate
 
-## Quality evidence on the final candidate
+M04 #359  
+Run: 35299593387  
+Conclusion: SUCCESS
 
-- Backend: **755 passed**؛ تحذيران deprecation غير وظيفيين فقط.
-- Approved catalog validation: **PASS — 105 original items, 44 canonical skills, 0 explicit V1 media gaps**.
-- Alembic: upgrade/downgrade/upgrade ناجح، ثم `alembic check` بلا drift جديد.
-- Seed idempotency: البذر الثاني لم ينشئ عناصر أو مهارات إضافية.
-- Frontend: TypeScript + ESLint + unit tests + Next.js production build = SUCCESS.
-- Integration: PostgreSQL + Redis + pinned MinIO + FastAPI + Next.js + Playwright E2E = SUCCESS.
-- Python dependency audit = no known vulnerabilities.
-- npm audit = no known vulnerabilities at configured high threshold.
-- Gitleaks current-tree scan = SUCCESS مع allowlist ضيق لمعرّفات catalog `stable_key` الحتمية فقط.
-- Production placeholder guard = SUCCESS.
-- Disabled/skipped test guard = SUCCESS.
+Artifact:
+- ID 10529103623
+- name m04-responsive-screenshots
+- digest sha256:04a0b08ac2e25e27405ab24b2ec85bc1229b67909c47eb558c69bd859cd2826b
 
-## Academic / adaptive authority
+## Release Readiness
 
-- `docs/ops/DECISIONS.md` — خصوصًا **ADR-014** للتوزيع القبلي والتكيف V4.
-- `docs/specs/SOURCE_OF_TRUTH.md` — خريطة المصدر التنفيذي الحالية.
-- `docs/specs/ACCEPTANCE_MATRIX.md` — معايير القبول المتوافقة مع ADR-014.
-- `services/api/placement_scoring.py` — التوزيع `<50 / 50..<80 / 80..100` مع حماية دقة الحدود.
-- `services/api/learning_state_machine.py` و`services/api/adaptation.py` — 80/70 للنشاط، و6 Core + 85 mastery + 70 critical floor للترقية المبكرة، بدون خفض تلقائي.
+M09 #224  
+Run: 35299593312  
+Conclusion: SUCCESS
 
-## Audio authority
+- Backend regression: 894 passed, 5 warnings.
+- Canonical publication: 125 items.
+- Deleted audio bypass route: absent.
+- readiness: config/database/content/approved_audio/storage/redis/security_mode all ok.
+- browser product regression: 20 passed (3.6m).
+- PostgreSQL restore: PASS.
+- restored: 44 skills, 125 content_items, 358 content_steps, 824 options, 265 asset links.
+- object store restore: 35 objects verified.
+- backup artifacts stayed ephemeral in CI.
 
-- `docs/maintenance/AUDIO_RUNTIME_AND_REVIEW_CONTRACT_2026-09-04_AR.md`
-- الحزمة الثابتة: 54 approved IDs، و54 WAV، و54 MP3.
-- الطالب: `uploaded -> supervisor review -> graded / rerecord_required`.
-- لا يوجد bypass نشط لتسجيل الطالب ولا score آلي مزيف.
-- ASR الحقيقي مستقبل مستقل ولا يغيّر سلطة المراجعة البشرية الحالية دون قرار واعتماد جديد.
+## Production Railway evidence
 
-## Key regression evidence
+Project: friendly-dream  
+Environment: production
 
-- `services/api/test_assessment_pending_audio_navigation.py`
-- `services/api/test_profile_audio_review_state.py`
-- `services/api/test_manual_override_session_integrity.py`
-- `services/api/test_placement_scoring.py`
-- `services/api/test_student_adaptation_scenario_matrix.py`
-- `services/api/test_jwt_security.py`
-- `services/api/test_readiness.py`
-- `services/api/test_m09_full_single_candidate_journey.py`
-- `apps/web/tests/e2e/vertical-slice.spec.ts`
-- `apps/web/tests/e2e/accessibility-integration.spec.ts`
-- `apps/web/tests/e2e/media-fidelity.spec.ts`
-- `apps/web/tests/e2e/question-experience.spec.ts`
-- `apps/web/tests/e2e/admin-responsive.spec.ts`
+Functional SHA deployed:
+512f0a550eb098f0ce904ec4ed526d9e28098a6a
 
-## Closure records
+- himma-api deployment 283feef7-ce46-41c1-84a1-f714e508405e: SUCCESS.
+- himma-web deployment 629571e4-8188-4b91-bfe5-79fe5e1ecae1: SUCCESS.
+- Postgres deployment: SUCCESS.
+- Redis deployment: SUCCESS.
+- himma-audio bucket: present.
+- API predeploy Alembic: PASS.
+- canonical publication: 125.
+- account seed: PASS.
+- Railway /ready healthcheck: 200.
 
-- `docs/ops/HIMMA_PHASE_F_I_CLOSURE_2026-09-05_AR.md` — الإغلاق التنفيذي للمراحل F–I.
-- `docs/ops/STATUS.md` — الحالة الحالية المختصرة.
-- `docs/ops/progress.json` — الحالة المقروءة آليًا.
-- `docs/ops/RESUME_HERE.md` — نقطة الاستئناف التالية.
-- `docs/ops/OPEN_ITEMS.md` — البنود الخارجية/الإنتاجية التي لم تُغلق ضمن Recovery.
+## Branch evidence
 
-## Current boundary
+All non-provider branches were compared against official functional SHA. See:
+docs/maintenance/HIMMA_BRANCH_INVENTORY_2026-09-18_AR.md
 
-Recovery A–I مغلق فنيًا على المرشح المثبت. الحالة التالية هي `READY_FOR_USER_DECISION`.
+No relevant non-audio feature remains unmerged.
 
-لا يوجد حتى الآن:
+## Evidence interpretation
 
-- Merge إلى الفرع الأساسي.
-- Release إنتاجي.
-- Deploy.
-
-أي خطوة من هذه تحتاج اعتمادًا صريحًا من مالك المشروع.
+If the official branch receives docs-only commits after this functional SHA:
+- fetch live HEAD;
+- compare changed paths;
+- do not discard the functional evidence above merely because HEAD differs;
+- any new functional change requires new exact-SHA evidence.
