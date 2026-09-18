@@ -1,5 +1,38 @@
 # CHANGELOG
 
+## [Current Production / UX + Audio Review Closure] — 2026-09-18
+
+**Official functional release:** `512f0a550eb098f0ce904ec4ed526d9e28098a6a`  
+**Official branch:** `stage/02-content`  
+**State:** MERGED + QG/M04/M09 GREEN + RAILWAY DEPLOYED
+
+### Closed in the current release
+
+- Unified the Student Dashboard around the learning journey and primary next action.
+- Rebuilt the shared Student Question System for responsive text, image options and ordered/sequence interactions.
+- Rebuilt Admin Audio Review into a clear flow: listen → decision → evaluation/notes → save.
+- Clarified the evaluation fields: total units, deletions, substitutions and insertions.
+- Kept pending audio academically neutral; students continue remaining unanswered assessment questions while finalization waits for required reviews.
+- Made rerecord an explicit task without hijacking the current learner task, while preserving previous recordings.
+- Aggregated pending recordings on Admin Dashboard instead of duplicating one attention card per recording.
+- Improved Student Profile mobile layout, Add Student, Content Preview and transient feedback/toasts.
+- Preserved the canonical runtime at 125 items / 44 skills and the approved static audio package at 54 IDs / 108 binaries.
+- Removed stale documentation authority by introducing `START_HERE_AR.md`, the current documentation index, branch inventory, production evidence and current audio contract.
+
+### Evidence
+
+- QG #933 / Run `35301572062`: SUCCESS.
+- M04 #359 / Run `35299593387`: SUCCESS.
+- M09 #224 / Run `35299593312`: SUCCESS.
+- Railway deployed API/Web from the same functional SHA successfully.
+
+### External/deferred
+
+Production ASR provider/calibration/governance remains outside this release. Manual human screen-reader acceptance and final study-retention/protocol decisions remain separate owner/ethics boundaries.
+
+---
+
+
 ## [Corrective Recovery — UI / Media / Supervisor / Student] — 2026-08-26
 
 **Branch:** `recovery/ui-media-admin-overhaul`  
