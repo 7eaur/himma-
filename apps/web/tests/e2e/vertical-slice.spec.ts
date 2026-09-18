@@ -178,7 +178,7 @@ async function reviewPendingAssessmentAudio(
   let pendingCount = await reviewItems.count();
   while (pendingCount > 0) {
     await startReview.first().click();
-    const save = page.getByRole("button", { name: "حفظ واعتماد القراءة" });
+    const save = page.getByRole("button", { name: "اعتماد وحفظ التقييم" });
     await expect(save).toBeEnabled({ timeout: 7000 });
     await save.click();
     await expect(reviewItems).toHaveCount(pendingCount - 1, { timeout: 7000 });
@@ -315,7 +315,7 @@ async function reviewPendingLearningAudio(
   const startReview = page.getByRole("button", { name: "بدء المراجعة" });
   await expect(startReview.first()).toBeVisible({ timeout: 15000 });
   await startReview.first().click();
-  const save = page.getByRole("button", { name: "حفظ واعتماد القراءة" });
+  const save = page.getByRole("button", { name: "اعتماد وحفظ التقييم" });
   await expect(save).toBeEnabled({ timeout: 7000 });
   await save.click();
 
@@ -484,24 +484,24 @@ test.describe("Himma recovered vertical slice", () => {
       await answerActivityVisual(page, current);
 
       if (readingRound) {
-  const nextResponse = await nextResponsePromise;
-  expect(nextResponse, "Reading upload should resolve the next learner state").toBeTruthy();
-  if (nextResponse) expect(nextResponse.status()).toBe(200);
-  await reviewPendingLearningAudio(
-    page,
-    context,
-    request,
-    accessCode,
-    learningSessionId!,
-    !capturedLearningAudioHold,
-  );
-  capturedLearningAudioHold = true;
-  await page.waitForTimeout(500);
-  current = await fetchLearningExperience(request, learningSessionId!);
-  if (current) await waitForActivityPayload(page, current);
-  else await expect(activityRoot).toHaveAttribute("data-phase", "done", { timeout: 20000 });
-  continue;
-}
+        const nextResponse = await nextResponsePromise;
+        expect(nextResponse, "Reading upload should resolve the next learner state").toBeTruthy();
+        if (nextResponse) expect(nextResponse.status()).toBe(200);
+        await reviewPendingLearningAudio(
+          page,
+          context,
+          request,
+          accessCode,
+          learningSessionId!,
+          !capturedLearningAudioHold,
+        );
+        capturedLearningAudioHold = true;
+        await page.waitForTimeout(500);
+        current = await fetchLearningExperience(request, learningSessionId!);
+        if (current) await waitForActivityPayload(page, current);
+        else await expect(activityRoot).toHaveAttribute("data-phase", "done", { timeout: 20000 });
+        continue;
+      }
       await page.waitForTimeout(850);
       if ((await activityRoot.getAttribute("data-phase")) === "done") break;
       const nextResponse = await nextResponsePromise;
@@ -536,7 +536,6 @@ test.describe("Himma recovered vertical slice", () => {
 
     await context.clearCookies();
     await loginAsSupervisor(request, context);
-
     const studentStateResponse = await request.get(`${API_URL}/researcher/students/${studentId}`);
     expect(studentStateResponse.status()).toBe(200);
     const studentState: {
