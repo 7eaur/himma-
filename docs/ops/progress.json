@@ -69,10 +69,9 @@
     "postgres": "SUCCESS",
     "redis": "SUCCESS",
     "audio_bucket": "himma-audio",
-    "api_deployment": "283feef7-ce46-41c1-84a1-f714e508405e",
-    "web_deployment": "629571e4-8188-4b91-bfe5-79fe5e1ecae1",
     "deployed_functional_sha": "512f0a550eb098f0ce904ec4ed526d9e28098a6a",
-    "ready_http": 200
+    "ready_http": 200,
+    "deployment_evidence": "docs/ops/EVIDENCE_INDEX.md"
   },
   "ux_release": {
     "status": "MERGED_DEPLOYED",
