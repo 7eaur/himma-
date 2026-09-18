@@ -10,6 +10,7 @@
 ## وثائق CURRENT / AUTHORITATIVE
 
 - docs/ops/STATUS.md — الحالة المختصرة الحالية.
+- docs/ops/CHANGELOG.md — سجل التغييرات الحالي، مع حفظ التسلسل التاريخي.
 - docs/ops/progress.json — الحالة المقروءة آليًا.
 - docs/ops/RESUME_HERE.md — نقطة الاستئناف.
 - docs/specs/SOURCE_OF_TRUTH.md — ترتيب القوة ومالكو الحقيقة.
