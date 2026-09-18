@@ -61,13 +61,38 @@ async function expectNoHorizontalOverflow(page: Page) {
 
 async function answerVisibleChoice(page: Page) {
   const imageGroup = page.getByTestId("image-options");
+  const sequenceImageGroup = page.getByTestId("sequence-image-options");
+  const sequenceBoard = page.getByTestId("sequence-board");
   const confirm = page.getByRole("button", { name: "تأكيد والمتابعة" });
+
   if (await imageGroup.count()) {
     await imageGroup.getByRole("button").first().click();
+  } else if (await sequenceImageGroup.count()) {
+    while (!(await confirm.isEnabled())) {
+      const available = sequenceImageGroup.getByRole("button").filter({ visible: true });
+      const count = await available.count();
+      expect(count, "Sequence should still expose an available choice until the required order is complete").toBeGreaterThan(0);
+      await available.first().click();
+    }
   } else {
     const options = page.locator('button[aria-pressed="false"]');
     if (await options.count()) {
       await options.first().click();
+    } else if (await sequenceBoard.count()) {
+      while (!(await confirm.isEnabled())) {
+        const candidates = page.locator("main section button");
+        let clicked = false;
+        for (let index = 0; index < await candidates.count(); index += 1) {
+          const candidate = candidates.nth(index);
+          const text = ((await candidate.textContent()) ?? "").trim();
+          if (!(await candidate.isVisible()) || !(await candidate.isEnabled())) continue;
+          if (/^(استمع|تأكيد والمتابعة|إعادة الترتيب|إعادة التسجيل|إرسال التسجيل)$/u.test(text)) continue;
+          await candidate.click();
+          clicked = true;
+          break;
+        }
+        expect(clicked, "Ordered question should expose another selectable item until the required order is complete").toBeTruthy();
+      }
     } else {
       const candidates = page.locator("main section button");
       for (let index = 0; index < await candidates.count() && !(await confirm.isEnabled()); index += 1) {
