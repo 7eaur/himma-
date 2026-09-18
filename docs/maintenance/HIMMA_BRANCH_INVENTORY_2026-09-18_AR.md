@@ -2,11 +2,11 @@
 
 **Reviewed:** 2026-09-18  
 **Official functional SHA:** 512f0a550eb098f0ce904ec4ed526d9e28098a6a  
-**Scope:** كل الفروع ما عدا فروع مزود/مختبر الصوت، حسب طلب المالك.
+**Scope:** كل الفروع الـ39 الحالية؛ فروع مزود/مختبر الصوت الخمسة مفهرسة فقط ومستبعدة من قرار الدمج حسب طلب المالك. تمت مراجعة الـ34 فرعًا غير الصوتية.
 
 ## الحكم
 
-لا يوجد non-audio branch يحمل feature حديثة مطلوبة ومفقودة من stage/02-content.
+لا يوجد non-audio branch يحمل feature حديثة مطلوبة ومفقودة من stage/02-content. فرع `integration/current-state-20260918` أُنشئ فقط لمزامنة الوثائق وتقوية البوابات قبل fast-forward؛ اختلافه لا يمثل feature منتج مفقودة.
 
 كل الفروع غير الصوتية إما:
 - مطابقة للـofficial functional SHA،
@@ -17,7 +17,9 @@
 
 | الفرع | HEAD عند المراجعة | العلاقة بالـofficial | القرار |
 |---|---|---|---|
-| stage/02-content | 512f0a5 | identical | OFFICIAL |
+| stage/02-content | 512f0a5 عند بدء مزامنة التوثيق | official functional base | OFFICIAL؛ قد يصبح HEAD أحدث بوثائق/Workflows فقط بعد الدمج |
+| docs/current-state-2026-09-18 | 512f0a5 | identical to functional base | helper branch فقط، لا feature فريدة |
+| integration/current-state-20260918 | docs/workflow descendant of 512f0a5 | documentation + gate-hardening only | فرع توحيد التوثيق؛ لا business/product code فريد |
 | fix/ux-polish-audit-2026-09-18 | 512f0a5 | identical | contained / no merge |
 | integration/ux-polish-audit-20260918 | 512f0a5 | identical | contained / no merge |
 | fix/ux-system-rebuild-2026-09-17 | ed4ee38 | ancestor; official ahead 16 | historical contained |
