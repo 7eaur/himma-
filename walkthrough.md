@@ -1,3 +1,5 @@
+> **HISTORICAL / SUPERSEDED — لا تبدأ من هذا الملف:** هذه الوثيقة محفوظة للتاريخ والتتبع فقط، ولا تصف الحالة التشغيلية الحالية. ابدأ من `START_HERE_AR.md` ثم ارجع إلى `docs/ops/STATUS.md` عند الحاجة. عند أي تعارض تتقدم الحالة الحية والوثائق CURRENT في `docs/ops/DOCUMENTATION_INDEX.md`.
+
 # Walkthrough: Stage 2 - Content & Assessment Runner
 
 تم الانتهاء من التنفيذ الشامل للمرحلة الثانية واجتياز جميع اختبارات الـ CI.

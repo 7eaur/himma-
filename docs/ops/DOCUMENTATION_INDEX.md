@@ -27,6 +27,10 @@
 - docs/ops/RELEASE_DEPLOYMENT_CURRENT_AR.md — النشر الحالي.
 - VERSION.md — وسم الإصدار/الحالة.
 
+## قاعدة تصنيف شاملة
+
+**أي ملف توثيق أو خطة أو handoff أو walkthrough أو prompt داخل المستودع غير مذكور صراحة في قسم CURRENT / AUTHORITATIVE أعلاه يُعامل افتراضيًا كـ HISTORICAL / REFERENCE ONLY.** لا يملك صلاحية تغيير الحالة الحالية أو فتح مرحلة مغلقة أو إرجاع عقد superseded. الملفات القديمة تُحفظ للـprovenance والتدقيق فقط ولا تُحذف لمجرد تقادمها.
+
 ## وثائق HISTORICAL / EVIDENCE ONLY
 
 كل الملفات المؤرخة القديمة من الأنواع التالية تاريخ فقط ما لم يذكر هذا الفهرس صراحة أنها Current:

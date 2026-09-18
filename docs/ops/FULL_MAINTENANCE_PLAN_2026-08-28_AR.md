@@ -1,3 +1,5 @@
+> **HISTORICAL / SUPERSEDED — لا تبدأ من هذا الملف:** هذه الوثيقة محفوظة للتاريخ والتتبع فقط، ولا تصف الحالة التشغيلية الحالية. ابدأ من `START_HERE_AR.md` ثم ارجع إلى `docs/ops/STATUS.md` عند الحاجة. عند أي تعارض تتقدم الحالة الحية والوثائق CURRENT في `docs/ops/DOCUMENTATION_INDEX.md`.
+
 # خطة الصيانة والتحسين الشاملة — هِمّة — حالة تنفيذية 2026-08-28
 
 **الحالة:** ACTIVE MAINTENANCE PROGRAM  
