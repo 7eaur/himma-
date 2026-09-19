@@ -181,7 +181,7 @@ async function reviewPendingAssessmentAudio(
     expect(optionValue).toBeTruthy();
     await selector.selectOption(optionValue!);
     await expect(page.getByTestId("audio-review-form")).toBeVisible({ timeout: 7000 });
-    const save = page.getByRole("button", { name: "اعتماد وحفظ التقييم" });
+    const save = page.getByRole("button", { name: "حفظ واعتماد", exact: true });
     await expect(save).toBeEnabled({ timeout: 7000 });
     await save.click();
     pendingCount -= 1;
@@ -325,7 +325,7 @@ async function reviewPendingLearningAudio(
   expect(firstPending).toBeTruthy();
   await selector.selectOption(firstPending!);
   await expect(page.getByTestId("audio-review-form")).toBeVisible({ timeout: 7000 });
-  const save = page.getByRole("button", { name: "اعتماد وحفظ التقييم" });
+  const save = page.getByRole("button", { name: "حفظ واعتماد", exact: true });
   await expect(save).toBeEnabled({ timeout: 7000 });
   await save.click();
 
