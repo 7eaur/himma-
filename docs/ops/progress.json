@@ -73,8 +73,7 @@
     "ready_http": 200,
     "deployment_evidence": "docs/ops/EVIDENCE_INDEX.md",
     "deployed_official_head_sha": "81006dcf09a544b1b54f42de4a0a57c1deb44bfd",
-    "api_deployment_id": "85e73822-a71b-4c2e-afef-ec08a4c6bc1b",
-    "web_deployment_id": "d5a7f586-c93c-4a50-8faf-1e1d42cbeae1"
+    "railway_deployment_evidence": "docs/ops/RELEASE_DEPLOYMENT_CURRENT_AR.md"
   },
   "ux_release": {
     "status": "MERGED_DEPLOYED",
