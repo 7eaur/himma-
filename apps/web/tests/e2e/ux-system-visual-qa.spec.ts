@@ -290,6 +290,16 @@ test.describe("Himma UX system visual QA regression", () => {
 
       await expectNoHorizontalOverflow(page);
       await page.screenshot({ path: path.join(SCREENSHOT_DIR, `${viewport.name}-audio-review-decision.png`), fullPage: true });
+
+      await notesToggle.click();
+      await expect(notesToggle).toHaveAttribute("aria-expanded", "true");
+      const notes = form.getByTestId("audio-review-notes");
+      await expect(notes).toBeVisible();
+      await expect(notes.getByLabel("ملاحظات النطق")).toBeVisible();
+      await expect(notes.getByLabel("ملاحظات الطلاقة")).toBeVisible();
+      await expectNoHorizontalOverflow(page);
+      await page.screenshot({ path: path.join(SCREENSHOT_DIR, `${viewport.name}-audio-review-notes-open.png`), fullPage: true });
+      await notesToggle.click();
     }
   });
 });
