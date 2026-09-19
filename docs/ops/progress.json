@@ -4,7 +4,7 @@
   "repository": "7eaur/himma-",
   "official_branch": "stage/02-content",
   "current_phase": "PRODUCTION_CURRENT",
-  "current_state": "GREEN_CURRENT_STATE_CANDIDATE_READY_FOR_FAST_FORWARD",
+  "current_state": "CLOSED_PRODUCTION_GREEN",
   "functional_release_sha": "512f0a550eb098f0ce904ec4ed526d9e28098a6a",
   "documentation_rule": "Fetch live official HEAD. Docs-only descendants do not replace the exact functional evidence SHA.",
   "canonical_content": {
@@ -71,7 +71,10 @@
     "audio_bucket": "himma-audio",
     "deployed_functional_sha": "512f0a550eb098f0ce904ec4ed526d9e28098a6a",
     "ready_http": 200,
-    "deployment_evidence": "docs/ops/EVIDENCE_INDEX.md"
+    "deployment_evidence": "docs/ops/EVIDENCE_INDEX.md",
+    "deployed_official_head_sha": "81006dcf09a544b1b54f42de4a0a57c1deb44bfd",
+    "api_deployment_id": "85e73822-a71b-4c2e-afef-ec08a4c6bc1b",
+    "web_deployment_id": "d5a7f586-c93c-4a50-8faf-1e1d42cbeae1"
   },
   "ux_release": {
     "status": "MERGED_DEPLOYED",
@@ -97,7 +100,7 @@
   ],
   "current_entrypoint": "START_HERE_AR.md",
   "documentation_index": "docs/ops/DOCUMENTATION_INDEX.md",
-  "next_action": "Fast-forward current-state candidate to stage/02-content without force, then verify Railway auto-deploy, /ready and production smoke.",
+  "next_action": "Wait for a new owner assignment or a verified regression; current delivery is closed.",
   "fixed_constraints": [
     "NO_FAKE_ASR",
     "NO_STUDENT_AUDIO_SKIP",
@@ -109,28 +112,28 @@
     "NO_RUNTIME_REPAIR_OVERLAYS",
     "NO_PASS_WITHOUT_EXACT_SHA_EVIDENCE"
   ],
-  "current_state_candidate_sha": "5de29b71b9ab8d7df5c6c723136810f5ed56b213",
   "latest_exact_head_evidence": {
-    "gate_sha": "5de29b71b9ab8d7df5c6c723136810f5ed56b213",
+    "gate_sha": "81006dcf09a544b1b54f42de4a0a57c1deb44bfd",
     "quality_gate": {
-      "run_number": 943,
-      "run_id": 35403341210,
+      "run_number": 945,
+      "run_id": 35410973050,
       "conclusion": "SUCCESS",
       "backend": "894 passed, 5 warnings",
-      "integration_playwright": "23 passed (3.8m)",
-      "artifact_id": 10571581856
+      "integration_playwright": "23 passed (3.7m)",
+      "artifact_id": 10573957731,
+      "digest": "sha256:e7b63865ca425d91c0343b22ff72e8a03414713b36b963c1ffb50773a845714f"
     },
     "responsive_visual_gate": {
-      "run_number": 361,
-      "run_id": 35403341212,
+      "run_number": 362,
+      "run_id": 35410973052,
       "conclusion": "SUCCESS",
       "responsive_smoke": "2 passed",
-      "artifact_id": 10571297880,
-      "digest": "sha256:3498fc96ea6f555b884bca91016048cbb0459e5354d9b76af5709160383b8518"
+      "artifact_id": 10574142637,
+      "digest": "sha256:888a88d92db0971a67f65983dec522532462280cc31fd6f7478111c889eababb"
     },
     "release_readiness": {
-      "run_number": 226,
-      "run_id": 35403341199,
+      "run_number": 227,
+      "run_id": 35410973045,
       "conclusion": "SUCCESS",
       "backend": "894 passed, 5 warnings",
       "browser": "23 passed (3.7m)",
@@ -141,5 +144,6 @@
       "readiness": "ALL_OK",
       "student_audio_bypass": "ABSENT"
     }
-  }
+  },
+  "latest_verified_operational_sha": "81006dcf09a544b1b54f42de4a0a57c1deb44bfd"
 }
