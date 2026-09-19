@@ -136,7 +136,11 @@ async function reviewPendingAudio(
       await save.click();
     }
     pendingCount -= 1;
-    await expect(selector.locator("option")).toHaveCount(pendingCount + 1, { timeout: 7000 });
+    if (pendingCount > 0) {
+      await expect(selector.locator("option")).toHaveCount(pendingCount + 1, { timeout: 7000 });
+    } else {
+      await expect(page.getByText("لا توجد تسجيلات تنتظر المراجعة")).toBeVisible({ timeout: 7000 });
+    }
   }
   await context.clearCookies();
   await loginStudent(request, context, accessCode);
