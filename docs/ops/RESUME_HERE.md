@@ -2,22 +2,23 @@
 
 **Updated:** 2026-09-19
 
-لا توجد دفعة Recovery أو Audit أو UX وظيفية مفتوحة. current-state candidate اجتاز QG/M04/M09 وينتظر fast-forward والتحقق الإنتاجي النهائي.
+لا توجد دفعة Recovery أو Audit أو UX وظيفية مفتوحة.
 
 الحالة الصحيحة:
 - official branch: stage/02-content.
 - latest verified functional release: 512f0a550eb098f0ce904ec4ed526d9e28098a6a.
-- current-state gate SHA: 5de29b71b9ab8d7df5c6c723136810f5ed56b213.
-- QG #943 / Run 35403341210: SUCCESS.
-- M04 #361 / Run 35403341212: SUCCESS.
-- M09 #226 / Run 35403341199: SUCCESS.
-- functional baseline #933/#359/#224 remains exact evidence for 512f0a5.
-- Railway API/Web: deployed successfully.
+- latest verified operational/gate SHA: 81006dcf09a544b1b54f42de4a0a57c1deb44bfd.
+- QG #945 / Run 35410973050: SUCCESS.
+- M04 #362 / Run 35410973052: SUCCESS.
+- M09 #227 / Run 35410973045: SUCCESS.
+- Railway API deployment 85e73822-a71b-4c2e-afef-ec08a4c6bc1b: SUCCESS.
+- Railway Web deployment d5a7f586-c93c-4a50-8faf-1e1d42cbeae1: SUCCESS.
+- API /ready: 200.
 - runtime content: 125 items / 44 skills.
 - current audio authority: Human Supervisor Review.
+- Production ASR/provider: external/deferred and excluded from this delivery.
 
-للاستئناف لا تبدأ من handoff مؤرخ. ابدأ من:
-
+للاستئناف ابدأ من:
 START_HERE_AR.md
 
 ثم نفّذ قائمة القراءة الموجودة فيه.
@@ -29,10 +30,9 @@ START_HERE_AR.md
 - canonical content reconciliation.
 - UX system rebuild.
 - audio-review redesign.
-- merge/deploy of the current functional release.
+- merge/deploy of the current release.
+- branch reconciliation for non-provider branches.
 
 ## ما يمكن أن يبدأ لاحقًا
 
-مهمة جديدة صريحة من المالك، أو regression مثبت في الكود/CI/Production.
-
-Production ASR/provider منفصل ومستبعد من هذا التسليم الحالي.
+مهمة جديدة صريحة من المالك، أو regression مثبت في الكود/CI/Production، أو أحد البنود الخارجية المسجلة في OPEN_ITEMS.md.
