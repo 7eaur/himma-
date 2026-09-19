@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Award, BookOpenCheck, Check, LogOut, Map, RotateCcw, Star } from "lucide-react";
+import { BookOpenCheck, Check, LogOut, Map, RotateCcw, Star } from "lucide-react";
 import styles from "./home.module.css";
 
 interface StudentMe {
@@ -511,7 +511,7 @@ export default function StudentHomePage() {
           </div>
 
           <div className="student-progress-facts">
-            <div>
+            <div role={rewards === null ? "status" : undefined} aria-label={rewards === null ? "تعذر تحميل النجوم" : `لديك ${totalStars} نجمة`}>
               <span>النجوم</span>
               <strong>{rewards === null ? "—" : totalStars}</strong>
             </div>
@@ -521,7 +521,7 @@ export default function StudentHomePage() {
             </div>
             <div>
               <span>المسار</span>
-              <strong>{journeyStatusTitle}</strong>
+              <strong>{pretestCompleted ? currentLevelLabel : "قبل تحديد المستوى"}</strong>
             </div>
           </div>
 
@@ -537,8 +537,13 @@ export default function StudentHomePage() {
           )}
 
           {earnedBadges.length === 0 && (
-            <p className="student-progress-hint" data-testid="student-badges">
-              {rewards === null ? "تقدمك محفوظ، وستظهر نجومك وشاراتك عند توفر البيانات." : "أكمل خطوات رحلتك وستظهر نجومك وشاراتك هنا."}
+            <p
+              className="student-progress-hint"
+              data-testid="student-badges"
+              role={rewards === null ? "status" : undefined}
+              aria-label={rewards === null ? "تعذر تحميل الشارات" : "لا توجد شارات مكتسبة"}
+            >
+              {rewards === null ? "الشارات غير متاحة الآن. تقدمك محفوظ، حاول تحديث الصفحة لاحقًا." : "لم تحصل على شارة بعد. أكمل خطوات رحلتك وستظهر شاراتك هنا."}
             </p>
           )}
         </section>
@@ -546,6 +551,7 @@ export default function StudentHomePage() {
         {journey?.pretest_completed && (
           <details className="student-secondary-details" data-testid="level-journey">
             <summary>تفاصيل مستويات رحلتك</summary>
+            <p className="student-secondary-note">{journey.starting_level ? `بدأت من المستوى ${journey.starting_level}` : "مسارك التعليمي"}</p>
             <div className={styles.levelCards}>
               {journey.levels.map((level) => {
                 const levelPercent = Math.min(100, Math.round((level.completed_items / Math.max(1, level.total_items)) * 100));
