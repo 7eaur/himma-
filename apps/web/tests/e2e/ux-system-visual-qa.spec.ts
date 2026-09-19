@@ -238,11 +238,11 @@ test.describe("Himma UX system visual QA regression", () => {
 
       const form = page.getByTestId("audio-review-form");
       await expect(form).toBeVisible();
-      await expect(form.getByRole("heading", { name: "طالب فحص بصري" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "طالب فحص بصري" })).toBeVisible();
       await expect(form.getByText("يَقْرَأُ سَالِمٌ كِتَابًا.")).toBeVisible();
       await expect(form.getByRole("button", { name: /تشغيل التسجيل/ })).toBeVisible();
       await expect(form.getByTestId("audio-review-summary")).toBeVisible();
-      await expect(form.getByText("بانتظار المراجعة")).toBeVisible();
+      await expect(page.getByText("بانتظار المراجعة")).toBeVisible();
 
       const approveDecision = form.getByRole("button", { name: "اعتماد القراءة", exact: true });
       const rerecordDecision = form.getByRole("button", { name: "طلب إعادة تسجيل", exact: true });
