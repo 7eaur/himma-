@@ -556,6 +556,7 @@ export default function AudioReviewPage() {
                   <button
                     type="button"
                     className={`${styles.saveButton} ${!isValid ? styles.saveRerecord : ""}`}
+                    aria-label={isValid ? "اعتماد وحفظ التقييم" : "إرسال طلب إعادة التسجيل"}
                     onClick={() => void handleGrade(activeSubmission.id)}
                     disabled={gradingId === activeSubmission.id}
                   >
