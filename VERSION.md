@@ -1,6 +1,6 @@
 # إصدار وحالة مستودع هِمّة
 
-**Updated:** 2026-09-18
+**Updated:** 2026-09-19
 
 لا توجد سياسة SemVer إنتاجية معتمدة للمشروع، لذلك لا نخترع رقم إصدار جديد.
 
@@ -12,6 +12,12 @@ stage/02-content
 
 Latest verified functional SHA:
 512f0a550eb098f0ce904ec4ed526d9e28098a6a
+
+Latest pre-merge exact-head gate SHA:
+5de29b71b9ab8d7df5c6c723136810f5ed56b213
+
+Exact-head gates: QG #943 / M04 #361 / M09 #226 = GREEN.
+
 
 State:
 MERGED + QG GREEN + M04 GREEN + M09 GREEN + RAILWAY DEPLOYED

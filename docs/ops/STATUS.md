@@ -1,10 +1,12 @@
 # STATUS — Himma Platform
 
-**Last synchronized:** 2026-09-18  
+**Last synchronized:** 2026-09-19  
 **Repository:** 7eaur/himma-  
 **Official branch:** stage/02-content  
 **Functional release SHA:** 512f0a550eb098f0ce904ec4ed526d9e28098a6a  
 **State:** PRODUCTION_GREEN / CURRENT UX MERGED AND DEPLOYED
+**Current-state candidate SHA:** 5de29b71b9ab8d7df5c6c723136810f5ed56b213 — READY_FOR_FAST_FORWARD
+
 
 ## Current truth
 
@@ -12,7 +14,15 @@
 
 لا تستخدم handoffs القديمة التي تقول إن UX لم تُدمج أو لم تُنشر.
 
-## Exact functional evidence
+## Current-state exact-head evidence
+
+- QG #943 / Run 35403341210: SUCCESS — Backend 894 passed, 5 warnings; Integration Playwright 23 passed (3.8m); artifact 10571581856.
+- M04 #361 / Run 35403341212: SUCCESS — responsive smoke 2 passed; artifact 10571297880; digest sha256:3498fc96ea6f555b884bca91016048cbb0459e5354d9b76af5709160383b8518.
+- M09 #226 / Run 35403341199: SUCCESS — Backend 894 passed, 5 warnings; browser 23 passed (3.7m); 125 items / 44 skills; PostgreSQL restore PASS; object-store restore 35; readiness all ok; audio bypass absent.
+
+Latest Functional SHA remains 512f0a550eb098f0ce904ec4ed526d9e28098a6a because the descendant contains docs/workflow/QA-test changes only.
+
+## Functional baseline evidence
 
 - Quality Gate #933 / Run 35301572062: SUCCESS.
   - Security: SUCCESS.
@@ -72,6 +82,6 @@ Only external/later items remain:
 
 ## Current action
 
-No recovery/audit/UX batch is active. Start only from a new owner assignment.
+Current-state candidate is green and ready for fast-forward. After the official ref moves, verify Railway auto-deploy, /ready, production smoke, and synchronize final deployment evidence.
 
 Entry point: START_HERE_AR.md.

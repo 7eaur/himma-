@@ -1,6 +1,6 @@
 # Railway Production — Himma Current Release
 
-**Updated:** 2026-09-18
+**Updated:** 2026-09-19
 
 ## Functional release
 
@@ -9,13 +9,19 @@ SHA: 512f0a550eb098f0ce904ec4ed526d9e28098a6a
 
 هذا هو آخر SHA وظيفي مثبت قبل دفعة مزامنة التوثيق.
 
-## Gates
+## Current-state gates before official fast-forward
 
-- QG #933 / 35301572062: SUCCESS.
-- M04 #359 / 35299593387: SUCCESS.
-- M09 #224 / 35299593312: SUCCESS.
+Gate SHA: 5de29b71b9ab8d7df5c6c723136810f5ed56b213
+- QG #943 / 35403341210: SUCCESS.
+- M04 #361 / 35403341212: SUCCESS.
+- M09 #226 / 35403341199: SUCCESS.
+
+Functional baseline gates remain #933 / #359 / #224 for SHA 512f0a5.
 
 ## Railway
+
+Deployment IDs below are the pre-fast-forward functional baseline. Synchronize them after the official auto-deploy before final closure.
+
 
 Project: friendly-dream  
 Environment: production

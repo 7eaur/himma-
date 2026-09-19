@@ -1,9 +1,19 @@
 # EVIDENCE INDEX — Himma Current Production
 
-**Updated:** 2026-09-18  
+**Updated:** 2026-09-19  
 **Functional release SHA:** 512f0a550eb098f0ce904ec4ed526d9e28098a6a
+**Current-state gate SHA:** 5de29b71b9ab8d7df5c6c723136810f5ed56b213
 
-## Quality Gate
+## Current-state exact-head gates
+
+- QG #943 / Run 35403341210: SUCCESS; Backend 894 passed, 5 warnings; Integration Playwright 23 passed (3.8m); artifact 10571581856; digest sha256:9febc8e034d6da3e87efebd059992d0add9eac2b4329880e29d7630fc82b1497.
+- M04 #361 / Run 35403341212: SUCCESS; responsive smoke 2 passed; screenshots artifact 10571297880; digest sha256:3498fc96ea6f555b884bca91016048cbb0459e5354d9b76af5709160383b8518.
+- M09 #226 / Run 35403341199: SUCCESS; Backend 894 passed, 5 warnings; browser 23 passed (3.7m); runtime 125 / skills 44; PostgreSQL restore PASS; object-store restore 35; readiness all ok; student audio bypass absent.
+
+The gate descendant changes documentation, CI coverage and deterministic QA test logic only; Functional SHA remains 512f0a5.
+
+
+## Functional baseline — Quality Gate
 
 Himma CI — Quality Gate #933  
 Run: 35301572062  

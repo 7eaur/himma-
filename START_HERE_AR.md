@@ -2,11 +2,22 @@
 
 **هذه هي نقطة الدخول الوحيدة لأي محادثة أو وكيل جديد.**
 
-آخر توحيد موثق: 2026-09-18  
+آخر توحيد موثق: 2026-09-19  
 Repository: 7eaur/himma-  
 Official branch: stage/02-content  
 آخر Functional Release SHA مثبت: 512f0a550eb098f0ce904ec4ed526d9e28098a6a  
 حالة الإصدار: MERGED + CI GREEN + RAILWAY DEPLOYED + READY
+
+Latest pre-merge current-state gate SHA: 5de29b71b9ab8d7df5c6c723136810f5ed56b213  
+- QG #943 / Run 35403341210 = SUCCESS.  
+- M04 #361 / Run 35403341212 = SUCCESS.  
+- M09 #226 / Run 35403341199 = SUCCESS.  
+- QG backend = 894 passed, 5 warnings; integration Playwright = 23 passed (3.8m).  
+- M04 artifact = 10571297880; digest = sha256:3498fc96ea6f555b884bca91016048cbb0459e5354d9b76af5709160383b8518.  
+- M09 runtime = 125 items / 44 skills; PostgreSQL restore PASS; object-store restore 35; audio bypass absent; readiness all ok.
+
+هذا descendant لا يغيّر Product Runtime؛ Latest Functional SHA يبقى 512f0a550eb098f0ce904ec4ed526d9e28098a6a.
+
 
 > قاعدة إلزامية: ابدأ دائمًا بجلب HEAD الحي للفرع الرسمي وحالة GitHub Actions وRailway. إذا كان هناك descendant توثيقي أحدث من SHA أعلاه فلا تعتبر اختلاف SHA اختلافًا وظيفيًا قبل مقارنة الملفات.
 
