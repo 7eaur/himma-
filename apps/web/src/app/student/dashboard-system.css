@@ -69,9 +69,17 @@
 }
 
 .student-current-status > small {
-  padding-inline-start:.15rem;
-  color:#6c8295;
-  font-weight:750;
+  flex-basis:100%;
+  margin-top:.05rem;
+  color:#7a8fa1;
+  font-size:.66rem;
+  line-height:1.55;
+}
+
+.student-current-status > b {
+  color:#60798c;
+  font-size:.68rem;
+  font-weight:800;
 }
 
 /* Primary action owns the strongest visual weight. */
@@ -302,12 +310,23 @@
 .student-progress-hint {
   margin:.75rem 0 0;
   padding:.65rem .75rem;
+  display:grid;
+  gap:.08rem;
   border-radius:.75rem;
   background:#f8fbfe;
   color:#73899c;
-  font-size:.69rem;
-  line-height:1.6;
+  font-size:.68rem;
+  line-height:1.55;
   text-align:center;
+}
+
+.student-progress-hint strong {
+  color:#536f84;
+  font-size:.7rem;
+}
+
+.student-progress-hint span {
+  color:#7d91a2;
 }
 
 .student-earned-badges {
