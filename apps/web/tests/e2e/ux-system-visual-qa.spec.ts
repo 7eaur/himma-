@@ -233,7 +233,7 @@ test.describe("Himma UX system visual QA regression", () => {
       await expect(workspace).toBeVisible();
       await expect(selector).toBeVisible();
       await expect(selector).toHaveValue("99101");
-      await expect(page.getByText("اختر الطالب والتسجيل")).toBeVisible();
+      await expect(page.getByText("التسجيل المطلوب")).toBeVisible();
       await expectNoHorizontalOverflow(page);
 
       const form = page.getByTestId("audio-review-form");
