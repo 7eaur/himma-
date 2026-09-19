@@ -1,5 +1,29 @@
 # CHANGELOG
 
+## [Current-State Closure / Gate Hardening + Production Verification] — 2026-09-19
+
+**Latest Functional SHA:** `512f0a550eb098f0ce904ec4ed526d9e28098a6a`  
+**Latest verified operational/gate SHA:** `81006dcf09a544b1b54f42de4a0a57c1deb44bfd`  
+**Official branch:** `stage/02-content`  
+**State:** CLOSED + QG/M04/M09 GREEN + RAILWAY DEPLOYED + READY
+
+### Closure evidence
+
+- Fast-forwarded the current-state descendant into the official branch without force.
+- QG #945 / Run `35410973050`: SUCCESS — Backend 894 passed, 5 warnings; Integration Playwright 23 passed (3.7m).
+- M04 #362 / Run `35410973052`: SUCCESS — responsive smoke 2 passed; artifact `10574142637`.
+- M09 #227 / Run `35410973045`: SUCCESS — runtime 125 items / 44 skills; PostgreSQL restore PASS; object-store restore 35; readiness all ok; Student Audio Skip absent.
+- Railway API deployment `85e73822-a71b-4c2e-afef-ec08a4c6bc1b`: SUCCESS.
+- Railway Web deployment `d5a7f586-c93c-4a50-8faf-1e1d42cbeae1`: SUCCESS.
+- Production API /ready returned HTTP 200 during deployment.
+- Functional runtime remains `512f0a5...`; the operational descendant contains documentation/workflow/QA-test hardening only.
+
+### Remaining external boundaries
+
+Production ASR/provider/calibration/governance, child-data retention before a real study, final research-session parameters if not owner-approved, manual human screen-reader acceptance, and optional custom-domain/entity branding remain outside this delivery.
+
+---
+
 ## [Current Production / UX + Audio Review Closure] — 2026-09-18
 
 **Official functional release:** `512f0a550eb098f0ce904ec4ed526d9e28098a6a`  
