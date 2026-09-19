@@ -624,6 +624,17 @@
 }
 
 @media (max-width: 700px) {
+  .queueLabel span:last-child,
+  .queueCount,
+  .columnHeading p {
+    display: none;
+  }
+
+  .columnHeading {
+    min-height: 0;
+    margin-bottom: 7px;
+  }
+
   .filterLink {
     width: 100%;
     margin-inline-start: 28px;
