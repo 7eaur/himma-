@@ -404,20 +404,12 @@ export default function StudentHomePage() {
             <span className={styles.eyebrow}><Star size={14} fill="currentColor" /> جاهز للتقدم</span>
             <h1>مرحبًا يا {firstName}</h1>
             <p>خطوتك التالية واضحة أمامك، وهِمّة تحفظ تقدمك تلقائيًا.</p>
+            <div className="student-current-status" data-testid="student-status-summary" aria-label="حالتك الحالية">
+              <span>أنت الآن في</span>
+              <strong data-testid="student-journey-status">{journeyStatusTitle}</strong>
+              {pretestCompleted && <small data-testid="student-current-level">{currentLevelLabel}</small>}
+            </div>
           </div>
-        </section>
-
-        <section className="student-status-grid" aria-label="ملخص مسار الطالب" data-testid="student-status-summary">
-          <article className="student-status-card student-status-level" data-testid="student-current-level">
-            <span>المستوى الحالي</span>
-            <strong>{currentLevelLabel}</strong>
-            <small>{pretestCompleted ? `المستوى ${student.current_level} من 3` : "لا نعرض مستوى قبل اكتمال القياس القبلي"}</small>
-          </article>
-          <article className="student-status-card" data-testid="student-journey-status">
-            <span>حالة الرحلة</span>
-            <strong>{journeyStatusTitle}</strong>
-            <small>{journeyStatusDescription}</small>
-          </article>
         </section>
 
         <section className={`${styles.hero} ${student.next_action === "completed" ? styles.completed : ""}`} data-testid="student-next-action">
@@ -499,26 +491,61 @@ export default function StudentHomePage() {
           </div>
         </section>
 
-        <section className={`${styles.progressCard} student-level-progress-summary`} data-testid="student-level-progress-summary" aria-label="تقدم المستوى الحالي">
-          <div className={styles.tipIcon}><Map size={21} /></div>
-          <div className="student-level-progress-copy">
-            <h3>تقدم المستوى</h3>
-            <p>{isLearning || activeJourneyLevel ? "هذه النسبة مبنية على الأنشطة الأساسية المكتملة فعليًا." : "سنبدأ بخطوة قصيرة لتحديد مسارك."}</p>
+        <section className="student-progress-overview" data-testid="student-progress-overview" aria-labelledby="student-progress-title">
+          <div className="student-progress-heading">
+            <div className="student-progress-title">
+              <span className={styles.tipIcon}><Map size={21} aria-hidden="true" /></span>
+              <div>
+                <span>تقدمك</span>
+                <h2 id="student-progress-title">{pretestCompleted ? currentLevelLabel : "جاهز لبداية رحلتك"}</h2>
+              </div>
+            </div>
+            <div className="student-progress-score" data-testid="student-level-progress-summary" aria-label="تقدم المستوى الحالي">
+              <strong>{isLearning || activeJourneyLevel ? `${isLearning ? learningProgress : journeyProgress}%` : "—"}</strong>
+              <span>{pretestCompleted ? "من المستوى" : "بعد الاختبار القبلي"}</span>
+            </div>
           </div>
-          <div className={styles.progressRing} style={{ "--progress": `${isLearning ? learningProgress : journeyProgress}%` } as React.CSSProperties}>
-            <strong>{isLearning || activeJourneyLevel ? `${isLearning ? learningProgress : journeyProgress}%` : "جاهز"}</strong>
+
+          <div className="student-progress-track" aria-hidden="true">
+            <span style={{ width: `${isLearning || activeJourneyLevel ? (isLearning ? learningProgress : journeyProgress) : 0}%` }} />
           </div>
+
+          <div className="student-progress-facts">
+            <div>
+              <span>النجوم</span>
+              <strong>{rewards === null ? "—" : totalStars}</strong>
+            </div>
+            <div>
+              <span>الشارات</span>
+              <strong>{rewards === null ? "—" : earnedBadges.length}</strong>
+            </div>
+            <div>
+              <span>المسار</span>
+              <strong>{journeyStatusTitle}</strong>
+            </div>
+          </div>
+
+          {earnedBadges.length > 0 && (
+            <div className="student-earned-badges" data-testid="student-badges" aria-label={`لديك ${earnedBadges.length} شارة`}>
+              {earnedBadges.slice(0, 3).map((badge) => (
+                <article key={badge.id} data-reward-key={badge.key || undefined}>
+                  <Image src={badge.asset_path!} alt={`شارة ${badge.label}`} width={64} height={64} />
+                  <span>{badge.label}</span>
+                </article>
+              ))}
+            </div>
+          )}
+
+          {earnedBadges.length === 0 && (
+            <p className="student-progress-hint" data-testid="student-badges">
+              {rewards === null ? "تقدمك محفوظ، وستظهر نجومك وشاراتك عند توفر البيانات." : "أكمل خطوات رحلتك وستظهر نجومك وشاراتك هنا."}
+            </p>
+          )}
         </section>
 
         {journey?.pretest_completed && (
-          <section className={styles.levelJourney} aria-label="مستويات رحلة التعلم" data-testid="level-journey">
-            <div className={styles.journeyHeader}>
-              <div>
-                <h3>مستويات رحلتك</h3>
-                <p>تتقدم للأعلى بعد إكمال المستوى، والتقوية تساعدك داخل مسارك دون إعادته من البداية.</p>
-              </div>
-              <span>{journey.starting_level ? `بدأت من المستوى ${journey.starting_level}` : "مسارك التعليمي"}</span>
-            </div>
+          <details className="student-secondary-details" data-testid="level-journey">
+            <summary>تفاصيل مستويات رحلتك</summary>
             <div className={styles.levelCards}>
               {journey.levels.map((level) => {
                 const levelPercent = Math.min(100, Math.round((level.completed_items / Math.max(1, level.total_items)) * 100));
@@ -543,69 +570,31 @@ export default function StudentHomePage() {
                 );
               })}
             </div>
-          </section>
+          </details>
         )}
 
-        <section className={styles.rewardsPanel} aria-labelledby="student-badges-title" data-testid="student-badges">
-          <div className={styles.rewardsHeader}>
-            <div className={styles.rewardsTitleIcon}><Award size={20} aria-hidden="true" /></div>
-            <div>
-              <h2 id="student-badges-title">نجومك وشاراتك</h2>
-              <p>تعزيز حقيقي مرتبط بما أنجزته، وليس بطاقة منافسة مع الآخرين.</p>
+        {(journey?.pretest_completed || journey?.posttest_completed) && (
+          <details className="student-secondary-details" data-testid="student-results">
+            <summary>عرض النتائج والسجل</summary>
+            <div className="student-results-grid">
+              <article className="student-result-card">
+                <span>الاختبار القبلي</span>
+                <strong>{journey?.pretest_completed ? scoreLabel(journey.pretest_score) : "لم يكتمل"}</strong>
+                <small>{journey?.pretest_completed && journey.starting_level ? `نقطة البداية: المستوى ${journey.starting_level}` : "تظهر النتيجة بعد الاعتماد"}</small>
+              </article>
+              <article className="student-result-card student-result-card-current">
+                <span>المستوى الحالي</span>
+                <strong>{currentLevelLabel}</strong>
+                <small>{activeJourneyLevel ? `${activeJourneyLevel.completed_items} من ${activeJourneyLevel.total_items} أنشطة أساسية · ${journeyProgress}%` : "بانتظار بدء أنشطة المستوى"}</small>
+              </article>
+              <article className="student-result-card">
+                <span>الاختبار البعدي</span>
+                <strong>{journey?.posttest_completed ? scoreLabel(journey.posttest_score) : journey?.posttest_ready ? "جاهز" : "لاحقًا"}</strong>
+                <small>{journey?.posttest_completed ? "نتيجة معتمدة" : journey?.posttest_ready ? "يمكن بدء القياس البعدي" : "يفتح بعد اكتمال رحلة التعلم"}</small>
+              </article>
             </div>
-            {rewards === null ? (
-              <div className="student-stars-summary" role="status" aria-label="تعذر تحميل النجوم"><strong>—</strong><span>نجمة</span></div>
-            ) : (
-              <div className="student-stars-summary" aria-label={`لديك ${totalStars} نجمة`}><strong>{totalStars}</strong><span>نجمة</span></div>
-            )}
-          </div>
-          {rewards === null ? (
-            <div className={styles.rewardState} role="status" aria-label="تعذر تحميل الشارات">
-              <strong>الشارات غير متاحة الآن</strong>
-              <span>تقدمك محفوظ. حاول تحديث الصفحة لاحقًا لعرض شاراتك.</span>
-            </div>
-          ) : earnedBadges.length === 0 ? (
-            <div className={styles.rewardState} aria-label="لا توجد شارات مكتسبة">
-              <strong>لم تحصل على شارة بعد</strong>
-              <span>أكمل مستوى تعليميًا وستظهر شارتك هنا تلقائيًا.</span>
-            </div>
-          ) : (
-            <div className={styles.badgeGrid} aria-label={`لديك ${earnedBadges.length} شارة`}>
-              {earnedBadges.map((badge) => (
-                <article className={styles.badgeCard} key={badge.id} data-reward-key={badge.key || undefined}>
-                  <div className={styles.badgeVisual}>
-                    <Image src={badge.asset_path!} alt={`شارة ${badge.label}`} width={118} height={118} />
-                  </div>
-                  <strong>{badge.label}</strong>
-                  <span>شارة مكتسبة</span>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section className="student-results-panel" data-testid="student-results" aria-label="نتائج وتقدم الطالب">
-          <div className="student-results-heading">
-            <div><span>معلومات ثانوية من سجلك</span><h2>النتائج والسجل</h2></div>
-          </div>
-          <div className="student-results-grid">
-            <article className="student-result-card">
-              <span>الاختبار القبلي</span>
-              <strong>{journey?.pretest_completed ? scoreLabel(journey.pretest_score) : "لم يكتمل"}</strong>
-              <small>{journey?.pretest_completed && journey.starting_level ? `نقطة البداية: المستوى ${journey.starting_level}` : "تظهر النتيجة بعد الاعتماد"}</small>
-            </article>
-            <article className="student-result-card student-result-card-current">
-              <span>المستوى الحالي</span>
-              <strong>{currentLevelLabel}</strong>
-              <small>{activeJourneyLevel ? `${activeJourneyLevel.completed_items} من ${activeJourneyLevel.total_items} أنشطة أساسية · ${journeyProgress}%` : "بانتظار بدء أنشطة المستوى"}</small>
-            </article>
-            <article className="student-result-card">
-              <span>الاختبار البعدي</span>
-              <strong>{journey?.posttest_completed ? scoreLabel(journey.posttest_score) : journey?.posttest_ready ? "جاهز" : "لاحقًا"}</strong>
-              <small>{journey?.posttest_completed ? "نتيجة معتمدة" : journey?.posttest_ready ? "يمكن بدء القياس البعدي" : "يفتح بعد اكتمال رحلة التعلم"}</small>
-            </article>
-          </div>
-        </section>
+          </details>
+        )}
       </main>
     </div>
   );
