@@ -114,13 +114,16 @@ async function reviewPendingAudio(
   await context.clearCookies();
   await loginSupervisor(request, context);
   await page.goto(`/admin/audio-review?student_id=${studentId}`);
-  const start = page.getByRole("button", { name: "بدء المراجعة" });
-  await expect(start.first()).toBeVisible({ timeout: 15000 });
-  const reviewItems = page.getByTestId("audio-review-item");
-  let pendingCount = await reviewItems.count();
+  const selector = page.getByTestId("audio-review-selector");
+  await expect(selector).toBeVisible({ timeout: 15000 });
+  let pendingCount = await selector.locator("option").count() - 1;
+  expect(pendingCount).toBeGreaterThan(0);
   let rerecordRequested = false;
   while (pendingCount > 0) {
-    await start.first().click();
+    const optionValue = await selector.locator("option").nth(1).getAttribute("value");
+    expect(optionValue).toBeTruthy();
+    await selector.selectOption(optionValue!);
+    await expect(page.getByTestId("audio-review-form")).toBeVisible({ timeout: 7000 });
     if (exerciseExplicitRerecord && !rerecordRequested) {
       await page.getByRole("button", { name: "طلب إعادة تسجيل", exact: true }).click();
       const requestRerecord = page.getByRole("button", { name: "إرسال طلب إعادة التسجيل" });
@@ -132,8 +135,8 @@ async function reviewPendingAudio(
       await expect(save).toBeEnabled({ timeout: 7000 });
       await save.click();
     }
-    await expect(reviewItems).toHaveCount(pendingCount - 1, { timeout: 7000 });
     pendingCount -= 1;
+    await expect(selector.locator("option")).toHaveCount(pendingCount + 1, { timeout: 7000 });
   }
   await context.clearCookies();
   await loginStudent(request, context, accessCode);
