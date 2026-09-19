@@ -513,7 +513,7 @@ export default function StudentHomePage() {
 
           <div className="student-progress-facts">
             <div role={rewards === null ? "status" : undefined} aria-label={rewards === null ? "تعذر تحميل النجوم" : `لديك ${totalStars} نجمة`}>
-              <span>النجوم</span>
+              <span>نجمة</span>
               <strong>{rewards === null ? "—" : totalStars}</strong>
             </div>
             <div>
