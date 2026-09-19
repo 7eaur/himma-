@@ -259,8 +259,10 @@ test.describe("Himma UX system visual QA regression", () => {
 
       const approveBox = await approveDecision.boundingBox();
       const rerecordBox = await rerecordDecision.boundingBox();
-      expect(approveBox?.height ?? 0).toBeGreaterThanOrEqual(72);
-      expect(rerecordBox?.height ?? 0).toBeGreaterThanOrEqual(72);
+      expect(approveBox?.height ?? 0).toBeGreaterThanOrEqual(56);
+      expect(rerecordBox?.height ?? 0).toBeGreaterThanOrEqual(56);
+      await expect(page.getByRole("button", { name: /إضافة ملاحظات/ })).toBeVisible();
+      await expect(page.locator(".audio-review-notes-textarea")).toHaveCount(0);
 
       const workspaceBox = await workspace.boundingBox();
       const selectorBox = await selector.boundingBox();
@@ -272,6 +274,8 @@ test.describe("Himma UX system visual QA regression", () => {
       expect((formBox?.x ?? 0) + (formBox?.width ?? 0)).toBeLessThanOrEqual((workspaceBox?.x ?? 0) + (workspaceBox?.width ?? 0) + 1);
 
       await expectNoHorizontalOverflow(page);
+      const pageHeight = await page.evaluate(() => document.documentElement.scrollHeight);
+      expect(pageHeight).toBeLessThanOrEqual(viewport.name === "phone-390" ? 2100 : 1300);
       await page.screenshot({ path: path.join(SCREENSHOT_DIR, `${viewport.name}-audio-review-decision.png`), fullPage: true });
     }
   });
