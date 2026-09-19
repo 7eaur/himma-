@@ -1,436 +1,608 @@
-/* Student dashboard hierarchy.
- * This file controls the journey surface as one system, not screenshot-specific
- * patches. DOM order is authoritative: identity -> level/status -> next action ->
- * five-stage journey -> level progress -> rewards -> historical results.
+/* Student dashboard: one question per glance.
+ * Order: identity/current state -> next action -> journey -> progress.
+ * Historical detail stays collapsed and only appears when real data exists.
  */
 
 [data-testid="student-home"] {
-  background: #f7fbff;
+  background:#f7fbff;
 }
 
 [data-testid="student-home"] > header,
 [data-testid="student-home"] > main {
-  width: min(100% - 2rem, 72rem);
+  width:min(100% - 2rem,72rem);
+}
+
+[data-testid="student-home"] > header {
+  padding-top:1rem;
+  padding-bottom:.65rem;
 }
 
 [data-testid="student-home"] > main {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding-top: 0.5rem;
+  display:flex;
+  flex-direction:column;
+  gap:.9rem;
+  padding-top:.25rem;
 }
 
-/* 1. Identity: useful context, never a competing hero. */
+/* Identity is a greeting, not another dashboard card. */
 [data-testid="student-identity"] {
-  margin: 0;
-  padding: 0.35rem 0.15rem 0.1rem;
-  align-items: center;
+  margin:0;
+  padding:.25rem .1rem .05rem;
+  align-items:flex-start;
 }
 
 [data-testid="student-identity"] h1 {
-  margin-block: 0.2rem 0.3rem;
-  font-size: clamp(1.65rem, 3vw, 2.3rem);
-  line-height: 1.3;
+  margin:.15rem 0 .22rem;
+  font-size:clamp(1.65rem,3vw,2.25rem);
+  line-height:1.28;
 }
 
 [data-testid="student-identity"] p {
-  margin: 0;
-  max-width: 42rem;
+  max-width:42rem;
+  margin:0;
+  color:#71879a;
+  font-size:.9rem;
 }
 
-/* 2–3. Current level and journey status are compact facts, not CTA cards. */
-.student-status-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
+.student-current-status {
+  width:max-content;
+  max-width:100%;
+  margin-top:.7rem;
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:.35rem;
+  color:#60798c;
+  font-size:.73rem;
 }
 
-.student-status-card {
-  min-width: 0;
-  padding: 1rem 1.1rem;
-  border: 1px solid #dce8f2;
-  border-radius: 1.15rem;
-  background: #fff;
-  box-shadow: none;
+.student-current-status > span {
+  color:#8193a3;
 }
 
-.student-status-card > span {
-  display: block;
-  margin-bottom: 0.3rem;
-  color: #71879a;
-  font-size: 0.74rem;
-  font-weight: 800;
+.student-current-status > strong {
+  padding:.28rem .55rem;
+  border-radius:999px;
+  background:#edf5ff;
+  color:#2466b8;
+  font-size:.74rem;
 }
 
-.student-status-card > strong {
-  display: block;
-  color: #20364d;
-  font-size: clamp(1rem, 2vw, 1.16rem);
-  line-height: 1.55;
+.student-current-status > small {
+  padding-inline-start:.15rem;
+  color:#6c8295;
+  font-weight:750;
 }
 
-.student-status-card > small {
-  display: block;
-  margin-top: 0.3rem;
-  color: #7c91a3;
-  font-size: 0.74rem;
-  line-height: 1.65;
-}
-
-.student-status-level {
-  border-color: #cfe2f5;
-  background: #fafdff;
-}
-
-/* 4. Primary next action: one clear action, compact character support. */
+/* Primary action owns the strongest visual weight. */
 [data-testid="student-next-action"] {
-  min-height: 0;
-  grid-template-columns: minmax(0, 1fr) 180px;
-  border-radius: 1.45rem;
-  background: #fff;
-  border: 1px solid #d8e6f1;
-  box-shadow: 0 6px 20px rgba(32, 54, 77, 0.045);
+  min-height:0;
+  grid-template-columns:minmax(0,1fr) 180px;
+  border:1px solid #d8e6f1;
+  border-radius:1.35rem;
+  background:#fff;
+  box-shadow:0 6px 20px rgba(32,54,77,.045);
 }
 
 [data-testid="student-next-action"] > div:first-child {
-  padding: 1.7rem 1.8rem;
+  padding:1.55rem 1.7rem;
 }
 
 [data-testid="student-next-action"] h2 {
-  max-width: 38rem;
-  margin-bottom: 0.45rem;
-  font-size: clamp(1.65rem, 3vw, 2.25rem);
-  line-height: 1.3;
+  max-width:38rem;
+  margin-bottom:.4rem;
+  font-size:clamp(1.55rem,3vw,2.15rem);
+  line-height:1.3;
 }
 
 [data-testid="student-next-action"] p {
-  max-width: 42rem;
-  line-height: 1.8;
+  max-width:42rem;
+  color:#647b90;
+  font-size:.9rem;
+  line-height:1.75;
 }
 
 [data-testid="student-next-action"] > div:last-child {
-  min-height: 0;
-  padding: 0.8rem 0.5rem 0;
-  border-inline-start: 1px solid #e4edf4;
-  background: #f3f8fd;
+  min-height:0;
+  padding:.65rem .45rem 0;
+  border-inline-start:1px solid #e4edf4;
+  background:#f3f8fd;
 }
 
 [data-testid="student-next-action"] > div:last-child::before {
-  width: min(145px, 82%);
-  top: 1.2rem;
+  width:min(138px,82%);
+  top:1rem;
 }
 
 [data-testid="student-next-action"] > div:last-child img {
-  max-height: 180px;
+  max-height:170px;
 }
 
 [data-testid="student-primary-action"] {
-  min-width: 11rem;
-  min-height: 3.15rem;
+  min-width:10.5rem;
+  min-height:3rem;
 }
 
 [data-testid="assessment-rerecord-tasks"] {
-  margin: 0;
+  margin:0;
 }
 
-/* 5. Canonical journey: Pretest -> Level -> Core -> Conditional support -> Posttest. */
+/* Five-stage route. Desktop is horizontal; mobile becomes a real vertical path. */
 [data-testid="student-journey-overview"] {
-  margin: 0;
-  overflow: hidden;
-  box-shadow: none;
+  margin:0;
+  padding:1.15rem 1.25rem;
+  overflow:hidden;
+  border-radius:1.2rem;
+  box-shadow:none;
+}
+
+[data-testid="student-journey-overview"] > div:first-child {
+  margin-bottom:.9rem;
+}
+
+[data-testid="student-journey-overview"] > div:first-child h3 {
+  font-size:1rem;
+}
+
+[data-testid="student-journey-overview"] > div:first-child p {
+  max-width:46rem;
+  font-size:.74rem;
+  line-height:1.65;
+}
+
+[data-testid="student-journey-overview"] > div:first-child > span {
+  font-size:.68rem;
 }
 
 [data-testid="student-journey-steps"] {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:.3rem;
 }
 
 [data-testid="student-journey-steps"]::before {
-  right: 9%;
-  left: 9%;
+  right:9%;
+  left:9%;
+}
+
+[data-testid="student-journey-step"] > div:first-child {
+  width:44px;
+  height:44px;
+  margin-bottom:.45rem;
+}
+
+[data-testid="student-journey-step"] > strong {
+  font-size:.72rem;
+}
+
+[data-testid="student-journey-step"] > span {
+  display:block;
+  margin-top:.1rem;
+  font-size:.62rem;
+  line-height:1.45;
 }
 
 [data-testid="student-journey-step"][data-journey-state="conditional"] > div:first-child {
-  border-style: dashed;
-  border-color: #e3bd61;
-  background: #fff9ea;
-  color: #8a661b;
+  border-style:dashed;
+  border-color:#e3bd61;
+  background:#fff9ea;
+  color:#8a661b;
 }
 
 [data-testid="student-journey-step"][data-journey-state="conditional"] > strong {
-  color: #765817;
+  color:#765817;
 }
 
-/* 6. Level progress: summary first, detailed three-level map second. */
-[data-testid="student-level-progress-summary"] {
-  display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) 86px;
-  align-items: center;
-  gap: 0.9rem;
-  min-height: 0;
-  padding: 1rem 1.15rem;
-  border-radius: 1.15rem;
-  box-shadow: none;
+/* One progress surface replaces separate level, stars and badges cards. */
+.student-progress-overview {
+  padding:1rem 1.1rem;
+  border:1px solid #dce8f2;
+  border-radius:1.15rem;
+  background:#fff;
 }
 
-[data-testid="student-level-progress-summary"] > div:first-child {
-  margin: 0;
+.student-progress-heading {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:1rem;
 }
 
-.student-level-progress-copy h3 {
-  margin: 0 0 0.2rem;
-  font-size: 1rem;
+.student-progress-title {
+  min-width:0;
+  display:flex;
+  align-items:center;
+  gap:.7rem;
 }
 
-.student-level-progress-copy p {
-  margin: 0;
-  color: #71879a;
-  font-size: 0.78rem;
-  line-height: 1.65;
+.student-progress-title > span {
+  margin:0;
+  flex:0 0 auto;
 }
 
-[data-testid="student-level-progress-summary"] > div:last-child {
-  width: 72px;
-  height: 72px;
-  margin: 0;
+.student-progress-title > div > span {
+  display:block;
+  color:#7b8fa0;
+  font-size:.68rem;
+  font-weight:800;
 }
 
-[data-testid="student-level-progress-summary"] > div:last-child::after {
-  width: 55px;
-  height: 55px;
+.student-progress-title h2 {
+  margin:.08rem 0 0;
+  color:#20364d;
+  font-size:1rem;
+  line-height:1.5;
 }
 
-[data-testid="level-journey"] {
-  margin: 0;
-  box-shadow: none;
+.student-progress-score {
+  min-width:76px;
+  text-align:center;
+}
+
+.student-progress-score strong {
+  display:block;
+  color:#2466b8;
+  font-size:1.15rem;
+  line-height:1.1;
+}
+
+.student-progress-score span {
+  display:block;
+  margin-top:.15rem;
+  color:#8597a7;
+  font-size:.61rem;
+}
+
+.student-progress-track {
+  height:7px;
+  margin:.8rem 0;
+  overflow:hidden;
+  border-radius:999px;
+  background:#eaf0f5;
+}
+
+.student-progress-track > span {
+  display:block;
+  height:100%;
+  border-radius:inherit;
+  background:#347fd9;
+}
+
+.student-progress-facts {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  border-top:1px solid #edf2f6;
+}
+
+.student-progress-facts > div {
+  min-width:0;
+  padding:.7rem .65rem .15rem;
+  text-align:center;
+}
+
+.student-progress-facts > div + div {
+  border-inline-start:1px solid #edf2f6;
+}
+
+.student-progress-facts span {
+  display:block;
+  color:#8193a3;
+  font-size:.63rem;
+}
+
+.student-progress-facts strong {
+  display:block;
+  margin-top:.12rem;
+  overflow:hidden;
+  color:#29445b;
+  font-size:.78rem;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.student-progress-hint {
+  margin:.75rem 0 0;
+  padding:.65rem .75rem;
+  border-radius:.75rem;
+  background:#f8fbfe;
+  color:#73899c;
+  font-size:.69rem;
+  line-height:1.6;
+  text-align:center;
+}
+
+.student-earned-badges {
+  display:flex;
+  flex-wrap:wrap;
+  gap:.6rem;
+  margin-top:.75rem;
+}
+
+.student-earned-badges article {
+  display:flex;
+  align-items:center;
+  gap:.45rem;
+  padding:.4rem .55rem;
+  border:1px solid #e2eaf1;
+  border-radius:.8rem;
+  background:#fbfdff;
+}
+
+.student-earned-badges img {
+  width:36px;
+  height:36px;
+  object-fit:contain;
+}
+
+.student-earned-badges span {
+  color:#405d74;
+  font-size:.69rem;
+  font-weight:800;
+}
+
+/* Details stay out of the main reading path. */
+.student-secondary-details {
+  margin:0;
+  border:1px solid #e2eaf1;
+  border-radius:1rem;
+  background:#fbfdff;
+  overflow:hidden;
+}
+
+.student-secondary-details > summary {
+  min-height:46px;
+  padding:.75rem .9rem;
+  display:flex;
+  align-items:center;
+  cursor:pointer;
+  color:#536f84;
+  font-size:.76rem;
+  font-weight:850;
+  list-style:none;
+}
+
+.student-secondary-details > summary::-webkit-details-marker {
+  display:none;
+}
+
+.student-secondary-details > summary::after {
+  content:"+";
+  margin-inline-start:auto;
+  color:#347fd9;
+  font-size:1rem;
+}
+
+.student-secondary-details[open] > summary::after {
+  content:"−";
+}
+
+.student-secondary-details > .student-results-grid,
+.student-secondary-details > div {
+  margin:0 .8rem .8rem;
+}
+
+[data-testid="level-journey"] .levelCards,
+[data-testid="level-journey"] > div {
+  margin:0;
+}
+
+[data-testid="level-journey"] > div:last-child {
+  padding:.1rem .8rem .8rem;
 }
 
 [data-testid="level-journey"] article {
-  box-shadow: none;
+  box-shadow:none;
 }
 
-[data-testid="level-journey"] article[data-level-state="active"],
-[data-testid="level-journey"] article[data-level-state="ready"] {
-  box-shadow: 0 8px 22px rgba(52, 127, 217, 0.08);
-}
-
-/* 7. Rewards are supportive and include the real star total. */
-[data-testid="student-badges"] {
-  margin: 0;
-  box-shadow: none;
-}
-
-[data-testid="student-badges"] article {
-  box-shadow: none;
-}
-
-[data-testid="student-badges"] > div:first-child {
-  align-items: center;
-}
-
-.student-stars-summary {
-  margin-inline-start: auto;
-  min-width: 72px;
-  padding: 0.55rem 0.7rem;
-  border: 1px solid #f0d996;
-  border-radius: 0.9rem;
-  background: #fff9e8;
-  text-align: center;
-}
-
-.student-stars-summary strong {
-  display: block;
-  color: #7a5a12;
-  font-size: 1.08rem;
-}
-
-.student-stars-summary span {
-  display: block;
-  margin-top: 0.05rem;
-  color: #8b733d;
-  font-size: 0.68rem;
-}
-
-/* 8. Results/history are deliberately secondary. */
-[data-testid="student-results"] {
-  margin: 0;
-  border: 1px solid #e2eaf1;
-  border-radius: 1.25rem;
-  background: #fbfdff;
-  box-shadow: none;
-}
-
-[data-testid="student-results"] .student-results-heading h2 {
-  font-size: 1.1rem;
+/* Results inherit their existing cards only after the student asks to see them. */
+[data-testid="student-results"] .student-results-grid {
+  padding:.1rem 0 0;
 }
 
 [data-testid="student-results"] .student-result-card {
-  box-shadow: none;
-  background: #fff;
+  min-height:0;
+  box-shadow:none;
+  background:#fff;
 }
 
-@media (max-width: 760px) {
-  .student-status-grid {
-    grid-template-columns: 1fr;
+@media (max-width:760px) {
+  [data-testid="student-journey-overview"] > div:first-child {
+    align-items:flex-start;
+    flex-direction:column;
+    gap:.35rem;
   }
 
   [data-testid="student-journey-steps"] {
-    grid-template-columns: repeat(5, minmax(7rem, 1fr));
-    overflow-x: auto;
-    overscroll-behavior-inline: contain;
-    padding: 0.25rem 0.1rem 0.7rem;
-    scrollbar-width: thin;
+    display:flex;
+    flex-direction:column;
+    gap:0;
+    padding:.15rem 0;
+    overflow:visible;
   }
 
   [data-testid="student-journey-steps"]::before {
-    display: none;
+    content:"";
+    display:block;
+    top:1.35rem;
+    bottom:1.35rem;
+    right:1.35rem;
+    left:auto;
+    width:2px;
+    height:auto;
+    background:#dce8f2;
+  }
+
+  [data-testid="student-journey-step"] {
+    min-height:54px;
+    display:grid;
+    grid-template-columns:44px minmax(0,1fr);
+    grid-template-rows:auto auto;
+    column-gap:.7rem;
+    align-items:center;
+    text-align:start;
+  }
+
+  [data-testid="student-journey-step"] > div:first-child {
+    grid-row:1/3;
+    width:42px;
+    height:42px;
+    margin:0;
+    background:#fff;
+  }
+
+  [data-testid="student-journey-step"] > strong {
+    align-self:end;
+    font-size:.76rem;
+  }
+
+  [data-testid="student-journey-step"] > span {
+    align-self:start;
+    margin:0;
+    font-size:.64rem;
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width:640px) {
   [data-testid="student-home"] > header,
   [data-testid="student-home"] > main {
-    width: min(100% - 1rem, 42rem);
+    width:min(100% - 1rem,42rem);
   }
 
   [data-testid="student-home"] > header {
-    padding-inline: 0.25rem;
+    padding:.7rem .2rem .45rem;
   }
 
   [data-testid="student-home"] > main {
-    gap: 0.75rem;
-    padding-inline: 0;
+    gap:.7rem;
+    padding-inline:0;
   }
 
   [data-testid="student-identity"] {
-    align-items: flex-start;
-    gap: 0.6rem;
+    padding-top:.1rem;
   }
 
   [data-testid="student-identity"] h1 {
-    font-size: clamp(1.45rem, 7vw, 1.9rem);
+    font-size:clamp(1.4rem,7vw,1.8rem);
   }
 
-  .student-status-card {
-    padding: 0.85rem 0.95rem;
+  [data-testid="student-identity"] p {
+    font-size:.82rem;
+    line-height:1.6;
+  }
+
+  .student-current-status {
+    margin-top:.55rem;
   }
 
   [data-testid="student-next-action"] {
-    grid-template-columns: minmax(0, 1fr) 102px;
-    border-radius: 1.2rem;
-    background: #fff;
+    grid-template-columns:minmax(0,1fr) 96px;
+    border-radius:1.15rem;
   }
 
   [data-testid="student-next-action"] > div:first-child {
-    padding: 1.15rem 1rem;
+    padding:1rem .95rem;
   }
 
   [data-testid="student-next-action"] h2 {
-    font-size: clamp(1.38rem, 6.5vw, 1.72rem);
+    font-size:clamp(1.28rem,6vw,1.58rem);
   }
 
   [data-testid="student-next-action"] p {
-    font-size: 0.9rem;
-    line-height: 1.7;
+    font-size:.82rem;
+    line-height:1.65;
+  }
+
+  [data-testid="student-next-action"] .meta {
+    margin:.7rem 0 .8rem;
+    gap:.4rem;
+    font-size:.68rem;
   }
 
   [data-testid="student-next-action"] > div:last-child {
-    min-height: 0;
-    padding: 0.8rem 0.15rem 0;
-    align-items: flex-end;
-    border-inline-start: 0;
-  
+    padding:.65rem .05rem 0;
+    border-inline-start:0;
   }
 
   [data-testid="student-next-action"] > div:last-child::before {
-    width: 86px;
-    top: 50%;
-    transform: translateY(-45%);
+    width:80px;
+    top:50%;
+    transform:translateY(-45%);
   }
 
   [data-testid="student-next-action"] > div:last-child img {
-    max-height: 118px;
+    max-height:108px;
   }
 
   [data-testid="student-primary-action"] {
-    width: 100%;
-    min-width: 0;
+    width:100%;
+    min-width:0;
+    min-height:46px;
   }
 
-  [data-testid="student-journey-overview"],
-  [data-testid="level-journey"] {
-    padding: 1rem 0.85rem;
+  [data-testid="student-journey-overview"] {
+    padding:.9rem .8rem;
   }
 
-  [data-testid="student-journey-overview"] > div:first-child,
-  [data-testid="level-journey"] > div:first-child {
-    margin-bottom: 0.8rem;
+  .student-progress-overview {
+    padding:.85rem;
   }
 
-  [data-testid="student-level-progress-summary"] {
-    grid-template-columns: 40px minmax(0, 1fr) 66px;
-    gap: 0.7rem;
-    padding: 0.85rem;
+  .student-progress-heading {
+    gap:.65rem;
   }
 
-  [data-testid="student-level-progress-summary"] > div:last-child {
-    width: 62px;
-    height: 62px;
+  .student-progress-title {
+    gap:.55rem;
   }
 
-  [data-testid="student-level-progress-summary"] > div:last-child::after {
-    width: 47px;
-    height: 47px;
+  .student-progress-title > span {
+    width:38px;
+    height:38px;
   }
 
-  [data-testid="student-badges"] > div:first-child {
-    align-items: flex-start;
+  .student-progress-facts > div {
+    padding:.6rem .35rem .1rem;
   }
 
-  .student-stars-summary {
-    min-width: 64px;
-    padding: 0.45rem 0.55rem;
+  .student-progress-facts strong {
+    font-size:.72rem;
   }
 
-  [data-testid="student-results"] .student-results-grid {
-    grid-template-columns: 1fr;
+  .student-earned-badges article {
+    flex:1 1 calc(50% - .3rem);
   }
 
-  [data-testid="student-results"] .student-result-card {
-    min-height: 0;
+  .student-secondary-details > summary {
+    min-height:44px;
   }
 }
 
-@media (max-width: 380px) {
+@media (max-width:380px) {
   [data-testid="student-next-action"] {
-    grid-template-columns: minmax(0, 1fr) 84px;
+    grid-template-columns:minmax(0,1fr) 80px;
   }
 
   [data-testid="student-next-action"] > div:last-child::before {
-    width: 72px;
+    width:68px;
   }
 
   [data-testid="student-next-action"] > div:last-child img {
-    max-height: 98px;
+    max-height:92px;
   }
 
-  [data-testid="student-level-progress-summary"] {
-    grid-template-columns: 38px minmax(0, 1fr) 58px;
+  .student-progress-facts {
+    grid-template-columns:1fr 1fr;
   }
 
-  [data-testid="student-level-progress-summary"] > div:last-child {
-    width: 56px;
-    height: 56px;
-  }
-
-  [data-testid="student-level-progress-summary"] > div:last-child::after {
-    width: 42px;
-    height: 42px;
+  .student-progress-facts > div:last-child {
+    grid-column:1/-1;
+    border-inline-start:0;
+    border-top:1px solid #edf2f6;
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
+@media (prefers-reduced-motion:reduce) {
   [data-testid="student-next-action"] button,
   [data-testid="level-journey"] article {
-    transition: none;
+    transition:none;
   }
 }
