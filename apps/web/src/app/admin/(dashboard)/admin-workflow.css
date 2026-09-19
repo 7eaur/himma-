@@ -264,6 +264,14 @@
 }
 
 @media (max-width: 760px) {
+  .audio-review-picker {
+    grid-template-columns: 1fr;
+  }
+
+  .audio-review-picker-help {
+    grid-column: 1;
+  }
+
   .audio-review-filter { align-items:flex-start; flex-wrap:wrap; }
   .audio-review-filter-link { width:100%; margin-inline-start:0; }
   .audio-review-workspace { grid-template-columns:1fr; }
