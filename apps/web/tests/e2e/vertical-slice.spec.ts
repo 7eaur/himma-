@@ -185,7 +185,11 @@ async function reviewPendingAssessmentAudio(
     await expect(save).toBeEnabled({ timeout: 7000 });
     await save.click();
     pendingCount -= 1;
-    await expect(selector.locator("option")).toHaveCount(pendingCount + 1, { timeout: 7000 });
+    if (pendingCount > 0) {
+      await expect(selector.locator("option")).toHaveCount(pendingCount + 1, { timeout: 7000 });
+    } else {
+      await expect(page.getByText("لا توجد تسجيلات تنتظر المراجعة")).toBeVisible({ timeout: 7000 });
+    }
   }
   if (captureEvidence) await shot(page, "09-assessment-audio-reviews-complete");
 
