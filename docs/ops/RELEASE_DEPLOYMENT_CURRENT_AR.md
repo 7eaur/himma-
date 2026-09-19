@@ -5,23 +5,29 @@
 ## Functional release
 
 Branch: stage/02-content  
-SHA: 512f0a550eb098f0ce904ec4ed526d9e28098a6a
+Functional SHA: 512f0a550eb098f0ce904ec4ed526d9e28098a6a  
+Latest verified operational/gate SHA: 81006dcf09a544b1b54f42de4a0a57c1deb44bfd
 
-هذا هو آخر SHA وظيفي مثبت قبل دفعة مزامنة التوثيق.
+الـOperational SHA descendant توثيقي/بوابات/QA deterministic من الـFunctional SHA ولا يغيّر Product Runtime أو العقود الأكاديمية.
 
-## Current-state gates before official fast-forward
+## Official exact-head gates
 
-Gate SHA: 5de29b71b9ab8d7df5c6c723136810f5ed56b213
-- QG #943 / 35403341210: SUCCESS.
-- M04 #361 / 35403341212: SUCCESS.
-- M09 #226 / 35403341199: SUCCESS.
+- QG #945 / Run 35410973050: SUCCESS.
+- M04 #362 / Run 35410973052: SUCCESS.
+- M09 #227 / Run 35410973045: SUCCESS.
 
-Functional baseline gates remain #933 / #359 / #224 for SHA 512f0a5.
+Evidence summary:
+- Backend: 894 passed, 5 warnings.
+- Integration/browser: 23 passed.
+- M04 responsive smoke: 2 passed.
+- readiness: all checks ok.
+- PostgreSQL restore: PASS.
+- restored content_items: 125.
+- restored skills: 44.
+- object-store restore: 35 objects verified.
+- Student audio bypass route: absent.
 
 ## Railway
-
-Deployment IDs below are the pre-fast-forward functional baseline. Synchronize them after the official auto-deploy before final closure.
-
 
 Project: friendly-dream  
 Environment: production
@@ -33,9 +39,9 @@ Services:
 - Redis
 - himma-audio bucket
 
-Deployments:
-- API 283feef7-ce46-41c1-84a1-f714e508405e: SUCCESS.
-- Web 629571e4-8188-4b91-bfe5-79fe5e1ecae1: SUCCESS.
+Activation deployments for operational SHA 81006dcf09a544b1b54f42de4a0a57c1deb44bfd:
+- API 85e73822-a71b-4c2e-afef-ec08a4c6bc1b: SUCCESS.
+- Web d5a7f586-c93c-4a50-8faf-1e1d42cbeae1: SUCCESS.
 
 Runtime checks:
 - Alembic predeploy: PASS.
@@ -50,6 +56,8 @@ himma-web-production.up.railway.app
 
 ## Important SHA rule
 
-A documentation-only commit after the functional release may trigger a new Railway deployment and therefore show a newer commit hash. Treat that as a docs-only descendant unless functional paths changed.
+A later documentation-only closure commit may become the live branch HEAD and may trigger a no-functional-change Railway redeploy. That does not replace:
+- Latest Functional SHA = 512f0a550eb098f0ce904ec4ed526d9e28098a6a.
+- Latest verified operational/gate SHA = 81006dcf09a544b1b54f42de4a0a57c1deb44bfd.
 
-Any later functional code change requires new QG/M04/M09 evidence as applicable.
+Any later functional code change requires fresh QG/M04/M09 evidence as applicable.
