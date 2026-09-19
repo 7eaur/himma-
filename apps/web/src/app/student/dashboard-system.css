@@ -375,6 +375,12 @@
   content:"−";
 }
 
+.student-secondary-note {
+  margin:0 .9rem .65rem;
+  color:#7a8fa1;
+  font-size:.68rem;
+}
+
 .student-secondary-details > .student-results-grid,
 .student-secondary-details > div {
   margin:0 .8rem .8rem;
