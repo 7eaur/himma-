@@ -8,13 +8,14 @@ Official branch: stage/02-content
 آخر Functional Release SHA مثبت: 512f0a550eb098f0ce904ec4ed526d9e28098a6a  
 حالة الإصدار: MERGED + CI GREEN + RAILWAY DEPLOYED + READY
 
-Latest pre-merge current-state gate SHA: 5de29b71b9ab8d7df5c6c723136810f5ed56b213  
-- QG #943 / Run 35403341210 = SUCCESS.  
-- M04 #361 / Run 35403341212 = SUCCESS.  
-- M09 #226 / Run 35403341199 = SUCCESS.  
-- QG backend = 894 passed, 5 warnings; integration Playwright = 23 passed (3.8m).  
-- M04 artifact = 10571297880; digest = sha256:3498fc96ea6f555b884bca91016048cbb0459e5354d9b76af5709160383b8518.  
-- M09 runtime = 125 items / 44 skills; PostgreSQL restore PASS; object-store restore 35; audio bypass absent; readiness all ok.
+Latest verified operational/gate SHA: 81006dcf09a544b1b54f42de4a0a57c1deb44bfd  
+- QG #945 / Run 35410973050 = SUCCESS.  
+- M04 #362 / Run 35410973052 = SUCCESS.  
+- M09 #227 / Run 35410973045 = SUCCESS.  
+- QG backend = 894 passed, 5 warnings; integration Playwright = 23 passed (3.7m).  
+- M04 artifact = 10574142637; digest = sha256:888a88d92db0971a67f65983dec522532462280cc31fd6f7478111c889eababb.  
+- M09 runtime = 125 items / 44 skills; PostgreSQL restore PASS; object-store restore 35; audio bypass absent; readiness all ok.  
+- Railway activation: API 85e73822-a71b-4c2e-afef-ec08a4c6bc1b = SUCCESS; Web d5a7f586-c93c-4a50-8faf-1e1d42cbeae1 = SUCCESS; /ready = 200.
 
 هذا descendant لا يغيّر Product Runtime؛ Latest Functional SHA يبقى 512f0a550eb098f0ce904ec4ed526d9e28098a6a.
 
@@ -201,7 +202,7 @@ M09 Release Readiness:
 - object storage backup/restore = 35 objects verified.
 - deleted student audio bypass route = absent.
 
-ملاحظة تحقق: بعد توحيد التوثيق يجب تشغيل exact-head gate للـdocs/CI descendant؛ functional evidence أعلاه يبقى مرجع السلوك ما لم يتغير الكود الوظيفي.
+تم تشغيل exact-head gates على الـoperational SHA الرسمي 81006dcf09a544b1b54f42de4a0a57c1deb44bfd بنجاح. Functional SHA يبقى مرجع السلوك الأساسي ما لم يتغير الكود الوظيفي.
 
 ## 10. Production على Railway
 
@@ -215,12 +216,15 @@ Environment: production
 - Redis
 - bucket: himma-audio
 
-إصدار الوظائف المثبت:
+Latest Functional SHA:
 512f0a550eb098f0ce904ec4ed526d9e28098a6a
 
+Latest verified operational/deployment SHA:
+81006dcf09a544b1b54f42de4a0a57c1deb44bfd
+
 Railway evidence:
-- API deployment 283feef7-ce46-41c1-84a1-f714e508405e = SUCCESS.
-- Web deployment 629571e4-8188-4b91-bfe5-79fe5e1ecae1 = SUCCESS.
+- API deployment 85e73822-a71b-4c2e-afef-ec08a4c6bc1b = SUCCESS.
+- Web deployment d5a7f586-c93c-4a50-8faf-1e1d42cbeae1 = SUCCESS.
 - API pre-deploy migrations = PASS.
 - canonical publication = 125 runtime items.
 - researcher seed = PASS.
