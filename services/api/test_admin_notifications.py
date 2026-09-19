@@ -142,6 +142,7 @@ def test_audio_transition_materializes_and_resolves_notification_without_get():
         ).one()
         assert notification.is_read is False
         assert notification.entity_id == str(submission.id)
+        assert notification.href == f"/admin/audio-review?submission_id={submission.id}&student_id={student.id}"
         assert student.name in notification.message
 
         submission.status = "graded"
