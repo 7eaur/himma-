@@ -69,7 +69,7 @@ def _audio_notification_values(submission: AudioSubmission, student) -> dict:
         "notification_type": "audio_review_required",
         "title": "تسجيل جديد يحتاج مراجعة",
         "message": f"لدى {student.name} تسجيل قراءة بانتظار المراجعة.",
-        "href": "/admin/audio-review",
+        "href": f"/admin/audio-review?submission_id={submission.id}&student_id={student.id}",
         "entity_type": "audio_submission",
         "entity_id": str(submission.id),
         "is_read": False,
