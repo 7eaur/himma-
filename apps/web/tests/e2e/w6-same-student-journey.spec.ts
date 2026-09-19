@@ -126,12 +126,12 @@ async function reviewPendingAudio(
     await expect(page.getByTestId("audio-review-form")).toBeVisible({ timeout: 7000 });
     if (exerciseExplicitRerecord && !rerecordRequested) {
       await page.getByRole("button", { name: "طلب إعادة تسجيل", exact: true }).click();
-      const requestRerecord = page.getByRole("button", { name: "إرسال طلب إعادة التسجيل" });
+      const requestRerecord = page.getByRole("button", { name: "طلب إعادة تسجيل", exact: true }).last();
       await expect(requestRerecord).toBeEnabled({ timeout: 7000 });
       await requestRerecord.click();
       rerecordRequested = true;
     } else {
-      const save = page.getByRole("button", { name: "اعتماد وحفظ التقييم" });
+      const save = page.getByRole("button", { name: "حفظ واعتماد", exact: true });
       await expect(save).toBeEnabled({ timeout: 7000 });
       await save.click();
     }
