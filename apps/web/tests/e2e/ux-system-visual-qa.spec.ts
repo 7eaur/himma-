@@ -128,15 +128,18 @@ test.describe("Himma UX system visual QA regression", () => {
       const summary = page.getByTestId("student-status-summary");
       const nextAction = page.getByTestId("student-next-action");
       const journey = page.getByTestId("student-journey-overview");
+      const progress = page.getByTestId("student-progress-overview");
       const levelProgress = page.getByTestId("student-level-progress-summary");
       const badges = page.getByTestId("student-badges");
-      const results = page.getByTestId("student-results");
 
-      for (const locator of [identity, summary, nextAction, journey, levelProgress, badges, results]) {
+      for (const locator of [identity, summary, nextAction, journey, progress, levelProgress, badges]) {
         await expect(locator).toBeVisible();
       }
 
-      const boxes = await Promise.all([identity, summary, nextAction, journey, levelProgress, badges, results].map((locator) => locator.boundingBox()));
+      await expect(page.getByTestId("student-results")).toHaveCount(0);
+      await expect(page.getByTestId("level-journey")).toHaveCount(0);
+
+      const boxes = await Promise.all([identity, nextAction, journey, progress].map((locator) => locator.boundingBox()));
       for (let index = 1; index < boxes.length; index += 1) {
         expect(boxes[index]?.y ?? 0).toBeGreaterThan((boxes[index - 1]?.y ?? 0) + (boxes[index - 1]?.height ?? 0) - 2);
       }
@@ -147,6 +150,20 @@ test.describe("Himma UX system visual QA regression", () => {
       await expect(page.getByTestId("student-journey-step").nth(2)).toContainText("الأنشطة الأساسية");
       await expect(page.getByTestId("student-journey-step").nth(3)).toContainText("التقوية");
       await expect(page.getByTestId("student-journey-step").nth(4)).toContainText("الاختبار البعدي");
+
+      if (viewport.name === "phone-390") {
+        const journeyBoxes = await page.getByTestId("student-journey-step").evaluateAll((nodes) =>
+          nodes.map((node) => {
+            const rect = node.getBoundingClientRect();
+            return { x: rect.x, y: rect.y };
+          }),
+        );
+        for (let index = 1; index < journeyBoxes.length; index += 1) {
+          expect(journeyBoxes[index].y).toBeGreaterThan(journeyBoxes[index - 1].y);
+        }
+        const pageHeight = await page.evaluate(() => document.documentElement.scrollHeight);
+        expect(pageHeight).toBeLessThanOrEqual(1650);
+      }
 
       await page.screenshot({ path: path.join(SCREENSHOT_DIR, `${viewport.name}-student-home.png`), fullPage: true });
     }
