@@ -56,7 +56,13 @@ for (const viewport of [
       await page.goto(route);
       await expect(page).not.toHaveURL(/\/admin\/login/);
       await expect(page.getByRole("button", { name: "فتح القائمة" })).toBeVisible();
-      await expect(page.getByRole("button", { name: "الإشعارات" })).toBeVisible();
+      const notificationsTrigger = page.getByRole("button", { name: "الإشعارات" });
+      await expect(notificationsTrigger).toHaveCount(1);
+      await expect(notificationsTrigger).toBeVisible();
+      await page.getByRole("button", { name: "فتح القائمة" }).click();
+      await expect(page.getByRole("dialog", { name: "قائمة لوحة المشرف" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "الإشعارات" })).toHaveCount(1);
+      await page.getByRole("button", { name: "إغلاق القائمة" }).click();
       await page.waitForTimeout(250);
       await expectNoHorizontalOverflow(page);
       await capture(page, viewport.name, route);
