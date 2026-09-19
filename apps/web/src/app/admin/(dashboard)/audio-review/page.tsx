@@ -409,7 +409,7 @@ export default function AudioReviewPage() {
               </div>
 
                 <div className={styles.reviewGrid}>
-                <section className={styles.evidenceColumn} aria-labelledby="evidence-title">
+                <section className={styles.evidenceColumn} aria-labelledby="evidence-title" data-testid="audio-review-evidence">
                   <div className={styles.columnHeading}>
                     <div>
                       <h3 id="evidence-title">المرجع والتسجيل</h3>
@@ -431,7 +431,7 @@ export default function AudioReviewPage() {
                   <AudioPlayer key={activeSubmission.storage_key} storageKey={activeSubmission.storage_key} />
                 </section>
 
-                <section className={styles.assessmentColumn} aria-labelledby="assessment-title">
+                <section className={styles.assessmentColumn} aria-labelledby="assessment-title" data-testid="audio-review-assessment">
                   <div className={styles.columnHeading}>
                     <div>
                       <h3 id="assessment-title">التقييم والقرار</h3>
