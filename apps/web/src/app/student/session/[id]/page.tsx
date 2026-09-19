@@ -471,7 +471,7 @@ export default function SessionPage() {
           <h1 className={styles.questionTitle} data-testid="question-title">{questionText}</h1>
           {!LISTEN.has(interaction) && !READ.has(interaction) && stimulusKind === "text" && stimulusText && <div className={`${styles.stimulusBox} ${stimulusText.length <= 3 ? styles.letterStimulus : ""}`} data-testid="question-stimulus">{stimulusText}</div>}
 
-          {visualAsset && <div className={styles.contextImage} data-testid="question-image"><Image src={visualAsset.url} alt={visualAsset.semantic_text || presentation.media_semantics?.stimulus || "صورة مرتبطة بالسؤال"} width={420} height={260} unoptimized/></div>}
+          {visualAsset && <div className={styles.contextImage} data-testid="question-image"><Image src={visualAsset.url} alt={visualAsset.semantic_text || presentation.media_semantics?.stimulus || "صورة مرتبطة بالسؤال"} width={420} height={260} sizes="(max-width: 640px) 92vw, 420px" loading="eager" /></div>}
 
           {LISTEN.has(interaction) && <button className={styles.listenButton} onClick={playPrompt} disabled={!audioAssets.length || hasMediaGap} data-testid="listen-prompt" type="button">{playback.isPlaying ? <Pause size={34} aria-hidden="true"/> : playback.isPaused ? <Play size={34} aria-hidden="true"/> : <Volume2 size={34} aria-hidden="true"/>}<span>{playback.isPlaying ? "إيقاف مؤقت" : playback.isPaused ? "متابعة الاستماع" : "استمع"}</span></button>}
 
@@ -484,7 +484,7 @@ export default function SessionPage() {
             const optionId = Number(asset.option_id);
             const selected = selectedIds.includes(optionId);
             const semantic = asset.semantic_text || step.options.find((option) => option.id === optionId)?.text || "خيار مصور";
-            return <button key={`${asset.asset_id}-${optionId}`} className={`${styles.imageOption} ${selected ? styles.optionSelected : ""}`} onClick={() => toggleOption(optionId)} aria-pressed={selected} aria-label={semantic} type="button">{selected && <span className={styles.selectedMark}><Check size={18}/></span>}<Image src={asset.url} alt="" aria-hidden="true" width={220} height={150} unoptimized/></button>;
+            return <button key={`${asset.asset_id}-${optionId}`} className={`${styles.imageOption} ${selected ? styles.optionSelected : ""}`} onClick={() => toggleOption(optionId)} aria-pressed={selected} aria-label={semantic} type="button">{selected && <span className={styles.selectedMark}><Check size={18}/></span>}<Image src={asset.url} alt="" aria-hidden="true" width={220} height={150} sizes="(max-width: 520px) 42vw, (max-width: 900px) 30vw, 220px" loading="eager" /></button>;
           })}</div>}
 
           {!hasMediaGap && ORDER.has(interaction) && <>
@@ -493,10 +493,10 @@ export default function SessionPage() {
               {selectedIds.map((id, index) => {
                 const option = step.options.find((candidate) => candidate.id === id);
                 const asset = optionImageAssets.find((candidate) => Number(candidate.option_id) === id);
-                return <span className={styles.sequenceChip} key={`${id}-${index}`}><span className={styles.number}>{index + 1}</span>{sequenceWithImages && interaction !== "build_word" && asset ? <Image src={asset.url} alt={asset.semantic_text || option?.text || `العنصر ${index + 1}`} width={70} height={50} unoptimized/> : option?.text}</span>;
+                return <span className={styles.sequenceChip} key={`${id}-${index}`}><span className={styles.number}>{index + 1}</span>{sequenceWithImages && interaction !== "build_word" && asset ? <Image src={asset.url} alt={asset.semantic_text || option?.text || `العنصر ${index + 1}`} width={70} height={50} sizes="70px" loading="eager" /> : option?.text}</span>;
               })}
             </div>
-            {sequenceWithImages && interaction !== "build_word" ? <div className={styles.imageOptions} data-testid="sequence-image-options">{optionImageAssets.filter((asset) => !selectedIds.includes(Number(asset.option_id))).map((asset) => <button key={`${asset.asset_id}-${asset.option_id}`} className={styles.imageOption} onClick={() => toggleOption(Number(asset.option_id))} disabled={targetCount > 0 && selectedIds.length >= targetCount} aria-label={asset.semantic_text || "عنصر ترتيب"} type="button"><Image src={asset.url} alt="" aria-hidden="true" width={220} height={150} unoptimized/></button>)}</div> : <div className={styles.options}>{options.filter((option) => !selectedIds.includes(option.id)).map((option) => <button key={option.id} className={styles.option} onClick={() => toggleOption(option.id)} disabled={targetCount > 0 && selectedIds.length >= targetCount} type="button">{option.text}</button>)}</div>}
+            {sequenceWithImages && interaction !== "build_word" ? <div className={styles.imageOptions} data-testid="sequence-image-options">{optionImageAssets.filter((asset) => !selectedIds.includes(Number(asset.option_id))).map((asset) => <button key={`${asset.asset_id}-${asset.option_id}`} className={styles.imageOption} onClick={() => toggleOption(Number(asset.option_id))} disabled={targetCount > 0 && selectedIds.length >= targetCount} aria-label={asset.semantic_text || "عنصر ترتيب"} type="button"><Image src={asset.url} alt="" aria-hidden="true" width={220} height={150} sizes="(max-width: 520px) 42vw, (max-width: 900px) 30vw, 220px" loading="eager" /></button>)}</div> : <div className={styles.options}>{options.filter((option) => !selectedIds.includes(option.id)).map((option) => <button key={option.id} className={styles.option} onClick={() => toggleOption(option.id)} disabled={targetCount > 0 && selectedIds.length >= targetCount} type="button">{option.text}</button>)}</div>}
           </>}
 
           {!hasMediaGap && !READ.has(interaction) && !ORDER.has(interaction) && !imageChoice && <div className={styles.options} data-testid="text-options">{options.map((option) => {
