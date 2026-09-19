@@ -385,7 +385,8 @@ export default function AudioReviewPage() {
             </AdminPanel>
           ) : (
             <AdminPanel className={styles.reviewPanel}>
-              <div className={styles.reviewHeader} data-testid="audio-review-meta">
+              <div data-testid="audio-review-form">
+                <div className={styles.reviewHeader} data-testid="audio-review-meta">
                 <div className={styles.studentIdentity}>
                   <span className={styles.avatar} aria-hidden="true">{(activeSubmission.student_name || "ط").trim().charAt(0)}</span>
                   <div>
@@ -407,7 +408,7 @@ export default function AudioReviewPage() {
                 </div>
               </div>
 
-              <div className={styles.reviewGrid} data-testid="audio-review-form">
+                <div className={styles.reviewGrid}>
                 <section className={styles.evidenceColumn} aria-labelledby="evidence-title">
                   <div className={styles.columnHeading}>
                     <div>
@@ -542,7 +543,7 @@ export default function AudioReviewPage() {
                 </section>
               </div>
 
-              <footer className={styles.actionBar}>
+                <footer className={styles.actionBar}>
                 <div className={styles.actionSummary}>
                   {isValid ? <CheckCircle2 size={18} aria-hidden="true" /> : <RotateCcw size={18} aria-hidden="true" />}
                   <span>{isValid ? "اعتماد التسجيل وحفظ التقييم" : "إرسال طلب إعادة تسجيل"}</span>
@@ -565,7 +566,8 @@ export default function AudioReviewPage() {
                         : <><RotateCcw size={17} aria-hidden="true" /> إرسال الطلب</>}
                   </button>
                 </div>
-              </footer>
+                </footer>
+              </div>
             </AdminPanel>
           )}
         </div>
