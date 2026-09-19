@@ -147,6 +147,7 @@ export default function AudioReviewPage() {
   const [gradingId, setGradingId] = useState<number | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const editingRef = useRef<number | null>(null);
+  const appliedSubmissionFilterRef = useRef(false);
   const [isValid, setIsValid] = useState(true);
   const [targetUnits, setTargetUnits] = useState(10);
   const [deletions, setDeletions] = useState(0);
@@ -172,7 +173,8 @@ export default function AudioReviewPage() {
         const data: AudioSubmission[] = await response.json();
         if (!cancelled && editingRef.current === null) {
           setSubmissions(data);
-          if (submissionFilter && data.some((submission) => submission.id === submissionFilter)) {
+          if (submissionFilter && !appliedSubmissionFilterRef.current && data.some((submission) => submission.id === submissionFilter)) {
+            appliedSubmissionFilterRef.current = true;
             editingRef.current = submissionFilter;
             setEditingId(submissionFilter);
           }
