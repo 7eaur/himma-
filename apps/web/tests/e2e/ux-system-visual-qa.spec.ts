@@ -241,7 +241,7 @@ test.describe("Himma UX system visual QA regression", () => {
       await expect(form.getByRole("heading", { name: "طالب فحص بصري" })).toBeVisible();
       await expect(form.getByText("يَقْرَأُ سَالِمٌ كِتَابًا.")).toBeVisible();
       await expect(form.getByRole("button", { name: /تشغيل التسجيل/ })).toBeVisible();
-      await expect(form.getByTestId("audio-review-summary")).toBeVisible();
+      await expect(form.getByTestId("audio-review-meta")).toBeVisible();
       await expect(form.getByText("بانتظار المراجعة")).toBeVisible();
 
       const approveDecision = form.getByRole("button", { name: "اعتماد القراءة", exact: true });
@@ -257,10 +257,24 @@ test.describe("Himma UX system visual QA regression", () => {
       await expect(scoreFields.getByLabel("الاستبدال")).toHaveValue("0");
       await expect(scoreFields.getByLabel("الإضافة")).toHaveValue("0");
 
+      const notesToggle = form.getByRole("button", { name: /إضافة ملاحظات/ });
+      await expect(notesToggle).toHaveAttribute("aria-expanded", "false");
+      await expect(form.getByTestId("audio-review-notes")).toHaveCount(0);
+
       const approveBox = await approveDecision.boundingBox();
       const rerecordBox = await rerecordDecision.boundingBox();
-      expect(approveBox?.height ?? 0).toBeGreaterThanOrEqual(72);
-      expect(rerecordBox?.height ?? 0).toBeGreaterThanOrEqual(72);
+      expect(approveBox?.height ?? 0).toBeGreaterThanOrEqual(56);
+      expect(rerecordBox?.height ?? 0).toBeGreaterThanOrEqual(56);
+
+      const evidenceBox = await form.getByTestId("audio-review-evidence").boundingBox();
+      const assessmentBox = await form.getByTestId("audio-review-assessment").boundingBox();
+      expect(evidenceBox).toBeTruthy();
+      expect(assessmentBox).toBeTruthy();
+      if (viewport.width >= 900) {
+        expect(Math.abs((evidenceBox?.y ?? 0) - (assessmentBox?.y ?? 0))).toBeLessThanOrEqual(2);
+      } else {
+        expect(assessmentBox?.y ?? 0).toBeGreaterThan((evidenceBox?.y ?? 0) + (evidenceBox?.height ?? 0) - 2);
+      }
 
       const workspaceBox = await workspace.boundingBox();
       const selectorBox = await selector.boundingBox();
@@ -270,6 +284,9 @@ test.describe("Himma UX system visual QA regression", () => {
       expect(formBox).toBeTruthy();
       expect(formBox?.y ?? 0).toBeGreaterThan((selectorBox?.y ?? 0));
       expect((formBox?.x ?? 0) + (formBox?.width ?? 0)).toBeLessThanOrEqual((workspaceBox?.x ?? 0) + (workspaceBox?.width ?? 0) + 1);
+
+      const pageHeight = await page.evaluate(() => document.documentElement.scrollHeight);
+      expect(pageHeight).toBeLessThanOrEqual(viewport.width < 900 ? 1800 : 1100);
 
       await expectNoHorizontalOverflow(page);
       await page.screenshot({ path: path.join(SCREENSHOT_DIR, `${viewport.name}-audio-review-decision.png`), fullPage: true });
