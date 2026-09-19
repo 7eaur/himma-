@@ -172,17 +172,20 @@ async function reviewPendingAssessmentAudio(
   await context.clearCookies();
   await loginAsSupervisor(request, context);
   await page.goto(`/admin/audio-review?student_id=${studentId}`);
-  const startReview = page.getByRole("button", { name: "بدء المراجعة" });
-  await expect(startReview.first()).toBeVisible({ timeout: 15000 });
-  const reviewItems = page.getByTestId("audio-review-item");
-  let pendingCount = await reviewItems.count();
+  const selector = page.getByTestId("audio-review-selector");
+  await expect(selector).toBeVisible({ timeout: 15000 });
+  let pendingCount = await selector.locator("option").count() - 1;
+  expect(pendingCount).toBeGreaterThan(0);
   while (pendingCount > 0) {
-    await startReview.first().click();
+    const optionValue = await selector.locator("option").nth(1).getAttribute("value");
+    expect(optionValue).toBeTruthy();
+    await selector.selectOption(optionValue!);
+    await expect(page.getByTestId("audio-review-form")).toBeVisible({ timeout: 7000 });
     const save = page.getByRole("button", { name: "اعتماد وحفظ التقييم" });
     await expect(save).toBeEnabled({ timeout: 7000 });
     await save.click();
-    await expect(reviewItems).toHaveCount(pendingCount - 1, { timeout: 7000 });
     pendingCount -= 1;
+    await expect(selector.locator("option")).toHaveCount(pendingCount + 1, { timeout: 7000 });
   }
   if (captureEvidence) await shot(page, "09-assessment-audio-reviews-complete");
 
@@ -312,9 +315,12 @@ async function reviewPendingLearningAudio(
   await context.clearCookies();
   await loginAsSupervisor(request, context);
   await page.goto("/admin/audio-review");
-  const startReview = page.getByRole("button", { name: "بدء المراجعة" });
-  await expect(startReview.first()).toBeVisible({ timeout: 15000 });
-  await startReview.first().click();
+  const selector = page.getByTestId("audio-review-selector");
+  await expect(selector).toBeVisible({ timeout: 15000 });
+  const firstPending = await selector.locator("option").nth(1).getAttribute("value");
+  expect(firstPending).toBeTruthy();
+  await selector.selectOption(firstPending!);
+  await expect(page.getByTestId("audio-review-form")).toBeVisible({ timeout: 7000 });
   const save = page.getByRole("button", { name: "اعتماد وحفظ التقييم" });
   await expect(save).toBeEnabled({ timeout: 7000 });
   await save.click();
