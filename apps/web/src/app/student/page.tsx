@@ -407,7 +407,8 @@ export default function StudentHomePage() {
             <div className="student-current-status" data-testid="student-status-summary" aria-label="حالتك الحالية">
               <span>أنت الآن في</span>
               <strong data-testid="student-journey-status">{journeyStatusTitle}</strong>
-              {pretestCompleted && <small data-testid="student-current-level">{currentLevelLabel}</small>}
+              <small>{journeyStatusDescription}</small>
+              {pretestCompleted && <b data-testid="student-current-level">{currentLevelLabel}</b>}
             </div>
           </div>
         </section>
@@ -537,14 +538,15 @@ export default function StudentHomePage() {
           )}
 
           {earnedBadges.length === 0 && (
-            <p
+            <div
               className="student-progress-hint"
               data-testid="student-badges"
               role={rewards === null ? "status" : undefined}
               aria-label={rewards === null ? "تعذر تحميل الشارات" : "لا توجد شارات مكتسبة"}
             >
-              {rewards === null ? "الشارات غير متاحة الآن. تقدمك محفوظ، حاول تحديث الصفحة لاحقًا." : "لم تحصل على شارة بعد. أكمل خطوات رحلتك وستظهر شاراتك هنا."}
-            </p>
+              <strong>{rewards === null ? "الشارات غير متاحة الآن" : "لم تحصل على شارة بعد"}</strong>
+              <span>{rewards === null ? "تقدمك محفوظ. حاول تحديث الصفحة لاحقًا لعرض شاراتك." : "أكمل خطوات رحلتك وستظهر شاراتك هنا."}</span>
+            </div>
           )}
         </section>
 
