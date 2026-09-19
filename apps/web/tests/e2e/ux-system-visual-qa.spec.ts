@@ -181,6 +181,9 @@ test.describe("Himma UX system visual QA regression", () => {
       if (index === 4) {
         const imageButtons = page.getByTestId("image-options").getByRole("button");
         await expect(imageButtons).toHaveCount(4);
+        const firstImage = imageButtons.first().locator("img");
+        await expect(firstImage).toHaveAttribute("loading", "eager");
+        await expect(firstImage).toHaveAttribute("src", /\/_next\/image\?/);
         const firstBox = await imageButtons.first().boundingBox();
         expect(firstBox?.height ?? 999).toBeLessThanOrEqual(190);
         await page.screenshot({ path: path.join(SCREENSHOT_DIR, "phone-390-assessment-image-options.png"), fullPage: true });
@@ -189,6 +192,9 @@ test.describe("Himma UX system visual QA regression", () => {
       if (index === 9) {
         const sequenceButtons = page.getByTestId("sequence-image-options").getByRole("button");
         expect(await sequenceButtons.count()).toBeGreaterThan(0);
+        const firstImage = sequenceButtons.first().locator("img");
+        await expect(firstImage).toHaveAttribute("loading", "eager");
+        await expect(firstImage).toHaveAttribute("src", /\/_next\/image\?/);
         const firstBox = await sequenceButtons.first().boundingBox();
         expect(firstBox?.height ?? 999).toBeLessThanOrEqual(190);
         await page.screenshot({ path: path.join(SCREENSHOT_DIR, "phone-390-assessment-sequence.png"), fullPage: true });
@@ -221,16 +227,15 @@ test.describe("Himma UX system visual QA regression", () => {
       { name: "desktop-1440", width: 1440, height: 1000 },
     ]) {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
-      await page.goto("/admin/audio-review");
+      await page.goto("/admin/audio-review?submission_id=99101");
       const workspace = page.getByTestId("audio-review-queue");
-      const queueItem = page.getByTestId("audio-review-item");
+      const selector = page.getByTestId("audio-review-selector");
       await expect(workspace).toBeVisible();
-      await expect(queueItem).toHaveCount(1);
-      await expect(page.getByText("قائمة الانتظار")).toBeVisible();
-      await expect(page.getByRole("button", { name: "بدء المراجعة" })).toBeVisible();
+      await expect(selector).toBeVisible();
+      await expect(selector).toHaveValue("99101");
+      await expect(page.getByText("اختر الطالب والتسجيل")).toBeVisible();
       await expectNoHorizontalOverflow(page);
 
-      await page.getByRole("button", { name: "بدء المراجعة" }).click();
       const form = page.getByTestId("audio-review-form");
       await expect(form).toBeVisible();
       await expect(form.getByRole("heading", { name: "طالب فحص بصري" })).toBeVisible();
@@ -258,16 +263,13 @@ test.describe("Himma UX system visual QA regression", () => {
       expect(rerecordBox?.height ?? 0).toBeGreaterThanOrEqual(72);
 
       const workspaceBox = await workspace.boundingBox();
-      const itemBox = await queueItem.boundingBox();
+      const selectorBox = await selector.boundingBox();
       const formBox = await form.boundingBox();
       expect(workspaceBox).toBeTruthy();
-      expect(itemBox).toBeTruthy();
+      expect(selectorBox).toBeTruthy();
       expect(formBox).toBeTruthy();
-      if (viewport.width >= 760) {
-        expect((formBox?.x ?? 0) + (formBox?.width ?? 0)).toBeLessThanOrEqual((workspaceBox?.x ?? 0) + (workspaceBox?.width ?? 0) + 1);
-      } else {
-        expect(formBox?.y ?? 0).toBeGreaterThan((itemBox?.y ?? 0));
-      }
+      expect(formBox?.y ?? 0).toBeGreaterThan((selectorBox?.y ?? 0));
+      expect((formBox?.x ?? 0) + (formBox?.width ?? 0)).toBeLessThanOrEqual((workspaceBox?.x ?? 0) + (workspaceBox?.width ?? 0) + 1);
 
       await expectNoHorizontalOverflow(page);
       await page.screenshot({ path: path.join(SCREENSHOT_DIR, `${viewport.name}-audio-review-decision.png`), fullPage: true });
