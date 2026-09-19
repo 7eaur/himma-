@@ -84,12 +84,20 @@ function queueUrl(studentId: number | null) {
   return studentId ? `/api/review/pending-audio?student_id=${studentId}` : "/api/review/pending-audio";
 }
 
-function studentFilterFromLocation(): number | null {
+function positiveQueryNumber(name: string): number | null {
   if (typeof window === "undefined") return null;
-  const raw = new URLSearchParams(window.location.search).get("student_id");
+  const raw = new URLSearchParams(window.location.search).get(name);
   if (!raw || !/^\d+$/.test(raw)) return null;
   const parsed = Number(raw);
   return parsed > 0 ? parsed : null;
+}
+
+function studentFilterFromLocation(): number | null {
+  return positiveQueryNumber("student_id");
+}
+
+function submissionFilterFromLocation(): number | null {
+  return positiveQueryNumber("submission_id");
 }
 
 function submissionDate(value: string) {
@@ -137,6 +145,7 @@ function NumberField({
 export default function AudioReviewPage() {
   const [submissions, setSubmissions] = useState<AudioSubmission[]>([]);
   const [studentFilter] = useState<number | null>(studentFilterFromLocation);
+  const [submissionFilter] = useState<number | null>(submissionFilterFromLocation);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [message, setMessage] = useState<{ kind: "success" | "error"; text: string }>({ kind: "success", text: "" });
@@ -165,7 +174,13 @@ export default function AudioReviewPage() {
       void fetch(queueUrl(studentFilter), { cache: "no-store" }).then(async (response) => {
         if (!response.ok) throw new Error("تعذر تحميل التسجيلات المنتظرة");
         const data: AudioSubmission[] = await response.json();
-        if (!cancelled && editingRef.current === null) setSubmissions(data);
+        if (!cancelled && editingRef.current === null) {
+          setSubmissions(data);
+          if (submissionFilter && data.some((submission) => submission.id === submissionFilter)) {
+            editingRef.current = submissionFilter;
+            setEditingId(submissionFilter);
+          }
+        }
       }).catch((caught: unknown) => {
         if (!cancelled) setMessage({ kind: "error", text: caught instanceof Error ? caught.message : "تعذر تحميل التسجيلات" });
       }).finally(() => { if (!cancelled) setLoading(false); });
@@ -173,7 +188,7 @@ export default function AudioReviewPage() {
     fetchQueue();
     const interval = window.setInterval(fetchQueue, 30000);
     return () => { cancelled = true; window.clearInterval(interval); };
-  }, [studentFilter]);
+  }, [studentFilter, submissionFilter]);
 
   const refreshQueue = async () => {
     if (editingId !== null) {
@@ -298,51 +313,38 @@ export default function AudioReviewPage() {
         />
       ) : (
         <div className="audio-review-workspace" data-testid="audio-review-queue">
-          <aside className="audio-review-sidebar" aria-label="قائمة التسجيلات المنتظرة">
-            <div className="audio-review-sidebar-header">
+          <section className="audio-review-picker" aria-labelledby="audio-review-picker-label">
+            <div className="audio-review-picker-copy">
+              <span className="audio-review-picker-icon"><ListMusic size={20} aria-hidden="true" /></span>
               <div>
-                <span>قائمة الانتظار</span>
-                <strong>{submissions.length} {submissions.length === 1 ? "تسجيل" : "تسجيلات"}</strong>
+                <strong id="audio-review-picker-label">اختر الطالب والتسجيل</strong>
+                <span>{submissions.length} {submissions.length === 1 ? "تسجيل ينتظر المراجعة" : "تسجيلات تنتظر المراجعة"}</span>
               </div>
-              <ListMusic size={20} aria-hidden="true" />
             </div>
-
-            <div className="audio-review-list">
-              {submissions.map((submission, index) => {
-                const active = editingId === submission.id;
-                const locked = editingId !== null && !active;
-                return (
-                  <article
-                    key={submission.id}
-                    className={`audio-review-queue-item ${active ? "is-active" : ""} ${locked ? "is-locked" : ""}`}
-                    data-testid="audio-review-item"
-                  >
-                    <div className="audio-review-queue-row">
-                      <span className="audio-review-queue-index">{index + 1}</span>
-                      <div className="audio-review-queue-copy">
-                        <strong>{submission.student_name || "طالب غير معروف"}</strong>
-                        <span>{sessionLabel(submission.session_type)}{submission.item_title ? ` · ${submission.item_title}` : ""}</span>
-                      </div>
-                    </div>
-                    <div className="audio-review-queue-meta">
-                      <Clock3 size={14} aria-hidden="true" />
-                      <span>{submissionDate(submission.submitted_at)}</span>
-                    </div>
-                    <button
-                      type="button"
-                      className={active ? "audio-review-queue-button is-active" : "audio-review-queue-button"}
-                      onClick={() => openReview(submission.id)}
-                      disabled={locked}
-                      aria-current={active ? "true" : undefined}
-                    >
-                      <Headphones size={16} aria-hidden="true" />
-                      {active ? "المراجعة الحالية" : "بدء المراجعة"}
-                    </button>
-                  </article>
-                );
-              })}
-            </div>
-          </aside>
+            <select
+              id="audio-review-selection"
+              className="audio-review-select"
+              value={editingId ?? ""}
+              onChange={(event) => {
+                const id = Number(event.target.value);
+                if (id > 0) openReview(id);
+              }}
+              disabled={gradingId !== null}
+              data-testid="audio-review-selector"
+              aria-describedby="audio-review-picker-help"
+            >
+              <option value="">اختر تسجيلًا...</option>
+              {submissions.map((submission) => (
+                <option key={submission.id} value={submission.id}>
+                  {(submission.student_name || "طالب غير معروف")} — {sessionLabel(submission.session_type)}
+                  {submission.item_title ? ` — ${submission.item_title}` : ""} — {submissionDate(submission.submitted_at)}
+                </option>
+              ))}
+            </select>
+            <span id="audio-review-picker-help" className="audio-review-picker-help">
+              اختر اسم الطالب والتسجيل المطلوب، وستظهر تفاصيل المراجعة مباشرةً بالأسفل.
+            </span>
+          </section>
 
           <section className="audio-review-stage" aria-label="مساحة مراجعة التسجيل">
             {!activeSubmission ? (
@@ -532,11 +534,11 @@ export default function AudioReviewPage() {
                   <div className="audio-review-notes-grid">
                     <label>
                       <span>ملاحظات النطق</span>
-                      <textarea className="input" value={pronunciationNotes} onChange={(event) => setPronunciationNotes(event.target.value)} placeholder="مثال: صعوبة متكررة في نطق صوت محدد..." />
+                      <textarea className="audio-review-notes-textarea" value={pronunciationNotes} onChange={(event) => setPronunciationNotes(event.target.value)} placeholder="مثال: صعوبة متكررة في نطق صوت محدد..." />
                     </label>
                     <label>
                       <span>ملاحظات الطلاقة</span>
-                      <textarea className="input" value={fluencyNotes} onChange={(event) => setFluencyNotes(event.target.value)} placeholder="مثال: توقفات متكررة أو سرعة غير مستقرة..." />
+                      <textarea className="audio-review-notes-textarea" value={fluencyNotes} onChange={(event) => setFluencyNotes(event.target.value)} placeholder="مثال: توقفات متكررة أو سرعة غير مستقرة..." />
                     </label>
                   </div>
                 </section>
