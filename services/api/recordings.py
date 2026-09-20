@@ -32,7 +32,7 @@ S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME", "himma-audio")
 UPLOAD_URL_EXPIRY = 900
 STREAM_URL_EXPIRY = 300
 MIN_AUDIO_BYTES = 1000
-RANGE_PATTERN = re.compile(r"^bytes=\\d*-\\d*$")
+RANGE_PATTERN = re.compile(r"^bytes=\d*-\d*$")
 
 if not S3_ACCESS_KEY or not S3_SECRET_KEY:
     raise RuntimeError("S3_ACCESS_KEY and S3_SECRET_KEY are required")
