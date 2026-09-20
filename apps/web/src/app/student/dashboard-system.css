@@ -83,46 +83,47 @@
 }
 
 /* Primary action owns the strongest visual weight. */
-[data-testid="student-next-action"] {
+section[data-testid="student-next-action"] {
   min-height:0;
-  grid-template-columns:minmax(0,1fr) 180px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 180px !important;
   border:1px solid #d8e6f1;
   border-radius:1.35rem;
-  background:#fff;
+  background:#fff !important;
   box-shadow:0 6px 20px rgba(32,54,77,.045);
 }
 
-[data-testid="student-next-action"] > div:first-child {
+section[data-testid="student-next-action"] > div:first-child {
   padding:1.55rem 1.7rem;
 }
 
-[data-testid="student-next-action"] h2 {
+section[data-testid="student-next-action"] h2 {
   max-width:38rem;
   margin-bottom:.4rem;
   font-size:clamp(1.55rem,3vw,2.15rem);
   line-height:1.3;
 }
 
-[data-testid="student-next-action"] p {
+section[data-testid="student-next-action"] p {
   max-width:42rem;
   color:#647b90;
   font-size:.9rem;
   line-height:1.75;
 }
 
-[data-testid="student-next-action"] > div:last-child {
+section[data-testid="student-next-action"] > div:last-child {
   min-height:0;
   padding:.65rem .45rem 0;
   border-inline-start:1px solid #e4edf4;
   background:#f3f8fd;
 }
 
-[data-testid="student-next-action"] > div:last-child::before {
+sectionsection[data-testid="student-next-action"] > div:last-child::before {
   width:min(138px,82%);
   top:1rem;
 }
 
-[data-testid="student-next-action"] > div:last-child img {
+sectionsection[data-testid="student-next-action"] > div:last-child img {
   max-height:170px;
 }
 
@@ -163,7 +164,8 @@
 }
 
 [data-testid="student-journey-steps"] {
-  grid-template-columns:repeat(5,minmax(0,1fr));
+  display:grid !important;
+  grid-template-columns:repeat(5,minmax(0,1fr)) !important;
   gap:.3rem;
 }
 
@@ -534,7 +536,7 @@
     overflow:hidden;
   }
 
-  [data-testid="student-next-action"] > div {
+  section[data-testid="student-next-action"] > div {
     min-width:0;
   }
 
@@ -542,33 +544,33 @@
     padding:1rem .95rem;
   }
 
-  [data-testid="student-next-action"] h2 {
+  section[data-testid="student-next-action"] h2 {
     font-size:clamp(1.28rem,6vw,1.58rem);
   }
 
-  [data-testid="student-next-action"] p {
+  section[data-testid="student-next-action"] p {
     font-size:.82rem;
     line-height:1.65;
   }
 
-  [data-testid="student-next-action"] .meta {
+  section[data-testid="student-next-action"] .meta {
     margin:.7rem 0 .8rem;
     gap:.4rem;
     font-size:.68rem;
   }
 
-  [data-testid="student-next-action"] > div:last-child {
+  section[data-testid="student-next-action"] > div:last-child {
     padding:.65rem .05rem 0;
     border-inline-start:0;
   }
 
-  [data-testid="student-next-action"] > div:last-child::before {
+  sectionsection[data-testid="student-next-action"] > div:last-child::before {
     width:80px;
     top:50%;
     transform:translateY(-45%);
   }
 
-  [data-testid="student-next-action"] > div:last-child img {
+  sectionsection[data-testid="student-next-action"] > div:last-child img {
     max-height:108px;
   }
 
@@ -623,11 +625,11 @@
     grid-template-columns:minmax(0,1fr) minmax(0,80px) !important;
   }
 
-  [data-testid="student-next-action"] > div:last-child::before {
+  sectionsection[data-testid="student-next-action"] > div:last-child::before {
     width:68px;
   }
 
-  [data-testid="student-next-action"] > div:last-child img {
+  sectionsection[data-testid="student-next-action"] > div:last-child img {
     max-height:92px;
   }
 
@@ -646,5 +648,15 @@
   [data-testid="student-next-action"] button,
   [data-testid="level-journey"] article {
     transition:none;
+  }
+}
+
+@media (min-width:761px) {
+  [data-testid="student-journey-step"] {
+    min-width:0;
+  }
+  [data-testid="student-journey-step"] > strong,
+  [data-testid="student-journey-step"] > span {
+    overflow-wrap:anywhere;
   }
 }
