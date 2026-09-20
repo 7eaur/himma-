@@ -9,11 +9,13 @@ Raw object-store exceptions are never exposed to clients.
 
 import logging
 import os
+import re
 import uuid
 
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from db.models import Student
@@ -30,6 +32,7 @@ S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME", "himma-audio")
 UPLOAD_URL_EXPIRY = 900
 STREAM_URL_EXPIRY = 300
 MIN_AUDIO_BYTES = 1000
+RANGE_PATTERN = re.compile(r"^bytes=\\d*-\\d*$")
 
 if not S3_ACCESS_KEY or not S3_SECRET_KEY:
     raise RuntimeError("S3_ACCESS_KEY and S3_SECRET_KEY are required")
@@ -213,6 +216,69 @@ def stream_recording(
         raise _storage_unavailable(exc, operation="stream") from exc
 
     return {"url": url, "expires_in": STREAM_URL_EXPIRY}
+
+
+def _iter_streaming_body(body):
+    """Yield object-store bytes and always release the upstream connection."""
+    try:
+        for chunk in body.iter_chunks(chunk_size=64 * 1024):
+            if chunk:
+                yield chunk
+    finally:
+        body.close()
+
+
+@router.get("/play-by-key")
+def play_by_key(
+    key: str,
+    range_header: str | None = Header(default=None, alias="Range"),
+    researcher=Depends(get_current_researcher),
+):
+    """Stream a private student recording through the authenticated API.
+
+    Supervisor browsers must never depend on the object-store origin directly:
+    the web CSP intentionally restricts media to same-origin sources. Range
+    requests are forwarded to S3 so native audio controls can seek reliably.
+    """
+    if not key.startswith("audio/"):
+        raise HTTPException(status_code=400, detail="Invalid recording key")
+    if range_header and (not RANGE_PATTERN.fullmatch(range_header) or range_header == "bytes=-"):
+        raise HTTPException(status_code=416, detail="Invalid audio byte range")
+
+    s3 = _get_s3()
+    request = {"Bucket": S3_BUCKET_NAME, "Key": key}
+    if range_header:
+        request["Range"] = range_header
+
+    try:
+        response = s3.get_object(**request)
+    except ClientError as exc:
+        code = str(exc.response.get("Error", {}).get("Code") or "")
+        if code in {"404", "NoSuchKey", "NotFound"}:
+            raise HTTPException(status_code=404, detail="Recording not found") from exc
+        if code in {"416", "InvalidRange", "RequestedRangeNotSatisfiable"}:
+            raise HTTPException(status_code=416, detail="Audio byte range is not satisfiable") from exc
+        raise _storage_unavailable(exc, operation="play-by-key") from exc
+    except BotoCoreError as exc:
+        raise _storage_unavailable(exc, operation="play-by-key") from exc
+
+    content_range = response.get("ContentRange")
+    headers = {
+        "Accept-Ranges": "bytes",
+        "Cache-Control": "private, no-store",
+        "Content-Disposition": "inline",
+    }
+    if response.get("ContentLength") is not None:
+        headers["Content-Length"] = str(response["ContentLength"])
+    if content_range:
+        headers["Content-Range"] = str(content_range)
+
+    return StreamingResponse(
+        _iter_streaming_body(response["Body"]),
+        status_code=206 if content_range else 200,
+        media_type=str(response.get("ContentType") or "audio/webm"),
+        headers=headers,
+    )
 
 
 @router.get("/stream-by-key")
