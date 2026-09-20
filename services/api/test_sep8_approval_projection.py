@@ -20,6 +20,7 @@ from content_approval_contract_2026_09_08 import (
     TIMED_WORD_SELECTIONS,
 )
 from content_option_lifecycle import visible_key
+from reading_text_policy_2026_09_21 import normalize_reading_text
 from w4_media_semantics import LEXICAL_STIMULUS_CONTRACT
 
 
@@ -86,7 +87,10 @@ def test_every_declared_structural_override_reaches_the_final_release():
         assert all(step["options"] == [] for step in item["rounds"])
 
     for canonical, intro in CONTEXT_INTROS.items():
-        assert items[canonical].get("context_intro") == intro
+        expected_intro = dict(intro)
+        if expected_intro.get("kind") == "reading_context" and expected_intro.get("text") is not None:
+            expected_intro["text"] = normalize_reading_text(expected_intro["text"])
+        assert items[canonical].get("context_intro") == expected_intro
 
     for canonical, layout in LAYOUT_HINTS.items():
         assert items[canonical].get("layout_hint") == layout

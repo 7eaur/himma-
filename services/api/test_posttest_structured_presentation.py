@@ -13,6 +13,7 @@ from content_runtime import canonical_id
 from db.database import SessionLocal
 from db.models import ContentItem
 from posttest_presentation_2026_09_01 import POSTTEST_PRESENTATION
+from reading_text_policy_2026_09_21 import normalize_reading_text
 
 
 def _items():
@@ -64,8 +65,8 @@ def test_posttest_reading_questions_are_recording_only_with_exact_text():
         "POST-Q20": "نَجْم",
         "POST-Q21": "نُور",
         "POST-Q22": "سُلَّم",
-        "POST-Q23": "تَلْعَبُ مَرْيَمُ بِالْكُرَةِ.",
-        "POST-Q24": "فِي صَبَاحٍ مُشْمِسٍ، ذَهَبَ مَاجِدٌ مَعَ وَالِدِهِ إِلَى الشَّاطِئِ. أَخَذَ دَلْوًا صَغِيرًا، وَحَمَلَ وَالِدُهُ مَاءً وَمِظَلَّةً. بَنَى مَاجِدٌ بَيْتًا مِنَ الرَّمْلِ، ثُمَّ جَمَعَ أَصْدَافًا مُلَوَّنَةً. قَبْلَ الْعَوْدَةِ، نَظَّفَا مَكَانَهُمَا.",
+        "POST-Q23": "تلعب مريم بالكرة.",
+        "POST-Q24": "في صباح مشمس، ذهب ماجد مع والده إلى الشاطئ. أخذ دلوا صغيرا، وحمل والده ماء ومظلّة. بنى ماجد بيتا من الرمل، ثمّ جمع أصدافا ملوّنة. قبل العودة، نظّفا مكانهما.",
     }
     for canonical, text in expected.items():
         item = items[canonical]
@@ -97,7 +98,7 @@ def test_posttest_exact_presentation_fields_reach_the_db_projection():
                 expected_stimulus = {"kind": "audio", "audio_target": "مَ"}
             assert experience["stimulus"] == expected_stimulus, canonical
             if "expected_reading_text" in source:
-                assert step.expected_reading_text == source["expected_reading_text"], canonical
+                assert step.expected_reading_text == normalize_reading_text(source["expected_reading_text"]), canonical
 
         # Story-comprehension rounds are intentionally question-only: no story image.
         for number in range(25, 31):

@@ -31,6 +31,7 @@ from content_approval_contract_2026_09_08 import (
 from learning_presentation_2026_09_01 import apply_learning_presentation
 from listening_sequence_contract_2026_09_03 import LISTENING_AUDIO_SEQUENCES
 from posttest_presentation_2026_09_01 import POSTTEST_PRESENTATION
+from reading_text_policy_2026_09_21 import apply_reading_text_policy
 from w4_media_semantics import apply_w4_lexical_media_semantics
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -341,6 +342,7 @@ def build_canonical_release() -> dict[str, Any]:
     release = deepcopy(compile_release())
     apply_learning_presentation(release)
     _apply_posttest_presentation(release)
+    apply_reading_text_policy(release)
     assert_question_contract_coverage(release)
     _resolve_listening_audio(release)
     apply_w4_lexical_media_semantics(release)
