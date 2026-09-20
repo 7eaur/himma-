@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import {
+  ArrowRight,
   BookOpenCheck,
   CheckCircle2,
   ChevronDown,
@@ -16,6 +17,7 @@ import {
   Volume2,
 } from "lucide-react";
 import { AdminAction, AdminEmptyState, AdminPage, AdminPageHeader, AdminPanel } from "@/components/admin/AdminUI";
+import styles from "./content-preview.module.css";
 
 type Kind = "pretest_question" | "posttest_question" | "core_activity" | "reinforcement_activity";
 type Interaction = string;
@@ -263,28 +265,27 @@ function ContextIntroReview({ intro, assets }: { intro?: ContextIntro | null; as
 
 function RoundReview({ round, interaction }: { round: ReviewRound; interaction: Interaction }) {
   const stimulusText = String(round.stimulus_text || round.stimulus?.text || "").trim();
-  return <details className="group rounded-3xl border border-border bg-white overflow-hidden" open={round.round_number === 1}>
-    <summary className="cursor-pointer list-none px-5 py-4 flex items-center justify-between gap-4 bg-bg/70">
-      <div>
-        <div className="text-xs text-primary font-bold">الجولة {round.round_number} من {round.round_total}</div>
-        <div className="font-extrabold text-navy mt-1 line-clamp-2">{round.question_text || "جولة محتوى"}</div>
-      </div>
-      <ChevronDown className="text-muted shrink-0 transition-transform group-open:rotate-180" size={20} />
+  const hasSupportingCopy = Boolean(round.encouragement || round.instruction_text || round.hint);
+  return <details className={styles.round} open={round.round_number === 1}>
+    <summary className={styles.roundSummary}>
+      <div className={styles.roundHeading}><span>الجولة {round.round_number} من {round.round_total}</span><strong>{round.question_text || "جولة محتوى"}</strong></div>
+      <ChevronDown className={styles.roundChevron} size={20} aria-hidden="true" />
     </summary>
-    <div className="p-5 space-y-5">
-      {round.encouragement && <div className="text-sm font-bold text-primary">{round.encouragement}</div>}
-      <section>
-        <div className="text-xs text-muted mb-1">السؤال المعروض</div>
-        <div className="text-xl sm:text-2xl font-extrabold text-navy leading-10">{round.question_text}</div>
-      </section>
-      {stimulusText && <div className="rounded-2xl border border-border bg-bg p-5 text-center text-xl font-bold text-navy leading-9">{stimulusText}</div>}
-      <div className="rounded-2xl border border-border bg-white p-4 text-sm leading-7 text-navy"><span className="font-extrabold">التعليمة للطالب: </span>{round.instruction_text}</div>
-      {round.hint && <div className="rounded-2xl border border-dashed border-border p-4 text-sm leading-7 text-muted"><span className="font-extrabold text-navy">التلميح عند الخطأ: </span>{round.hint}</div>}
-      <MediaBlock assets={round.assets} hideMappedImages title="الصوت والصور المرتبطة بالجولة" />
+    <div className={styles.roundBody}>
+      {stimulusText && <div className={styles.stimulus}>{stimulusText}</div>}
+      <MediaBlock assets={round.assets} hideMappedImages title="الوسائط المرتبطة" />
       <OptionsReview options={round.options} assets={round.assets} answer={round.answer} />
-      <AnswerBlock answer={round.answer} />
+      {round.answer.kind !== "correct_options" && <AnswerBlock answer={round.answer} />}
+      {hasSupportingCopy && <details className={styles.supporting}>
+        <summary>نصوص مساعدة</summary>
+        <div className={styles.supportingBody}>
+          {round.encouragement && <p><strong>العبارة التشجيعية</strong><span>{round.encouragement}</span></p>}
+          {round.instruction_text && <p><strong>التعليمة</strong><span>{round.instruction_text}</span></p>}
+          {round.hint && <p><strong>التلميح عند الخطأ</strong><span>{round.hint}</span></p>}
+        </div>
+      </details>}
       {round.media_gaps.length > 0 && <div className="alert-error">توجد فجوات وسائط مسجلة في هذه الجولة وتحتاج مراجعة.</div>}
-      <div className="text-[11px] text-muted border-t border-border pt-3">نوع التفاعل: {INTERACTION_LABEL[interaction] || interaction} · رقم الجولة في قاعدة المحتوى: {round.order_index}</div>
+      <details className={styles.technical}><summary>تفاصيل تقنية</summary><div>نوع التفاعل: {INTERACTION_LABEL[interaction] || interaction} · ترتيب الجولة: {round.order_index}</div></details>
     </div>
   </details>;
 }
@@ -297,6 +298,8 @@ export default function ContentPreviewPage() {
   const [interaction, setInteraction] = useState("all");
   const [media, setMedia] = useState("all");
   const [query, setQuery] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState("");
@@ -376,131 +379,87 @@ export default function ContentPreviewPage() {
 
   const current = detail && detail.summary.canonical_id === effectiveSelected ? detail : null;
 
+  const activeFilterCount = Number(interaction !== "all") + Number(media !== "all");
+  const selectItem = (canonicalId: string) => {
+    setDetailLoading(true);
+    setError("");
+    setSelected(canonicalId);
+    setMobileDetailOpen(true);
+  };
+
   return <AdminPage>
-    <AdminPageHeader
-      eyebrow="إدارة المحتوى"
-      icon={BookOpenCheck}
-      title="المحتوى المعتمد"
-      description="مراجعة إدارية مباشرة للمحتوى المنشور: الأسئلة والإجابات الصحيحة والصور والأصوات ومهام التسجيل، بدون محاكاة واجهة الطالب وبدون أي كتابة على تقدم الطلاب."
-      actions={<AdminAction icon={RefreshCw} onClick={() => void loadIndex()} disabled={loading}>{loading ? "جاري التحديث..." : "تحديث المحتوى"}</AdminAction>}
+    <AdminPageHeader eyebrow="إدارة المحتوى" icon={BookOpenCheck} title="المحتوى المعتمد"
+      description="استعرض المحتوى المنشور وتحقق من الأسئلة والوسائط والإجابات."
+      actions={<div className={styles.headerActions}><span className={styles.readOnlyBadge}>قراءة فقط</span><AdminAction icon={RefreshCw} onClick={() => void loadIndex()} disabled={loading}>{loading ? "جاري التحديث..." : "تحديث"}</AdminAction></div>}
     />
 
-    {index?.active_release && <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-sm">
-      <span className="font-extrabold text-emerald-800 flex items-center gap-2"><CheckCircle2 size={17} />الإصدار النشط والمعتمد</span>
-      <span className="text-emerald-800 font-mono text-xs">{index.active_release.version}</span>
-    </div>}
+    <div className={styles.releaseMeta} aria-label="حالة المحتوى">
+      <strong>{index?.count ?? "—"} عنصرًا</strong>
+      {index?.active_release && <span><CheckCircle2 size={15} aria-hidden="true" />الإصدار النشط</span>}
+    </div>
     {error && <div className="alert-error" role="alert">{error}</div>}
 
-    <AdminPanel title="البحث والتصفية" description="صفِّ المحتوى حسب المسار أو نوع المهمة أو الوسائط.">
-      <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-3">
-        <label className="relative">
-          <span className="sr-only">بحث</span>
-          <Search size={18} className="absolute end-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
-          <input className="input-field pe-10" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ابحث بالسؤال أو المهارة أو الرمز..." />
-        </label>
-        <label className="text-xs text-muted"><span className="flex items-center gap-1 mb-2"><Filter size={14} />المسار</span>
-          <select className="input-field" value={section} onChange={(event) => setSection(event.target.value)}>
-            <option value="all">كل المحتوى</option>
-            <option value="pretest">الاختبار القبلي</option>
-            <option value="l1-core">المستوى الأول — الأنشطة</option><option value="l1-rein">المستوى الأول — التقوية</option>
-            <option value="l2-core">المستوى الثاني — الأنشطة</option><option value="l2-rein">المستوى الثاني — التقوية</option>
-            <option value="l3-core">المستوى الثالث — الأنشطة</option><option value="l3-rein">المستوى الثالث — التقوية</option>
-            <option value="posttest">الاختبار البعدي</option>
-          </select>
-        </label>
-        <label className="text-xs text-muted"><span className="block mb-2">نوع المهمة</span>
-          <select className="input-field" value={interaction} onChange={(event) => setInteraction(event.target.value)}>
-            <option value="all">كل الأنواع</option><option value="choice">اختيارات</option><option value="images">اختيار صور</option>
-            <option value="listening">استماع</option><option value="recording">تسجيل صوتي</option><option value="ordering">ترتيب وتسلسل</option>
-          </select>
-        </label>
-        <label className="text-xs text-muted"><span className="block mb-2">الوسائط</span>
-          <select className="input-field" value={media} onChange={(event) => setMedia(event.target.value)}>
-            <option value="all">الكل</option><option value="audio">يحتوي صوتًا</option><option value="images">يحتوي صورًا</option><option value="recording">يتطلب تسجيلًا</option>
-          </select>
-        </label>
-      </div>
-    </AdminPanel>
+    <section className={styles.discovery} aria-label="البحث في المحتوى">
+      <label className={styles.search}><span className="sr-only">بحث</span><Search size={18} aria-hidden="true" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ابحث بالسؤال أو المهارة أو الرمز..." /></label>
+      <label className={styles.sectionSelect}><span className="sr-only">القسم</span><select value={section} onChange={(event) => setSection(event.target.value)}>
+        <option value="all">كل المحتوى</option><option value="pretest">الاختبار القبلي</option>
+        <option value="l1-core">المستوى الأول — الأنشطة</option><option value="l1-rein">المستوى الأول — التقوية</option>
+        <option value="l2-core">المستوى الثاني — الأنشطة</option><option value="l2-rein">المستوى الثاني — التقوية</option>
+        <option value="l3-core">المستوى الثالث — الأنشطة</option><option value="l3-rein">المستوى الثالث — التقوية</option><option value="posttest">الاختبار البعدي</option>
+      </select></label>
+      <button type="button" className={styles.filterButton} onClick={() => setFiltersOpen((value) => !value)} aria-expanded={filtersOpen}><Filter size={17} aria-hidden="true" />تصفية{activeFilterCount > 0 && <span>{activeFilterCount}</span>}</button>
+      {filtersOpen && <div className={styles.advancedFilters}>
+        <label><span>نوع المهمة</span><select value={interaction} onChange={(event) => setInteraction(event.target.value)}><option value="all">كل الأنواع</option><option value="choice">اختيارات</option><option value="images">اختيار صور</option><option value="listening">استماع</option><option value="recording">تسجيل صوتي</option><option value="ordering">ترتيب وتسلسل</option></select></label>
+        <label><span>الوسائط</span><select value={media} onChange={(event) => setMedia(event.target.value)}><option value="all">كل الوسائط</option><option value="audio">يحتوي صوتًا</option><option value="images">يحتوي صورًا</option><option value="recording">يتطلب تسجيلًا</option></select></label>
+        {activeFilterCount > 0 && <button type="button" onClick={() => { setInteraction("all"); setMedia("all"); }}>مسح التصفية</button>}
+      </div>}
+    </section>
 
-    <div className="grid xl:grid-cols-[360px_minmax(0,1fr)] gap-5 items-start">
-      <AdminPanel title="فهرس المحتوى" description={`${filtered.length} من ${index?.count || 0} عنصرًا معتمدًا`}>
-        {loading ? <div className="min-h-52 flex items-center justify-center"><div className="spinner w-9 h-9" /></div>
+    <div className={`${styles.workspace} ${mobileDetailOpen ? styles.mobileShowingDetail : ""}`}>
+      <aside className={styles.library} data-testid="content-library" aria-label="فهرس المحتوى">
+        <div className={styles.libraryHeader}><strong>المحتوى</strong><span>{filtered.length} من {index?.count || 0}</span></div>
+        {loading ? <div className={styles.loading}><div className="spinner w-9 h-9" /></div>
           : filtered.length === 0 ? <AdminEmptyState title="لا توجد نتائج" description="غيّر البحث أو المرشحات لعرض محتوى آخر." />
-          : <div className="max-h-[72vh] overflow-auto pe-1 space-y-5">
-            {grouped.map((group) => <section key={group.key}>
-              <div className="sticky top-0 z-10 bg-white/95 backdrop-blur py-2 text-xs font-extrabold text-primary">{group.label}</div>
-              <div className="space-y-2">{group.items.map((item) => {
-                const active = item.canonical_id === effectiveSelected;
-                return <button key={item.canonical_id} type="button" onClick={() => { setDetailLoading(true); setError(""); setSelected(item.canonical_id); }} className={`w-full text-start rounded-2xl border p-3 transition ${active ? "border-primary bg-teal/10 shadow-sm" : "border-border bg-white hover:border-primary/40"}`}>
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0"><div className="font-extrabold text-navy line-clamp-2">{item.title}</div><div className="text-xs text-muted mt-1">{item.skill || KIND_LABEL[item.kind]}</div></div>
-                    <span className="text-[10px] font-mono text-muted shrink-0">{item.canonical_id}</span>
-                  </div>
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    <span className="rounded-full bg-bg px-2 py-1 text-[10px] text-navy">{item.round_count} {item.round_count === 1 ? "جولة" : "جولات"}</span>
-                    {item.has_audio && <span className="rounded-full bg-sky-50 px-2 py-1 text-[10px] text-sky-800 inline-flex items-center gap-1"><Volume2 size={11} />صوت</span>}
-                    {item.has_images && <span className="rounded-full bg-amber-50 px-2 py-1 text-[10px] text-amber-800 inline-flex items-center gap-1"><ImageIcon size={11} />صور</span>}
-                    {item.requires_recording && <span className="rounded-full bg-violet-50 px-2 py-1 text-[10px] text-violet-800 inline-flex items-center gap-1"><Mic2 size={11} />تسجيل</span>}
-                  </div>
-                </button>;
-              })}</div>
-            </section>)}
-          </div>}
-      </AdminPanel>
+          : <div className={styles.libraryList}>{grouped.map((group) => <section key={group.key} className={styles.libraryGroup}>
+            <div className={styles.groupTitle}>{group.label}</div>
+            {group.items.map((item) => {
+              const active = item.canonical_id === effectiveSelected;
+              return <button key={item.canonical_id} type="button" onClick={() => selectItem(item.canonical_id)} className={`${styles.libraryItem} ${active ? styles.libraryItemActive : ""}`} aria-current={active ? "true" : undefined}>
+                <span className={styles.itemMain}><strong>{item.title}</strong><small>{item.skill || KIND_LABEL[item.kind]}</small></span>
+                <span className={styles.itemMeta}><small>{item.round_count} {item.round_count === 1 ? "جولة" : "جولات"}</small>{item.has_audio && <Volume2 size={14} aria-label="صوت" />}{item.has_images && <ImageIcon size={14} aria-label="صور" />}{item.requires_recording && <Mic2 size={14} aria-label="تسجيل" />}</span>
+              </button>;
+            })}
+          </section>)}</div>}
+      </aside>
 
-      <div className="space-y-5 min-w-0">
-        {detailLoading || (effectiveSelected && !current) ? <AdminPanel><div className="min-h-72 flex items-center justify-center"><div className="spinner w-10 h-10" /></div></AdminPanel>
+      <main className={styles.detail} data-testid={mobileDetailOpen ? "content-detail" : undefined}>
+        <button type="button" className={styles.mobileBack} onClick={() => setMobileDetailOpen(false)}><ArrowRight size={18} aria-hidden="true" />العودة إلى المحتوى</button>
+        {detailLoading || (effectiveSelected && !current) ? <AdminPanel><div className={styles.detailLoading}><div className="spinner w-10 h-10" /></div></AdminPanel>
           : !current ? <AdminEmptyState title="اختر عنصر محتوى" description="اختر سؤالًا أو نشاطًا من الفهرس لمراجعة تفاصيله." />
           : <>
-            <AdminPanel>
-              <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                <div>
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    <span className="rounded-full bg-teal/10 text-primary px-3 py-1 text-xs font-bold">{KIND_LABEL[current.item.kind]}</span>
-                    {current.item.level_id && <span className="rounded-full bg-bg text-navy px-3 py-1 text-xs font-bold">المستوى {current.item.level_id}</span>}
-                    <span className="rounded-full bg-bg text-navy px-3 py-1 text-xs font-bold">{INTERACTION_LABEL[current.item.interaction_type] || current.item.interaction_type}</span>
-                    <span className="rounded-full bg-emerald-50 text-emerald-700 px-3 py-1 text-xs font-bold">معتمد</span>
-                  </div>
-                  <h2 className="text-2xl sm:text-3xl font-extrabold text-navy leading-tight">{current.item.title}</h2>
-                  <p className="text-muted mt-2">{current.item.skill}</p>
-                </div>
-                <div className="text-xs text-muted lg:text-end space-y-1">
-                  <div className="font-mono">{current.item.canonical_id}</div>
-                  <div>{current.rounds.length} {current.rounds.length === 1 ? "جولة" : "جولات"}</div>
-                </div>
+            <AdminPanel className={styles.itemOverview}>
+              <div className={styles.itemHeader}>
+                <div><div className={styles.itemEyebrow}>{KIND_LABEL[current.item.kind]}{current.item.level_id ? ` · المستوى ${current.item.level_id}` : ""} · {INTERACTION_LABEL[current.item.interaction_type] || current.item.interaction_type} · {current.rounds.length} {current.rounds.length === 1 ? "جولة" : "جولات"}</div><h2>{current.item.title}</h2>{current.item.skill && <p>{current.item.skill}</p>}</div>
+                <code>{current.item.canonical_id}</code>
               </div>
-              {current.item.criterion && <div className="mt-4 rounded-2xl bg-bg border border-border p-4 text-sm text-navy"><span className="font-extrabold">معيار التقييم: </span>{current.item.criterion}</div>}
-              {current.item.kind === "core_activity" && current.item.reinforcement_candidates.length > 0 && <div className="mt-4 rounded-2xl border border-violet-200 bg-violet-50 p-4">
-                <div className="text-sm font-extrabold text-violet-900 mb-3">التقوية المرتبطة بهذه المهارة</div>
-                <div className="flex flex-wrap gap-2">{current.item.reinforcement_candidates.map((canonical) => {
+              {(current.item.criterion || (current.item.kind === "core_activity" && current.item.reinforcement_candidates.length > 0)) && <div className={styles.itemLinks}>
+                {current.item.criterion && <p><strong>معيار التقييم</strong><span>{current.item.criterion}</span></p>}
+                {current.item.kind === "core_activity" && current.item.reinforcement_candidates.length > 0 && <p><strong>تقوية مرتبطة</strong><span className={styles.reinforcementLinks}>{current.item.reinforcement_candidates.map((canonical) => {
                   const linked = index?.items.find((item) => item.canonical_id === canonical);
-                  return <button key={canonical} type="button" onClick={() => {
-                    setSection("all");
-                    setInteraction("all");
-                    setMedia("all");
-                    setQuery("");
-                    setDetailLoading(true);
-                    setError("");
-                    setSelected(canonical);
-                  }} className="rounded-xl border border-violet-200 bg-white px-3 py-2 text-sm text-start hover:border-violet-400">
-                    <span className="font-bold text-navy">{linked?.title || canonical}</span>
-                    {linked && <span className="block text-[10px] font-mono text-muted mt-1">{canonical}</span>}
-                  </button>;
-                })}</div>
+                  return <button key={canonical} type="button" onClick={() => { setSection("all"); setInteraction("all"); setMedia("all"); setQuery(""); selectItem(canonical); }}>{linked?.title || canonical}</button>;
+                })}</span></p>}
               </div>}
             </AdminPanel>
 
             <ContextIntroReview intro={current.item.context_intro} assets={current.item.item_assets} />
-            <MediaBlock assets={current.item.item_assets.filter((asset) => {
-              const intro = current.item.context_intro;
-              return asset.asset_id !== intro?.audio_asset_id && asset.asset_id !== intro?.image_asset_id;
-            })} title="وسائط مرتبطة بالنشاط كاملًا" />
+            <MediaBlock assets={current.item.item_assets.filter((asset) => { const intro = current.item.context_intro; return asset.asset_id !== intro?.audio_asset_id && asset.asset_id !== intro?.image_asset_id; })} title="وسائط النشاط" />
 
-            <AdminPanel title="الجولات والأسئلة" description="كل الجولات مع الإجابات والوسائط المعتمدة. افتح أي جولة لمراجعتها.">
-              <div className="space-y-3">{current.rounds.map((round) => <RoundReview key={round.id} round={round} interaction={current.item.interaction_type} />)}</div>
-            </AdminPanel>
+            <section className={styles.roundsSection} aria-labelledby="rounds-title">
+              <div className={styles.roundsHeading}><h2 id="rounds-title">الجولات والأسئلة</h2><span>{current.rounds.length}</span></div>
+              <div className={styles.roundsList}>{current.rounds.map((round) => <RoundReview key={round.id} round={round} interaction={current.item.interaction_type} />)}</div>
+            </section>
           </>}
-      </div>
+      </main>
     </div>
   </AdminPage>;
 }
