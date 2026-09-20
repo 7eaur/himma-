@@ -29,22 +29,11 @@ interface AudioSubmission {
 
 function AudioPlayer({ storageKey }: { storageKey: string }) {
   const [src, setSrc] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const loadRecording = async () => {
-    setLoading(true);
+  const loadRecording = () => {
     setError("");
-    try {
-      const response = await fetch(`/api/recordings/stream-by-key?key=${encodeURIComponent(storageKey)}`);
-      const data = await response.json().catch(() => null);
-      if (!response.ok || !data?.url) throw new Error(data?.detail || "تعذر تحميل التسجيل");
-      setSrc(data.url);
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "تعذر تحميل التسجيل");
-    } finally {
-      setLoading(false);
-    }
+    setSrc(`/api/recordings/play-by-key?key=${encodeURIComponent(storageKey)}`);
   };
 
   return (
@@ -58,11 +47,18 @@ function AudioPlayer({ storageKey }: { storageKey: string }) {
       </div>
 
       {src ? (
-        <audio src={src} controls className="audio-review-native-player" preload="metadata" />
+        <audio
+          src={src}
+          controls
+          className="audio-review-native-player"
+          preload="metadata"
+          onLoadedMetadata={() => setError("")}
+          onError={() => setError("تعذر تشغيل التسجيل. أعد المحاولة، وإذا استمرت المشكلة تواصل مع الدعم.")}
+        />
       ) : (
-        <button type="button" className="audio-review-listen-button" onClick={() => void loadRecording()} disabled={loading}>
+        <button type="button" className="audio-review-listen-button" onClick={loadRecording}>
           <Play size={18} aria-hidden="true" />
-          {loading ? "جاري تجهيز التسجيل..." : "تشغيل التسجيل"}
+          تشغيل التسجيل
         </button>
       )}
 
