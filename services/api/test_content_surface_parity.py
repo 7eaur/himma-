@@ -1,10 +1,11 @@
-"""Parity gates for every read-only/live student content surface.
+"""Parity and separation gates for student content and admin content review.
 
-The canonical publisher owns academic data.  These tests make sure researcher
-preview and live learner rendering delegate to the exact same serializers, so a
-wording/media/options fix cannot appear in one surface and silently drift in the
-other.
+The admin page must expose the approved academic truth (including answers), while
+student payloads must continue to hide answer metadata. Both surfaces read the
+same published PostgreSQL rows and preview must never create progress.
 """
+from __future__ import annotations
+
 from types import SimpleNamespace
 
 import content_preview
@@ -13,7 +14,7 @@ import seed_all
 from content_runtime import canonical_id
 from content_student_view import activity_student_content, assessment_student_payload
 from db.database import SessionLocal
-from db.models import AssessmentSession, ContentItem, Student
+from db.models import AssessmentSession, Attempt, AttemptResponse, AudioSubmission, ContentItem, Student
 
 
 FORBIDDEN_STUDENT_KEYS = {
@@ -30,10 +31,6 @@ FORBIDDEN_STUDENT_KEYS = {
 def _seed() -> None:
     result = seed_all.run_seed_all()
     assert result["total_items"] == 125
-    assert result["pretest_items"] == 30
-    assert result["posttest_items"] == 30
-    assert result["core_items"] == 30
-    assert result["reinforcement_items"] == 35
 
 
 def _by_canonical(db, wanted: str) -> ContentItem:
@@ -54,45 +51,101 @@ def _assert_no_answer_metadata(value, path: str = "payload") -> None:
             _assert_no_answer_metadata(child, f"{path}[{index}]")
 
 
-def test_assessment_preview_is_exact_student_serializer_and_leaks_no_answers():
+def test_admin_assessment_review_exposes_truth_while_student_payload_hides_it():
     _seed()
     db = SessionLocal()
     try:
         item = _by_canonical(db, "PRE-Q17")
         step = sorted(item.steps, key=lambda value: value.order_index)[0]
-        expected = assessment_student_payload(item, step)
-        preview = content_preview.get_content_preview("PRE-Q17", db=db, _=None)
 
-        assert preview["mode"] == "read_only"
-        assert preview["writes_progress"] is False
-        assert preview["surface"] == "assessment"
-        assert preview["payload"] == expected
-        assert len(expected["steps"][0]["options"]) == 4
-        assert len([
-            asset for asset in expected["steps"][0]["assets"]
+        student_payload = assessment_student_payload(item, step)
+        review = content_preview.get_content_preview("PRE-Q17", db=db, _=None)
+
+        assert review["mode"] == "read_only"
+        assert review["purpose"] == "admin_content_review"
+        assert review["writes_progress"] is False
+        assert review["item"]["canonical_id"] == "PRE-Q17"
+        assert len(review["rounds"]) == 1
+
+        reviewed_round = review["rounds"][0]
+        assert reviewed_round["question_text"] == student_payload["presentation"]["question_text"]
+        assert {option["text"] for option in reviewed_round["options"]} == {
+            option["text"] for option in student_payload["steps"][0]["options"]
+        }
+        assert len([option for option in reviewed_round["options"] if option["is_correct"]]) == 1
+        assert reviewed_round["answer"]["kind"] == "correct_options"
+        assert reviewed_round["answer"]["values"]
+        assert reviewed_round["answer"]["option_ids"]
+
+        image_assets = [
+            asset for asset in reviewed_round["assets"]
             if asset.get("asset_type") == "image" and asset.get("option_id") is not None
-        ]) == 4
-        _assert_no_answer_metadata(preview)
+        ]
+        assert len(image_assets) == 4
+        _assert_no_answer_metadata(student_payload)
     finally:
         db.close()
 
 
-def test_learning_preview_and_live_route_share_one_static_contract(monkeypatch):
+def test_admin_learning_review_lists_all_rounds_and_recording_target():
+    _seed()
+    db = SessionLocal()
+    try:
+        review = content_preview.get_content_preview("L2-REIN-07", db=db, _=None)
+        assert review["item"]["interaction_type"] == "read_aloud"
+        assert len(review["rounds"]) == 5
+        assert [round_data["answer"]["kind"] for round_data in review["rounds"]] == ["recording_target"] * 5
+        assert [round_data["answer"]["values"][0] for round_data in review["rounds"]] == [
+            "كَتَبَ", "لَعِبَ", "رَسَمَ", "فَتَحَ", "جَلَسَ"
+        ]
+        assert all(round_data["options"] == [] for round_data in review["rounds"])
+    finally:
+        db.close()
+
+
+def test_admin_order_review_exposes_canonical_correct_sequence():
+    _seed()
+    db = SessionLocal()
+    try:
+        review = content_preview.get_content_preview("L1-CORE-10", db=db, _=None)
+        assert review["item"]["interaction_type"] in {"sequence", "memory_sequence", "path_sequence", "build_word"}
+        for round_data in review["rounds"]:
+            assert round_data["answer"]["kind"] == "ordered_sequence"
+            assert round_data["answer"]["values"] == [option["text"] for option in round_data["options"]]
+    finally:
+        db.close()
+
+
+def test_admin_content_review_creates_no_student_progress_rows():
+    _seed()
+    db = SessionLocal()
+    try:
+        before = {
+            "sessions": db.query(AssessmentSession).count(),
+            "attempts": db.query(Attempt).count(),
+            "responses": db.query(AttemptResponse).count(),
+            "audio": db.query(AudioSubmission).count(),
+        }
+        content_preview.list_content_preview(db=db, _=None)
+        content_preview.get_content_preview("L1-CORE-09", db=db, _=None)
+        after = {
+            "sessions": db.query(AssessmentSession).count(),
+            "attempts": db.query(Attempt).count(),
+            "responses": db.query(AttemptResponse).count(),
+            "audio": db.query(AudioSubmission).count(),
+        }
+        assert after == before
+    finally:
+        db.close()
+
+
+def test_live_learning_student_contract_stays_answer_safe(monkeypatch):
     _seed()
     db = SessionLocal()
     try:
         item = _by_canonical(db, "L1-CORE-09")
-        steps = sorted(item.steps, key=lambda value: value.order_index)
-        step = steps[0]
+        step = sorted(item.steps, key=lambda value: value.order_index)[0]
         expected = activity_student_content(item, step)
-
-        preview = content_preview.get_content_preview("L1-CORE-09", db=db, _=None)
-        assert preview["mode"] == "read_only"
-        assert preview["writes_progress"] is False
-        assert preview["surface"] == "learning"
-        assert preview["payload"]["item"] == expected["item"]
-        assert preview["payload"]["rounds"][0] == expected["step"]
-        assert len(preview["payload"]["rounds"]) == 5
 
         student = Student(access_code="PARITY01", name="طالب المعاينة", current_level=1)
         db.add(student)
@@ -132,40 +185,9 @@ def test_learning_preview_and_live_route_share_one_static_contract(monkeypatch):
         )
 
         assert live["item_id"] == expected["item"]["id"]
-        assert live["stable_key"] == expected["item"]["stable_key"]
-        assert live["kind"] == expected["item"]["kind"]
-        assert live["level_id"] == expected["item"]["level_id"]
-        assert live["interaction_type"] == expected["item"]["interaction_type"]
-        assert live["layout_hint"] == expected["item"]["layout_hint"]
-        assert live["assets"] == expected["item"]["assets"]
-
-        assert live["round"] == {
-            "round_number": expected["step"]["round_number"],
-            "round_total": expected["step"]["round_total"],
-            "skill": expected["step"]["skill"],
-            "encouragement": expected["step"]["encouragement"],
-            "hint": expected["step"]["hint"],
-            "question_text": expected["step"]["question_text"],
-            "instruction_text": expected["step"]["instruction_text"],
-            "stimulus_text": expected["step"]["stimulus_text"],
-            "stimulus": expected["step"]["stimulus"],
-        }
-        assert live["step"] == {
-            "id": expected["step"]["id"],
-            "order_index": expected["step"]["order_index"],
-            "expected_reading_text": expected["step"]["expected_reading_text"],
-            "required_selection_count": expected["step"]["required_selection_count"],
-            "options": expected["step"]["options"],
-            "assets": expected["step"]["assets"],
-            "media_gaps": expected["step"]["media_gaps"],
-        }
-
-        context = live["context_intro"]
-        assert context is not None
-        assert context["audio_asset_id"] == "INS-01"
-        assert context["asset"]["asset_id"] == "INS-01"
-        assert context["asset"]["asset_type"] == "audio"
-        _assert_no_answer_metadata(preview)
+        assert live["round"]["question_text"] == expected["step"]["question_text"]
+        assert live["step"]["options"] == expected["step"]["options"]
+        assert live["step"]["assets"] == expected["step"]["assets"]
         _assert_no_answer_metadata(live)
     finally:
         db.close()

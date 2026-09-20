@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
-import { BarChart3, ClipboardList, Eye, LayoutDashboard, LogOut, Menu, Mic, Settings, UserPlus, Users, X } from "lucide-react";
+import { BarChart3, BookOpenCheck, ClipboardList, LayoutDashboard, LogOut, Menu, Mic, Settings, UserPlus, Users, X } from "lucide-react";
 import ReinforcementReviewPanel from "@/components/ReinforcementReviewPanel";
 import AdminNotifications from "@/components/admin/AdminNotifications";
 import { useAccessibleDialog } from "@/hooks/useAccessibleDialog";
@@ -15,7 +15,7 @@ const navSections = [
   { label: "المتابعة", items: [{ href: "/admin", label: "نظرة عامة", icon: LayoutDashboard }, { href: "/admin/audio-review", label: "مراجعة التسجيلات", icon: Mic }] },
   { label: "الطلاب", items: [{ href: "/admin/students", label: "جميع الطلاب", icon: Users }, { href: "/admin/students/new", label: "إضافة طالب", icon: UserPlus }] },
   { label: "النتائج والتقارير", items: [{ href: "/admin/reports", label: "التقارير", icon: BarChart3 }, { href: "/admin/skill-reports", label: "ملخص المهارات", icon: ClipboardList }] },
-  { label: "إدارة المنصة", items: [{ href: "/admin/content-preview", label: "معاينة المحتوى", icon: Eye }, { href: "/admin/settings", label: "الإعدادات والمشرفون", icon: Settings }] },
+  { label: "إدارة المنصة", items: [{ href: "/admin/content-preview", label: "المحتوى المعتمد", icon: BookOpenCheck }, { href: "/admin/settings", label: "الإعدادات والمشرفون", icon: Settings }] },
 ] as const;
 
 interface SidebarContentProps { pathname: string; supervisorName: string; onNavigate: () => void; onLogout: () => void; showNotifications?: boolean; }
