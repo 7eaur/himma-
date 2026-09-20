@@ -3,7 +3,7 @@
 {"id":"PRE-Q21-R01","source_item":"PRE-Q21","round":1,"kind":"word","interaction_type":"read_aloud","text":"بَاب."}
 {"id":"PRE-Q22-R01","source_item":"PRE-Q22","round":1,"kind":"word","interaction_type":"read_aloud","text":"قِطَّة."}
 {"id":"PRE-Q23-R01","source_item":"PRE-Q23","round":1,"kind":"sentence","interaction_type":"read_aloud","text":"يقرأ سالم كتابا."}
-{"id":"PRE-Q24-R01","source_item":"PRE-Q24","round":1,"kind":"passage","interaction_type":"read_aloud","text":"في صباح يوم الجمعة، ذهب سالم مع أسرته إلى الحديقة. حمل كرته الزرقاء، وحملت أخته سلّة الطعام. لعب الطفلان قرب شجرة، ثمّ جمعا الأوراق ووضعاها في سلّة المهملات."}
+{"id":"PRE-Q24-R01","source_item":"PRE-Q24","round":1,"kind":"passage","interaction_type":"read_aloud","text":"في صباح يوم الجمعة، ذهب سالم مع أسرته إلى الحديقة. حمل كرته الزّرقاء، وحملت أخته سلّة الطّعام. لعب الطّفلان قرب شجرة، ثمّ جمعا الأوراق ووضعاها في سلّة المهملات."}
 {"id":"L2-CORE-02-R01","source_item":"L2-CORE-02","round":1,"kind":"syllable","interaction_type":"read_aloud","text":"مَ"}
 {"id":"L2-CORE-02-R02","source_item":"L2-CORE-02","round":2,"kind":"syllable","interaction_type":"read_aloud","text":"بِ"}
 {"id":"L2-CORE-02-R03","source_item":"L2-CORE-02","round":3,"kind":"syllable","interaction_type":"read_aloud","text":"سُ"}
@@ -26,7 +26,7 @@
 {"id":"L2-CORE-07-R05","source_item":"L2-CORE-07","round":5,"kind":"word","interaction_type":"read_aloud","text":"سَيَّارَة"}
 {"id":"L2-CORE-10-R01","source_item":"L2-CORE-10","round":1,"kind":"sentence","interaction_type":"read_aloud","text":"يقرأ سالم كتابا."}
 {"id":"L2-CORE-10-R02","source_item":"L2-CORE-10","round":2,"kind":"sentence","interaction_type":"read_aloud","text":"تشرب مريم الحليب."}
-{"id":"L2-CORE-10-R03","source_item":"L2-CORE-10","round":3,"kind":"sentence","interaction_type":"read_aloud","text":"يقف العصفور فوق النخلة."}
+{"id":"L2-CORE-10-R03","source_item":"L2-CORE-10","round":3,"kind":"sentence","interaction_type":"read_aloud","text":"يقف العصفور فوق النّخلة."}
 {"id":"L2-CORE-10-R04","source_item":"L2-CORE-10","round":4,"kind":"sentence","interaction_type":"read_aloud","text":"وضعت هند القلم في الحقيبة."}
 {"id":"L2-CORE-10-R05","source_item":"L2-CORE-10","round":5,"kind":"sentence","interaction_type":"read_aloud","text":"يلعب ماجد بالكرة."}
 {"id":"L3-CORE-01-R01","source_item":"L3-CORE-01","round":1,"kind":"word","interaction_type":"read_aloud","text":"مَدْرَسَة"}
@@ -39,17 +39,17 @@
 {"id":"L3-CORE-01-R08","source_item":"L3-CORE-01","round":8,"kind":"word","interaction_type":"read_aloud","text":"سَحَاب"}
 {"id":"L3-CORE-01-R09","source_item":"L3-CORE-01","round":9,"kind":"word","interaction_type":"read_aloud","text":"شَمْس"}
 {"id":"L3-CORE-01-R10","source_item":"L3-CORE-01","round":10,"kind":"word","interaction_type":"read_aloud","text":"أَرْنَب"}
-{"id":"L3-CORE-02-R01","source_item":"L3-CORE-02","round":1,"kind":"phrase","interaction_type":"read_aloud","text":"في الصباح"}
-{"id":"L3-CORE-02-R02","source_item":"L3-CORE-02","round":2,"kind":"phrase","interaction_type":"read_aloud","text":"تحت الشجرة"}
+{"id":"L3-CORE-02-R01","source_item":"L3-CORE-02","round":1,"kind":"phrase","interaction_type":"read_aloud","text":"في الصّباح"}
+{"id":"L3-CORE-02-R02","source_item":"L3-CORE-02","round":2,"kind":"phrase","interaction_type":"read_aloud","text":"تحت الشّجرة"}
 {"id":"L3-CORE-02-R03","source_item":"L3-CORE-02","round":3,"kind":"phrase","interaction_type":"read_aloud","text":"داخل الفصل"}
 {"id":"L3-CORE-02-R04","source_item":"L3-CORE-02","round":4,"kind":"phrase","interaction_type":"read_aloud","text":"قرب البحر"}
-{"id":"L3-CORE-02-R05","source_item":"L3-CORE-02","round":5,"kind":"phrase","interaction_type":"read_aloud","text":"فوق النخلة"}
+{"id":"L3-CORE-02-R05","source_item":"L3-CORE-02","round":5,"kind":"phrase","interaction_type":"read_aloud","text":"فوق النّخلة"}
 {"id":"L3-CORE-03-R01","source_item":"L3-CORE-03","round":1,"kind":"sentence","interaction_type":"read_aloud","text":"ذهب سالم إلى المدرسة."}
-{"id":"L3-CORE-03-R02","source_item":"L3-CORE-03","round":2,"kind":"sentence","interaction_type":"read_aloud","text":"جلست مريم تحت الشجرة."}
+{"id":"L3-CORE-03-R02","source_item":"L3-CORE-03","round":2,"kind":"sentence","interaction_type":"read_aloud","text":"جلست مريم تحت الشّجرة."}
 {"id":"L3-CORE-03-R03","source_item":"L3-CORE-03","round":3,"kind":"sentence","interaction_type":"read_aloud","text":"قرأ خالد كتابا مفيدا."}
-{"id":"L3-CORE-03-R04","source_item":"L3-CORE-03","round":4,"kind":"sentence","interaction_type":"read_aloud","text":"لعب الأطفال في الساحة."}
+{"id":"L3-CORE-03-R04","source_item":"L3-CORE-03","round":4,"kind":"sentence","interaction_type":"read_aloud","text":"لعب الأطفال في السّاحة."}
 {"id":"L3-CORE-03-R05","source_item":"L3-CORE-03","round":5,"kind":"sentence","interaction_type":"read_aloud","text":"عادت الأسرة إلى البيت."}
-{"id":"L3-CORE-04-R01","source_item":"L3-CORE-04","round":1,"kind":"passage","interaction_type":"read_aloud","text":"زرعت مريم بذرة صغيرة في حديقة المدرسة. كانت تسقيها كلّ صباح. بعد أيام ظهرت أوراق خضراء، ففرحت مريم."}
+{"id":"L3-CORE-04-R01","source_item":"L3-CORE-04","round":1,"kind":"passage","interaction_type":"read_aloud","text":"زرعت مريم بذرة صغيرة في حديقة المدرسة. كانت تسقيها كلّ صباح. بعد أيّام ظهرت أوراق خضراء، ففرحت مريم."}
 {"id":"L3-CORE-05-R01","source_item":"L3-CORE-05","round":1,"kind":"timed_word_list","interaction_type":"timed_read_aloud","text":"المدرسة، الحديقة، الشجرة، كتاب، معلم، تلميذ، نخلة، عصفور، بحر، شاطئ، سلة، قلم، حقيبة، يلعب، يقرأ، يكتب، جميل، صغير، نظيف، سعيد"}
 {"id":"L3-CORE-06-R01","source_item":"L3-CORE-06","round":1,"kind":"passage","interaction_type":"timed_read_aloud","text":"دخل خالد مكتبة المدرسة في وقت الفسحة. بحث عن كتاب عن الحيوانات، فساعده أمين المكتبة. جلس في مكان هادئ وقرأ الكتاب، ثمّ أعاده إلى مكانه."}
 {"id":"L1-REIN-04-R01","source_item":"L1-REIN-04","round":1,"kind":"letter","interaction_type":"read_aloud","text":"م"}
@@ -72,7 +72,7 @@
 {"id":"L2-REIN-11-R03","source_item":"L2-REIN-11","round":3,"kind":"sentence","interaction_type":"read_aloud","text":"شربت مريم."}
 {"id":"L2-REIN-11-R04","source_item":"L2-REIN-11","round":4,"kind":"sentence","interaction_type":"read_aloud","text":"طار العصفور."}
 {"id":"L2-REIN-11-R05","source_item":"L2-REIN-11","round":5,"kind":"sentence","interaction_type":"read_aloud","text":"فتح خالد الباب."}
-{"id":"L3-REIN-04-R01","source_item":"L3-REIN-04","round":1,"kind":"passage","interaction_type":"read_aloud","text":"ذهبت هند إلى الحديقة. شاهدت زهرة جميلة. سقت الزهرة بالماء، ثمّ عادت إلى البيت."}
+{"id":"L3-REIN-04-R01","source_item":"L3-REIN-04","round":1,"kind":"passage","interaction_type":"read_aloud","text":"ذهبت هند إلى الحديقة. شاهدت زهرة جميلة. سقت الزّهرة بالماء، ثمّ عادت إلى البيت."}
 {"id":"L3-REIN-06-R01","source_item":"L3-REIN-06","round":1,"kind":"word","interaction_type":"read_aloud","text":"كِتَاب"}
 {"id":"L3-REIN-06-R02","source_item":"L3-REIN-06","round":2,"kind":"word","interaction_type":"read_aloud","text":"مَدْرَسَة"}
 {"id":"L3-REIN-06-R03","source_item":"L3-REIN-06","round":3,"kind":"word","interaction_type":"read_aloud","text":"نَخْلَة"}
@@ -87,6 +87,6 @@
 {"id":"POST-Q21-R01","source_item":"POST-Q21","round":1,"kind":"word","interaction_type":"read_aloud","text":"نُور"}
 {"id":"POST-Q22-R01","source_item":"POST-Q22","round":1,"kind":"word","interaction_type":"read_aloud","text":"سُلَّم"}
 {"id":"POST-Q23-R01","source_item":"POST-Q23","round":1,"kind":"sentence","interaction_type":"read_aloud","text":"تلعب مريم بالكرة."}
-{"id":"POST-Q24-R01","source_item":"POST-Q24","round":1,"kind":"passage","interaction_type":"read_aloud","text":"في صباح مشمس، ذهب ماجد مع والده إلى الشاطئ. أخذ دلوا صغيرا، وحمل والده ماء ومظلّة. بنى ماجد بيتا من الرمل، ثمّ جمع أصدافا ملوّنة. قبل العودة، نظّفا مكانهما."}
+{"id":"POST-Q24-R01","source_item":"POST-Q24","round":1,"kind":"passage","interaction_type":"read_aloud","text":"في صباح مشمس، ذهب ماجد مع والده إلى الشّاطئ. أخذ دلوا صغيرا، وحمل والده ماء ومظلّة. بنى ماجد بيتا من الرّمل، ثمّ جمع أصدافا ملوّنة. قبل العودة، نظّفا مكانهما."}
 {"id":"L3-CORE-07-CONTEXT","source_item":"L3-CORE-07","round":null,"kind":"reading_context","interaction_type":"reading_context","text":"دخل خالد مكتبة المدرسة في وقت الفسحة. بحث عن كتاب عن الحيوانات، فساعده أمين المكتبة. جلس في مكان هادئ وقرأ الكتاب، ثمّ أعاده إلى مكانه."}
-{"id":"L3-CORE-08-CONTEXT","source_item":"L3-CORE-08","round":null,"kind":"reading_context","interaction_type":"reading_context","text":"خرجت الأسرة إلى الوادي. أحضر الأب الماء والطعام، وحمل الأطفال حقائبهم. شاهدوا النخل والطيور. قبل العودة، جمعوا مخلّفاتهم وتركوا المكان نظيفا."}
+{"id":"L3-CORE-08-CONTEXT","source_item":"L3-CORE-08","round":null,"kind":"reading_context","interaction_type":"reading_context","text":"خرجت الأسرة إلى الوادي. أحضر الأب الماء والطّعام، وحمل الأطفال حقائبهم. شاهدوا النّخل والطّيور. قبل العودة، جمعوا مخلّفاتهم وتركوا المكان نظيفا."}

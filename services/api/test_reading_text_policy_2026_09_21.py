@@ -21,7 +21,7 @@ def test_single_letters_syllables_and_words_keep_full_diacritics():
 
 def test_multiword_text_drops_optional_marks_but_keeps_shadda():
     source = "فِي صَبَاحٍ، ثُمَّ حَمَلَتْ سَلَّةَ الطَّعَامِ."
-    assert normalize_reading_text(source) == "في صباح، ثمّ حملت سلّة الطعام."
+    assert normalize_reading_text(source) == "في صباح، ثمّ حملت سلّة الطّعام."
 
 
 def test_final_release_has_no_optional_arabic_marks_in_multiword_reading_text():

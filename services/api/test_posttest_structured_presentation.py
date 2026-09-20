@@ -65,8 +65,8 @@ def test_posttest_reading_questions_are_recording_only_with_exact_text():
         "POST-Q20": "نَجْم",
         "POST-Q21": "نُور",
         "POST-Q22": "سُلَّم",
-        "POST-Q23": "تلعب مريم بالكرة.",
-        "POST-Q24": "في صباح مشمس، ذهب ماجد مع والده إلى الشاطئ. أخذ دلوا صغيرا، وحمل والده ماء ومظلّة. بنى ماجد بيتا من الرمل، ثمّ جمع أصدافا ملوّنة. قبل العودة، نظّفا مكانهما.",
+        "POST-Q23": normalize_reading_text(POSTTEST_PRESENTATION["POST-Q23"]["expected_reading_text"]),
+        "POST-Q24": normalize_reading_text(POSTTEST_PRESENTATION["POST-Q24"]["expected_reading_text"]),
     }
     for canonical, text in expected.items():
         item = items[canonical]
@@ -93,7 +93,9 @@ def test_posttest_exact_presentation_fields_reach_the_db_projection():
             assert experience["skill"] == source["skill"], canonical
             assert experience["instruction_text"] == source["instruction_text"], canonical
             assert experience["encouragement"] == source["encouragement"], canonical
-            expected_stimulus = source["stimulus"]
+            expected_stimulus = dict(source["stimulus"])
+            if expected_stimulus.get("kind") == "reading" and expected_stimulus.get("text") is not None:
+                expected_stimulus["text"] = normalize_reading_text(expected_stimulus["text"])
             if canonical == "POST-Q11":
                 expected_stimulus = {"kind": "audio", "audio_target": "مَ"}
             assert experience["stimulus"] == expected_stimulus, canonical
