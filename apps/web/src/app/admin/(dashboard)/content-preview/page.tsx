@@ -312,7 +312,20 @@ export default function ContentPreviewPage() {
     }
   };
 
-  useEffect(() => { void loadIndex(); }, []);
+  useEffect(() => {
+    let cancelled = false;
+    void fetchIndex()
+      .then((data) => {
+        if (cancelled) return;
+        setIndex(data);
+        if (data.items.length) setSelected(data.items[0].canonical_id);
+      })
+      .catch((caught: unknown) => {
+        if (!cancelled) setError(caught instanceof Error ? caught.message : "تعذر تحميل المحتوى المعتمد");
+      })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase("ar");
@@ -335,13 +348,8 @@ export default function ContentPreviewPage() {
     : (filtered[0]?.canonical_id || "");
 
   useEffect(() => {
-    if (!effectiveSelected) {
-      setDetail(null);
-      return;
-    }
+    if (!effectiveSelected) return;
     let cancelled = false;
-    setDetailLoading(true);
-    setError("");
     void fetchDetail(effectiveSelected)
       .then((data) => { if (!cancelled) setDetail(data); })
       .catch((caught: unknown) => { if (!cancelled) setError(caught instanceof Error ? caught.message : "تعذر تحميل تفاصيل المحتوى"); })
@@ -420,7 +428,7 @@ export default function ContentPreviewPage() {
               <div className="sticky top-0 z-10 bg-white/95 backdrop-blur py-2 text-xs font-extrabold text-primary">{group.label}</div>
               <div className="space-y-2">{group.items.map((item) => {
                 const active = item.canonical_id === effectiveSelected;
-                return <button key={item.canonical_id} type="button" onClick={() => setSelected(item.canonical_id)} className={`w-full text-start rounded-2xl border p-3 transition ${active ? "border-primary bg-teal/10 shadow-sm" : "border-border bg-white hover:border-primary/40"}`}>
+                return <button key={item.canonical_id} type="button" onClick={() => { setDetailLoading(true); setError(""); setSelected(item.canonical_id); }} className={`w-full text-start rounded-2xl border p-3 transition ${active ? "border-primary bg-teal/10 shadow-sm" : "border-border bg-white hover:border-primary/40"}`}>
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0"><div className="font-extrabold text-navy line-clamp-2">{item.title}</div><div className="text-xs text-muted mt-1">{item.skill || KIND_LABEL[item.kind]}</div></div>
                     <span className="text-[10px] font-mono text-muted shrink-0">{item.canonical_id}</span>
