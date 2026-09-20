@@ -18,6 +18,7 @@ async function proxy(req: NextRequest, { params }: { params: Promise<{ path: str
   const cookieHeader = req.headers.get("cookie") ?? "";
   const contentType = req.headers.get("content-type") ?? "";
   const idempotencyKey = req.headers.get("idempotency-key");
+  const rangeHeader = req.headers.get("range");
   const requestId = correlationId(req);
 
   const headers: Record<string, string> = {
@@ -26,6 +27,7 @@ async function proxy(req: NextRequest, { params }: { params: Promise<{ path: str
     "x-request-id": requestId,
   };
   if (idempotencyKey) headers["idempotency-key"] = idempotencyKey;
+  if (rangeHeader) headers.range = rangeHeader;
 
   const init: RequestInit = {
     method: req.method,
@@ -47,13 +49,19 @@ async function proxy(req: NextRequest, { params }: { params: Promise<{ path: str
     hasSetCookie: Boolean(setCookie),
   });
 
+  const responseHeaders: Record<string, string> = {
+    "content-type": upstream.headers.get("content-type") ?? "application/json",
+    "cache-control": cacheControl,
+    "x-request-id": upstreamRequestId,
+  };
+  for (const name of ["accept-ranges", "content-range", "content-length", "content-disposition"]) {
+    const value = upstream.headers.get(name);
+    if (value) responseHeaders[name] = value;
+  }
+
   const res = new NextResponse(body, {
     status: upstream.status,
-    headers: {
-      "content-type": upstream.headers.get("content-type") ?? "application/json",
-      "cache-control": cacheControl,
-      "x-request-id": upstreamRequestId,
-    },
+    headers: responseHeaders,
   });
 
   if (setCookie) res.headers.set("set-cookie", setCookie);
