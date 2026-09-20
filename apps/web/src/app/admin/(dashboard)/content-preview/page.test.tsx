@@ -107,7 +107,7 @@ test("keeps the library as the first mobile view and opens detail explicitly", a
 test("does not repeat a correct choice in a second answer block", async () => {
   render(<ContentPreviewPage />);
   fireEvent.click(await screen.findByRole("button", { name: /اختر الإجابة الصحيحة/ }));
-  expect(await screen.findByText("أي حرف هو ب؟")).toBeInTheDocument();
+  expect(await screen.findAllByText("أي حرف هو ب؟")).toHaveLength(1);
   expect(screen.getByText("إجابة صحيحة")).toBeInTheDocument();
   expect(screen.queryByText("الإجابة الصحيحة")).not.toBeInTheDocument();
 });
