@@ -27,6 +27,7 @@ from content_runtime import (
 )
 from db.models import ContentItem, ContentRelease, ContentStep, User
 from dependencies import get_current_user, get_db
+from reinforcement_mapping import mapping_for_skill
 
 router = APIRouter(prefix="/researcher/content-preview", tags=["Content Review"])
 
@@ -170,6 +171,36 @@ def _review_round(item: ContentItem, step: ContentStep) -> dict:
     }
 
 
+def _reinforcement_candidates(item: ContentItem) -> list[str]:
+    if str(item.kind) != "core_activity" or item.skill is None or not item.skill.canonical_skill_id:
+        return []
+    mapping = mapping_for_skill(
+        level_id=int(item.level_id),
+        skill_code=str(item.skill.canonical_skill_id),
+    )
+    if not mapping:
+        return []
+    return [str(value) for value in mapping.get("candidates") or []]
+
+
+def _search_text(item: ContentItem, steps: list[ContentStep]) -> str:
+    data = item.template_data or {}
+    values = [
+        canonical_id(item),
+        str(data.get("title") or ""),
+        str(item.skill.name if item.skill is not None else ""),
+    ]
+    intro = _context_intro(item) or {}
+    values.extend([str(intro.get("title") or ""), str(intro.get("text") or "")])
+    for step in steps:
+        values.extend([
+            _question_text(item, step),
+            str(step.expected_reading_text or ""),
+        ])
+        values.extend(str(option.text) for option in active_options(step))
+    return " ".join(value for value in values if value).strip()
+
+
 def _summary(item: ContentItem) -> dict:
     data = item.template_data or {}
     steps = sorted(item.steps, key=lambda step: (int(step.order_index), int(step.id or 0)))
@@ -193,6 +224,8 @@ def _summary(item: ContentItem) -> dict:
         "has_audio": any(asset.get("asset_type") == "audio" for asset in all_assets),
         "has_images": any(asset.get("asset_type") == "image" for asset in all_assets),
         "requires_recording": interaction in READ_INTERACTIONS,
+        "reinforcement_candidates": _reinforcement_candidates(item),
+        "search_text": _search_text(item, steps),
         "release_version": data.get("canonical_release_version"),
         "release_sha256": data.get("canonical_release_sha256"),
     }
@@ -266,6 +299,7 @@ def get_content_preview(
             "status": str(item.status),
             "layout_hint": _layout_hint(item),
             "context_intro": _context_intro(item),
+            "reinforcement_candidates": _reinforcement_candidates(item),
             "item_assets": item_assets(item),
         },
         "rounds": [_review_round(item, step) for step in steps],

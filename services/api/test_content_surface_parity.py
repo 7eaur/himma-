@@ -191,3 +191,18 @@ def test_live_learning_student_contract_stays_answer_safe(monkeypatch):
         _assert_no_answer_metadata(live)
     finally:
         db.close()
+
+
+def test_admin_core_review_exposes_approved_reinforcement_branch_and_searchable_question_text():
+    _seed()
+    db = SessionLocal()
+    try:
+        review = content_preview.get_content_preview("L1-CORE-09", db=db, _=None)
+        assert review["item"]["reinforcement_candidates"] == ["L1-REIN-11"]
+
+        index = content_preview.list_content_preview(db=db, _=None)
+        summary = next(item for item in index["items"] if item["canonical_id"] == "L1-CORE-09")
+        assert summary["reinforcement_candidates"] == ["L1-REIN-11"]
+        assert review["rounds"][0]["question_text"] in summary["search_text"]
+    finally:
+        db.close()

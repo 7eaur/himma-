@@ -55,6 +55,8 @@ interface ReviewSummary {
   has_audio: boolean;
   has_images: boolean;
   requires_recording: boolean;
+  reinforcement_candidates: string[];
+  search_text: string;
   release_version?: string | null;
   release_sha256?: string | null;
 }
@@ -110,6 +112,7 @@ interface ReviewDetail {
     status: string;
     layout_hint?: string | null;
     context_intro?: ContextIntro | null;
+    reinforcement_candidates: string[];
     item_assets: Asset[];
   };
   rounds: ReviewRound[];
@@ -206,7 +209,7 @@ function OptionsReview({ options, assets, answer }: { options: Option[]; assets:
   assets.forEach((asset) => {
     if (asset.asset_type === "image" && asset.option_id) imageByOption.set(Number(asset.option_id), asset);
   });
-  const answerIds = new Set(answer.option_ids);
+  const answerIds = new Set(answer.kind === "correct_options" ? answer.option_ids : []);
   return <div className="space-y-3">
     <div className="flex items-center gap-2 font-extrabold text-navy"><ListChecks size={18} className="text-primary" />الخيارات</div>
     <div className="grid md:grid-cols-2 gap-3">
@@ -336,7 +339,7 @@ export default function ContentPreviewPage() {
       if (media === "images" && !item.has_images) return false;
       if (media === "recording" && !item.requires_recording) return false;
       if (normalized) {
-        const haystack = `${item.canonical_id} ${item.title} ${item.skill}`.toLocaleLowerCase("ar");
+        const haystack = item.search_text.toLocaleLowerCase("ar");
         if (!haystack.includes(normalized)) return false;
       }
       return true;
@@ -467,6 +470,24 @@ export default function ContentPreviewPage() {
                 </div>
               </div>
               {current.item.criterion && <div className="mt-4 rounded-2xl bg-bg border border-border p-4 text-sm text-navy"><span className="font-extrabold">معيار التقييم: </span>{current.item.criterion}</div>}
+              {current.item.kind === "core_activity" && current.item.reinforcement_candidates.length > 0 && <div className="mt-4 rounded-2xl border border-violet-200 bg-violet-50 p-4">
+                <div className="text-sm font-extrabold text-violet-900 mb-3">التقوية المرتبطة بهذه المهارة</div>
+                <div className="flex flex-wrap gap-2">{current.item.reinforcement_candidates.map((canonical) => {
+                  const linked = index?.items.find((item) => item.canonical_id === canonical);
+                  return <button key={canonical} type="button" onClick={() => {
+                    setSection("all");
+                    setInteraction("all");
+                    setMedia("all");
+                    setQuery("");
+                    setDetailLoading(true);
+                    setError("");
+                    setSelected(canonical);
+                  }} className="rounded-xl border border-violet-200 bg-white px-3 py-2 text-sm text-start hover:border-violet-400">
+                    <span className="font-bold text-navy">{linked?.title || canonical}</span>
+                    {linked && <span className="block text-[10px] font-mono text-muted mt-1">{canonical}</span>}
+                  </button>;
+                })}</div>
+              </div>}
             </AdminPanel>
 
             <ContextIntroReview intro={current.item.context_intro} assets={current.item.item_assets} />
