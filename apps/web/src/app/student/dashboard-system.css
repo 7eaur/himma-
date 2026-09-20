@@ -528,10 +528,10 @@ sectionsection[data-testid="student-next-action"] > div:last-child img {
     overflow-wrap:anywhere;
   }
 
-  [data-testid="student-next-action"] {
+  section[data-testid="student-next-action"] {
     width:100%;
     min-width:0;
-    grid-template-columns:minmax(0,1fr) minmax(0,96px) !important;
+    grid-template-columns:minmax(0,1fr) minmax(0,76px) !important;
     border-radius:1.15rem;
     overflow:hidden;
   }
@@ -540,7 +540,7 @@ sectionsection[data-testid="student-next-action"] > div:last-child img {
     min-width:0;
   }
 
-  [data-testid="student-next-action"] > div:first-child {
+  section[data-testid="student-next-action"] > div:first-child {
     padding:1rem .95rem;
   }
 
@@ -560,18 +560,20 @@ sectionsection[data-testid="student-next-action"] > div:last-child img {
   }
 
   section[data-testid="student-next-action"] > div:last-child {
-    padding:.65rem .05rem 0;
+    padding:.45rem 0 0;
     border-inline-start:0;
+    align-items:flex-end;
+    justify-content:center;
   }
 
-  sectionsection[data-testid="student-next-action"] > div:last-child::before {
-    width:80px;
+  section[data-testid="student-next-action"] > div:last-child::before {
+    width:62px;
     top:50%;
-    transform:translateY(-45%);
+    transform:translateY(-42%);
   }
 
-  sectionsection[data-testid="student-next-action"] > div:last-child img {
-    max-height:108px;
+  section[data-testid="student-next-action"] > div:last-child img {
+    max-height:88px;
   }
 
   [data-testid="student-primary-action"] {
