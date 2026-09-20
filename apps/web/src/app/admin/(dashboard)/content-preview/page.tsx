@@ -504,20 +504,9 @@ export default function ContentPreviewPage() {
     : (filtered[0]?.canonical_id || "");
 
   useEffect(() => {
-    if (effectiveSelected && effectiveSelected !== selected) {
-      setSelected(effectiveSelected);
-    }
-  }, [effectiveSelected, selected]);
-
-  useEffect(() => {
-    if (!effectiveSelected) {
-      setDetail(null);
-      setDetailLoading(false);
-      return;
-    }
+    if (!effectiveSelected) return;
 
     let cancelled = false;
-    setDetailLoading(true);
 
     void fetchDetail(effectiveSelected)
       .then((data) => {
@@ -525,9 +514,6 @@ export default function ContentPreviewPage() {
       })
       .catch((caught: unknown) => {
         if (!cancelled) setError(caught instanceof Error ? caught.message : "تعذر تحميل تفاصيل المحتوى");
-      })
-      .finally(() => {
-        if (!cancelled) setDetailLoading(false);
       });
 
     return () => {
@@ -558,12 +544,14 @@ export default function ContentPreviewPage() {
     setContentKind("all");
     setInteraction("all");
     setMedia("all");
+    setSelected("");
     setMobileDetailOpen(false);
   };
 
   const selectScope = (nextScope: Scope) => {
     setScope(nextScope);
     if (nextScope === "pretest" || nextScope === "posttest") setContentKind("all");
+    setSelected("");
     setMobileDetailOpen(false);
   };
 
@@ -620,6 +608,7 @@ export default function ContentPreviewPage() {
             value={query}
             onChange={(event) => {
               setQuery(event.target.value);
+              setSelected("");
               setMobileDetailOpen(false);
             }}
             placeholder="ابحث بالسؤال أو المهارة أو الرمز..."
@@ -659,6 +648,7 @@ export default function ContentPreviewPage() {
             disabled={scope === "pretest" || scope === "posttest"}
             onChange={(event) => {
               setContentKind(event.target.value as ContentKind);
+              setSelected("");
               setMobileDetailOpen(false);
             }}
           >
@@ -675,6 +665,7 @@ export default function ContentPreviewPage() {
             value={interaction}
             onChange={(event) => {
               setInteraction(event.target.value);
+              setSelected("");
               setMobileDetailOpen(false);
             }}
           >
@@ -694,6 +685,7 @@ export default function ContentPreviewPage() {
             value={media}
             onChange={(event) => {
               setMedia(event.target.value);
+              setSelected("");
               setMobileDetailOpen(false);
             }}
           >
@@ -780,7 +772,7 @@ export default function ContentPreviewPage() {
           العودة إلى الفهرس
         </button>
 
-        {detailLoading || (effectiveSelected && !current) ? <section className={styles.detailCard}><div className={styles.loading}><div className="spinner w-10 h-10" /></div></section>
+        {effectiveSelected && !current ? <section className={styles.detailCard}><div className={styles.loading}><div className="spinner w-10 h-10" /></div></section>
           : !current ? <section className={styles.detailCard}><div className={styles.empty}><div><strong>اختر عنصر محتوى</strong>اختر سؤالًا أو نشاطًا من الفهرس لمراجعته.</div></div></section>
           : <>
             <section className={styles.detailCard}>
