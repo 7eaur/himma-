@@ -39,6 +39,7 @@ const ROUTES = [
   "/admin/students",
   "/admin/students/new",
   "/admin/audio-review",
+  "/admin/content-preview",
   "/admin/reports",
   "/admin/skill-reports",
   "/admin/settings",
