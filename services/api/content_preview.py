@@ -10,6 +10,8 @@ Student serializers remain separate and continue to hide answer metadata.
 """
 from __future__ import annotations
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, joinedload
 
@@ -211,8 +213,8 @@ def _find_by_canonical(db: Session, wanted: str) -> ContentItem:
 
 @router.get("")
 def list_content_preview(
-    kind: str | None = Query(default=None),
-    level_id: int | None = Query(default=None, ge=1, le=3),
+    kind: Annotated[str | None, Query()] = None,
+    level_id: Annotated[int | None, Query(ge=1, le=3)] = None,
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
