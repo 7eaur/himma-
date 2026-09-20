@@ -34,6 +34,7 @@ test.describe("Filtered audio review context", () => {
     const studentId = 4242;
     const filteredQueueRequests: string[] = [];
     const gradePayloads: Array<{ id: number; body: Record<string, unknown> }> = [];
+    const playbackRequests: string[] = [];
     const submissions = [
       {
         id: 9101,
@@ -64,6 +65,16 @@ test.describe("Filtered audio review context", () => {
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(submissions) });
     });
 
+    await page.route("**/api/recordings/play-by-key?key=*", async (route) => {
+      playbackRequests.push(route.request().url());
+      await route.fulfill({
+        status: 200,
+        contentType: "audio/webm",
+        headers: { "Accept-Ranges": "bytes", "Cache-Control": "private, no-store" },
+        body: "test-audio-payload",
+      });
+    });
+
     await page.route("**/api/review/audio/*/grade", async (route) => {
       const id = Number(route.request().url().match(/\/audio\/(\d+)\/grade/)?.[1]);
       const body = route.request().postDataJSON() as Record<string, unknown>;
@@ -89,6 +100,12 @@ test.describe("Filtered audio review context", () => {
     await expect(reviewButtons).toHaveCount(2);
 
     await reviewButtons.nth(0).click();
+
+    await page.getByRole("button", { name: "تشغيل التسجيل" }).click();
+    const player = page.locator("audio.audio-review-native-player");
+    await expect(player).toHaveAttribute("src", "/api/recordings/play-by-key?key=tests%2Fui-valid.webm");
+    expect((await player.getAttribute("src"))?.startsWith("/api/recordings/")).toBe(true);
+
     await page.getByRole("button", { name: "اعتماد القراءة" }).click();
     await page.getByRole("button", { name: "حفظ واعتماد القراءة" }).click();
     await expect(page.getByText("تم اعتماد التسجيل وحفظ نتيجة المراجعة بنجاح.")).toBeVisible();
@@ -100,6 +117,9 @@ test.describe("Filtered audio review context", () => {
     await page.getByRole("button", { name: "إرسال طلب إعادة التسجيل" }).click();
     await expect(page.getByText("تم إرسال مهمة إعادة تسجيل للطالب دون إيقاف مساره، مع الاحتفاظ بالتسجيل السابق في السجل.")).toBeVisible();
     await expect(page.getByText("قراءة ثانية")).toHaveCount(0);
+
+    expect(playbackRequests.length).toBeGreaterThan(0);
+    expect(playbackRequests.every((url) => new URL(url).origin === "http://localhost:3000")).toBe(true);
 
     expect(gradePayloads).toHaveLength(2);
     expect(gradePayloads[0].id).toBe(9101);
