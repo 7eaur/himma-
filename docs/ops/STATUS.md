@@ -1,93 +1,77 @@
 # STATUS — Himma Platform
 
-**Last synchronized:** 2026-09-19  
+**Last synchronized:** 2026-09-21  
 **Repository:** 7eaur/himma-  
 **Official branch:** stage/02-content  
-**Functional release SHA:** 512f0a550eb098f0ce904ec4ed526d9e28098a6a  
-**Latest verified operational/gate SHA:** 81006dcf09a544b1b54f42de4a0a57c1deb44bfd  
+**Current functional / gate / production SHA:** `0bf1390bdbc0a19330c807d82d646424490b5a2b`  
 **State:** CLOSED / PRODUCTION_GREEN
 
 ## Current truth
 
-آخر دفعة UX وتشديد البوابات والتوثيق الموحّد أصبحت ضمن الفرع الرسمي. لا تستخدم handoffs القديمة التي تقول إن UX أو current-state candidate لم تُدمج أو لم تُنشر.
+الفرع الرسمي يحتوي آخر تحديثات المحتوى والقراءة وصفحة إدارة المحتوى. لا تستخدم أي handoff قديم يقول إن Content Preview ما زال محاكاة لواجهة الطالب أو إن التشكيل القديم ما زال معتمدًا.
 
-الـOperational SHA أعلاه descendant من Functional SHA ويغيّر التوثيق/Workflows/QA test logic فقط؛ لا يغيّر قواعد المنتج أو المحتوى الأكاديمي.
+## Closed in the latest batch
+
+- اعتماد سياسة تخفيف التشكيل للجمل والنصوص مع إبقاء الحروف/المقاطع/الكلمات المفردة بتشكيلها، والحفاظ على الشدّة المهمة.
+- Corpus تدريب مطابق للإصدار النهائي: 92 سجلًا.
+- إلغاء مفهوم Student-like Content Preview للمشرف.
+- بناء Admin Content Review read-only من PostgreSQL approved content.
+- عرض السؤال/التعليمة/التلميح/الخيارات/الإجابة الصحيحة/الصور/الأصوات/هدف التسجيل.
+- دعم الترتيب الصحيح في sequence tasks.
+- بحث نصي كامل وفلاتر.
+- إظهار فروع التقوية المرتبطة بالـCore.
+- إبقاء Student payloads answer-safe.
+- لا كتابة على تقدم الطلاب من صفحة المحتوى.
 
 ## Exact official evidence
 
-- QG #945 / Run 35410973050: SUCCESS.
-  - Security: SUCCESS.
-  - Frontend: SUCCESS.
-  - Backend: 894 passed, 5 warnings.
+SHA: `0bf1390bdbc0a19330c807d82d646424490b5a2b`
+
+- QG #976 / Run `35541791265`: SUCCESS.
+  - Frontend unit: 40 passed.
+  - Backend: 902 passed, 5 warnings.
   - Integration Playwright: 23 passed (3.7m).
-  - Playwright artifact: 10573957731.
-- M04 #362 / Run 35410973052: SUCCESS.
+  - Security: SUCCESS.
+- M04 #387 / Run `35541791302`: SUCCESS.
   - responsive smoke: 2 passed.
-  - screenshots artifact: 10574142637.
-  - digest: sha256:888a88d92db0971a67f65983dec522532462280cc31fd6f7478111c889eababb.
-- M09 #227 / Run 35410973045: SUCCESS.
-  - Backend regression: 894 passed, 5 warnings.
-  - Browser regression: 23 passed (3.7m).
-  - readiness: config/database/content/approved_audio/storage/redis/security_mode all ok.
-  - PostgreSQL restore: PASS.
-  - restored skills: 44.
-  - restored content_items: 125.
-  - Object storage restore: 35 objects.
-  - Student audio bypass route: absent.
+  - artifact: `10615031736`.
+  - digest: `sha256:843fd55e673cdb93d51cfcd0c109d5f15beab7aa07bca926296a9b9338da7930`.
+- M09 #252 / Run `35541791274`: SUCCESS.
+  - Backend: 902 passed, 5 warnings.
+  - Browser: 23 passed (3.5m).
+  - PostgreSQL restore PASS.
+  - 44 skills / 125 content_items restored.
+  - object store restore: 35.
+
+## Canonical content
+
+- Version: `HIMMA-CONTENT-APPROVAL-2026-09-08`.
+- Runtime: 125 items / 44 skills.
+- Canonical release SHA: `e6c749add3652ca8aa896065218673eaac8a07cd0cbca1e92710f35f14f5a904`.
+- Projection SHA: `e1d14b0b6102f635820aa7f9a9b074e4f7afd68a02006d0a8ee8a3f29f99670e`.
+- Training corpus: `packages/content/training/himma_reading_training_corpus_v2026_09_21.jsonl` — 92 records.
 
 ## Production
 
-Railway project: friendly-dream / production.
-
-- himma-api deployment 85e73822-a71b-4c2e-afef-ec08a4c6bc1b: SUCCESS.
-- himma-web deployment d5a7f586-c93c-4a50-8faf-1e1d42cbeae1: SUCCESS.
-- deployment commit: 81006dcf09a544b1b54f42de4a0a57c1deb44bfd.
-- branch: stage/02-content.
-- Postgres: SUCCESS.
-- Redis: SUCCESS.
-- himma-audio bucket: present.
-- API predeploy Alembic: PASS.
-- canonical publication: 125 runtime items.
-- API /ready: HTTP 200.
-
-## Canonical product state
-
-- 30 Pretest.
-- 30 Posttest.
-- 30 Core.
-- 35 Reinforcement runtime.
-- 44 skills.
-- 50 student default capacity.
-- Human Supervisor Review is current audio authority.
-- Pending reading audio is academically neutral and does not block remaining unanswered questions.
-- Assessment finalization waits for required reviews.
-- Rerecord is an explicit task; previous recording history is preserved.
-- No Student Audio Skip.
-- No Temporary Audio Skip.
-- No fake ASR.
-- No automatic demotion.
-
-## Branch reconciliation
-
-All non-provider branches were rechecked against the official line. No missing relevant non-audio implementation remains outside stage/02-content.
-
-deployment/platform-sandbox remains the only diverged non-audio branch; its 9 unique commits are an obsolete deployment experiment and are intentionally not merged.
-
-Provider/speech-lab branches remain excluded by owner decision.
-
-See docs/maintenance/HIMMA_BRANCH_INVENTORY_2026-09-18_AR.md.
+Railway `friendly-dream / production`:
+- himma-api `f160b611-c157-4a53-9d37-cfae289cfb07`: SUCCESS.
+- himma-web `7f6fec27-3f38-4e21-afd6-c9b62729b168`: SUCCESS.
+- deployed commit = exact current SHA.
+- Postgres / Redis = SUCCESS.
+- himma-audio bucket = present.
+- canonical publication = 125.
+- /ready = 200.
 
 ## Remaining boundaries
 
 Only external/owner items remain:
-- production ASR/provider/calibration/privacy/governance;
-- final retention policy for child recordings/data before a real study;
-- final research-session parameters if not owner-approved;
-- manual human screen-reader acceptance;
-- optional custom domain/entity branding details.
+- Production ASR/provider/calibration/privacy/governance.
+- child data/audio retention decision.
+- final study protocol parameters if not approved.
+- manual human screen-reader acceptance.
+- optional custom domain/entity branding.
 
 ## Current action
 
-No hidden implementation task remains in the current delivery. Wait for a new owner assignment or verified regression.
-
-Entry point: START_HERE_AR.md.
+لا توجد مرحلة تنفيذ عامة مفتوحة. استلم أي تكليف جديد من المالك فوق هذه الحالة. نقطة الدخول:
+`START_HERE_AR.md`

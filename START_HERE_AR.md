@@ -1,320 +1,209 @@
 # ابدأ من هنا — منصة هِمّة | الحالة الحالية الموحّدة
 
-**هذه هي نقطة الدخول الوحيدة لأي محادثة أو وكيل جديد.**
+**هذه هي نقطة الدخول الرسمية لأي محادثة أو وكيل جديد.**
 
-آخر توحيد موثق: 2026-09-19  
-Repository: 7eaur/himma-  
-Official branch: stage/02-content  
-آخر Functional Release SHA مثبت: 512f0a550eb098f0ce904ec4ed526d9e28098a6a  
-حالة الإصدار: MERGED + CI GREEN + RAILWAY DEPLOYED + READY
+**آخر تحديث:** 2026-09-21  
+**Repository:** `7eaur/himma-`  
+**Official branch:** `stage/02-content`  
+**Current functional + verified production SHA:** `0bf1390bdbc0a19330c807d82d646424490b5a2b`  
+**State:** CLOSED / PRODUCTION_GREEN
 
-Latest verified operational/gate SHA: 81006dcf09a544b1b54f42de4a0a57c1deb44bfd  
-- QG #945 / Run 35410973050 = SUCCESS.  
-- M04 #362 / Run 35410973052 = SUCCESS.  
-- M09 #227 / Run 35410973045 = SUCCESS.  
-- QG backend = 894 passed, 5 warnings; integration Playwright = 23 passed (3.7m).  
-- M04 artifact = 10574142637; digest = sha256:888a88d92db0971a67f65983dec522532462280cc31fd6f7478111c889eababb.  
-- M09 runtime = 125 items / 44 skills; PostgreSQL restore PASS; object-store restore 35; audio bypass absent; readiness all ok.  
-- Railway activation: API 85e73822-a71b-4c2e-afef-ec08a4c6bc1b = SUCCESS; Web d5a7f586-c93c-4a50-8faf-1e1d42cbeae1 = SUCCESS; /ready = 200.
+## قاعدة الحقيقة
 
-هذا descendant لا يغيّر Product Runtime؛ Latest Functional SHA يبقى 512f0a550eb098f0ce904ec4ed526d9e28098a6a.
+ابدأ دائمًا من الحالة الحية، بهذا الترتيب:
 
-
-> قاعدة إلزامية: ابدأ دائمًا بجلب HEAD الحي للفرع الرسمي وحالة GitHub Actions وRailway. إذا كان هناك descendant توثيقي أحدث من SHA أعلاه فلا تعتبر اختلاف SHA اختلافًا وظيفيًا قبل مقارنة الملفات.
-
-## 1. ترتيب الحقيقة
-
-عند أي تعارض استخدم هذا الترتيب:
-
-1. live code على stage/02-content.
+1. live code على `stage/02-content`.
 2. PostgreSQL schema + Alembic migrations.
 3. executable tests + exact-SHA GitHub Actions.
 4. verified Railway runtime.
 5. canonical content/audio/product contracts.
-6. الوثائق الحالية المدرجة في docs/ops/DOCUMENTATION_INDEX.md.
-7. الوثائق المؤرخة القديمة، handoffs، checkpoints، audits — تاريخ فقط.
+6. وثائق CURRENT في `docs/ops/DOCUMENTATION_INDEX.md`.
+7. handoffs/checkpoints المؤرخة القديمة = تاريخ فقط.
 
-أي وثيقة تاريخية تقول NOT MERGED أو NOT DEPLOYED أو STOP BEFORE A11 لم تعد تصف الحالة الحالية.
+إذا تغيّر HEAD بعد هذا الملف، اعتمد الأحدث ولا ترجع للخلف.
 
-## 2. ما هي هِمّة؟
+## ما هي هِمّة؟
 
-هِمّة منصة ويب عربية RTL تعليمية/بحثية لطلاب الصف الثالث ذوي صعوبات القراءة. لا يوجد تطبيق موبايل أصلي ضمن النطاق الحالي.
+هِمّة منصة ويب عربية RTL تعليمية/بحثية لطلبة الصف الثالث ذوي صعوبات القراءة. لها سطح طالب وسطح مشرف.
 
-الأدوار الظاهرة:
-- الطالب: يدخل بكود بسيط أنشأه المشرف؛ لا تسجيل ذاتي ولا بريد للطفل.
-- المشرف: ينشئ الطلاب، يتابع المسار، يراجع التسجيلات، يدير المحتوى والإعدادات والتقارير. القيمة الداخلية researcher باقية كتوافق تقني فقط ولا تظهر كمسمى منتج.
+رحلة الطالب الحالية:
+- دخول بالكود.
+- اختبار قبلي 30 بندًا.
+- تسكين: أقل من 50 → L1، من 50 إلى أقل من 80 → L2، 80 فأعلى → L3.
+- تعلم Core + تقوية مستهدفة حسب الحاجة.
+- داخل النشاط: >=80 نجاح، 70..<80 إعادة موجهة، <70 تقوية في المستوى نفسه.
+- لا خفض تلقائي.
+- L1/L2 يمكن ترقيتهما بعد تحقق شروط الإتقان.
+- L3 نهائي ويحتاج 10 Core.
+- الاختبار البعدي 30 بندًا بعد إكمال المسار وتفعيل المشرف.
 
-السعة الافتراضية المعتمدة: 50 طالبًا عبر HIMMA_MAX_STUDENTS، والحسابات غير النشطة تدخل في الحد.
+## المحتوى القانوني الحالي
 
-## 3. رحلة الطالب الحالية
+Approval version:
+`HIMMA-CONTENT-APPROVAL-2026-09-08`
 
-1. دخول الطالب بالكود.
-2. اختبار قبلي من 30 بندًا.
-3. توزيع أولي من الدرجة النهائية فقط:
-   - أقل من 50 → L1.
-   - من 50 إلى أقل من 80 → L2.
-   - 80 فأعلى → L3.
-4. التعلم يبدأ من المستوى المسند؛ المستويات الأدنى تعتبر متجاوزة بالتسكين لا مكتملة.
-5. داخل النشاط:
-   - >=80 نجاح.
-   - 70..<80 إعادة موجهة.
-   - <70 تقوية مستهدفة في المستوى نفسه.
-6. التكيف المستمر يستخدم أحدث 3 أدلة صالحة من جلسة Core النشطة بأوزان 50/30/20.
-7. L1/L2 يمكن ترقيتهما مبكرًا بعد 6 Core على الأقل مع mastery >=85 وتغطية المهارات الحرجة وأدنى مهارة حرجة >=70 وعدم وجود تقوية/مراجعة معلقة.
-8. لا يوجد خفض تلقائي.
-9. L3 نهائي، ويحتاج 10 Core لإكمال رحلة التعلم.
-10. البعدي 30 بندًا ولا يفتح إلا بعد اكتمال رحلة التعلم وتفعيل المشرف له.
-11. النتائج والتقارير تحفظ من المصدر نفسه دون إعادة حساب مختلفة في الواجهة.
+Runtime:
+- 125 عنصرًا.
+- 30 قبلي.
+- 30 بعدي.
+- 30 Core.
+- 35 Reinforcement.
+- 44 مهارة canonical.
 
-## 4. عقد التسجيل الصوتي الحالي
+Canonical release SHA الحالي:
+`e6c749add3652ca8aa896065218673eaac8a07cd0cbca1e92710f35f14f5a904`
 
-المراجعة البشرية للمشرف هي السلطة الأكاديمية الحالية.
+Projection SHA:
+`e1d14b0b6102f635820aa7f9a9b074e4f7afd68a02006d0a8ee8a3f29f99670e`
 
-السلوك المعتمد:
-- تسجيل القراءة يحفظ ويرسل للمراجعة.
-- التسجيل pending/uploaded لا يتحول تلقائيًا إلى خطأ أو mastery أو انتقال.
-- إذا بقيت أسئلة غير مجابة في القبلي/البعدي، الطالب يكمل الأسئلة التالية ولا يتوقف بعد كل تسجيل.
-- الإنهاء الأكاديمي النهائي للجلسة يبقى محجوبًا حتى تُحسم التسجيلات المطلوبة.
-- طلب إعادة التسجيل ينشئ مهمة صريحة مستقلة؛ لا يخطف السؤال أو النشاط الحالي تلقائيًا.
-- التسجيل السابق يبقى في التاريخ؛ لا حذف history ولا استبدال صامت.
-- لا Student Audio Skip ولا Temporary Audio Skip ولا bypass.
-- التحليل الصوتي الآلي/مزود ASR الإنتاجي خارج الإغلاق الحالي وغير سلطوي أكاديميًا حتى اعتماد مستقل.
+## تحديث القراءة والتشكيل — 2026-09-21
 
-مرجع العقد الحالي:
-docs/maintenance/AUDIO_RUNTIME_AND_REVIEW_CONTRACT_CURRENT_AR.md
+تم اعتماد سياسة قراءة جديدة في طبقة الإصدار القانوني نفسها:
 
-## 5. المحتوى القانوني
+- الحروف والمقاطع والكلمات المفردة تحتفظ بالتشكيل المعتمد.
+- العبارات والجمل والنصوص الطويلة تزال منها الحركات الاختيارية لتقليل الازدحام البصري.
+- الشدّة المهمة تبقى.
+- نفس النص المعتمد ينعكس على learner-visible reading stimulus و`expected_reading_text` وسياقات القراءة، فلا يحدث drift بين العرض ومرجع التسجيل.
 
-Approval: HIMMA-CONTENT-APPROVAL-2026-09-08
+الملفات الأساسية:
+- `services/api/reading_text_policy_2026_09_21.py`
+- `services/api/canonical_release.py`
+- `services/api/test_reading_text_policy_2026_09_21.py`
+- `packages/content/training/himma_reading_training_corpus_v2026_09_21.jsonl`
 
-هناك رقمان يجب عدم خلطهما:
-- Catalog baseline/source = 105 بندًا: 30 قبلي + 30 بعدي + 30 Core + 15 تقوية baseline.
-- Runtime المعتمد = 125 بندًا: 30 قبلي + 30 بعدي + 30 Core + 35 تقوية، بعد 20 إضافة تقوية versioned معتمدة.
-- المهارات canonical = 44.
+ملف التدريب يحتوي 92 سجلًا: أهداف القراءة/التسجيل + سياقات القراءة المعتمدة، ويُختبر ضد الإصدار النهائي.
 
-مسار الحقيقة:
-approved/versioned sources → canonical compile/release → deterministic publication → PostgreSQL → APIs → UI
+## إدارة المحتوى في لوحة المشرف — 2026-09-21
 
-لا runtime patches ولا seeding تاريخي متعارض ولا content hardcoding داخل JSX.
+الفكرة القديمة التي كانت تجعل المشرف يرى واجهة تشبه واجهة الطالب أُلغيت جذريًا.
 
-## 6. الأصول والهوية
+المسار بقي تقنيًا:
+`/admin/content-preview`
 
-الهوية الأساسية:
-- Blue #347FD9
-- Green #51B985
-- Yellow #FFC857
-- Navy #20364D
-- Light #F7FBFF
-- Border #DCE8F2
-- Tajawal لواجهة الطالب.
-- IBM Plex Sans Arabic لواجهة المشرف والتقارير.
-- Noto Sans Arabic fallback.
+لكن وظيفته واسمه في الواجهة أصبحا:
+**المحتوى المعتمد**
 
-الصوت الثابت المعتمد:
-- 54 IDs.
-- 54 WAV masters + 54 MP3 web = 108 binaries.
-- 4 feedback + 6 letter sounds + 13 syllables + 29 words + 2 auditory stories.
-- manifest.csv هو مرجع IDs.
-- INS-01 وINS-02 القصتان المعتمدتان.
-- المصدر SYL-15 منشور تحت runtime ID المستقر LET-01 بصوت مَ.
+المعمارية الحالية:
+- Admin Content Review مستقل عن Student serializers.
+- read-only فقط؛ لا ينشئ جلسات أو محاولات أو تقدمًا.
+- يقرأ المحتوى `approved` المنشور في PostgreSQL.
+- يعرض السؤال والتعليمة والتلميح والمثير.
+- يعرض الخيارات والإجابة/الإجابات الصحيحة.
+- في أنشطة الترتيب يعرض الترتيب الأكاديمي الصحيح.
+- في مهام القراءة يعرض النص المطلوب من الطالب تسجيله.
+- يعرض الصور المرتبطة بالخيارات.
+- يعرض ملفات الصوت القابلة للتشغيل.
+- يعرض سياقات القراءة/القصص المعتمدة.
+- منظم حسب القبلي → مستويات Core/تقوية → البعدي.
+- يدعم البحث النصي الكامل والفلاتر.
+- يعرض فروع التقوية المرتبطة بالنشاط الأساسي.
+- Student APIs ما زالت تمنع تسريب `is_correct` أو answer metadata.
 
-## 7. المعمارية الحالية
+أهم الملفات:
+- `services/api/content_preview.py`
+- `apps/web/src/app/admin/(dashboard)/content-preview/page.tsx`
+- `services/api/test_content_surface_parity.py`
 
-Frontend:
-- apps/web
-- Next.js 16.3.4 + React 19.2.8 + TypeScript + Tailwind 4.
-- صفحات الطالب والمشرف وRTL/Responsive.
-- لا يملك قواعد الدرجات أو التكيف المرجعية.
+## الصوت
 
-Backend:
-- services/api
-- FastAPI + SQLAlchemy + PostgreSQL + Alembic.
-- مصادقة وصلاحيات، الطلاب، المحتوى، الاختبارات، التعلم، التكيف، الصوت، المراجعة، التقارير، التدقيق.
-- الشجرة الحالية تحتوي 15 Alembic migration files.
+- Human Supervisor Review هو المرجع الأكاديمي الحالي.
+- 54 static audio IDs / 108 binaries (54 WAV + 54 MP3).
+- التسجيل pending لا يتحول تلقائيًا إلى نجاح/فشل.
+- الطالب يكمل بقية الأسئلة غير المجابة.
+- الإنهاء النهائي ينتظر المراجعات المطلوبة.
+- rerecord مهمة صريحة مع حفظ التاريخ.
+- لا Student Audio Skip.
+- لا Temporary Audio Skip.
+- لا Fake ASR.
+- Production ASR provider ما زال خارجيًا/مؤجلًا.
 
-Infrastructure:
-- PostgreSQL = transactional truth.
-- Redis = coordination/rate limiting؛ ليس مصدر حقيقة أكاديمي.
-- private object storage = تسجيلات/أصول خاصة.
-- Railway يشغل النسخة المنشورة.
-- CI يشغل PostgreSQL وRedis وMinIO native/pinned بدون Docker containers.
-- Railway يستخدم Dockerfiles كوسيلة build/deploy للمنصة فقط؛ هذا لا يغير قاعدة عدم الاعتماد على Docker كبيئة تطوير/اختبار محلية للمشروع.
+## أحدث دليل CI على نفس الـSHA الحالي
 
-## 8. واجهات المنتج الحالية
+Exact SHA:
+`0bf1390bdbc0a19330c807d82d646424490b5a2b`
 
-طالب:
-- /student/login
-- /student
-- /student/session/[id]
-- /student/activity/[id]
+- Himma CI — Quality Gate #976 / Run `35541791265`: SUCCESS.
+  - Security: SUCCESS.
+  - Frontend: TypeScript + ESLint + build SUCCESS.
+  - Frontend unit tests: 40 passed.
+  - Backend: 902 passed, 5 warnings.
+  - Integration Playwright: 23 passed (3.7m).
+- M04 Responsive Visual Gate #387 / Run `35541791302`: SUCCESS.
+  - responsive smoke: 2 passed.
+  - screenshots artifact ID: `10615031736`.
+  - artifact digest: `sha256:843fd55e673cdb93d51cfcd0c109d5f15beab7aa07bca926296a9b9338da7930`.
+- M09 Release Readiness #252 / Run `35541791274`: SUCCESS.
+  - Backend regression: 902 passed, 5 warnings.
+  - Browser regression: 23 passed (3.5m).
+  - PostgreSQL restore: PASS.
+  - restored skills: 44.
+  - restored content_items: 125.
+  - object store restore: 35 objects.
+  - readiness checks: green.
 
-مشرف:
-- /admin/login
-- /admin
-- /admin/students
-- /admin/students/new
-- /admin/students/[id]
-- /admin/audio-review
-- /admin/content-preview
-- /admin/reports
-- /admin/skill-reports
-- /admin/settings
-- /admin/account
+## Production الحالي — Railway
 
-آخر دفعة UX أعادت بناء:
-- Student question system responsive.
-- Student Dashboard كرحلة واضحة بدل بطاقات متساوية.
-- Admin dashboard aggregation للتسجيلات المعلقة.
-- Audio Review workflow: Recording → Listen → Decision → Evaluation/Notes → Save.
-- وضوح حقول إجمالي الوحدات/الحذف/الاستبدال/الإضافة.
-- قرار واضح: اعتماد القراءة أو طلب إعادة تسجيل.
-- Student Profile mobile tabs.
-- Add Student الحقيقي.
-- Content Preview.
-- Toast/feedback behavior.
-- responsive/RTL/overflow coverage.
+Project: `friendly-dream`  
+Environment: `production`  
+Branch: `stage/02-content`
 
-## 9. أدلة الاختبار للنسخة الوظيفية الحالية
+نفس SHA الحالي منشور:
+`0bf1390bdbc0a19330c807d82d646424490b5a2b`
 
-Functional SHA:
-512f0a550eb098f0ce904ec4ed526d9e28098a6a
+- himma-api deployment: `f160b611-c157-4a53-9d37-cfae289cfb07` — SUCCESS.
+- himma-web deployment: `7f6fec27-3f38-4e21-afd6-c9b62729b168` — SUCCESS.
+- PostgreSQL: SUCCESS.
+- Redis: SUCCESS.
+- himma-audio bucket: present.
+- Alembic predeploy: PASS.
+- canonical publication: 125 items.
+- canonical SHA: `e6c749add3652ca8aa896065218673eaac8a07cd0cbca1e92710f35f14f5a904`.
+- `/ready`: HTTP 200.
 
-Quality Gate:
-- #933 / Run 35301572062 = SUCCESS.
-- Security = SUCCESS.
-- Frontend = SUCCESS.
-- Backend = 894 passed, 5 warnings.
-- Integration Playwright = 20 passed (3.6m).
-- Playwright report artifact ID = 10530208479.
+## ما تبقى
 
-M04 Responsive Visual Gate:
-- #359 / Run 35299593387 = SUCCESS.
-- artifact ID = 10529103623.
-- digest = sha256:04a0b08ac2e25e27405ab24b2ec85bc1229b67909c47eb558c69bd859cd2826b.
+لا توجد دفعة implementation مخفية مفتوحة في التسليم الحالي.
 
-M09 Release Readiness:
-- #224 / Run 35299593312 = SUCCESS.
-- Backend product regression = 894 passed, 5 warnings.
-- deterministic browser regression = 20 passed (3.6m).
-- readiness checks config/database/content/approved_audio/storage/redis/security_mode = ok.
-- PostgreSQL backup/restore = PASS.
-- restored content_items = 125; skills = 44.
-- object storage backup/restore = 35 objects verified.
-- deleted student audio bypass route = absent.
+البنود المفتوحة فقط:
+- Production ASR/provider/calibration/privacy/governance.
+- قرار الاحتفاظ النهائي بتسجيلات/بيانات الأطفال قبل دراسة فعلية.
+- تفاصيل البروتوكول البحثي النهائي إن لم يعتمدها المالك.
+- manual human screen-reader acceptance.
+- custom domain/branding النهائي إن طُلب.
 
-تم تشغيل exact-head gates على الـoperational SHA الرسمي 81006dcf09a544b1b54f42de4a0a57c1deb44bfd بنجاح. Functional SHA يبقى مرجع السلوك الأساسي ما لم يتغير الكود الوظيفي.
+## ترتيب القراءة للمحادثة الجديدة
 
-## 10. Production على Railway
+بعد هذا الملف اقرأ:
 
-المشروع الفعلي: friendly-dream  
-Environment: production
+1. `docs/handoff/HIMMA_MASTER_HANDOFF_2026-09-21_AR.md`
+2. `docs/ops/STATUS.md`
+3. `docs/ops/progress.json`
+4. `docs/specs/SOURCE_OF_TRUTH.md`
+5. `docs/specs/SYSTEM_SPEC.md`
+6. `docs/specs/ARCHITECTURE_BASELINE.md`
+7. `.agents/rules/00-himma-core.md`
+8. `.agents/rules/10-delivery-protocol.md`
+9. `.agents/rules/20-security-quality.md`
+10. `docs/ops/DECISIONS.md`
+11. `docs/maintenance/AUDIO_RUNTIME_AND_REVIEW_CONTRACT_CURRENT_AR.md`
+12. `docs/ops/EVIDENCE_INDEX.md`
+13. `docs/ops/RELEASE_DEPLOYMENT_CURRENT_AR.md`
+14. `docs/ops/OPEN_ITEMS.md`
+15. `docs/maintenance/HIMMA_BRANCH_INVENTORY_2026-09-18_AR.md`
+16. `docs/ops/DOCUMENTATION_INDEX.md`
 
-الخدمات:
-- himma-api
-- himma-web
-- PostgreSQL
-- Redis
-- bucket: himma-audio
+ولفهم آخر تغييرات المحتوى والإدارة مباشرة اقرأ:
+- `services/api/reading_text_policy_2026_09_21.py`
+- `packages/content/training/himma_reading_training_corpus_v2026_09_21.jsonl`
+- `services/api/content_preview.py`
+- `apps/web/src/app/admin/(dashboard)/content-preview/page.tsx`
+- `services/api/test_content_surface_parity.py`
 
-Latest Functional SHA:
-512f0a550eb098f0ce904ec4ed526d9e28098a6a
+## بروتوكول الاستلام
 
-Latest verified operational/deployment SHA:
-81006dcf09a544b1b54f42de4a0a57c1deb44bfd
-
-Railway evidence:
-- API deployment 85e73822-a71b-4c2e-afef-ec08a4c6bc1b = SUCCESS.
-- Web deployment d5a7f586-c93c-4a50-8faf-1e1d42cbeae1 = SUCCESS.
-- API pre-deploy migrations = PASS.
-- canonical publication = 125 runtime items.
-- researcher seed = PASS.
-- /ready healthcheck during deployment = HTTP 200.
-- Postgres and Redis deployments = SUCCESS.
-- himma-audio bucket present.
-- Web service domain: himma-web-production.up.railway.app.
-
-أي docs-only descendant قد يسبب Railway redeploy بCommit أحدث مع نفس functional tree؛ لا تخلط بين deployment commit وfunctional release SHA.
-
-## 11. حالة الفروع — ما عدا فروع مزود الصوت
-
-تمت مراجعة كل الفروع غير الخاصة بمزود/مختبر الصوت مقابل official SHA الحالي.
-
-النتيجة:
-- stage/02-content هو الفرع الرسمي الوحيد.
-- fix/ux-polish-audit-2026-09-18 وintegration/ux-polish-audit-20260918 مطابقان للـfunctional official SHA.
-- كل فروع audit/recovery/stage القديمة وبقية integration/release/fix ذات الصلة موجودة داخل تاريخ stage/02-content ولا تحمل عملًا مطلوبًا للدمج.
-- deployment/platform-sandbox هو الفرع غير الصوتي الوحيد المتشعب؛ لديه 9 commits قديمة فريدة تخص topology نشر تجريبي قديم، ولا تُدمج لأنها superseded بالـRailway production الحالي.
-- لا يوجد أي non-audio branch يحمل feature حديثة لازمة ومفقودة من الفرع الرسمي.
-
-التفاصيل:
-docs/maintenance/HIMMA_BRANCH_INVENTORY_2026-09-18_AR.md
-
-فروع مزود/مختبر الصوت مستبعدة من هذه المصالحة بطلب المالك ولا تُدمج ضمن الحالة الحالية.
-
-## 12. ما هو مغلق وما هو مفتوح
-
-مغلق:
-- A00–A09 audit chronology.
-- W1–W6 corrective execution.
-- canonical content reconciliation.
-- student/admin core journeys.
-- human audio review and rerecord contract.
-- latest UX rebuild.
-- exact-SHA QG/M04/M09.
-- merge to stage/02-content.
-- Railway deployment of the latest functional release.
-- backup/restore proof in M09.
-
-مفتوح/خارجي فقط:
-- Production ASR provider/calibration/governance — مستبعد من هذا التسليم.
-- مدة الاحتفاظ النهائية ببيانات/تسجيلات الأطفال قبل دراسة حقيقية.
-- تفاصيل الدراسة البحثية النهائية مثل عدد/مدة الجلسات إذا لم يعتمدها المالك بعد.
-- manual human screen-reader acceptance غير مدعى؛ automated axe/keyboard/responsive coverage موجود.
-- custom domain/branding entity details only if owner wants them; current Railway deployment does not depend on them.
-
-## 13. قواعد لا يجوز كسرها
-
-- No fake ASR.
-- No Student/Temporary Audio Skip.
-- No history deletion.
-- No random/cross-level reinforcement.
-- No automatic demotion.
-- لا إضعاف tests، skip/xfail، retry masking.
-- لا runtime repair overlays.
-- لا secrets أو بيانات أطفال أو recordings في Git.
-- reference/ read-only.
-- Root Cause fixes only.
-- كل PASS مهم يحتاج exact SHA evidence.
-- أي migration مؤثر يحتاج rollback/restore proof.
-- كل تغيير أكاديمي يحتاج ADR + tests.
-
-## 14. ترتيب القراءة لمحادثة جديدة
-
-بعد قراءة هذا الملف، اقرأ فقط بالترتيب:
-
-1. docs/ops/STATUS.md
-2. docs/ops/progress.json
-3. docs/specs/SOURCE_OF_TRUTH.md
-4. docs/specs/SYSTEM_SPEC.md
-5. .agents/rules/00-himma-core.md
-6. .agents/rules/10-delivery-protocol.md
-7. .agents/rules/20-security-quality.md
-8. docs/ops/DECISIONS.md
-9. docs/maintenance/AUDIO_RUNTIME_AND_REVIEW_CONTRACT_CURRENT_AR.md
-10. docs/ops/EVIDENCE_INDEX.md
-11. docs/maintenance/HIMMA_BRANCH_INVENTORY_2026-09-18_AR.md
-12. docs/ops/OPEN_ITEMS.md
-13. docs/ops/DOCUMENTATION_INDEX.md
-
-ثم افتح الملفات التاريخية فقط إذا احتجت سبب قرار أو chronology.
-
-## 15. بروتوكول الاستلام لمحادثة جديدة
-
-1. Fetch live stage/02-content HEAD.
-2. تحقق هل HEAD functional أو docs-only descendant.
-3. تحقق من آخر QG/M04/M09 المرتبط بأحدث تغيير وظيفي.
-4. تحقق من Railway إذا كانت المهمة تتعلق بالإنتاج.
-5. لا تعِد audit أو UX rebuild أو recovery بدون regression evidence.
-6. ابدأ من أول طلب جديد للمالك فوق هذه الحالة.
-
-هذا الملف هو handoff الحالي. أي handoff مؤرخ قبله تاريخ فقط.
+1. Fetch للـlive `stage/02-content`.
+2. لا تفترض أن SHA هذا ما زال HEAD إذا ظهر أحدث.
+3. شغّل/راجع exact-SHA CI عند أي تغيير وظيفي.
+4. راجع Railway عند أي مهمة Production.
+5. لا تعِد فتح recovery/UX/content reconciliation المغلق بدون regression evidence.
+6. أكمل من أول تكليف جديد للمالك فوق هذه الحالة.

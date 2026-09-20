@@ -1,63 +1,44 @@
 # Railway Production — Himma Current Release
 
-**Updated:** 2026-09-19
+**Updated:** 2026-09-21
 
-## Functional release
+## Current release
 
-Branch: stage/02-content  
-Functional SHA: 512f0a550eb098f0ce904ec4ed526d9e28098a6a  
-Latest verified operational/gate SHA: 81006dcf09a544b1b54f42de4a0a57c1deb44bfd
+Branch: `stage/02-content`  
+Exact deployed SHA: `0bf1390bdbc0a19330c807d82d646424490b5a2b`
 
-الـOperational SHA descendant توثيقي/بوابات/QA deterministic من الـFunctional SHA ولا يغيّر Product Runtime أو العقود الأكاديمية.
+هذا هو functional SHA الحالي، وليس docs-only descendant.
 
-## Official exact-head gates
+## Exact-head gates
 
-- QG #945 / Run 35410973050: SUCCESS.
-- M04 #362 / Run 35410973052: SUCCESS.
-- M09 #227 / Run 35410973045: SUCCESS.
+- QG #976 / Run `35541791265`: SUCCESS.
+- M04 #387 / Run `35541791302`: SUCCESS.
+- M09 #252 / Run `35541791274`: SUCCESS.
 
-Evidence summary:
-- Backend: 894 passed, 5 warnings.
-- Integration/browser: 23 passed.
-- M04 responsive smoke: 2 passed.
-- readiness: all checks ok.
-- PostgreSQL restore: PASS.
-- restored content_items: 125.
-- restored skills: 44.
-- object-store restore: 35 objects verified.
-- Student audio bypass route: absent.
+Evidence:
+- Backend 902 passed, 5 warnings.
+- Frontend unit 40 passed.
+- Integration Playwright 23 passed.
+- responsive smoke 2 passed.
+- PostgreSQL restore PASS.
+- content_items 125 / skills 44.
+- object-store restore 35.
 
 ## Railway
 
-Project: friendly-dream  
-Environment: production
+Project: `friendly-dream`  
+Environment: `production`
 
-Services:
-- himma-api
-- himma-web
-- PostgreSQL
-- Redis
-- himma-audio bucket
+- API deployment: `f160b611-c157-4a53-9d37-cfae289cfb07` — SUCCESS.
+- Web deployment: `7f6fec27-3f38-4e21-afd6-c9b62729b168` — SUCCESS.
+- Postgres: SUCCESS.
+- Redis: SUCCESS.
+- himma-audio bucket: present.
+- /ready: 200.
 
-Activation deployments for operational SHA 81006dcf09a544b1b54f42de4a0a57c1deb44bfd:
-- API 85e73822-a71b-4c2e-afef-ec08a4c6bc1b: SUCCESS.
-- Web d5a7f586-c93c-4a50-8faf-1e1d42cbeae1: SUCCESS.
+Canonical publication during API deploy:
+- 125 runtime items.
+- canonical release SHA: `e6c749add3652ca8aa896065218673eaac8a07cd0cbca1e92710f35f14f5a904`.
+- projection SHA: `e1d14b0b6102f635820aa7f9a9b074e4f7afd68a02006d0a8ee8a3f29f99670e`.
 
-Runtime checks:
-- Alembic predeploy: PASS.
-- canonical content publication: 125 items.
-- account seed: PASS.
-- API healthcheck /ready: HTTP 200.
-- Postgres/Redis: SUCCESS.
-- audio bucket present.
-
-Web domain:
-himma-web-production.up.railway.app
-
-## Important SHA rule
-
-A later documentation-only closure commit may become the live branch HEAD and may trigger a no-functional-change Railway redeploy. That does not replace:
-- Latest Functional SHA = 512f0a550eb098f0ce904ec4ed526d9e28098a6a.
-- Latest verified operational/gate SHA = 81006dcf09a544b1b54f42de4a0a57c1deb44bfd.
-
-Any later functional code change requires fresh QG/M04/M09 evidence as applicable.
+Any later functional change requires fresh exact-head gate evidence.

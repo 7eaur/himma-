@@ -1,65 +1,48 @@
 # فهرس التوثيق القانوني — هِمّة
 
-**Updated:** 2026-09-18
+**Updated:** 2026-09-21
 
 ## نقطة الدخول
 
-1. START_HERE_AR.md — الملف الرئيسي الوحيد لبدء أي محادثة جديدة.
-2. NEXT_CONVERSATION_PROMPT.md — توجيه مختصر للبدء من START_HERE.
+1. `START_HERE_AR.md` — نقطة الدخول الرسمية.
+2. `docs/handoff/HIMMA_MASTER_HANDOFF_2026-09-21_AR.md` — التسليم الكامل الحالي للمحادثة التالية.
+3. `NEXT_CONVERSATION_PROMPT.md` — برومبت قصير لبدء محادثة جديدة.
 
-## وثائق CURRENT / AUTHORITATIVE
+## CURRENT / AUTHORITATIVE
 
-- docs/ops/STATUS.md — الحالة المختصرة الحالية.
-- docs/ops/CHANGELOG.md — سجل التغييرات الحالي، مع حفظ التسلسل التاريخي.
-- docs/ops/progress.json — الحالة المقروءة آليًا.
-- docs/ops/RESUME_HERE.md — نقطة الاستئناف.
-- docs/specs/SOURCE_OF_TRUTH.md — ترتيب القوة ومالكو الحقيقة.
-- docs/specs/SYSTEM_SPEC.md — مواصفات المنتج الحالية.
-- docs/specs/ARCHITECTURE_BASELINE.md — المعمارية الحالية.
-- .agents/rules/00-himma-core.md — قواعد المنتج الأساسية.
-- .agents/rules/10-delivery-protocol.md — بروتوكول التنفيذ.
-- .agents/rules/20-security-quality.md — الأمن والجودة.
-- docs/ops/DECISIONS.md — ADRs المقبولة.
-- docs/maintenance/AUDIO_RUNTIME_AND_REVIEW_CONTRACT_CURRENT_AR.md — عقد الصوت الحالي.
-- docs/ops/EVIDENCE_INDEX.md — الأدلة الحالية.
-- docs/maintenance/HIMMA_BRANCH_INVENTORY_2026-09-18_AR.md — حالة الفروع.
-- docs/ops/OPEN_ITEMS.md — المفتوح فقط.
-- docs/ops/PROJECT_STATE.md — وصف الحالة الحالية.
-- docs/ops/RELEASE_DEPLOYMENT_CURRENT_AR.md — النشر الحالي.
-- VERSION.md — وسم الإصدار/الحالة.
+- `docs/ops/STATUS.md`
+- `docs/ops/progress.json`
+- `docs/ops/RESUME_HERE.md`
+- `docs/ops/PROJECT_STATE.md`
+- `docs/ops/ROADMAP.md`
+- `docs/ops/CHANGELOG.md`
+- `docs/ops/EVIDENCE_INDEX.md`
+- `docs/ops/RELEASE_DEPLOYMENT_CURRENT_AR.md`
+- `docs/ops/OPEN_ITEMS.md`
+- `docs/specs/SOURCE_OF_TRUTH.md`
+- `docs/specs/SYSTEM_SPEC.md`
+- `docs/specs/ARCHITECTURE_BASELINE.md`
+- `.agents/rules/00-himma-core.md`
+- `.agents/rules/10-delivery-protocol.md`
+- `.agents/rules/20-security-quality.md`
+- `docs/ops/DECISIONS.md`
+- `docs/maintenance/AUDIO_RUNTIME_AND_REVIEW_CONTRACT_CURRENT_AR.md`
+- `docs/maintenance/HIMMA_BRANCH_INVENTORY_2026-09-18_AR.md`
+- `VERSION.md`
 
-## قاعدة تصنيف شاملة
+## CURRENT code/contracts that matter for the latest batch
 
-**أي ملف توثيق أو خطة أو handoff أو walkthrough أو prompt داخل المستودع غير مذكور صراحة في قسم CURRENT / AUTHORITATIVE أعلاه يُعامل افتراضيًا كـ HISTORICAL / REFERENCE ONLY.** لا يملك صلاحية تغيير الحالة الحالية أو فتح مرحلة مغلقة أو إرجاع عقد superseded. الملفات القديمة تُحفظ للـprovenance والتدقيق فقط ولا تُحذف لمجرد تقادمها.
+Reading/content:
+- `services/api/canonical_release.py`
+- `services/api/reading_text_policy_2026_09_21.py`
+- `services/api/test_reading_text_policy_2026_09_21.py`
+- `packages/content/training/himma_reading_training_corpus_v2026_09_21.jsonl`
 
-## وثائق HISTORICAL / EVIDENCE ONLY
+Admin content review:
+- `services/api/content_preview.py`
+- `apps/web/src/app/admin/(dashboard)/content-preview/page.tsx`
+- `services/api/test_content_surface_parity.py`
 
-كل الملفات المؤرخة القديمة من الأنواع التالية تاريخ فقط ما لم يذكر هذا الفهرس صراحة أنها Current:
-- HIMMA_MASTER_CONTINUITY_HANDOFF_*
-- *_CHECKPOINT_*
-- A00–A10 audit/execution snapshots.
-- Recovery/P01/P02 historical reports.
-- UX handoff/progress files بتاريخ 2026-09-17.
-- RELEASE_DEPLOYMENT_2026-09-17_AR.md.
-- HIMMA_A09_BRANCH_CLASSIFICATION_2026-09-10_AR.md.
-- progress_2026-08-28.json وCURRENT_STATE_2026-08-28_AR.md.
+## Historical rule
 
-لا تحذف هذه الملفات؛ هي provenance/chronology ودليل قرارات سابقة. لكنها لا تصف current state.
-
-## قاعدة إزالة التعارض
-
-إذا وجدت وثيقة تاريخية تقول:
-- NOT MERGED
-- NOT DEPLOYED
-- no production DB
-- prototype only
-- stop before A11
-- old student-audio blocking behavior
-- old Temporary Audio Skip
-- old branch as active
-
-فلا تطبقها. ارجع إلى START_HERE_AR.md ثم current authority files أعلاه ثم live evidence.
-
-## لماذا نحفظ التاريخ؟
-
-للتدقيق، root-cause analysis، traceability، وإثبات كيف وصل المشروع للحالة الحالية. حفظ التاريخ لا يعني أن كل صياغة تاريخية ما زالت نافذة.
+أي handoff/checkpoint/audit/prompt مؤرخ غير مذكور أعلاه يُعامل كـ HISTORICAL / REFERENCE ONLY. لا يفتح مرحلة مغلقة ولا يتغلب على live code أو exact-SHA evidence.

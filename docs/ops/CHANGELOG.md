@@ -1,5 +1,37 @@
 # CHANGELOG
 
+## [Reading Content Policy + Admin Approved Content Review] — 2026-09-21
+
+**Current functional/gate/production SHA:** `0bf1390bdbc0a19330c807d82d646424490b5a2b`  
+**Official branch:** `stage/02-content`  
+**State:** CLOSED + QG/M04/M09 GREEN + RAILWAY DEPLOYED
+
+### Reading/content
+
+- Added final-release reading-text policy: single-token letters/syllables/words preserve approved diacritics; multi-word phrases/sentences/passages remove optional marks while retaining shadda.
+- Added 92-record training corpus at `packages/content/training/himma_reading_training_corpus_v2026_09_21.jsonl`.
+- Added regression tests that match the corpus to the final canonical release.
+- Canonical SHA is now `e6c749add3652ca8aa896065218673eaac8a07cd0cbca1e92710f35f14f5a904`.
+
+### Admin content review
+
+- Retired the student-interface simulation concept from `/admin/content-preview`.
+- Rebuilt it as read-only **المحتوى المعتمد** from approved PostgreSQL content.
+- Exposes questions, instructions, hints, options, correct answers, ordered answers, recording targets, images and audio to the supervisor.
+- Added full-text search, filters and linked reinforcement candidates.
+- Preserved answer-safe Student serializers and verified the admin page writes no student progress.
+
+### Evidence
+
+- QG #976 / Run `35541791265`: SUCCESS — Backend 902 passed; Frontend unit 40 passed; Playwright 23 passed.
+- M04 #387 / Run `35541791302`: SUCCESS.
+- M09 #252 / Run `35541791274`: SUCCESS.
+- Railway API `f160b611-c157-4a53-9d37-cfae289cfb07`: SUCCESS.
+- Railway Web `7f6fec27-3f38-4e21-afd6-c9b62729b168`: SUCCESS.
+- /ready = 200.
+
+---
+
 ## [Current-State Closure / Gate Hardening + Production Verification] — 2026-09-19
 
 **Latest Functional SHA:** `512f0a550eb098f0ce904ec4ed526d9e28098a6a`  

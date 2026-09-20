@@ -1,12 +1,12 @@
 {
-  "schema_version": 17,
-  "last_updated": "2026-09-19",
+  "schema_version": 18,
+  "last_updated": "2026-09-21",
   "repository": "7eaur/himma-",
   "official_branch": "stage/02-content",
   "current_phase": "PRODUCTION_CURRENT",
   "current_state": "CLOSED_PRODUCTION_GREEN",
-  "functional_release_sha": "512f0a550eb098f0ce904ec4ed526d9e28098a6a",
-  "documentation_rule": "Fetch live official HEAD. Docs-only descendants do not replace the exact functional evidence SHA.",
+  "current_functional_sha": "0bf1390bdbc0a19330c807d82d646424490b5a2b",
+  "latest_verified_gate_sha": "0bf1390bdbc0a19330c807d82d646424490b5a2b",
   "canonical_content": {
     "approval": "HIMMA-CONTENT-APPROVAL-2026-09-08",
     "source_catalog_items": 105,
@@ -15,7 +15,45 @@
     "posttest": 30,
     "core": 30,
     "reinforcement": 35,
-    "skills": 44
+    "skills": 44,
+    "canonical_release_sha256": "e6c749add3652ca8aa896065218673eaac8a07cd0cbca1e92710f35f14f5a904",
+    "projection_sha256": "e1d14b0b6102f635820aa7f9a9b074e4f7afd68a02006d0a8ee8a3f29f99670e"
+  },
+  "reading_text_policy": {
+    "status": "CLOSED_GREEN",
+    "date": "2026-09-21",
+    "single_token_diacritics": "PRESERVED",
+    "multiword_optional_marks": "REMOVED",
+    "important_shadda": "PRESERVED",
+    "training_corpus_path": "packages/content/training/himma_reading_training_corpus_v2026_09_21.jsonl",
+    "training_records": 92
+  },
+  "admin_content_review": {
+    "status": "CLOSED_GREEN",
+    "route": "/admin/content-preview",
+    "visible_label": "المحتوى المعتمد",
+    "student_ui_simulation": false,
+    "db_source": "approved PostgreSQL content",
+    "read_only": true,
+    "writes_progress": false,
+    "exposes_correct_answers_to_admin": true,
+    "student_answer_metadata_leak": false,
+    "supports": [
+      "question",
+      "instruction",
+      "hint",
+      "stimulus",
+      "options",
+      "correct_answers",
+      "ordered_answers",
+      "recording_target",
+      "images",
+      "audio",
+      "context_intro",
+      "full_text_search",
+      "filters",
+      "reinforcement_branches"
+    ]
   },
   "audio_runtime": {
     "authority": "HUMAN_SUPERVISOR_REVIEW",
@@ -23,36 +61,34 @@
     "wav_files": 54,
     "mp3_files": 54,
     "student_audio_skip": false,
-    "pending_audio_blocks_remaining_questions": false,
-    "finalization_requires_required_reviews": true,
-    "rerecord_is_explicit_task": true,
-    "previous_recording_history_preserved": true,
+    "temporary_audio_skip": false,
+    "fake_asr": false,
     "production_asr_provider": "EXTERNAL_DEFERRED_NOT_IN_CURRENT_DELIVERY"
   },
   "evidence": {
     "quality_gate": {
-      "run_number": 933,
-      "run_id": 35301572062,
+      "run_number": 976,
+      "run_id": 35541791265,
       "conclusion": "SUCCESS",
-      "security": "SUCCESS",
-      "frontend": "SUCCESS",
-      "backend": "894 passed, 5 warnings",
-      "integration_playwright": "20 passed (3.6m)",
-      "artifact_id": 10530208479
+      "frontend_unit": "40 passed",
+      "backend": "902 passed, 5 warnings",
+      "integration_playwright": "23 passed (3.7m)",
+      "security": "SUCCESS"
     },
     "responsive_visual_gate": {
-      "run_number": 359,
-      "run_id": 35299593387,
+      "run_number": 387,
+      "run_id": 35541791302,
       "conclusion": "SUCCESS",
-      "artifact_id": 10529103623,
-      "digest": "sha256:04a0b08ac2e25e27405ab24b2ec85bc1229b67909c47eb558c69bd859cd2826b"
+      "responsive_smoke": "2 passed",
+      "artifact_id": 10615031736,
+      "digest": "sha256:843fd55e673cdb93d51cfcd0c109d5f15beab7aa07bca926296a9b9338da7930"
     },
     "release_readiness": {
-      "run_number": 224,
-      "run_id": 35299593312,
+      "run_number": 252,
+      "run_id": 35541791274,
       "conclusion": "SUCCESS",
-      "backend": "894 passed, 5 warnings",
-      "browser": "20 passed (3.6m)",
+      "backend": "902 passed, 5 warnings",
+      "browser": "23 passed (3.5m)",
       "postgresql_restore": "PASS",
       "restored_content_items": 125,
       "restored_skills": 44,
@@ -64,31 +100,15 @@
     "provider": "Railway",
     "project": "friendly-dream",
     "environment": "production",
+    "deployed_sha": "0bf1390bdbc0a19330c807d82d646424490b5a2b",
     "api_service": "himma-api",
+    "api_deployment": "f160b611-c157-4a53-9d37-cfae289cfb07",
     "web_service": "himma-web",
+    "web_deployment": "7f6fec27-3f38-4e21-afd6-c9b62729b168",
     "postgres": "SUCCESS",
     "redis": "SUCCESS",
     "audio_bucket": "himma-audio",
-    "deployed_functional_sha": "512f0a550eb098f0ce904ec4ed526d9e28098a6a",
-    "ready_http": 200,
-    "deployment_evidence": "docs/ops/EVIDENCE_INDEX.md",
-    "deployed_official_head_sha": "81006dcf09a544b1b54f42de4a0a57c1deb44bfd",
-    "railway_deployment_evidence": "docs/ops/RELEASE_DEPLOYMENT_CURRENT_AR.md"
-  },
-  "ux_release": {
-    "status": "MERGED_DEPLOYED",
-    "student_question_system": "CLOSED_GREEN",
-    "student_dashboard_journey": "CLOSED_GREEN",
-    "admin_audio_review": "CLOSED_GREEN",
-    "admin_dashboard_notifications": "CLOSED_GREEN",
-    "remaining_admin_ux": "CLOSED_GREEN"
-  },
-  "branches": {
-    "non_provider_review": "COMPLETE",
-    "official_contains_relevant_non_provider_work": true,
-    "only_diverged_non_provider_branch": "deployment/platform-sandbox",
-    "diverged_branch_decision": "DO_NOT_MERGE_OBSOLETE_EXPERIMENTAL_DEPLOYMENT",
-    "provider_branches": "EXCLUDED_BY_OWNER"
+    "ready_http": 200
   },
   "open_external_items": [
     "Production ASR provider/calibration/privacy/governance",
@@ -98,8 +118,8 @@
     "Optional custom domain/entity branding details"
   ],
   "current_entrypoint": "START_HERE_AR.md",
-  "documentation_index": "docs/ops/DOCUMENTATION_INDEX.md",
-  "next_action": "Wait for a new owner assignment or a verified regression; current delivery is closed.",
+  "current_handoff": "docs/handoff/HIMMA_MASTER_HANDOFF_2026-09-21_AR.md",
+  "next_action": "Take the owner's next explicit assignment; do not reopen closed work without regression evidence.",
   "fixed_constraints": [
     "NO_FAKE_ASR",
     "NO_STUDENT_AUDIO_SKIP",
@@ -110,39 +130,5 @@
     "NO_WEAKENED_TESTS",
     "NO_RUNTIME_REPAIR_OVERLAYS",
     "NO_PASS_WITHOUT_EXACT_SHA_EVIDENCE"
-  ],
-  "latest_exact_head_evidence": {
-    "gate_sha": "81006dcf09a544b1b54f42de4a0a57c1deb44bfd",
-    "quality_gate": {
-      "run_number": 945,
-      "run_id": 35410973050,
-      "conclusion": "SUCCESS",
-      "backend": "894 passed, 5 warnings",
-      "integration_playwright": "23 passed (3.7m)",
-      "artifact_id": 10573957731,
-      "digest": "sha256:e7b63865ca425d91c0343b22ff72e8a03414713b36b963c1ffb50773a845714f"
-    },
-    "responsive_visual_gate": {
-      "run_number": 362,
-      "run_id": 35410973052,
-      "conclusion": "SUCCESS",
-      "responsive_smoke": "2 passed",
-      "artifact_id": 10574142637,
-      "digest": "sha256:888a88d92db0971a67f65983dec522532462280cc31fd6f7478111c889eababb"
-    },
-    "release_readiness": {
-      "run_number": 227,
-      "run_id": 35410973045,
-      "conclusion": "SUCCESS",
-      "backend": "894 passed, 5 warnings",
-      "browser": "23 passed (3.7m)",
-      "postgresql_restore": "PASS",
-      "restored_content_items": 125,
-      "restored_skills": 44,
-      "object_store_restore": "35 objects verified",
-      "readiness": "ALL_OK",
-      "student_audio_bypass": "ABSENT"
-    }
-  },
-  "latest_verified_operational_sha": "81006dcf09a544b1b54f42de4a0a57c1deb44bfd"
+  ]
 }
