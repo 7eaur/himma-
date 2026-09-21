@@ -535,3 +535,120 @@ The green checks above are positive evidence, but they do not invalidate HIM-AUD
 - None of their eight commits is an ancestor of the official branch. The official branch instead contains a newer sibling implementation starting at `50d0477 refactor(admin): compact audio review workspace`, plus later deep-link/test work.
 - Their intended behavior (two-column evidence/evaluation, stable decision names, optional notes, compact mobile CSS, visual QA) is visibly represented in the current official page/global admin workflow and tests.
 - Disposition: archive/delete after recording this proof; do not merge either divergent branch into the official line.
+
+### Phase 4 — Assessment authority, reporting integrity, and query behavior
+
+Status: critical route/report interactions reproduced against the baseline; wider endpoint-by-endpoint review remains in progress.
+
+#### Runtime probes executed on 2026-09-21
+
+- Router enumeration found 77 declared operations but only 75 unique method/path signatures. The duplicates are exactly `POST /assessment/start` and `POST /assessment/session/{session_id}/finish`.
+- The generated OpenAPI document describes the legacy `assessment.start_assessment` and `assessment_completion.finish_assessment` operations, while the retake router is registered first and current retake integration behavior proves that its handlers receive requests.
+- An isolated database probe created one completed official pretest (score 65, level 2) followed by an in-progress non-official retake. The research report returned the retake as `in_progress`, with `score: null` and `starting_level: null`, discarding the still-official completed result.
+- Query instrumentation of an otherwise empty cohort report produced 4 SELECTs for 1 student, 16 for 5 students, and 151 for 50 students. This is the exact linear `1 + 3N` floor before attempts and other evidence add further queries.
+
+## Confirmed findings — Phase 4
+
+### HIM-AUD-019 — HIGH — Assessment start and finish each have two route owners, and documentation describes a different handler from runtime
+
+**Evidence**
+
+- `services/api/assessment_retake.py:123-162` owns `POST /assessment/start` with retake authorization/attempt-history behavior; `services/api/assessment.py:363-407` also owns the same method/path with a different legacy policy.
+- `services/api/assessment_retake.py:165-177` owns `POST /assessment/session/{session_id}/finish` and marks the completed attempt official; `services/api/assessment_completion.py:254-266` also owns that method/path but only completes/scores the session.
+- `services/api/main.py:56-64` claims every critical URL has one mounted owner and must not depend on router order, but includes the retake router first, completion second, and assessment third.
+- OpenAPI resolves each duplicate to the later legacy handler (`start_assessment...` and `finish_assessment...`), so generated clients/docs do not describe the handler selected by first-match request dispatch.
+- `services/api/test_assessment_completion_route.py:1-21` claims to verify one authoritative finish owner but compares only the assessment and completion routers; it omits the retake router that contains the duplicate. There is no equivalent whole-application start-route uniqueness assertion.
+
+**Impact**
+
+- Router reordering or framework inclusion behavior can silently bypass retake authorization/history on start or fail to select the new official attempt on finish.
+- Operations and generated clients can reason from an OpenAPI contract that differs from actual request behavior.
+- The current regression test provides false confidence because it does not inspect all mounted routers or unique method/path signatures.
+
+**Root cause**
+
+- New retake behavior was implemented as replacement endpoint wrappers while the previous endpoint declarations remained mounted.
+- Ownership is tested module-by-module instead of at the assembled application boundary.
+
+**Proposed resolution (not executed)**
+
+- Keep exactly one route declaration for each public method/path. Move scoring and retake policy into reusable services invoked by that single owner.
+- Add an assembled-app assertion that no method/path signature is duplicated, plus explicit assertions for endpoint module/function identity and OpenAPI operation identity.
+- Add contract tests that a completed test cannot restart without authorization and that finishing a retake atomically makes it the only official attempt.
+
+**Acceptance**
+
+- The assembled route table has one unique signature per operation, with no duplicate start/finish owner.
+- OpenAPI, request dispatch, and source ownership all name the same handler.
+
+### HIM-AUD-020 — HIGH — Research reports ignore the official assessment attempt and can erase a valid baseline during a retake
+
+**Evidence**
+
+- `AssessmentSession.official_for_reporting` exists specifically to identify the selected completed pre/post attempt, and retake completion updates it in `assessment_retake.py:86-90`.
+- `services/api/reports.py:59-67` does not filter or prioritize that flag. It loads all pre/post sessions by ID and overwrites each type with the newest row.
+- `reports.py:70-139` then derives score, starting/final level, elapsed time, attempt counts, and cohort improvement from that newest row.
+- The reproduced case—official completed pretest score 65/level 2 plus a newer in-progress retake—returned `pretest.status = in_progress`, `score = null`, and `starting_level = null` even though the official completed baseline remained valid.
+- Retake tests verify flag transitions, while report tests cover single-attempt and generic incomplete-posttest cases; no test connects report selection to `official_for_reporting` during a retake.
+
+**Impact**
+
+- Starting a retake can temporarily remove a learner's valid baseline and reduce completed-pretest/paired cohort counts in dashboards and exports.
+- A failed, abandoned, or long-running retake can leave research output inconsistent with the explicitly selected official academic record.
+- Study metrics can change because a retake began, before any replacement result is complete and accepted.
+
+**Proposed resolution (not executed)**
+
+- Select the one completed `official_for_reporting = true` attempt for research outcome fields. Represent an active retake separately instead of replacing the official result.
+- Enforce at most one official completed attempt per student/session type with a PostgreSQL partial unique index after production-data profiling.
+- Add report regressions for pending, completed, abandoned, and superseded retakes, including cohort XLSX/PDF exports.
+
+**Acceptance**
+
+- Starting an authorized retake does not change official scores, placement, paired counts, or improvement metrics.
+- Completing the retake switches all report/export surfaces to the new official attempt in one committed transaction.
+
+### HIM-AUD-021 — MEDIUM — Assessment completion and official-attempt selection are committed in separate transactions
+
+**Evidence**
+
+- `assessment_completion.finish_session` updates the student/session and commits at `services/api/assessment_completion.py:231-235`.
+- Its retake wrapper only afterwards clears prior official flags, marks the completed session official, and commits again at `services/api/assessment_retake.py:174-176`.
+- The direct duplicate completion owner never calls the official-selection function at all (HIM-AUD-019).
+
+**Impact**
+
+- A process failure or database error between the two commits leaves a completed result without the intended official selection, while prior flags and reporting may retain a contradictory state.
+- A retry sees a completed session and rejects it before repairing the missing official transition.
+
+**Proposed resolution (not executed)**
+
+- Make the completion service flush but not commit; let one route-level transaction persist scoring, learner state, audit evidence, and official selection atomically.
+- Add a forced-failure test immediately before commit and prove rollback restores every affected row.
+
+**Acceptance**
+
+- There is one transaction boundary for completion and official selection, and no observable completed-but-unselected intermediate state.
+
+### HIM-AUD-022 — MEDIUM — Cohort reporting has a proven per-student N+1 query floor
+
+**Evidence**
+
+- `services/api/reports.py:149-151` loads all students and then calls `build_student_research_report` once per student.
+- Each call separately loads pre/post sessions, core sessions, and reinforcement cycles; students with sessions add separate attempt-count queries at `reports.py:83-91`.
+- SQLAlchemy instrumentation measured 4 SELECTs for 1 empty student, 16 for 5, and 151 for the configured 50-student maximum: `1 + 3N` before attempt-count queries.
+- Exports build the same cohort report synchronously before serializing XLSX/PDF, so the query multiplication affects both dashboard reads and downloads.
+
+**Impact**
+
+- Database round trips grow linearly per student and per evidence category, creating avoidable latency and load at the project's own configured cohort limit.
+- Additional report fields implemented in the same pattern will compound the cost.
+
+**Proposed resolution (not executed)**
+
+- Fetch selected official sessions, core summaries, attempt counts, and reinforcement aggregates in bounded set-based queries keyed by student ID.
+- Add a query-budget regression at 1 and 50 students; the upper bound should be constant or a small documented constant independent of cohort size.
+
+**Acceptance**
+
+- A 50-student cohort report stays within the agreed query budget and produces byte-for-byte equivalent normalized report data.
