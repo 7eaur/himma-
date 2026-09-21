@@ -75,6 +75,22 @@ def test_structured_projection_keeps_answers_out_of_student_stimuli():
         db.close()
 
 
+def test_seeded_l1_letter_form_options_are_clean_and_correct():
+    seed_all.run_seed_all()
+    db = SessionLocal()
+    try:
+        item = _by_key(db, "L1-CORE-03")
+        expected = ["بـ", "مـ", "سـ", "كـ", "لـ"]
+        assert len(item.steps) == len(expected)
+        for step, correct in zip(item.steps, expected, strict=True):
+            texts = [option.text for option in step.options]
+            assert len(texts) == 4
+            assert all("←" not in text for text in texts)
+            assert [option.text for option in step.options if option.is_correct] == [correct]
+    finally:
+        db.close()
+
+
 def test_structured_addition_prompt_and_approved_onset_pair_are_preserved():
     seed_all.run_seed_all()
     db = SessionLocal()

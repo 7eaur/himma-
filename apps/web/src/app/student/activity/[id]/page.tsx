@@ -489,7 +489,7 @@ export default function StudentActivityPage() {
     </div>;
   }
 
-  return <div className={styles.page} dir="rtl" data-testid="activity-session" data-phase={submitting ? "submitting" : "active"} data-activity-kind={isReinforcement ? "reinforcement" : "core"} data-item-id={itemId} data-step-id={step.id} data-interaction-type={interaction} data-media-gap-count={hasMediaGap ? Math.max(1, step.media_gaps.length) : 0} data-layout-hint={view.layout_hint || ""}>
+  return <div className={styles.page} dir="rtl" data-testid="activity-session" data-phase={submitting ? "submitting" : "active"} data-level-id={levelId} data-activity-kind={isReinforcement ? "reinforcement" : "core"} data-item-id={itemId} data-step-id={step.id} data-interaction-type={interaction} data-media-gap-count={hasMediaGap ? Math.max(1, step.media_gaps.length) : 0} data-layout-hint={view.layout_hint || ""}>
     <header className={styles.header}><div className={styles.headerInner}><Image src="/brand/logo-navy.svg" alt="هِمّة" width={124} height={44} priority/><button className={styles.exit} type="button" onClick={() => router.push("/student")}><LogOut size={21}/><span>رجوع</span></button></div></header>
     <div className={styles.progressPanel}><div className={styles.progressTop}><span className={styles.assessmentBadge}>{label}</span><span className={styles.progressCount}>{progress?.completed_items ?? 0} من {progress?.total_items ?? 10}</span></div><div className={styles.progressTrack} aria-label={`التقدم ${percent}%`}><div className={styles.progressFill} style={{ width: `${Math.max(percent, 2)}%` }}/></div></div>
     <main className={styles.shell}><section className={styles.card}>
@@ -497,9 +497,9 @@ export default function StudentActivityPage() {
       <div className={styles.contentColumn}>
         {isReinforcement && <div className={styles.notice} data-testid="reinforcement-intro">هذا تدريب قصير يساعدك على إتقان المهارة، وبعد إتقانها تعود إلى نشاطك الأساسي.</div>}
         {imageStimulusFirst && visualAsset && <div className={styles.contextImage}><Image src={visualAsset.url} alt={visualAsset.semantic_text || "صورة النشاط"} width={420} height={260} sizes="(max-width: 640px) 92vw, 420px" loading="eager" /></div>}
-        {stimulusFirst && stimulus && <div className={`${styles.stimulusBox} ${stimulus.length <= 3 ? styles.letterStimulus : ""}`}>{stimulus}</div>}
-        <h1 className={styles.questionTitle}>{round.question_text}</h1>
-        {!stimulusFirst && stimulus && !LISTEN.has(interaction) && !READ.has(interaction) && <div className={`${styles.stimulusBox} ${stimulus.length <= 3 ? styles.letterStimulus : ""}`}>{stimulus}</div>}
+        {stimulusFirst && stimulus && <div className={`${styles.stimulusBox} ${stimulus.length <= 3 ? styles.letterStimulus : ""}`} data-testid="activity-stimulus">{stimulus}</div>}
+        <h1 className={styles.questionTitle} data-testid="activity-question">{round.question_text}</h1>
+        {!stimulusFirst && stimulus && !LISTEN.has(interaction) && !READ.has(interaction) && <div className={`${styles.stimulusBox} ${stimulus.length <= 3 ? styles.letterStimulus : ""}`} data-testid="activity-stimulus">{stimulus}</div>}
         {!imageStimulusFirst && visualAsset && interaction !== "memory_sequence" && <div className={styles.contextImage}><Image src={visualAsset.url} alt={visualAsset.semantic_text || "صورة النشاط"} width={420} height={260} sizes="(max-width: 640px) 92vw, 420px" loading="eager" /></div>}
         {LISTEN.has(interaction) && <button type="button" className={styles.listenButton} onClick={playPrompt} disabled={!audioAssets.length || hasMediaGap} data-testid="activity-listen-prompt">{playback.isPlaying ? <Pause size={34}/> : playback.isPaused ? <Play size={34}/> : <Volume2 size={34}/>}<span>{playback.isPlaying ? "إيقاف مؤقت" : playback.isPaused ? "متابعة الاستماع" : "استمع"}</span></button>}
         {READ.has(interaction) && <div className={`${styles.readingBox} ${(step.expected_reading_text?.length || stimulus.length) > 55 ? styles.readingBoxLong : ""}`} data-testid="activity-reading-text">{step.expected_reading_text || stimulus || "اقرأ النص الظاهر"}</div>}
