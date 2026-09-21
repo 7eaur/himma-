@@ -5,7 +5,7 @@ permissions:
 
 on:
   push:
-    branches: [main, 'stage/*', 'recovery/*', 'b*/*', 'integration/*', 'audit/*']
+    branches: [main, 'stage/*', 'recovery/*', 'b*/*', 'integration/*', 'audit/*', 'improvement/*']
   pull_request:
     branches: [main]
 
