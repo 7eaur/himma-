@@ -69,22 +69,37 @@ for (const viewport of [
       await capture(page, viewport.name, route);
 
       if (route === "/admin/content-preview") {
-        const firstContent = page.getByTestId("content-index-item").first();
-        await expect(firstContent).toBeVisible({ timeout: 10000 });
-        await firstContent.click();
-        await expect(page.getByTestId("content-detail-pane")).toBeVisible();
+        const detailPane = page.getByTestId("content-detail-pane");
+        await expect(detailPane).toBeVisible({ timeout: 10000 });
         await expectNoHorizontalOverflow(page);
 
         if (viewport.width <= 820) {
-          await expect(page.getByTestId("content-index-pane")).toBeHidden();
-          const back = page.getByRole("button", { name: "العودة إلى فهرس المحتوى" });
-          await expect(back).toBeVisible();
-          const backBox = await back.boundingBox();
-          expect(backBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+          const indexPane = page.getByTestId("content-index-pane");
+          await expect(indexPane).toBeHidden();
+
+          const openNavigator = page.getByTestId("content-open-navigator");
+          await expect(openNavigator).toBeVisible();
+          const openBox = await openNavigator.boundingBox();
+          expect(openBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+
+          await openNavigator.click();
+          await expect(indexPane).toBeVisible();
+
+          const firstContent = page.getByTestId("content-index-item").first();
+          await expect(firstContent).toBeVisible();
+          await firstContent.click();
+
+          await expect(indexPane).toBeHidden();
+          await expect(detailPane).toBeVisible();
+          await expect(page.getByRole("navigation", { name: "التنقل بين عناصر القسم" })).toBeVisible();
+          await expectNoHorizontalOverflow(page);
           await capture(page, viewport.name, "/admin/content-preview-detail");
-          await back.click();
-          await expect(page.getByTestId("content-index-pane")).toBeVisible();
-          await expect(page.getByTestId("content-detail-pane")).toBeHidden();
+        } else {
+          const firstContent = page.getByTestId("content-index-item").first();
+          await expect(firstContent).toBeVisible();
+          await firstContent.click();
+          await expect(detailPane).toBeVisible();
+          await expectNoHorizontalOverflow(page);
         }
       }
     }
