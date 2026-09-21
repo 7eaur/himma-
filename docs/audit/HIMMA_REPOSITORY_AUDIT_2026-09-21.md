@@ -805,3 +805,58 @@ Status: complete-suite measurements captured on the baseline; production code wa
 - Critical-module coverage meets documented floors, and the baseline Jest coverage cannot fall while remaining green.
 - A normal-security browser project proves login, authenticated BFF access, audio byte-range playback, and representative cross-origin rejection behavior.
 - No test catches and ignores a failed product assertion.
+
+### HIM-AUD-028 — MEDIUM — Notification mutations report success in the UI when persistence fails
+
+**Evidence**
+
+- `apps/web/src/components/admin/AdminNotifications.tsx:21-28` catches and discards every network exception from the single-notification read request, never checks `response.ok`, then unconditionally decrements the unread count and marks the item read in local state.
+- `AdminNotifications.tsx:37` applies the same pattern to “mark all”: it ignores transport failure and every non-2xx response, then unconditionally sets the displayed unread count to zero and all local items to read.
+- The backend endpoints are durable mutations and can legitimately fail: `services/api/admin_notifications.py:47-60` returns 404 for a missing item and commits the read state; `:63-74` commits the bulk mutation. Both are authenticated and can also return authorization or infrastructure errors.
+- There is no frontend component test for `AdminNotifications`; the backend tests prove only successful/idempotent API behavior. This surface is also part of the zero-coverage frontend area in HIM-AUD-027.
+
+**Impact**
+
+- On an expired session, server error, or lost connection, the interface tells the supervisor that required review work was acknowledged when the durable inbox still considers it unread.
+- The next poll or page load can make apparently cleared notifications reappear, undermining trust in a workflow used for audio review and learner intervention.
+
+**Proposed resolution (not executed)**
+
+- Check both transport and HTTP success before updating local state. On failure, retain the unread state and show an actionable error.
+- If optimistic updates are desired, snapshot and roll back state on failure, serialize/reconcile concurrent refreshes, and disable duplicate mutation actions while pending.
+- Add component tests for 200, 401, 404, 500, network failure, retry, and a refresh racing with a mutation.
+
+**Acceptance**
+
+- A failed mark-one or mark-all request never displays durable success; the unread count remains consistent with the next server response.
+- Successful mutations remain idempotent and do not double-decrement during rapid interaction.
+
+### HIM-AUD-029 — MEDIUM — The authenticated BFF is a lossy, fully buffered proxy with no upstream timeout
+
+**Evidence**
+
+- `apps/web/src/app/api/[...path]/route.ts:36` materializes every non-GET/HEAD request as a `Blob`; `:38-39` then waits without an abort deadline and materializes every upstream response as an `ArrayBuffer` before returning any bytes.
+- The backend allows audio uploads up to 10 MiB (`services/api/storage.py:8,37-40`), so an accepted upload is buffered at the web boundary and again at the API storage boundary. Export responses are also completely generated and then completely buffered through the BFF.
+- The proxy forwards only `content-type`, cookie, `x-request-id`, and optional `idempotency-key`; it constructs the response with only `content-type`, computed cache control, and request ID, plus `set-cookie` (`route.ts:18-28,40-60`).
+- Consequently it drops standard representation headers including `Content-Disposition`, `Content-Length`, `Content-Range`, and `Accept-Ranges`, and does not forward the incoming `Range` request. The missing byte-range contract is one cause of the production playback defect in HIM-AUD-010.
+- Report endpoints intentionally emit filenames such as `himma-research-cohort.xlsx` and `himma-research-cohort.pdf` in `Content-Disposition` (`services/api/reports.py:454-458,484-524`), but the browser cannot receive those headers through the BFF links used by the reports UI.
+- `apps/web/src/app/api/[...path]/route.test.ts` tests only the cache-policy helper; it never executes the proxy, verifies streamed bytes, exercises failure/timeout behavior, or asserts header preservation. The three separate auth BFF routes repeat the no-timeout/full-buffer response pattern.
+
+**Impact**
+
+- Slow or stuck upstream requests can occupy web runtime capacity until an external platform deadline intervenes, with no controlled 504/error contract.
+- Buffering delays first byte and multiplies memory pressure for uploads, exports, and future larger payloads.
+- Dropped range and disposition metadata changes endpoint behavior at the browser boundary: audio seeking/playback fails and exported files lose their authoritative filenames.
+
+**Proposed resolution (not executed)**
+
+- Define an explicit request/response header allowlist by endpoint class, including safe forwarding of `Range` and preservation of `Content-Range`, `Accept-Ranges`, `Content-Length`, and `Content-Disposition` where applicable.
+- Stream request and response bodies rather than converting them to `Blob`/`ArrayBuffer`; enforce an early body-size boundary and add an abort deadline with a stable 504 response.
+- Consolidate auth and generic proxy behavior into a tested helper while preserving cookie rules and private cache policy.
+- Add integration tests against a controllable upstream for partial content, report filename, large/slow body, disconnect, timeout, upstream 5xx, and multi-value cookie behavior.
+
+**Acceptance**
+
+- A browser request for an audio byte range receives a correct 206 response and range headers through the BFF.
+- XLSX/PDF downloads retain their backend-declared filenames.
+- Slow upstreams terminate at the documented deadline, and body transfer is streamed within an agreed memory budget.
