@@ -497,9 +497,9 @@ export default function StudentActivityPage() {
       <div className={styles.contentColumn}>
         {isReinforcement && <div className={styles.notice} data-testid="reinforcement-intro">هذا تدريب قصير يساعدك على إتقان المهارة، وبعد إتقانها تعود إلى نشاطك الأساسي.</div>}
         {imageStimulusFirst && visualAsset && <div className={styles.contextImage}><Image src={visualAsset.url} alt={visualAsset.semantic_text || "صورة النشاط"} width={420} height={260} sizes="(max-width: 640px) 92vw, 420px" loading="eager" /></div>}
-        {stimulusFirst && stimulus && <div className={`${styles.stimulusBox} ${stimulus.length <= 3 ? styles.letterStimulus : ""}`}>{stimulus}</div>}
-        <h1 className={styles.questionTitle}>{round.question_text}</h1>
-        {!stimulusFirst && stimulus && !LISTEN.has(interaction) && !READ.has(interaction) && <div className={`${styles.stimulusBox} ${stimulus.length <= 3 ? styles.letterStimulus : ""}`}>{stimulus}</div>}
+        {stimulusFirst && stimulus && <div className={`${styles.stimulusBox} ${stimulus.length <= 3 ? styles.letterStimulus : ""}`} data-testid="activity-stimulus">{stimulus}</div>}
+        <h1 className={styles.questionTitle} data-testid="activity-question">{round.question_text}</h1>
+        {!stimulusFirst && stimulus && !LISTEN.has(interaction) && !READ.has(interaction) && <div className={`${styles.stimulusBox} ${stimulus.length <= 3 ? styles.letterStimulus : ""}`} data-testid="activity-stimulus">{stimulus}</div>}
         {!imageStimulusFirst && visualAsset && interaction !== "memory_sequence" && <div className={styles.contextImage}><Image src={visualAsset.url} alt={visualAsset.semantic_text || "صورة النشاط"} width={420} height={260} sizes="(max-width: 640px) 92vw, 420px" loading="eager" /></div>}
         {LISTEN.has(interaction) && <button type="button" className={styles.listenButton} onClick={playPrompt} disabled={!audioAssets.length || hasMediaGap} data-testid="activity-listen-prompt">{playback.isPlaying ? <Pause size={34}/> : playback.isPaused ? <Play size={34}/> : <Volume2 size={34}/>}<span>{playback.isPlaying ? "إيقاف مؤقت" : playback.isPaused ? "متابعة الاستماع" : "استمع"}</span></button>}
         {READ.has(interaction) && <div className={`${styles.readingBox} ${(step.expected_reading_text?.length || stimulus.length) > 55 ? styles.readingBoxLong : ""}`} data-testid="activity-reading-text">{step.expected_reading_text || stimulus || "اقرأ النص الظاهر"}</div>}
