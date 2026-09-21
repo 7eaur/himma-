@@ -1,0 +1,143 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Simplified speech-mode routing for current Himma canonical recording tasks",
+  "source": "packages/content/src/catalog.json",
+  "source_snapshot_note": "Routing intentionally does not depend on diacritic density; updated display text may contain fewer diacritics.",
+  "decision_states": [
+    "correct",
+    "incorrect",
+    "retry_required"
+  ],
+  "profiles": [
+    {
+      "canonical_id": "PRE-Q19",
+      "mode": "targeted_pronunciation",
+      "focus": "short_vowel"
+    },
+    {
+      "canonical_id": "PRE-Q20",
+      "mode": "targeted_pronunciation",
+      "focus": "sukun"
+    },
+    {
+      "canonical_id": "PRE-Q21",
+      "mode": "targeted_pronunciation",
+      "focus": "madd"
+    },
+    {
+      "canonical_id": "PRE-Q22",
+      "mode": "targeted_pronunciation",
+      "focus": "shadda"
+    },
+    {
+      "canonical_id": "PRE-Q23",
+      "mode": "lexical",
+      "focus": null
+    },
+    {
+      "canonical_id": "PRE-Q24",
+      "mode": "lexical",
+      "focus": null
+    },
+    {
+      "canonical_id": "L1-REIN-04",
+      "mode": "targeted_pronunciation",
+      "focus": "letter_identity"
+    },
+    {
+      "canonical_id": "L1-REIN-05",
+      "mode": "targeted_pronunciation",
+      "focus": "short_vowel"
+    },
+    {
+      "canonical_id": "L2-CORE-02",
+      "mode": "targeted_pronunciation",
+      "focus": "short_vowel"
+    },
+    {
+      "canonical_id": "L2-CORE-03",
+      "mode": "targeted_pronunciation",
+      "focus": "short_vowel"
+    },
+    {
+      "canonical_id": "L2-CORE-04",
+      "mode": "targeted_pronunciation",
+      "focus": "short_vowel"
+    },
+    {
+      "canonical_id": "L2-CORE-07",
+      "mode": "targeted_pronunciation",
+      "focus": "shadda"
+    },
+    {
+      "canonical_id": "L2-CORE-10",
+      "mode": "lexical",
+      "focus": null
+    },
+    {
+      "canonical_id": "L3-CORE-01",
+      "mode": "lexical",
+      "focus": null
+    },
+    {
+      "canonical_id": "L3-CORE-02",
+      "mode": "lexical",
+      "focus": null
+    },
+    {
+      "canonical_id": "L3-CORE-03",
+      "mode": "lexical",
+      "focus": null
+    },
+    {
+      "canonical_id": "L3-CORE-04",
+      "mode": "lexical",
+      "focus": null
+    },
+    {
+      "canonical_id": "L3-CORE-05",
+      "mode": "fluency",
+      "focus": "timed_words"
+    },
+    {
+      "canonical_id": "L3-CORE-06",
+      "mode": "fluency",
+      "focus": "timed_passage"
+    },
+    {
+      "canonical_id": "L3-REIN-04",
+      "mode": "lexical",
+      "focus": null
+    },
+    {
+      "canonical_id": "POST-Q19",
+      "mode": "targeted_pronunciation",
+      "focus": "short_vowel"
+    },
+    {
+      "canonical_id": "POST-Q20",
+      "mode": "targeted_pronunciation",
+      "focus": "sukun"
+    },
+    {
+      "canonical_id": "POST-Q21",
+      "mode": "targeted_pronunciation",
+      "focus": "madd"
+    },
+    {
+      "canonical_id": "POST-Q22",
+      "mode": "targeted_pronunciation",
+      "focus": "shadda"
+    },
+    {
+      "canonical_id": "POST-Q23",
+      "mode": "lexical",
+      "focus": null
+    },
+    {
+      "canonical_id": "POST-Q24",
+      "mode": "lexical",
+      "focus": null
+    }
+  ]
+}
