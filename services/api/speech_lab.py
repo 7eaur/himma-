@@ -20,6 +20,7 @@ from content_runtime import canonical_id, canonical_interaction
 from db.models import ContentItem, ContentRelease, ContentStep, User
 from dependencies import get_current_user, get_db
 from pronunciation_evidence import build_acoustic_evidence_plan
+from speech_aliases import alias_evidence
 from speech_alignment import align_reference, alignment_counts, normalize_arabic
 from speech_provider import (
     ProviderNotConfigured,
@@ -260,6 +261,11 @@ async def analyze_recording(
 
     aligned = align_reference(reference, result.transcript)
     counts = alignment_counts(aligned)
+    aliases = (
+        alias_evidence(target_id, result.transcript)
+        if profile.mode == "targeted_pronunciation"
+        else {"matched": False, "effect": None, "matched_alias": None}
+    )
     ref_words = max(1, len(normalize_arabic(reference).split()))
     errors = counts["deletion"] + counts["insertion"] + counts["substitution"]
     wer = errors / ref_words
@@ -272,6 +278,7 @@ async def analyze_recording(
         "speech_mode": profile.mode,
         "pronunciation_focus": profile.focus,
         "analysis_path": "lexical_alignment" if profile.mode in {"lexical", "fluency"} else "targeted_pronunciation_preview",
+        "asr_alias_evidence": aliases,
         "adaptation_mode": adaptation_mode,
         "provider": result.provider_name,
         "model": result.model,
