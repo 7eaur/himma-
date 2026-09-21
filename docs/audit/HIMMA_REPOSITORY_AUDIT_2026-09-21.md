@@ -902,3 +902,53 @@ Status: repository policy/runtime comparison complete; no claim is made that rea
 - Production documentation cannot say study-ready/green while the approved retention-policy version is absent.
 - A synthetic participant deletion/expiry drill produces evidence that every governed copy is deleted, archived, or deliberately retained according to the approved policy.
 - `/ready` remains an infrastructure probe, while a separate release/admission gate proves policy approval and lifecycle operability.
+
+### HIM-AUD-031 — MEDIUM — Secret scanning cannot detect credentials removed from the current tree but retained in Git history
+
+**Evidence**
+
+- The security job checks out with `fetch-depth: 1` (`.github/workflows/ci.yml:16-18`) and invokes `gitleaks dir ... .` (`:34-54`). Directory mode scans the current working tree; the shallow checkout also lacks the repository history required for a history scan.
+- The audit clone contains 1,397 commits across all refs and approximately 108 MiB of packed Git history. A credential committed and then deleted can remain retrievable from those objects/branches while this gate reports clean.
+- The same current-tree scan is presently red on three documentation false positives (HIM-AUD-001), demonstrating that scan noise is blocking integration while the higher-value historical exposure class is not covered.
+- A targeted history search found a historical `apps/web/.env.production` containing only a public API URL, not a confirmed secret. No claim of a known historical credential is made; the confirmed defect is the gate's inability to detect one.
+
+**Impact**
+
+- Removing a leaked credential in a later commit would make future CI green without identifying the need for rotation or history remediation.
+- Review effort is currently spent on documentation-shaped false positives while historical refs—the persistence mechanism that matters after a deletion—remain outside the automated boundary.
+
+**Proposed resolution (not executed)**
+
+- Add a full-history secret scan with a full fetch on a scheduled/manual security workflow and on relevant protected integration events; retain the fast current-tree scan for pull-request feedback.
+- Baseline only investigated false positives using narrowly scoped rules, never broad path exclusions. Record owner, rotation, and history-remediation decisions for every verified exposure.
+- Enable and document the repository host's native secret scanning/push protection if available; do not treat it as a substitute for reviewing all live divergent branches.
+
+**Acceptance**
+
+- A synthetic credential committed and deleted on a test ref is still detected by the history scan.
+- Current-tree false-positive handling does not suppress the same detector across unrelated paths or historical commits.
+
+### HIM-AUD-032 — LOW — The frontend has no formatting contract and core pages are committed as multi-kilobyte single lines
+
+**Evidence**
+
+- `apps/web/package.json` has no formatting script or formatter dependency, and the project has no Prettier/editor configuration; CI runs TypeScript, ESLint, tests, and build but no formatter check.
+- Core production components are technically only 10–16 physical lines because complete render trees are compressed onto single lines: `reports/page.tsx:12` is 6,918 characters, `skill-reports/page.tsx:10` is 4,409, and `students/page.tsx:15` is 4,293. `AdminNotifications.tsx:38` is 1,433 characters and contains the complete popover UI.
+- A read-only Prettier 3.9.8 check reported formatting differences in 75 of the 86 TypeScript/TSX/CSS files under `apps/web/src`. This measurement is diagnostic only; no files were rewritten.
+- The dense notification code hid both mutation error paths from HIM-AUD-028 on lines 23 and 37, while its entire JSX surface occupies line 38.
+
+**Impact**
+
+- Diffs merge unrelated UI structure onto the same line, making regressions, swallowed errors, accessibility attributes, and conflicting branch changes harder to review.
+- Formatting churn will be large if normalization is postponed until after more functional work, increasing merge-conflict cost.
+
+**Proposed resolution (not executed)**
+
+- Adopt one pinned formatter/configuration, normalize in a dedicated non-functional commit, then enforce check-only mode in CI.
+- Split high-complexity pages by behavior/domain boundaries after formatting, without combining the mechanical pass with product changes.
+- Use blame-ignore metadata for the one-time formatting commit so historical attribution remains usable.
+
+**Acceptance**
+
+- Formatting is deterministic from a locked dependency and CI rejects drift.
+- No production TSX line exceeds the agreed reviewability limit except explicit generated data, and formatting-only changes are isolated from behavior changes.
