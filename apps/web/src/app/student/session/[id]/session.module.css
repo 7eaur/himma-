@@ -1118,6 +1118,70 @@
     font-size: 1.05rem;
   }
 
+  .page[data-testid="activity-session"][data-level-id="1"] .contextImage {
+    width: min(78vw, 300px);
+    min-height: 132px;
+    margin-bottom: 11px;
+    padding: 9px;
+    border-radius: 17px;
+  }
+
+  .page[data-testid="activity-session"][data-level-id="1"] .contextImage img {
+    max-height: 165px;
+    border-radius: 13px;
+  }
+
+  .page[data-testid="activity-session"][data-level-id="1"] .listenButton {
+    width: 78px;
+    height: 78px;
+    margin-bottom: 11px;
+  }
+
+  .page[data-testid="activity-session"][data-level-id="1"] .imageOptions {
+    gap: 8px;
+  }
+
+  .page[data-testid="activity-session"][data-level-id="1"] .imageOption {
+    min-height: 118px;
+    padding: 7px;
+    border-radius: 14px;
+  }
+
+  .page[data-testid="activity-session"][data-level-id="1"] .imageOption img {
+    height: 76px;
+  }
+
+  .page[data-testid="activity-session"][data-level-id="1"] .sequenceBoard {
+    min-height: 56px;
+    margin-bottom: 10px;
+    padding: 8px 10px;
+    border-radius: 14px;
+  }
+
+  .page[data-testid="activity-session"][data-level-id="1"] .sequenceChip {
+    padding: 6px 9px;
+    font-size: 0.92rem;
+  }
+
+  .page[data-testid="activity-session"][data-level-id="1"] .readingBox {
+    width: min(86vw, 330px);
+    margin-bottom: 11px;
+    padding: 14px 12px;
+    border-radius: 17px;
+    font-size: clamp(1.65rem, 8vw, 2.35rem);
+  }
+
+  .page[data-testid="activity-session"][data-level-id="1"] .recordPanel {
+    width: min(100%, 520px);
+    padding: 11px 10px;
+    border-radius: 17px;
+  }
+
+  .page[data-testid="activity-session"][data-level-id="1"] .recordButton {
+    width: 68px;
+    height: 68px;
+  }
+
   .page[data-testid="activity-session"][data-level-id="1"] .selectedMark {
     width: 27px;
     height: 27px;
