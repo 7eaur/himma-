@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import {
+  ArrowLeft,
   ArrowRight,
   BookOpenCheck,
   CheckCircle2,
@@ -11,6 +12,7 @@ import {
   Filter,
   ImageIcon,
   ListChecks,
+  Menu,
   Mic2,
   RefreshCw,
   Search,
@@ -213,6 +215,20 @@ function kindMatches(item: ReviewSummary, kind: ContentKind) {
   return item.kind === "reinforcement_activity";
 }
 
+function scopeForItem(item: ReviewSummary): Scope {
+  if (item.kind === "pretest_question") return "pretest";
+  if (item.kind === "posttest_question") return "posttest";
+  if (item.level_id === 1) return "l1";
+  if (item.level_id === 2) return "l2";
+  return "l3";
+}
+
+function contentKindForItem(item: ReviewSummary): ContentKind {
+  if (item.kind === "core_activity") return "core";
+  if (item.kind === "reinforcement_activity") return "rein";
+  return "all";
+}
+
 async function fetchIndex(): Promise<ReviewIndex> {
   const response = await fetch("/api/researcher/content-preview", { cache: "no-store" });
   const data = await response.json().catch(() => null);
@@ -381,13 +397,21 @@ function ContextIntroReview({ intro, assets }: { intro?: ContextIntro | null; as
   </section>;
 }
 
-function RoundReview({ round, interaction }: { round: ReviewRound; interaction: Interaction }) {
+function RoundReview({
+  round,
+  interaction,
+  forceOpen = false,
+}: {
+  round: ReviewRound;
+  interaction: Interaction;
+  forceOpen?: boolean;
+}) {
   const stimulusText = String(round.stimulus_text || round.stimulus?.text || "").trim();
   const normalizedQuestion = round.question_text.trim();
   const showStimulus = Boolean(stimulusText && stimulusText !== normalizedQuestion);
   const hasStudentCopy = Boolean(round.encouragement || round.instruction_text || round.hint);
 
-  return <details className={styles.roundDetails} open={round.round_number === 1} data-testid="content-round">
+  return <details className={styles.roundDetails} open={forceOpen || round.round_number === 1} data-testid="content-round">
     <summary className={styles.roundSummary}>
       <div className={styles.roundSummaryMain}>
         <div className={styles.roundNumber}>الجولة {round.round_number} من {round.round_total}</div>
@@ -439,7 +463,8 @@ export default function ContentPreviewPage() {
   const [media, setMedia] = useState("all");
   const [query, setQuery] = useState("");
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-  const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
+  const [mobileNavigatorOpen, setMobileNavigatorOpen] = useState(false);
+  const [activeMobileRound, setActiveMobileRound] = useState(0);
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState("");
@@ -450,7 +475,11 @@ export default function ContentPreviewPage() {
     try {
       const data = await fetchIndex();
       setIndex(data);
-      if (!selected && data.items.length) setSelected(data.items[0].canonical_id);
+      if (!selected && data.items.length) {
+        const saved = typeof window !== "undefined" ? window.localStorage.getItem("himma.admin.contentPreview.lastItem") : null;
+        const initial = data.items.find((item) => item.canonical_id === saved)?.canonical_id || data.items[0].canonical_id;
+        setSelected(initial);
+      }
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "تعذر تحميل المحتوى المعتمد");
     } finally {
@@ -465,7 +494,11 @@ export default function ContentPreviewPage() {
       .then((data) => {
         if (cancelled) return;
         setIndex(data);
-        if (data.items.length) setSelected(data.items[0].canonical_id);
+        if (data.items.length) {
+          const saved = window.localStorage.getItem("himma.admin.contentPreview.lastItem");
+          const initial = data.items.find((item) => item.canonical_id === saved)?.canonical_id || data.items[0].canonical_id;
+          setSelected(initial);
+        }
       })
       .catch((caught: unknown) => {
         if (!cancelled) setError(caught instanceof Error ? caught.message : "تعذر تحميل المحتوى المعتمد");
@@ -538,31 +571,74 @@ export default function ContentPreviewPage() {
   }, [filtered]);
 
   const current = detail && detail.summary.canonical_id === effectiveSelected ? detail : null;
+  const selectedSummary = (index?.items || []).find((item) => item.canonical_id === effectiveSelected) || null;
+  const currentSectionKey = selectedSummary ? sectionKey(selectedSummary) : "";
+  const currentSectionItems = selectedSummary
+    ? filtered.filter((item) => sectionKey(item) === currentSectionKey)
+    : [];
+  const currentItemIndex = currentSectionItems.findIndex((item) => item.canonical_id === effectiveSelected);
+  const currentItemPosition = currentItemIndex >= 0 ? currentItemIndex + 1 : 0;
+  const currentSectionLabel = currentSectionKey ? sectionLabel(currentSectionKey) : "المحتوى";
   const advancedFilterCount = Number(contentKind !== "all") + Number(interaction !== "all") + Number(media !== "all");
+
+  useEffect(() => {
+    setActiveMobileRound(0);
+  }, [effectiveSelected]);
+
+  useEffect(() => {
+    if (!mobileNavigatorOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [mobileNavigatorOpen]);
 
   const resetAdvancedFilters = () => {
     setContentKind("all");
     setInteraction("all");
     setMedia("all");
     setSelected("");
-    setMobileDetailOpen(false);
   };
 
   const selectScope = (nextScope: Scope) => {
     setScope(nextScope);
     if (nextScope === "pretest" || nextScope === "posttest") setContentKind("all");
     setSelected("");
-    setMobileDetailOpen(false);
   };
 
   const selectItem = (canonicalId: string) => {
     setError("");
     setSelected(canonicalId);
-    setMobileDetailOpen(true);
+    setActiveMobileRound(0);
+    setMobileNavigatorOpen(false);
 
-    if (typeof window !== "undefined" && window.matchMedia("(max-width: 820px)").matches) {
-      window.scrollTo({ top: 0 });
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("himma.admin.contentPreview.lastItem", canonicalId);
+      if (window.matchMedia("(max-width: 820px)").matches) {
+        window.requestAnimationFrame(() => {
+          document.querySelector('[data-testid="content-detail-pane"]')?.scrollIntoView({ block: "start" });
+        });
+      }
     }
+  };
+
+  const openMobileNavigator = () => {
+    if (selectedSummary) {
+      setScope(scopeForItem(selectedSummary));
+      setContentKind(contentKindForItem(selectedSummary));
+    }
+    setInteraction("all");
+    setMedia("all");
+    setQuery("");
+    setShowAdvancedFilters(false);
+    setMobileNavigatorOpen(true);
+  };
+
+  const moveItem = (direction: -1 | 1) => {
+    if (currentItemIndex < 0) return;
+    const next = currentSectionItems[currentItemIndex + direction];
+    if (next) selectItem(next.canonical_id);
   };
 
   const selectLinkedItem = (canonicalId: string) => {
@@ -609,7 +685,6 @@ export default function ContentPreviewPage() {
             onChange={(event) => {
               setQuery(event.target.value);
               setSelected("");
-              setMobileDetailOpen(false);
             }}
             placeholder="ابحث بالسؤال أو المهارة أو الرمز..."
           />
@@ -649,7 +724,6 @@ export default function ContentPreviewPage() {
             onChange={(event) => {
               setContentKind(event.target.value as ContentKind);
               setSelected("");
-              setMobileDetailOpen(false);
             }}
           >
             <option value="all">الأنشطة والتقوية</option>
@@ -666,7 +740,6 @@ export default function ContentPreviewPage() {
             onChange={(event) => {
               setInteraction(event.target.value);
               setSelected("");
-              setMobileDetailOpen(false);
             }}
           >
             <option value="all">كل الأنواع</option>
@@ -686,7 +759,6 @@ export default function ContentPreviewPage() {
             onChange={(event) => {
               setMedia(event.target.value);
               setSelected("");
-              setMobileDetailOpen(false);
             }}
           >
             <option value="all">كل المحتوى</option>
@@ -706,11 +778,82 @@ export default function ContentPreviewPage() {
     </section>
 
     <div className={styles.workspace}>
+      {mobileNavigatorOpen && <button
+        type="button"
+        className={styles.mobileIndexBackdrop}
+        aria-label="إغلاق فهرس المحتوى"
+        onClick={() => setMobileNavigatorOpen(false)}
+      />}
+
       <aside
-        className={`${styles.indexPane} ${mobileDetailOpen ? styles.mobileHidden : ""}`.trim()}
+        className={`${styles.indexPane} ${mobileNavigatorOpen ? styles.mobileIndexOpen : styles.mobileIndexClosed}`.trim()}
         data-testid="content-index-pane"
         aria-label="فهرس المحتوى"
       >
+        <div className={styles.mobileSheetHeader}>
+          <div>
+            <strong>اختر المحتوى</strong>
+            <span>{currentSectionLabel}</span>
+          </div>
+          <button type="button" aria-label="إغلاق فهرس المحتوى" onClick={() => setMobileNavigatorOpen(false)}>
+            <X size={19} aria-hidden="true" />
+          </button>
+        </div>
+
+        <div className={styles.mobileNavigatorControls}>
+          <div className={styles.scopeRow} aria-label="القسم">
+            {SCOPE_OPTIONS.filter((option) => option.value !== "all").map((option) => <button
+              key={option.value}
+              type="button"
+              aria-pressed={scope === option.value}
+              className={`${styles.scopeButton} ${scope === option.value ? styles.scopeButtonActive : ""}`.trim()}
+              onClick={() => selectScope(option.value)}
+            >
+              {option.label}
+            </button>)}
+          </div>
+
+          {scope !== "pretest" && scope !== "posttest" && scope !== "all" && <div className={styles.kindRow} aria-label="نوع المحتوى">
+            <button
+              type="button"
+              aria-pressed={contentKind === "core"}
+              className={contentKind === "core" ? styles.kindButtonActive : ""}
+              onClick={() => {
+                setContentKind("core");
+                setSelected("");
+              }}
+            >
+              الأنشطة
+            </button>
+            <button
+              type="button"
+              aria-pressed={contentKind === "rein"}
+              className={contentKind === "rein" ? styles.kindButtonActive : ""}
+              onClick={() => {
+                setContentKind("rein");
+                setSelected("");
+              }}
+            >
+              التقوية
+            </button>
+          </div>}
+
+          <label className={styles.searchWrap}>
+            <span className="sr-only">بحث داخل القسم</span>
+            <Search size={17} className={styles.searchIcon} aria-hidden="true" />
+            <input
+              type="search"
+              className={styles.searchInput}
+              value={query}
+              onChange={(event) => {
+                setQuery(event.target.value);
+                setSelected("");
+              }}
+              placeholder="ابحث داخل هذا القسم..."
+            />
+          </label>
+        </div>
+
         <div className={styles.indexHeader}>
           <div>
             <div className={styles.indexTitle}>فهرس المحتوى</div>
@@ -724,7 +867,7 @@ export default function ContentPreviewPage() {
             {grouped.map((group) => <section className={styles.group} key={group.key}>
               <div className={styles.groupLabel}>{group.label}</div>
               <div className={styles.indexItems}>
-                {group.items.map((item) => {
+                {group.items.map((item, itemIndex) => {
                   const active = item.canonical_id === effectiveSelected;
 
                   return <button
@@ -736,6 +879,7 @@ export default function ContentPreviewPage() {
                     aria-current={active ? "true" : undefined}
                   >
                     <div className={styles.indexItemTop}>
+                      <span className={styles.indexNumber}>{String(itemIndex + 1).padStart(2, "0")}</span>
                       <span className={styles.indexTitleText}>{item.title}</span>
                       <span className={styles.indexId}>{item.canonical_id}</span>
                     </div>
@@ -754,23 +898,22 @@ export default function ContentPreviewPage() {
           </div>}
       </aside>
 
-      <main
-        className={`${styles.detailPane} ${!mobileDetailOpen ? styles.mobileHidden : ""}`.trim()}
-        data-testid="content-detail-pane"
-      >
-        <button
-          type="button"
-          className={styles.mobileBack}
-          data-testid="content-mobile-back"
-          aria-label="العودة إلى فهرس المحتوى"
-          onClick={() => {
-            setMobileDetailOpen(false);
-            if (typeof window !== "undefined") window.scrollTo({ top: 0 });
-          }}
-        >
-          <ArrowRight size={17} aria-hidden="true" />
-          العودة إلى الفهرس
-        </button>
+      <main className={styles.detailPane} data-testid="content-detail-pane">
+        <div className={styles.mobileNavigatorBar} data-testid="content-mobile-navigator">
+          <div className={styles.mobileNavigatorContext}>
+            <strong>{currentSectionLabel}</strong>
+            <span>{currentItemPosition || "—"} من {currentSectionItems.length || 0}</span>
+          </div>
+          <button
+            type="button"
+            data-testid="content-open-navigator"
+            aria-label="فتح فهرس المحتوى"
+            onClick={openMobileNavigator}
+          >
+            <Menu size={18} aria-hidden="true" />
+            الفهرس
+          </button>
+        </div>
 
         {effectiveSelected && !current ? <section className={styles.detailCard}><div className={styles.loading}><div className="spinner w-10 h-10" /></div></section>
           : !current ? <section className={styles.detailCard}><div className={styles.empty}><div><strong>اختر عنصر محتوى</strong>اختر سؤالًا أو نشاطًا من الفهرس لمراجعته.</div></div></section>
@@ -829,10 +972,66 @@ export default function ContentPreviewPage() {
                 <h3 className={styles.sectionTitle}>الجولات والأسئلة</h3>
                 <p className={styles.sectionDescription}>افتح الجولة التي تريد مراجعتها. كل معلومة تظهر مرة واحدة.</p>
               </div>
-              <div className={styles.rounds}>
-                {current.rounds.map((round) => <RoundReview key={round.id} round={round} interaction={current.item.interaction_type} />)}
+              <div className={styles.desktopRounds}>
+                <div className={styles.rounds}>
+                  {current.rounds.map((round) => <RoundReview key={round.id} round={round} interaction={current.item.interaction_type} />)}
+                </div>
+              </div>
+
+              <div className={styles.mobileRoundViewer}>
+                {current.rounds.length > 0 && (() => {
+                  const roundIndex = Math.min(activeMobileRound, current.rounds.length - 1);
+                  const round = current.rounds[roundIndex];
+                  return <>
+                    <RoundReview round={round} interaction={current.item.interaction_type} forceOpen />
+                    {current.rounds.length > 1 && <div className={styles.mobileRoundNav}>
+                      <button
+                        type="button"
+                        disabled={roundIndex === 0}
+                        onClick={() => setActiveMobileRound((value) => Math.max(0, value - 1))}
+                      >
+                        <ArrowRight size={16} aria-hidden="true" />
+                        السابقة
+                      </button>
+                      <span>الجولة {roundIndex + 1} من {current.rounds.length}</span>
+                      <button
+                        type="button"
+                        disabled={roundIndex === current.rounds.length - 1}
+                        onClick={() => setActiveMobileRound((value) => Math.min(current.rounds.length - 1, value + 1))}
+                      >
+                        التالية
+                        <ArrowLeft size={16} aria-hidden="true" />
+                      </button>
+                    </div>}
+                  </>;
+                })()}
               </div>
             </section>
+
+            <nav className={styles.mobileItemNav} aria-label="التنقل بين عناصر القسم">
+              <button
+                type="button"
+                disabled={currentItemIndex <= 0}
+                onClick={() => moveItem(-1)}
+                aria-label="العنصر السابق"
+              >
+                <ArrowRight size={17} aria-hidden="true" />
+                السابق
+              </button>
+              <button type="button" className={styles.mobileItemProgress} onClick={openMobileNavigator}>
+                <strong>{currentItemPosition || "—"} من {currentSectionItems.length || 0}</strong>
+                <span>{currentSectionLabel}</span>
+              </button>
+              <button
+                type="button"
+                disabled={currentItemIndex < 0 || currentItemIndex >= currentSectionItems.length - 1}
+                onClick={() => moveItem(1)}
+                aria-label="العنصر التالي"
+              >
+                التالي
+                <ArrowLeft size={17} aria-hidden="true" />
+              </button>
+            </nav>
           </>}
       </main>
     </div>
