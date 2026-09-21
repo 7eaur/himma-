@@ -242,3 +242,132 @@ Status: evidence captured; remediation has not started.
 - The latest rerun QG #987 for `71d3aaf` was still in progress at the evidence snapshot; two prior completed runs on the same SHA failed identically.
 - Code-level verification of PR #4's playback root cause belongs to the backend/frontend audit phases and will not rely only on the PR description.
 - The two divergent compact audio-review branches require semantic comparison against the contained implementation before a delete/archive recommendation.
+
+### Phase 2 — Delivery gates, runtime boundaries, and authorization
+
+Status: code-level evidence captured; broader backend/frontend review remains in progress.
+
+## Confirmed findings — Phase 2
+
+### HIM-AUD-009 — CRITICAL — Pull requests to the official branch can receive no quality gate
+
+**Evidence**
+
+- The official/default branch is `stage/02-content`.
+- `.github/workflows/ci.yml:6-10` runs `pull_request` only when the base branch is `main`; it does not include `stage/02-content` or `stage/*`.
+- The same workflow's push filter includes `stage/*` but excludes `ux/*`.
+- Ready PR #3 uses head `ux/admin-content-library-20260921` and base `stage/02-content`; GitHub reported no Actions runs for that PR/head.
+- HIM-AUD-006 confirms that the target branch is also unprotected.
+
+**Impact**
+
+- A ready functional PR can be merged into the official branch without backend tests, frontend type/lint/unit/build checks, integration tests, dependency audit, or secret scanning ever running for the proposed merge.
+- A post-merge push may start CI, but deployment can already proceed independently of that CI (HIM-AUD-002), so post-merge detection is not a safe substitute for a PR gate.
+
+**Root cause**
+
+- Workflow branch filters still encode `main` as the review target while repository governance moved the official/default branch to `stage/02-content`.
+- Push and pull-request coverage are defined independently and have drifted from the live branch/PR naming scheme.
+
+**Proposed resolution (not executed)**
+
+- Trigger the full quality gate for pull requests whose base is the official branch (prefer an explicit canonical-branch setting or include `stage/02-content`).
+- Add a small workflow-policy test that compares the GitHub default branch and open PR bases/heads with CI trigger coverage.
+- Require the exact PR merge result, not only the head SHA, when enabling GitHub merge protection.
+
+**Acceptance**
+
+- A test PR from `ux/*` to `stage/02-content` starts the complete QG.
+- GitHub blocks merge when any required job is absent, pending, skipped because of an upstream failure, or failed.
+
+### HIM-AUD-010 — HIGH — Supervisor audio playback is broken by an internal CSP/streaming contract conflict
+
+**Evidence**
+
+- `apps/web/src/app/admin/(dashboard)/audio-review/page.tsx:35-42` calls `/api/recordings/stream-by-key`, reads JSON, and assigns the returned `data.url` directly to the audio element.
+- `services/api/recordings.py:218-242` returns an external S3-compatible presigned `get_object` URL rather than streaming bytes from the application origin.
+- `apps/web/next.config.ts:5-18` sets `media-src 'self' blob:` and `connect-src 'self'`, so the external storage origin is not permitted.
+- `apps/web/src/app/api/[...path]/route.ts:18-57` does not forward an inbound `Range` header and only returns `content-type`, `cache-control`, and `x-request-id`; it cannot currently act as a range-safe media proxy even if the backend route is changed to return bytes.
+- Open PR #4 independently implements same-origin authenticated streaming and range forwarding for this exact regression, but it is not merged into the official branch.
+
+**Impact**
+
+- A supervisor can receive a valid queued recording yet be unable to listen to it, blocking the human academic review authority and therefore assessment completion/progression.
+- Relaxing CSP to accept a storage host would couple browser security policy to an external endpoint and still leave authorization/range behavior split across origins.
+
+**Root cause**
+
+- The storage API contract (`JSON containing an external URL`) and the browser security contract (`same-origin media only`) were designed/tested independently.
+- Existing header tests assert general CSP hardening but do not exercise the actual audio playback origin or byte-range path.
+
+**Proposed resolution (not executed)**
+
+- Adopt one authenticated same-origin media endpoint that validates the key and authorization, fetches/streams the private object, supports `Range`, and returns only a safe header allowlist.
+- Extend the BFF to forward `Range` and preserve `206`, `Content-Range`, `Accept-Ranges`, `Content-Length`, and the validated audio content type.
+- Keep the restrictive CSP rather than adding a broad external media origin.
+
+**Acceptance**
+
+- Browser E2E verifies play/seek/resume for a real private object under the production CSP.
+- Unauthorized and invalid-key requests fail; non-audio objects cannot be proxied; a byte-range request receives correct `206` semantics.
+
+### HIM-AUD-011 — HIGH — Any supervisor can create another privileged supervisor account
+
+**Evidence**
+
+- `services/api/dependencies.py:get_current_user` recognizes one privileged role, `researcher`; it has no owner/administrator capability distinction.
+- `services/api/protected.py:107-130` allows every authenticated `researcher` to list all supervisor accounts and create another active `researcher` account.
+- `apps/web/src/app/admin/(dashboard)/settings/page.tsx` exposes the supervisor-management tab and create form to every authenticated supervisor; it performs no capability check.
+- The requirements reference defines a single researcher/admin role and explicitly places a multi-researcher institutional permission system outside scope; no accepted decision grants all supervisors account-provisioning authority.
+
+**Impact**
+
+- Compromise or misuse of any supervisor account can create a new persistent privileged account.
+- There is no technical boundary between academic supervision and security-sensitive identity administration.
+
+**Root cause**
+
+- Product terminology migration from `researcher` to `supervisor` retained a flat legacy role while account-management features were added to the same role.
+
+**Proposed resolution (not executed)**
+
+- Decide the intended ownership model explicitly. For the smallest research deployment, restrict provisioning to a bootstrap owner or an offline/secret-controlled administrative operation.
+- If multiple supervisors remain supported, add an explicit capability/role boundary, audit it, and test denial for ordinary supervisors.
+- Review already-created accounts and document the recovery/revocation owner.
+
+**Acceptance**
+
+- An ordinary supervisor receives `403` for account provisioning and privileged account enumeration.
+- The authorized owner path is separately authenticated, audited, rate limited, and covered by positive/negative tests.
+
+### HIM-AUD-012 — MEDIUM — Critical domain invariants are not enforced by the database
+
+**Evidence**
+
+- `ContentAssetLink` allows `item_id` and `step_id` to both be null or both be set; there is no check constraint requiring exactly one parent.
+- `AudioSubmission.status` is a free string with no check constraint, while runtime logic assumes a finite state set including `uploaded`, `graded`, and `rerecord_required`.
+- `AudioSubmission` has no constraint preventing duplicate current rows for the same response/storage object; latest-row ordering is used as the application authority.
+- `AdaptationDecision.action`, `decision_source`, `previous_level`, and `new_level` are unconstrained columns. Its model comment still lists `demote`, while current product tests and decisions forbid automatic demotion.
+- The migrations mirror these unconstrained definitions; the gap is not only an ORM declaration issue.
+
+**Impact**
+
+- A script, seed, future endpoint, failed retry, or concurrent operation can persist impossible states that application code later interprets unpredictably.
+- Corrupt asset ownership or audio/adaptation state can affect content projection, review queues, and progression evidence.
+
+**Proposed resolution (not executed)**
+
+- Add explicit check/unique/partial-index constraints after profiling existing production data.
+- Centralize enum/state definitions used by migrations, ORM validation, API schemas, and tests.
+- For intentionally append-only histories, encode the current-row uniqueness rule or make the selection policy explicit and concurrency-safe.
+
+**Acceptance**
+
+- Direct SQL tests prove invalid parent combinations, statuses, actions, sources, and levels are rejected.
+- Migration preflight reports any existing violating rows before constraint installation.
+
+## Phase 2 open verification
+
+- Determine whether account provisioning was intentionally approved outside the current requirements reference; absent such a decision, HIM-AUD-011 remains an authorization defect.
+- Profile live database rows before prescribing exact new constraints for HIM-AUD-012.
+- Compare PR #4 implementation with the acceptance criteria above; its existence does not by itself prove the fix complete.
