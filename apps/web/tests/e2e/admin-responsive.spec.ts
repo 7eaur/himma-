@@ -39,6 +39,7 @@ const ROUTES = [
   "/admin/students",
   "/admin/students/new",
   "/admin/audio-review",
+  "/admin/content-preview",
   "/admin/reports",
   "/admin/skill-reports",
   "/admin/settings",
@@ -66,6 +67,26 @@ for (const viewport of [
       await page.waitForTimeout(250);
       await expectNoHorizontalOverflow(page);
       await capture(page, viewport.name, route);
+
+      if (route === "/admin/content-preview") {
+        const firstContent = page.getByTestId("content-index-item").first();
+        await expect(firstContent).toBeVisible({ timeout: 10000 });
+        await firstContent.click();
+        await expect(page.getByTestId("content-detail-pane")).toBeVisible();
+        await expectNoHorizontalOverflow(page);
+
+        if (viewport.width <= 820) {
+          await expect(page.getByTestId("content-index-pane")).toBeHidden();
+          const back = page.getByRole("button", { name: "العودة إلى فهرس المحتوى" });
+          await expect(back).toBeVisible();
+          const backBox = await back.boundingBox();
+          expect(backBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+          await capture(page, viewport.name, "/admin/content-preview-detail");
+          await back.click();
+          await expect(page.getByTestId("content-index-pane")).toBeVisible();
+          await expect(page.getByTestId("content-detail-pane")).toBeHidden();
+        }
+      }
     }
 
     await page.goto("/admin/students");

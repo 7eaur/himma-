@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import {
+  ArrowRight,
   BookOpenCheck,
   CheckCircle2,
   ChevronDown,
@@ -14,11 +15,15 @@ import {
   RefreshCw,
   Search,
   Volume2,
+  X,
 } from "lucide-react";
-import { AdminAction, AdminEmptyState, AdminPage, AdminPageHeader, AdminPanel } from "@/components/admin/AdminUI";
+import { AdminAction, AdminPage, AdminPageHeader } from "@/components/admin/AdminUI";
+import styles from "./content-preview.module.css";
 
 type Kind = "pretest_question" | "posttest_question" | "core_activity" | "reinforcement_activity";
 type Interaction = string;
+type Scope = "all" | "pretest" | "l1" | "l2" | "l3" | "posttest";
+type ContentKind = "all" | "core" | "rein";
 
 interface Asset {
   asset_id: string;
@@ -28,18 +33,21 @@ interface Asset {
   url: string;
   option_id?: number | null;
 }
+
 interface Option {
   id: number;
   text: string;
   order_index: number;
   is_correct: boolean;
 }
+
 interface AnswerContract {
   kind: "recording_target" | "ordered_sequence" | "correct_options" | "none";
   label: string;
   values: string[];
   option_ids: number[];
 }
+
 interface ReviewSummary {
   id: number;
   canonical_id: string;
@@ -60,14 +68,20 @@ interface ReviewSummary {
   release_version?: string | null;
   release_sha256?: string | null;
 }
+
 interface ReviewIndex {
   mode: "read_only";
   purpose: "admin_content_review";
   writes_progress: false;
   count: number;
   items: ReviewSummary[];
-  active_release?: { version: string; is_active: boolean; released_at?: string | null } | null;
+  active_release?: {
+    version: string;
+    is_active: boolean;
+    released_at?: string | null;
+  } | null;
 }
+
 interface ContextIntro {
   kind?: string;
   title?: string;
@@ -76,6 +90,7 @@ interface ContextIntro {
   audio_asset_id?: string;
   image_asset_id?: string;
 }
+
 interface ReviewRound {
   id: number;
   order_index: number;
@@ -85,7 +100,12 @@ interface ReviewRound {
   instruction_text: string;
   encouragement: string;
   hint: string;
-  stimulus: { kind?: string; text?: string | null; audio_target?: string | null; audio_targets?: string[] | null };
+  stimulus: {
+    kind?: string;
+    text?: string | null;
+    audio_target?: string | null;
+    audio_targets?: string[] | null;
+  };
   stimulus_text: string;
   expected_reading_text?: string | null;
   options: Option[];
@@ -93,6 +113,7 @@ interface ReviewRound {
   media_gaps: unknown[];
   answer: AnswerContract;
 }
+
 interface ReviewDetail {
   mode: "read_only";
   purpose: "admin_content_review";
@@ -140,6 +161,15 @@ const INTERACTION_LABEL: Record<string, string> = {
   timed_read_aloud: "تسجيل قراءة موقّت",
 };
 
+const SCOPE_OPTIONS: Array<{ value: Scope; label: string }> = [
+  { value: "all", label: "الكل" },
+  { value: "pretest", label: "القبلي" },
+  { value: "l1", label: "المستوى 1" },
+  { value: "l2", label: "المستوى 2" },
+  { value: "l3", label: "المستوى 3" },
+  { value: "posttest", label: "البعدي" },
+];
+
 function sectionKey(item: ReviewSummary) {
   if (item.kind === "pretest_question") return "pretest";
   if (item.kind === "posttest_question") return "posttest";
@@ -163,9 +193,24 @@ function sectionLabel(key: string) {
 function interactionGroup(item: ReviewSummary) {
   if (item.requires_recording) return "recording";
   if (item.interaction_type.startsWith("listen_")) return "listening";
-  if (["choose_image"].includes(item.interaction_type)) return "images";
+  if (item.interaction_type === "choose_image") return "images";
   if (["sequence", "memory_sequence", "path_sequence", "build_word"].includes(item.interaction_type)) return "ordering";
   return "choice";
+}
+
+function scopeMatches(item: ReviewSummary, scope: Scope) {
+  if (scope === "all") return true;
+  if (scope === "pretest") return item.kind === "pretest_question";
+  if (scope === "posttest") return item.kind === "posttest_question";
+  if (scope === "l1") return item.level_id === 1 && (item.kind === "core_activity" || item.kind === "reinforcement_activity");
+  if (scope === "l2") return item.level_id === 2 && (item.kind === "core_activity" || item.kind === "reinforcement_activity");
+  return item.level_id === 3 && (item.kind === "core_activity" || item.kind === "reinforcement_activity");
+}
+
+function kindMatches(item: ReviewSummary, kind: ContentKind) {
+  if (kind === "all") return true;
+  if (kind === "core") return item.kind === "core_activity";
+  return item.kind === "reinforcement_activity";
 }
 
 async function fetchIndex(): Promise<ReviewIndex> {
@@ -182,109 +227,204 @@ async function fetchDetail(canonicalId: string): Promise<ReviewDetail> {
   return data as ReviewDetail;
 }
 
-function MediaBlock({ assets, title = "الوسائط المعتمدة", hideMappedImages = false }: { assets: Asset[]; title?: string; hideMappedImages?: boolean }) {
+function MediaBlock({
+  assets,
+  title = "الوسائط",
+  hideMappedImages = false,
+}: {
+  assets: Asset[];
+  title?: string;
+  hideMappedImages?: boolean;
+}) {
   const visible = assets.filter((asset) => !(hideMappedImages && asset.asset_type === "image" && asset.option_id));
   if (!visible.length) return null;
+
   const audio = visible.filter((asset) => asset.asset_type === "audio");
   const images = visible.filter((asset) => asset.asset_type === "image");
-  return <div className="rounded-2xl border border-border bg-bg p-4 space-y-4">
-    <div className="text-sm font-extrabold text-navy flex items-center gap-2"><FileAudio size={17} className="text-primary" />{title}</div>
-    {audio.map((asset) => <div key={`a-${asset.asset_id}-${asset.usage || ""}`} className="rounded-xl bg-white border border-border p-3 space-y-2">
-      <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-        <span className="font-bold text-navy">{asset.semantic_text || asset.asset_id}</span>
-        <span className="text-muted">{asset.usage || "audio"}</span>
-      </div>
-      <audio src={asset.url} controls preload="metadata" className="w-full" />
-    </div>)}
-    {images.length > 0 && <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">{images.map((asset) => <figure key={`i-${asset.asset_id}-${asset.usage || ""}`} className="rounded-xl border border-border bg-white p-3">
-      <div className="min-h-36 flex items-center justify-center"><Image src={asset.url} alt={asset.semantic_text || "صورة معتمدة"} width={260} height={180} className="max-h-44 w-auto object-contain" unoptimized /></div>
-      <figcaption className="mt-2 text-xs text-center text-muted">{asset.semantic_text || asset.asset_id}</figcaption>
-    </figure>)}</div>}
-  </div>;
+
+  return <section className={styles.mediaBlock}>
+    <div className={styles.subsectionTitle}><FileAudio size={16} aria-hidden="true" />{title}</div>
+
+    {audio.length > 0 && <div className={styles.audioList}>
+      {audio.map((asset) => <div key={`a-${asset.asset_id}-${asset.usage || ""}`} className={styles.audioCard}>
+        <div className={styles.audioMeta}>
+          <span className={styles.audioName}>{asset.semantic_text || asset.asset_id}</span>
+          <span>{asset.usage || "audio"}</span>
+        </div>
+        <audio src={asset.url} controls preload="metadata" className={styles.audioPlayer} />
+      </div>)}
+    </div>}
+
+    {images.length > 0 && <div className={styles.imageGrid}>
+      {images.map((asset) => <figure key={`i-${asset.asset_id}-${asset.usage || ""}`} className={styles.imageCard}>
+        <div className={styles.imageCardVisual}>
+          <Image
+            src={asset.url}
+            alt={asset.semantic_text || "صورة معتمدة"}
+            width={220}
+            height={150}
+            className={styles.image}
+            unoptimized
+          />
+        </div>
+        <figcaption className={styles.imageCaption}>{asset.semantic_text || asset.asset_id}</figcaption>
+      </figure>)}
+    </div>}
+  </section>;
 }
 
-function OptionsReview({ options, assets, answer }: { options: Option[]; assets: Asset[]; answer: AnswerContract }) {
-  if (!options.length) return null;
+function AnswerReview({ round }: { round: ReviewRound }) {
+  const { answer, options, assets } = round;
   const imageByOption = new Map<number, Asset>();
-  assets.forEach((asset) => {
-    if (asset.asset_type === "image" && asset.option_id) imageByOption.set(Number(asset.option_id), asset);
-  });
-  const answerIds = new Set(answer.kind === "correct_options" ? answer.option_ids : []);
-  return <div className="space-y-3">
-    <div className="flex items-center gap-2 font-extrabold text-navy"><ListChecks size={18} className="text-primary" />الخيارات</div>
-    <div className="grid md:grid-cols-2 gap-3">
-      {options.map((option, index) => {
-        const image = imageByOption.get(option.id);
-        const isCorrect = option.is_correct || answerIds.has(option.id);
-        return <div key={option.id} className={`rounded-2xl border p-4 space-y-3 ${isCorrect ? "border-emerald-300 bg-emerald-50/70" : "border-border bg-white"}`}>
-          {image && <div className="min-h-36 flex items-center justify-center rounded-xl bg-bg border border-border">
-            <Image src={image.url} alt={image.semantic_text || option.text || "خيار مصور"} width={240} height={160} className="max-h-40 w-auto object-contain" unoptimized />
-          </div>}
-          <div className="flex items-start gap-3">
-            <span className={`w-8 h-8 shrink-0 rounded-full flex items-center justify-center text-sm font-extrabold ${isCorrect ? "bg-emerald-600 text-white" : "bg-bg text-primary"}`}>{index + 1}</span>
-            <div className="min-w-0 flex-1">
-              <div className="font-bold text-navy leading-7">{option.text || image?.semantic_text || "خيار مصور"}</div>
-              {isCorrect && <div className="mt-1 inline-flex items-center gap-1 text-xs font-bold text-emerald-700"><CheckCircle2 size={14} />إجابة صحيحة</div>}
-            </div>
-          </div>
-        </div>;
-      })}
-    </div>
-  </div>;
-}
 
-function AnswerBlock({ answer }: { answer: AnswerContract }) {
-  if (answer.kind === "none" || answer.values.length === 0) return null;
-  const recording = answer.kind === "recording_target";
-  return <div className={`rounded-2xl border p-4 ${recording ? "border-sky-200 bg-sky-50" : "border-emerald-200 bg-emerald-50"}`}>
-    <div className={`text-sm font-extrabold flex items-center gap-2 ${recording ? "text-sky-800" : "text-emerald-800"}`}>
-      {recording ? <Mic2 size={18} /> : <CheckCircle2 size={18} />}{answer.label}
-    </div>
-    {answer.kind === "ordered_sequence"
-      ? <ol className="mt-3 flex flex-wrap gap-2">{answer.values.map((value, index) => <li key={`${index}-${value}`} className="rounded-full bg-white border border-emerald-200 px-3 py-2 text-sm font-bold text-navy"><span className="text-emerald-700 me-1">{index + 1}.</span>{value}</li>)}</ol>
-      : <div className="mt-3 space-y-2">{answer.values.map((value, index) => <div key={`${index}-${value}`} className="rounded-xl bg-white/80 px-4 py-3 font-bold text-navy leading-8">{value}</div>)}</div>}
-  </div>;
+  assets.forEach((asset) => {
+    if (asset.asset_type === "image" && asset.option_id) {
+      imageByOption.set(Number(asset.option_id), asset);
+    }
+  });
+
+  if (answer.kind === "ordered_sequence" && answer.values.length > 0) {
+    return <section>
+      <div className={styles.subsectionTitle}><ListChecks size={16} aria-hidden="true" />{answer.label || "الترتيب الصحيح"}</div>
+      <ol className={styles.orderedList} data-testid="ordered-answer-review">
+        {answer.values.map((value, index) => {
+          const matched = options.find((option) => option.text === value);
+          const image = matched ? imageByOption.get(matched.id) : undefined;
+          return <li key={`${index}-${value}`} className={styles.orderedStep}>
+            <span className={styles.stepNumber}>{index + 1}</span>
+            <div className={styles.orderedContent}>
+              {image && <Image
+                src={image.url}
+                alt={image.semantic_text || value || "عنصر مرتب"}
+                width={60}
+                height={60}
+                className={styles.orderedImage}
+                unoptimized
+              />}
+              <span className={styles.orderedText}>{value}</span>
+            </div>
+          </li>;
+        })}
+      </ol>
+    </section>;
+  }
+
+  if (options.length > 0) {
+    const answerIds = new Set(answer.kind === "correct_options" ? answer.option_ids : []);
+
+    return <section>
+      <div className={styles.subsectionTitle}><ListChecks size={16} aria-hidden="true" />الخيارات</div>
+      <div className={styles.optionsGrid} data-testid="preview-image-options">
+        {options.map((option, index) => {
+          const image = imageByOption.get(option.id);
+          const isCorrect = option.is_correct || answerIds.has(option.id);
+
+          return <div key={option.id} className={`${styles.optionCard} ${isCorrect ? styles.optionCorrect : ""}`.trim()}>
+            {image && <div className={styles.optionImageWrap}>
+              <Image
+                src={image.url}
+                alt={image.semantic_text || option.text || "خيار مصور"}
+                width={180}
+                height={120}
+                className={styles.optionImage}
+                unoptimized
+              />
+            </div>}
+            <div className={styles.optionLine}>
+              <span className={styles.optionNumber}>{index + 1}</span>
+              <div>
+                <div className={styles.optionText}>{option.text || image?.semantic_text || "خيار مصور"}</div>
+                {isCorrect && <span className={styles.correctMark}><CheckCircle2 size={13} aria-hidden="true" />الإجابة الصحيحة</span>}
+              </div>
+            </div>
+          </div>;
+        })}
+      </div>
+    </section>;
+  }
+
+  if (answer.kind === "recording_target" && answer.values.length > 0) {
+    return <section className={styles.recordingTarget}>
+      <div className={styles.recordingLabel}><Mic2 size={16} aria-hidden="true" />{answer.label || "النص المطلوب تسجيله"}</div>
+      {answer.values.map((value, index) => <div key={`${index}-${value}`} className={styles.recordingValue}>{value}</div>)}
+    </section>;
+  }
+
+  if (answer.kind === "correct_options" && answer.values.length > 0) {
+    return <section className={styles.recordingTarget}>
+      <div className={styles.recordingLabel}><CheckCircle2 size={16} aria-hidden="true" />{answer.label || "الإجابة الصحيحة"}</div>
+      {answer.values.map((value, index) => <div key={`${index}-${value}`} className={styles.recordingValue}>{value}</div>)}
+    </section>;
+  }
+
+  return null;
 }
 
 function ContextIntroReview({ intro, assets }: { intro?: ContextIntro | null; assets: Asset[] }) {
   if (!intro) return null;
+
   const attached = assets.filter((asset) =>
     (intro.audio_asset_id && asset.asset_id === intro.audio_asset_id)
     || (intro.image_asset_id && asset.asset_id === intro.image_asset_id)
   );
-  return <AdminPanel title={intro.title || "مقدمة النشاط"} description={intro.kind === "audio_story" ? "مقدمة استماع معتمدة قبل الأسئلة" : "سياق قراءة معتمد قبل الأسئلة"}>
-    <div className="space-y-4">
-      {intro.text && <div className="rounded-2xl bg-bg border border-border p-5 text-lg font-bold text-navy leading-9">{intro.text}</div>}
-      {intro.instruction && <div className="text-sm text-muted leading-7"><span className="font-bold text-navy">التعليمة: </span>{intro.instruction}</div>}
-      <MediaBlock assets={attached} title="وسائط المقدمة" />
+
+  return <section className={styles.detailCard}>
+    <div className={styles.sectionHeader}>
+      <h3 className={styles.sectionTitle}>{intro.title || "مقدمة النشاط"}</h3>
+      <p className={styles.sectionDescription}>
+        {intro.kind === "audio_story" ? "مقدمة الاستماع المرتبطة بهذا المحتوى." : "السياق الذي يسبق الأسئلة."}
+      </p>
     </div>
-  </AdminPanel>;
+    {intro.text && <div className={styles.contextText} data-testid="preview-context-reading-text">{intro.text}</div>}
+    {intro.instruction && <p className={styles.contextInstruction}><strong>التعليمة:</strong> {intro.instruction}</p>}
+    <MediaBlock assets={attached} title="وسائط المقدمة" />
+  </section>;
 }
 
 function RoundReview({ round, interaction }: { round: ReviewRound; interaction: Interaction }) {
   const stimulusText = String(round.stimulus_text || round.stimulus?.text || "").trim();
-  return <details className="group rounded-3xl border border-border bg-white overflow-hidden" open={round.round_number === 1}>
-    <summary className="cursor-pointer list-none px-5 py-4 flex items-center justify-between gap-4 bg-bg/70">
-      <div>
-        <div className="text-xs text-primary font-bold">الجولة {round.round_number} من {round.round_total}</div>
-        <div className="font-extrabold text-navy mt-1 line-clamp-2">{round.question_text || "جولة محتوى"}</div>
+  const normalizedQuestion = round.question_text.trim();
+  const showStimulus = Boolean(stimulusText && stimulusText !== normalizedQuestion);
+  const hasStudentCopy = Boolean(round.encouragement || round.instruction_text || round.hint);
+
+  return <details className={styles.roundDetails} open={round.round_number === 1} data-testid="content-round">
+    <summary className={styles.roundSummary}>
+      <div className={styles.roundSummaryMain}>
+        <div className={styles.roundNumber}>الجولة {round.round_number} من {round.round_total}</div>
+        <div className={styles.roundQuestion} data-preview-question>{round.question_text || "جولة محتوى"}</div>
       </div>
-      <ChevronDown className="text-muted shrink-0 transition-transform group-open:rotate-180" size={20} />
+      <ChevronDown className={styles.chevron} size={19} aria-hidden="true" />
     </summary>
-    <div className="p-5 space-y-5">
-      {round.encouragement && <div className="text-sm font-bold text-primary">{round.encouragement}</div>}
-      <section>
-        <div className="text-xs text-muted mb-1">السؤال المعروض</div>
-        <div className="text-xl sm:text-2xl font-extrabold text-navy leading-10">{round.question_text}</div>
-      </section>
-      {stimulusText && <div className="rounded-2xl border border-border bg-bg p-5 text-center text-xl font-bold text-navy leading-9">{stimulusText}</div>}
-      <div className="rounded-2xl border border-border bg-white p-4 text-sm leading-7 text-navy"><span className="font-extrabold">التعليمة للطالب: </span>{round.instruction_text}</div>
-      {round.hint && <div className="rounded-2xl border border-dashed border-border p-4 text-sm leading-7 text-muted"><span className="font-extrabold text-navy">التلميح عند الخطأ: </span>{round.hint}</div>}
-      <MediaBlock assets={round.assets} hideMappedImages title="الصوت والصور المرتبطة بالجولة" />
-      <OptionsReview options={round.options} assets={round.assets} answer={round.answer} />
-      <AnswerBlock answer={round.answer} />
-      {round.media_gaps.length > 0 && <div className="alert-error">توجد فجوات وسائط مسجلة في هذه الجولة وتحتاج مراجعة.</div>}
-      <div className="text-[11px] text-muted border-t border-border pt-3">نوع التفاعل: {INTERACTION_LABEL[interaction] || interaction} · رقم الجولة في قاعدة المحتوى: {round.order_index}</div>
+
+    <div className={styles.roundBody}>
+      {showStimulus && <div className={styles.stimulus} data-preview-stimulus>{stimulusText}</div>}
+
+      {hasStudentCopy && <div className={styles.studentCopy} aria-label="نصوص العرض للطالب">
+        {round.encouragement && <div className={styles.copyRow}>
+          <span className={styles.copyLabel}>العبارة التشجيعية</span>
+          <span>{round.encouragement}</span>
+        </div>}
+        {round.instruction_text && <div className={styles.copyRow}>
+          <span className={styles.copyLabel}>التعليمة</span>
+          <span>{round.instruction_text}</span>
+        </div>}
+        {round.hint && <div className={styles.copyRow}>
+          <span className={styles.copyLabel}>التلميح عند الخطأ</span>
+          <span>{round.hint}</span>
+        </div>}
+      </div>}
+
+      <MediaBlock assets={round.assets} hideMappedImages title="الوسائط المرتبطة" />
+      <AnswerReview round={round} />
+
+      {round.media_gaps.length > 0 && <div className={styles.mediaGap}>توجد فجوات وسائط مسجلة في هذه الجولة وتحتاج مراجعة.</div>}
+
+      <details className={styles.technical}>
+        <summary>تفاصيل تقنية</summary>
+        <div className={styles.technicalBody}>
+          نوع التفاعل: {INTERACTION_LABEL[interaction] || interaction} · ترتيب الجولة في المحتوى: {round.order_index}
+        </div>
+      </details>
     </div>
   </details>;
 }
@@ -293,10 +433,13 @@ export default function ContentPreviewPage() {
   const [index, setIndex] = useState<ReviewIndex | null>(null);
   const [detail, setDetail] = useState<ReviewDetail | null>(null);
   const [selected, setSelected] = useState("");
-  const [section, setSection] = useState("all");
+  const [scope, setScope] = useState<Scope>("all");
+  const [contentKind, setContentKind] = useState<ContentKind>("all");
   const [interaction, setInteraction] = useState("all");
   const [media, setMedia] = useState("all");
   const [query, setQuery] = useState("");
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState("");
@@ -317,6 +460,7 @@ export default function ContentPreviewPage() {
 
   useEffect(() => {
     let cancelled = false;
+
     void fetchIndex()
       .then((data) => {
         if (cancelled) return;
@@ -326,25 +470,34 @@ export default function ContentPreviewPage() {
       .catch((caught: unknown) => {
         if (!cancelled) setError(caught instanceof Error ? caught.message : "تعذر تحميل المحتوى المعتمد");
       })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase("ar");
+
     return (index?.items || []).filter((item) => {
-      if (section !== "all" && sectionKey(item) !== section) return false;
+      if (!scopeMatches(item, scope)) return false;
+      if (!kindMatches(item, contentKind)) return false;
       if (interaction !== "all" && interactionGroup(item) !== interaction) return false;
       if (media === "audio" && !item.has_audio) return false;
       if (media === "images" && !item.has_images) return false;
       if (media === "recording" && !item.requires_recording) return false;
+
       if (normalized) {
         const haystack = item.search_text.toLocaleLowerCase("ar");
         if (!haystack.includes(normalized)) return false;
       }
+
       return true;
     });
-  }, [index, section, interaction, media, query]);
+  }, [index, scope, contentKind, interaction, media, query]);
 
   const effectiveSelected = filtered.some((item) => item.canonical_id === selected)
     ? selected
@@ -352,16 +505,25 @@ export default function ContentPreviewPage() {
 
   useEffect(() => {
     if (!effectiveSelected) return;
+
     let cancelled = false;
+
     void fetchDetail(effectiveSelected)
-      .then((data) => { if (!cancelled) setDetail(data); })
-      .catch((caught: unknown) => { if (!cancelled) setError(caught instanceof Error ? caught.message : "تعذر تحميل تفاصيل المحتوى"); })
-      .finally(() => { if (!cancelled) setDetailLoading(false); });
-    return () => { cancelled = true; };
+      .then((data) => {
+        if (!cancelled) setDetail(data);
+      })
+      .catch((caught: unknown) => {
+        if (!cancelled) setError(caught instanceof Error ? caught.message : "تعذر تحميل تفاصيل المحتوى");
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [effectiveSelected]);
 
   const grouped = useMemo(() => {
     const result: Array<{ key: string; label: string; items: ReviewSummary[] }> = [];
+
     for (const item of filtered) {
       const key = sectionKey(item);
       let group = result.find((value) => value.key === key);
@@ -371,136 +533,308 @@ export default function ContentPreviewPage() {
       }
       group.items.push(item);
     }
+
     return result;
   }, [filtered]);
 
   const current = detail && detail.summary.canonical_id === effectiveSelected ? detail : null;
+  const advancedFilterCount = Number(contentKind !== "all") + Number(interaction !== "all") + Number(media !== "all");
 
-  return <AdminPage>
+  const resetAdvancedFilters = () => {
+    setContentKind("all");
+    setInteraction("all");
+    setMedia("all");
+    setSelected("");
+    setMobileDetailOpen(false);
+  };
+
+  const selectScope = (nextScope: Scope) => {
+    setScope(nextScope);
+    if (nextScope === "pretest" || nextScope === "posttest") setContentKind("all");
+    setSelected("");
+    setMobileDetailOpen(false);
+  };
+
+  const selectItem = (canonicalId: string) => {
+    setError("");
+    setSelected(canonicalId);
+    setMobileDetailOpen(true);
+
+    if (typeof window !== "undefined" && window.matchMedia("(max-width: 820px)").matches) {
+      window.scrollTo({ top: 0 });
+    }
+  };
+
+  const selectLinkedItem = (canonicalId: string) => {
+    setScope("all");
+    setContentKind("all");
+    setInteraction("all");
+    setMedia("all");
+    setQuery("");
+    selectItem(canonicalId);
+  };
+
+  return <AdminPage className={styles.shell}>
     <AdminPageHeader
       eyebrow="إدارة المحتوى"
       icon={BookOpenCheck}
       title="المحتوى المعتمد"
-      description="مراجعة إدارية مباشرة للمحتوى المنشور: الأسئلة والإجابات الصحيحة والصور والأصوات ومهام التسجيل، بدون محاكاة واجهة الطالب وبدون أي كتابة على تقدم الطلاب."
-      actions={<AdminAction icon={RefreshCw} onClick={() => void loadIndex()} disabled={loading}>{loading ? "جاري التحديث..." : "تحديث المحتوى"}</AdminAction>}
+      description="مراجعة المحتوى المنشور للقراءة فقط."
+      actions={<AdminAction icon={RefreshCw} onClick={() => void loadIndex()} disabled={loading}>{loading ? "جاري التحديث..." : "تحديث"}</AdminAction>}
     />
 
-    {index?.active_release && <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-sm">
-      <span className="font-extrabold text-emerald-800 flex items-center gap-2"><CheckCircle2 size={17} />الإصدار النشط والمعتمد</span>
-      <span className="text-emerald-800 font-mono text-xs">{index.active_release.version}</span>
-    </div>}
+    <div className={styles.headerMeta} aria-label="حالة المحتوى">
+      <span className={styles.headerPill}>{index?.count ?? 0} عنصر</span>
+      <span className={styles.headerPill}>قراءة فقط</span>
+      {index?.active_release && <span
+        className={`${styles.headerPill} ${styles.headerPillStrong}`}
+        title={index.active_release.version}
+      >
+        <CheckCircle2 size={14} aria-hidden="true" />
+        الإصدار النشط
+      </span>}
+    </div>
+
     {error && <div className="alert-error" role="alert">{error}</div>}
 
-    <AdminPanel title="البحث والتصفية" description="صفِّ المحتوى حسب المسار أو نوع المهمة أو الوسائط.">
-      <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-3">
-        <label className="relative">
-          <span className="sr-only">بحث</span>
-          <Search size={18} className="absolute end-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
-          <input className="input-field pe-10" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ابحث بالسؤال أو المهارة أو الرمز..." />
+    <section className={styles.toolbar} data-testid="content-filter-toolbar" aria-label="البحث وتصفية المحتوى">
+      <div className={styles.searchRow}>
+        <label className={styles.searchWrap}>
+          <span className="sr-only">بحث في المحتوى المعتمد</span>
+          <Search size={18} className={styles.searchIcon} aria-hidden="true" />
+          <input
+            type="search"
+            className={styles.searchInput}
+            value={query}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setSelected("");
+              setMobileDetailOpen(false);
+            }}
+            placeholder="ابحث بالسؤال أو المهارة أو الرمز..."
+          />
         </label>
-        <label className="text-xs text-muted"><span className="flex items-center gap-1 mb-2"><Filter size={14} />المسار</span>
-          <select className="input-field" value={section} onChange={(event) => setSection(event.target.value)}>
-            <option value="all">كل المحتوى</option>
-            <option value="pretest">الاختبار القبلي</option>
-            <option value="l1-core">المستوى الأول — الأنشطة</option><option value="l1-rein">المستوى الأول — التقوية</option>
-            <option value="l2-core">المستوى الثاني — الأنشطة</option><option value="l2-rein">المستوى الثاني — التقوية</option>
-            <option value="l3-core">المستوى الثالث — الأنشطة</option><option value="l3-rein">المستوى الثالث — التقوية</option>
-            <option value="posttest">الاختبار البعدي</option>
-          </select>
-        </label>
-        <label className="text-xs text-muted"><span className="block mb-2">نوع المهمة</span>
-          <select className="input-field" value={interaction} onChange={(event) => setInteraction(event.target.value)}>
-            <option value="all">كل الأنواع</option><option value="choice">اختيارات</option><option value="images">اختيار صور</option>
-            <option value="listening">استماع</option><option value="recording">تسجيل صوتي</option><option value="ordering">ترتيب وتسلسل</option>
-          </select>
-        </label>
-        <label className="text-xs text-muted"><span className="block mb-2">الوسائط</span>
-          <select className="input-field" value={media} onChange={(event) => setMedia(event.target.value)}>
-            <option value="all">الكل</option><option value="audio">يحتوي صوتًا</option><option value="images">يحتوي صورًا</option><option value="recording">يتطلب تسجيلًا</option>
-          </select>
-        </label>
-      </div>
-    </AdminPanel>
 
-    <div className="grid xl:grid-cols-[360px_minmax(0,1fr)] gap-5 items-start">
-      <AdminPanel title="فهرس المحتوى" description={`${filtered.length} من ${index?.count || 0} عنصرًا معتمدًا`}>
-        {loading ? <div className="min-h-52 flex items-center justify-center"><div className="spinner w-9 h-9" /></div>
-          : filtered.length === 0 ? <AdminEmptyState title="لا توجد نتائج" description="غيّر البحث أو المرشحات لعرض محتوى آخر." />
-          : <div className="max-h-[72vh] overflow-auto pe-1 space-y-5">
-            {grouped.map((group) => <section key={group.key}>
-              <div className="sticky top-0 z-10 bg-white/95 backdrop-blur py-2 text-xs font-extrabold text-primary">{group.label}</div>
-              <div className="space-y-2">{group.items.map((item) => {
-                const active = item.canonical_id === effectiveSelected;
-                return <button key={item.canonical_id} type="button" onClick={() => { setDetailLoading(true); setError(""); setSelected(item.canonical_id); }} className={`w-full text-start rounded-2xl border p-3 transition ${active ? "border-primary bg-teal/10 shadow-sm" : "border-border bg-white hover:border-primary/40"}`}>
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0"><div className="font-extrabold text-navy line-clamp-2">{item.title}</div><div className="text-xs text-muted mt-1">{item.skill || KIND_LABEL[item.kind]}</div></div>
-                    <span className="text-[10px] font-mono text-muted shrink-0">{item.canonical_id}</span>
-                  </div>
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    <span className="rounded-full bg-bg px-2 py-1 text-[10px] text-navy">{item.round_count} {item.round_count === 1 ? "جولة" : "جولات"}</span>
-                    {item.has_audio && <span className="rounded-full bg-sky-50 px-2 py-1 text-[10px] text-sky-800 inline-flex items-center gap-1"><Volume2 size={11} />صوت</span>}
-                    {item.has_images && <span className="rounded-full bg-amber-50 px-2 py-1 text-[10px] text-amber-800 inline-flex items-center gap-1"><ImageIcon size={11} />صور</span>}
-                    {item.requires_recording && <span className="rounded-full bg-violet-50 px-2 py-1 text-[10px] text-violet-800 inline-flex items-center gap-1"><Mic2 size={11} />تسجيل</span>}
-                  </div>
-                </button>;
-              })}</div>
+        <button
+          type="button"
+          className={styles.filterToggle}
+          aria-expanded={showAdvancedFilters}
+          onClick={() => setShowAdvancedFilters((value) => !value)}
+        >
+          <Filter size={16} aria-hidden="true" />
+          تصفية
+          {advancedFilterCount > 0 && <span className={styles.filterCount}>{advancedFilterCount}</span>}
+        </button>
+      </div>
+
+      <div className={styles.scopeRow} aria-label="مسار المحتوى">
+        {SCOPE_OPTIONS.map((option) => <button
+          key={option.value}
+          type="button"
+          aria-pressed={scope === option.value}
+          className={`${styles.scopeButton} ${scope === option.value ? styles.scopeButtonActive : ""}`.trim()}
+          onClick={() => selectScope(option.value)}
+        >
+          {option.label}
+        </button>)}
+      </div>
+
+      {showAdvancedFilters && <div className={styles.advancedFilters}>
+        <label className={styles.field}>
+          نوع المحتوى
+          <select
+            className={styles.select}
+            value={contentKind}
+            disabled={scope === "pretest" || scope === "posttest"}
+            onChange={(event) => {
+              setContentKind(event.target.value as ContentKind);
+              setSelected("");
+              setMobileDetailOpen(false);
+            }}
+          >
+            <option value="all">الأنشطة والتقوية</option>
+            <option value="core">الأنشطة الأساسية فقط</option>
+            <option value="rein">التقوية فقط</option>
+          </select>
+        </label>
+
+        <label className={styles.field}>
+          نوع المهمة
+          <select
+            className={styles.select}
+            value={interaction}
+            onChange={(event) => {
+              setInteraction(event.target.value);
+              setSelected("");
+              setMobileDetailOpen(false);
+            }}
+          >
+            <option value="all">كل الأنواع</option>
+            <option value="choice">اختيارات</option>
+            <option value="images">اختيار صور</option>
+            <option value="listening">استماع</option>
+            <option value="recording">تسجيل صوتي</option>
+            <option value="ordering">ترتيب وتسلسل</option>
+          </select>
+        </label>
+
+        <label className={styles.field}>
+          الوسائط
+          <select
+            className={styles.select}
+            value={media}
+            onChange={(event) => {
+              setMedia(event.target.value);
+              setSelected("");
+              setMobileDetailOpen(false);
+            }}
+          >
+            <option value="all">كل المحتوى</option>
+            <option value="audio">يحتوي صوتًا</option>
+            <option value="images">يحتوي صورًا</option>
+            <option value="recording">يتطلب تسجيلًا</option>
+          </select>
+        </label>
+
+        {advancedFilterCount > 0 && <div className={styles.filterFooter}>
+          <button type="button" className={styles.clearFilters} onClick={resetAdvancedFilters}>
+            <X size={15} aria-hidden="true" />
+            مسح التصفية
+          </button>
+        </div>}
+      </div>}
+    </section>
+
+    <div className={styles.workspace}>
+      <aside
+        className={`${styles.indexPane} ${mobileDetailOpen ? styles.mobileHidden : ""}`.trim()}
+        data-testid="content-index-pane"
+        aria-label="فهرس المحتوى"
+      >
+        <div className={styles.indexHeader}>
+          <div>
+            <div className={styles.indexTitle}>فهرس المحتوى</div>
+            <div className={styles.indexCount}>{filtered.length} من {index?.count || 0}</div>
+          </div>
+        </div>
+
+        {loading ? <div className={styles.loading}><div className="spinner w-9 h-9" /></div>
+          : filtered.length === 0 ? <div className={styles.empty}><div><strong>لا توجد نتائج</strong>غيّر البحث أو التصفية.</div></div>
+          : <div className={styles.indexList}>
+            {grouped.map((group) => <section className={styles.group} key={group.key}>
+              <div className={styles.groupLabel}>{group.label}</div>
+              <div className={styles.indexItems}>
+                {group.items.map((item) => {
+                  const active = item.canonical_id === effectiveSelected;
+
+                  return <button
+                    key={item.canonical_id}
+                    type="button"
+                    data-testid="content-index-item"
+                    onClick={() => selectItem(item.canonical_id)}
+                    className={`${styles.indexItem} ${active ? styles.indexItemActive : ""}`.trim()}
+                    aria-current={active ? "true" : undefined}
+                  >
+                    <div className={styles.indexItemTop}>
+                      <span className={styles.indexTitleText}>{item.title}</span>
+                      <span className={styles.indexId}>{item.canonical_id}</span>
+                    </div>
+                    <div className={styles.indexMeta}>
+                      <span className={styles.indexSkill}>{item.skill || KIND_LABEL[item.kind]}</span>
+                      <span className={styles.indexFlags} aria-label="خصائص المحتوى">
+                        {item.has_audio && <span className={styles.indexFlag} title="يحتوي صوتًا"><Volume2 size={12} aria-hidden="true" /></span>}
+                        {item.has_images && <span className={styles.indexFlag} title="يحتوي صورًا"><ImageIcon size={12} aria-hidden="true" /></span>}
+                        {item.requires_recording && <span className={styles.indexFlag} title="يتطلب تسجيلًا"><Mic2 size={12} aria-hidden="true" /></span>}
+                      </span>
+                    </div>
+                  </button>;
+                })}
+              </div>
             </section>)}
           </div>}
-      </AdminPanel>
+      </aside>
 
-      <div className="space-y-5 min-w-0">
-        {detailLoading || (effectiveSelected && !current) ? <AdminPanel><div className="min-h-72 flex items-center justify-center"><div className="spinner w-10 h-10" /></div></AdminPanel>
-          : !current ? <AdminEmptyState title="اختر عنصر محتوى" description="اختر سؤالًا أو نشاطًا من الفهرس لمراجعة تفاصيله." />
+      <main
+        className={`${styles.detailPane} ${!mobileDetailOpen ? styles.mobileHidden : ""}`.trim()}
+        data-testid="content-detail-pane"
+      >
+        <button
+          type="button"
+          className={styles.mobileBack}
+          data-testid="content-mobile-back"
+          aria-label="العودة إلى فهرس المحتوى"
+          onClick={() => {
+            setMobileDetailOpen(false);
+            if (typeof window !== "undefined") window.scrollTo({ top: 0 });
+          }}
+        >
+          <ArrowRight size={17} aria-hidden="true" />
+          العودة إلى الفهرس
+        </button>
+
+        {effectiveSelected && !current ? <section className={styles.detailCard}><div className={styles.loading}><div className="spinner w-10 h-10" /></div></section>
+          : !current ? <section className={styles.detailCard}><div className={styles.empty}><div><strong>اختر عنصر محتوى</strong>اختر سؤالًا أو نشاطًا من الفهرس لمراجعته.</div></div></section>
           : <>
-            <AdminPanel>
-              <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                <div>
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    <span className="rounded-full bg-teal/10 text-primary px-3 py-1 text-xs font-bold">{KIND_LABEL[current.item.kind]}</span>
-                    {current.item.level_id && <span className="rounded-full bg-bg text-navy px-3 py-1 text-xs font-bold">المستوى {current.item.level_id}</span>}
-                    <span className="rounded-full bg-bg text-navy px-3 py-1 text-xs font-bold">{INTERACTION_LABEL[current.item.interaction_type] || current.item.interaction_type}</span>
-                    <span className="rounded-full bg-emerald-50 text-emerald-700 px-3 py-1 text-xs font-bold">معتمد</span>
+            <section className={styles.detailCard}>
+              <div className={styles.detailHeader}>
+                <div className={styles.detailHeading}>
+                  <div className={styles.kickers}>
+                    <span className={`${styles.kicker} ${styles.kickerPrimary}`}>{KIND_LABEL[current.item.kind]}</span>
+                    {current.item.level_id && <span className={styles.kicker}>المستوى {current.item.level_id}</span>}
+                    <span className={styles.kicker}>{INTERACTION_LABEL[current.item.interaction_type] || current.item.interaction_type}</span>
                   </div>
-                  <h2 className="text-2xl sm:text-3xl font-extrabold text-navy leading-tight">{current.item.title}</h2>
-                  <p className="text-muted mt-2">{current.item.skill}</p>
+                  <h2 className={styles.detailTitle}>{current.item.title}</h2>
+                  {current.item.skill && <p className={styles.detailSkill}>{current.item.skill}</p>}
                 </div>
-                <div className="text-xs text-muted lg:text-end space-y-1">
-                  <div className="font-mono">{current.item.canonical_id}</div>
-                  <div>{current.rounds.length} {current.rounds.length === 1 ? "جولة" : "جولات"}</div>
+
+                <div className={styles.detailSideMeta}>
+                  <span className={styles.detailId}>{current.item.canonical_id}</span>
+                  <span>{current.rounds.length} {current.rounds.length === 1 ? "جولة" : "جولات"}</span>
                 </div>
               </div>
-              {current.item.criterion && <div className="mt-4 rounded-2xl bg-bg border border-border p-4 text-sm text-navy"><span className="font-extrabold">معيار التقييم: </span>{current.item.criterion}</div>}
-              {current.item.kind === "core_activity" && current.item.reinforcement_candidates.length > 0 && <div className="mt-4 rounded-2xl border border-violet-200 bg-violet-50 p-4">
-                <div className="text-sm font-extrabold text-violet-900 mb-3">التقوية المرتبطة بهذه المهارة</div>
-                <div className="flex flex-wrap gap-2">{current.item.reinforcement_candidates.map((canonical) => {
+
+              {current.item.criterion && <details className={styles.inlineDisclosure}>
+                <summary>معيار التقييم</summary>
+                <div className={styles.inlineDisclosureBody}>{current.item.criterion}</div>
+              </details>}
+
+              {current.item.kind === "core_activity" && current.item.reinforcement_candidates.length > 0 && <div className={styles.reinforcementRow}>
+                <span className={styles.reinforcementLabel}>تقوية مرتبطة:</span>
+                {current.item.reinforcement_candidates.map((canonical) => {
                   const linked = index?.items.find((item) => item.canonical_id === canonical);
-                  return <button key={canonical} type="button" onClick={() => {
-                    setSection("all");
-                    setInteraction("all");
-                    setMedia("all");
-                    setQuery("");
-                    setDetailLoading(true);
-                    setError("");
-                    setSelected(canonical);
-                  }} className="rounded-xl border border-violet-200 bg-white px-3 py-2 text-sm text-start hover:border-violet-400">
-                    <span className="font-bold text-navy">{linked?.title || canonical}</span>
-                    {linked && <span className="block text-[10px] font-mono text-muted mt-1">{canonical}</span>}
+                  return <button
+                    key={canonical}
+                    type="button"
+                    className={styles.reinforcementLink}
+                    onClick={() => selectLinkedItem(canonical)}
+                  >
+                    {linked?.title || canonical}
                   </button>;
-                })}</div>
+                })}
               </div>}
-            </AdminPanel>
+            </section>
 
             <ContextIntroReview intro={current.item.context_intro} assets={current.item.item_assets} />
-            <MediaBlock assets={current.item.item_assets.filter((asset) => {
-              const intro = current.item.context_intro;
-              return asset.asset_id !== intro?.audio_asset_id && asset.asset_id !== intro?.image_asset_id;
-            })} title="وسائط مرتبطة بالنشاط كاملًا" />
 
-            <AdminPanel title="الجولات والأسئلة" description="كل الجولات مع الإجابات والوسائط المعتمدة. افتح أي جولة لمراجعتها.">
-              <div className="space-y-3">{current.rounds.map((round) => <RoundReview key={round.id} round={round} interaction={current.item.interaction_type} />)}</div>
-            </AdminPanel>
+            <MediaBlock
+              assets={current.item.item_assets.filter((asset) => {
+                const intro = current.item.context_intro;
+                return asset.asset_id !== intro?.audio_asset_id && asset.asset_id !== intro?.image_asset_id;
+              })}
+              title="وسائط النشاط"
+            />
+
+            <section className={styles.detailCard}>
+              <div className={styles.sectionHeader}>
+                <h3 className={styles.sectionTitle}>الجولات والأسئلة</h3>
+                <p className={styles.sectionDescription}>افتح الجولة التي تريد مراجعتها. كل معلومة تظهر مرة واحدة.</p>
+              </div>
+              <div className={styles.rounds}>
+                {current.rounds.map((round) => <RoundReview key={round.id} round={round} interaction={current.item.interaction_type} />)}
+              </div>
+            </section>
           </>}
-      </div>
+      </main>
     </div>
   </AdminPage>;
 }
