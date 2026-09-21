@@ -127,6 +127,58 @@ def test_l1_letter_form_rounds_never_leak_legacy_arrow_syntax():
         assert [option["text"] for option in options if option["is_correct"]] == [correct]
 
 
+def test_entire_level_one_learning_release_is_structured_and_student_safe():
+    _release, items = _items()
+    level_one = {
+        canonical: item
+        for canonical, item in items.items()
+        if item["level_id"] == 1
+        and item["kind"] in {"core_activity", "reinforcement_activity"}
+    }
+    expected_ids = {
+        *(f"L1-CORE-{number:02d}" for number in range(1, 11)),
+        *(f"L1-REIN-{number:02d}" for number in range(1, 13)),
+    }
+    assert set(level_one) == expected_ids
+
+    single = {"choose_one", "listen_choose_one", "choose_image", "listen_choose_image"}
+    multi = {"choose_many", "listen_choose_many"}
+    reading = {"read_aloud", "timed_read_aloud"}
+    raw_markers = ("←", "الخيارات:", "الإجابة الصحيحة:", "التعليمات:")
+
+    for canonical, item in level_one.items():
+        assert item["rounds"], canonical
+        for step in item["rounds"]:
+            assert "source_text" not in step
+            for key in ("question_text", "instruction_text", "hint", "encouragement"):
+                value = str(step.get(key) or "").strip()
+                assert value, (canonical, step["order_index"], key)
+                assert not any(marker in value for marker in raw_markers), (canonical, key, value)
+
+            stimulus = step.get("stimulus") or {}
+            stimulus_text = str(stimulus.get("text") or "")
+            assert not any(marker in stimulus_text for marker in raw_markers), (canonical, stimulus_text)
+
+            option_texts = [str(option.get("text") or "") for option in step.get("options") or []]
+            assert all(not any(marker in value for marker in raw_markers) for value in option_texts), (
+                canonical,
+                option_texts,
+            )
+
+            interaction = str(item["interaction_type"])
+            if interaction in single:
+                assert len(option_texts) >= 2, (canonical, step["order_index"], option_texts)
+                assert sum(bool(option.get("is_correct")) for option in step["options"]) == 1
+            elif interaction in multi:
+                assert len(option_texts) >= 2, (canonical, step["order_index"], option_texts)
+                assert sum(bool(option.get("is_correct")) for option in step["options"]) >= 1
+            elif interaction in reading:
+                assert str(step.get("expected_reading_text") or "").strip(), (
+                    canonical,
+                    step["order_index"],
+                )
+
+
 def test_every_listening_round_has_an_explicit_semantic_prompt_contract():
     _release, items = _items()
     seen = 0
