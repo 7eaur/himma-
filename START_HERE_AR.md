@@ -150,7 +150,7 @@ Branch: `stage/02-content`
 نفس SHA الحالي منشور:
 `0bf1390bdbc0a19330c807d82d646424490b5a2b`
 
-- himma-api deployment: `f160b611-c157-4a53-9d37-cfae289cfb07` — SUCCESS.
+- Backend service deployment: `f160b611-c157-4a53-9d37-cfae289cfb07` — SUCCESS.
 - himma-web deployment: `7f6fec27-3f38-4e21-afd6-c9b62729b168` — SUCCESS.
 - PostgreSQL: SUCCESS.
 - Redis: SUCCESS.
