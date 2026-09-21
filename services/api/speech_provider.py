@@ -1,9 +1,14 @@
-"""Replaceable ASR provider boundary for Himma P07.
+"""Replaceable speech-provider boundary for Himma.
 
-No fake production adapter is supplied. Until OI-02 (provider, contract,
-privacy, cost and recording-transfer policy) is approved, provider creation
-fails closed with ProviderNotConfigured. Tests may inject a deterministic
-in-memory adapter explicitly; runtime never silently falls back to it.
+There are two deliberately separate factories:
+
+* build_provider is the production worker boundary for stored student audio.
+  It fails closed unless the provider is explicitly approved in code governance.
+* build_evaluation_provider is supervisor-only Speech Lab evaluation. It may
+  call a configured candidate provider, but its outputs are always non-academic.
+
+This separation prevents credentials or environment variables from silently
+turning an experimental vendor into production academic authority.
 """
 
 from __future__ import annotations
@@ -11,6 +16,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import os
 from typing import Any, Protocol
+
+from asr_governance import runtime_provider_is_approved
 
 
 class ProviderNotConfigured(RuntimeError):
@@ -62,24 +69,75 @@ class SpeechProvider(Protocol):
 class UnconfiguredSpeechProvider:
     name = "unconfigured"
 
+    def __init__(self, detail: str | None = None) -> None:
+        self.detail = detail or "ASR provider is not configured"
+
     def transcribe_reference_guided(self, **_: Any) -> ProviderResult:
-        raise ProviderNotConfigured(
-            "ASR provider is not approved/configured. Resolve OI-02 before real speech scoring."
-        )
+        raise ProviderNotConfigured(self.detail)
+
+
+_PROVIDER_ALIASES = {
+    "azure": "azure-speech",
+    "azure-speech": "azure-speech",
+    "azure_speech": "azure-speech",
+    "google": "google-stt-v2",
+    "google-stt-v2": "google-stt-v2",
+    "google_cloud_stt_v2": "google-stt-v2",
+}
+
+
+def canonical_provider_name(value: str) -> str:
+    normalized = (value or "").strip().lower()
+    return _PROVIDER_ALIASES.get(normalized, normalized)
+
+
+def _instantiate_provider(provider_name: str) -> SpeechProvider:
+    provider_name = canonical_provider_name(provider_name)
+    if provider_name == "azure-speech":
+        try:
+            from azure_speech_provider import AzureSpeechProvider
+
+            return AzureSpeechProvider()
+        except ProviderPermanentError as exc:
+            raise ProviderNotConfigured(str(exc)) from exc
+    if provider_name == "google-stt-v2":
+        try:
+            from google_speech_provider import GoogleSpeechV2Provider
+
+            return GoogleSpeechV2Provider()
+        except ProviderPermanentError as exc:
+            raise ProviderNotConfigured(str(exc)) from exc
+    raise ProviderNotConfigured(f"Unsupported speech provider {provider_name!r}")
 
 
 def build_provider() -> SpeechProvider:
-    """Return the approved production provider.
+    """Build the production worker provider, failing closed by governance.
 
-    The environment variable exists now so deployment configuration has a
-    stable contract. Actual provider implementations are added only after the
-    vendor/data-processing decision is approved and tested with representative
-    recordings.
+    The live project currently has no approved external runtime provider. Even if
+    a deployment accidentally contains provider credentials, student recordings
+    are not sent externally until APPROVED_ASR_RUNTIME_PROVIDERS is changed by a
+    reviewed code/ADR decision.
     """
 
-    provider = os.getenv("HIMMA_ASR_PROVIDER", "").strip().lower()
-    if not provider:
-        return UnconfiguredSpeechProvider()
-    raise ProviderNotConfigured(
-        f"HIMMA_ASR_PROVIDER={provider!r} has no approved runtime adapter yet"
-    )
+    configured = os.getenv("HIMMA_ASR_PROVIDER", "").strip()
+    if not configured:
+        return UnconfiguredSpeechProvider(
+            "Production ASR provider is not approved/configured. Human review remains authoritative."
+        )
+    provider_name = canonical_provider_name(configured)
+    if not runtime_provider_is_approved(provider_name):
+        raise ProviderNotConfigured(
+            f"Production provider {provider_name!r} is not approved for student-audio transfer"
+        )
+    return _instantiate_provider(provider_name)
+
+
+def build_evaluation_provider() -> SpeechProvider:
+    """Build a Speech Lab candidate provider without enabling student-audio ASR."""
+
+    configured = os.getenv("HIMMA_SPEECH_LAB_PROVIDER", "").strip()
+    if not configured:
+        return UnconfiguredSpeechProvider(
+            "Speech Lab provider is not configured. Set HIMMA_SPEECH_LAB_PROVIDER for evaluation."
+        )
+    return _instantiate_provider(configured)
