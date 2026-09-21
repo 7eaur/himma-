@@ -30,36 +30,6 @@ type PronunciationReference = {
   academic_effect: "none";
 };
 
-type AcousticEvidenceUnit = {
-  unit_index: number;
-  grapheme: string;
-  base: string;
-  expected_vowel_class: string | null;
-  contrast_vowel_classes: string[];
-  expects_gemination: boolean;
-  expects_tanween: string | null;
-  acoustic_score: number | null;
-  acoustic_label: string | null;
-  evidence_status: string;
-};
-
-type AcousticEvidencePlan = {
-  status: string;
-  reference_text: string;
-  target_type: TargetType;
-  stt_locale: string;
-  azure_pronunciation_assessment: {
-    enabled_for_judgement: boolean;
-    candidate_locales: string[];
-    note: string;
-  };
-  direct_haraka_judgement: boolean;
-  requires_ground_truth: boolean;
-  calibration_version: string | null;
-  units: AcousticEvidenceUnit[];
-  academic_effect: "none";
-};
-
 type Target = {
   target_id: string;
   canonical_id: string;
@@ -112,7 +82,6 @@ type Analysis = {
   lexical_accuracy: number;
   alignment: AlignmentRow[];
   pronunciation_reference: PronunciationReference | null;
-  acoustic_evidence: AcousticEvidencePlan | null;
   academic_effect: "none";
   pronunciation_status: string;
   speech_mode: SpeechMode;
@@ -187,9 +156,9 @@ function PronunciationPanel({ reference }: { reference: PronunciationReference |
     <section className={styles.pronunciationPanel} data-testid="pronunciation-reference-panel">
       <div className={styles.pronunciationHeader}>
         <div><span>المرجع النطقي التجريبي</span><h2>{targetTypeLabel[reference.target_type]}</h2></div>
-        <span className={styles.calibrationBadge}>الحكم الصوتي على الحركة: غير معاير بعد</span>
+        <span className={styles.calibrationBadge}>مرجع النطق المستهدف</span>
       </div>
-      <p className={styles.pronunciationExplain}>هذا التفكيك مستخرج من النص المشكول نفسه، وليس حكمًا على التسجيل. نستخدمه لاحقًا لمقارنة الحرف والحركة صوتيًا بعد المعايرة.</p>
+      <p className={styles.pronunciationExplain}>هذا يوضح الجزء الذي نهتم بنطقه في المهمة القصيرة. الحكم الفعلي يأتي من التسجيل ونتيجة مزود النطق، وليس من شكل النص وحده.</p>
       <div className={styles.pronunciationUnits}>
         {reference.units.map((unit, index) => (
           <div className={styles.pronunciationUnit} key={`${unit.grapheme}-${index}`}>
@@ -198,35 +167,7 @@ function PronunciationPanel({ reference }: { reference: PronunciationReference |
           </div>
         ))}
       </div>
-      <div className={styles.pronunciationSafety}>لا توجد درجة للحرف أو الحركة في هذه المرحلة، ولا يؤثر هذا المرجع في نتيجة الطالب.</div>
-    </section>
-  );
-}
-
-function AcousticEvidencePanel({ plan }: { plan: AcousticEvidencePlan | null }) {
-  if (!plan) return <div className={styles.pronunciationLoading}>جاري تجهيز خطة الأدلة الصوتية...</div>;
-  return (
-    <section className={styles.pronunciationPanel} data-testid="acoustic-evidence-panel">
-      <div className={styles.pronunciationHeader}>
-        <div><span>المعايرة وجمع العينات</span><h2>خطة الأدلة الصوتية التجريبية</h2></div>
-        <span className={styles.calibrationBadge}>غير معاير — لا توجد درجة معتمدة</span>
-      </div>
-      <p className={styles.pronunciationExplain}>هذه الخطة تحدد ما نحتاج جمعه ومعايرته لكل حرف وحركة. ثقة Azure ونتيجة التعرف النصي لا تتحولان إلى درجة نطق أو حركة.</p>
-      <div className={styles.pronunciationUnits}>
-        <div className={styles.pronunciationUnit}><strong dir="ltr">{plan.stt_locale}</strong><span>لغة التعرف النصي الحالية</span><span>الحكم المباشر على الحركة: غير مفعّل</span></div>
-        <div className={styles.pronunciationUnit}><strong dir="ltr">{plan.azure_pronunciation_assessment.candidate_locales.join(" / ") || "—"}</strong><span>لغات Azure المرشحة للمقارنة فقط</span><span>ليست حكمًا مباشرًا على الفتحة أو الكسرة أو الضمة</span></div>
-        {plan.units.map((unit) => (
-          <div className={styles.pronunciationUnit} key={`acoustic-${unit.unit_index}`}>
-            <strong>{unit.grapheme}</strong>
-            <span>الحرف المرجعي: {unit.base}</span>
-            <span>الحركة المرجعية: {unit.expected_vowel_class ? (vowelClassLabel[unit.expected_vowel_class] || unit.expected_vowel_class) : "—"}</span>
-            {unit.contrast_vowel_classes.length > 0 && <span>مقارنات مطلوبة: {unit.contrast_vowel_classes.map((value) => vowelClassLabel[value] || value).join("، ")}</span>}
-            {unit.expects_gemination && <span>الشدة المرجعية: مطلوبة</span>}{unit.expects_tanween && <span>التنوين المرجعي: موجود</span>}
-            <span data-testid={`acoustic-score-${unit.unit_index}`}>الدرجة الصوتية: {unit.acoustic_score === null ? "—" : percent(unit.acoustic_score)}</span><small>الحالة: بانتظار المعايرة البشرية</small>
-          </div>
-        ))}
-      </div>
-      <div className={styles.pronunciationSafety}>يلزم Ground Truth بشري وتسجيلات ممثلة قبل اعتماد أي حد أو تصنيف. هذه الخطة لا تغيّر درجة الطالب ولا التكيف ولا التقوية.</div>
+      <div className={styles.pronunciationSafety}>إذا لم تكن النتيجة واضحة فلن نعتبر الطفل مخطئًا؛ نطلب إعادة التسجيل.</div>
     </section>
   );
 }
@@ -241,7 +182,6 @@ export default function SpeechLabPage() {
     pronunciation: { configured: boolean; provider: string; locale?: string; detail?: string };
   } | null>(null);
   const [pronunciationReference, setPronunciationReference] = useState<PronunciationReference | null>(null);
-  const [acousticPlan, setAcousticPlan] = useState<AcousticEvidencePlan | null>(null);
   const [loading, setLoading] = useState(true);
   const [recording, setRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
@@ -290,21 +230,19 @@ export default function SpeechLabPage() {
     if (!referenceText || selected?.speech_mode !== "targeted_pronunciation") {
       return () => { active = false; };
     }
-    const loadEvidence = async () => {
+    const loadReference = async () => {
       try {
         const encoded = encodeURIComponent(referenceText);
-        const [pronunciationResponse, acousticResponse] = await Promise.all([
-          fetch(`/api/admin/speech-lab/pronunciation-reference?reference_text=${encoded}`, { cache: "no-store" }),
-          fetch(`/api/admin/speech-lab/acoustic-plan?reference_text=${encoded}`, { cache: "no-store" }),
-        ]);
-        const pronunciationData = await pronunciationResponse.json(); const acousticData = await acousticResponse.json();
-        if (!pronunciationResponse.ok) throw new Error(pronunciationData?.detail || "تعذر تجهيز المرجع النطقي");
-        if (!acousticResponse.ok) throw new Error(acousticData?.detail || "تعذر تجهيز خطة الأدلة الصوتية");
-        if (!active) return;
-        setPronunciationReference(pronunciationData); setAcousticPlan(acousticData);
-      } catch (error) { if (active) setMessage(error instanceof Error ? error.message : "تعذر تجهيز الأدلة الصوتية"); }
+        const response = await fetch(`/api/admin/speech-lab/pronunciation-reference?reference_text=${encoded}`, { cache: "no-store" });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data?.detail || "تعذر تجهيز المرجع النطقي");
+        if (active) setPronunciationReference(data);
+      } catch (error) {
+        if (active) setMessage(error instanceof Error ? error.message : "تعذر تجهيز المرجع النطقي");
+      }
     };
-    void loadEvidence(); return () => { active = false; };
+    void loadReference();
+    return () => { active = false; };
   }, [selected?.target_id, selected?.reference_text, selected?.speech_mode]);
 
   const replaceAudio = (blob: Blob | null) => {
@@ -387,7 +325,7 @@ export default function SpeechLabPage() {
 
   return (
     <div className={styles.page} data-testid="speech-lab-page">
-      <header className={styles.header}><div><p className={styles.eyebrow}>أدوات التحقق والمعايرة</p><h1>مختبر تحليل القراءة</h1><p className={styles.intro}>اختبر أهداف القراءة المعتمدة مباشرة من كتالوج هِمّة. نتائج هذه الصفحة تجريبية ولا تغيّر درجات الطلاب أو قرارات التكيف.</p></div><div className={`${styles.providerBadge} ${provider?.lexical.configured ? styles.ready : styles.notReady}`}><span className={styles.statusDot} aria-hidden="true" /><div><strong>{provider?.lexical.configured ? "مزود القراءة متصل" : "مزود القراءة غير مهيأ"}</strong><small>{provider?.lexical.provider || "مزود ASR بانتظار بيانات الاتصال"}</small></div></div></header>
+      <header className={styles.header}><div><p className={styles.eyebrow}>اختبار النموذج الصوتي</p><h1>مختبر تحليل القراءة</h1><p className={styles.intro}>جرّب القراءة كما سيستخدمها الطالب: قراءة نصية للجمل والنصوص، ونطق مستهدف للحروف والكلمات الحساسة.</p></div><div className={`${styles.providerBadge} ${provider?.lexical.configured ? styles.ready : styles.notReady}`}><span className={styles.statusDot} aria-hidden="true" /><div><strong>{provider?.lexical.configured ? "مزود القراءة متصل" : "مزود القراءة غير مهيأ"}</strong><small>{provider?.lexical.provider || "مزود ASR بانتظار بيانات الاتصال"}</small></div></div></header>
       {message && <div className={styles.notice} role="status">{message}</div>}
       <section className={styles.workspace}>
         <aside className={styles.catalogPanel}><div className={styles.panelTitle}><h2>محتوى القراءة</h2><span>{filtered.length} هدف</span></div><label className={styles.field}><span>القسم</span><select value={group} onChange={(event) => { setGroup(event.target.value); resetForCatalogChange(); }}>{groups.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label><label className={styles.field}><span>بحث</span><input value={query} onChange={(event) => { setQuery(event.target.value); resetForCatalogChange(); }} placeholder="كلمة، مهارة، أو رمز المحتوى" /></label><div className={styles.targetList}>{filtered.map((target) => <button key={target.target_id} className={`${styles.targetButton} ${target.target_id === effectiveSelectedId ? styles.targetActive : ""}`} onClick={() => { setSelectedId(target.target_id); replaceAudio(null); }}><span className={styles.targetCode}>{target.canonical_id} · {target.round_index}</span><strong>{target.reference_text}</strong><small>{target.skill_name || target.title}</small><span className={styles.targetBadges}><span>{speechModeLabel[target.speech_mode]}</span><span>{targetTypeLabel[target.pronunciation_target_type]}</span></span></button>)}{!filtered.length && <div className={styles.empty}>لا توجد أهداف تطابق التصفية الحالية.</div>}</div></aside>
@@ -397,7 +335,6 @@ export default function SpeechLabPage() {
             <div className={styles.referenceCard}><span>النص المرجعي</span><p>{selected.reference_text}</p><div className={styles.referenceBadges}><span>{speechModeLabel[selected.speech_mode]}</span><span>{targetTypeLabel[selected.pronunciation_target_type]}</span></div></div>
             {selected.speech_mode === "targeted_pronunciation" && <>
               <PronunciationPanel reference={pronunciationReference?.reference_text === selected.reference_text ? pronunciationReference : null} />
-              <AcousticEvidencePanel plan={acousticPlan?.reference_text === selected.reference_text ? acousticPlan : null} />
             </>}
             <div className={styles.recorderCard}><div className={styles.recorderText}><h2>{recording ? "جاري التسجيل" : audioBlob ? "التسجيل جاهز" : "سجّل القراءة"}</h2><p>{recording ? "اقرأ النص كما هو ظاهر، ثم أوقف التسجيل." : "يمكنك إعادة التسجيل في أي وقت قبل التحليل."}</p></div><div className={styles.actions}>{!recording ? <button className={styles.primaryButton} onClick={startRecording}><Mic size={20} />{audioBlob ? "إعادة التسجيل" : "بدء التسجيل"}</button> : <button className={styles.stopButton} onClick={() => void stopRecording()}><Square size={19} />إيقاف التسجيل</button>}{audioUrl && <audio className={styles.audio} controls src={audioUrl} />}<button className={styles.analyzeButton} data-testid="speech-lab-analyze" disabled={!audioBlob || analyzing || recording || !provider?.lexical.configured || selected.speech_mode === "unclassified"} onClick={analyze}><Upload size={19} />{analyzing ? "جاري التحليل..." : "تحليل القراءة"}</button></div>{!provider?.lexical.configured && <p className={styles.providerHint}>واجهة المختبر جاهزة. يلزم تهيئة مزود ASR على الخادم لتشغيل التحليل الحقيقي.</p>}
               {selected.speech_mode === "unclassified" && <p className={styles.providerHint}>هذا المحتوى يحتاج Speech Profile صريح قبل التحليل.</p>}</div>
