@@ -138,13 +138,6 @@ const speechModeLabel: Record<SpeechMode, string> = {
   unclassified: "غير مصنف",
 };
 
-const vowelClassLabel: Record<string, string> = {
-  fatha: "فتحة",
-  kasra: "كسرة",
-  damma: "ضمة",
-  sukun: "سكون",
-};
-
 function percent(value: number | null | undefined) {
   if (value === null || value === undefined || Number.isNaN(value)) return "—";
   return `${Math.round(value * 1000) / 10}%`;
