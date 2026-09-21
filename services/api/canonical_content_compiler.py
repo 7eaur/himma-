@@ -200,6 +200,13 @@ def _legacy_options(interaction: str, skill_name: str, source_text: str) -> list
         if "+" in source_text:
             return [part.strip() for part in source_text.split("=", 1)[0].split("+") if part.strip()]
         return _clean_parts(source_text)
+    # Legacy L1 letter-form rows encode the prompt and the correct connected
+    # form as "isolated ← connected". Treat the arrow as migration syntax only;
+    # it must never survive as a learner option.
+    if "←" in source_text:
+        _prompt, answer = source_text.split("←", 1)
+        answer = answer.strip(" .")
+        return [answer] if answer else []
     if "؛" in source_text:
         return _clean_parts(source_text.split("؛", 1)[1])
     if "؟" in source_text:
@@ -242,6 +249,8 @@ def _round_answer(item: dict[str, Any], source_text: str, options: list[str]) ->
         return None
     if str(item.get("interaction_type")) in ORDER:
         return options[0]
+    if "←" in source_text:
+        return source_text.split("←", 1)[1].strip(" .")
     if ":" in source_text:
         prefix, suffix = source_text.split(":", 1)
         if "/" in prefix:
