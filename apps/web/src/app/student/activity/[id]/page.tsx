@@ -489,7 +489,7 @@ export default function StudentActivityPage() {
     </div>;
   }
 
-  return <div className={styles.page} dir="rtl" data-testid="activity-session" data-phase={submitting ? "submitting" : "active"} data-activity-kind={isReinforcement ? "reinforcement" : "core"} data-item-id={itemId} data-step-id={step.id} data-interaction-type={interaction} data-media-gap-count={hasMediaGap ? Math.max(1, step.media_gaps.length) : 0} data-layout-hint={view.layout_hint || ""}>
+  return <div className={styles.page} dir="rtl" data-testid="activity-session" data-phase={submitting ? "submitting" : "active"} data-level-id={levelId} data-activity-kind={isReinforcement ? "reinforcement" : "core"} data-item-id={itemId} data-step-id={step.id} data-interaction-type={interaction} data-media-gap-count={hasMediaGap ? Math.max(1, step.media_gaps.length) : 0} data-layout-hint={view.layout_hint || ""}>
     <header className={styles.header}><div className={styles.headerInner}><Image src="/brand/logo-navy.svg" alt="هِمّة" width={124} height={44} priority/><button className={styles.exit} type="button" onClick={() => router.push("/student")}><LogOut size={21}/><span>رجوع</span></button></div></header>
     <div className={styles.progressPanel}><div className={styles.progressTop}><span className={styles.assessmentBadge}>{label}</span><span className={styles.progressCount}>{progress?.completed_items ?? 0} من {progress?.total_items ?? 10}</span></div><div className={styles.progressTrack} aria-label={`التقدم ${percent}%`}><div className={styles.progressFill} style={{ width: `${Math.max(percent, 2)}%` }}/></div></div>
     <main className={styles.shell}><section className={styles.card}>
