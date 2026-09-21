@@ -22,6 +22,7 @@ from dependencies import get_current_user, get_db
 from pronunciation_evidence import build_acoustic_evidence_plan
 from speech_aliases import alias_evidence
 from speech_alignment import align_reference, alignment_counts, normalize_arabic
+from speech_decision import preview_speech_decision
 from speech_provider import (
     ProviderNotConfigured,
     ProviderPermanentError,
@@ -269,6 +270,11 @@ async def analyze_recording(
     ref_words = max(1, len(normalize_arabic(reference).split()))
     errors = counts["deletion"] + counts["insertion"] + counts["substitution"]
     wer = errors / ref_words
+    decision = preview_speech_decision(
+        mode=profile.mode,
+        counts=counts,
+        alias_matched=bool(aliases["matched"]),
+    )
 
     return {
         "lab_only": True,
@@ -279,6 +285,11 @@ async def analyze_recording(
         "pronunciation_focus": profile.focus,
         "analysis_path": "lexical_alignment" if profile.mode in {"lexical", "fluency"} else "targeted_pronunciation_preview",
         "asr_alias_evidence": aliases,
+        "decision_preview": {
+            "state": decision.state,
+            "reason": decision.reason,
+            "academic_effect": "none",
+        },
         "adaptation_mode": adaptation_mode,
         "provider": result.provider_name,
         "model": result.model,
