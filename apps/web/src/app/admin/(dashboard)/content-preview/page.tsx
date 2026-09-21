@@ -581,10 +581,6 @@ export default function ContentPreviewPage() {
   const advancedFilterCount = Number(contentKind !== "all") + Number(interaction !== "all") + Number(media !== "all");
 
   useEffect(() => {
-    setActiveMobileRound(0);
-  }, [effectiveSelected]);
-
-  useEffect(() => {
     if (!mobileNavigatorOpen) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
