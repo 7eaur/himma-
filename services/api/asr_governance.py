@@ -23,9 +23,21 @@ class ApprovedASRCalibration:
     confidence_threshold: float
 
 
-# Intentionally empty until provider/privacy/cost/calibration governance is
-# explicitly approved. Do not populate from environment variables.
+# Runtime audio transfer to an external provider is a separate governance gate
+# from confidence calibration. The tuple stays empty until provider/privacy/
+# cost/retention approval is recorded in an ADR and verified with representative
+# recordings. Environment variables alone can never enable student-audio export.
+APPROVED_ASR_RUNTIME_PROVIDERS: tuple[str, ...] = ()
+
+# Automatic machine acceptance is an even stricter gate. It stays empty until a
+# provider+model calibration artifact is approved. Lab evaluation never populates
+# this registry and never changes academic state.
 APPROVED_ASR_CALIBRATIONS: tuple[ApprovedASRCalibration, ...] = ()
+
+
+def runtime_provider_is_approved(provider_name: str) -> bool:
+    normalized = (provider_name or "").strip().lower()
+    return normalized in {value.strip().lower() for value in APPROVED_ASR_RUNTIME_PROVIDERS}
 
 
 def machine_review_decision(
