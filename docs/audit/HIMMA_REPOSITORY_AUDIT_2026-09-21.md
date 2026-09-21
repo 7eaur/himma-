@@ -1,6 +1,6 @@
 # Himma Comprehensive Repository Audit
 
-Status: IN PROGRESS — evidence gathering only  
+Status: COMPLETE — analysis/evidence only; no remediation executed
 Audit branch: `audit/full-repository-review-20260921`  
 Baseline repository: `7eaur/himma-`  
 Baseline default branch: `stage/02-content`  
@@ -237,15 +237,15 @@ Status: evidence captured; remediation has not started.
 - Create signed/annotated release tags only after verified gates and production confirmation.
 - Attach the evidence manifest and migration/content digests to a GitHub Release or equivalent immutable record.
 
-## Phase 1 open verification
+## Phase 1 snapshot notes
 
-- The latest rerun QG #987 for `71d3aaf` was still in progress at the evidence snapshot; two prior completed runs on the same SHA failed identically.
-- Code-level verification of PR #4's playback root cause belongs to the backend/frontend audit phases and will not rely only on the PR description.
-- The two divergent compact audio-review branches require semantic comparison against the contained implementation before a delete/archive recommendation.
+- QG #987 for `71d3aaf` was still in progress at the evidence snapshot; two prior completed runs on the same SHA failed identically, which is sufficient for the baseline-state finding.
+- PR #4's playback root cause was independently verified in the backend/frontend code and public browser boundary; the audit does not treat the PR description as proof.
+- The two divergent compact audio-review branches were semantically compared with the contained official implementation; the disposition is recorded in the branch addendum below.
 
 ### Phase 2 — Delivery gates, runtime boundaries, and authorization
 
-Status: code-level evidence captured; broader backend/frontend review remains in progress.
+Status: complete for the baseline; external owner decisions and private production data remain outside the evidence boundary.
 
 ## Confirmed findings — Phase 2
 
@@ -366,15 +366,15 @@ Status: code-level evidence captured; broader backend/frontend review remains in
 - Direct SQL tests prove invalid parent combinations, statuses, actions, sources, and levels are rejected.
 - Migration preflight reports any existing violating rows before constraint installation.
 
-## Phase 2 open verification
+## Phase 2 external decisions / implementation prerequisites
 
-- Determine whether account provisioning was intentionally approved outside the current requirements reference; absent such a decision, HIM-AUD-011 remains an authorization defect.
-- Profile live database rows before prescribing exact new constraints for HIM-AUD-012.
-- Compare PR #4 implementation with the acceptance criteria above; its existence does not by itself prove the fix complete.
+- Account-provisioning authority requires an explicit owner decision; absent it, HIM-AUD-011 remains an authorization defect.
+- Live database rows must be profiled before implementing the exact new constraints for HIM-AUD-012; production data was intentionally not mutated or inferred.
+- PR #4 was compared with the acceptance criteria. Its proposed direction does not prove merge, exact-head gates, or production verification complete.
 
 ### Phase 3 — Executable verification, packaging, and inactive surfaces
 
-Status: baseline checks executed; PostgreSQL migration cycling and authenticated browser journeys remain open.
+Status: complete for analysis; PostgreSQL migration cycling is evidenced by exact-baseline CI, while authenticated live-browser access remains a stated limitation.
 
 #### Exact baseline verification executed on 2026-09-21
 
@@ -538,7 +538,7 @@ The green checks above are positive evidence, but they do not invalidate HIM-AUD
 
 ### Phase 4 — Assessment authority, reporting integrity, and query behavior
 
-Status: critical route/report interactions reproduced against the baseline; wider endpoint-by-endpoint review remains in progress.
+Status: complete for the baseline: critical interactions reproduced and all mounted operations/dependencies inventoried.
 
 #### Runtime probes executed on 2026-09-21
 
@@ -655,7 +655,7 @@ Status: critical route/report interactions reproduced against the baseline; wide
 
 ### Phase 5 — Authorization matrix, documentation ownership, assets, and release images
 
-Status: assembled API dependency matrix and static/runtime surface inventory captured; authenticated visual journeys and production-data profiling remain open.
+Status: complete for analysis; authenticated live visual journeys and production-data profiling remain explicit evidence limitations.
 
 #### Positive boundary evidence
 
@@ -980,3 +980,138 @@ Status: repository policy/runtime comparison complete; no claim is made that rea
 
 - Every runbook-required signal has a named monitor, threshold, destination, and owner with a successful alert-delivery test.
 - Current release documentation links exact monitoring and incident evidence rather than inferring operability from deployment success.
+
+## Audit completion and coverage matrix
+
+| Area | Evidence completed | Result / limitation |
+|---|---|---|
+| Repository and all live branches | Enumerated 52 pre-audit remote branches, ancestry, divergence, open PRs, protection, tags/releases, workflow status, and relevant history | Complete at baseline; remote state can change after 2026-09-21 |
+| Tracked files and text corpus | Inventoried 1,242 tracked files; machine-read/search pass over 706 text-detectable tracked files; manifests/hashes used for binary/media sets | Binary semantics were assessed through manifests, hashes, code consumers, and selected visual/runtime inspection rather than pretending images/audio are source text |
+| Backend code and schema | Read route owners, dependencies, models, all migrations, assessment/activity/adaptation/audio/report/auth/readiness/ops boundaries; generated route/dependency matrices; executed complete suite and coverage | Complete static/runtime audit of current official baseline; production rows were not inspected |
+| Frontend code | Read route tree, auth/BFF, student/admin critical journeys, recording/audio hooks, state/error paths, tests/configuration/styles; executed Jest, build/type/lint evidence and coverage diagnostics | Authenticated live pages were not opened with real credentials; their code and synthetic E2E coverage were reviewed |
+| Tests and CI | Executed 902 backend and 40 frontend tests, measured coverage, inventoried 22 Playwright specs, mapped workflow ownership, read all workflow gates | Nine checked-in E2E specs are unscheduled; findings document the resulting limits |
+| Content/media | Verified canonical counts/contracts, readiness projection checks, approved media routing and manifests; identified only evidence-backed unused/duplicate assets | No academic rule was changed or reinterpreted |
+| Security/dependencies | Reviewed authn/authz dependency matrix, cookie/JWT revocation boundaries, rate limits, headers/CSP, secret/dependency gates, container/runtime configuration; current `npm audit` reported zero known vulnerabilities for all 795 installed dependency entries | No confirmed IDOR or current npm advisory was found; the unpinned Python resolution and history-scan gap prevent reproducible long-term assurance |
+| Operations/privacy | Reviewed readiness, backup/restore, deployment documents, retention and monitoring gates, production public headers | Private Railway settings, alert dashboards, production DB/object contents, and ethics approvals were not available; absence is reported as missing repository evidence, not guessed external state |
+| Visual review | Inspected the public production landing page and both login pages at desktop size; reviewed checked-in responsive/accessibility/visual E2E artifacts and code | Public RTL presentation was coherent; authenticated production visual journeys remain an explicit evidence limitation |
+
+## Executive disposition
+
+The repository is **not ready to be represented as fully closed or real-study production-green**. The audit confirms 33 findings: 1 critical, 11 high, 18 medium, and 3 low. The most urgent blockers are not cosmetic:
+
+1. PRs to the official branch can bypass the quality gate, the branch is unprotected, and deployment is not gated by that quality result.
+2. Supervisor audio playback is broken by the browser/BFF/storage contract.
+3. Assessment route ownership, official-attempt reporting, and transaction boundaries can produce incorrect or internally inconsistent research results.
+4. Every supervisor can provision equivalent privileged accounts without a stronger administrative role.
+5. Real-child recording admission is not blocked by the still-unapproved retention/deletion policy.
+6. Production closure lacks auditable monitoring/incident-response evidence.
+
+The system also has real strengths worth preserving: a substantial passing backend suite, canonical content projection/digest checks, fail-closed readiness and runtime security settings, durable assessment/audio-review models, privacy-safe request correlation, backup/restore drills, a consistent route authorization matrix, and no confirmed cross-student IDOR in the inspected queries.
+
+## Remediation plan — ordered, not executed
+
+### R0 — Contain release and truth drift (before any new feature merge)
+
+1. Replace `CLOSED / PRODUCTION_GREEN` with an exact, qualified state: technically deployed, known defects open, real-study admission blocked.
+2. Protect the official branch; require reviewed PRs and exact required checks. Make CI trigger on the actual official target and make deployment consume only a passing immutable release artifact.
+3. Freeze unrelated deployment changes until HIM-AUD-009, 002, 001, and 006 are closed with an intentionally failing/then-passing gate proof.
+4. Resolve PR #2/#3/#4 and the four descendant functional branches explicitly: choose one implementation owner, close superseded branches with rationale, and do not stack competing content-preview work.
+5. Restore supervisor audio through one same-origin, range-capable contract and verify it in a normal-security production-style browser.
+
+**R0 exit:** official-branch PRs cannot merge or deploy without the required gate; public status lists the known blockers; audio playback passes byte-range E2E.
+
+### R1 — Restore data and authorization correctness
+
+1. Establish one mounted owner each for assessment start/finish and add whole-application duplicate-route tests.
+2. Make completion plus official-attempt selection one locked transaction; enforce one official completed pre/post attempt per student/type and other lifecycle invariants in PostgreSQL.
+3. Make every report select the official completed attempt and preserve the prior official baseline during an in-progress retake; replace N+1 reads with bounded set-based queries.
+4. Define privileged account roles and bootstrap/recovery ownership; ordinary supervisors must not mint peers unless the approved model explicitly authorizes it.
+5. Correct notification failure semantics and test mutation races.
+
+**R1 exit:** concurrency/failure tests prove no partial completion, duplicate official attempt, report baseline loss, or unauthorized privilege creation.
+
+### R2 — Make runtime and test evidence reproducible
+
+1. Align one Python version across CI and production and generate a hash-locked backend dependency set/SBOM; keep current vulnerability audits.
+2. Classify every Playwright spec into required, scheduled, or manual tiers; fail on unclassified files. Run required journeys with normal browser security.
+3. Add risk-based coverage floors and direct failure/concurrency tests for BFF, auth, recordings/storage, assessment completion, official selection, reports, and admin mutations.
+4. Test/build the repository-owned content package and declare direct E2E dependencies such as `axe-core`.
+5. Add full-history secret scanning and narrowly fix the current documentation false positives.
+
+**R2 exit:** the same locked inputs produce the same runtime, all tests have owners, and critical-path coverage cannot silently fall.
+
+### R3 — Close privacy and operational admission gates
+
+1. Obtain a versioned owner/ethics decision for participant identifiers, audio purpose/access, retention, deletion/archive, backups, provider transfer, and incident handling.
+2. Implement and drill an auditable participant-data lifecycle across object storage, relational/derived records, audit treatment, and expired backups.
+3. Define and verify monitors/alerts for availability, error rate, latency, dependency state, storage capacity, backup age, and dead-letter work; assign the incident owner/escalation path.
+4. Harden CSP/HSTS after compatibility validation, remove framework disclosure, and probe live headers in the release gate.
+5. Stream and bound BFF transfers with timeouts and HTTP-header fidelity.
+
+**R3 exit:** an admission gate—not generic `/ready`—proves policy approval, deletion operability, monitoring, alert delivery, and incident ownership before real participants.
+
+### R4 — Minimize deployment and maintenance surface
+
+1. Add a narrow Docker context, multi-stage images, non-root users, digest-pinned bases, and image content/size checks.
+2. Adopt pinned deterministic formatting in a dedicated mechanical commit, then split dense pages by domain responsibility.
+3. Remove only the evidence-confirmed inactive worker/scaffolds/assets/scripts after consumer and compatibility checks; decide separately whether the real speech worker remains deferred source or becomes an owned deployable.
+4. Generate asset usage and documentation ownership checks in CI.
+
+**R4 exit:** release images and active source contain only owned runtime/test/operational surfaces; cleanup is proven by build, route, asset, and compatibility checks.
+
+## Repository unification and cleanup design
+
+### Branch model
+
+- Converge on one protected long-lived release branch (prefer conventional `main` after a controlled rename/cutover, or explicitly retain `stage/02-content`; do not keep both as ambiguous authorities).
+- Merge only the selected fixes through reviewed PRs. Archive or delete the 38 already-contained branches after recording their containment; close obsolete deployment experiments.
+- Preserve excluded ASR/speech-lab work as clearly non-production research refs or a separate repository. It must not appear in the active release inventory.
+- Tag every deployed artifact with an immutable semantic release tag and record source SHA, gate run, image digest, migration head, content release/projection hashes, and deployment IDs.
+
+### Documentation model
+
+Keep exactly these live owners:
+
+1. `README.md` / `START_HERE_AR.md`: human entry and local setup.
+2. `docs/architecture/`: stable system/component/data-flow description.
+3. `docs/product/`: approved learner, supervisor, assessment, content, and reporting contracts.
+4. `docs/decisions/ADR-*.md`: immutable decisions and supersession links.
+5. `docs/operations/`: environment contract, release, backup/restore, monitoring, privacy/admission, and incident runbooks.
+6. `docs/releases/<version>.md`: generated immutable release evidence.
+7. One machine-readable `docs/state.json`: official branch, current release, open blockers, content/migration versions, and evidence URLs.
+
+Move dated handoffs/checkpoints/closure claims to an explicit archive with a generated historical banner, or remove redundant copies when Git history already preserves them. No archived file may self-identify as current. Generate human status pages from `state.json`; do not hand-copy SHAs and green/closed claims.
+
+### Code and package ownership
+
+- `services/api`: only supported API, migration, seed/publication, and deliberately owned job-worker code.
+- `apps/web`: web/BFF with one proxy implementation and explicit server/client boundaries.
+- `packages/content`: canonical source, schema, validators, compiler/publication inputs, and package-level tests; either make its TS facade a real consumer-owned API or remove it.
+- `scripts/ops`: tested operational commands only. Move ad-hoc root utilities to a clearly unsupported archive or delete after evidence-backed replacement.
+- `reference/`: immutable non-runtime reference, excluded from images, builds, lint/test discovery unless a named validator intentionally consumes it.
+
+### Safe deletion sequence
+
+1. Generate a machine inventory: source imports, dynamic/catalog references, routes, workflows, Docker copies, docs links, and runtime asset requests.
+2. Classify each candidate as active, compatibility, generated, research/deferred, historical, or unowned.
+3. Delete only confirmed unowned items in small category-specific PRs; add a negative assertion preventing reintroduction where useful.
+4. Run locked build/test/content/media/route/link checks after each category. Never combine asset/document cleanup with assessment or data-model behavior changes.
+
+## Final delivery acceptance checklist
+
+The unified version should not be called ready until all of the following are true:
+
+- All critical/high findings are closed or explicitly accepted by a named accountable owner with expiry; no safety/privacy blocker may be risk-accepted implicitly.
+- The official protected branch, release tag, CI SHA, image digests, deployed SHA, Alembic head, and content hashes match.
+- Required backend/frontend/content/E2E/security/migration/backup/deletion/monitoring checks pass on that exact release.
+- No duplicate mounted HTTP operation exists; OpenAPI names the actual runtime owners.
+- Research reports preserve official-attempt semantics during retakes and meet the query budget.
+- Audio upload, review, playback/range, rerecord, and finalization work in a normal production-style browser.
+- Real participant admission remains disabled until the approved privacy/retention version and operational lifecycle drill are evidenced.
+- One documentation state owner generates all current status views; archived documents cannot be mistaken for instructions.
+- Runtime images are minimal/non-root and contain no reference archive, repository history, unrelated app source, or test/manual material.
+- The release has a rollback decision, restore evidence, live monitors, tested alert delivery, and an incident owner.
+
+## Change declaration
+
+This audit branch changes documentation only. It does not modify product code, migrations, dependencies, deployment configuration, production data, GitHub protections, open pull requests, or Railway services. Every resolution above remains a proposal until the owner authorizes an implementation phase.
