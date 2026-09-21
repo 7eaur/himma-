@@ -28,6 +28,7 @@ from speech_provider import (
     build_evaluation_provider,
 )
 from speech_quality import RecordingQualityError, validate_provider_output, validate_recording_input
+from speech_task_profiles import profile_for, require_profile
 
 router = APIRouter(prefix="/admin/speech-lab", tags=["speech-lab"])
 
@@ -77,11 +78,13 @@ def _targets(db: Session) -> list[dict[str, Any]]:
             reference = str(step.expected_reading_text or "").strip()
             if not reference:
                 continue
+            item_canonical_id = canonical_id(item)
+            profile = profile_for(item_canonical_id)
             pronunciation = build_pronunciation_reference(reference)
             targets.append(
                 {
-                    "target_id": f"{canonical_id(item)}-R{int(step.order_index):02d}",
-                    "canonical_id": canonical_id(item),
+                    "target_id": f"{item_canonical_id}-R{int(step.order_index):02d}",
+                    "canonical_id": item_canonical_id,
                     "title": _title(item),
                     "group": _group_for(item),
                     "kind": str(item.kind),
@@ -92,9 +95,27 @@ def _targets(db: Session) -> list[dict[str, Any]]:
                     "reference_text": reference,
                     "pronunciation_target_type": pronunciation["target_type"],
                     "has_diacritics": pronunciation["has_diacritics"],
+                    "speech_mode": profile.mode if profile else "unclassified",
+                    "pronunciation_focus": profile.focus if profile else None,
+                    "lexical_reference": normalize_arabic(reference),
                 }
             )
     return targets
+
+
+def _target_for_id(db: Session, target_id: str) -> dict[str, Any]:
+    wanted = (target_id or "").strip()
+    if not wanted:
+        raise HTTPException(status_code=422, detail="هدف القراءة مطلوب")
+    target = next((row for row in _targets(db) if row["target_id"] == wanted), None)
+    if target is None:
+        raise HTTPException(status_code=404, detail="هدف القراءة غير موجود في المحتوى المعتمد")
+    if target["speech_mode"] == "unclassified":
+        raise HTTPException(
+            status_code=409,
+            detail="هدف القراءة الجديد يحتاج Speech Profile صريح قبل التحليل",
+        )
+    return target
 
 
 def _active_release(db: Session) -> str | None:
@@ -188,16 +209,24 @@ def _quality_or_http(
 
 @router.post("/analyze")
 async def analyze_recording(
-    reference_text: str = Form(...),
-    target_id: str | None = Form(default=None),
+    target_id: str = Form(...),
+    reference_text: str | None = Form(default=None),
     adaptation_mode: str = Form(default="reference"),
     client_duration_seconds: float | None = Form(default=None),
     audio: UploadFile = File(...),
+    db: Session = Depends(get_db),
     _: User = Depends(_require_supervisor),
 ):
-    reference = reference_text.strip()
-    if not reference:
-        raise HTTPException(status_code=422, detail="النص المرجعي مطلوب")
+    target = _target_for_id(db, target_id)
+    profile = require_profile(str(target["canonical_id"]))
+    reference = str(target["reference_text"]).strip()
+
+    client_reference = (reference_text or "").strip()
+    if client_reference and normalize_arabic(client_reference) != normalize_arabic(reference):
+        raise HTTPException(
+            status_code=409,
+            detail="النص المرجعي في الصفحة لا يطابق المحتوى المعتمد؛ حدّث الصفحة ثم أعد المحاولة",
+        )
     if adaptation_mode not in {"none", "reference"}:
         raise HTTPException(status_code=422, detail="وضع التكييف غير مدعوم")
 
@@ -239,6 +268,10 @@ async def analyze_recording(
         "lab_only": True,
         "academic_effect": "none",
         "target_id": target_id,
+        "canonical_id": target["canonical_id"],
+        "speech_mode": profile.mode,
+        "pronunciation_focus": profile.focus,
+        "analysis_path": "lexical_alignment" if profile.mode in {"lexical", "fluency"} else "targeted_pronunciation_preview",
         "adaptation_mode": adaptation_mode,
         "provider": result.provider_name,
         "model": result.model,
@@ -276,9 +309,28 @@ async def analyze_recording(
             }
             for word in result.words
         ],
-        "pronunciation_reference": build_pronunciation_reference(reference),
-        "acoustic_evidence": build_acoustic_evidence_plan(reference),
-        "pronunciation_status": "not_calibrated",
+        "pronunciation_reference": (
+            build_pronunciation_reference(reference)
+            if profile.mode == "targeted_pronunciation"
+            else None
+        ),
+        "acoustic_evidence": (
+            build_acoustic_evidence_plan(reference)
+            if profile.mode == "targeted_pronunciation"
+            else None
+        ),
+        "pronunciation_status": (
+            "not_calibrated" if profile.mode == "targeted_pronunciation" else "not_applicable"
+        ),
+        "fluency": (
+            {
+                "client_duration_seconds": client_duration_seconds,
+                "provider_duration_seconds": result.duration_seconds,
+                "reference_word_count": ref_words,
+            }
+            if profile.mode == "fluency"
+            else None
+        ),
         "raw_metadata": result.raw_metadata,
     }
 
