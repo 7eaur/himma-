@@ -860,3 +860,45 @@ Status: complete-suite measurements captured on the baseline; production code wa
 - A browser request for an audio byte range receives a correct 206 response and range headers through the BFF.
 - XLSX/PDF downloads retain their backend-declared filenames.
 - Slow upstreams terminate at the documented deadline, and body transfer is streamed within an agreed memory budget.
+
+### Phase 7 — Privacy, retention, recovery, and operational boundaries
+
+Status: repository policy/runtime comparison complete; no claim is made that real child data is currently present because production data was not inspected.
+
+#### Positive operational evidence
+
+- The repository contains PostgreSQL and object-store backup/isolated-restore utilities, integrity verification, and a synthetic M09 workflow exercise.
+- `/ready` fails closed for required configuration, PostgreSQL, canonical content projection, approved static audio, object storage, Redis, and protected runtime security mode; its public response is sanitized.
+- The current manual-review design correctly keeps unreviewed audio academically neutral and does not pretend that an unapproved ASR provider is production-ready.
+
+### HIM-AUD-030 — HIGH — Production is declared green while its own child-recording privacy gate remains unapproved and unenforced
+
+**Evidence**
+
+- The authoritative runbook states: “No real child recording should be admitted until the researcher/client approves the retention/deletion policy” and requires identifiers, storage location, playback/download access, retention duration, study-end deletion/archive, backup destruction, and external-provider transfer terms to be recorded (`docs/ops/M09_RELEASE_UAT_RUNBOOK.md:122-134`).
+- The same runbook explicitly says the automated M09 gate closes only infrastructure backup/readiness; privacy decisions and final release approval remain separate (`:148-159`).
+- Nevertheless, `docs/ops/STATUS.md:3-7,54-69` declares `CLOSED / PRODUCTION_GREEN`, records successful Railway production services and an available audio bucket, then lists the child data/audio retention decision as only a remaining owner item. `docs/ops/ROADMAP.md:15-20` likewise marks Railway production deployed/verified while retention remains an owner/ethics boundary.
+- The deployed code accepts student audio through assessment/activity upload routes and the recording compatibility flow. `services/api/storage.py:31-78` stores accepted audio in the configured object bucket; `services/api/recordings.py:103-188` issues direct upload URLs and finalizes stored objects.
+- Repository search finds no student/recording deletion endpoint, retention-duration configuration, scheduled purge/archive job, object-store lifecycle configuration, or study-end erasure verifier. The only recording deletion is a defensive cleanup attempt for an oversized compatibility upload (`recordings.py:169-181`).
+- `services/api/readiness.py:35-45,246-260` does not include an approved-retention-policy marker or deletion/lifecycle capability in readiness. Therefore `/ready = 200` cannot prove the runbook's privacy release condition.
+- Backup procedures preserve database and object data, but the repository has no approved backup-retention/secure-destruction implementation tied to student deletion. This is exactly one of the unresolved decisions named by the runbook.
+
+**Impact**
+
+- The technical production label can be mistaken for authorization to begin a real-child study even though the repository's own explicit admission gate is still open.
+- If real recordings are accepted before policy and deletion mechanics exist, operators cannot demonstrate when primary objects, relational metadata, derived speech records, audit references, and backups should be removed or retained.
+- Backups increase recoverability but also create additional copies whose lifecycle must be governed; a restore test is not a retention/deletion policy.
+
+**Proposed resolution (not executed)**
+
+- Change release state to `TECHNICALLY_DEPLOYED / REAL-STUDY-BLOCKED` until the accountable owner/ethics authority approves a versioned policy. Do not infer or invent legal/ethical parameters from code.
+- Record the approved data inventory, purpose, access roles, retention periods, legal/consent basis, study-end procedure, backup expiry/destruction, incident owner, and whether any provider receives audio.
+- Implement an auditable lifecycle service that covers object-store bytes and all related database/derived records. Decide explicitly which audit evidence must be retained or pseudonymized rather than relying on accidental cascades.
+- Add a non-secret policy approval/version marker and lifecycle capability check to the real-study release gate. Keep generic infrastructure readiness separate from authorization to admit participant data.
+- Execute a synthetic deletion drill across primary storage, database relationships, derived artifacts, and expired backups before enabling real participants.
+
+**Acceptance**
+
+- Production documentation cannot say study-ready/green while the approved retention-policy version is absent.
+- A synthetic participant deletion/expiry drill produces evidence that every governed copy is deleted, archived, or deliberately retained according to the approved policy.
+- `/ready` remains an infrastructure probe, while a separate release/admission gate proves policy approval and lifecycle operability.
