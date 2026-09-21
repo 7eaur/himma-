@@ -1000,9 +1000,8 @@
     gap: 10px;
     border: 1px solid #d8e5ef;
     border-radius: 14px;
-    background: rgba(255,255,255,.96);
+    background: #fff;
     box-shadow: 0 8px 22px rgba(31, 57, 82, .09);
-    backdrop-filter: blur(8px);
   }
 
   .mobileNavigatorContext {
@@ -1271,6 +1270,7 @@
 
   .mobileRoundViewer .roundSummary {
     cursor: default;
+    pointer-events: none;
   }
 
   .mobileRoundViewer .chevron {
@@ -1327,9 +1327,8 @@
     gap: 6px;
     border: 1px solid #d6e3ed;
     border-radius: 16px;
-    background: rgba(255,255,255,.97);
+    background: #fff;
     box-shadow: 0 10px 30px rgba(26, 48, 66, .16);
-    backdrop-filter: blur(10px);
   }
 
   .mobileItemNav > button {
