@@ -24,6 +24,7 @@ def preview_speech_decision(
     mode: str,
     counts: dict[str, int],
     alias_matched: bool = False,
+    mismatch_confirmed: bool = False,
 ) -> SpeechDecision:
     errors = (
         int(counts.get("deletion", 0))
@@ -34,7 +35,9 @@ def preview_speech_decision(
     if mode == "lexical":
         if errors == 0:
             return SpeechDecision("correct", "exact_lexical_match")
-        return SpeechDecision("incorrect", "lexical_mismatch")
+        if mismatch_confirmed:
+            return SpeechDecision("incorrect", "repeated_lexical_mismatch")
+        return SpeechDecision("retry_required", "lexical_mismatch_needs_confirmation")
 
     if mode == "targeted_pronunciation":
         if alias_matched:
