@@ -106,6 +106,27 @@ def test_canonical_release_locks_critical_sep8_regressions():
     ]
 
 
+def test_l1_letter_form_rounds_never_leak_legacy_arrow_syntax():
+    _release, items = _items()
+    item = items["L1-CORE-03"]
+    expected = [
+        ("ب", "بـ"),
+        ("م", "مـ"),
+        ("س", "سـ"),
+        ("ك", "كـ"),
+        ("ل", "لـ"),
+    ]
+
+    assert item["interaction_type"] == "choose_one"
+    assert len(item["rounds"]) == len(expected)
+    for step, (stimulus, correct) in zip(item["rounds"], expected, strict=True):
+        assert step["stimulus"] == {"kind": "text", "text": stimulus}
+        options = list(step["options"])
+        assert len(options) == 4
+        assert all("←" not in str(option["text"]) for option in options)
+        assert [option["text"] for option in options if option["is_correct"]] == [correct]
+
+
 def test_every_listening_round_has_an_explicit_semantic_prompt_contract():
     _release, items = _items()
     seen = 0
