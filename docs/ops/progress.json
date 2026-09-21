@@ -102,7 +102,7 @@
     "environment": "production",
     "deployed_sha": "0bf1390bdbc0a19330c807d82d646424490b5a2b",
     "api_service": "himma-api",
-    "api_deployment": "f160b611-c157-4a53-9d37-cfae289cfb07",
+    "backend_service_deployment": "f160b611-c157-4a53-9d37-cfae289cfb07",
     "web_service": "himma-web",
     "web_deployment": "7f6fec27-3f38-4e21-afd6-c9b62729b168",
     "postgres": "SUCCESS",
