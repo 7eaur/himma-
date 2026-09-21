@@ -760,3 +760,48 @@ Status: assembled API dependency matrix and static/runtime surface inventory cap
 **Acceptance**
 
 - Live production responses contain the approved HSTS policy, omit `X-Powered-By`, and execute with a nonce/hash CSP that rejects an injected inline-script fixture.
+
+### Phase 6 — Executed test inventory and coverage truth
+
+Status: complete-suite measurements captured on the baseline; production code was not changed.
+
+#### Positive execution evidence
+
+- The complete backend suite passed on the audit host: `902 passed, 5 warnings in 438.80s`.
+- Backend statement coverage across the application source, excluding tests/migrations/seed and verification utilities, measured 83% (`7,004` statements, `1,198` missed).
+- The complete frontend Jest suite passed: 10 suites and 40 tests.
+- The checked-in Playwright suite contains 22 specification files, including full assessment journeys that complete 30 questions, the human audio-review step, and session finish. The completion path therefore has some browser-level coverage even though its direct backend coverage is weak.
+
+### HIM-AUD-027 — HIGH — Green test totals conceal unexecuted suites and critical coverage gaps
+
+**Evidence**
+
+- Running Jest with explicit collection over `apps/web/src/**/*.{ts,tsx}` measured only 24.09% statements, 67.14% branches, 27.05% functions, and 24.09% lines. `apps/web/jest.config.js:8-16` defines no coverage threshold, so the ordinary 40-test result remains green regardless of how much production code is untested.
+- The zero-coverage frontend surface includes both login pages, almost all admin pages, the student assessment page, the authenticated BFF route, auth routes, most shared components, `useAudioRecorder`, and IndexedDB support. The student dashboard and activity page have meaningful unit coverage, so this is not a blanket absence of tests; it is a risk-weighting gap.
+- The backend aggregate is stronger at 83%, but critical modules remain thin: `assessment_completion.py` 26%, `storage.py` 26%, `activities.py` 57%, `speech_analysis.py` 67%, `recordings.py` 67%, and `auth_session_state.py` 68%. The real speech job consumer `speech_worker.py` and media-contract validator each measured 0%.
+- The successful direct backend suite does not execute the success body of `assessment_completion.finish_session` (`assessment_completion.py:211-237`); it exercises validation/fail-closed branches. Browser journeys do finish assessments, but that does not provide focused concurrency, rollback, or transaction-boundary coverage for HIM-AUD-021.
+- The repository has 22 Playwright spec files. The main CI and M09 workflows hard-code the same 12 filenames, while M04 separately runs `responsive-smoke.spec.ts`. Nine specs are referenced by no workflow: `audio-review-filtered-context`, `browser-flow`, `font-loading`, `home-login`, `p03-screenshots`, `student-detail-cross-device-integrity`, `student-detail-journey-states`, `student-detail-partial-source-errors`, and `student-viewport-safety`.
+- Several omitted specs are substantive regression coverage rather than disposable screenshots: filtered audio-review context, cross-device student integrity, partial-source failure behavior, journey states, viewport safety, and font loading. A newly added spec can therefore exist indefinitely without CI noticing it.
+- `apps/web/playwright.config.ts:20-31` launches the only browser project with `--disable-web-security`. This changes the browser same-origin/CORS security model for every E2E run and reduces fidelity to the deployed topology.
+- `apps/web/tests/e2e/home-login.spec.ts:42-45` catches and discards the failed wrong-credential error assertion. If that spec is run without the backend, the test reports success without proving its stated behavior.
+
+**Impact**
+
+- Passing totals such as `902`, `40`, and `23` can be repeated in release documents while important repository-owned tests never execute and high-risk browser/API code has no enforced coverage floor.
+- The BFF/audio path implicated in HIM-AUD-010, assessment finalization in HIM-AUD-021, authentication UI, recording hooks, and admin workflows can regress without a targeted required test failing.
+- Disabling web security can hide integration failures involving origin and CORS that users experience in a normal browser.
+
+**Proposed resolution (not executed)**
+
+- Replace duplicated filename allowlists with a declared test manifest: every Playwright spec must be assigned to a required PR tier, scheduled extended tier, or explicit manual/visual tier. Fail CI when a spec is unclassified.
+- Add risk-based coverage floors for the authenticated BFF, authentication, recording/audio, assessment completion, official-attempt selection, reports, and admin mutation flows. Use per-module thresholds rather than relying only on a repository aggregate.
+- Run at least one required Chromium project with normal web security against the same-origin production-style BFF topology. Isolate fake media-device flags to tests that need them.
+- Remove swallowed assertions. Tests that require the full stack must either provision it, explicitly skip with a visible reason, or mock a precise failure contract.
+- Add focused failure/concurrency tests for assessment finalization, official-attempt selection, storage/streaming, and notification mutations; preserve the existing full-journey coverage.
+
+**Acceptance**
+
+- CI fails when any Playwright spec is not classified or when a required tier is silently omitted.
+- Critical-module coverage meets documented floors, and the baseline Jest coverage cannot fall while remaining green.
+- A normal-security browser project proves login, authenticated BFF access, audio byte-range playback, and representative cross-origin rejection behavior.
+- No test catches and ignores a failed product assertion.
