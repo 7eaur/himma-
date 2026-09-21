@@ -10,13 +10,23 @@ def test_lexical_exact_match_is_correct():
     assert decision.reason == "exact_lexical_match"
 
 
-def test_lexical_word_error_is_incorrect():
+def test_first_lexical_word_error_requests_retry():
     decision = preview_speech_decision(
         mode="lexical",
         counts={"correct": 3, "deletion": 1, "insertion": 0, "substitution": 0},
     )
+    assert decision.state == "retry_required"
+    assert decision.reason == "lexical_mismatch_needs_confirmation"
+
+
+def test_repeated_lexical_word_error_can_be_marked_incorrect():
+    decision = preview_speech_decision(
+        mode="lexical",
+        counts={"correct": 3, "deletion": 1, "insertion": 0, "substitution": 0},
+        mismatch_confirmed=True,
+    )
     assert decision.state == "incorrect"
-    assert decision.reason == "lexical_mismatch"
+    assert decision.reason == "repeated_lexical_mismatch"
 
 
 def test_targeted_alias_never_grants_correct_by_itself():
