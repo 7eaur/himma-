@@ -221,6 +221,110 @@ test.describe("Himma UX system visual QA regression", () => {
     }
   });
 
+  test("level-one mobile learning stays compact and never renders legacy letter mapping syntax", async ({ page, context, request }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    const accessCode = await createStudent(page, request, context, "طالب فحص المستوى الأول");
+    await loginStudent(request, context, accessCode);
+
+    const sessionId = "91001";
+    await page.route(`**/api/activities/session/${sessionId}/next`, async (route) => {
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({}) });
+    });
+    await page.route(`**/api/activities/session/${sessionId}/progress`, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          completed_items: 0,
+          total_items: 10,
+          level_id: 1,
+          status: "in_progress",
+          pending_audio_reviews: 0,
+        }),
+      });
+    });
+    await page.route(`**/api/learning-experience/session/${sessionId}`, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          version: "visual-regression",
+          session_id: Number(sessionId),
+          level_id: 1,
+          item_id: 301,
+          stable_key: "visual-l1-core-03",
+          kind: "core_activity",
+          interaction_type: "choose_one",
+          round: {
+            round_number: 1,
+            round_total: 5,
+            skill: "التعرف إلى أشكال الحرف",
+            encouragement: "ممتاز، أنت جاهز لهذه الجولة!",
+            hint: "قارن بين الحرف المعروض والخيارات.",
+            question_text: "اختر الشكل الآخر للحرف نفسه.",
+            instruction_text: "لاحظ الحرف المعروض، ثم اختر الشكل المناسب له من الخيارات.",
+            stimulus_text: "ب",
+          },
+          retry: false,
+          attempts_used: 0,
+          pending_audio_reviews: 0,
+          context_intro: null,
+          layout_hint: null,
+          step: {
+            id: 3011,
+            expected_reading_text: null,
+            required_selection_count: 1,
+            options: [
+              { id: 1, text: "بـ", order_index: 1 },
+              { id: 2, text: "مـ", order_index: 2 },
+              { id: 3, text: "سـ", order_index: 3 },
+              { id: 4, text: "كـ", order_index: 4 },
+            ],
+            assets: [],
+            media_gaps: [],
+          },
+          assets: [],
+        }),
+      });
+    });
+
+    await page.goto(`/student/activity/${sessionId}`);
+    const root = page.getByTestId("activity-session");
+    await expect(root).toHaveAttribute("data-phase", "active", { timeout: 10000 });
+    await expect(root).toHaveAttribute("data-level-id", "1");
+    await expectNoHorizontalOverflow(page);
+
+    const question = page.getByTestId("activity-question");
+    const stimulus = page.getByTestId("activity-stimulus");
+    const options = page.getByTestId("activity-text-options").getByTestId("activity-option");
+    await expect(question).toBeVisible();
+    await expect(stimulus).toHaveText("ب");
+    await expect(options).toHaveCount(4);
+    await expect(page.getByTestId("activity-text-options")).not.toContainText("←");
+
+    const questionSize = await question.evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize));
+    expect(questionSize).toBeLessThanOrEqual(20);
+
+    const stimulusBox = await stimulus.boundingBox();
+    expect(stimulusBox?.width ?? 999).toBeLessThanOrEqual(200);
+    expect(stimulusBox?.height ?? 999).toBeLessThanOrEqual(150);
+
+    const firstOption = options.first();
+    const optionBox = await firstOption.boundingBox();
+    const optionSize = await firstOption.evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize));
+    expect(optionBox?.height ?? 999).toBeLessThanOrEqual(64);
+    expect(optionSize).toBeLessThanOrEqual(18);
+
+    const taskCard = root.locator("main section").first();
+    const taskCardBox = await taskCard.boundingBox();
+    expect(taskCardBox?.width ?? 999).toBeLessThanOrEqual(366);
+
+    const pageHeight = await page.evaluate(() => document.documentElement.scrollHeight);
+    expect(pageHeight).toBeLessThanOrEqual(1150);
+
+    await page.screenshot({ path: path.join(SCREENSHOT_DIR, "phone-390-level1-letter-form.png"), fullPage: true });
+  });
+
   test("audio review decision workflow is visually stable on phone and desktop", async ({ page, context, request }) => {
     await loginSupervisor(request, context);
     const submission = {
