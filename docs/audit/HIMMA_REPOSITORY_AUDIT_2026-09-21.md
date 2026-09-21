@@ -952,3 +952,31 @@ Status: repository policy/runtime comparison complete; no claim is made that rea
 
 - Formatting is deterministic from a locked dependency and CI rejects drift.
 - No production TSX line exceeds the agreed reviewability limit except explicit generated data, and formatting-only changes are isolated from behavior changes.
+
+### HIM-AUD-033 — MEDIUM — Production closure has no repository evidence for the required monitoring and incident-response minimums
+
+**Evidence**
+
+- `docs/ops/M09_RELEASE_UAT_RUNBOOK.md:108-120` requires dependency monitoring, API error-rate/latency visibility, recording-store capacity alerts, privacy-safe logs, and a named study-incident contact. `:159` states that monitoring/support and final approval remain outside the automated M09 infrastructure gate.
+- The older M09 evidence likewise leaves monitoring, request correlation, study-time support, privacy, and the final release checklist open (`docs/ops/M09_RELEASE_READINESS_EVIDENCE_2026-08-31.md:85`). Request correlation was later implemented, but no closure evidence replaces the other items.
+- `services/api/observability.py:43-74` now provides useful structured request ID/status/duration logs and exception correlation; tests verify request-ID and privacy-safe auth signals. This is positive instrumentation, not a monitoring/alerting system by itself.
+- Repository search finds no metrics endpoint/exporter, tracing/error-monitoring integration, log-drain configuration, alert thresholds, notification destination, recording-capacity alarm, incident owner, or production synthetic check. Deployment files contain packaging/startup only.
+- Current status and roadmap nevertheless declare `CLOSED / PRODUCTION_GREEN` and Railway `DEPLOYED / VERIFIED`, and their remaining-boundary lists omit monitoring/support (`docs/ops/STATUS.md:7,54-72`; `docs/ops/ROADMAP.md:5-22`).
+- Monitoring may exist in the hosting dashboard, but neither repository configuration nor current release evidence identifies or verifies it. This finding is about the absent auditable closure, not a claim that the platform provider exposes no telemetry.
+
+**Impact**
+
+- A 200 readiness probe at deployment time does not ensure that later database, Redis, storage, latency, error-rate, or capacity degradation alerts a responsible person.
+- Incident response depends on undocumented external state and people, so the declared production result cannot be reproduced or handed over safely from the repository.
+
+**Proposed resolution (not executed)**
+
+- Define service-level signals and actionable thresholds for availability, 5xx rate, latency, dependency failures, storage capacity, backup age, and queue/dead-letter state; route them to an approved owner/escalation path.
+- Version non-secret monitor/alert definitions or exportable platform configuration and add a release evidence record with probe IDs, tested notification delivery, owner, and review date.
+- Add an external synthetic journey that checks the public web, API readiness, authentication boundary, and a safe non-mutating business path. Keep sensitive participant data out of telemetry.
+- Run a controlled failure drill and record detection time, alert delivery, correlation ID use, response owner, and recovery evidence before calling the real-study release operationally green.
+
+**Acceptance**
+
+- Every runbook-required signal has a named monitor, threshold, destination, and owner with a successful alert-delivery test.
+- Current release documentation links exact monitoring and incident evidence rather than inferring operability from deployment success.
