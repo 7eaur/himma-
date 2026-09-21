@@ -337,15 +337,28 @@ async def analyze_recording(
 
 @router.post("/pronunciation-assess")
 async def pronunciation_assess(
-    reference_text: str = Form(...),
-    target_id: str | None = Form(default=None),
+    target_id: str = Form(...),
+    reference_text: str | None = Form(default=None),
     client_duration_seconds: float | None = Form(default=None),
     audio: UploadFile = File(...),
+    db: Session = Depends(get_db),
     _: User = Depends(_require_supervisor),
 ):
-    reference = reference_text.strip()
-    if not reference:
-        raise HTTPException(status_code=422, detail="النص المرجعي مطلوب")
+    target = _target_for_id(db, target_id)
+    profile = require_profile(str(target["canonical_id"]))
+    if profile.mode != "targeted_pronunciation":
+        raise HTTPException(
+            status_code=409,
+            detail="هذا الهدف يستخدم القراءة النصية ولا يحتاج تقييم نطق مستهدف",
+        )
+
+    reference = str(target["reference_text"]).strip()
+    client_reference = (reference_text or "").strip()
+    if client_reference and normalize_arabic(client_reference) != normalize_arabic(reference):
+        raise HTTPException(
+            status_code=409,
+            detail="النص المرجعي في الصفحة لا يطابق المحتوى المعتمد؛ حدّث الصفحة ثم أعد المحاولة",
+        )
 
     audio_bytes = await audio.read()
     input_quality = _quality_or_http(
@@ -372,6 +385,9 @@ async def pronunciation_assess(
         "calibration_status": "not_calibrated",
         "direct_haraka_judgement": False,
         "target_id": target_id,
+        "canonical_id": target["canonical_id"],
+        "speech_mode": profile.mode,
+        "pronunciation_focus": profile.focus,
         "reference_text": reference,
         "recording_quality": {"input": input_quality, "rerecord_required": False},
         "provider": result.provider_name,
