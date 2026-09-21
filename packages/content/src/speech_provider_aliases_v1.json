@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "policy": "Aliases only prevent an ASR-only false negative. They never grant a correct pronunciation decision.",
+  "entries": [
+    {
+      "target_id": "L1-REIN-05-R01",
+      "reference_text": "مَ",
+      "aliases": [
+        "م",
+        "ما",
+        "ماء",
+        "ma"
+      ],
+      "effect": "do_not_fail_from_asr_only",
+      "status": "lab_seed",
+      "note": "Initial lab case requested for testing; keep, change, or remove based on observed provider output."
+    }
+  ]
+}
