@@ -371,3 +371,167 @@ Status: code-level evidence captured; broader backend/frontend review remains in
 - Determine whether account provisioning was intentionally approved outside the current requirements reference; absent such a decision, HIM-AUD-011 remains an authorization defect.
 - Profile live database rows before prescribing exact new constraints for HIM-AUD-012.
 - Compare PR #4 implementation with the acceptance criteria above; its existence does not by itself prove the fix complete.
+
+### Phase 3 — Executable verification, packaging, and inactive surfaces
+
+Status: baseline checks executed; PostgreSQL migration cycling and authenticated browser journeys remain open.
+
+#### Exact baseline verification executed on 2026-09-21
+
+- Backend: `902 passed`, `5 warnings`, Python 3.12, SQLite test fixture, 336.77 seconds.
+- Frontend: ESLint passed; `tsc --noEmit` passed; Jest `10/10` suites and `40/40` tests passed; Next.js production build passed and generated 20 routes/pages.
+- Dependency audit: `pip-audit 2.10.1 -r services/api/requirements.txt` reported no known vulnerabilities at resolution time; `npm audit --audit-level=high` reported zero vulnerabilities.
+- Content: legacy catalog validation passed at 105 items/44 skills; canonical release passed at 125 items with verified media and digest `e6c749add3652ca8aa896065218673eaac8a07cd0cbca1e92710f35f14f5a904`.
+- The two tests under `packages/content/tests` passed when invoked directly (`2 passed`), but are not collected by the normal backend command from `services/api`.
+- Public production desktop visual inspection covered the landing page, student login, and supervisor login. All rendered, had coherent RTL hierarchy, and exposed labelled controls. Authenticated/admin/student journeys were not claimed from this public inspection.
+
+The green checks above are positive evidence, but they do not invalidate HIM-AUD-010 or HIM-AUD-011: the current suite does not exercise the cross-origin playback contract or ordinary-supervisor provisioning denial.
+
+## Confirmed findings — Phase 3
+
+### HIM-AUD-013 — HIGH — Production Python runtime is different from the tested runtime and dependencies are not reproducibly locked
+
+**Evidence**
+
+- `.github/workflows/ci.yml` runs backend and integration on Python 3.12.
+- `deploy/railway-api.Dockerfile:2` builds production from `python:3.13-slim`.
+- `services/api/requirements.txt` uses open lower bounds (`>=`) for 16 of 17 direct dependencies; there is no Python lock file or hashed constraints file.
+- The same requirements file resolved successfully during this audit, but that only proves the dependency set selected on 2026-09-21. A future build can select different versions without a repository change.
+- The test run already emits framework deprecation warnings, including Starlette's deprecated `HTTP_413_REQUEST_ENTITY_TOO_LARGE` symbol.
+
+**Impact**
+
+- CI can pass on Python 3.12 and one transitive dependency graph while Railway publishes a different interpreter/dependency graph.
+- A rebuild of an unchanged commit is not guaranteed to produce the same behavior or artifact, weakening rollback and exact-SHA evidence.
+
+**Proposed resolution (not executed)**
+
+- Choose one supported Python version for development, CI, and production and pin the container base by immutable digest.
+- Generate a reviewed lock/constraints file with hashes; update it through an explicit dependency-refresh workflow that runs tests and audits.
+- Treat deprecation warnings as scheduled maintenance with owner/deadline before the corresponding breaking upgrades.
+
+**Acceptance**
+
+- CI tests the exact interpreter and locked graph used by the production image.
+- Rebuilding the same commit resolves identical artifacts/dependency versions, and vulnerability auditing runs against that locked graph.
+
+### HIM-AUD-014 — MEDIUM — CI omits repository-owned package checks and one E2E dependency is accidental
+
+**Evidence**
+
+- `packages/content/package.json` defines TypeScript `build` and `lint`, but CI only invokes its Python catalog validator; it never runs the package TypeScript build/lint.
+- `packages/content/tests/test_reinforcement_v2_contract.py` is outside `services/api`; `pytest` executed with working directory `services/api` does not collect it. The two tests pass only when run separately from the repository root.
+- `apps/web/tests/e2e/w6-axe.spec.ts` imports `axe-core`, but `apps/web/package.json` does not declare it. It currently exists only transitively through `eslint-config-next -> eslint-plugin-jsx-a11y`.
+- The `@himma/content` TypeScript compile happened to pass in this audit when driven with the web installation's TypeScript binary; that is not a declared package installation or CI contract.
+
+**Impact**
+
+- Package code/tests can regress while the main gate stays green.
+- A harmless change in ESLint's transitive graph can make the accessibility E2E suite fail to resolve `axe-core` even though project code did not change.
+
+**Proposed resolution (not executed)**
+
+- Define one root workspace/test orchestrator or explicitly run every owned package's install/build/lint/test in CI.
+- Move/collect content tests under a deliberate test root.
+- Declare `axe-core` directly at the version expected by the accessibility tests.
+
+**Acceptance**
+
+- A deliberate failure in `packages/content/src/index.ts` and in `packages/content/tests` fails CI.
+- `npm ls axe-core` shows a direct declared dependency for the E2E owner.
+
+### HIM-AUD-015 — MEDIUM — Repository contains inactive or misleading deployable-looking subsystems
+
+**Evidence**
+
+- `services/worker/main.py` contains only an infinite 10-second heartbeat loop and no queue consumption; its sole dependency is Redis, which it never imports or uses.
+- The actual speech job consumer is `services/api/speech_worker.py`; no workflow, deployment file, or production code references `services/worker/main.py`.
+- `packages/contracts/package.json` declares `main: index.ts`, but no such file exists and no repository source imports `@himma/contracts`.
+- `@himma/content` exposes a TypeScript facade that no application imports; runtime content is compiled/published through Python and JSON sources.
+- Root utilities `test_integration.py`, `test_minio.py`, `set_researcher_pass.py`, and `services/api/create_db.py` have no current workflow/code references and sit outside the owned test/runtime entry points.
+
+**Impact**
+
+- Operators and new engineers can deploy or maintain components that do no useful work, or assume a shared contract package exists when it does not.
+- Security/dependency/ownership surface grows without product value.
+
+**Proposed disposition (not executed)**
+
+- Classify each item as active, archive/reference, or delete. Do not keep placeholder deployable packages in the active tree.
+- If a worker service is required, point it to the real queue consumer with an explicit deployment contract; otherwise remove `services/worker`.
+- Remove the empty contracts package or implement and consume it under tests; do not retain a broken package manifest.
+- Move historical/manual utilities to a clearly non-production archive only if evidence retention requires them.
+
+**Acceptance**
+
+- Every active package/service has an owner, executable check, deployment/use reference, and correct entry point.
+- A generated unused-surface inventory is empty or contains only documented archive exceptions.
+
+### HIM-AUD-016 — MEDIUM — Local configuration has two conflicting owners and a stale Docker workflow
+
+**Evidence**
+
+- `.env.example` uses `DATABASE_URL`, `S3_BUCKET_NAME=himma-audio`, and includes `HIMMA_MAX_STUDENTS`.
+- `env.example` instead uses split `DB_*` variables, `S3_BUCKET_NAME=himma-storage`, `API_PORT`, and lacks `HIMMA_MAX_STUDENTS`.
+- Current application database code requires `DATABASE_URL`; split `DB_*` variables are owned only by `docker-compose.yml`.
+- `docker-compose.yml` remains at repository root and presents PostgreSQL/Redis/MinIO as a local workflow, including mutable `minio/minio:latest`, while `docs/specs/ARCHITECTURE_BASELINE.md` says the project does not depend on Docker locally and current CI starts native services.
+
+**Impact**
+
+- Following the wrong example can configure a different bucket or omit the study-wide capacity control.
+- The root Compose file appears authoritative but conflicts with the accepted operating model and uses a mutable storage image.
+
+**Proposed disposition (not executed)**
+
+- Make `.env.example` the single generated/validated environment contract shared by API, web, scripts, CI, and deployment documentation.
+- Remove or archive `env.example` and the root Compose workflow after verifying no supported operator uses them; if Compose is intentionally retained as optional, label it explicitly and pin every image by digest.
+
+**Acceptance**
+
+- A configuration-schema check proves every required runtime variable appears once with one meaning/default policy.
+- Onboarding and CI reference the same supported local service workflow.
+
+### HIM-AUD-017 — MEDIUM — Authentication redirect context is generated but discarded
+
+**Evidence**
+
+- `apps/web/src/proxy.ts:10-17` redirects an unauthenticated protected request to the role-appropriate login and stores the original path/query in `?next=...`.
+- `apps/web/src/proxy.test.ts` explicitly tests preservation of `/student/session/4?mode=resume` in that query parameter.
+- Both login pages ignore `next`; after success they always replace the route with `/admin` or `/student`.
+
+**Impact**
+
+- Session expiry, deep links, notifications, and bookmarks lose the requested context after reauthentication.
+- The test proves only the first half of the contract, so the suite stays green while the end-to-end behavior is incomplete.
+
+**Proposed resolution (not executed)**
+
+- Parse `next` through a strict same-origin relative-path allowlist for the authenticated role, then redirect there after login; otherwise use the role home.
+- Add E2E coverage from protected deep link through login to final destination, including hostile absolute/protocol-relative values.
+
+**Acceptance**
+
+- Valid role-scoped deep links resume exactly; external URLs and cross-role paths are rejected to the safe home route.
+
+### HIM-AUD-018 — LOW — Content package documentation describes a retired runtime owner
+
+**Evidence**
+
+- `packages/content/README.md` calls `src/catalog.json` the sole executable mirror and says `services/api/seed.py` reads only that catalog.
+- Current source-of-truth and executable code compile a 125-item release from the 105-item baseline plus versioned additions through `canonical_release.py` and publish it through the canonical publisher.
+- The audit executed both boundaries: the legacy validator correctly reported 105, while canonical release correctly reported 125.
+
+**Impact**
+
+- A maintainer can edit/validate only the 105-item baseline and incorrectly believe the full runtime release is covered.
+
+**Proposed resolution (not executed)**
+
+- Rewrite the package README around the baseline-input versus canonical-runtime distinction and link the single publish/readiness path.
+
+### Phase 1 branch disposition addendum
+
+- `redesign/audio-review-compact-20260920` and `integration/audio-review-compact-20260920` share five old commits and are 27 official commits behind. The integration branch adds only three follow-up commits.
+- None of their eight commits is an ancestor of the official branch. The official branch instead contains a newer sibling implementation starting at `50d0477 refactor(admin): compact audio review workspace`, plus later deep-link/test work.
+- Their intended behavior (two-column evidence/evaluation, stable decision names, optional notes, compact mobile CSS, visual QA) is visibly represented in the current official page/global admin workflow and tests.
+- Disposition: archive/delete after recording this proof; do not merge either divergent branch into the official line.
