@@ -123,6 +123,11 @@ type Analysis = {
     provider_duration_seconds: number | null;
     reference_word_count: number;
   } | null;
+  decision_preview: {
+    state: "correct" | "incorrect" | "retry_required";
+    reason: string;
+    academic_effect: "none";
+  };
 };
 
 const groups = [
@@ -150,6 +155,12 @@ const targetTypeLabel: Record<TargetType, string> = {
   sentence: "جملة",
   passage: "نص",
 };
+
+const decisionLabel = {
+  correct: "صحيح",
+  incorrect: "خطأ",
+  retry_required: "أعد التسجيل / يحتاج دليل إضافي",
+} as const;
 
 const speechModeLabel: Record<SpeechMode, string> = {
   targeted_pronunciation: "نطق مستهدف",
@@ -396,7 +407,7 @@ export default function SpeechLabPage() {
               <div className={styles.transcripts}><div><span>النص الذي تعرف عليه مزود النطق</span><p>{pronunciationAssessment.transcript || "—"}</p></div><div><span>الهدف التعليمي</span><p>{selected?.pronunciation_focus || "نطق مستهدف"}</p></div></div>
               <div className={styles.safetyNote}>هذه النتيجة تجريبية داخل المختبر فقط، وليست قرارًا أكاديميًا بعد.</div>
             </section>}
-            {analysis && <section className={styles.results} aria-live="polite"><div className={styles.resultHeader}><div><span>نتيجة التعرف النصي</span><h2>{analysis.provider} {analysis.model ? `· ${analysis.model}` : ""}</h2></div><div className={styles.accuracy}><strong>{percent(analysis.lexical_accuracy)}</strong><span>تطابق لفظي</span></div></div><div className={styles.metrics}><div><span>ثقة المزود</span><strong>{percent(analysis.provider_confidence)}</strong></div><div><span>صحيح</span><strong>{analysis.counts.correct || 0}</strong></div><div><span>حذف</span><strong>{analysis.counts.deletion || 0}</strong></div><div><span>إضافة</span><strong>{analysis.counts.insertion || 0}</strong></div><div><span>استبدال</span><strong>{analysis.counts.substitution || 0}</strong></div><div><span>WER</span><strong>{percent(analysis.wer)}</strong></div></div><div className={styles.transcripts}><div><span>النص الخام من Azure</span><p>{analysis.raw_transcript || "لم يرجع المزود نصًا."}</p></div><div><span>بعد التطبيع للمحاذاة</span><p>{analysis.normalized_transcript || "—"}</p></div></div><div className={styles.alignmentWrap}><h3>المحاذاة مع النص المرجعي</h3><div className={styles.alignmentTable} role="table"><div className={styles.tableHead} role="row"><span>المرجع</span><span>المسموع</span><span>التصنيف</span></div>{analysis.alignment.map((row, index) => <div className={styles.tableRow} role="row" key={`${index}-${row.kind}`}><span>{row.reference || "—"}</span><span>{row.hypothesis || "—"}</span><span className={`${styles.tokenKind} ${styles[row.kind]}`}>{kindLabel[row.kind]}</span></div>)}</div></div><div className={styles.safetyNote}>نتيجة Azure هنا تقيس التعرف النصي والمحاذاة فقط. تقييم الحرف والحركة والشدة والسكون صوتيًا غير معتمد حتى تتم المعايرة، ولا يوجد أي أثر أكاديمي لهذه التجربة.</div></section>}
+            {analysis && <section className={styles.results} aria-live="polite"><div className={styles.resultHeader}><div><span>نتيجة التعرف النصي</span><h2>{analysis.provider} {analysis.model ? `· ${analysis.model}` : ""}</h2><small>{decisionLabel[analysis.decision_preview.state]}</small></div><div className={styles.accuracy}><strong>{percent(analysis.lexical_accuracy)}</strong><span>تطابق لفظي</span></div></div><div className={styles.metrics}><div><span>ثقة المزود</span><strong>{percent(analysis.provider_confidence)}</strong></div><div><span>صحيح</span><strong>{analysis.counts.correct || 0}</strong></div><div><span>حذف</span><strong>{analysis.counts.deletion || 0}</strong></div><div><span>إضافة</span><strong>{analysis.counts.insertion || 0}</strong></div><div><span>استبدال</span><strong>{analysis.counts.substitution || 0}</strong></div><div><span>WER</span><strong>{percent(analysis.wer)}</strong></div></div><div className={styles.transcripts}><div><span>النص الخام من Azure</span><p>{analysis.raw_transcript || "لم يرجع المزود نصًا."}</p></div><div><span>بعد التطبيع للمحاذاة</span><p>{analysis.normalized_transcript || "—"}</p></div></div><div className={styles.alignmentWrap}><h3>المحاذاة مع النص المرجعي</h3><div className={styles.alignmentTable} role="table"><div className={styles.tableHead} role="row"><span>المرجع</span><span>المسموع</span><span>التصنيف</span></div>{analysis.alignment.map((row, index) => <div className={styles.tableRow} role="row" key={`${index}-${row.kind}`}><span>{row.reference || "—"}</span><span>{row.hypothesis || "—"}</span><span className={`${styles.tokenKind} ${styles[row.kind]}`}>{kindLabel[row.kind]}</span></div>)}</div></div><div className={styles.safetyNote}>نتيجة Azure هنا تقيس التعرف النصي والمحاذاة فقط. تقييم الحرف والحركة والشدة والسكون صوتيًا غير معتمد حتى تتم المعايرة، ولا يوجد أي أثر أكاديمي لهذه التجربة.</div></section>}
           </> : <div className={styles.empty}>اختر هدف قراءة لبدء الاختبار.</div>}
         </main>
       </section>
