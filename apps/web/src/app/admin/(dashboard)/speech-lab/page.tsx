@@ -277,8 +277,6 @@ export default function SpeechLabPage() {
     let active = true;
     const referenceText = selected?.reference_text;
     if (!referenceText || selected?.speech_mode !== "targeted_pronunciation") {
-      setPronunciationReference(null);
-      setAcousticPlan(null);
       return () => { active = false; };
     }
     const loadEvidence = async () => {
