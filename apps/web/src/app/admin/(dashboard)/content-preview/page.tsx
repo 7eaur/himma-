@@ -466,7 +466,6 @@ export default function ContentPreviewPage() {
   const [mobileNavigatorOpen, setMobileNavigatorOpen] = useState(false);
   const [activeMobileRound, setActiveMobileRound] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState("");
 
   const loadIndex = async () => {
@@ -616,6 +615,7 @@ export default function ContentPreviewPage() {
     if (typeof window !== "undefined") {
       window.localStorage.setItem("himma.admin.contentPreview.lastItem", canonicalId);
       if (window.matchMedia("(max-width: 820px)").matches) {
+        setQuery("");
         window.requestAnimationFrame(() => {
           document.querySelector('[data-testid="content-detail-pane"]')?.scrollIntoView({ block: "start" });
         });
@@ -807,7 +807,11 @@ export default function ContentPreviewPage() {
               type="button"
               aria-pressed={scope === option.value}
               className={`${styles.scopeButton} ${scope === option.value ? styles.scopeButtonActive : ""}`.trim()}
-              onClick={() => selectScope(option.value)}
+              onClick={() => {
+                setScope(option.value);
+                setContentKind(option.value === "pretest" || option.value === "posttest" ? "all" : "core");
+                setSelected("");
+              }}
             >
               {option.label}
             </button>)}
