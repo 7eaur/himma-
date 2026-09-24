@@ -128,10 +128,17 @@ def test_l3_full_evidence_completes_without_fictitious_level_four():
     assert state.next_level is None
 
 
-def _create_scored_item(db, *, key: str, skill_id: int, order_index: int):
+def _create_scored_item(
+    db,
+    *,
+    key: str,
+    skill_id: int,
+    order_index: int,
+    kind: str = "core_activity",
+):
     item = ContentItem(
         stable_key=key,
-        kind="core_activity",
+        kind=kind,
         level_id=1,
         skill_id=skill_id,
         interaction_type="choose_one",
@@ -241,5 +248,66 @@ def test_historical_level_session_evidence_isolated_from_fresh_session():
         assert [signal.attempt_id for signal in fresh_only] == [fresh_attempt.id]
         assert _completed_core_count(db, student.id, 1, session_id=fresh_session.id) == 1
         assert _completed_core_count(db, student.id, 1) >= 4
+    finally:
+        db.close()
+
+
+
+def test_adaptation_evidence_window_excludes_reinforcement_attempts():
+    seed.run_seed()
+    db = TestingSessionLocal()
+    try:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        student.current_level = 1
+        skill = Skill(
+            skill_key="scenario-core-only-evidence",
+            name="اختبار أدلة الأنشطة الأساسية فقط",
+            level_id=1,
+            canonical_skill_id="scenario_core_only_evidence",
+        )
+        db.add(skill)
+        db.flush()
+
+        session = AssessmentSession(
+            student_id=student.id,
+            session_type="core",
+            status="in_progress",
+            assigned_level=1,
+        )
+        db.add(session)
+        db.flush()
+
+        core_item, core_step = _create_scored_item(
+            db,
+            key="SCENARIO-CORE-EVIDENCE",
+            skill_id=skill.id,
+            order_index=700,
+        )
+        reinforcement_item, reinforcement_step = _create_scored_item(
+            db,
+            key="SCENARIO-REINFORCEMENT-EVIDENCE",
+            skill_id=skill.id,
+            order_index=701,
+            kind="reinforcement_activity",
+        )
+        core_attempt = _complete_scored_attempt(
+            db,
+            session_id=session.id,
+            item=core_item,
+            step=core_step,
+            is_correct=True,
+        )
+        _complete_scored_attempt(
+            db,
+            session_id=session.id,
+            item=reinforcement_item,
+            step=reinforcement_step,
+            is_correct=False,
+        )
+        db.commit()
+
+        signals = _valid_signals(db, student.id, 1, session_id=session.id)
+        assert [signal.attempt_id for signal in signals] == [core_attempt.id]
+        assert _completed_core_count(db, student.id, 1, session_id=session.id) == 1
     finally:
         db.close()

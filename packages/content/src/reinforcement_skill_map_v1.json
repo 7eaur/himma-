@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "map_version": "HIMMA-REINFORCEMENT-MAP-1.2",
+  "map_version": "HIMMA-REINFORCEMENT-MAP-1.3",
   "status": "user_approved_reconciled_2026_09_04",
   "rules": {
     "same_level_only": true,
@@ -44,14 +44,14 @@
     {"level":2,"skill_code":"word_image_comprehension","skill_name":"مطابقة الكلمة بالصورة","family":"word_image_comprehension","candidates":["L2-REIN-04"],"coverage":"direct"},
 
     {"level":3,"skill_code":"text_evidence","skill_name":"الاستدلال من النص","family":"text_evidence","candidates":["L3-REIN-02"],"coverage":"direct"},
-    {"level":3,"skill_code":"main_idea","skill_name":"الفكرة العامة","family":"main_idea","candidates":["L3-REIN-04"],"coverage":"direct"},
+    {"level":3,"skill_code":"main_idea","skill_name":"الفكرة العامة","family":"main_idea","candidates":["L3-REIN-05"],"coverage":"direct"},
     {"level":3,"skill_code":"inferential_comprehension","skill_name":"الفهم الاستنتاجي","family":"text_evidence","candidates":["L3-REIN-02"],"coverage":"supporting"},
     {"level":3,"skill_code":"literal_comprehension","skill_name":"الفهم المباشر","family":"literal_comprehension","candidates":["L3-REIN-11"],"coverage":"direct","note":"نشاط علاج مباشر أضيف واعتمد صراحةً في 2026-08-29."},
     {"level":3,"skill_code":"vocabulary","skill_name":"المفردات من السياق","family":"vocabulary_in_context","candidates":["L3-REIN-09"],"coverage":"direct"},
     {"level":3,"skill_code":"sentence_building","skill_name":"بناء الجملة","family":"sentence_structure","candidates":["L3-REIN-12"],"coverage":"direct","note":"نشاط ترتيب كلمات الجملة أضيف واعتمد صراحةً في 2026-08-29."},
     {"level":3,"skill_code":"event_sequence","skill_name":"تسلسل أحداث النص","family":"text_event_sequence","candidates":["L3-REIN-10"],"coverage":"direct"},
     {"level":3,"skill_code":"word_accuracy","skill_name":"دقة قراءة الكلمات","family":"word_reading_accuracy","candidates":["L3-REIN-06"],"coverage":"direct"},
-    {"level":3,"skill_code":"passage_fluency","skill_name":"دقة وطلاقة قراءة النص","family":"text_fluency","candidates":["L3-REIN-03","L3-REIN-08"],"coverage":"direct"},
+    {"level":3,"skill_code":"passage_fluency","skill_name":"دقة وطلاقة قراءة النص","family":"text_fluency","candidates":["L3-REIN-04","L3-REIN-08"],"coverage":"direct"},
     {"level":3,"skill_code":"timed_word_fluency","skill_name":"سرعة قراءة الكلمات مع الدقة","family":"word_fluency","candidates":["L3-REIN-07"],"coverage":"direct"},
     {"level":3,"skill_code":"sentence_fluency","skill_name":"طلاقة قراءة الجملة","family":"meaning_units","candidates":["L3-REIN-01"],"coverage":"supporting"},
     {"level":3,"skill_code":"timed_passage_fluency","skill_name":"طلاقة قراءة الفقرة الموقوتة","family":"text_fluency","candidates":["L3-REIN-08"],"coverage":"direct"},

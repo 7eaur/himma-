@@ -16,7 +16,7 @@ def _load() -> dict:
 
 def test_mapping_covers_all_44_current_canonical_skills_once():
     data = _load()
-    assert data["map_version"] == "HIMMA-REINFORCEMENT-MAP-1.2"
+    assert data["map_version"] == "HIMMA-REINFORCEMENT-MAP-1.3"
     skills = data["skills"]
     assert len(skills) == 44
     keys = [(row["level"], row["skill_code"]) for row in skills]
@@ -62,3 +62,15 @@ def test_every_candidate_stays_inside_the_skill_level():
     for row in _load()["skills"]:
         prefix = f"L{row['level']}-REIN-"
         assert all(candidate.startswith(prefix) for candidate in row["candidates"])
+
+
+
+def test_level_three_direct_candidates_match_their_academic_skill():
+    rows = {
+        row["skill_code"]: row
+        for row in _load()["skills"]
+        if int(row["level"]) == 3
+    }
+    assert rows["main_idea"]["candidates"] == ["L3-REIN-05"]
+    assert rows["passage_fluency"]["candidates"] == ["L3-REIN-04", "L3-REIN-08"]
+    assert "L3-REIN-03" not in rows["passage_fluency"]["candidates"]
