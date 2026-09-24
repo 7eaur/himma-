@@ -22,6 +22,15 @@
 - Integration Playwright: `23 passed (3.8m)`.
 - Playwright artifact ID: `10666828583`.
 
+## Cleanup evidence
+
+- Documentation unification SHA: `1ee0ecf214b4f8aaef9c873bdfab934e7994a369`.
+- Quality Gate #1063 / Run `35976810628`: `SUCCESS`.
+- Cleanup inventory SHA: `c942b21096f0c706e1fe7b12be3122a2db94535a`.
+- Cleanup Batch 01 removes only ten unreferenced template/duplicate public assets.
+- Local Batch 01 checks: reference guard, TypeScript, ESLint, 40 unit tests, and production build all passed.
+- Full Batch 01 Quality Gate: pending at the batch commit SHA.
+
 ## Canonical publication
 
 - Version: `HIMMA-CONTENT-APPROVAL-2026-09-08`.
