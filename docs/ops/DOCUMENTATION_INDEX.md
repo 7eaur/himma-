@@ -22,6 +22,7 @@
 | خط الاستعادة المؤرشف | `docs/ops/RECOVERY_BASELINE_2026-09-21.md` |
 | جرد التنظيف الجاري | `docs/maintenance/CLEANUP_INVENTORY_2026-09-24.md` |
 | دليل دفعة التنظيف الأولى | `docs/maintenance/CLEANUP_BATCH_01_2026-09-24.md` |
+| دليل دفعة التنظيف الثانية | `docs/maintenance/CLEANUP_BATCH_02_2026-09-24.md` |
 
 ## قواعد التنفيذ
 

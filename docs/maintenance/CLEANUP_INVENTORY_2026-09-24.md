@@ -11,16 +11,21 @@
 - توجد Seed/repair scripts تاريخية؛ لا تُحذف كدفعة واحدة لأنها قد تكون أدوات صيانة أو أدلة ترحيل.
 - التوثيق يحتوي 167 ملفًا، منها 40 ملف handoff، بحجم Markdown يقارب `0.93 MiB`. أصبحت حالته الحالية موحدة، أما نقله إلى أرشيف منظم فيكون كدفعة مستقلة.
 
+## حالة التنفيذ
+
+- Batch 01: أزيلت قوالب Next والنسخ الصورية الخمس المتطابقة؛ `QG #1065` ناجح بالكامل.
+- Batch 02: أزيلت ملفات الواجهة الثلاثة غير الموصولة واعتماد `idb`؛ التحقق المحلي ناجح والبوابة الكاملة مطلوبة قبل القبول.
+
 ## مرشحون مؤكدون لدفعة تنظيف أولى
 
 | العنصر | الدليل | الإجراء المقترح | الخطر |
 |---|---|---|---|
-| `apps/web/src/components/StudentAudioReviewOverlay.tsx` | لا يوجد import أو render له في كود الإنتاج أو الاختبارات | حذف المكوّن بعد اختبار السيناريو الذي يغطيه `StudentAdaptiveHoldOverlay` | منخفض إلى متوسط |
-| `apps/web/src/hooks/useAudioRecorder.ts` | لا يوجد استدعاء؛ صفحات النشاط والجلسة تنفذ التسجيل داخليًا | حذف الملف فقط بعد مقارنة سلوك التسجيل الحالي | منخفض |
-| `apps/web/src/lib/idb.ts` | لا يوجد مستهلك لدواله | حذف الملف ثم حذف اعتماد `idb` وتحديث lockfile | منخفض |
-| `apps/web/public/{file,globe,next,vercel,window}.svg` | قوالب Next الافتراضية؛ لا توجد إحالة من `apps/web/src` | حذف | منخفض جدًا |
+| `apps/web/src/components/StudentAudioReviewOverlay.tsx` | لا يوجد import أو render له، وأظهر Git history أنه أُلغي تركيبه عمدًا | نُفذ في Batch 02 | منخفض إلى متوسط |
+| `apps/web/src/hooks/useAudioRecorder.ts` | لا يوجد استدعاء؛ صفحات النشاط والجلسة تنفذ التسجيل داخليًا | نُفذ في Batch 02 | منخفض |
+| `apps/web/src/lib/idb.ts` | لا يوجد مستهلك لدواله | نُفذ مع إزالة `idb` في Batch 02 | منخفض |
+| `apps/web/public/{file,globe,next,vercel,window}.svg` | قوالب Next الافتراضية؛ لا توجد إحالة من `apps/web/src` | نُفذ في Batch 01 | منخفض جدًا |
 | `apps/web/public/brand/logo-flat.svg` | لا توجد إحالة إنتاجية، وموسوم قديمًا unused | حذف بعد فحص بصري سريع للشعار المستخدم | منخفض |
-| `apps/web/public/characters/boy-*.png` | نسخ مطابقة للنسخ داخل `characters/boy/` ولا تستدعيها الواجهة | حذف النسخ الخمس المكررة ذات الاسم المسطح | منخفض جدًا |
+| `apps/web/public/characters/boy-*.png` | نسخ مطابقة للنسخ داخل `characters/boy/` ولا تستدعيها الواجهة | نُفذ في Batch 01 | منخفض جدًا |
 | صور الشخصيات غير المستدعاة | لا توجد إحالة إنتاجية مباشرة إلى `boy/{encourage,explain,success,try-again}.png` أو `girl/try-again.png` | حذف في دفعة أصول مستقلة بعد فحص المسارات الديناميكية | منخفض |
 | `services/worker/main.py` | heartbeat فقط؛ لا استيراد ولا Docker/Workflow/Railway service يشغله | حذف مجلد Worker أو تحويله إلى خدمة حقيقية، ولا يُترك كميزة وهمية | منخفض حاليًا |
 

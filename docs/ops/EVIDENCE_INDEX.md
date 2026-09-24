@@ -29,7 +29,11 @@
 - Cleanup inventory SHA: `c942b21096f0c706e1fe7b12be3122a2db94535a`.
 - Cleanup Batch 01 removes only ten unreferenced template/duplicate public assets.
 - Local Batch 01 checks: reference guard, TypeScript, ESLint, 40 unit tests, and production build all passed.
-- Full Batch 01 Quality Gate: pending at the batch commit SHA.
+- Cleanup Batch 01 SHA: `8c2ee2c0c5165fddb02fba8e410c95c80d3673b0`.
+- Quality Gate #1065 / Run `35979362372`: `SUCCESS` across Security, Frontend, Backend, and Integration.
+- Cleanup Batch 02 removes three disconnected frontend files and direct dependency `idb`.
+- Local Batch 02 checks: symbol/dependency guard, TypeScript, ESLint, 40 unit tests, and production build all passed.
+- Full Batch 02 Quality Gate: pending at the batch commit SHA.
 
 ## Canonical publication
 
