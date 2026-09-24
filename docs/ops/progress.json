@@ -1,125 +1,69 @@
 {
-  "schema_version": 18,
-  "last_updated": "2026-09-21",
+  "schema_version": 19,
+  "last_updated": "2026-09-24",
   "repository": "7eaur/himma-",
   "official_branch": "stage/02-content",
-  "current_phase": "PRODUCTION_CURRENT",
-  "current_state": "CLOSED_PRODUCTION_GREEN",
-  "current_functional_sha": "0bf1390bdbc0a19330c807d82d646424490b5a2b",
-  "latest_verified_gate_sha": "0bf1390bdbc0a19330c807d82d646424490b5a2b",
+  "work_branch": "improvement/himma-unified-v2-20260921",
+  "current_phase": "CLEANUP_AND_UNIFICATION",
+  "current_state": "ACTIVE_ON_IMPROVEMENT_BRANCH",
+  "production": {
+    "provider": "Railway",
+    "project": "friendly-dream",
+    "environment": "production",
+    "deployed_sha": "4ecb27590f7c19cbe7823804b9919d91000415ef",
+    "archive_branch": "archive/production-baseline-20260921",
+    "backend_service_deployment": "e9ae4753-bff0-46ce-8133-a330b18b0b34",
+    "web_service_deployment": "55dff3b1-a2e3-41de-9416-edc9bc7757b0",
+    "services_status": "SUCCESS",
+    "changed_by_cleanup": false
+  },
+  "latest_improvement_gate": {
+    "evidence_sha": "186307b35cab1ad214b61f2eea601bc66240d4f8",
+    "workflow": "Himma CI — Quality Gate",
+    "run_number": 1062,
+    "run_id": 35660961118,
+    "conclusion": "SUCCESS",
+    "security": "SUCCESS",
+    "frontend": "SUCCESS",
+    "backend": "906 passed, 5 warnings",
+    "integration_playwright": "23 passed (3.8m)"
+  },
+  "production_gates": {
+    "responsive": {
+      "run_number": 403,
+      "run_id": 35551846252,
+      "conclusion": "SUCCESS"
+    },
+    "release_readiness": {
+      "run_number": 268,
+      "run_id": 35551846250,
+      "conclusion": "SUCCESS"
+    }
+  },
   "canonical_content": {
     "approval": "HIMMA-CONTENT-APPROVAL-2026-09-08",
-    "source_catalog_items": 105,
     "runtime_items": 125,
     "pretest": 30,
     "posttest": 30,
     "core": 30,
     "reinforcement": 35,
-    "skills": 44,
-    "canonical_release_sha256": "e6c749add3652ca8aa896065218673eaac8a07cd0cbca1e92710f35f14f5a904",
-    "projection_sha256": "e1d14b0b6102f635820aa7f9a9b074e4f7afd68a02006d0a8ee8a3f29f99670e"
+    "skills": 44
   },
-  "reading_text_policy": {
-    "status": "CLOSED_GREEN",
-    "date": "2026-09-21",
-    "single_token_diacritics": "PRESERVED",
-    "multiword_optional_marks": "REMOVED",
-    "important_shadda": "PRESERVED",
-    "training_corpus_path": "packages/content/training/himma_reading_training_corpus_v2026_09_21.jsonl",
-    "training_records": 92
-  },
-  "admin_content_review": {
-    "status": "CLOSED_GREEN",
-    "route": "/admin/content-preview",
-    "visible_label": "المحتوى المعتمد",
-    "student_ui_simulation": false,
-    "db_source": "approved PostgreSQL content",
-    "read_only": true,
-    "writes_progress": false,
-    "exposes_correct_answers_to_admin": true,
-    "student_answer_metadata_leak": false,
-    "supports": [
-      "question",
-      "instruction",
-      "hint",
-      "stimulus",
-      "options",
-      "correct_answers",
-      "ordered_answers",
-      "recording_target",
-      "images",
-      "audio",
-      "context_intro",
-      "full_text_search",
-      "filters",
-      "reinforcement_branches"
-    ]
-  },
-  "audio_runtime": {
-    "authority": "HUMAN_SUPERVISOR_REVIEW",
-    "static_ids": 54,
-    "wav_files": 54,
-    "mp3_files": 54,
-    "student_audio_skip": false,
-    "temporary_audio_skip": false,
-    "fake_asr": false,
-    "production_asr_provider": "EXTERNAL_DEFERRED_NOT_IN_CURRENT_DELIVERY"
-  },
-  "evidence": {
-    "quality_gate": {
-      "run_number": 976,
-      "run_id": 35541791265,
-      "conclusion": "SUCCESS",
-      "frontend_unit": "40 passed",
-      "backend": "902 passed, 5 warnings",
-      "integration_playwright": "23 passed (3.7m)",
-      "security": "SUCCESS"
-    },
-    "responsive_visual_gate": {
-      "run_number": 387,
-      "run_id": 35541791302,
-      "conclusion": "SUCCESS",
-      "responsive_smoke": "2 passed",
-      "artifact_id": 10615031736,
-      "digest": "sha256:843fd55e673cdb93d51cfcd0c109d5f15beab7aa07bca926296a9b9338da7930"
-    },
-    "release_readiness": {
-      "run_number": 252,
-      "run_id": 35541791274,
-      "conclusion": "SUCCESS",
-      "backend": "902 passed, 5 warnings",
-      "browser": "23 passed (3.5m)",
-      "postgresql_restore": "PASS",
-      "restored_content_items": 125,
-      "restored_skills": 44,
-      "object_store_restore": "35 objects verified",
-      "readiness": "ALL_OK"
-    }
-  },
-  "production": {
-    "provider": "Railway",
-    "project": "friendly-dream",
-    "environment": "production",
-    "deployed_sha": "0bf1390bdbc0a19330c807d82d646424490b5a2b",
-    "api_service": "himma-api",
-    "backend_service_deployment": "f160b611-c157-4a53-9d37-cfae289cfb07",
-    "web_service": "himma-web",
-    "web_deployment": "7f6fec27-3f38-4e21-afd6-c9b62729b168",
-    "postgres": "SUCCESS",
-    "redis": "SUCCESS",
-    "audio_bucket": "himma-audio",
-    "ready_http": 200
-  },
-  "open_external_items": [
-    "Production ASR provider/calibration/privacy/governance",
-    "Child recording/data retention policy before real-study launch",
-    "Final research-session parameters if not owner-approved",
-    "Manual human screen-reader acceptance",
-    "Optional custom domain/entity branding details"
+  "active_cleanup_items": [
+    "documentation unification",
+    "unused code and dependency inventory",
+    "incremental evidence-based cleanup",
+    "scenario and conflict verification",
+    "visual review",
+    "final unified documentation"
   ],
-  "current_entrypoint": "START_HERE_AR.md",
-  "current_handoff": "docs/handoff/HIMMA_MASTER_HANDOFF_2026-09-21_AR.md",
-  "next_action": "Take the owner's next explicit assignment; do not reopen closed work without regression evidence.",
+  "deferred_items": [
+    "Production backup scheduling and independent audio backup",
+    "Production ASR provider and governance",
+    "Child recording and data retention policy",
+    "Final research protocol parameters",
+    "Manual human screen-reader acceptance"
+  ],
   "fixed_constraints": [
     "NO_FAKE_ASR",
     "NO_STUDENT_AUDIO_SKIP",
@@ -128,7 +72,8 @@
     "NO_RANDOM_OR_CROSS_LEVEL_REINFORCEMENT",
     "NO_AUTOMATIC_DEMOTION",
     "NO_WEAKENED_TESTS",
-    "NO_RUNTIME_REPAIR_OVERLAYS",
-    "NO_PASS_WITHOUT_EXACT_SHA_EVIDENCE"
-  ]
+    "NO_DESTRUCTIVE_DATA_CHANGE_WITHOUT_BACKUP",
+    "NO_PRODUCTION_DEPLOY_FROM_IMPROVEMENT_BRANCH"
+  ],
+  "next_action": "Finish documentation consolidation, pass full CI, then inventory unused implementation before deletion."
 }

@@ -1,6 +1,6 @@
 # مصدر الحقيقة — منصة هِمّة
 
-**Current authority updated:** 2026-09-18
+**Current authority updated:** 2026-09-24
 
 ## 1. ترتيب القوة
 
@@ -18,10 +18,16 @@ START_HERE_AR.md هو نقطة دخول القراءة وليس بديلًا ع�
 
 Official branch: stage/02-content.
 
-Current functional evidence SHA:
-512f0a550eb098f0ce904ec4ed526d9e28098a6a
+Current production functional SHA:
+`4ecb27590f7c19cbe7823804b9919d91000415ef`
 
-أي docs-only descendant لاحق لا يصبح functional authority تلقائيًا.
+Current cleanup branch:
+`improvement/himma-unified-v2-20260921`
+
+Latest completed improvement gate before documentation consolidation:
+`186307b35cab1ad214b61f2eea601bc66240d4f8` — QG #1062 / Run `35660961118`: SUCCESS.
+
+أي docs-only descendant لاحق لا يصبح Production authority تلقائيًا، ولا يُنشر فرع التحسين مباشرة.
 
 ## 3. المالك التنفيذي لكل مجال
 
@@ -79,11 +85,15 @@ Current academic authority: Human Supervisor Review.
 
 ## 7. Exact evidence
 
-Functional SHA 512f0a550eb098f0ce904ec4ed526d9e28098a6a:
-- QG #933 / 35301572062: SUCCESS.
-- M04 #359 / 35299593387: SUCCESS.
-- M09 #224 / 35299593312: SUCCESS.
-- Railway API/Web deploy: SUCCESS.
+Production SHA `4ecb27590f7c19cbe7823804b9919d91000415ef`:
+- M04 #403 / `35551846252`: SUCCESS.
+- M09 #268 / `35551846250`: SUCCESS.
+- Railway Backend/Web deploy: SUCCESS.
+
+Improvement evidence SHA `186307b35cab1ad214b61f2eea601bc66240d4f8`:
+- QG #1062 / `35660961118`: SUCCESS.
+- Backend: 906 passed, 5 warnings.
+- Integration Playwright: 23 passed.
 
 Full identifiers are in docs/ops/EVIDENCE_INDEX.md.
 
