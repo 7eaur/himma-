@@ -1,7 +1,9 @@
 # Cleanup Batch 01 — duplicate and template assets
 
-**Date:** 2026-09-24  
-**Branch:** `improvement/himma-unified-v2-20260921`  
+**Date:** 2026-09-24
+
+**Branch:** `improvement/himma-unified-v2-20260921`
+
 **Production impact:** none
 
 ## Scope

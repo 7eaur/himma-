@@ -1,7 +1,9 @@
 # Cleanup Batch 02 — disconnected frontend implementation
 
-**Date:** 2026-09-24  
-**Branch:** `improvement/himma-unified-v2-20260921`  
+**Date:** 2026-09-24
+
+**Branch:** `improvement/himma-unified-v2-20260921`
+
 **Production impact:** none
 
 ## Scope
