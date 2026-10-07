@@ -419,3 +419,27 @@ Core lessons
 - السؤال الواحد ينتج Evidence ولا يعلن Mastery أو Gap وحده.
 - Diagnostic Verification لا يدخل في الدرجة البحثية للقبلي أو البعدي.
 - توزيع الأوزان وعتبات النجاح النهائية يؤجل إلى Adaptive Rules.
+
+
+---
+
+## D-019 — اعتماد Adaptive Support Library v1
+
+**التاريخ:** 2026-10-08  
+**الحالة:** معتمد
+
+تم اعتماد `docs/v2/04B_ADAPTIVE_SUPPORT_LIBRARY_AR.md` بعدد **14 Support Lesson Type** مرنًا.
+
+### أشكال الدعم
+
+1. Micro-support داخل درس قادم للفجوة البسيطة.
+2. Support Lesson مدمج للفجوة الواضحة أو المتكررة.
+3. Diagnostic Verification فقط إذا كانت الفجوة غير مؤكدة.
+
+### القواعد
+
+- لا يمر جميع الطلاب بدروس الدعم.
+- الدعم لا يمثل مستوى مستقلًا ولا يعيد الطالب إلى مستوى سابق.
+- يمكن أن يمتلك Support واحد Variants حسب نوع الخطأ.
+- بعد Support Lesson يستخدم تحقق من 3 بنود وفق Assessment Blueprint.
+- تفاصيل الوسائط والـVariants النهائية تؤجل إلى Lesson Content Contracts والمحتوى التفصيلي.
