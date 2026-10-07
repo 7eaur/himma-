@@ -212,4 +212,28 @@ describe("Student activity page", () => {
     expect(await screen.findByRole("heading", { name: "أحسنت، أكملت المستوى الثالث" })).toBeInTheDocument();
     expect(screen.getByText((content, element) => element?.tagName === "P" && content.includes("البعدي"))).toBeInTheDocument();
   });
+
+  it("does not misclassify a rerecord task as level completion", async () => {
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce(response({
+        navigation_state: "rerecord_available",
+        rerecord_required_count: 1,
+      }))
+      .mockResolvedValueOnce(response({
+        session_id: 42,
+        status: "in_progress",
+        level_id: 3,
+        completed_items: 7,
+        total_items: 10,
+      }));
+
+    render(<StudentActivityPage />);
+
+    expect(await screen.findByRole("heading", { name: "لديك مهمة إعادة تسجيل جاهزة" })).toBeInTheDocument();
+    expect(screen.getByTestId("activity-session")).toHaveAttribute("data-phase", "rerecord-available");
+    expect(screen.queryByText("أحسنت، أكملت المستوى الثالث")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "العودة إلى مساري" }));
+    expect(push).toHaveBeenCalledWith("/student");
+  });
 });

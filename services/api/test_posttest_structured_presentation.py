@@ -8,6 +8,7 @@ assessment projection from falling back to raw legacy source text.
 from __future__ import annotations
 
 import seed_all
+from assessment_view import _reference_stimulus_text
 from canonical_release import build_canonical_release
 from content_runtime import canonical_id
 from db.database import SessionLocal
@@ -105,5 +106,25 @@ def test_posttest_exact_presentation_fields_reach_the_db_projection():
         # Story-comprehension rounds are intentionally question-only: no story image.
         for number in range(25, 31):
             assert by_id[f"POST-Q{number:02d}"].assets == []
+    finally:
+        db.close()
+
+
+def test_posttest_reference_questions_resolve_the_approved_reading_passage():
+    seed_all.run_seed_all()
+
+    db = SessionLocal()
+    try:
+        by_id = {canonical_id(item): item for item in db.query(ContentItem).all()}
+        for prefix, experience_key in (
+            ("PRE", "pretest_experience"),
+            ("POST", "posttest_experience"),
+        ):
+            passage = by_id[f"{prefix}-Q24"]
+            expected = (passage.template_data or {})[experience_key]["stimulus"]["text"]
+            for number in range(25, 30):
+                assert _reference_stimulus_text(
+                    db, by_id[f"{prefix}-Q{number:02d}"]
+                ) == expected
     finally:
         db.close()

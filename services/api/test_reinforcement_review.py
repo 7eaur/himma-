@@ -3,7 +3,7 @@
 import seed
 from conftest import TestingSessionLocal
 from db.adaptation_models import AdaptationDecision
-from db.models import AssessmentSession, Attempt, AuditLog, Student
+from db.models import AssessmentSession, Attempt, AuditLog, ContentItem, Student
 
 
 def _create_mapping_gap():
@@ -115,3 +115,37 @@ def test_reinforcement_resolution_requires_real_pending_gap(researcher_client):
     )
     assert response.status_code == 409
     assert "لا توجد فجوة تقوية معلقة" in response.json()["detail"]
+
+
+def test_draft_reinforcement_is_neither_listed_nor_assignable(researcher_client):
+    student_id, _session_id, _decision_id = _create_mapping_gap()
+
+    db = TestingSessionLocal()
+    draft = db.query(ContentItem).filter(
+        ContentItem.kind == "reinforcement_activity",
+        ContentItem.level_id == 1,
+        ContentItem.status == "approved",
+    ).order_by(ContentItem.order_index).first()
+    assert draft is not None
+    draft.status = "draft"
+    db.commit()
+    draft_id = draft.id
+    db.close()
+
+    options_response = researcher_client.get(
+        f"/researcher/students/{student_id}/adaptation/reinforcement-options"
+    )
+    assert options_response.status_code == 200
+    option_ids = {option["item_id"] for option in options_response.json()["options"]}
+    assert draft_id not in option_ids
+    assert len(option_ids) == 4
+
+    assigned = researcher_client.post(
+        f"/researcher/students/{student_id}/adaptation/assign-reinforcement",
+        json={
+            "item_id": draft_id,
+            "reason": "محاولة اختيار محتوى ما زال مسودة",
+        },
+    )
+    assert assigned.status_code == 422
+    assert "معتمدًا" in assigned.json()["detail"]

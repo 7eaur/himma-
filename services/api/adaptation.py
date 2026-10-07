@@ -241,7 +241,7 @@ def _valid_signals(
             AssessmentSession.assigned_level == level_id,
             Attempt.status == "completed",
             ContentItem.level_id == level_id,
-            ContentItem.kind.in_(["core_activity", "reinforcement_activity"]),
+            ContentItem.kind == "core_activity",
         )
     )
     if session_id is not None:

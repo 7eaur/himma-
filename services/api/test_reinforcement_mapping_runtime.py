@@ -60,3 +60,28 @@ def test_resolver_does_not_fake_unseeded_new_candidate():
         assert selected_id is None
     finally:
         db.close()
+
+
+
+def test_level_three_resolver_prefers_semantically_matching_candidates():
+    seed.run_seed()
+    db = SessionLocal()
+    try:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        cases = {
+            "main_idea": "L3-REIN-05",
+            "passage_fluency": "L3-REIN-04",
+        }
+        for skill_code, expected_canonical_id in cases.items():
+            skill = db.query(Skill).filter(Skill.canonical_skill_id == skill_code).one()
+            selected_id = recommended_reinforcement_for_skill(
+                db,
+                student_id=student.id,
+                level_id=3,
+                weakest_skill_id=skill.id,
+            )
+            assert selected_id is not None
+            item = db.query(ContentItem).filter(ContentItem.id == selected_id).one()
+            assert (item.template_data or {}).get("canonical_id") == expected_canonical_id
+    finally:
+        db.close()

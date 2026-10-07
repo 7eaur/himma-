@@ -3,8 +3,9 @@
   inset: 0;
   z-index: 90;
   overflow-y: auto;
-  background: rgba(247, 251, 255, 0.97);
-  backdrop-filter: blur(8px);
+  /* The hold is a complete navigation state, not a translucent modal. Keep it
+     opaque so recoverable activity errors cannot bleed through underneath. */
+  background: #f7fbff;
   padding: 24px;
 }
 

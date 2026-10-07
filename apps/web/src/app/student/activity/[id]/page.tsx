@@ -42,7 +42,7 @@ type ContextIntro = {
 type ViewPayload = {
   version?: string;
   session_id: number;
-  navigation_state?: "awaiting_audio_review";
+  navigation_state?: "awaiting_audio_review" | "rerecord_available";
   pending_audio_reviews?: number;
   level_id?: number;
   item_id?: number;
@@ -117,6 +117,7 @@ export default function StudentActivityPage() {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [waitingReview, setWaitingReview] = useState(false);
+  const [rerecordAvailable, setRerecordAvailable] = useState(false);
   const [showContextIntro, setShowContextIntro] = useState(false);
   const [introPlaybackComplete, setIntroPlaybackComplete] = useState(false);
   const [error, setError] = useState("");
@@ -192,6 +193,7 @@ export default function StudentActivityPage() {
       if (!advanceData) {
         setDone(true);
         setWaitingReview(false);
+        setRerecordAvailable(false);
         setShowContextIntro(false);
         setIntroPlaybackComplete(false);
         setView(null);
@@ -201,6 +203,17 @@ export default function StudentActivityPage() {
       if (advanceData.navigation_state === "awaiting_audio_review") {
         setDone(false);
         setWaitingReview(true);
+        setRerecordAvailable(false);
+        setShowContextIntro(false);
+        setIntroPlaybackComplete(false);
+        setView(null);
+        await fetchProgress();
+        return;
+      }
+      if (advanceData.navigation_state === "rerecord_available") {
+        setDone(false);
+        setWaitingReview(false);
+        setRerecordAvailable(true);
         setShowContextIntro(false);
         setIntroPlaybackComplete(false);
         setView(null);
@@ -214,6 +227,17 @@ export default function StudentActivityPage() {
       if (data?.navigation_state === "awaiting_audio_review") {
         setDone(false);
         setWaitingReview(true);
+        setRerecordAvailable(false);
+        setShowContextIntro(false);
+        setIntroPlaybackComplete(false);
+        setView(null);
+        await fetchProgress();
+        return;
+      }
+      if (data?.navigation_state === "rerecord_available") {
+        setDone(false);
+        setWaitingReview(false);
+        setRerecordAvailable(true);
         setShowContextIntro(false);
         setIntroPlaybackComplete(false);
         setView(null);
@@ -223,6 +247,7 @@ export default function StudentActivityPage() {
       if (!data?.step || !data.item_id || !data.interaction_type || !data.round) {
         setDone(true);
         setWaitingReview(false);
+        setRerecordAvailable(false);
         setShowContextIntro(false);
         setIntroPlaybackComplete(false);
         setView(null);
@@ -232,6 +257,7 @@ export default function StudentActivityPage() {
 
       setDone(false);
       setWaitingReview(false);
+      setRerecordAvailable(false);
       setView(data);
       resetRoundState();
       prepareContextIntro(data);
@@ -429,6 +455,10 @@ export default function StudentActivityPage() {
 
   if (waitingReview) {
     return <div className={styles.resultPage} dir="rtl" data-testid="activity-session" data-phase="awaiting-audio-review"><div className={styles.resultCard}><div className={styles.resultContent}><h1 className={styles.resultTitle}>أحسنت، أنجزت الأنشطة المتاحة الآن</h1><p className={styles.resultText}>لديك {progress?.pending_audio_reviews ?? 1} تسجيل ينتظر مراجعة المشرف. لن يُحتسب التسجيل صحيحًا أو خاطئًا قبل المراجعة.</p><button className={styles.primary} onClick={() => router.push("/student")}>العودة إلى مساري</button></div><div className={styles.resultVisual}><Image src="/characters/girl/encourage.png" alt="شخصية هِمّة" width={300} height={370}/></div></div></div>;
+  }
+
+  if (rerecordAvailable) {
+    return <div className={styles.resultPage} dir="rtl" data-testid="activity-session" data-phase="rerecord-available"><div className={styles.resultCard}><div className={styles.resultContent}><h1 className={styles.resultTitle}>لديك مهمة إعادة تسجيل جاهزة</h1><p className={styles.resultText}>طلب المشرف إعادة إحدى قراءاتك. ارجع إلى مسارك وافتح مهمة إعادة التسجيل عندما تكون مستعدًا.</p><button className={styles.primary} onClick={() => router.push("/student")}>العودة إلى مساري</button></div><div className={styles.resultVisual}><Image src="/characters/girl/encourage.png" alt="شخصية هِمّة تشجع الطالب" width={300} height={370}/></div></div></div>;
   }
 
   if (done) {
