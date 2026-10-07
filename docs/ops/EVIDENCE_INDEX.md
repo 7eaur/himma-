@@ -1,6 +1,6 @@
 # EVIDENCE INDEX — Himma
 
-**Updated:** 2026-09-24
+**Updated:** 2026-10-07
 
 ## Production functional baseline
 
@@ -33,7 +33,19 @@
 - Quality Gate #1065 / Run `35979362372`: `SUCCESS` across Security, Frontend, Backend, and Integration.
 - Cleanup Batch 02 removes three disconnected frontend files and direct dependency `idb`.
 - Local Batch 02 checks: symbol/dependency guard, TypeScript, ESLint, 40 unit tests, and production build all passed.
-- Full Batch 02 Quality Gate: pending at the batch commit SHA.
+- Batch 02 and later runtime fixes were included in QG Run `37669828279` at remote SHA `a35afb3a370070b7f81f6b9ab61750d35582bac5`.
+
+## Runtime-fix gate — not green
+
+- QG Run: `37669828279`.
+- Remote SHA: `a35afb3a370070b7f81f6b9ab61750d35582bac5`.
+- Security: `SUCCESS`.
+- Frontend: `SUCCESS`.
+- Backend: `SUCCESS`.
+- Integration: `FAILURE`; 22 Playwright tests passed and one vertical-slice test failed on both attempts.
+- Failure evidence: the test accepted only the missing-reinforcement mapping message, while the runtime returned the other defined hold reason: supervisor review after reinforcement attempts.
+- Local correction: the assertion now accepts exactly the two valid adaptive-hold reasons and continues to verify the visible hold overlay and heading.
+- Acceptance boundary: no green claim until the corrected documentation/test head passes a new full gate.
 
 ## Canonical publication
 

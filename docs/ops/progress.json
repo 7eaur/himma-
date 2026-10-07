@@ -1,6 +1,6 @@
 {
-  "schema_version": 19,
-  "last_updated": "2026-09-24",
+  "schema_version": 20,
+  "last_updated": "2026-10-07",
   "repository": "7eaur/himma-",
   "official_branch": "stage/02-content",
   "work_branch": "improvement/himma-unified-v2-20260921",
@@ -18,13 +18,21 @@
     "changed_by_cleanup": false
   },
   "latest_improvement_gate": {
-    "evidence_sha": "186307b35cab1ad214b61f2eea601bc66240d4f8",
+    "evidence_sha": "a35afb3a370070b7f81f6b9ab61750d35582bac5",
     "workflow": "Himma CI — Quality Gate",
+    "run_number": null,
+    "run_id": 37669828279,
+    "conclusion": "FAILURE",
+    "security": "SUCCESS",
+    "frontend": "SUCCESS",
+    "backend": "SUCCESS",
+    "integration_playwright": "22 passed, 1 failed: stale adaptive-hold detail expectation"
+  },
+  "last_fully_completed_improvement_gate": {
+    "evidence_sha": "186307b35cab1ad214b61f2eea601bc66240d4f8",
     "run_number": 1062,
     "run_id": 35660961118,
     "conclusion": "SUCCESS",
-    "security": "SUCCESS",
-    "frontend": "SUCCESS",
     "backend": "906 passed, 5 warnings",
     "integration_playwright": "23 passed (3.8m)"
   },
@@ -50,12 +58,13 @@
     "skills": 44
   },
   "active_cleanup_items": [
-    "documentation unification",
-    "unused code and dependency inventory",
+    "exact-head CI closure",
+    "historical documentation archive organization",
+    "remaining unused code and dependency decisions",
     "incremental evidence-based cleanup",
-    "scenario and conflict verification",
-    "visual review",
-    "final unified documentation"
+    "CA-04 academic resolution",
+    "final scenario and visual review",
+    "release candidate preparation"
   ],
   "deferred_items": [
     "Production backup scheduling and independent audio backup",
@@ -75,5 +84,5 @@
     "NO_DESTRUCTIVE_DATA_CHANGE_WITHOUT_BACKUP",
     "NO_PRODUCTION_DEPLOY_FROM_IMPROVEMENT_BRANCH"
   ],
-  "next_action": "Finish documentation consolidation, pass full CI, then inventory unused implementation before deletion."
+  "next_action": "Upload the corrected vertical-slice expectation and unified handoff, pass a new exact-head full gate, then archive historical documentation without deleting Git history, resolve CA-04, finish evidence-based cleanup, and prepare a release candidate."
 }

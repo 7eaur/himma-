@@ -1,10 +1,11 @@
 # فهرس التوثيق الحالي — هِمّة
 
-**Updated:** 2026-09-24
+**Updated:** 2026-10-07
 
 ## نقطة الدخول
 
 - `START_HERE_AR.md` — الملخص التشغيلي ونقطة الدخول الوحيدة.
+- `docs/handoff/HIMMA_CURRENT_PROJECT_HANDOFF_AR.md` — خريطة الاستلام الشاملة للمحادثة الجديدة؛ توجه للمصادر الملزمة ولا تستبدلها.
 
 ## المصادر الحالية الملزمة
 
@@ -49,7 +50,7 @@
 - `docs/ops/RESUME_HERE.md`
 - `VERSION.md`
 - `NEXT_CONVERSATION_PROMPT.md`
-- `docs/handoff/**`
+- كل `docs/handoff/**` باستثناء `docs/handoff/HIMMA_CURRENT_PROJECT_HANDOFF_AR.md`
 - كل ملف مؤرخ باسم يوم أو مرحلة أو Run أو Checkpoint أو Audit.
 
 ## قاعدة الأرشيف
@@ -62,3 +63,4 @@
 - أدلة التشغيل تُحدّث في `EVIDENCE_INDEX.md` فقط.
 - تفاصيل Railway تُحدّث في `RELEASE_DEPLOYMENT_CURRENT_AR.md` فقط.
 - لا يُنشأ handoff جديد لكل تشغيل أو عائق مؤقت.
+- خريطة الاستلام الثابتة الوحيدة هي `HIMMA_CURRENT_PROJECT_HANDOFF_AR.md` وتُحدّث فقط عندما تتغير صورة الاستلام ماديًا.

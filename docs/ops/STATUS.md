@@ -1,6 +1,6 @@
 # STATUS — Himma Platform
 
-**Last synchronized:** 2026-09-24
+**Last synchronized:** 2026-10-07
 
 ## Production
 
@@ -13,10 +13,12 @@
 ## Improvement work
 
 - Branch: `improvement/himma-unified-v2-20260921`.
-- Phase: documentation unification, then unused-code inventory and incremental cleanup.
+- Phase: documentation consolidation, evidence-based cleanup, runtime conflict fixes, then final visual/release review.
 - Production changes: none.
-- Latest completed full gate: QG #1062 / Run `35660961118` at `186307b35cab1ad214b61f2eea601bc66240d4f8`.
-- Results: Security, Frontend, Backend and Integration all successful; Backend 906 passed; Playwright 23 passed.
+- Remote branch head before this documentation synchronization: `a35afb3a370070b7f81f6b9ab61750d35582bac5`.
+- Draft PR: #8, targeting `stage/02-content`; no merge or deployment.
+- QG Run `37669828279`: Security, Frontend and Backend succeeded; Integration failed with 22 passed and one stale vertical-slice message expectation. The local fix accepts the two explicit valid adaptive-hold reasons and still verifies the hold UI; a new exact-head gate is required after upload.
+- Unified onboarding/handoff: `docs/handoff/HIMMA_CURRENT_PROJECT_HANDOFF_AR.md`.
 
 ## Current product truth
 
@@ -32,4 +34,4 @@ Production backup scheduling is deferred by owner decision. No destructive data 
 
 ## Next action
 
-Complete documentation consolidation, pass the full gate, then inventory unused code/dependencies/routes/assets before proposing deletions.
+Close and record the exact-head integration gate, organize historical documentation under an archive path, resolve CA-04 academically, finish evidence-based code/asset cleanup, then run the final visual/scenario review and prepare a release candidate.

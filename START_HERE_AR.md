@@ -1,6 +1,6 @@
 # ابدأ من هنا — منصة هِمّة
 
-**آخر مزامنة:** 2026-09-24
+**آخر مزامنة:** 2026-10-07
 **المستودع:** `7eaur/himma-`
 
 هذه نقطة الدخول الرسمية الوحيدة. عند التعارض تُقدّم الحالة الحية للكود وقاعدة البيانات والاختبارات والتشغيل على أي وثيقة تاريخية.
@@ -13,10 +13,11 @@
 - فرع العمل: `improvement/himma-unified-v2-20260921`.
 - الإنتاج لم يتغير أثناء أعمال التوحيد والتنظيف.
 - Railway `friendly-dream / production`: الويب والـBackend وPostgreSQL وRedis في حالة `SUCCESS`.
+- تقرير الاستلام الموحد للمحادثة الجديدة: `docs/handoff/HIMMA_CURRENT_PROJECT_HANDOFF_AR.md`.
 
 ## دليل فرع التحسين
 
-آخر بوابة كاملة قبل توحيد التوثيق:
+آخر بوابة كاملة مثبتة قبل الإصلاحات الحالية:
 
 - Himma CI — Quality Gate #1062.
 - Run: `35660961118`.
@@ -27,6 +28,8 @@
 - Integration Playwright: 23 اختبارًا ناجحًا.
 
 أي descendant توثيقي لاحق يحتاج بوابة جديدة قبل الدمج، لكنه لا يغيّر نسخة الإنتاج تلقائيًا.
+
+فرع التحسين البعيد وصل إلى `a35afb3a370070b7f81f6b9ab61750d35582bac5` ضمن PR #8 Draft. نجحت Security وFrontend وBackend في QG Run `37669828279`؛ فشل Integration لأن توقعًا واحدًا في `vertical-slice.spec.ts` قبل سبب تعليق واحدًا فقط، بينما أعاد API سبب التعليق الصحيح الآخر. صُحح التوقع محليًا لقبول سببي التعليق المحددين دون تخفيف تحقق الشاشة، ويلزم exact-head gate جديد بعد الرفع.
 
 ## عقد المنتج المختصر
 
@@ -51,24 +54,26 @@
 اقرأ بهذا الترتيب فقط:
 
 1. `START_HERE_AR.md`
-2. `docs/ops/STATUS.md`
-3. `docs/ops/progress.json`
-4. `docs/specs/SOURCE_OF_TRUTH.md`
-5. `docs/specs/SYSTEM_SPEC.md`
-6. `docs/specs/ARCHITECTURE_BASELINE.md`
-7. `docs/ops/DECISIONS.md`
-8. `docs/ops/EVIDENCE_INDEX.md`
-9. `docs/ops/RELEASE_DEPLOYMENT_CURRENT_AR.md`
-10. `docs/ops/OPEN_ITEMS.md`
-11. `docs/ops/DOCUMENTATION_INDEX.md`
+2. `docs/handoff/HIMMA_CURRENT_PROJECT_HANDOFF_AR.md`
+3. `docs/ops/STATUS.md`
+4. `docs/ops/progress.json`
+5. `docs/specs/SOURCE_OF_TRUTH.md`
+6. `docs/specs/SYSTEM_SPEC.md`
+7. `docs/specs/ARCHITECTURE_BASELINE.md`
+8. `docs/ops/DECISIONS.md`
+9. `docs/ops/EVIDENCE_INDEX.md`
+10. `docs/ops/RELEASE_DEPLOYMENT_CURRENT_AR.md`
+11. `docs/ops/OPEN_ITEMS.md`
+12. `docs/ops/DOCUMENTATION_INDEX.md`
 
 كل handoff أو checkpoint أو audit مؤرخ وغير مدرج في الفهرس الحالي هو تاريخ محفوظ فقط، ولا يُستخدم لتغيير السلوك الحالي.
 
 ## العمل المفتوح
 
-1. توحيد التوثيق وإزالة اعتباره المتكرر مصدرًا حاليًا.
-2. جرد الكود والمسارات والحزم والأصول غير المستخدمة قبل حذف أي شيء.
-3. تنظيف تدريجي مع اختبار كل دفعة.
-4. مراجعة بصرية وسيناريوهات فعلية قبل أي دمج أو نشر.
+1. إغلاق بوابة الرأس الحالي وتسجيل دليلها النهائي.
+2. أرشفة تنظيمية للتوثيقات المؤرخة دون حذف تاريخ Git.
+3. حسم CA-04 أكاديميًا، وتأجيل CA-10 حتى وجود backup/restore معتمد.
+4. حسم Worker وبقية seed/repair scripts والأصول المرشحة بدفعات مستقلة.
+5. مراجعة بصرية وسيناريوهات فعلية ثم تجهيز Release Candidate قبل أي دمج أو نشر.
 
 النسخ الاحتياطي الإنتاجي مؤجل بقرار المالك، لذلك تُمنع migrations أو عمليات حذف بيانات مدمرة خلال هذه المرحلة.

@@ -524,7 +524,9 @@ test.describe("Himma recovered vertical slice", () => {
       }
       if (nextResponse.status() === 409) {
         const blocked = await nextResponse.json();
-        expect(String(blocked?.detail || "")).toContain("ربط نشاط تقوية");
+        expect(String(blocked?.detail || "")).toMatch(
+          /(?:ربط نشاط تقوية معتمد|مراجعة المشرف بعد محاولات التقوية)/,
+        );
         adaptiveReviewHold = true;
         const hold = page.getByTestId("student-adaptive-hold");
         await expect(hold).toBeVisible({ timeout: 7000 });
