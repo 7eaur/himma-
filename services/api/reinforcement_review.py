@@ -89,6 +89,7 @@ def reinforcement_options(
         .filter(
             ContentItem.kind == "reinforcement_activity",
             ContentItem.level_id == level_id,
+            ContentItem.status == "approved",
         )
         .order_by(ContentItem.order_index)
         .all()
@@ -120,6 +121,7 @@ def assign_reinforcement(
         ContentItem.id == body.item_id,
         ContentItem.kind == "reinforcement_activity",
         ContentItem.level_id == level_id,
+        ContentItem.status == "approved",
     ).first()
     if not item:
         raise HTTPException(status_code=422, detail="اختر نشاط تقوية معتمدًا من المستوى الحالي")

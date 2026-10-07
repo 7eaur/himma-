@@ -469,7 +469,7 @@ export default function SessionPage() {
         <div className={styles.skillChip}><Target size={19}/>{skillText}</div>
         <div className={styles.contentColumn}>
           <h1 className={styles.questionTitle} data-testid="question-title">{questionText}</h1>
-          {!LISTEN.has(interaction) && !READ.has(interaction) && stimulusKind === "text" && stimulusText && <div className={`${styles.stimulusBox} ${stimulusText.length <= 3 ? styles.letterStimulus : ""}`} data-testid="question-stimulus">{stimulusText}</div>}
+          {!LISTEN.has(interaction) && !READ.has(interaction) && (stimulusKind === "text" || stimulusKind === "reference") && stimulusText && <div className={`${styles.stimulusBox} ${stimulusText.length <= 3 ? styles.letterStimulus : ""}`} data-testid="question-stimulus" data-stimulus-kind={stimulusKind}>{stimulusText}</div>}
 
           {visualAsset && <div className={styles.contextImage} data-testid="question-image"><Image src={visualAsset.url} alt={visualAsset.semantic_text || presentation.media_semantics?.stimulus || "صورة مرتبطة بالسؤال"} width={420} height={260} sizes="(max-width: 640px) 92vw, 420px" loading="eager" /></div>}
 

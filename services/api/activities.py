@@ -236,6 +236,7 @@ def _completed_core_items(db: Session, session_id: int, level_id: int) -> int:
             Attempt.status == "completed",
             ContentItem.kind == "core_activity",
             ContentItem.level_id == level_id,
+            ContentItem.status == "approved",
         )
         .count()
     )
@@ -245,6 +246,7 @@ def _progress_payload(db: Session, session: AssessmentSession, level_id: int) ->
     total = db.query(ContentItem).filter(
         ContentItem.kind == "core_activity",
         ContentItem.level_id == level_id,
+        ContentItem.status == "approved",
     ).count()
     return {
         "session_id": session.id,
@@ -268,6 +270,7 @@ def _finalize_session_if_done(db: Session, session: AssessmentSession, level_id:
     required = db.query(ContentItem).filter(
         ContentItem.kind == "core_activity",
         ContentItem.level_id == level_id,
+        ContentItem.status == "approved",
     ).count()
     completed = _completed_core_items(db, session.id, level_id)
     if required == CORE_ACTIVITY_COUNT and completed >= required:
@@ -334,6 +337,7 @@ def start_learning(
     total = db.query(ContentItem).filter(
         ContentItem.kind == "core_activity",
         ContentItem.level_id == student.current_level,
+        ContentItem.status == "approved",
     ).count()
     if total != CORE_ACTIVITY_COUNT:
         raise HTTPException(status_code=409, detail="مجموعة الأنشطة الأساسية المعتمدة غير مكتملة")
@@ -449,6 +453,7 @@ def next_activity_step(
     query = _rich_item_query(db).filter(
         ContentItem.kind == "core_activity",
         ContentItem.level_id == level_id,
+        ContentItem.status == "approved",
     )
     if completed_ids:
         query = query.filter(ContentItem.id.notin_(completed_ids))

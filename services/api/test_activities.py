@@ -109,6 +109,47 @@ class TestActivityLifecycle:
         assert status.json()["reason"] == "pretest_required"
         assert student_client.post("/activities/start").status_code == 409
 
+    def test_draft_core_item_is_excluded_from_start_progress_and_selection(self, student_client):
+        seed.run_seed()
+        _complete_pretest(level=1)
+
+        db = SessionLocal()
+        approved = db.query(ContentItem).filter(
+            ContentItem.kind == "core_activity",
+            ContentItem.level_id == 1,
+            ContentItem.status == "approved",
+        ).order_by(ContentItem.order_index).first()
+        assert approved is not None
+        draft = ContentItem(
+            stable_key="test-draft-core-l1",
+            kind="core_activity",
+            level_id=1,
+            skill_id=approved.skill_id,
+            interaction_type=approved.interaction_type,
+            order_index=999,
+            version=approved.version,
+            status="draft",
+            checksum="test-draft-core-checksum",
+            template_data={"canonical_id": "TEST-DRAFT-CORE-L1"},
+        )
+        db.add(draft)
+        db.commit()
+        draft_id = draft.id
+        db.close()
+
+        started = student_client.post("/activities/start")
+        assert started.status_code == 200
+        assert started.json()["total_items"] == 10
+        session_id = started.json()["session_id"]
+
+        progress = student_client.get(f"/activities/session/{session_id}/progress")
+        assert progress.status_code == 200
+        assert progress.json()["total_items"] == 10
+
+        next_item = student_client.get(f"/activities/session/{session_id}/next")
+        assert next_item.status_code == 200
+        assert next_item.json()["item"]["id"] != draft_id
+
     def test_level_one_resumes_and_early_promotion_switches_to_fresh_level_session(self, student_client):
         seed.run_seed()
         _complete_pretest(level=1)
