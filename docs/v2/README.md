@@ -30,8 +30,9 @@
 | 04 | خريطة الدروس | `04_LESSON_MAP_AR.md` | ✅ معتمد |
 | 04A | مخطط الاختبارات والقياس | `04A_ASSESSMENT_BLUEPRINT_AR.md` | ✅ معتمد |
 | 04B | مكتبة الدعم التكيفي | `04B_ADAPTIVE_SUPPORT_LIBRARY_AR.md` | ✅ معتمد |
-| 05 | عقود محتوى الدروس والوسائط | `05_LESSON_CONTENT_CONTRACTS_AR.md` | ⏳ التالية |
-| 06 | تصميم التدريب الموجه | `06_GUIDED_PRACTICE_AR.md` | مخطط |
+| 05 | عقود محتوى الدروس والوسائط | `05_LESSON_CONTENT_CONTRACTS_AR.md` | 🟡 Draft — يحتاج Reconciliation |
+| 06B | مقترح V2 المتوازن | `06_BALANCED_V2_PROPOSAL_AR.md` | 🟡 Baseline النقاش الحالي |
+| 06 | تصميم التدريب الموجه | `06_GUIDED_PRACTICE_AR.md` | مؤجل حتى تثبيت الخريطة المتوازنة |
 | 07 | بنك أسئلة ما بعد الدروس | `07_POST_LESSON_ASSESSMENT_AR.md` | مخطط |
 | 08 | خريطة التقوية | `08_REINFORCEMENT_MAP_AR.md` | مخطط |
 | 09 | قواعد التكيف والانتقال | `09_ADAPTIVE_RULES_AR.md` | مخطط |
@@ -45,12 +46,28 @@
 - `01_EDUCATIONAL_MODEL_FOUNDATION_AR.md` — المرجع المعتمد للنموذج التعليمي.
 - `DECISIONS_AR.md` — سجل القرارات والتغييرات الجوهرية لمسار V2.
 
+## الاتجاه الحالي
+
+بعد مقارنة التخطيط الموسع مع النظام الفعلي الحالي، أصبح `06_BALANCED_V2_PROPOSAL_AR.md` هو **Baseline النقاش الحالي** لتبسيط V2 فوق هِمّة الموجودة بدل إعادة بناء Adaptive Engine كبير من البداية.
+
+Baseline الحالي للنقاش:
+
+- 13 Skill Groups تشغيلية.
+- Evidence Types / Error Tags خفيفة عند الحاجة.
+- قرابة 19 Core Lessons: L1≈6، L2≈6، L3≈7.
+- قرابة 12 Support Groups.
+- Pretest/Posttest = 30/30 مع إعادة Mapping.
+- Independent Check = 3–5 بنود، والافتراضي 4.
+- تطوير التكيف الحالي بدل استبداله بالكامل.
+- مكوّن AI واضح، مع عدم جعل Advanced ASR شرطًا لبقية V2.
+- CMS الكامل ليس شرط إطلاق أولي.
+
+### ملاحظة Reconciliation
+
+الأرقام السابقة المعتمدة تاريخيًا — 27 Core و14 Support Type و19 Canonical Skills — **لم تُحذف**، لكنها لم تعد تمثل الاتجاه المبسط الحالي تلقائيًا.
+
+يجب تحديث/مصالحة الوثائق 02–05 بعد تثبيت الخريطة المتوازنة النهائية بدل تغييرها بصمت.
+
 ## التالي
 
-المرحلة التالية هي **05 — Lesson Content Contracts**.
-
-تم اعتماد خريطة الدروس بعدد **27 Core Lessons**: 10 في L1، و9 في L2، و8 في L3.
-
-تم كذلك اعتماد Assessment Blueprint ومكتبة الدعم التكيفي بعدد 14 Support Lesson Type مرنًا.
-
-الخطوة التالية هي **05 — Lesson Content Contracts**: تحديد نوع الشرح والوسائط والتدريب المناسب لكل Core Lesson ولكل Support Lesson قبل كتابة المحتوى النهائي.
+تثبيت خريطة L1/L2/L3 والدعم ضمن المقترح المتوازن، ثم Reconcile وثائق Skill/Lesson/Assessment/Support قبل الانتقال إلى المعمارية أو التنفيذ.
