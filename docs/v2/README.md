@@ -54,8 +54,8 @@ Baseline الحالي للنقاش:
 
 - 13 Skill Groups تشغيلية.
 - Evidence Types / Error Tags خفيفة عند الحاجة.
-- قرابة 19 Core Lessons: **L1=6 معتمد**، L2≈6، L3≈7.
-- Support Groups: **L1=4 معتمدة**، والإجمالي ما يزال ≈12 مبدئيًا.
+- قرابة 19 Core Lessons: **L1=6 معتمد، L2=6 معتمد**، L3≈7.
+- Support Groups: **L1=4 معتمدة + L2=3 خاصة مع دعم مشترك لاحقًا**، والإجمالي ما يزال ≈12 مبدئيًا.
 - Pretest/Posttest = 30/30 مع إعادة Mapping.
 - Independent Check = 3–5 بنود، والافتراضي 4.
 - تطوير التكيف الحالي بدل استبداله بالكامل.
@@ -70,4 +70,4 @@ Baseline الحالي للنقاش:
 
 ## التالي
 
-تم تثبيت L1 ضمن المقترح المتوازن. التالي هو مراجعة وتثبيت **L2 Core + Support**، ثم L3، وبعدها Reconcile وثائق Skill/Lesson/Assessment/Support قبل الانتقال إلى المعمارية أو التنفيذ.
+تم تثبيت L1 وL2 ضمن المقترح المتوازن. التالي هو مراجعة وتثبيت **L3 Core + Support**، وبعدها Reconcile وثائق Skill/Lesson/Assessment/Support قبل الانتقال إلى المعمارية أو التنفيذ.
