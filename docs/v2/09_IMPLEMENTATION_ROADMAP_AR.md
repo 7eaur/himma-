@@ -4,12 +4,23 @@
 
 ## المرحلة A — إغلاق التصميم التعليمي
 
-1. كتابة Contract تفصيلي لكل Core Lesson من الـ19.
-2. تحديد أمثلة الشرح والتدريب لكل درس.
-3. تحديد Independent Check لكل درس.
-4. تحديد Support content للـ12 Group.
+**الحالة: 🟡 المواصفات التفصيلية مكتملة، التأليف الفعلي مستمر**
+
+تم إنجازه في `10_DETAILED_LESSONS_AND_SUPPORT_AR.md`:
+
+- ✅ Contract تفصيلي لكل Core Lesson من الـ19.
+- ✅ بنية الشرح والأمثلة والتدريب لكل درس.
+- ✅ شكل Independent Check لكل درس.
+- ✅ مواصفة Support content للـ12 Group.
+- ✅ Evidence Types/Error Tags الضرورية فقط.
+
+المتبقي:
+
+1. كتابة المحتوى النصي النهائي لكل درس.
+2. تثبيت الكلمات والجمل والنصوص والوسائط.
+3. كتابة Guided Practice وIndependent Check الفعليين.
+4. كتابة Support Items الفعلية.
 5. إعادة Mapping للـ30 Pre/30 Post.
-6. تحديد Evidence Types/Error Tags الضرورية فقط.
 
 ## المرحلة B — مراجعة V1 وإعادة الاستخدام
 
