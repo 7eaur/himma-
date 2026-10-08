@@ -475,3 +475,31 @@ Core lessons
 - عدد الأمثلة التعليمية يختلف حسب طبيعة Skill، ولا يفرض رقم واحد على جميع الدروس.
 
 تم تحديث `docs/v2/05_LESSON_CONTENT_CONTRACTS_AR.md` وفق هذا القرار، وتبقى المرحلة 05 Draft حتى مراجعة عقود الدروس كاملة.
+
+
+---
+
+## D-021 — اعتماد المقترح المتوازن كـBaseline للنقاش
+
+**التاريخ:** 2026-10-08  
+**الحالة:** معتمد كاتجاه تخطيط، وليس قرار تنفيذ نهائي
+
+بعد مقارنة التخطيط الموسع لـV2 مع النظام الفعلي الحالي في `stage/02-content`، تم اعتماد `docs/v2/06_BALANCED_V2_PROPOSAL_AR.md` كـ **Baseline النقاش الحالي**.
+
+### الاتجاه
+
+- تطوير Himma الحالية بدل إعادة بناء النظام من الصفر.
+- تحويل Activity إلى Lesson حقيقي: شرح + أمثلة + Guided Practice + Independent Check.
+- تبسيط 19 Canonical Skills إلى 13 Skill Groups تشغيلية مبدئيًا.
+- الاحتفاظ بالفروق المهمة عبر Evidence Types / Error Tags خفيفة بدل Mastery Engine تفصيلي.
+- Baseline مبدئي ≈19 Core Lessons: L1≈6، L2≈6، L3≈7.
+- Baseline مبدئي ≈12 Support Groups.
+- التحقق بعد الدرس 3–5 بنود، والافتراضي 4 حسب طبيعة المهارة.
+- الاحتفاظ بـ30 Pretest و30 Posttest مع إعادة Mapping للمحتوى الجديد.
+- تطوير Adaptation/Reinforcement الحالي بدل استبداله بالكامل.
+- تأجيل Mastery Engine وConfidence Engine وDependency Graph الكامل وCMS الكامل ما لم تثبت الحاجة.
+- إبقاء AI كمكوّن واضح في V2، مع عدم جعل Advanced ASR/Alignment/Phoneme شرطًا لإطلاق بقية النموذج.
+
+### Reconciliation
+
+القرارات السابقة الخاصة بـ19 Skill و27 Core و14 Support Type تبقى موثقة تاريخيًا، لكنها تحتاج Reconciliation بعد تثبيت الخريطة المتوازنة النهائية ولا تعامل كأرقام تنفيذ نهائية تلقائيًا.
