@@ -661,10 +661,15 @@
       "mode": "IC",
       "role": "independent_check",
       "interaction": "choose_one",
-      "prompt": "أي حرف ينقص لتكتمل كلمة سَمَك؟",
+      "prompt": "انظر إلى الصورة، ثم اختر الحرف الناقص لتكتمل الكلمة.",
       "stimulus": {
         "text": "سَ_َك",
-        "media": []
+        "media": [
+          {
+            "media_id": "VOC-05",
+            "kind": "image"
+          }
+        ]
       },
       "options": [
         {
@@ -710,7 +715,8 @@
         "hint_initially_visible": false,
         "answer_initially_visible": false,
         "student_input": "select_option"
-      }
+      },
+      "content_qa_note": "تعرض صورة سمكة بجانب سَ_َك، ولا تُكتب كلمة سمك كاملة في السؤال."
     },
     {
       "id": "L2-01-IC-A04",
@@ -5220,6 +5226,14 @@
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-17-school-bag-512.webp",
       "status": "selected_from_v1_pending_owner_review",
       "review_state": "owner_review_pending"
+    },
+    {
+      "id": "VOC-05",
+      "kind": "image",
+      "type": "image",
+      "meaning": "سمكة",
+      "v1_asset_id": "VOC-05",
+      "status": "selected_from_v1_pending_owner_review"
     }
   ],
   "qa_notes": []
