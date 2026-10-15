@@ -2430,7 +2430,7 @@
       "interaction": "sequence",
       "prompt": "رتب الكلمات لتبدأ الجملة بكلمة كتب.",
       "stimulus": {
-        "text": "كتب / المعلم / الدرس",
+        "text": null,
         "media": []
       },
       "options": [
@@ -2526,7 +2526,7 @@
       "interaction": "sequence",
       "prompt": "رتب الكلمات لتبدأ الجملة بكلمة سقى.",
       "stimulus": {
-        "text": "سقى / الطفل / الزهرة",
+        "text": null,
         "media": []
       },
       "options": [
@@ -2622,7 +2622,7 @@
       "interaction": "sequence",
       "prompt": "رتب الكلمات لتبدأ الجملة بكلمة فتح.",
       "stimulus": {
-        "text": "فتح / أحمد / الباب",
+        "text": null,
         "media": []
       },
       "options": [
@@ -2716,7 +2716,7 @@
       "interaction": "sequence",
       "prompt": "رتب الكلمات لتبدأ الجملة بكلمة زرعت.",
       "stimulus": {
-        "text": "زرعت / هناء / بذرة",
+        "text": null,
         "media": []
       },
       "options": [
@@ -3994,7 +3994,7 @@
       "interaction": "sequence",
       "prompt": "رتب الكلمات لتبدأ الجملة بكلمة رسم.",
       "stimulus": {
-        "text": "رسم / الطفل / بيتا",
+        "text": null,
         "media": []
       },
       "options": [
@@ -4108,7 +4108,7 @@
       "interaction": "sequence",
       "prompt": "رتب الكلمات لتبدأ الجملة بكلمة قرأ.",
       "stimulus": {
-        "text": "قرأ / فهد / الدرس",
+        "text": null,
         "media": []
       },
       "options": [
