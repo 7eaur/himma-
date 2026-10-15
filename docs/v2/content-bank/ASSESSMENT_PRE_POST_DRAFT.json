@@ -1467,7 +1467,7 @@
       "interaction": "sequence",
       "prompt": "رتب الكلمات لتبدأ الجملة بكلمة ساعد.",
       "stimulus": {
-        "text": "ساعد / خالد / أخاه",
+        "text": null,
         "media": []
       },
       "options": [
@@ -3024,7 +3024,7 @@
       "interaction": "sequence",
       "prompt": "رتب الكلمات لتبدأ الجملة بكلمة قرأت.",
       "stimulus": {
-        "text": "قرأت / ليلى / القصة",
+        "text": null,
         "media": []
       },
       "options": [
