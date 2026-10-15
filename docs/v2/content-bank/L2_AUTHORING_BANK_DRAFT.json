@@ -417,10 +417,9 @@
           "authority": "human_supervisor",
           "target_or_reference": "بَاب",
           "criteria": [
-            "اكتمال الكلمة/الجملة",
-            "سلامة ترتيب الحروف والكلمات",
-            "المعنى",
-            "إملاء مناسب للمستوى"
+            "مطابقة اسم الشيء المقصود",
+            "صحة حروف الكلمة وترتيبها",
+            "وضوح الكتابة"
           ],
           "needs_human_review": true
         }
@@ -436,7 +435,19 @@
       ],
       "status": "draft",
       "hint": "انطق كلمة باب ببطء ثم اكتب حروفها.",
-      "retry": "hint_on_error_then_one_more_try_no_test_evidence"
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "writing_scoring_policy": {
+        "task_type": "single_word_spelling",
+        "reviewer": "human_supervisor",
+        "accept_equivalent_grammatical_answers": false,
+        "do_not_require_student_to_enter_diacritics": true,
+        "grade_dimensions": [
+          "مطابقة اسم الشيء المقصود",
+          "صحة حروف الكلمة وترتيبها",
+          "وضوح الكتابة"
+        ],
+        "no_single_exact_answer": false
+      }
     },
     {
       "id": "L2-01-IC-A01",
@@ -507,10 +518,9 @@
           "authority": "human_supervisor",
           "target_or_reference": "كُرَة",
           "criteria": [
-            "اكتمال الكلمة/الجملة",
-            "سلامة ترتيب الحروف والكلمات",
-            "المعنى",
-            "إملاء مناسب للمستوى"
+            "مطابقة اسم الشيء المقصود",
+            "صحة حروف الكلمة وترتيبها",
+            "وضوح الكتابة"
           ],
           "needs_human_review": true,
           "reference": "كُرَة"
@@ -526,7 +536,19 @@
         "free_writing_input_and_scoring_unconfirmed_v1"
       ],
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "writing_scoring_policy": {
+        "task_type": "single_word_spelling",
+        "reviewer": "human_supervisor",
+        "accept_equivalent_grammatical_answers": false,
+        "do_not_require_student_to_enter_diacritics": true,
+        "grade_dimensions": [
+          "مطابقة اسم الشيء المقصود",
+          "صحة حروف الكلمة وترتيبها",
+          "وضوح الكتابة"
+        ],
+        "no_single_exact_answer": false
+      }
     },
     {
       "id": "L2-01-IC-A03",
@@ -595,10 +617,9 @@
           "authority": "human_supervisor",
           "target_or_reference": "شَمْس",
           "criteria": [
-            "اكتمال الكلمة/الجملة",
-            "سلامة ترتيب الحروف والكلمات",
-            "المعنى",
-            "إملاء مناسب للمستوى"
+            "مطابقة اسم الشيء المقصود",
+            "صحة حروف الكلمة وترتيبها",
+            "وضوح الكتابة"
           ],
           "needs_human_review": true,
           "reference": "شَمْس"
@@ -614,7 +635,19 @@
         "free_writing_input_and_scoring_unconfirmed_v1"
       ],
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "writing_scoring_policy": {
+        "task_type": "single_word_spelling",
+        "reviewer": "human_supervisor",
+        "accept_equivalent_grammatical_answers": false,
+        "do_not_require_student_to_enter_diacritics": true,
+        "grade_dimensions": [
+          "مطابقة اسم الشيء المقصود",
+          "صحة حروف الكلمة وترتيبها",
+          "وضوح الكتابة"
+        ],
+        "no_single_exact_answer": false
+      }
     },
     {
       "id": "L2-02-GP-01",
@@ -1036,7 +1069,15 @@
       "technical_gaps": [],
       "status": "draft",
       "hint": "اقرأ مَكْ ثم تَب، ثم اجمعهما.",
-      "retry": "hint_on_error_then_one_more_try_no_test_evidence"
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "L2-03-GP-02",
@@ -1117,7 +1158,15 @@
       "technical_gaps": [],
       "status": "draft",
       "hint": "حدد الجزء الذي فيه سكون، ثم واصل.",
-      "retry": "hint_on_error_then_one_more_try_no_test_evidence"
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "L2-03-GP-04",
@@ -1197,7 +1246,15 @@
       "reading_reference": "حَقِيبَة",
       "technical_gaps": [],
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "L2-03-IC-A02",
@@ -1232,7 +1289,15 @@
       "reading_reference": "مَدْرَسَة",
       "technical_gaps": [],
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "L2-03-IC-A03",
@@ -1311,7 +1376,15 @@
       "reading_reference": "زَرَافَة",
       "technical_gaps": [],
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "L2-04-GP-01",
@@ -1347,7 +1420,15 @@
       "technical_gaps": [],
       "status": "draft",
       "hint": "اقرأ كل كلمة، ثم اقرأ الجملة كاملة.",
-      "retry": "hint_on_error_then_one_more_try_no_test_evidence"
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "L2-04-GP-02",
@@ -1383,7 +1464,15 @@
       "technical_gaps": [],
       "status": "draft",
       "hint": "حدد أين تنتهي الجملة ثم اقرأها مرة ثانية.",
-      "retry": "hint_on_error_then_one_more_try_no_test_evidence"
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "L2-04-GP-03",
@@ -1464,7 +1553,15 @@
       "technical_gaps": [],
       "status": "draft",
       "hint": "اقرأ الكلمات أولًا ثم حاول قراءتها متصلة.",
-      "retry": "hint_on_error_then_one_more_try_no_test_evidence"
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "L2-04-IC-A01",
@@ -1499,7 +1596,15 @@
       "reading_reference": "جَلَسَ نَادِرٌ تَحْتَ الشَّجَرَةِ.",
       "technical_gaps": [],
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "L2-04-IC-A02",
@@ -1534,7 +1639,15 @@
       "reading_reference": "حَمَلَتْ لَيْلَى حَقِيبَتَهَا.",
       "technical_gaps": [],
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "L2-04-IC-A03",
@@ -1569,7 +1682,15 @@
       "reading_reference": "يَلْعَبُ خَالِدٌ بِالْكُرَةِ.",
       "technical_gaps": [],
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "L2-04-IC-A04",
@@ -1604,7 +1725,15 @@
       "reading_reference": "كَتَبَتْ سَارَةُ وَاجِبَهَا.",
       "technical_gaps": [],
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "L2-05-GP-01",
@@ -2400,10 +2529,9 @@
           "authority": "human_supervisor",
           "target_or_reference": "نَجْم",
           "criteria": [
-            "اكتمال الكلمة/الجملة",
-            "سلامة ترتيب الحروف والكلمات",
-            "المعنى",
-            "إملاء مناسب للمستوى"
+            "مطابقة اسم الشيء المقصود",
+            "صحة حروف الكلمة وترتيبها",
+            "وضوح الكتابة"
           ],
           "needs_human_review": true
         }
@@ -2419,7 +2547,19 @@
       ],
       "status": "draft",
       "hint": "انطق كلمة نجم ثم اكتبها.",
-      "retry": "hint_on_error_then_one_more_try_no_test_evidence"
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "writing_scoring_policy": {
+        "task_type": "single_word_spelling",
+        "reviewer": "human_supervisor",
+        "accept_equivalent_grammatical_answers": false,
+        "do_not_require_student_to_enter_diacritics": true,
+        "grade_dimensions": [
+          "مطابقة اسم الشيء المقصود",
+          "صحة حروف الكلمة وترتيبها",
+          "وضوح الكتابة"
+        ],
+        "no_single_exact_answer": false
+      }
     },
     {
       "id": "SUP-05-SC-01",
@@ -2490,10 +2630,9 @@
           "authority": "human_supervisor",
           "target_or_reference": "نَخْلَة",
           "criteria": [
-            "اكتمال الكلمة/الجملة",
-            "سلامة ترتيب الحروف والكلمات",
-            "المعنى",
-            "إملاء مناسب للمستوى"
+            "مطابقة اسم الشيء المقصود",
+            "صحة حروف الكلمة وترتيبها",
+            "وضوح الكتابة"
           ],
           "needs_human_review": true
         }
@@ -2508,7 +2647,19 @@
         "free_writing_input_and_scoring_unconfirmed_v1"
       ],
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "writing_scoring_policy": {
+        "task_type": "single_word_spelling",
+        "reviewer": "human_supervisor",
+        "accept_equivalent_grammatical_answers": false,
+        "do_not_require_student_to_enter_diacritics": true,
+        "grade_dimensions": [
+          "مطابقة اسم الشيء المقصود",
+          "صحة حروف الكلمة وترتيبها",
+          "وضوح الكتابة"
+        ],
+        "no_single_exact_answer": false
+      }
     },
     {
       "id": "SUP-06-GP-01",
@@ -2717,7 +2868,15 @@
       "technical_gaps": [],
       "status": "draft",
       "hint": "اقرأ حَ ثم دِي ثم قَة.",
-      "retry": "hint_on_error_then_one_more_try_no_test_evidence"
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "SUP-07-GP-02",
@@ -2793,7 +2952,15 @@
       "reading_reference": "مَكْتَبَة",
       "technical_gaps": [],
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "SUP-07-SC-02",
@@ -2902,9 +3069,9 @@
           "authority": "human_supervisor",
           "reference": "بَطَّة",
           "criteria": [
-            "صحة الكلمة/الجملة",
-            "ترتيب الحروف",
-            "سلامة المعنى"
+            "مطابقة اسم الشيء المقصود",
+            "صحة حروف الكلمة وترتيبها",
+            "وضوح الكتابة"
           ],
           "no_auto_grade": true,
           "target_or_reference": "بَطَّة"
@@ -2920,7 +3087,19 @@
       "status": "draft_pending_qa",
       "hint": "انطق كلمة باب ثم اكتبها.",
       "retry": "hint_then_one_more_guided_attempt",
-      "notes": "المرجع الخاص بالمشرف بَطَّة؛ لا يُعرض للطالب."
+      "notes": "المرجع الخاص بالمشرف بَطَّة؛ لا يُعرض للطالب.",
+      "writing_scoring_policy": {
+        "task_type": "single_word_spelling",
+        "reviewer": "human_supervisor",
+        "accept_equivalent_grammatical_answers": false,
+        "do_not_require_student_to_enter_diacritics": true,
+        "grade_dimensions": [
+          "مطابقة اسم الشيء المقصود",
+          "صحة حروف الكلمة وترتيبها",
+          "وضوح الكتابة"
+        ],
+        "no_single_exact_answer": false
+      }
     },
     {
       "id": "SUP-05-SC-03",
@@ -2984,9 +3163,9 @@
           "authority": "human_supervisor",
           "reference": "قَلَم",
           "criteria": [
-            "صحة الكلمة/الجملة",
-            "ترتيب الحروف",
-            "سلامة المعنى"
+            "مطابقة اسم الشيء المقصود",
+            "صحة حروف الكلمة وترتيبها",
+            "وضوح الكتابة"
           ],
           "no_auto_grade": true
         }
@@ -2999,7 +3178,19 @@
       ],
       "origin_v1": null,
       "status": "draft_pending_qa",
-      "hint": null
+      "hint": null,
+      "writing_scoring_policy": {
+        "task_type": "single_word_spelling",
+        "reviewer": "human_supervisor",
+        "accept_equivalent_grammatical_answers": false,
+        "do_not_require_student_to_enter_diacritics": true,
+        "grade_dimensions": [
+          "مطابقة اسم الشيء المقصود",
+          "صحة حروف الكلمة وترتيبها",
+          "وضوح الكتابة"
+        ],
+        "no_single_exact_answer": false
+      }
     },
     {
       "id": "SUP-06-GP-03",
