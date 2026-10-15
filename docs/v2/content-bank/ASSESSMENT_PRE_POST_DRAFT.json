@@ -1990,9 +1990,9 @@
       "evidence_type": "word_construction",
       "role": "posttest",
       "interaction": "choose_one",
-      "prompt": "اختر الحرف الناقص.",
+      "prompt": "اختر الحرف الناقص لتكتمل كلمة بَحْر.",
       "stimulus": {
-        "text": "بَ_َحْر",
+        "text": "بَ_ْر",
         "media": []
       },
       "options": [

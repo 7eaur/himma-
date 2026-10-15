@@ -1,57 +1,21 @@
-# هِمّة V2 — جرد الصور التعليمية المطلوبة
+# هِمّة V2 — جرد الصور التعليمية المطلوبة والمختارة
 
-**الحالة:** سجل جرد أولي — يلزم استخراج أصول V1 وفحصها واحدًا واحدًا قبل اعتماد reuse.
+**تحديث:** 2026-10-15. الأصول الموجودة مرشحة للاستخدام من V1، وتبقى مراجعة المالك البصرية والحقوقية لاحقًا. لا صور زينة. 
 
-| الرمز/النطاق | الصورة المطلوبة | تستخدم في | أصل V1 المرشح | حالة التحقق | ما ينقص |
-|---|---|---|---|---|---|
-| IMG-L1-01 | صور أمثلة الكلمات (موز، باب، سمك) **إذا استخدمت** | مادة مرئية للفيديو/التمهيد | غير مؤكد | pending_inventory | فحص وجود أصول مطابقة أو إنتاج جديد |
-| IMG-L1-02 | عرض حروف متشابهة بخط واضح | فيديو التمييز والتدريب | قد تكفي نصوص الحروف بدل صور | not_required_if_text | لا تُنشأ صور نصوص إذا أمكن عرضها كنص |
-| IMG-L2-01 | صور معانٍ لكلمات التدريب عند الحاجة | بناء/كتابة الكلمات | محتوى الصور في كتالوج V1 مرشح | pending_inventory | ربط المرشح بالمعرف والملف |
-| IMG-L2-05 | صور سياقية للجملة فقط عند الحاجة | فهم الجملة | مرشح من V1 غير مثبت | pending_inventory | اختيار صور لا تكشف الإجابة |
-| IMG-L3-03 | صور للنص إذا استدعت الفكرة ذلك | فهم النص | غير مؤكد | not_required_if_text | لا صورة لمجرد الزينة |
-| IMG-L3-07 | صورة أو موقف محفز للكتابة | كتابة جملة قصيرة | مرشح من V1 غير مثبت | pending_inventory | توفير مجموعة صور واضحة ومتنوعة |
-| IMG-SUP-* | صور دعم محددة حسب موضع الفجوة | الدعم | لم يُطابق بعد | pending_inventory | بعد تأليف الدعم |
-
-## طريقة الاستكمال
-كل صف نهائي يوثق `asset_id, lesson/question/option_id, purpose, source(V1/new), v1_asset_id, path/manifest_id, licensing, format, qa_status, decision, missing_detail`. قد تستخدم **الصورة في السؤال نفسه أو كخيار جواب**؛ سجل رابط الموضع صراحة.
-
-**التصنيف:** confirmed_reuse / needs_edit / pending_inventory / missing_new / not_required. لا نزعم أن صور V1 صالحة دون فحص الملف وحقوق استخدامه ودلالته.
-
-
-## جرد استخدامات صور L1 المؤلفة — 2026-10-15
-
-لا صورة جديدة ضرورية في L1-01..L1-05؛ النص الحي أصلح للحروف والمقاطع، لا ننتج صور حروف للزينة. الصور التالية في تدريب/اختبار L1-06 من حزمة V1. جميعها **مختارة للمراجعة** وليست اعتماد جودة جديدًا.
-
-| الأصل / V2 ref | الدرس والسؤال | موضع العرض | معنى الصورة | المسار المؤكد في V1 | حالة V2 / المطلوب |
-|---|---|---|---|---|---|
-| `VOC-07` | L1-06-GP-04 | option[0] | قمر | `assets/education/assets/vocabulary/webp/hem-voc-07-moon-512.webp` | selected / مراجعة الدلالة |
-| `VOC-06` | L1-06-GP-04, IC-A04 | option | شمس | `assets/education/assets/vocabulary/webp/hem-voc-06-sun-512.webp` | selected / مراجعة الدلالة |
-| `VOC-09` | L1-06-GP-04, IC-A04 | option | نخلة | `assets/education/assets/vocabulary/webp/hem-voc-09-palm-tree-512.webp` | selected / مراجعة الدلالة |
-| `VOC-14` | L1-06-IC-A04 | option[1] | نجم | `assets/education/assets/vocabulary/webp/hem-voc-14-star-512.webp` | selected / مراجعة الدلالة |
-
-**قاعدة الإنتاج:** لا تستخدم صورًا في سؤال إذا كانت تكشف الإجابة دون قياس القراءة المطلوب. تحقق من الأصل بصريًا والترخيص عند الاعتماد النهائي.
-
-
-## L2 — صور مستفادة من V1 (2026-10-15)
-
-- `VOC-03` باب: سؤال كتابة موجَّه `L2-01-GP-04`، صورة داخل المثير. أصلها `assets/education/assets/vocabulary/webp/hem-voc-03-door-512.webp`.
-- `VOC-04` قلم: سؤال تحقق كتابة `L2-01-IC-A02`، داخل المثير. أصلها `assets/education/assets/vocabulary/webp/hem-voc-04-pencil-512.webp`.
-- `VOC-14` نجم: `SUP-05-GP-02`، صورة داخل المثير. أصلها `assets/education/assets/vocabulary/webp/hem-voc-14-star-512.webp`.
-
-جميع الصور المختارة من V1 بحاجة اعتماد المالك لاحقًا، وليست ناقصة إنتاجًا مبدئيًا. لا حاجة إلى صور زينة للمقاطع أو نصوص الفهم المباشر.
-
-
-## L3 — صور تحفيز الكتابة (2026-10-15)
-
-اختيرت مؤقتًا الصور الموجودة فعليًا ضمن حزمة V1، في سؤال عن صورة وليس للزينة. مصدر الصور الأساسي `assets/education/assets/vocabulary/webp/`.
-
-| صورة V1 | الموضع | معنى الصورة | المسار | المراجعة |
+| صورة V1 | وصفها | موضع استخدامها (سؤال أم خيار) | مصدر الأصل | الحالة |
 |---|---|---|---|---|
-| `VOC-28` | L3-07-GP-02 داخل السؤال | زهرة | `hem-voc-28-flower-512.webp` | selected_pending_review |
-| `VOC-34` | L3-07-GP-04 داخل السؤال | طفل | `hem-voc-34-boy-512.webp` | selected_pending_review؛ الصورة لا يلزم أن تُظهر فعل القراءة، صياغة المهمة نصية |
-| `VOC-20` | L3-07-IC-A01 داخل السؤال | عصفور | `hem-voc-20-bird-512.webp` | selected_pending_review |
-| `VOC-22` | L3-07-IC-A02 داخل السؤال | مكتبة | `hem-voc-22-library-512.webp` | selected_pending_review |
-| `VOC-35` | SUP-12-GP-02 داخل السؤال | طفلة | `hem-voc-35-girl-512.webp` | selected_pending_review |
-| `VOC-18` | SUP-12-SC-02 داخل السؤال | مدرسة | `hem-voc-18-school-512.webp` | selected_pending_review |
+| `VOC-01` | موزة | `V2-PRE-Q09` (option:a) | `assets/education/assets/vocabulary/webp/hem-voc-01-banana-512.webp` | selected_pending_owner_visual_QA |
+| `VOC-03` | باب | `L2-01-GP-04` (question)، `V2-PRE-Q09` (option:b)، `V2-POST-Q12` (question) | `assets/education/assets/vocabulary/webp/hem-voc-03-door-512.webp` | selected_pending_owner_visual_QA |
+| `VOC-04` | قلم | `L2-01-IC-A02` (question)، `V2-PRE-Q12` (question) | `assets/education/assets/vocabulary/webp/hem-voc-04-pencil-512.webp` | selected_pending_owner_visual_QA |
+| `VOC-06` | شمس | `L1-06-GP-04` (option:b)، `L1-06-IC-A04` (option:c) | `assets/education/assets/vocabulary/webp/hem-voc-06-sun-512.webp` | selected_pending_owner_visual_QA |
+| `VOC-07` | قمر | `L1-06-GP-04` (option:a)، `V2-POST-Q09` (option:b) | `assets/education/assets/vocabulary/webp/hem-voc-07-moon-512.webp` | selected_pending_owner_visual_QA |
+| `VOC-09` | نخلة | `L1-06-GP-04` (option:c)، `L1-06-IC-A04` (option:a)، `V2-PRE-Q09` (option:c)، `V2-POST-Q09` (option:a) | `assets/education/assets/vocabulary/webp/hem-voc-09-palm-tree-512.webp` | selected_pending_owner_visual_QA |
+| `VOC-14` | نجم | `L1-06-IC-A04` (option:b)، `SUP-05-GP-02` (question)، `V2-POST-Q09` (option:c) | `assets/education/assets/vocabulary/webp/hem-voc-14-star-512.webp` | selected_pending_owner_visual_QA |
+| `VOC-18` | مدرسة | `SUP-12-SC-02` (question) | `assets/education/assets/vocabulary/webp/hem-voc-18-school-512.webp` | selected_pending_owner_visual_QA |
+| `VOC-20` | عصفور | `L3-07-IC-A01` (question) | `assets/education/assets/vocabulary/webp/hem-voc-20-bird-512.webp` | selected_pending_owner_visual_QA |
+| `VOC-22` | مكتبة | `L3-07-IC-A02` (question)، `V2-POST-Q30` (question) | `assets/education/assets/vocabulary/webp/hem-voc-22-library-512.webp` | selected_pending_owner_visual_QA |
+| `VOC-28` | زهرة | `L3-07-GP-02` (question)، `V2-PRE-Q30` (question) | `assets/education/assets/vocabulary/webp/hem-voc-28-flower-512.webp` | selected_pending_owner_visual_QA |
+| `VOC-34` | طفل | `L3-07-GP-04` (question) | `assets/education/assets/vocabulary/webp/hem-voc-34-boy-512.webp` | selected_pending_owner_visual_QA |
+| `VOC-35` | طفلة | `SUP-12-GP-02` (question) | `assets/education/assets/vocabulary/webp/hem-voc-35-girl-512.webp` | selected_pending_owner_visual_QA |
 
-**فجوة دلالية:** `VOC-34` صورة عامة لطفل، لا يُفترض أنها تظهر القراءة؛ لذلك يتعين تدقيق التوافق بين الصورة وتعليمة الطالب واستبدالها إن لزم. الصور لا تُعد نهائيًا معتمدة في V2 قبل فحص المالك.
+**صور جديدة لازمة لسير الأسئلة المؤلفة:** لا شيء مثبت حاليًا. إن رفضت صورة موجودة في مراجعة المالك يُنشأ طلب استبدال بنفس المعنى، لا صورة تزيين. في `VOC-34` تعليمة الطفل عامة ولا تدعي أن الصورة تعرض فعل القراءة.

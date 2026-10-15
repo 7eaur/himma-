@@ -2309,7 +2309,7 @@
         "correct_option_ids": [],
         "rubric": {
           "evaluation_authority": "human_supervisor",
-          "reference_text": "نَ + زَ + لَ ← نَزَلَ",
+          "reference_text": "نَزَلَ",
           "dimensions": [
             "صحة صوت الحرف/الحركة",
             "ترتيب الأصوات",
@@ -2331,7 +2331,8 @@
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
-      }
+      },
+      "reading_reference": "نَزَلَ"
     },
     {
       "id": "L1-05-IC-A01",
@@ -2439,7 +2440,7 @@
         "correct_option_ids": [],
         "rubric": {
           "evaluation_authority": "human_supervisor",
-          "reference_text": "رَ + كَ + بَ ← رَكَبَ",
+          "reference_text": "رَكَبَ",
           "dimensions": [
             "صحة صوت الحرف/الحركة",
             "ترتيب الأصوات",
@@ -2456,7 +2457,8 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": null
+      "hint": null,
+      "reading_reference": "رَكَبَ"
     },
     {
       "id": "L1-05-IC-A04",

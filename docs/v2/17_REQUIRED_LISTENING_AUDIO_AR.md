@@ -1,56 +1,43 @@
-# هِمّة V2 — جرد الصوت المسموع للطالب
+# هِمّة V2 — سجل الأصوات التي يسمعها الطالب
 
-**الحالة:** سجل أولي للفحص؛ الوجود في كتالوج V1 لا يثبت سلامة الصوت أو تطابق نطقه.
+**تحديث:** 2026-10-15. اختيار التسجيلات بناء على الكتالوج والملفات الموجودة، مع **تأجيل اعتماد النطق الفعلي إلى مراجعة المالك**. لا يُعد ملف قديم صالحًا نهائيًا بمجرد ظهوره في المستودع.
 
-| الرمز/النطاق | الصوت الذي يسمعه الطالب | الاستخدام | مرشح من V1 | الحالة | المطلوب |
-|---|---|---|---|---|---|
-| AUD-L1-01-LET | الأصوات الفونيمية: م، ب، س، ق، ر، ن ثم ل للتطبيق | الفيديو وتدريبات/خيارات الاختيار | `LET-01`.. `LET-06` مرشحة وفق جرد التأليف | pending_media_qa | الاستماع للملفات والتأكد أنها **صوت** الحرف لا اسمه؛ إيجاد/تسجيل ل |
-| AUD-L1-02-PAIR | س/ص، ت/ط | التمييز السمعي | غير مثبت | missing_unverified | جرد وتسجيل الناقص |
-| AUD-L1-03 | فتحة/ضمة/كسرة مع أكثر من حرف | الحركات القصيرة | غير مثبت | pending_inventory | تحديد الأصوات الصحيحة والتشكيل |
-| AUD-L1-04-06 | أصوات المقاطع والدمج والكلمات القصيرة | L1 المقاطع والكلمات | أصوات كلمات محتملة في V1 | pending_inventory | جرد وتحقيق التطابق |
-| AUD-L2-02-03 | الأصوات القصيرة/الطويلة وكلمات المقاطع | المدود والكلمات الطويلة | غير مثبت | pending_inventory | تسجيل المفقود |
-| AUD-L2-04 | قراءة الجملة لتعليم النطق | L2-04 فقط في الشرح/التدريب | غير مثبت | pending_inventory | تسجيل جمل مشكولة |
-| AUD-L3-01-02 | جمل ونصوص قصيرة مسموعة أثناء التعليم | القراءة الجهرية | مرشح من V1 إن وجد | pending_inventory | ربط النص الفعلي والتسجيل |
-| AUD-INSTRUCTION-* | تعليمات صوتية لأطفال يحتاجون دعمًا | المراحل والأسئلة المختارة | محتمل من V1 | pending_inventory | تجنب التكرار، تسجيل الضروري فقط |
-| AUD-SUP-* | أصوات دعم بحسب الفجوة | SUPPORT | غير مفحوص | pending_inventory | تحديث مع كل دعم |
-
-## قواعد
-- يسمح بالسماع عبر `stimulus.media` وفي `options[].media`، ويمكن تقديم تعليمات صوتية عند الحاجة.
-- **لا** تُشغّل قراءة النص تلقائيًا في التحقق المستقل إذا كان الهدف قياس **فهم المقروء**.
-- المصدر النهائي لكل صوت: `asset_id, text_with_diacritics, audio_purpose, source_asset_id, path/manifest_id, qa_status, use_sites, missing, action`.
-- لا اعتماد دون فحص وضوح الصوت ونطق الحركات والضوضاء واتساق مستوى الصوت. لا نخلط صوت الحرف مع اسم الحرف.
-
-
-## جرد الأصوات المستخدمة في بنك L1 — 2026-10-15
-
-**القرار:** اختيار الأصول المعروفة من V1 الآن، ومراجعتها/اعتمادها من المالك لاحقًا. وجود ملف MP3 وWAV مثبت في المستودع، **لكن لم يتم الاستماع الصوتي النقدي لكل أصل في هذه المرحلة**. لا نوقف كتابة الدروس بسبب نقص الوسائط.
-
-| V1 ID | النص/الصوت المستهدف | المصدر المؤكد | الاستخدام في V2 | الحالة/الإجراء |
+| الصوت | النص المنطوق بحسب البيان أو المطلوب | موضع الاستماع | المصدر | الحالة |
 |---|---|---|---|---|
-| LET-01 | مَ (وليس /م/ الخالص) | `assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-01.mp3` | L1-01 اختبار وسياقات لاحقة | selected_pending_review؛ مراجعة تطابق الفونيم |
-| LET-02 | صوت بْ | `assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-02.mp3` | L1-01 وSUP-01 | selected_pending_review |
-| LET-03 | صوت سْ | `assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-03.mp3` | L1-01/02 | selected_pending_review |
-| LET-04 | صوت قْ | `assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-04.mp3` | L1-01 | selected_pending_review |
-| LET-05 | صوت رْ | `assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-05.mp3` | L1-01 | selected_pending_review |
-| LET-06 | صوت نْ | `assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-06.mp3` | L1-01 / SUP-01 | selected_pending_review |
-| SYL-01/02/03 | بَ / بِ / بُ | `assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-0{1,2,3}.mp3` | L1-03/04 | selected_pending_review |
-| SYL-05/06/07/08 | مِ / سُ / رَ / قِ | `assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-0{5,6,7,8}.mp3` | L1-03/04 | selected_pending_review |
-| WRD-03/09/10 | باب / نخلة / كرة | `assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-{03,09,10}.mp3` | L1-06 / SUP-04 | selected_pending_review |
+| `AUD-L1-03-LI` | لِ | `L1-03-IC-A02` (question) | غير موجود؛ مطلوب تسجيل جديد | missing_new |
+| `AUD-L1-03-MU` | مُ | `SUP-02-SC-01` (question)، `SUP-02-GP-03` (question) | غير موجود؛ مطلوب تسجيل جديد | missing_new |
+| `AUD-L1-03-NU` | نُ | `L1-03-IC-A01` (question) | غير موجود؛ مطلوب تسجيل جديد | missing_new |
+| `AUD-L1-03-SA` | سَ | `L1-03-GP-03` (question) | غير موجود؛ مطلوب تسجيل جديد | missing_new |
+| `AUD-L1-L` | الصوت الفونيمي للحرف ل | `L1-01-GP-04` (option:a) | غير موجود؛ مطلوب تسجيل جديد | missing_new |
+| `AUD-L1-SAD` | صوت صْ للفروق السمعية | `L1-02-GP-03` (question)، `SUP-01-GP-03` (question)، `SUP-01-SC-06` (question) | غير موجود؛ مطلوب تسجيل جديد | missing_new |
+| `AUD-L1-TA` | صوت تْ للمقارنة | `L1-02-GP-04` (question) | غير موجود؛ مطلوب تسجيل جديد | missing_new |
+| `AUD-L1-TAA` | صوت طْ للمقارنة | `L1-02-IC-A04` (question)، `SUP-01-SC-03` (question) | غير موجود؛ مطلوب تسجيل جديد | missing_new |
+| `AUD-L2-RA` | رَا | `L2-02-IC-A04` (question) | غير موجود؛ مطلوب تسجيل جديد | missing_new |
+| `LET-01` | مَ | `L1-01-GP-04` (option:c)، `L1-01-IC-A02` (option:a)، `L1-01-IC-A04` (question) | `assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-01.mp3` | selected_from_v1_pending_owner_review |
+| `LET-02` | بْ | `L1-01-GP-01` (question)، `SUP-01-GP-01` (question) | `assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-02.mp3` | selected_from_v1_pending_owner_review |
+| `LET-03` | سْ | `L1-01-GP-02` (option:c)، `L1-01-IC-A01` (option:b)، `L1-01-IC-A02` (option:b)، `L1-02-IC-A03` (question)، `SUP-01-GP-06` (question)، `V2-PRE-Q03` (question) | `assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-03.mp3` | selected_from_v1_pending_owner_review |
+| `LET-04` | قْ | `L1-01-GP-02` (option:a)، `L1-01-IC-A01` (option:c)، `L1-01-IC-A03` (question)، `SUP-01-SC-04` (question)، `V2-POST-Q03` (question) | `assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-04.mp3` | selected_from_v1_pending_owner_review |
+| `LET-05` | رْ | `L1-01-GP-02` (option:b)، `L1-01-GP-04` (option:b)، `L1-01-IC-A01` (option:a)، `L1-01-IC-A02` (option:c) | `assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-05.mp3` | selected_from_v1_pending_owner_review |
+| `LET-06` | نْ | `L1-01-GP-03` (question)، `SUP-01-SC-01` (question)، `SUP-01-GP-04` (question) | `assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-06.mp3` | selected_from_v1_pending_owner_review |
+| `SYL-01` | بَ | `L1-04-IC-A04` (question)، `SUP-02-GP-01` (question) | `assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-01.mp3` | selected_from_v1_pending_owner_review |
+| `SYL-02` | بِ | `L1-03-GP-01` (question)، `SUP-02-SC-05` (question)، `V2-PRE-Q04` (question) | `assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-02.mp3` | selected_from_v1_pending_owner_review |
+| `SYL-04` | مَا | `SUP-06-GP-01` (question) | `assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-04.mp3` | selected_from_v1_pending_owner_review |
+| `SYL-05` | مِ | `L1-04-GP-03` (question)، `SUP-02-GP-05` (question)، `V2-POST-Q04` (question) | `assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-05.mp3` | selected_from_v1_pending_owner_review |
+| `SYL-06` | سُ | `L1-04-GP-01` (question) | `assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-06.mp3` | selected_from_v1_pending_owner_review |
+| `SYL-07` | رَ | `L1-04-IC-A02` (question) | `assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-07.mp3` | selected_from_v1_pending_owner_review |
+| `SYL-08` | قِ | `L1-03-IC-A04` (question) | `assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-08.mp3` | selected_from_v1_pending_owner_review |
+| `SYL-09` | بَا | `L2-02-GP-01` (question)، `V2-PRE-Q13` (question) | `assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-09.mp3` | selected_from_v1_pending_owner_review |
+| `SYL-10` | فِي | `L2-02-GP-02` (question)، `SUP-06-SC-06` (question) | `assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-10.mp3` | selected_from_v1_pending_owner_review |
+| `SYL-11` | نُو | `L2-02-GP-04` (question)، `SUP-06-SC-01` (question)، `SUP-06-GP-03` (question)، `V2-POST-Q13` (question) | `assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-11.mp3` | selected_from_v1_pending_owner_review |
+| `SYL-12` | لِي | `L2-02-IC-A02` (question)، `SUP-06-GP-04` (question) | `assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-12.mp3` | selected_from_v1_pending_owner_review |
+| `SYL-13` | سَا | `L2-02-IC-A01` (question)، `SUP-06-SC-03` (question) | `assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-13.mp3` | selected_from_v1_pending_owner_review |
+| `WRD-03` | باب | `L1-06-GP-02` (question) | `assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-03.mp3` | selected_from_v1_pending_owner_review |
+| `WRD-09` | نَخْلَة | `SUP-04-GP-02` (question) | `assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-09.mp3` | selected_from_v1_pending_owner_review |
+| `WRD-10` | كُرَة | `L1-06-IC-A02` (question) | `assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-10.mp3` | selected_from_v1_pending_owner_review |
 
-**ناقص إنتاجه قبل التشغيل الفعلي** (لا تفترض رابطًا): `AUD-L1-L`، `AUD-L1-SAD`، `AUD-L1-TA`، `AUD-L1-TAA`، `AUD-L1-03-MU`، `AUD-L1-03-MA`، `AUD-L1-03-SA`، `AUD-L1-03-SI`، `AUD-L1-03-NU`، `AUD-L1-03-LI`.
+## أصوات مخططة ليست مرتبطة بسؤال حاليًا
 
-بيانات كل أصل جديد كاملة (النطق، الدور، سؤال الاستخدام، حالة النقص) موجودة في بنك JSON ومطابقة قبل الإنتاج. التسجيلات الجديدة يجب أن تكون أصواتًا أو مقاطع مناسبة، لا أسماء حروف تلقائية. لخيارات الصوت الحر تشغيل لكل خيار يحتاج تطويرًا لاحقًا دون افتراض أنه مدعوم الآن.
+- `AUD-L1-03-MA`: مَ — لا تنشئها قبل التأكد من حاجة الفيديو لها؛ ليست ضمن النواقص الملزمة الحالية.
+- `AUD-L1-03-SI`: سِ — لا تنشئها قبل التأكد من حاجة الفيديو لها؛ ليست ضمن النواقص الملزمة الحالية.
 
-
-## L2 — اختيار الأصوات والنقص (2026-10-15)
-
-الأصوات الموجودة في V1 والمختارة مؤقتًا: `SYL-04` (مَا)، `SYL-09` (بَا)، `SYL-10` (فِي)، `SYL-11` (نُو)، `SYL-12` (لِي)، `SYL-13` (سَا)؛ و`WRD-03/04/09/10/14/15/16` عند الحاجة في مواد الشرح. مسار كل واحد: `assets/audio/HIMMA_AUDIO_V1/web_mp3/<ID>.mp3`. **لا اعتماد سمعي نهائي الآن**.
-
-الناقص للصوت الجديد: `AUD-L2-RA` لنطق «رَا» في اختبار L2-02. كذلك تعليمات الفيديو المنفصل لا تحل محل تسجيلات التفاعل. قائمة الربط بمستوى السؤال في `content-bank/L2_AUTHORING_BANK_DRAFT.json`.
-
-
-## L3 — نتيجة جرد الصوت المسموع (2026-10-15)
-
-تدريبات L3 الحالية تعتمد أساسًا على القراءة الذاتية والفهم المقروء والترتيب والكتابة؛ **لا يوجد أصل صوتي إضافي إلزامي لتشغيل أسئلة الفهم المقروء**. يجب عدم تشغيل صوت النص في التحقق من الفهم حتى لا يصبح الاختبار فهمًا مسموعًا. يمكن إنتاج أصوات تعليمات الوصول عند الحاجة بصورة منفصلة؛ لا نسجل ملفًا مجهولًا بوصفه موجودًا.
-
-الفيديوهات الرئيسية `VID-L3-01..VID-L3-07` ناقصة عمدًا حتى مرحلة إنتاج الفيديو المستقلة. تسجيلات الطالب نفسه تصنف تحت مرجع القراءة `18` وليست أصوات استماع مرجعية.
+**مهم:** مصدر `LET-01` موسوم «مَ»، وقد يختلف عن الصوت الفونيمي المقصود. وكذلك خيارات صوت داخل الخيار تتطلب تأكيد قدرة مشغل V1 لاحقًا. الملفات لا تنشأ ضمن هذه المرحلة.
