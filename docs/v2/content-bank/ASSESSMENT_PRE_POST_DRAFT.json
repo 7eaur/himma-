@@ -49,7 +49,18 @@
       "media_status": "pending_owner_review",
       "technical_gaps": [],
       "status": "draft_pending_assessment_equivalence_review",
-      "content_qa_note": "سؤال تعرف على الجيم مستقل عن سؤال موضع نقطة الباء في الاختبار نفسه."
+      "content_qa_note": "سؤال تعرف على الجيم مستقل عن سؤال موضع نقطة الباء في الاختبار نفسه.",
+      "student_presentation": {
+        "stimulus_mode": "none",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "V2-PRE-Q02",
@@ -97,7 +108,18 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "student_presentation": {
+        "stimulus_mode": "none",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "V2-PRE-Q03",
@@ -152,7 +174,18 @@
       ],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "V2-PRE-Q04",
@@ -209,7 +242,18 @@
       ],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "V2-PRE-Q05",
@@ -262,7 +306,18 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "V2-PRE-Q06",
@@ -312,6 +367,17 @@
         "allow_valid_readings_of_unvowelled_text": false,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
+      },
+      "student_presentation": {
+        "stimulus_mode": "large_character",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
       }
     },
     {
@@ -364,7 +430,18 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      }
     },
     {
       "id": "V2-PRE-Q08",
@@ -412,6 +489,17 @@
         "allow_valid_readings_of_unvowelled_text": false,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
+      },
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
       }
     },
     {
@@ -479,7 +567,18 @@
       ],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "image_cards",
+        "layout": "image_choice_grid",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "V2-PRE-Q10",
@@ -540,7 +639,18 @@
       ],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "student_presentation": {
+        "stimulus_mode": "question_image",
+        "option_mode": "ordered_letters",
+        "layout": "ordered_letter_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      }
     },
     {
       "id": "V2-PRE-Q11",
@@ -590,7 +700,18 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "V2-PRE-Q12",
@@ -653,6 +774,17 @@
           "وضوح الكتابة"
         ],
         "no_single_exact_answer": false
+      },
+      "student_presentation": {
+        "stimulus_mode": "question_image",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "arabic_written_response"
       }
     },
     {
@@ -708,7 +840,18 @@
       ],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "V2-PRE-Q14",
@@ -759,7 +902,18 @@
       "media_status": "pending_owner_review",
       "technical_gaps": [],
       "status": "draft_pending_assessment_equivalence_review",
-      "source_decision": "replace_with_new"
+      "source_decision": "replace_with_new",
+      "student_presentation": {
+        "stimulus_mode": "none",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "V2-PRE-Q15",
@@ -807,6 +961,17 @@
         "allow_valid_readings_of_unvowelled_text": false,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
+      },
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
       }
     },
     {
@@ -855,6 +1020,17 @@
         "allow_valid_readings_of_unvowelled_text": false,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
+      },
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
       }
     },
     {
@@ -907,6 +1083,17 @@
         "allow_valid_readings_of_unvowelled_text": true,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
+      },
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
       }
     },
     {
@@ -957,7 +1144,18 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "V2-PRE-Q19",
@@ -1005,6 +1203,17 @@
         "allow_valid_readings_of_unvowelled_text": true,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
+      },
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
       }
     },
     {
@@ -1053,6 +1262,17 @@
         "allow_valid_readings_of_unvowelled_text": true,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
+      },
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
       }
     },
     {
@@ -1109,7 +1329,18 @@
       "media_status": "pending_owner_review",
       "technical_gaps": [],
       "status": "draft_pending_assessment_equivalence_review",
-      "notes": "تمثل مد الياء بدل تسجيل قراءة إضافي؛ للاعتدال في عبء التسجيل."
+      "notes": "تمثل مد الياء بدل تسجيل قراءة إضافي؛ للاعتدال في عبء التسجيل.",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "V2-PRE-Q22",
@@ -1157,7 +1388,18 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "student_presentation": {
+        "stimulus_mode": "passage",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "V2-PRE-Q23",
@@ -1205,7 +1447,18 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "student_presentation": {
+        "stimulus_mode": "passage",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "V2-PRE-Q24",
@@ -1253,7 +1506,18 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "student_presentation": {
+        "stimulus_mode": "passage",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "V2-PRE-Q25",
@@ -1304,7 +1568,18 @@
       "media_status": "pending_owner_review",
       "technical_gaps": [],
       "status": "draft_pending_assessment_equivalence_review",
-      "content_qa_note": "سرد الأحداث ليس قائمة جاهزة بنفس ترتيب الخيارات؛ يستدل الطالب على التسلسل من قبل/بعد."
+      "content_qa_note": "سرد الأحداث ليس قائمة جاهزة بنفس ترتيب الخيارات؛ يستدل الطالب على التسلسل من قبل/بعد.",
+      "student_presentation": {
+        "stimulus_mode": "passage",
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      }
     },
     {
       "id": "V2-PRE-Q26",
@@ -1355,7 +1630,18 @@
       "media_status": "pending_owner_review",
       "technical_gaps": [],
       "status": "draft_pending_assessment_equivalence_review",
-      "content_qa_note": "سرد الأحداث ليس قائمة جاهزة بنفس ترتيب الخيارات؛ يستدل الطالب على التسلسل من قبل/بعد."
+      "content_qa_note": "سرد الأحداث ليس قائمة جاهزة بنفس ترتيب الخيارات؛ يستدل الطالب على التسلسل من قبل/بعد.",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      }
     },
     {
       "id": "V2-PRE-Q27",
@@ -1404,7 +1690,18 @@
       "media_status": "pending_owner_review",
       "technical_gaps": [],
       "status": "draft_pending_assessment_equivalence_review",
-      "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها."
+      "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها.",
+      "student_presentation": {
+        "stimulus_mode": "passage",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "V2-PRE-Q28",
@@ -1453,7 +1750,18 @@
       "media_status": "pending_owner_review",
       "technical_gaps": [],
       "status": "draft_pending_assessment_equivalence_review",
-      "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها."
+      "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها.",
+      "student_presentation": {
+        "stimulus_mode": "passage",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "V2-PRE-Q29",
@@ -1503,7 +1811,18 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "student_presentation": {
+        "stimulus_mode": "none",
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      }
     },
     {
       "id": "V2-PRE-Q30",
@@ -1566,6 +1885,17 @@
           "إملاء مناسب للمستوى"
         ],
         "no_single_exact_answer": true
+      },
+      "student_presentation": {
+        "stimulus_mode": "question_image",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "arabic_written_response"
       }
     }
   ],
@@ -1616,7 +1946,18 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "student_presentation": {
+        "stimulus_mode": "none",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "V2-POST-Q02",
@@ -1664,7 +2005,18 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "student_presentation": {
+        "stimulus_mode": "none",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "V2-POST-Q03",
@@ -1719,7 +2071,18 @@
       ],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "V2-POST-Q04",
@@ -1777,7 +2140,18 @@
       "media_status": "pending_owner_review",
       "technical_gaps": [],
       "status": "draft_pending_assessment_equivalence_review",
-      "content_qa_note": "صوت جديد تِ لضمان استقلال اختبار البعدي عن تدريبات V2."
+      "content_qa_note": "صوت جديد تِ لضمان استقلال اختبار البعدي عن تدريبات V2.",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "V2-POST-Q05",
@@ -1830,7 +2204,18 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "V2-POST-Q06",
@@ -1880,6 +2265,17 @@
         "allow_valid_readings_of_unvowelled_text": false,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
+      },
+      "student_presentation": {
+        "stimulus_mode": "large_character",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
       }
     },
     {
@@ -1933,7 +2329,18 @@
       "media_status": "pending_owner_review",
       "technical_gaps": [],
       "status": "draft_pending_assessment_equivalence_review",
-      "content_qa_note": "تركيب زَرَعَ بلا إظهار الكلمة المستهدفة."
+      "content_qa_note": "تركيب زَرَعَ بلا إظهار الكلمة المستهدفة.",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      }
     },
     {
       "id": "V2-POST-Q08",
@@ -1981,6 +2388,17 @@
         "allow_valid_readings_of_unvowelled_text": false,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
+      },
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
       }
     },
     {
@@ -2048,7 +2466,18 @@
       ],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "image_cards",
+        "layout": "image_choice_grid",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "V2-POST-Q10",
@@ -2102,7 +2531,18 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "ordered_letters",
+        "layout": "ordered_letter_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      }
     },
     {
       "id": "V2-POST-Q11",
@@ -2152,7 +2592,18 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "V2-POST-Q12",
@@ -2216,7 +2667,18 @@
         ],
         "no_single_exact_answer": false
       },
-      "content_qa_note": "صورة قطة جديدة من V1 لا تظهر خلال تدريبات كتابة الدروس."
+      "content_qa_note": "صورة قطة جديدة من V1 لا تظهر خلال تدريبات كتابة الدروس.",
+      "student_presentation": {
+        "stimulus_mode": "question_image",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "arabic_written_response"
+      }
     },
     {
       "id": "V2-POST-Q13",
@@ -2272,7 +2734,18 @@
       "media_status": "pending_owner_review",
       "technical_gaps": [],
       "status": "draft_pending_assessment_equivalence_review",
-      "content_qa_note": "صوت جديد بُو لتفادي إعادة مقطع نُو المحفوظ في التدريب."
+      "content_qa_note": "صوت جديد بُو لتفادي إعادة مقطع نُو المحفوظ في التدريب.",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "V2-POST-Q14",
@@ -2322,7 +2795,18 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "student_presentation": {
+        "stimulus_mode": "none",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "V2-POST-Q15",
@@ -2370,6 +2854,17 @@
         "allow_valid_readings_of_unvowelled_text": false,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
+      },
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
       }
     },
     {
@@ -2418,6 +2913,17 @@
         "allow_valid_readings_of_unvowelled_text": false,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
+      },
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
       }
     },
     {
@@ -2470,6 +2976,17 @@
         "allow_valid_readings_of_unvowelled_text": true,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
+      },
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
       }
     },
     {
@@ -2520,7 +3037,18 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "V2-POST-Q19",
@@ -2568,6 +3096,17 @@
         "allow_valid_readings_of_unvowelled_text": true,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
+      },
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
       }
     },
     {
@@ -2616,6 +3155,17 @@
         "allow_valid_readings_of_unvowelled_text": true,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
+      },
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
       }
     },
     {
@@ -2672,7 +3222,18 @@
       "media_status": "pending_owner_review",
       "technical_gaps": [],
       "status": "draft_pending_assessment_equivalence_review",
-      "notes": "مد الياء في اختبار مواز ببديل صوتي مستقل."
+      "notes": "مد الياء في اختبار مواز ببديل صوتي مستقل.",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "V2-POST-Q22",
@@ -2720,7 +3281,18 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "V2-POST-Q23",
@@ -2768,7 +3340,18 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "V2-POST-Q24",
@@ -2816,7 +3399,18 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "V2-POST-Q25",
@@ -2867,7 +3461,18 @@
       "media_status": "pending_owner_review",
       "technical_gaps": [],
       "status": "draft_pending_assessment_equivalence_review",
-      "content_qa_note": "سرد الأحداث ليس قائمة جاهزة بنفس ترتيب الخيارات؛ يستدل الطالب على التسلسل من قبل/بعد."
+      "content_qa_note": "سرد الأحداث ليس قائمة جاهزة بنفس ترتيب الخيارات؛ يستدل الطالب على التسلسل من قبل/بعد.",
+      "student_presentation": {
+        "stimulus_mode": "passage",
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      }
     },
     {
       "id": "V2-POST-Q26",
@@ -2918,7 +3523,18 @@
       "media_status": "pending_owner_review",
       "technical_gaps": [],
       "status": "draft_pending_assessment_equivalence_review",
-      "content_qa_note": "سرد الأحداث ليس قائمة جاهزة بنفس ترتيب الخيارات؛ يستدل الطالب على التسلسل من قبل/بعد."
+      "content_qa_note": "سرد الأحداث ليس قائمة جاهزة بنفس ترتيب الخيارات؛ يستدل الطالب على التسلسل من قبل/بعد.",
+      "student_presentation": {
+        "stimulus_mode": "passage",
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      }
     },
     {
       "id": "V2-POST-Q27",
@@ -2967,7 +3583,18 @@
       "media_status": "pending_owner_review",
       "technical_gaps": [],
       "status": "draft_pending_assessment_equivalence_review",
-      "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها."
+      "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها.",
+      "student_presentation": {
+        "stimulus_mode": "passage",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "V2-POST-Q28",
@@ -3016,7 +3643,18 @@
       "media_status": "pending_owner_review",
       "technical_gaps": [],
       "status": "draft_pending_assessment_equivalence_review",
-      "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها."
+      "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها.",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "V2-POST-Q29",
@@ -3066,7 +3704,18 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "student_presentation": {
+        "stimulus_mode": "none",
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      }
     },
     {
       "id": "V2-POST-Q30",
@@ -3129,6 +3778,17 @@
           "إملاء مناسب للمستوى"
         ],
         "no_single_exact_answer": true
+      },
+      "student_presentation": {
+        "stimulus_mode": "question_image",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "arabic_written_response"
       }
     }
   ],
