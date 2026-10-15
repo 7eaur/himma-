@@ -261,33 +261,33 @@
       "mode": "GP",
       "role": "guided_practice",
       "interaction": "build_word",
-      "prompt": "رتب الحروف لتكتب كلمة باب.",
+      "prompt": "رتب الحروف لتكتب كلمة رَسَمَ.",
       "stimulus": {
-        "text": "بَاب",
+        "text": "رَسَمَ",
         "media": []
       },
       "options": [
         {
           "id": "a",
-          "text": "ب",
+          "text": "س",
           "media": []
         },
         {
           "id": "b",
-          "text": "ا",
+          "text": "م",
           "media": []
         },
         {
           "id": "c",
-          "text": "ب",
+          "text": "ر",
           "media": []
         }
       ],
       "private_answer": {
         "correct_option_ids": [
+          "c",
           "a",
-          "b",
-          "c"
+          "b"
         ],
         "rubric": null
       },
@@ -299,7 +299,7 @@
       "reading_reference": null,
       "technical_gaps": [],
       "status": "draft",
-      "hint": "ابدأ بالحرف ب ثم ابحث عن الألف.",
+      "hint": "ابدأ بحرف ر ثم س ثم م.",
       "retry": "hint_on_error_then_one_more_try_no_test_evidence"
     },
     {
@@ -308,15 +308,15 @@
       "mode": "GP",
       "role": "guided_practice",
       "interaction": "choose_one",
-      "prompt": "ما الحرف الناقص في كلمة قَـ ـَم؟",
+      "prompt": "ما الحرف الناقص لتكتمل الكلمة؟",
       "stimulus": {
-        "text": "قَ_َم",
+        "text": "عَ_َم",
         "media": []
       },
       "options": [
         {
           "id": "a",
-          "text": "ر",
+          "text": "ن",
           "media": []
         },
         {
@@ -326,7 +326,7 @@
         },
         {
           "id": "c",
-          "text": "ن",
+          "text": "ر",
           "media": []
         }
       ],
@@ -344,7 +344,7 @@
       "reading_reference": null,
       "technical_gaps": [],
       "status": "draft",
-      "hint": "تذكر الكلمة التي نكتب بها.",
+      "hint": "تذكر عَلَم البلاد.",
       "retry": "hint_on_error_then_one_more_try_no_test_evidence"
     },
     {
@@ -495,7 +495,7 @@
         "text": null,
         "media": [
           {
-            "media_id": "VOC-04",
+            "media_id": "VOC-10",
             "kind": "image"
           }
         ]
@@ -505,21 +505,22 @@
         "correct_option_ids": [],
         "rubric": {
           "authority": "human_supervisor",
-          "target_or_reference": "قَلَم",
+          "target_or_reference": "كُرَة",
           "criteria": [
             "اكتمال الكلمة/الجملة",
             "سلامة ترتيب الحروف والكلمات",
             "المعنى",
             "إملاء مناسب للمستوى"
           ],
-          "needs_human_review": true
+          "needs_human_review": true,
+          "reference": "كُرَة"
         }
       },
       "evidence_type": "word_writing",
       "error_focus": "spelling",
       "skill_group": "S5",
       "origin_v1": null,
-      "notes": null,
+      "notes": "صورة الكرة؛ المرجع الخاص للمشرف كُرَة.",
       "reading_reference": null,
       "technical_gaps": [
         "free_writing_input_and_scoring_unconfirmed_v1"
@@ -577,31 +578,37 @@
       "mode": "IC",
       "role": "independent_check",
       "interaction": "write_text",
-      "prompt": "اكتب كلمة من ثلاثة أحرف تبدأ بحرف ب وتدل على مدخل المنزل.",
+      "prompt": "اكتب اسم الشيء في الصورة.",
       "stimulus": {
-        "text": "مدخل المنزل",
-        "media": []
+        "text": null,
+        "media": [
+          {
+            "media_id": "VOC-06",
+            "kind": "image"
+          }
+        ]
       },
       "options": [],
       "private_answer": {
         "correct_option_ids": [],
         "rubric": {
           "authority": "human_supervisor",
-          "target_or_reference": "بَاب",
+          "target_or_reference": "شَمْس",
           "criteria": [
             "اكتمال الكلمة/الجملة",
             "سلامة ترتيب الحروف والكلمات",
             "المعنى",
             "إملاء مناسب للمستوى"
           ],
-          "needs_human_review": true
+          "needs_human_review": true,
+          "reference": "شَمْس"
         }
       },
       "evidence_type": "word_writing",
       "error_focus": "spelling",
       "skill_group": "S5",
       "origin_v1": null,
-      "notes": "تعديل مراجعة الجودة: إزالة كشف الإجابة أو الافتراض غير المثبت في الصورة.",
+      "notes": "صورة الشمس؛ الجواب المرجعي الخاص للمشرف شَمْس.",
       "reading_reference": null,
       "technical_gaps": [
         "free_writing_input_and_scoring_unconfirmed_v1"
@@ -3877,6 +3884,24 @@
       "meaning": "بطة",
       "v1_asset_id": "VOC-12",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-12-duck-512.webp",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_later"
+    },
+    {
+      "id": "VOC-10",
+      "kind": "image",
+      "meaning": "كرة",
+      "v1_asset_id": "VOC-10",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-10-ball-512.webp",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_later"
+    },
+    {
+      "id": "VOC-06",
+      "kind": "image",
+      "meaning": "شمس",
+      "v1_asset_id": "VOC-06",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-06-sun-512.webp",
       "status": "selected_from_v1_pending_owner_review",
       "review": "owner_later"
     }
