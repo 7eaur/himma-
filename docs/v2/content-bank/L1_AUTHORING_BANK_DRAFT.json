@@ -3356,7 +3356,7 @@
         "text": null,
         "media": [
           {
-            "media_id": "AUD-L1-TAA",
+            "media_id": "AUD-V2-SUP-DAD",
             "kind": "audio"
           }
         ]
@@ -3364,18 +3364,18 @@
       "options": [
         {
           "id": "a",
-          "text": "ط",
+          "text": "ص",
           "media": []
         },
         {
           "id": "b",
-          "text": "ت",
+          "text": "ض",
           "media": []
         }
       ],
       "private_answer": {
         "correct_option_ids": [
-          "a"
+          "b"
         ],
         "rubric": null
       },
@@ -5303,6 +5303,15 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "video",
+      "review_state": "awaiting_production"
+    },
+    {
+      "id": "AUD-V2-SUP-DAD",
+      "kind": "audio",
+      "type": "audio",
+      "label": "ضْ",
+      "required_spoken_text": "ضْ",
+      "status": "missing_new",
       "review_state": "awaiting_production"
     }
   ],
