@@ -2329,33 +2329,33 @@
       "mode": "GP",
       "role": "guided_practice",
       "interaction": "build_word",
-      "prompt": "رتب حروف كلمة باب.",
+      "prompt": "رتب الحروف لتكون كلمة قَلَم.",
       "stimulus": {
-        "text": "بَاب",
+        "text": "قَلَم",
         "media": []
       },
       "options": [
         {
           "id": "a",
-          "text": "ب",
+          "text": "م",
           "media": []
         },
         {
           "id": "b",
-          "text": "ا",
+          "text": "ق",
           "media": []
         },
         {
           "id": "c",
-          "text": "ب",
+          "text": "ل",
           "media": []
         }
       ],
       "private_answer": {
         "correct_option_ids": [
-          "a",
           "b",
-          "c"
+          "c",
+          "a"
         ],
         "rubric": null
       },
@@ -2878,9 +2878,9 @@
       "role": "guided_practice",
       "mode": "GP",
       "interaction": "write_text",
-      "prompt": "اكتب اسم مدخل المنزل.",
+      "prompt": "اكتب اسم طائر يسبح في الماء وله منقار.",
       "stimulus": {
-        "text": "مدخل المنزل",
+        "text": "طائر يسبح في الماء",
         "media": []
       },
       "options": [],
@@ -2888,13 +2888,14 @@
         "correct_option_ids": [],
         "rubric": {
           "authority": "human_supervisor",
-          "reference": "بَاب",
+          "reference": "بَطَّة",
           "criteria": [
             "صحة الكلمة/الجملة",
             "ترتيب الحروف",
             "سلامة المعنى"
           ],
-          "no_auto_grade": true
+          "no_auto_grade": true,
+          "target_or_reference": "بَطَّة"
         }
       },
       "evidence_type": "word_writing",
@@ -2906,7 +2907,8 @@
       "origin_v1": null,
       "status": "draft_pending_qa",
       "hint": "انطق كلمة باب ثم اكتبها.",
-      "retry": "hint_then_one_more_guided_attempt"
+      "retry": "hint_then_one_more_guided_attempt",
+      "notes": "الجواب المرجعي الخاص للمشرف: بَطَّة."
     },
     {
       "id": "SUP-05-SC-03",
