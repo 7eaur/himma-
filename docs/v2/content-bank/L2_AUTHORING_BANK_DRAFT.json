@@ -23,10 +23,10 @@
       ],
       "video_brief": "يبني كلمة بحروف ثم يقرأها ثم يكتب نموذجًا مغايرًا؛ كتابة حقيقية لا نسخ صور.",
       "practice_question_ids": [
-        "L2-01-GP01",
-        "L2-01-GP02",
-        "L2-01-GP03",
-        "L2-01-GP04"
+        "L2-01-GP-01",
+        "L2-01-GP-02",
+        "L2-01-GP-03",
+        "L2-01-GP-04"
       ],
       "check_question_ids": [
         "L2-01-IC-A01",
@@ -66,10 +66,10 @@
       ],
       "video_brief": "اشرح المد بالألف والواو والياء، مع فرق السمع وطول الصوت. لا تدرّس كل حرف منفردًا.",
       "practice_question_ids": [
-        "L2-02-GP01",
-        "L2-02-GP02",
-        "L2-02-GP03",
-        "L2-02-GP04"
+        "L2-02-GP-01",
+        "L2-02-GP-02",
+        "L2-02-GP-03",
+        "L2-02-GP-04"
       ],
       "check_question_ids": [
         "L2-02-IC-A01",
@@ -109,10 +109,10 @@
       ],
       "video_brief": "Chunk → Read → Blend → Read whole word؛ السكون والشدة ظاهرتان في كلمات مناسبة لا درس مستقل.",
       "practice_question_ids": [
-        "L2-03-GP01",
-        "L2-03-GP02",
-        "L2-03-GP03",
-        "L2-03-GP04"
+        "L2-03-GP-01",
+        "L2-03-GP-02",
+        "L2-03-GP-03",
+        "L2-03-GP-04"
       ],
       "check_question_ids": [
         "L2-03-IC-A01",
@@ -151,10 +151,10 @@
       ],
       "video_brief": "قراءة الجملة مترابطة وليست كلمات منفصلة؛ يوضح الوقف والنبر الطبيعي دون التركيز على السرعة.",
       "practice_question_ids": [
-        "L2-04-GP01",
-        "L2-04-GP02",
-        "L2-04-GP03",
-        "L2-04-GP04"
+        "L2-04-GP-01",
+        "L2-04-GP-02",
+        "L2-04-GP-03",
+        "L2-04-GP-04"
       ],
       "check_question_ids": [
         "L2-04-IC-A01",
@@ -191,10 +191,10 @@
       ],
       "video_brief": "تحديد من؟ أين؟ ماذا فعل؟ وماذا؟ حسب المعلومة النصية؛ لا تخمين من صورة.",
       "practice_question_ids": [
-        "L2-05-GP01",
-        "L2-05-GP02",
-        "L2-05-GP03",
-        "L2-05-GP04"
+        "L2-05-GP-01",
+        "L2-05-GP-02",
+        "L2-05-GP-03",
+        "L2-05-GP-04"
       ],
       "check_question_ids": [
         "L2-05-IC-A01",
@@ -231,10 +231,10 @@
       ],
       "video_brief": "تعليم ترتيب الكلمات؛ في مهام التسلسل نحدد بداية الجملة لئلا تُرفض صياغات نحوية عربية صحيحة أخرى.",
       "practice_question_ids": [
-        "L2-06-GP01",
-        "L2-06-GP02",
-        "L2-06-GP03",
-        "L2-06-GP04"
+        "L2-06-GP-01",
+        "L2-06-GP-02",
+        "L2-06-GP-03",
+        "L2-06-GP-04"
       ],
       "check_question_ids": [
         "L2-06-IC-A01",
@@ -256,7 +256,7 @@
   ],
   "questions": [
     {
-      "id": "L2-01-GP01",
+      "id": "L2-01-GP-01",
       "owner_id": "L2-01",
       "mode": "GP",
       "role": "guided_practice",
@@ -303,7 +303,7 @@
       "retry": "hint_on_error_then_one_more_try_no_test_evidence"
     },
     {
-      "id": "L2-01-GP02",
+      "id": "L2-01-GP-02",
       "owner_id": "L2-01",
       "mode": "GP",
       "role": "guided_practice",
@@ -348,7 +348,7 @@
       "retry": "hint_on_error_then_one_more_try_no_test_evidence"
     },
     {
-      "id": "L2-01-GP03",
+      "id": "L2-01-GP-03",
       "owner_id": "L2-01",
       "mode": "GP",
       "role": "guided_practice",
@@ -395,7 +395,7 @@
       "retry": "hint_on_error_then_one_more_try_no_test_evidence"
     },
     {
-      "id": "L2-01-GP04",
+      "id": "L2-01-GP-04",
       "owner_id": "L2-01",
       "mode": "GP",
       "role": "guided_practice",
@@ -610,7 +610,7 @@
       "hint": null
     },
     {
-      "id": "L2-02-GP01",
+      "id": "L2-02-GP-01",
       "owner_id": "L2-02",
       "mode": "GP",
       "role": "guided_practice",
@@ -660,7 +660,7 @@
       "retry": "hint_on_error_then_one_more_try_no_test_evidence"
     },
     {
-      "id": "L2-02-GP02",
+      "id": "L2-02-GP-02",
       "owner_id": "L2-02",
       "mode": "GP",
       "role": "guided_practice",
@@ -710,7 +710,7 @@
       "retry": "hint_on_error_then_one_more_try_no_test_evidence"
     },
     {
-      "id": "L2-02-GP03",
+      "id": "L2-02-GP-03",
       "owner_id": "L2-02",
       "mode": "GP",
       "role": "guided_practice",
@@ -755,7 +755,7 @@
       "retry": "hint_on_error_then_one_more_try_no_test_evidence"
     },
     {
-      "id": "L2-02-GP04",
+      "id": "L2-02-GP-04",
       "owner_id": "L2-02",
       "mode": "GP",
       "role": "guided_practice",
@@ -996,7 +996,7 @@
       "hint": null
     },
     {
-      "id": "L2-03-GP01",
+      "id": "L2-03-GP-01",
       "owner_id": "L2-03",
       "mode": "GP",
       "role": "guided_practice",
@@ -1032,7 +1032,7 @@
       "retry": "hint_on_error_then_one_more_try_no_test_evidence"
     },
     {
-      "id": "L2-03-GP02",
+      "id": "L2-03-GP-02",
       "owner_id": "L2-03",
       "mode": "GP",
       "role": "guided_practice",
@@ -1077,7 +1077,7 @@
       "retry": "hint_on_error_then_one_more_try_no_test_evidence"
     },
     {
-      "id": "L2-03-GP03",
+      "id": "L2-03-GP-03",
       "owner_id": "L2-03",
       "mode": "GP",
       "role": "guided_practice",
@@ -1113,7 +1113,7 @@
       "retry": "hint_on_error_then_one_more_try_no_test_evidence"
     },
     {
-      "id": "L2-03-GP04",
+      "id": "L2-03-GP-04",
       "owner_id": "L2-03",
       "mode": "GP",
       "role": "guided_practice",
@@ -1307,7 +1307,7 @@
       "hint": null
     },
     {
-      "id": "L2-04-GP01",
+      "id": "L2-04-GP-01",
       "owner_id": "L2-04",
       "mode": "GP",
       "role": "guided_practice",
@@ -1343,7 +1343,7 @@
       "retry": "hint_on_error_then_one_more_try_no_test_evidence"
     },
     {
-      "id": "L2-04-GP02",
+      "id": "L2-04-GP-02",
       "owner_id": "L2-04",
       "mode": "GP",
       "role": "guided_practice",
@@ -1379,7 +1379,7 @@
       "retry": "hint_on_error_then_one_more_try_no_test_evidence"
     },
     {
-      "id": "L2-04-GP03",
+      "id": "L2-04-GP-03",
       "owner_id": "L2-04",
       "mode": "GP",
       "role": "guided_practice",
@@ -1424,7 +1424,7 @@
       "retry": "hint_on_error_then_one_more_try_no_test_evidence"
     },
     {
-      "id": "L2-04-GP04",
+      "id": "L2-04-GP-04",
       "owner_id": "L2-04",
       "mode": "GP",
       "role": "guided_practice",
@@ -1600,7 +1600,7 @@
       "hint": null
     },
     {
-      "id": "L2-05-GP01",
+      "id": "L2-05-GP-01",
       "owner_id": "L2-05",
       "mode": "GP",
       "role": "guided_practice",
@@ -1645,7 +1645,7 @@
       "retry": "hint_on_error_then_one_more_try_no_test_evidence"
     },
     {
-      "id": "L2-05-GP02",
+      "id": "L2-05-GP-02",
       "owner_id": "L2-05",
       "mode": "GP",
       "role": "guided_practice",
@@ -1690,7 +1690,7 @@
       "retry": "hint_on_error_then_one_more_try_no_test_evidence"
     },
     {
-      "id": "L2-05-GP03",
+      "id": "L2-05-GP-03",
       "owner_id": "L2-05",
       "mode": "GP",
       "role": "guided_practice",
@@ -1735,7 +1735,7 @@
       "retry": "hint_on_error_then_one_more_try_no_test_evidence"
     },
     {
-      "id": "L2-05-GP04",
+      "id": "L2-05-GP-04",
       "owner_id": "L2-05",
       "mode": "GP",
       "role": "guided_practice",
@@ -1956,7 +1956,7 @@
       "hint": null
     },
     {
-      "id": "L2-06-GP01",
+      "id": "L2-06-GP-01",
       "owner_id": "L2-06",
       "mode": "GP",
       "role": "guided_practice",
@@ -2003,7 +2003,7 @@
       "retry": "hint_on_error_then_one_more_try_no_test_evidence"
     },
     {
-      "id": "L2-06-GP02",
+      "id": "L2-06-GP-02",
       "owner_id": "L2-06",
       "mode": "GP",
       "role": "guided_practice",
@@ -2050,7 +2050,7 @@
       "retry": "hint_on_error_then_one_more_try_no_test_evidence"
     },
     {
-      "id": "L2-06-GP03",
+      "id": "L2-06-GP-03",
       "owner_id": "L2-06",
       "mode": "GP",
       "role": "guided_practice",
@@ -2095,7 +2095,7 @@
       "retry": "hint_on_error_then_one_more_try_no_test_evidence"
     },
     {
-      "id": "L2-06-GP04",
+      "id": "L2-06-GP-04",
       "owner_id": "L2-06",
       "mode": "GP",
       "role": "guided_practice",
