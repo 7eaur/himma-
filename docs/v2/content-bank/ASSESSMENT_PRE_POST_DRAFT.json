@@ -15,7 +15,7 @@
       "evidence_type": "visual_discrimination",
       "role": "pretest",
       "interaction": "choose_one",
-      "prompt": "اختر الحرف ب.",
+      "prompt": "اختر الحرف ج.",
       "stimulus": {
         "text": null,
         "media": []
@@ -23,17 +23,17 @@
       "options": [
         {
           "id": "a",
-          "text": "ت",
+          "text": "ح",
           "media": []
         },
         {
           "id": "b",
-          "text": "ب",
+          "text": "ج",
           "media": []
         },
         {
           "id": "c",
-          "text": "ث",
+          "text": "خ",
           "media": []
         }
       ],
@@ -48,7 +48,8 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "content_qa_note": "سؤال تعرف على الجيم مستقل عن سؤال موضع نقطة الباء في الاختبار نفسه."
     },
     {
       "id": "V2-PRE-Q02",
