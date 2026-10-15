@@ -1878,6 +1878,14 @@
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
+      },
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
       }
     },
     {
@@ -1972,6 +1980,14 @@
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
+      },
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
       }
     },
     {
@@ -2007,7 +2023,15 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": null
+      "hint": null,
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "L1-04-IC-A02",
@@ -2091,7 +2115,15 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": null
+      "hint": null,
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "L1-04-IC-A04",
@@ -2333,7 +2365,15 @@
         "graded_as_check": false
       },
       "reading_reference": "نَزَلَ",
-      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة."
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "L1-05-IC-A01",
@@ -2460,7 +2500,15 @@
       "status": "authored_draft",
       "hint": null,
       "reading_reference": "رَكَبَ",
-      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة."
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "L1-05-IC-A04",
@@ -2546,6 +2594,14 @@
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
+      },
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
       }
     },
     {
@@ -2640,6 +2696,14 @@
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
+      },
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
       }
     },
     {
@@ -2739,7 +2803,15 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": null
+      "hint": null,
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "L1-06-IC-A02",
@@ -2823,7 +2895,15 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": null
+      "hint": null,
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "L1-06-IC-A04",
@@ -3378,6 +3458,14 @@
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
+      },
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
       }
     },
     {
@@ -3466,7 +3554,15 @@
       "status": "authored_draft",
       "hint": null,
       "reading_reference": "دُ",
-      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة."
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "SUP-03-SC-02",
@@ -3552,6 +3648,14 @@
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
+      },
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
       }
     },
     {
@@ -3636,7 +3740,15 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": null
+      "hint": null,
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "SUP-04-SC-02",
@@ -3671,7 +3783,15 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": null
+      "hint": null,
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "SUP-01-GP-04",
@@ -4231,7 +4351,15 @@
       "hint": "اقرأه بصوت واحد.",
       "retry": "guided_try_after_hint",
       "status": "draft_pending_review",
-      "origin_v1": null
+      "origin_v1": null,
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "SUP-03-GP-04",
@@ -4307,7 +4435,15 @@
       "retry": null,
       "status": "draft_pending_review",
       "origin_v1": null,
-      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة."
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "SUP-03-SC-04",
