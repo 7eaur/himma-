@@ -1083,7 +1083,7 @@
       "interaction": "choose_one",
       "prompt": "اختر الحرف الذي له ثلاث نقاط فوق.",
       "stimulus": {
-        "text": "اختر الحرف",
+        "text": null,
         "media": []
       },
       "options": [
