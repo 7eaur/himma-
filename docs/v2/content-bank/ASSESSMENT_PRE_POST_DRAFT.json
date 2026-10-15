@@ -303,7 +303,15 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "V2-PRE-Q07",
@@ -395,7 +403,15 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "V2-PRE-Q09",
@@ -601,9 +617,9 @@
           "reference_text": "قَلَم",
           "accept_equivalent": true,
           "criteria": [
-            "جملة مفيدة أو كلمة صحيحة",
-            "الترتيب",
-            "الإملاء المناسب للمستوى"
+            "مطابقة اسم الشيء المقصود",
+            "صحة حروف الكلمة وترتيبها",
+            "وضوح الكتابة"
           ],
           "academic_auto_grade": false
         }
@@ -617,7 +633,19 @@
       "technical_gaps": [
         "free_writing_not_confirmed_in_v1"
       ],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "writing_scoring_policy": {
+        "task_type": "single_word_spelling",
+        "reviewer": "human_supervisor",
+        "accept_equivalent_grammatical_answers": false,
+        "do_not_require_student_to_enter_diacritics": true,
+        "grade_dimensions": [
+          "مطابقة اسم الشيء المقصود",
+          "صحة حروف الكلمة وترتيبها",
+          "وضوح الكتابة"
+        ],
+        "no_single_exact_answer": false
+      }
     },
     {
       "id": "V2-PRE-Q13",
@@ -763,7 +791,15 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "V2-PRE-Q16",
@@ -803,7 +839,15 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "V2-PRE-Q17",
@@ -847,7 +891,15 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "V2-PRE-Q18",
@@ -937,7 +989,15 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "V2-PRE-Q20",
@@ -977,7 +1037,15 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "V2-PRE-Q21",
@@ -1458,9 +1526,10 @@
           "reference_text": "جملة مفيدة قصيرة تصف الزهرة",
           "accept_equivalent": true,
           "criteria": [
-            "جملة مفيدة أو كلمة صحيحة",
-            "الترتيب",
-            "الإملاء المناسب للمستوى"
+            "معنى واضح مرتبط بالمطلوب",
+            "جملة مفيدة ولو اختلفت عن المثال",
+            "ترتيب الكلمات",
+            "إملاء مناسب للمستوى"
           ],
           "academic_auto_grade": false
         }
@@ -1474,7 +1543,20 @@
       "technical_gaps": [
         "free_writing_not_confirmed_in_v1"
       ],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "writing_scoring_policy": {
+        "task_type": "short_open_sentence",
+        "reviewer": "human_supervisor",
+        "accept_equivalent_grammatical_answers": true,
+        "do_not_require_student_to_enter_diacritics": true,
+        "grade_dimensions": [
+          "معنى واضح مرتبط بالمطلوب",
+          "جملة مفيدة ولو اختلفت عن المثال",
+          "ترتيب الكلمات",
+          "إملاء مناسب للمستوى"
+        ],
+        "no_single_exact_answer": true
+      }
     }
   ],
   "posttest": [
@@ -1779,7 +1861,15 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "V2-POST-Q07",
@@ -1871,7 +1961,15 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "V2-POST-Q09",
@@ -2077,9 +2175,9 @@
           "reference_text": "بَاب",
           "accept_equivalent": true,
           "criteria": [
-            "جملة مفيدة أو كلمة صحيحة",
-            "الترتيب",
-            "الإملاء المناسب للمستوى"
+            "مطابقة اسم الشيء المقصود",
+            "صحة حروف الكلمة وترتيبها",
+            "وضوح الكتابة"
           ],
           "academic_auto_grade": false
         }
@@ -2093,7 +2191,19 @@
       "technical_gaps": [
         "free_writing_not_confirmed_in_v1"
       ],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "writing_scoring_policy": {
+        "task_type": "single_word_spelling",
+        "reviewer": "human_supervisor",
+        "accept_equivalent_grammatical_answers": false,
+        "do_not_require_student_to_enter_diacritics": true,
+        "grade_dimensions": [
+          "مطابقة اسم الشيء المقصود",
+          "صحة حروف الكلمة وترتيبها",
+          "وضوح الكتابة"
+        ],
+        "no_single_exact_answer": false
+      }
     },
     {
       "id": "V2-POST-Q13",
@@ -2238,7 +2348,15 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "V2-POST-Q16",
@@ -2278,7 +2396,15 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "V2-POST-Q17",
@@ -2322,7 +2448,15 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "V2-POST-Q18",
@@ -2412,7 +2546,15 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "V2-POST-Q20",
@@ -2452,7 +2594,15 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "V2-POST-Q21",
@@ -2933,9 +3083,10 @@
           "reference_text": "جملة مفيدة عن المكتبة",
           "accept_equivalent": true,
           "criteria": [
-            "جملة مفيدة أو كلمة صحيحة",
-            "الترتيب",
-            "الإملاء المناسب للمستوى"
+            "معنى واضح مرتبط بالمطلوب",
+            "جملة مفيدة ولو اختلفت عن المثال",
+            "ترتيب الكلمات",
+            "إملاء مناسب للمستوى"
           ],
           "academic_auto_grade": false
         }
@@ -2949,7 +3100,20 @@
       "technical_gaps": [
         "free_writing_not_confirmed_in_v1"
       ],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "writing_scoring_policy": {
+        "task_type": "short_open_sentence",
+        "reviewer": "human_supervisor",
+        "accept_equivalent_grammatical_answers": true,
+        "do_not_require_student_to_enter_diacritics": true,
+        "grade_dimensions": [
+          "معنى واضح مرتبط بالمطلوب",
+          "جملة مفيدة ولو اختلفت عن المثال",
+          "ترتيب الكلمات",
+          "إملاء مناسب للمستوى"
+        ],
+        "no_single_exact_answer": true
+      }
     }
   ],
   "media": [
