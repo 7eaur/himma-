@@ -1740,7 +1740,7 @@
         "text": null,
         "media": [
           {
-            "media_id": "SYL-05",
+            "media_id": "AUD-V2-POST-TI",
             "kind": "audio"
           }
         ]
@@ -1748,17 +1748,17 @@
       "options": [
         {
           "id": "a",
-          "text": "مُ",
+          "text": "تَ",
           "media": []
         },
         {
           "id": "b",
-          "text": "مَ",
+          "text": "تُ",
           "media": []
         },
         {
           "id": "c",
-          "text": "مِ",
+          "text": "تِ",
           "media": []
         }
       ],
@@ -1771,11 +1771,12 @@
       "reading_reference": null,
       "role_specific_hints_allowed": false,
       "media_ids": [
-        "SYL-05"
+        "AUD-V2-POST-TI"
       ],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "content_qa_note": "صوت جديد تِ لضمان استقلال اختبار البعدي عن تدريبات V2."
     },
     {
       "id": "V2-POST-Q05",
@@ -1897,23 +1898,23 @@
       "interaction": "sequence",
       "prompt": "رتب المقاطع لتكوّن الكلمة المناسبة للمعنى.",
       "stimulus": {
-        "text": "فعل نفعله عند الحركة في الماء.",
+        "text": "فعل يعني وضع بذرة في التراب.",
         "media": []
       },
       "options": [
         {
           "id": "a",
-          "text": "بَ",
+          "text": "رَ",
           "media": []
         },
         {
           "id": "b",
-          "text": "حَ",
+          "text": "عَ",
           "media": []
         },
         {
           "id": "c",
-          "text": "سَ",
+          "text": "زَ",
           "media": []
         }
       ],
@@ -1930,7 +1931,8 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "content_qa_note": "تركيب زَرَعَ بلا إظهار الكلمة المستهدفة."
     },
     {
       "id": "V2-POST-Q08",
@@ -2171,7 +2173,7 @@
         "text": null,
         "media": [
           {
-            "media_id": "VOC-07",
+            "media_id": "VOC-16",
             "kind": "image"
           }
         ]
@@ -2181,7 +2183,7 @@
         "correct_option_ids": [],
         "rubric": {
           "authority": "human_supervisor",
-          "reference_text": "قَمَر",
+          "reference_text": "قِطَّة",
           "accept_equivalent": true,
           "criteria": [
             "مطابقة اسم الشيء المقصود",
@@ -2194,7 +2196,7 @@
       "reading_reference": null,
       "role_specific_hints_allowed": false,
       "media_ids": [
-        "VOC-07"
+        "VOC-16"
       ],
       "media_status": "pending_owner_review",
       "technical_gaps": [
@@ -2207,12 +2209,13 @@
         "accept_equivalent_grammatical_answers": false,
         "do_not_require_student_to_enter_diacritics": true,
         "grade_dimensions": [
-          "مطابقة اسم الشيء المقصود",
-          "صحة حروف الكلمة وترتيبها",
-          "وضوح الكتابة"
+          "مطابقة اسم الصورة",
+          "صحة الحروف بالترتيب",
+          "وضوح كتابة الكلمة دون اشتراط التشكيل"
         ],
         "no_single_exact_answer": false
-      }
+      },
+      "content_qa_note": "صورة قطة جديدة من V1 لا تظهر خلال تدريبات كتابة الدروس."
     },
     {
       "id": "V2-POST-Q13",
@@ -2232,7 +2235,7 @@
         "text": null,
         "media": [
           {
-            "media_id": "SYL-11",
+            "media_id": "AUD-V2-POST-BUU",
             "kind": "audio"
           }
         ]
@@ -2240,34 +2243,35 @@
       "options": [
         {
           "id": "a",
-          "text": "نُ",
+          "text": "بُ",
           "media": []
         },
         {
           "id": "b",
-          "text": "نَا",
+          "text": "بُو",
           "media": []
         },
         {
           "id": "c",
-          "text": "نُو",
+          "text": "بَا",
           "media": []
         }
       ],
       "private_answer": {
         "correct_option_ids": [
-          "c"
+          "b"
         ],
         "rubric": null
       },
       "reading_reference": null,
       "role_specific_hints_allowed": false,
       "media_ids": [
-        "SYL-11"
+        "AUD-V2-POST-BUU"
       ],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "content_qa_note": "صوت جديد بُو لتفادي إعادة مقطع نُو المحفوظ في التدريب."
     },
     {
       "id": "V2-POST-Q14",
@@ -3286,6 +3290,29 @@
       "label": "شمس",
       "origin_v1_id": "VOC-06",
       "status": "selected_from_v1_pending_owner_review"
+    },
+    {
+      "id": "VOC-16",
+      "kind": "image",
+      "origin_v1_id": "VOC-16",
+      "label": "قطة",
+      "status": "selected_from_v1_pending_owner_review"
+    },
+    {
+      "id": "AUD-V2-POST-TI",
+      "kind": "audio",
+      "label": "تِ",
+      "required_spoken_text": "تِ",
+      "status": "missing_new",
+      "review": "owner_after_content_completion"
+    },
+    {
+      "id": "AUD-V2-POST-BUU",
+      "kind": "audio",
+      "label": "بُو",
+      "required_spoken_text": "بُو",
+      "status": "missing_new",
+      "review": "owner_after_content_completion"
     }
   ],
   "distribution_target": {
