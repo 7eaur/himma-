@@ -26,10 +26,10 @@
       ],
       "video_brief": "يعرض الصوت المناسب لكل حرف، ثم يبدأ من الصوت للوصول إلى الحرف. يجب التفريق بين اسم الحرف وصوته. لا شرح للأبجدية كاملة.",
       "practice_question_ids": [
-        "L1-01-GP01",
-        "L1-01-GP02",
-        "L1-01-GP03",
-        "L1-01-GP04"
+        "L1-01-GP-01",
+        "L1-01-GP-02",
+        "L1-01-GP-03",
+        "L1-01-GP-04"
       ],
       "check_question_ids": [
         "L1-01-IC-A01",
@@ -70,10 +70,10 @@
       ],
       "video_brief": "المقارنة بالنقاط أولًا ثم بالأصوات المتقاربة، دون تفصيل مخارج الحروف.",
       "practice_question_ids": [
-        "L1-02-GP01",
-        "L1-02-GP02",
-        "L1-02-GP03",
-        "L1-02-GP04"
+        "L1-02-GP-01",
+        "L1-02-GP-02",
+        "L1-02-GP-03",
+        "L1-02-GP-04"
       ],
       "check_question_ids": [
         "L1-02-IC-A01",
@@ -115,10 +115,10 @@
       ],
       "video_brief": "اشرح التغيير في صوت الحرف الواحد وثبته على حروف أخرى؛ لا تستخدم المدود في هذا الدرس.",
       "practice_question_ids": [
-        "L1-03-GP01",
-        "L1-03-GP02",
-        "L1-03-GP03",
-        "L1-03-GP04"
+        "L1-03-GP-01",
+        "L1-03-GP-02",
+        "L1-03-GP-03",
+        "L1-03-GP-04"
       ],
       "check_question_ids": [
         "L1-03-IC-A01",
@@ -162,10 +162,10 @@
       ],
       "video_brief": "أظهر الفرق بين الحرف المفرد والحرف المتحرك وانطق المقطع كوحدة، دون استخدام مقاطع المد الطويلة التي تخص L2.",
       "practice_question_ids": [
-        "L1-04-GP01",
-        "L1-04-GP02",
-        "L1-04-GP03",
-        "L1-04-GP04"
+        "L1-04-GP-01",
+        "L1-04-GP-02",
+        "L1-04-GP-03",
+        "L1-04-GP-04"
       ],
       "check_question_ids": [
         "L1-04-IC-A01",
@@ -206,10 +206,10 @@
       ],
       "video_brief": "شرح استراتيجية الدمج تدريجيًا؛ لا تحويل الدرس إلى حفظ كلمات.",
       "practice_question_ids": [
-        "L1-05-GP01",
-        "L1-05-GP02",
-        "L1-05-GP03",
-        "L1-05-GP04"
+        "L1-05-GP-01",
+        "L1-05-GP-02",
+        "L1-05-GP-03",
+        "L1-05-GP-04"
       ],
       "check_question_ids": [
         "L1-05-IC-A01",
@@ -250,10 +250,10 @@
       ],
       "video_brief": "ربط تحليل الكلمة بقراءتها كوحدة؛ الصورة اختيارية للمعنى وليست بديلًا عن القراءة.",
       "practice_question_ids": [
-        "L1-06-GP01",
-        "L1-06-GP02",
-        "L1-06-GP03",
-        "L1-06-GP04"
+        "L1-06-GP-01",
+        "L1-06-GP-02",
+        "L1-06-GP-03",
+        "L1-06-GP-04"
       ],
       "check_question_ids": [
         "L1-06-IC-A01",
@@ -426,7 +426,7 @@
   ],
   "questions": [
     {
-      "id": "L1-01-GP01",
+      "id": "L1-01-GP-01",
       "owner_id": "L1-01",
       "role": "guided_practice",
       "mode": "GP",
@@ -480,7 +480,7 @@
       }
     },
     {
-      "id": "L1-01-GP02",
+      "id": "L1-01-GP-02",
       "owner_id": "L1-01",
       "role": "guided_practice",
       "mode": "GP",
@@ -546,7 +546,7 @@
       }
     },
     {
-      "id": "L1-01-GP03",
+      "id": "L1-01-GP-03",
       "owner_id": "L1-01",
       "role": "guided_practice",
       "mode": "GP",
@@ -600,7 +600,7 @@
       }
     },
     {
-      "id": "L1-01-GP04",
+      "id": "L1-01-GP-04",
       "owner_id": "L1-01",
       "role": "guided_practice",
       "mode": "GP",
@@ -890,7 +890,7 @@
       "notes": "LET-01 ملفه الحالي ينطق مَ؛ الاستعمال رهين مراجعة المالك لاحقًا."
     },
     {
-      "id": "L1-02-GP01",
+      "id": "L1-02-GP-01",
       "owner_id": "L1-02",
       "role": "guided_practice",
       "mode": "GP",
@@ -939,7 +939,7 @@
       }
     },
     {
-      "id": "L1-02-GP02",
+      "id": "L1-02-GP-02",
       "owner_id": "L1-02",
       "role": "guided_practice",
       "mode": "GP",
@@ -988,7 +988,7 @@
       }
     },
     {
-      "id": "L1-02-GP03",
+      "id": "L1-02-GP-03",
       "owner_id": "L1-02",
       "role": "guided_practice",
       "mode": "GP",
@@ -1040,7 +1040,7 @@
       "notes": "الأصل الصوتي جديد حتى يراجع."
     },
     {
-      "id": "L1-02-GP04",
+      "id": "L1-02-GP-04",
       "owner_id": "L1-02",
       "role": "guided_practice",
       "mode": "GP",
@@ -1259,7 +1259,7 @@
       "hint": null
     },
     {
-      "id": "L1-03-GP01",
+      "id": "L1-03-GP-01",
       "owner_id": "L1-03",
       "role": "guided_practice",
       "mode": "GP",
@@ -1314,7 +1314,7 @@
       "notes": "الصوت مطابق في V1: بِ"
     },
     {
-      "id": "L1-03-GP02",
+      "id": "L1-03-GP-02",
       "owner_id": "L1-03",
       "role": "guided_practice",
       "mode": "GP",
@@ -1363,7 +1363,7 @@
       }
     },
     {
-      "id": "L1-03-GP03",
+      "id": "L1-03-GP-03",
       "owner_id": "L1-03",
       "role": "guided_practice",
       "mode": "GP",
@@ -1419,7 +1419,7 @@
       }
     },
     {
-      "id": "L1-03-GP04",
+      "id": "L1-03-GP-04",
       "owner_id": "L1-03",
       "role": "guided_practice",
       "mode": "GP",
@@ -1663,7 +1663,7 @@
       "hint": null
     },
     {
-      "id": "L1-04-GP01",
+      "id": "L1-04-GP-01",
       "owner_id": "L1-04",
       "role": "guided_practice",
       "mode": "GP",
@@ -1717,7 +1717,7 @@
       }
     },
     {
-      "id": "L1-04-GP02",
+      "id": "L1-04-GP-02",
       "owner_id": "L1-04",
       "role": "guided_practice",
       "mode": "GP",
@@ -1757,7 +1757,7 @@
       }
     },
     {
-      "id": "L1-04-GP03",
+      "id": "L1-04-GP-03",
       "owner_id": "L1-04",
       "role": "guided_practice",
       "mode": "GP",
@@ -1811,7 +1811,7 @@
       }
     },
     {
-      "id": "L1-04-GP04",
+      "id": "L1-04-GP-04",
       "owner_id": "L1-04",
       "role": "guided_practice",
       "mode": "GP",
@@ -2019,7 +2019,7 @@
       "hint": null
     },
     {
-      "id": "L1-05-GP01",
+      "id": "L1-05-GP-01",
       "owner_id": "L1-05",
       "role": "guided_practice",
       "mode": "GP",
@@ -2070,7 +2070,7 @@
       }
     },
     {
-      "id": "L1-05-GP02",
+      "id": "L1-05-GP-02",
       "owner_id": "L1-05",
       "role": "guided_practice",
       "mode": "GP",
@@ -2119,7 +2119,7 @@
       }
     },
     {
-      "id": "L1-05-GP03",
+      "id": "L1-05-GP-03",
       "owner_id": "L1-05",
       "role": "guided_practice",
       "mode": "GP",
@@ -2170,7 +2170,7 @@
       }
     },
     {
-      "id": "L1-05-GP04",
+      "id": "L1-05-GP-04",
       "owner_id": "L1-05",
       "role": "guided_practice",
       "mode": "GP",
@@ -2381,7 +2381,7 @@
       "hint": null
     },
     {
-      "id": "L1-06-GP01",
+      "id": "L1-06-GP-01",
       "owner_id": "L1-06",
       "role": "guided_practice",
       "mode": "GP",
@@ -2421,7 +2421,7 @@
       }
     },
     {
-      "id": "L1-06-GP02",
+      "id": "L1-06-GP-02",
       "owner_id": "L1-06",
       "role": "guided_practice",
       "mode": "GP",
@@ -2475,7 +2475,7 @@
       }
     },
     {
-      "id": "L1-06-GP03",
+      "id": "L1-06-GP-03",
       "owner_id": "L1-06",
       "role": "guided_practice",
       "mode": "GP",
@@ -2515,7 +2515,7 @@
       }
     },
     {
-      "id": "L1-06-GP04",
+      "id": "L1-06-GP-04",
       "owner_id": "L1-06",
       "role": "guided_practice",
       "mode": "GP",
