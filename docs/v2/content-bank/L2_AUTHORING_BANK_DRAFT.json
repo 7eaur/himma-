@@ -1005,7 +1005,7 @@
       "interaction": "choose_one",
       "prompt": "أي كلمة فيها مد بالواو؟",
       "stimulus": {
-        "text": "اختر الكلمة",
+        "text": null,
         "media": []
       },
       "options": [
@@ -2496,7 +2496,7 @@
       "interaction": "choose_one",
       "prompt": "أي خيار جملة صحيحة؟",
       "stimulus": {
-        "text": "رتب المعنى",
+        "text": null,
         "media": []
       },
       "options": [
@@ -2852,7 +2852,7 @@
       "interaction": "choose_one",
       "prompt": "أي كلمة فيها مد بالياء؟",
       "stimulus": {
-        "text": "ابحث عن المد",
+        "text": null,
         "media": []
       },
       "options": [
@@ -2899,7 +2899,7 @@
       "interaction": "choose_one",
       "prompt": "أي كلمة فيها مد بالواو؟",
       "stimulus": {
-        "text": "اختر الكلمة",
+        "text": null,
         "media": []
       },
       "options": [
@@ -3501,7 +3501,7 @@
       "interaction": "choose_one",
       "prompt": "أي كلمة فيها مد بالواو؟",
       "stimulus": {
-        "text": "اختر",
+        "text": null,
         "media": []
       },
       "options": [
@@ -3541,7 +3541,7 @@
       "interaction": "choose_one",
       "prompt": "أي كلمة فيها مد بالياء؟",
       "stimulus": {
-        "text": "اختر",
+        "text": null,
         "media": []
       },
       "options": [
