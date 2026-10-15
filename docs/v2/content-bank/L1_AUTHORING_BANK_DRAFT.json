@@ -2290,9 +2290,9 @@
       "role": "guided_practice",
       "mode": "GP",
       "interaction": "sequence",
-      "prompt": "رتب المقاطع لتكوّن كلمة جَلَسَ.",
+      "prompt": "رتب المقاطع لتكوّن الكلمة المناسبة للمعنى.",
       "stimulus": {
-        "text": "جَ + لَ + سَ",
+        "text": "فعل نفعله عندما نضع أجسامنا على المقاعد.",
         "media": []
       },
       "options": [
@@ -2394,9 +2394,9 @@
       "role": "guided_practice",
       "mode": "GP",
       "interaction": "sequence",
-      "prompt": "رتب المقاطع لتكوين كلمة فَتَحَ.",
+      "prompt": "رتب المقاطع لتكوّن الكلمة المناسبة للمعنى.",
       "stimulus": {
-        "text": "فَ + تَ + حَ",
+        "text": "فعل نفعله بالباب لنتمكن من الدخول.",
         "media": []
       },
       "options": [
@@ -2499,9 +2499,9 @@
       "role": "independent_check",
       "mode": "IC",
       "interaction": "sequence",
-      "prompt": "رتب المقاطع لتكوّن كلمة سَبَحَ.",
+      "prompt": "رتب المقاطع لتكوّن الكلمة المناسبة للمعنى.",
       "stimulus": {
-        "text": "سَ — بَ — حَ",
+        "text": "فعل نفعله عند الحركة في الماء.",
         "media": []
       },
       "options": [
@@ -2640,9 +2640,9 @@
       "role": "independent_check",
       "mode": "IC",
       "interaction": "sequence",
-      "prompt": "رتب أجزاء كلمة حَمَلَ.",
+      "prompt": "رتب المقاطع لتكوّن الكلمة المناسبة للمعنى.",
       "stimulus": {
-        "text": "حَ — مَ — لَ",
+        "text": "فعل يعني رفع شيء ونقله.",
         "media": []
       },
       "options": [
@@ -3638,9 +3638,9 @@
       "role": "guided_practice",
       "mode": "GP",
       "interaction": "sequence",
-      "prompt": "رتب المقاطع لتكوين كلمة رَسَمَ.",
+      "prompt": "رتب المقاطع لتكوّن الكلمة المناسبة للمعنى.",
       "stimulus": {
-        "text": "رَ / سَ / مَ",
+        "text": "فعل يعني صنع صورة بالقلم.",
         "media": []
       },
       "options": [
@@ -3738,9 +3738,9 @@
       "role": "support_check",
       "mode": "IC",
       "interaction": "sequence",
-      "prompt": "رتب الأجزاء لكلمة نَزَلَ.",
+      "prompt": "رتب المقاطع لتكوّن الكلمة المناسبة للمعنى.",
       "stimulus": {
-        "text": "نَ / زَ / لَ",
+        "text": "فعل يعني الهبوط من مكان مرتفع.",
         "media": []
       },
       "options": [
@@ -4573,9 +4573,9 @@
       "mode": "GP",
       "role": "guided_practice",
       "interaction": "sequence",
-      "prompt": "رتب المقاطع لتكون كَتَبَ.",
+      "prompt": "رتب المقاطع لتكوّن الكلمة المناسبة للمعنى.",
       "stimulus": {
-        "text": "كَ / تَ / بَ",
+        "text": "فعل نفعله لتدوين الكلمات في الدفتر.",
         "media": []
       },
       "options": [
@@ -4661,9 +4661,9 @@
       "mode": "IC",
       "role": "support_check",
       "interaction": "sequence",
-      "prompt": "رتب المقاطع لتكون كلمة دَرَسَ.",
+      "prompt": "رتب المقاطع لتكوّن الكلمة المناسبة للمعنى.",
       "stimulus": {
-        "text": "دَ / رَ / سَ",
+        "text": "فعل يعني تعلم الدرس وفهمه.",
         "media": []
       },
       "options": [
