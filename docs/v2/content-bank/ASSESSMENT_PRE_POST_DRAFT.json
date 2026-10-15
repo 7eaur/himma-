@@ -1283,12 +1283,12 @@
       "options": [
         {
           "id": "a",
-          "text": "تنظيف الساحة",
+          "text": "لون الأوراق",
           "media": []
         },
         {
           "id": "b",
-          "text": "لون الأوراق",
+          "text": "تنظيف الساحة",
           "media": []
         },
         {
@@ -1299,7 +1299,7 @@
       ],
       "private_answer": {
         "correct_option_ids": [
-          "a"
+          "b"
         ],
         "rubric": null
       },
@@ -1308,7 +1308,8 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها."
     },
     {
       "id": "V2-PRE-Q28",
@@ -1331,23 +1332,23 @@
       "options": [
         {
           "id": "a",
-          "text": "التعلم من زيارة المتحف",
-          "media": []
-        },
-        {
-          "id": "b",
           "text": "لون الأدوات",
           "media": []
         },
         {
-          "id": "c",
+          "id": "b",
           "text": "اسم عمر",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "التعلم من زيارة المتحف",
           "media": []
         }
       ],
       "private_answer": {
         "correct_option_ids": [
-          "a"
+          "c"
         ],
         "rubric": null
       },
@@ -1356,7 +1357,8 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها."
     },
     {
       "id": "V2-PRE-Q29",
@@ -2740,23 +2742,23 @@
       "options": [
         {
           "id": "a",
-          "text": "التعاون في ترتيب الصف",
-          "media": []
-        },
-        {
-          "id": "b",
           "text": "عدد الأقلام",
           "media": []
         },
         {
-          "id": "c",
+          "id": "b",
           "text": "لون الكتب",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "التعاون في ترتيب الصف",
           "media": []
         }
       ],
       "private_answer": {
         "correct_option_ids": [
-          "a"
+          "c"
         ],
         "rubric": null
       },
@@ -2765,7 +2767,8 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها."
     },
     {
       "id": "V2-POST-Q28",
@@ -2788,12 +2791,12 @@
       "options": [
         {
           "id": "a",
-          "text": "العناية بالنبات",
+          "text": "قرب الضوء وحده",
           "media": []
         },
         {
           "id": "b",
-          "text": "قرب الضوء وحده",
+          "text": "العناية بالنبات",
           "media": []
         },
         {
@@ -2804,7 +2807,7 @@
       ],
       "private_answer": {
         "correct_option_ids": [
-          "a"
+          "b"
         ],
         "rubric": null
       },
@@ -2813,7 +2816,8 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها."
     },
     {
       "id": "V2-POST-Q29",
