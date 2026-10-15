@@ -1508,12 +1508,12 @@
       "evidence_type": "sentence_writing",
       "role": "pretest",
       "interaction": "write_text",
-      "prompt": "اكتب جملة قصيرة عن الزهرة في الصورة.",
+      "prompt": "اكتب جملة قصيرة عن القمر في الصورة.",
       "stimulus": {
         "text": null,
         "media": [
           {
-            "media_id": "VOC-28",
+            "media_id": "VOC-07",
             "kind": "image"
           }
         ]
@@ -1523,7 +1523,7 @@
         "correct_option_ids": [],
         "rubric": {
           "authority": "human_supervisor",
-          "reference_text": "جملة مفيدة قصيرة تصف الزهرة",
+          "reference_text": "جملة مفيدة تصف القمر",
           "accept_equivalent": true,
           "criteria": [
             "معنى واضح مرتبط بالمطلوب",
@@ -1537,7 +1537,7 @@
       "reading_reference": null,
       "role_specific_hints_allowed": false,
       "media_ids": [
-        "VOC-28"
+        "VOC-07"
       ],
       "media_status": "pending_owner_review",
       "technical_gaps": [
@@ -1938,7 +1938,7 @@
       "interaction": "read_aloud",
       "prompt": "اقرأ الكلمة.",
       "stimulus": {
-        "text": "نَخْلَة",
+        "text": "زَهْرَة",
         "media": []
       },
       "options": [],
@@ -1946,7 +1946,7 @@
         "correct_option_ids": [],
         "rubric": {
           "authority": "human_supervisor",
-          "reference_text": "نَخْلَة",
+          "reference_text": "زَهْرَة",
           "accept_equivalent": true,
           "criteria": [
             "صحة الأصوات والكلمات",
@@ -1956,7 +1956,7 @@
           "academic_auto_grade": false
         }
       },
-      "reading_reference": "نَخْلَة",
+      "reading_reference": "زَهْرَة",
       "role_specific_hints_allowed": false,
       "media_ids": [],
       "media_status": "pending_owner_review",
@@ -2055,33 +2055,33 @@
       "evidence_type": "word_construction",
       "role": "posttest",
       "interaction": "build_word",
-      "prompt": "رتب حروف كلمة سَمَك.",
+      "prompt": "رتب حروف كلمة جَبَل.",
       "stimulus": {
-        "text": "سَمَك",
+        "text": "جَبَل",
         "media": []
       },
       "options": [
         {
           "id": "a",
-          "text": "ك",
+          "text": "ب",
           "media": []
         },
         {
           "id": "b",
-          "text": "س",
+          "text": "ل",
           "media": []
         },
         {
           "id": "c",
-          "text": "م",
+          "text": "ج",
           "media": []
         }
       ],
       "private_answer": {
         "correct_option_ids": [
-          "b",
           "c",
-          "a"
+          "a",
+          "b"
         ],
         "rubric": null
       },
@@ -2162,7 +2162,7 @@
         "text": null,
         "media": [
           {
-            "media_id": "VOC-03",
+            "media_id": "VOC-07",
             "kind": "image"
           }
         ]
@@ -2172,7 +2172,7 @@
         "correct_option_ids": [],
         "rubric": {
           "authority": "human_supervisor",
-          "reference_text": "بَاب",
+          "reference_text": "قَمَر",
           "accept_equivalent": true,
           "criteria": [
             "مطابقة اسم الشيء المقصود",
@@ -2185,7 +2185,7 @@
       "reading_reference": null,
       "role_specific_hints_allowed": false,
       "media_ids": [
-        "VOC-03"
+        "VOC-07"
       ],
       "media_status": "pending_owner_review",
       "technical_gaps": [
@@ -2325,7 +2325,7 @@
       "interaction": "read_aloud",
       "prompt": "اقرأ الكلمة.",
       "stimulus": {
-        "text": "مَكْتَبَة",
+        "text": "حَافِلَة",
         "media": []
       },
       "options": [],
@@ -2333,7 +2333,7 @@
         "correct_option_ids": [],
         "rubric": {
           "authority": "human_supervisor",
-          "reference_text": "مَكْتَبَة",
+          "reference_text": "حَافِلَة",
           "accept_equivalent": true,
           "criteria": [
             "صحة الأصوات والكلمات",
@@ -2343,7 +2343,7 @@
           "academic_auto_grade": false
         }
       },
-      "reading_reference": "مَكْتَبَة",
+      "reading_reference": "حَافِلَة",
       "role_specific_hints_allowed": false,
       "media_ids": [],
       "media_status": "pending_owner_review",
@@ -2373,7 +2373,7 @@
       "interaction": "read_aloud",
       "prompt": "اقرأ الكلمة.",
       "stimulus": {
-        "text": "حَدِيقَة",
+        "text": "مِصْبَاح",
         "media": []
       },
       "options": [],
@@ -2381,7 +2381,7 @@
         "correct_option_ids": [],
         "rubric": {
           "authority": "human_supervisor",
-          "reference_text": "حَدِيقَة",
+          "reference_text": "مِصْبَاح",
           "accept_equivalent": true,
           "criteria": [
             "صحة الأصوات والكلمات",
@@ -2391,7 +2391,7 @@
           "academic_auto_grade": false
         }
       },
-      "reading_reference": "حَدِيقَة",
+      "reading_reference": "مِصْبَاح",
       "role_specific_hints_allowed": false,
       "media_ids": [],
       "media_status": "pending_owner_review",
@@ -3065,12 +3065,12 @@
       "evidence_type": "sentence_writing",
       "role": "posttest",
       "interaction": "write_text",
-      "prompt": "اكتب جملة قصيرة عن المكتبة في الصورة.",
+      "prompt": "اكتب جملة قصيرة عن الشمس في الصورة.",
       "stimulus": {
         "text": null,
         "media": [
           {
-            "media_id": "VOC-22",
+            "media_id": "VOC-06",
             "kind": "image"
           }
         ]
@@ -3080,7 +3080,7 @@
         "correct_option_ids": [],
         "rubric": {
           "authority": "human_supervisor",
-          "reference_text": "جملة مفيدة عن المكتبة",
+          "reference_text": "جملة مفيدة تصف الشمس",
           "accept_equivalent": true,
           "criteria": [
             "معنى واضح مرتبط بالمطلوب",
@@ -3094,7 +3094,7 @@
       "reading_reference": null,
       "role_specific_hints_allowed": false,
       "media_ids": [
-        "VOC-22"
+        "VOC-06"
       ],
       "media_status": "pending_owner_review",
       "technical_gaps": [
@@ -3268,6 +3268,13 @@
       "origin_v1_id": "SYL-10",
       "status": "selected_from_v1_pending_owner_review",
       "path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-10.mp3"
+    },
+    {
+      "id": "VOC-06",
+      "kind": "image",
+      "label": "شمس",
+      "origin_v1_id": "VOC-06",
+      "status": "selected_from_v1_pending_owner_review"
     }
   ],
   "distribution_target": {
@@ -3301,6 +3308,7 @@
     "تحتاج البنود القرائية والأزواج القبلية والبعدية معايرة تربوية قبل الاستيراد أو استخدامها في تجربة بحثية.",
     "S5/S13 تتضمن كتابة حقيقية غير مثبتة في V1؛ لا نفترض دعم المشغل.",
     "لا صوت تلقائي لأسئلة فهم المقروء.",
-    "مراجعة تربوية: كل من القبلي والبعدي يغطي المد بالألف والواو والياء في 3 بنود بدل فقدان أحد الأنواع، وخفض تسجيلات القراءة من 8 إلى 7 لتخفيف الإجهاد."
+    "مراجعة تربوية: كل من القبلي والبعدي يغطي المد بالألف والواو والياء في 3 بنود بدل فقدان أحد الأنواع، وخفض تسجيلات القراءة من 8 إلى 7 لتخفيف الإجهاد.",
+    "QA تربوي 2026-10-15: تقليل تكرار بنود الاختبار البعدي مع أسئلة الدروس والدعم، وتنويع قراءة الكلمة والبناء والكتابة. تبقى الموازنة التجريبية للصعوبة مطلوبة."
   ]
 }
