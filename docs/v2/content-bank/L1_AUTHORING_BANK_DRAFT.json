@@ -2343,7 +2343,7 @@
       "role": "guided_practice",
       "mode": "GP",
       "interaction": "choose_one",
-      "prompt": "ما الكلمة التي تتكون من دَ + رَ + سَ؟",
+      "prompt": "ما الكلمة الناتجة من جمع المقاطع بالترتيب؟",
       "stimulus": {
         "text": "دَ + رَ + سَ",
         "media": []
@@ -2547,7 +2547,7 @@
       "role": "independent_check",
       "mode": "IC",
       "interaction": "choose_one",
-      "prompt": "ما ناتج دمج كَ + سَ + رَ؟",
+      "prompt": "ما الكلمة الناتجة من جمع المقاطع بالترتيب؟",
       "stimulus": {
         "text": "كَ + سَ + رَ",
         "media": []
@@ -3247,7 +3247,7 @@
       ],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": "استمع لصوت ص مرة أخرى.",
+      "hint": "استمع مرة أخرى، وقارن الصوتين المختلفين في الاختيارات.",
       "retry": {
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
@@ -4094,7 +4094,7 @@
       "evidence_type": "auditory_discrimination",
       "error_focus": "auditory_confusion",
       "reading_reference": null,
-      "hint": "أعد الاستماع.",
+      "hint": "كرر سماع الصوت، وانتبه إلى وجود صوت الشين من عدمه.",
       "retry": "guided_try_after_hint",
       "status": "draft_pending_review",
       "origin_v1": null,
