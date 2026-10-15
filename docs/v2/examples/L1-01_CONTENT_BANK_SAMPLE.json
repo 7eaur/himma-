@@ -1,0 +1,593 @@
+{
+  "schema_version": "himma-v2-content-bank/0.1",
+  "example_only": true,
+  "publication_status": "draft_not_published",
+  "lesson": {
+    "id": "L1-01",
+    "kind": "core_lesson",
+    "level": "L1",
+    "skill_group": "S1",
+    "title": "الحرف وصوته",
+    "objective": "أتعرف إلى الحرف وأربطه بصوته عندما أراه أو أسمعه.",
+    "template": "intro_video_practice_check",
+    "intro": {
+      "title": "الحرف وصوته",
+      "text": "لكل حرف شكل نراه وصوت نسمعه. سنتعلم كيف نربط الحرف بصوته.",
+      "button_label": "التالي"
+    },
+    "video": {
+      "media_id": "VID-L1-01",
+      "required_for_publish": true,
+      "scenes": [
+        {
+          "scene_id": "01",
+          "topic": "تقديم الفكرة",
+          "narration": "لكل حرف شكل نراه وصوت نسمعه. سنربط اليوم بين الشكل والصوت.",
+          "on_screen": "حرف كبير مع رمز استماع"
+        },
+        {
+          "scene_id": "02",
+          "topic": "م",
+          "narration": "هذا الحرف م. استمع إلى صوته. نسمعه في بداية كلمة مَوْز.",
+          "on_screen": "م ← مَوْز"
+        },
+        {
+          "scene_id": "03",
+          "topic": "ب",
+          "narration": "هذا الحرف ب. استمع إلى صوته. نسمعه في بداية كلمة بَاب.",
+          "on_screen": "ب ← بَاب"
+        },
+        {
+          "scene_id": "04",
+          "topic": "س",
+          "narration": "هذا الحرف س. استمع إلى صوته. نسمعه في بداية كلمة سَمَك.",
+          "on_screen": "س ← سَمَك"
+        },
+        {
+          "scene_id": "05",
+          "topic": "ق",
+          "narration": "هذا الحرف ق. استمع إلى صوته. نسمعه في بداية كلمة قَلَم.",
+          "on_screen": "ق ← قَلَم"
+        },
+        {
+          "scene_id": "06",
+          "topic": "ر",
+          "narration": "هذا الحرف ر. استمع إلى صوته. نسمعه في بداية كلمة رِيشَة.",
+          "on_screen": "ر ← رِيشَة"
+        },
+        {
+          "scene_id": "07",
+          "topic": "ن",
+          "narration": "هذا الحرف ن. استمع إلى صوته. نسمعه في بداية كلمة نَجْم.",
+          "on_screen": "ن ← نَجْم"
+        },
+        {
+          "scene_id": "08",
+          "topic": "تلخيص الفكرة",
+          "narration": "عندما ترى الحرف، تذكّر صوته. وعندما تسمع الصوت، ابحث عن الحرف.",
+          "on_screen": "شكل الحرف ↔ صوته"
+        }
+      ],
+      "completion_text": "أحسنت! عندما ترى الحرف تذكر صوته، وعندما تسمع الصوت ابحث عن الحرف الذي يمثله."
+    },
+    "practice_question_ids": [
+      "L1-01-GP-01",
+      "L1-01-GP-02",
+      "L1-01-GP-03",
+      "L1-01-GP-04",
+      "L1-01-GP-05",
+      "L1-01-GP-06",
+      "L1-01-TR-01"
+    ],
+    "check": {
+      "question_ids": [
+        "L1-01-IC-A01",
+        "L1-01-IC-A02",
+        "L1-01-IC-A03",
+        "L1-01-IC-A04",
+        "L1-01-IC-B01",
+        "L1-01-IC-B02",
+        "L1-01-IC-B03",
+        "L1-01-IC-B04"
+      ],
+      "items_per_attempt": 4,
+      "available_items": 8,
+      "distribution": {
+        "letter_to_sound": 2,
+        "sound_to_letter": 2
+      },
+      "answer_hints_enabled": false
+    },
+    "support_group_id": "SUP-01",
+    "content_version": "0.1.0",
+    "approval": "awaiting_educational_and_media_review"
+  },
+  "questions": [
+    {
+      "id": "L1-01-GP-01",
+      "role": "guided_practice",
+      "interaction": "listen_choose_one",
+      "prompt": "استمع ثم اختر الحرف.",
+      "stimulus": {
+        "audio_id": "AUD-B"
+      },
+      "options": [
+        {
+          "id": "B",
+          "label": "ب"
+        },
+        {
+          "id": "M",
+          "label": "م"
+        },
+        {
+          "id": "S",
+          "label": "س"
+        }
+      ],
+      "correct_option_id": "B",
+      "skill_group": "S1",
+      "evidence_type": "sound_to_letter",
+      "error_focus": "sound_mapping",
+      "hint": "استمع إلى بداية كلمة بَاب."
+    },
+    {
+      "id": "L1-01-GP-02",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "انظر إلى الحرف واختر صوته.",
+      "stimulus": {
+        "text": "ق"
+      },
+      "options": [
+        {
+          "id": "Q",
+          "audio_id": "AUD-Q",
+          "label": null
+        },
+        {
+          "id": "M",
+          "audio_id": "AUD-M",
+          "label": null
+        },
+        {
+          "id": "R",
+          "audio_id": "AUD-R",
+          "label": null
+        }
+      ],
+      "correct_option_id": "Q",
+      "skill_group": "S1",
+      "evidence_type": "letter_to_sound",
+      "error_focus": "sound_mapping",
+      "hint": "تذكر صوت الحرف في بداية قَلَم."
+    },
+    {
+      "id": "L1-01-GP-03",
+      "role": "guided_practice",
+      "interaction": "listen_choose_one",
+      "prompt": "استمع ثم اختر الحرف.",
+      "stimulus": {
+        "audio_id": "AUD-N"
+      },
+      "options": [
+        {
+          "id": "N",
+          "label": "ن"
+        },
+        {
+          "id": "B",
+          "label": "ب"
+        },
+        {
+          "id": "M",
+          "label": "م"
+        }
+      ],
+      "correct_option_id": "N",
+      "skill_group": "S1",
+      "evidence_type": "sound_to_letter",
+      "error_focus": "sound_mapping",
+      "hint": "اسمع بداية كلمة نَجْم."
+    },
+    {
+      "id": "L1-01-GP-04",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "انظر إلى الحرف واختر صوته.",
+      "stimulus": {
+        "text": "ر"
+      },
+      "options": [
+        {
+          "id": "R",
+          "audio_id": "AUD-R",
+          "label": null
+        },
+        {
+          "id": "S",
+          "audio_id": "AUD-S",
+          "label": null
+        },
+        {
+          "id": "B",
+          "audio_id": "AUD-B",
+          "label": null
+        }
+      ],
+      "correct_option_id": "R",
+      "skill_group": "S1",
+      "evidence_type": "letter_to_sound",
+      "error_focus": "sound_mapping",
+      "hint": "استمع إلى بداية كلمة رِيشَة."
+    },
+    {
+      "id": "L1-01-GP-05",
+      "role": "guided_practice",
+      "interaction": "listen_choose_one",
+      "prompt": "استمع ثم اختر الحرف.",
+      "stimulus": {
+        "audio_id": "AUD-M"
+      },
+      "options": [
+        {
+          "id": "M",
+          "label": "م"
+        },
+        {
+          "id": "N",
+          "label": "ن"
+        },
+        {
+          "id": "Q",
+          "label": "ق"
+        }
+      ],
+      "correct_option_id": "M",
+      "skill_group": "S1",
+      "evidence_type": "sound_to_letter",
+      "error_focus": "sound_mapping",
+      "hint": "اسمع بداية كلمة مَوْز."
+    },
+    {
+      "id": "L1-01-GP-06",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "انظر إلى الحرف واختر صوته.",
+      "stimulus": {
+        "text": "س"
+      },
+      "options": [
+        {
+          "id": "S",
+          "audio_id": "AUD-S",
+          "label": null
+        },
+        {
+          "id": "Q",
+          "audio_id": "AUD-Q",
+          "label": null
+        },
+        {
+          "id": "N",
+          "audio_id": "AUD-N",
+          "label": null
+        }
+      ],
+      "correct_option_id": "S",
+      "skill_group": "S1",
+      "evidence_type": "letter_to_sound",
+      "error_focus": "sound_mapping",
+      "hint": "اسمع بداية كلمة سَمَك."
+    },
+    {
+      "id": "L1-01-TR-01",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "اختر صوت الحرف الجديد.",
+      "stimulus": {
+        "text": "ل"
+      },
+      "options": [
+        {
+          "id": "L",
+          "audio_id": "AUD-L",
+          "label": null
+        },
+        {
+          "id": "M",
+          "audio_id": "AUD-M",
+          "label": null
+        },
+        {
+          "id": "R",
+          "audio_id": "AUD-R",
+          "label": null
+        }
+      ],
+      "correct_option_id": "L",
+      "skill_group": "S1",
+      "evidence_type": "letter_to_sound",
+      "error_focus": "sound_mapping",
+      "hint": "جرب الطريقة نفسها، واستمع إلى بداية كلمة لَبَن."
+    },
+    {
+      "id": "L1-01-IC-A01",
+      "role": "independent_check",
+      "interaction": "choose_one",
+      "prompt": "اختر صوت الحرف المعروض.",
+      "stimulus": {
+        "text": "م"
+      },
+      "options": [
+        {
+          "id": "M",
+          "audio_id": "AUD-M",
+          "label": null
+        },
+        {
+          "id": "B",
+          "audio_id": "AUD-B",
+          "label": null
+        },
+        {
+          "id": "Q",
+          "audio_id": "AUD-Q",
+          "label": null
+        }
+      ],
+      "correct_option_id": "M",
+      "skill_group": "S1",
+      "evidence_type": "letter_to_sound",
+      "error_focus": "sound_mapping"
+    },
+    {
+      "id": "L1-01-IC-A02",
+      "role": "independent_check",
+      "interaction": "choose_one",
+      "prompt": "اختر صوت الحرف المعروض.",
+      "stimulus": {
+        "text": "ن"
+      },
+      "options": [
+        {
+          "id": "N",
+          "audio_id": "AUD-N",
+          "label": null
+        },
+        {
+          "id": "R",
+          "audio_id": "AUD-R",
+          "label": null
+        },
+        {
+          "id": "S",
+          "audio_id": "AUD-S",
+          "label": null
+        }
+      ],
+      "correct_option_id": "N",
+      "skill_group": "S1",
+      "evidence_type": "letter_to_sound",
+      "error_focus": "sound_mapping"
+    },
+    {
+      "id": "L1-01-IC-A03",
+      "role": "independent_check",
+      "interaction": "listen_choose_one",
+      "prompt": "استمع واختر الحرف.",
+      "stimulus": {
+        "audio_id": "AUD-Q"
+      },
+      "options": [
+        {
+          "id": "Q",
+          "label": "ق"
+        },
+        {
+          "id": "N",
+          "label": "ن"
+        },
+        {
+          "id": "R",
+          "label": "ر"
+        }
+      ],
+      "correct_option_id": "Q",
+      "skill_group": "S1",
+      "evidence_type": "sound_to_letter",
+      "error_focus": "sound_mapping"
+    },
+    {
+      "id": "L1-01-IC-A04",
+      "role": "independent_check",
+      "interaction": "listen_choose_one",
+      "prompt": "استمع واختر الحرف.",
+      "stimulus": {
+        "audio_id": "AUD-B"
+      },
+      "options": [
+        {
+          "id": "B",
+          "label": "ب"
+        },
+        {
+          "id": "S",
+          "label": "س"
+        },
+        {
+          "id": "M",
+          "label": "م"
+        }
+      ],
+      "correct_option_id": "B",
+      "skill_group": "S1",
+      "evidence_type": "sound_to_letter",
+      "error_focus": "sound_mapping"
+    },
+    {
+      "id": "L1-01-IC-B01",
+      "role": "independent_check",
+      "interaction": "choose_one",
+      "prompt": "اختر صوت الحرف المعروض.",
+      "stimulus": {
+        "text": "س"
+      },
+      "options": [
+        {
+          "id": "S",
+          "audio_id": "AUD-S",
+          "label": null
+        },
+        {
+          "id": "R",
+          "audio_id": "AUD-R",
+          "label": null
+        },
+        {
+          "id": "M",
+          "audio_id": "AUD-M",
+          "label": null
+        }
+      ],
+      "correct_option_id": "S",
+      "skill_group": "S1",
+      "evidence_type": "letter_to_sound",
+      "error_focus": "sound_mapping"
+    },
+    {
+      "id": "L1-01-IC-B02",
+      "role": "independent_check",
+      "interaction": "choose_one",
+      "prompt": "اختر صوت الحرف المعروض.",
+      "stimulus": {
+        "text": "ر"
+      },
+      "options": [
+        {
+          "id": "R",
+          "audio_id": "AUD-R",
+          "label": null
+        },
+        {
+          "id": "Q",
+          "audio_id": "AUD-Q",
+          "label": null
+        },
+        {
+          "id": "N",
+          "audio_id": "AUD-N",
+          "label": null
+        }
+      ],
+      "correct_option_id": "R",
+      "skill_group": "S1",
+      "evidence_type": "letter_to_sound",
+      "error_focus": "sound_mapping"
+    },
+    {
+      "id": "L1-01-IC-B03",
+      "role": "independent_check",
+      "interaction": "listen_choose_one",
+      "prompt": "استمع واختر الحرف.",
+      "stimulus": {
+        "audio_id": "AUD-M"
+      },
+      "options": [
+        {
+          "id": "M",
+          "label": "م"
+        },
+        {
+          "id": "Q",
+          "label": "ق"
+        },
+        {
+          "id": "B",
+          "label": "ب"
+        }
+      ],
+      "correct_option_id": "M",
+      "skill_group": "S1",
+      "evidence_type": "sound_to_letter",
+      "error_focus": "sound_mapping"
+    },
+    {
+      "id": "L1-01-IC-B04",
+      "role": "independent_check",
+      "interaction": "listen_choose_one",
+      "prompt": "استمع واختر الحرف.",
+      "stimulus": {
+        "audio_id": "AUD-N"
+      },
+      "options": [
+        {
+          "id": "N",
+          "label": "ن"
+        },
+        {
+          "id": "S",
+          "label": "س"
+        },
+        {
+          "id": "R",
+          "label": "ر"
+        }
+      ],
+      "correct_option_id": "N",
+      "skill_group": "S1",
+      "evidence_type": "sound_to_letter",
+      "error_focus": "sound_mapping"
+    }
+  ],
+  "media": [
+    {
+      "id": "VID-L1-01",
+      "type": "video",
+      "status": "to_produce",
+      "note": "السيناريو مكتوب أعلاه؛ لم يُنتج الفيديو ولم يُرفق ملف فعلي."
+    },
+    {
+      "id": "AUD-M",
+      "type": "audio",
+      "label": "الصوت الفونيمي للحرف م",
+      "status": "pending_media_qa_or_recording"
+    },
+    {
+      "id": "AUD-B",
+      "type": "audio",
+      "label": "الصوت الفونيمي للحرف ب",
+      "status": "pending_media_qa_or_recording"
+    },
+    {
+      "id": "AUD-S",
+      "type": "audio",
+      "label": "الصوت الفونيمي للحرف س",
+      "status": "pending_media_qa_or_recording"
+    },
+    {
+      "id": "AUD-Q",
+      "type": "audio",
+      "label": "الصوت الفونيمي للحرف ق",
+      "status": "pending_media_qa_or_recording"
+    },
+    {
+      "id": "AUD-R",
+      "type": "audio",
+      "label": "الصوت الفونيمي للحرف ر",
+      "status": "pending_media_qa_or_recording"
+    },
+    {
+      "id": "AUD-N",
+      "type": "audio",
+      "label": "الصوت الفونيمي للحرف ن",
+      "status": "pending_media_qa_or_recording"
+    },
+    {
+      "id": "AUD-L",
+      "type": "audio",
+      "label": "الصوت الفونيمي للحرف ل",
+      "status": "pending_media_qa_or_recording"
+    }
+  ]
+}
