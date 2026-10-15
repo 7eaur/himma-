@@ -709,7 +709,7 @@
       "technical_gaps": [],
       "status": "draft_pending_assessment_equivalence_review",
       "student_presentation": {
-        "stimulus_mode": "text_block",
+        "stimulus_mode": "image_with_text",
         "option_mode": "text_cards",
         "layout": "adaptive_cards",
         "choice_count": 3,
@@ -2608,7 +2608,7 @@
       "technical_gaps": [],
       "status": "draft_pending_assessment_equivalence_review",
       "student_presentation": {
-        "stimulus_mode": "text_block",
+        "stimulus_mode": "image_with_text",
         "option_mode": "text_cards",
         "layout": "adaptive_cards",
         "choice_count": 3,
@@ -3814,7 +3814,11 @@
       "label": "سْ",
       "origin_v1_id": "LET-03",
       "status": "selected_from_v1_pending_owner_review",
-      "path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-03.mp3"
+      "path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-03.mp3",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-03.mp3",
+      "reference_spoken_private": "سْ",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "LET-04",
@@ -3822,7 +3826,11 @@
       "label": "قْ",
       "origin_v1_id": "LET-04",
       "status": "selected_from_v1_pending_owner_review",
-      "path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-04.mp3"
+      "path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-04.mp3",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-04.mp3",
+      "reference_spoken_private": "قْ",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "SYL-02",
@@ -3830,7 +3838,11 @@
       "label": "بِ",
       "origin_v1_id": "SYL-02",
       "status": "selected_from_v1_pending_owner_review",
-      "path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-02.mp3"
+      "path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-02.mp3",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-02.mp3",
+      "reference_spoken_private": "بِ",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "SYL-05",
@@ -3838,7 +3850,11 @@
       "label": "مِ",
       "origin_v1_id": "SYL-05",
       "status": "selected_from_v1_pending_owner_review",
-      "path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-05.mp3"
+      "path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-05.mp3",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-05.mp3",
+      "reference_spoken_private": "مِ",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "SYL-09",
@@ -3846,7 +3862,11 @@
       "label": "بَا",
       "origin_v1_id": "SYL-09",
       "status": "selected_from_v1_pending_owner_review",
-      "path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-09.mp3"
+      "path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-09.mp3",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-09.mp3",
+      "reference_spoken_private": "بَا",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "SYL-11",
@@ -3854,7 +3874,11 @@
       "label": "نُو",
       "origin_v1_id": "SYL-11",
       "status": "selected_from_v1_pending_owner_review",
-      "path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-11.mp3"
+      "path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-11.mp3",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-11.mp3",
+      "reference_spoken_private": "نُو",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "SYL-12",
@@ -3862,7 +3886,11 @@
       "label": "لِي",
       "origin_v1_id": "SYL-12",
       "status": "selected_from_v1_pending_owner_review",
-      "path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-12.mp3"
+      "path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-12.mp3",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-12.mp3",
+      "reference_spoken_private": "لِي",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "WRD-10",
@@ -3870,7 +3898,11 @@
       "label": "كُرَة",
       "origin_v1_id": "WRD-10",
       "status": "selected_from_v1_pending_owner_review",
-      "path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-10.mp3"
+      "path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-10.mp3",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-10.mp3",
+      "reference_spoken_private": "كُرَة",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "WRD-14",
@@ -3878,7 +3910,11 @@
       "label": "نَجْم",
       "origin_v1_id": "WRD-14",
       "status": "selected_from_v1_pending_owner_review",
-      "path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-14.mp3"
+      "path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-14.mp3",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-14.mp3",
+      "reference_spoken_private": "نَجْم",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "VOC-01",
@@ -3886,7 +3922,11 @@
       "label": "موزة",
       "origin_v1_id": "VOC-01",
       "status": "selected_from_v1_pending_owner_review",
-      "path": null
+      "path": null,
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-01-banana-512.webp",
+      "source_label_private": "موزة",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     },
     {
       "id": "VOC-03",
@@ -3894,7 +3934,11 @@
       "label": "باب",
       "origin_v1_id": "VOC-03",
       "status": "selected_from_v1_pending_owner_review",
-      "path": null
+      "path": null,
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-03-door-512.webp",
+      "source_label_private": "باب",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     },
     {
       "id": "VOC-04",
@@ -3902,7 +3946,11 @@
       "label": "قلم",
       "origin_v1_id": "VOC-04",
       "status": "selected_from_v1_pending_owner_review",
-      "path": null
+      "path": null,
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-04-pencil-512.webp",
+      "source_label_private": "قلم",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     },
     {
       "id": "VOC-07",
@@ -3910,7 +3958,11 @@
       "label": "قمر",
       "origin_v1_id": "VOC-07",
       "status": "selected_from_v1_pending_owner_review",
-      "path": null
+      "path": null,
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-07-moon-512.webp",
+      "source_label_private": "قمر",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     },
     {
       "id": "VOC-09",
@@ -3918,7 +3970,11 @@
       "label": "نخلة",
       "origin_v1_id": "VOC-09",
       "status": "selected_from_v1_pending_owner_review",
-      "path": null
+      "path": null,
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-09-palm-tree-512.webp",
+      "source_label_private": "نخلة",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     },
     {
       "id": "VOC-14",
@@ -3926,7 +3982,11 @@
       "label": "نجم",
       "origin_v1_id": "VOC-14",
       "status": "selected_from_v1_pending_owner_review",
-      "path": null
+      "path": null,
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-14-star-512.webp",
+      "source_label_private": "نجم",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     },
     {
       "id": "VOC-21",
@@ -3934,7 +3994,11 @@
       "label": "حديقة",
       "origin_v1_id": "VOC-21",
       "status": "selected_from_v1_pending_owner_review",
-      "path": null
+      "path": null,
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-21-garden-512.webp",
+      "source_label_private": "حديقة",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     },
     {
       "id": "VOC-22",
@@ -3942,7 +4006,11 @@
       "label": "مكتبة",
       "origin_v1_id": "VOC-22",
       "status": "selected_from_v1_pending_owner_review",
-      "path": null
+      "path": null,
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-22-library-512.webp",
+      "source_label_private": "مكتبة",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     },
     {
       "id": "VOC-28",
@@ -3950,7 +4018,11 @@
       "label": "زهرة",
       "origin_v1_id": "VOC-28",
       "status": "selected_from_v1_pending_owner_review",
-      "path": null
+      "path": null,
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-28-flower-512.webp",
+      "source_label_private": "زهرة",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     },
     {
       "id": "SYL-10",
@@ -3958,21 +4030,33 @@
       "label": "فِي",
       "origin_v1_id": "SYL-10",
       "status": "selected_from_v1_pending_owner_review",
-      "path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-10.mp3"
+      "path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-10.mp3",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-10.mp3",
+      "reference_spoken_private": "فِي",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "VOC-06",
       "kind": "image",
       "label": "شمس",
       "origin_v1_id": "VOC-06",
-      "status": "selected_from_v1_pending_owner_review"
+      "status": "selected_from_v1_pending_owner_review",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-06-sun-512.webp",
+      "source_label_private": "شمس",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     },
     {
       "id": "VOC-16",
       "kind": "image",
       "origin_v1_id": "VOC-16",
       "label": "قطة",
-      "status": "selected_from_v1_pending_owner_review"
+      "status": "selected_from_v1_pending_owner_review",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-16-cat-512.webp",
+      "source_label_private": "قطة",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     },
     {
       "id": "AUD-V2-POST-TI",
@@ -3980,7 +4064,9 @@
       "label": "تِ",
       "required_spoken_text": "تِ",
       "status": "missing_new",
-      "review": "owner_after_content_completion"
+      "review": "owner_after_content_completion",
+      "required_by_questions": true,
+      "recording_state": "missing_required"
     },
     {
       "id": "AUD-V2-POST-BUU",
@@ -3988,14 +4074,20 @@
       "label": "بُو",
       "required_spoken_text": "بُو",
       "status": "missing_new",
-      "review": "owner_after_content_completion"
+      "review": "owner_after_content_completion",
+      "required_by_questions": true,
+      "recording_state": "missing_required"
     },
     {
       "id": "VOC-24",
       "kind": "image",
       "label": "بحر",
       "origin_v1_id": "VOC-24",
-      "status": "selected_from_v1_pending_owner_review"
+      "status": "selected_from_v1_pending_owner_review",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-24-sea-512.webp",
+      "source_label_private": "بحر",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     }
   ],
   "distribution_target": {
