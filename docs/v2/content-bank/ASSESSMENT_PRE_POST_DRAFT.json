@@ -667,10 +667,15 @@
       "evidence_type": "word_construction",
       "role": "pretest",
       "interaction": "choose_one",
-      "prompt": "اختر الحرف الناقص.",
+      "prompt": "انظر إلى الصورة، ثم اختر الحرف الناقص لتكتمل الكلمة.",
       "stimulus": {
         "text": "قَ_َم",
-        "media": []
+        "media": [
+          {
+            "media_id": "VOC-04",
+            "kind": "image"
+          }
+        ]
       },
       "options": [
         {
@@ -697,7 +702,9 @@
       },
       "reading_reference": null,
       "role_specific_hints_allowed": false,
-      "media_ids": [],
+      "media_ids": [
+        "VOC-04"
+      ],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
       "status": "draft_pending_assessment_equivalence_review",
@@ -2559,10 +2566,15 @@
       "evidence_type": "word_construction",
       "role": "posttest",
       "interaction": "choose_one",
-      "prompt": "اختر الحرف الناقص لتكتمل كلمة بَحْر.",
+      "prompt": "انظر إلى الصورة، ثم اختر الحرف الناقص لتكتمل الكلمة.",
       "stimulus": {
         "text": "بَ_ْر",
-        "media": []
+        "media": [
+          {
+            "media_id": "VOC-24",
+            "kind": "image"
+          }
+        ]
       },
       "options": [
         {
@@ -2589,7 +2601,9 @@
       },
       "reading_reference": null,
       "role_specific_hints_allowed": false,
-      "media_ids": [],
+      "media_ids": [
+        "VOC-24"
+      ],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
       "status": "draft_pending_assessment_equivalence_review",
@@ -2603,7 +2617,8 @@
         "hint_initially_visible": false,
         "answer_initially_visible": false,
         "student_input": "select_option"
-      }
+      },
+      "content_qa_note": "منع ظهور كلمة بَحْر مكتملة في نص السؤال قبل الاختيار."
     },
     {
       "id": "V2-POST-Q12",
@@ -3974,6 +3989,13 @@
       "required_spoken_text": "بُو",
       "status": "missing_new",
       "review": "owner_after_content_completion"
+    },
+    {
+      "id": "VOC-24",
+      "kind": "image",
+      "label": "بحر",
+      "origin_v1_id": "VOC-24",
+      "status": "selected_from_v1_pending_owner_review"
     }
   ],
   "distribution_target": {
