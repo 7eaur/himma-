@@ -1269,7 +1269,7 @@
       "interaction": "sequence",
       "prompt": "رتب الأحداث كما وردت.",
       "stimulus": {
-        "text": "فتحت هبة الحقيبة. أخرجت الدفتر. كتبت اسمها.",
+        "text": "كتبت هبة اسمها في الدفتر بعدما أخرجته من الحقيبة. وقبل ذلك فتحت الحقيبة.",
         "media": []
       },
       "options": [
@@ -1302,7 +1302,8 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "content_qa_note": "سرد الأحداث ليس قائمة جاهزة بنفس ترتيب الخيارات؛ يستدل الطالب على التسلسل من قبل/بعد."
     },
     {
       "id": "V2-PRE-Q26",
@@ -1319,7 +1320,7 @@
       "interaction": "sequence",
       "prompt": "رتب الأحداث بحسب النص.",
       "stimulus": {
-        "text": "زرع ناصر بذرة. سقاها كل صباح. ظهرت أوراق صغيرة.",
+        "text": "ظهرت أوراق صغيرة بعد أن سقى ناصر البذرة. وكان قد زرعها قبل ذلك.",
         "media": []
       },
       "options": [
@@ -1352,7 +1353,8 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "content_qa_note": "سرد الأحداث ليس قائمة جاهزة بنفس ترتيب الخيارات؛ يستدل الطالب على التسلسل من قبل/بعد."
     },
     {
       "id": "V2-PRE-Q27",
@@ -2826,7 +2828,7 @@
       "interaction": "sequence",
       "prompt": "رتب الأحداث كما وردت.",
       "stimulus": {
-        "text": "لبست ليلى معطفها. خرجت من المنزل. ركبت الحافلة.",
+        "text": "ركبت ليلى الحافلة بعدما خرجت من المنزل. وكانت قد لبست معطفها قبل الخروج.",
         "media": []
       },
       "options": [
@@ -2859,7 +2861,8 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "content_qa_note": "سرد الأحداث ليس قائمة جاهزة بنفس ترتيب الخيارات؛ يستدل الطالب على التسلسل من قبل/بعد."
     },
     {
       "id": "V2-POST-Q26",
@@ -2876,7 +2879,7 @@
       "interaction": "sequence",
       "prompt": "رتب الأحداث بحسب النص.",
       "stimulus": {
-        "text": "فتح يوسف كتابه. قرأ الدرس. أعاد الكتاب إلى الحقيبة.",
+        "text": "أعاد يوسف الكتاب إلى الحقيبة بعدما قرأ الدرس. وكان قد فتح كتابه قبل القراءة.",
         "media": []
       },
       "options": [
@@ -2909,7 +2912,8 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "content_qa_note": "سرد الأحداث ليس قائمة جاهزة بنفس ترتيب الخيارات؛ يستدل الطالب على التسلسل من قبل/بعد."
     },
     {
       "id": "V2-POST-Q27",
