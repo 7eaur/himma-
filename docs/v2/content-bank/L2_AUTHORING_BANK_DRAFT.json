@@ -2206,7 +2206,7 @@
       "interaction": "sequence",
       "prompt": "رتب الكلمات لتبدأ الجملة بكلمة يقرأ.",
       "stimulus": {
-        "text": "يقرأ / سالم / كتابا",
+        "text": null,
         "media": []
       },
       "options": [
@@ -2255,7 +2255,7 @@
       "interaction": "sequence",
       "prompt": "رتب الكلمات لتبدأ الجملة بكلمة شربت.",
       "stimulus": {
-        "text": "شربت / مريم / الماء",
+        "text": null,
         "media": []
       },
       "options": [
@@ -2351,7 +2351,7 @@
       "interaction": "sequence",
       "prompt": "رتب الكلمات لتبدأ الجملة بكلمة زرعت.",
       "stimulus": {
-        "text": "زرعت / سارة / زهرة",
+        "text": null,
         "media": []
       },
       "options": [
@@ -2400,7 +2400,7 @@
       "interaction": "sequence",
       "prompt": "رتب الكلمات لتبدأ الجملة بكلمة حمل.",
       "stimulus": {
-        "text": "حمل / خالد / الحقيبة",
+        "text": null,
         "media": []
       },
       "options": [
@@ -2448,7 +2448,7 @@
       "interaction": "sequence",
       "prompt": "رتب الكلمات لتبدأ الجملة بكلمة فتحت.",
       "stimulus": {
-        "text": "فتحت / هند / النافذة",
+        "text": null,
         "media": []
       },
       "options": [
@@ -2542,7 +2542,7 @@
       "interaction": "sequence",
       "prompt": "رتب الكلمات لتبدأ الجملة بكلمة أكل.",
       "stimulus": {
-        "text": "أكل / فهد / التفاحة",
+        "text": null,
         "media": []
       },
       "options": [
