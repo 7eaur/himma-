@@ -1670,7 +1670,7 @@
       "interaction": "sequence",
       "prompt": "رتب الأحداث وفق النص.",
       "stimulus": {
-        "text": "لبست هدى معطفها. خرجت من البيت. وصلت إلى المدرسة.",
+        "text": "وصلت هدى إلى المدرسة. قبل ذلك خرجت من البيت، وكانت قد لبست معطفها قبل الخروج.",
         "media": []
       },
       "options": [
@@ -1709,7 +1709,8 @@
       "retry": "hint_then_fresh_guided_retry_not_scored",
       "skill_group": "S11",
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "content_qa_note": "سرد الأحداث ليس قائمة جاهزة بنفس ترتيب الخيارات؛ يستدل الطالب على التسلسل من قبل/بعد."
     },
     {
       "id": "L3-04-GP-02",
@@ -1719,7 +1720,7 @@
       "interaction": "sequence",
       "prompt": "رتب ما حدث.",
       "stimulus": {
-        "text": "غسل نادر التفاحة. قطعها ثم أكلها.",
+        "text": "أكل نادر التفاحة بعدما قطعها. وقبل أن يقطعها غسلها بالماء.",
         "media": []
       },
       "options": [
@@ -1758,7 +1759,8 @@
       "retry": "hint_then_fresh_guided_retry_not_scored",
       "skill_group": "S11",
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "content_qa_note": "سرد الأحداث ليس قائمة جاهزة بنفس ترتيب الخيارات؛ يستدل الطالب على التسلسل من قبل/بعد."
     },
     {
       "id": "L3-04-GP-03",
@@ -1768,7 +1770,7 @@
       "interaction": "sequence",
       "prompt": "رتب أحداث النص.",
       "stimulus": {
-        "text": "فتح سالم حقيبته. أخرج الدفتر. كتب الواجب.",
+        "text": "كتب سالم الواجب في الدفتر. وكان قد أخرجه من الحقيبة بعدما فتحها.",
         "media": []
       },
       "options": [
@@ -1807,7 +1809,8 @@
       "retry": "hint_then_fresh_guided_retry_not_scored",
       "skill_group": "S11",
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "content_qa_note": "سرد الأحداث ليس قائمة جاهزة بنفس ترتيب الخيارات؛ يستدل الطالب على التسلسل من قبل/بعد."
     },
     {
       "id": "L3-04-GP-04",
@@ -1817,7 +1820,7 @@
       "interaction": "sequence",
       "prompt": "رتب ما حدث للقصة.",
       "stimulus": {
-        "text": "رأت ليلى طائرا عطشان. وضعت له ماء. شرب الطائر.",
+        "text": "شرب الطائر الماء. كانت ليلى قد وضعته له بعدما رأته عطشانًا.",
         "media": []
       },
       "options": [
@@ -1856,7 +1859,8 @@
       "retry": "hint_then_fresh_guided_retry_not_scored",
       "skill_group": "S11",
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "content_qa_note": "سرد الأحداث ليس قائمة جاهزة بنفس ترتيب الخيارات؛ يستدل الطالب على التسلسل من قبل/بعد."
     },
     {
       "id": "L3-04-IC-A01",
@@ -1866,7 +1870,7 @@
       "interaction": "sequence",
       "prompt": "رتب الأحداث بالترتيب المذكور.",
       "stimulus": {
-        "text": "دخل أحمد المكتبة. اختار كتابا. جلس لقراءته.",
+        "text": "جلس أحمد لقراءة الكتاب الذي اختاره بعد دخوله المكتبة.",
         "media": []
       },
       "options": [
@@ -1904,7 +1908,8 @@
       "hint": null,
       "skill_group": "S11",
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "content_qa_note": "سرد الأحداث ليس قائمة جاهزة بنفس ترتيب الخيارات؛ يستدل الطالب على التسلسل من قبل/بعد."
     },
     {
       "id": "L3-04-IC-A02",
@@ -1914,7 +1919,7 @@
       "interaction": "sequence",
       "prompt": "رتب أحداث النص.",
       "stimulus": {
-        "text": "زرعت الأم شتلة. سقتها. ظهرت أوراق جديدة.",
+        "text": "ظهرت أوراق جديدة على الشتلة بعد أن سقتها الأم. وكانت قد زرعتها قبل ذلك.",
         "media": []
       },
       "options": [
@@ -1952,7 +1957,8 @@
       "hint": null,
       "skill_group": "S11",
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "content_qa_note": "سرد الأحداث ليس قائمة جاهزة بنفس ترتيب الخيارات؛ يستدل الطالب على التسلسل من قبل/بعد."
     },
     {
       "id": "L3-04-IC-A03",
@@ -1962,7 +1968,7 @@
       "interaction": "sequence",
       "prompt": "رتب الأحداث.",
       "stimulus": {
-        "text": "استيقظ خالد مبكرا. تناول الفطور. ذهب إلى المدرسة.",
+        "text": "ذهب خالد إلى المدرسة بعد الفطور. وقبل الفطور كان قد استيقظ مبكرا.",
         "media": []
       },
       "options": [
@@ -2000,7 +2006,8 @@
       "hint": null,
       "skill_group": "S11",
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "content_qa_note": "سرد الأحداث ليس قائمة جاهزة بنفس ترتيب الخيارات؛ يستدل الطالب على التسلسل من قبل/بعد."
     },
     {
       "id": "L3-04-IC-A04",
@@ -2010,7 +2017,7 @@
       "interaction": "sequence",
       "prompt": "رتب أحداث النص.",
       "stimulus": {
-        "text": "جمع عمر الألعاب. وضعها في الصندوق. أغلق الصندوق.",
+        "text": "أغلق عمر صندوق الألعاب بعدما وضعها فيه. وكان قد جمع الألعاب قبل ذلك.",
         "media": []
       },
       "options": [
@@ -2048,7 +2055,8 @@
       "hint": null,
       "skill_group": "S11",
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "content_qa_note": "سرد الأحداث ليس قائمة جاهزة بنفس ترتيب الخيارات؛ يستدل الطالب على التسلسل من قبل/بعد."
     },
     {
       "id": "L3-05-GP-01",
@@ -3634,7 +3642,7 @@
       "interaction": "sequence",
       "prompt": "رتب ما حدث.",
       "stimulus": {
-        "text": "فتح أحمد الكتاب. قرأه. أغلقه.",
+        "text": "أغلق أحمد الكتاب بعد قراءته. وقد فتحه قبل أن يبدأ القراءة.",
         "media": []
       },
       "options": [
@@ -3673,7 +3681,8 @@
       "retry": "hint_then_fresh_guided_retry_not_scored",
       "skill_group": "S11",
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "content_qa_note": "سرد الأحداث ليس قائمة جاهزة بنفس ترتيب الخيارات؛ يستدل الطالب على التسلسل من قبل/بعد."
     },
     {
       "id": "SUP-10-GP-02",
@@ -3683,7 +3692,7 @@
       "interaction": "sequence",
       "prompt": "رتب ما حدث.",
       "stimulus": {
-        "text": "زرعت هدى بذرة. سقتها. كبرت.",
+        "text": "كبرت البذرة بعدما سقتها هدى. وكانت هدى قد زرعتها قبل ذلك.",
         "media": []
       },
       "options": [
@@ -3722,7 +3731,8 @@
       "retry": "hint_then_fresh_guided_retry_not_scored",
       "skill_group": "S11",
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "content_qa_note": "سرد الأحداث ليس قائمة جاهزة بنفس ترتيب الخيارات؛ يستدل الطالب على التسلسل من قبل/بعد."
     },
     {
       "id": "SUP-10-SC-01",
@@ -3732,7 +3742,7 @@
       "interaction": "sequence",
       "prompt": "رتب الأحداث.",
       "stimulus": {
-        "text": "لبست نورة حذاءها. خرجت. ركبت السيارة.",
+        "text": "ركبت نورة السيارة بعدما خرجت من البيت. وكانت قد لبست حذاءها قبل الخروج.",
         "media": []
       },
       "options": [
@@ -3770,7 +3780,8 @@
       "hint": null,
       "skill_group": "S11",
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "content_qa_note": "سرد الأحداث ليس قائمة جاهزة بنفس ترتيب الخيارات؛ يستدل الطالب على التسلسل من قبل/بعد."
     },
     {
       "id": "SUP-10-SC-02",
@@ -3780,7 +3791,7 @@
       "interaction": "sequence",
       "prompt": "رتب الأحداث.",
       "stimulus": {
-        "text": "جمع ماجد الألعاب. وضعها في الصندوق. رتّب الرف.",
+        "text": "رتب ماجد الرف بعدما وضع الألعاب في الصندوق. وكان قد جمعها قبل ذلك.",
         "media": []
       },
       "options": [
@@ -3818,7 +3829,8 @@
       "hint": null,
       "skill_group": "S11",
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "content_qa_note": "سرد الأحداث ليس قائمة جاهزة بنفس ترتيب الخيارات؛ يستدل الطالب على التسلسل من قبل/بعد."
     },
     {
       "id": "SUP-11-GP-01",
