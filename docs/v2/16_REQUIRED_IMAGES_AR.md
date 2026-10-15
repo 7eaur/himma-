@@ -29,4 +29,13 @@
 | `VOC-09` | L1-06-GP-04, IC-A04 | option | نخلة | `assets/education/assets/vocabulary/webp/hem-voc-09-palm-tree-512.webp` | selected / مراجعة الدلالة |
 | `VOC-14` | L1-06-IC-A04 | option[1] | نجم | `assets/education/assets/vocabulary/webp/hem-voc-14-star-512.webp` | selected / مراجعة الدلالة |
 
-**قاعدة الإنتاج:** لا تستخدم صورًا في سؤال إذا كانت تكشف الإجابة دون قياس القراءة المطلوب. تحقق من الأصل بصريًا والترخيص عند الاعتماد النهائي. 
+**قاعدة الإنتاج:** لا تستخدم صورًا في سؤال إذا كانت تكشف الإجابة دون قياس القراءة المطلوب. تحقق من الأصل بصريًا والترخيص عند الاعتماد النهائي.
+
+
+## L2 — صور مستفادة من V1 (2026-10-15)
+
+- `VOC-03` باب: سؤال كتابة موجَّه `L2-01-GP-04`، صورة داخل المثير. أصلها `assets/education/assets/vocabulary/webp/hem-voc-03-door-512.webp`.
+- `VOC-04` قلم: سؤال تحقق كتابة `L2-01-IC-A02`، داخل المثير. أصلها `assets/education/assets/vocabulary/webp/hem-voc-04-pencil-512.webp`.
+- `VOC-14` نجم: `SUP-05-GP-02`، صورة داخل المثير. أصلها `assets/education/assets/vocabulary/webp/hem-voc-14-star-512.webp`.
+
+جميع الصور المختارة من V1 بحاجة اعتماد المالك لاحقًا، وليست ناقصة إنتاجًا مبدئيًا. لا حاجة إلى صور زينة للمقاطع أو نصوص الفهم المباشر.
