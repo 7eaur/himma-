@@ -1,0 +1,3096 @@
+{
+  "schema_version": "himma-v2-assessment-authoring/0.1-draft",
+  "status": "draft_not_approved_not_published",
+  "pretest": [
+    {
+      "id": "V2-PRE-Q01",
+      "source_v1_id": "PRE-Q01",
+      "origin_v1": {
+        "interaction_type": "choose_one",
+        "source_text": "التعليمات: اضغط على الحرف «ب». الخيارات: ت، ب، ث، ن.",
+        "asset_ids": [],
+        "decision": "reuse_with_edit"
+      },
+      "skill_group": "S1",
+      "evidence_type": "visual_discrimination",
+      "role": "pretest",
+      "interaction": "choose_one",
+      "prompt": "اختر الحرف ب.",
+      "stimulus": {
+        "text": "اختر الحرف",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "ت",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "ب",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "ث",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-PRE-Q02",
+      "source_v1_id": "PRE-Q02",
+      "origin_v1": {
+        "interaction_type": "choose_one",
+        "source_text": "التعليمات: اضغط على الحرف «ج». الخيارات: ح، خ، ج، ع.",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S1",
+      "evidence_type": "visual_discrimination",
+      "role": "pretest",
+      "interaction": "choose_one",
+      "prompt": "أي حرف له نقطة تحت؟",
+      "stimulus": {
+        "text": "الحرف المقصود",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "ت",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "ث",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "ب",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "c"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-PRE-Q03",
+      "source_v1_id": "PRE-Q03",
+      "origin_v1": {
+        "interaction_type": "choose_one",
+        "source_text": "يظهر الحرف «م». اختر الشكل الآخر للحرف نفسه: مـ، سـ، لـ، بـ.",
+        "asset_ids": [],
+        "decision": "reuse_with_edit"
+      },
+      "skill_group": "S1",
+      "evidence_type": "sound_to_letter",
+      "role": "pretest",
+      "interaction": "listen_choose_one",
+      "prompt": "استمع ثم اختر الحرف.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "LET-03",
+            "kind": "audio"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "س",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "ش",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "ص",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [
+        "LET-03"
+      ],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-PRE-Q04",
+      "source_v1_id": "PRE-Q04",
+      "origin_v1": {
+        "interaction_type": "listen_choose_one",
+        "source_text": "يسمع الطالب صوت «س». الخيارات: س، ش، ص، ز.",
+        "asset_ids": [
+          "LET-03"
+        ],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S2",
+      "evidence_type": "short_vowel_kasra",
+      "role": "pretest",
+      "interaction": "listen_choose_one",
+      "prompt": "استمع واختر الشكل.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "SYL-02",
+            "kind": "audio"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "بَ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "بِ",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "بُ",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [
+        "SYL-02"
+      ],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-PRE-Q05",
+      "source_v1_id": "PRE-Q05",
+      "origin_v1": {
+        "interaction_type": "listen_choose_image",
+        "source_text": "يسمع الطالب صوت «م». الصور: موزة، كتاب، باب.",
+        "asset_ids": [
+          "LET-01",
+          "VOC-01",
+          "VOC-02",
+          "VOC-03"
+        ],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S2",
+      "evidence_type": "short_vowel_damma",
+      "role": "pretest",
+      "interaction": "choose_one",
+      "prompt": "أي حرف عليه ضمة؟",
+      "stimulus": {
+        "text": "مُ / مِ / مَ",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "مَ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "مُ",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "مِ",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-PRE-Q06",
+      "source_v1_id": "PRE-Q06",
+      "origin_v1": {
+        "interaction_type": "listen_choose_one",
+        "source_text": "يسمع «قَلَم». الخيارات: ق، ك، ف.",
+        "asset_ids": [
+          "WRD-04"
+        ],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S3",
+      "evidence_type": "syllable_reading",
+      "role": "pretest",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ المقطع.",
+      "stimulus": {
+        "text": "لَ",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference_text": "لَ",
+          "accept_equivalent": true,
+          "criteria": [
+            "صحة الأصوات والكلمات",
+            "عدم الحذف",
+            "الوقف الطبيعي"
+          ],
+          "academic_auto_grade": false
+        }
+      },
+      "reading_reference": "لَ",
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-PRE-Q07",
+      "source_v1_id": "PRE-Q07",
+      "origin_v1": {
+        "interaction_type": "listen_choose_one",
+        "source_text": "يسمع «سَمَك». الخيارات: ك، ق، م.",
+        "asset_ids": [
+          "WRD-05"
+        ],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S3",
+      "evidence_type": "syllable_blending",
+      "role": "pretest",
+      "interaction": "sequence",
+      "prompt": "رتب المقاطع لتكون كلمة فَتَحَ.",
+      "stimulus": {
+        "text": "فَ / تَ / حَ",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "حَ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "فَ",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "تَ",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b",
+          "c",
+          "a"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-PRE-Q08",
+      "source_v1_id": "PRE-Q08",
+      "origin_v1": {
+        "interaction_type": "choose_one",
+        "source_text": "العناصر: ب، بَاب، فَتَحَ سَالِمٌ الْبَابَ. التعليمات: اضغط على الحرف.",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S4",
+      "evidence_type": "simple_word_reading",
+      "role": "pretest",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الكلمة.",
+      "stimulus": {
+        "text": "وَرْدَة",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference_text": "وَرْدَة",
+          "accept_equivalent": true,
+          "criteria": [
+            "صحة الأصوات والكلمات",
+            "عدم الحذف",
+            "الوقف الطبيعي"
+          ],
+          "academic_auto_grade": false
+        }
+      },
+      "reading_reference": "وَرْدَة",
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-PRE-Q09",
+      "source_v1_id": "PRE-Q09",
+      "origin_v1": {
+        "interaction_type": "choose_one",
+        "source_text": "العناصر: م، كِتَاب، ذَهَبَ سَالِمٌ إِلَى الْمَدْرَسَةِ. التعليمات: اضغط على الكلمة.",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S4",
+      "evidence_type": "word_image_match",
+      "role": "pretest",
+      "interaction": "choose_image",
+      "prompt": "اقرأ الكلمة ثم اختر صورتها.",
+      "stimulus": {
+        "text": "مَوْزَة",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": null,
+          "media": [
+            {
+              "media_id": "VOC-01",
+              "kind": "image"
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "text": null,
+          "media": [
+            {
+              "media_id": "VOC-03",
+              "kind": "image"
+            }
+          ]
+        },
+        {
+          "id": "c",
+          "text": null,
+          "media": [
+            {
+              "media_id": "VOC-09",
+              "kind": "image"
+            }
+          ]
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [
+        "VOC-01",
+        "VOC-03",
+        "VOC-09"
+      ],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-PRE-Q10",
+      "source_v1_id": "PRE-Q10",
+      "origin_v1": {
+        "interaction_type": "sequence",
+        "source_text": "طفلة تزرع بذرة، طفلة تسقي البذرة، زهرة نمت.",
+        "asset_ids": [
+          "SEQ-01",
+          "SEQ-02",
+          "SEQ-03"
+        ],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S5",
+      "evidence_type": "word_construction",
+      "role": "pretest",
+      "interaction": "build_word",
+      "prompt": "رتب حروف كلمة نَجْم.",
+      "stimulus": {
+        "text": "نَجْم",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "ج",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "م",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "ن",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "c",
+          "a",
+          "b"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-PRE-Q11",
+      "source_v1_id": "PRE-Q11",
+      "origin_v1": {
+        "interaction_type": "listen_choose_one",
+        "source_text": "يسمع «بُ». الخيارات: بَ، بِ، بُ.",
+        "asset_ids": [
+          "LET-02"
+        ],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S5",
+      "evidence_type": "word_construction",
+      "role": "pretest",
+      "interaction": "choose_one",
+      "prompt": "اختر الحرف الناقص.",
+      "stimulus": {
+        "text": "قَ_َم",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "ر",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "ل",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "ن",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-PRE-Q12",
+      "source_v1_id": "PRE-Q12",
+      "origin_v1": {
+        "interaction_type": "listen_choose_one",
+        "source_text": "يسمع «مَا». الخيارات: مَ، مَا، مُو.",
+        "asset_ids": [
+          "SYL-04"
+        ],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S5",
+      "evidence_type": "word_writing",
+      "role": "pretest",
+      "interaction": "write_text",
+      "prompt": "اكتب اسم الشيء في الصورة.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "VOC-04",
+            "kind": "image"
+          }
+        ]
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference_text": "قَلَم",
+          "accept_equivalent": true,
+          "criteria": [
+            "جملة مفيدة أو كلمة صحيحة",
+            "الترتيب",
+            "الإملاء المناسب للمستوى"
+          ],
+          "academic_auto_grade": false
+        }
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [
+        "VOC-04"
+      ],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [
+        "free_writing_not_confirmed_in_v1"
+      ],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-PRE-Q13",
+      "source_v1_id": "PRE-Q13",
+      "origin_v1": {
+        "interaction_type": "sequence",
+        "source_text": "المقاطع: كِ، تَاب، مَكْ. كوّن «كِتَاب».",
+        "asset_ids": [],
+        "decision": "reuse_with_edit"
+      },
+      "skill_group": "S6",
+      "evidence_type": "madd_alif",
+      "role": "pretest",
+      "interaction": "listen_choose_one",
+      "prompt": "اختر المقطع المسموع.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "SYL-09",
+            "kind": "audio"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "بَ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "بَا",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "بُ",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [
+        "SYL-09"
+      ],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-PRE-Q14",
+      "source_v1_id": "PRE-Q14",
+      "origin_v1": {
+        "interaction_type": "build_word",
+        "source_text": "صورة باب؛ الحروف: ب، ا، ب، ت.",
+        "asset_ids": [
+          "VOC-03"
+        ],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S6",
+      "evidence_type": "madd_yaa",
+      "role": "pretest",
+      "interaction": "choose_one",
+      "prompt": "أي كلمة فيها مد بالياء؟",
+      "stimulus": {
+        "text": "اختر",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "فِيل",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "فُل",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "فَل",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-PRE-Q15",
+      "source_v1_id": "PRE-Q15",
+      "origin_v1": {
+        "interaction_type": "sequence",
+        "source_text": "الحروف: م، ق، ل. كوّن «قَلَم».",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S7",
+      "evidence_type": "long_word_reading",
+      "role": "pretest",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الكلمة.",
+      "stimulus": {
+        "text": "مَدْرَسَة",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference_text": "مَدْرَسَة",
+          "accept_equivalent": true,
+          "criteria": [
+            "صحة الأصوات والكلمات",
+            "عدم الحذف",
+            "الوقف الطبيعي"
+          ],
+          "academic_auto_grade": false
+        }
+      },
+      "reading_reference": "مَدْرَسَة",
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-PRE-Q16",
+      "source_v1_id": "PRE-Q16",
+      "origin_v1": {
+        "interaction_type": "choose_one",
+        "source_text": "سَـ \\_ ـَك؛ الخيارات: م، ل، ن.",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S7",
+      "evidence_type": "long_word_reading",
+      "role": "pretest",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الكلمة.",
+      "stimulus": {
+        "text": "مِفْتَاح",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference_text": "مِفْتَاح",
+          "accept_equivalent": true,
+          "criteria": [
+            "صحة الأصوات والكلمات",
+            "عدم الحذف",
+            "الوقف الطبيعي"
+          ],
+          "academic_auto_grade": false
+        }
+      },
+      "reading_reference": "مِفْتَاح",
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-PRE-Q17",
+      "source_v1_id": "PRE-Q17",
+      "origin_v1": {
+        "interaction_type": "choose_image",
+        "source_text": "الكلمة «شَمْس». الصور: الشمس، القمر، الشجرة.",
+        "asset_ids": [
+          "VOC-06",
+          "VOC-07",
+          "VOC-08"
+        ],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S8",
+      "evidence_type": "sentence_reading",
+      "role": "pretest",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الجملة.",
+      "stimulus": {
+        "text": "عاد باسل من المدرسة.",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference_text": "عَادَ بَاسِلٌ مِنَ الْمَدْرَسَةِ.",
+          "accept_equivalent": true,
+          "criteria": [
+            "صحة الأصوات والكلمات",
+            "عدم الحذف",
+            "الوقف الطبيعي"
+          ],
+          "academic_auto_grade": false
+        }
+      },
+      "reading_reference": "عَادَ بَاسِلٌ مِنَ الْمَدْرَسَةِ.",
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-PRE-Q18",
+      "source_v1_id": "PRE-Q18",
+      "origin_v1": {
+        "interaction_type": "listen_choose_one",
+        "source_text": "يسمع «نُور». الخيارات: نُور، نَار، نَهْر.",
+        "asset_ids": [
+          "WRD-15"
+        ],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S8",
+      "evidence_type": "sentence_direct_comprehension",
+      "role": "pretest",
+      "interaction": "choose_one",
+      "prompt": "ماذا أكل سالم؟",
+      "stimulus": {
+        "text": "أكل سالم تفاحة بعد الظهر.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "خبزا",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "تفاحة",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "أرزا",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-PRE-Q19",
+      "source_v1_id": "PRE-Q19",
+      "origin_v1": {
+        "interaction_type": "read_aloud",
+        "source_text": "اقرأ: كَتَبَ.",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S9",
+      "evidence_type": "connected_sentence_reading",
+      "role": "pretest",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الجملتين.",
+      "stimulus": {
+        "text": "دخل نادر المكتبة. اختار كتابا صغيرا.",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference_text": "دَخَلَ نَادِرٌ الْمَكْتَبَةَ. اخْتَارَ كِتَابًا صَغِيرًا.",
+          "accept_equivalent": true,
+          "criteria": [
+            "صحة الأصوات والكلمات",
+            "عدم الحذف",
+            "الوقف الطبيعي"
+          ],
+          "academic_auto_grade": false
+        }
+      },
+      "reading_reference": "دَخَلَ نَادِرٌ الْمَكْتَبَةَ. اخْتَارَ كِتَابًا صَغِيرًا.",
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-PRE-Q20",
+      "source_v1_id": "PRE-Q20",
+      "origin_v1": {
+        "interaction_type": "read_aloud",
+        "source_text": "اقرأ: شَمْس.",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S9",
+      "evidence_type": "short_text_reading",
+      "role": "pretest",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ النص القصير.",
+      "stimulus": {
+        "text": "في الصباح زارت ريم جدتها. أحضرت لها زهرة. فرحت الجدة بالهدية.",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference_text": "فِي الصَّبَاحِ زَارَتْ رِيمُ جَدَّتَهَا. أَحْضَرَتْ لَهَا زَهْرَةً. فَرِحَتِ الْجَدَّةُ بِالْهَدِيَّةِ.",
+          "accept_equivalent": true,
+          "criteria": [
+            "صحة الأصوات والكلمات",
+            "عدم الحذف",
+            "الوقف الطبيعي"
+          ],
+          "academic_auto_grade": false
+        }
+      },
+      "reading_reference": "فِي الصَّبَاحِ زَارَتْ رِيمُ جَدَّتَهَا. أَحْضَرَتْ لَهَا زَهْرَةً. فَرِحَتِ الْجَدَّةُ بِالْهَدِيَّةِ.",
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-PRE-Q21",
+      "source_v1_id": "PRE-Q21",
+      "origin_v1": {
+        "interaction_type": "read_aloud",
+        "source_text": "اقرأ: بَاب.",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S9",
+      "evidence_type": "connected_sentence_reading",
+      "role": "pretest",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الجملتين بهدوء.",
+      "stimulus": {
+        "text": "رأى عادل مطرا. حمل مظلته وخرج.",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference_text": "رَأَى عَادِلٌ مَطَرًا. حَمَلَ مِظَلَّتَهُ وَخَرَجَ.",
+          "accept_equivalent": true,
+          "criteria": [
+            "صحة الأصوات والكلمات",
+            "عدم الحذف",
+            "الوقف الطبيعي"
+          ],
+          "academic_auto_grade": false
+        }
+      },
+      "reading_reference": "رَأَى عَادِلٌ مَطَرًا. حَمَلَ مِظَلَّتَهُ وَخَرَجَ.",
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-PRE-Q22",
+      "source_v1_id": "PRE-Q22",
+      "origin_v1": {
+        "interaction_type": "read_aloud",
+        "source_text": "اقرأ: قِطَّة.",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S10",
+      "evidence_type": "text_direct_comprehension",
+      "role": "pretest",
+      "interaction": "choose_one",
+      "prompt": "أين قرأت سلمى؟",
+      "stimulus": {
+        "text": "ذهبت سلمى إلى المكتبة. قرأت فيها قصة عن النجوم. ثم أعادت الكتاب إلى الرف.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "في المكتبة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "في السوق",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "في المدرسة",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-PRE-Q23",
+      "source_v1_id": "PRE-Q23",
+      "origin_v1": {
+        "interaction_type": "read_aloud",
+        "source_text": "اقرأ: يَقْرَأُ سَالِمٌ كِتَابًا.",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S10",
+      "evidence_type": "text_direct_comprehension",
+      "role": "pretest",
+      "interaction": "choose_one",
+      "prompt": "عن ماذا كانت القصة؟",
+      "stimulus": {
+        "text": "ذهبت سلمى إلى المكتبة. قرأت فيها قصة عن النجوم. ثم أعادت الكتاب إلى الرف.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "عن النباتات",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "عن النجوم",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "عن الطيور",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-PRE-Q24",
+      "source_v1_id": "PRE-Q24",
+      "origin_v1": {
+        "interaction_type": "read_aloud",
+        "source_text": "فِي صَبَاحِ يَوْمِ الْجُمُعَةِ، ذَهَبَ سَالِمٌ مَعَ أُسْرَتِهِ إِلَى الْحَدِيقَةِ. حَمَلَ كُرَتَهُ الزَّرْقَاءَ، وَحَمَلَتْ أُخْتُهُ سَلَّةَ الطَّعَامِ. لَعِبَ الطِّفْلَانِ قُرْبَ شَجَرَةٍ، ثُمَّ جَمَعَا الْأَوْرَاقَ وَوَضَعَاهَا فِي سَلَّةِ الْمُهْمَلَاتِ.",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S10",
+      "evidence_type": "text_direct_comprehension",
+      "role": "pretest",
+      "interaction": "choose_one",
+      "prompt": "ماذا فعلت سلمى بعد القراءة؟",
+      "stimulus": {
+        "text": "ذهبت سلمى إلى المكتبة. قرأت فيها قصة عن النجوم. ثم أعادت الكتاب إلى الرف.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "اشترت كتابا",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "أعادت الكتاب",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "رسمت صورة",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-PRE-Q25",
+      "source_v1_id": "PRE-Q25",
+      "origin_v1": {
+        "interaction_type": "choose_one",
+        "source_text": "إلى أين ذهبت الأسرة؟ الحديقة، المدرسة، السوق.",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S11",
+      "evidence_type": "event_sequence",
+      "role": "pretest",
+      "interaction": "sequence",
+      "prompt": "رتب الأحداث كما وردت.",
+      "stimulus": {
+        "text": "فتحت هبة الحقيبة. أخرجت الدفتر. كتبت اسمها.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "كتبت اسمها",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "فتحت الحقيبة",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "أخرجت الدفتر",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b",
+          "c",
+          "a"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-PRE-Q26",
+      "source_v1_id": "PRE-Q26",
+      "origin_v1": {
+        "interaction_type": "choose_one",
+        "source_text": "ما لون كرة سالم؟ حمراء، زرقاء، خضراء.",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S11",
+      "evidence_type": "event_sequence",
+      "role": "pretest",
+      "interaction": "sequence",
+      "prompt": "رتب الأحداث بحسب النص.",
+      "stimulus": {
+        "text": "زرع ناصر بذرة. سقاها كل صباح. ظهرت أوراق صغيرة.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "ظهرت الأوراق",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "زرع البذرة",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "سقى البذرة",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b",
+          "c",
+          "a"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-PRE-Q27",
+      "source_v1_id": "PRE-Q27",
+      "origin_v1": {
+        "interaction_type": "choose_one",
+        "source_text": "من حمل سلة الطعام؟ سالم، أخته، والده.",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S12",
+      "evidence_type": "main_idea",
+      "role": "pretest",
+      "interaction": "choose_one",
+      "prompt": "ما الفكرة الرئيسة للنص؟",
+      "stimulus": {
+        "text": "جمع الأطفال الأوراق من الساحة. وضعوها في سلة المهملات. أصبح المكان نظيفا.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "تنظيف الساحة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "لون الأوراق",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "شكل السلة",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-PRE-Q28",
+      "source_v1_id": "PRE-Q28",
+      "origin_v1": {
+        "interaction_type": "choose_one",
+        "source_text": "لماذا وضع الطفلان الأوراق في سلة المهملات؟ للمحافظة على النظافة، للعب بالأوراق، لإخفاء السلة.",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S12",
+      "evidence_type": "main_idea",
+      "role": "pretest",
+      "interaction": "choose_one",
+      "prompt": "ما الموضوع العام؟",
+      "stimulus": {
+        "text": "ذهب عمر إلى المتحف. شاهد أدوات قديمة وتعرف إلى طريقة استعمالها. تعلم أشياء جديدة.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "التعلم من زيارة المتحف",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "لون الأدوات",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "اسم عمر",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-PRE-Q29",
+      "source_v1_id": "PRE-Q29",
+      "origin_v1": {
+        "interaction_type": "sequence",
+        "source_text": "ذهبت الأسرة إلى الحديقة؛ لعب الطفلان قرب الشجرة؛ جمع الطفلان الأوراق.",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S13",
+      "evidence_type": "sentence_construction",
+      "role": "pretest",
+      "interaction": "sequence",
+      "prompt": "رتب الكلمات لتبدأ الجملة بكلمة ساعد.",
+      "stimulus": {
+        "text": "ساعد / خالد / أخاه",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "أخاه",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "ساعد",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "خالد",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b",
+          "c",
+          "a"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-PRE-Q30",
+      "source_v1_id": "PRE-Q30",
+      "origin_v1": {
+        "interaction_type": "choose_one",
+        "source_text": "ما معنى «قُرْبَ»؟ بجانب، بعيدًا عن، فوق.",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S13",
+      "evidence_type": "sentence_writing",
+      "role": "pretest",
+      "interaction": "write_text",
+      "prompt": "اكتب جملة قصيرة عن الزهرة في الصورة.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "VOC-28",
+            "kind": "image"
+          }
+        ]
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference_text": "جملة مفيدة قصيرة تصف الزهرة",
+          "accept_equivalent": true,
+          "criteria": [
+            "جملة مفيدة أو كلمة صحيحة",
+            "الترتيب",
+            "الإملاء المناسب للمستوى"
+          ],
+          "academic_auto_grade": false
+        }
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [
+        "VOC-28"
+      ],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [
+        "free_writing_not_confirmed_in_v1"
+      ],
+      "status": "draft_pending_assessment_equivalence_review"
+    }
+  ],
+  "posttest": [
+    {
+      "id": "V2-POST-Q01",
+      "source_v1_id": "POST-Q01",
+      "origin_v1": {
+        "interaction_type": "choose_one",
+        "source_text": "اضغط على «ت». الخيارات: ب، ث، ت، ن.",
+        "asset_ids": [],
+        "decision": "reuse_with_edit"
+      },
+      "skill_group": "S1",
+      "evidence_type": "visual_discrimination",
+      "role": "posttest",
+      "interaction": "choose_one",
+      "prompt": "اختر الحرف خ.",
+      "stimulus": {
+        "text": "اختر الحرف",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "ح",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "ج",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "خ",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "c"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-POST-Q02",
+      "source_v1_id": "POST-Q02",
+      "origin_v1": {
+        "interaction_type": "choose_one",
+        "source_text": "اضغط على «خ». الخيارات: ح، ج، خ، ع.",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S1",
+      "evidence_type": "visual_discrimination",
+      "role": "posttest",
+      "interaction": "choose_one",
+      "prompt": "أي حرف له نقطتان فوق؟",
+      "stimulus": {
+        "text": "الحرف المقصود",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "ب",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "ت",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "ث",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-POST-Q03",
+      "source_v1_id": "POST-Q03",
+      "origin_v1": {
+        "interaction_type": "choose_one",
+        "source_text": "يظهر «س». اختر شكله الآخر: سـ، شـ، صـ، نـ.",
+        "asset_ids": [],
+        "decision": "reuse_with_edit"
+      },
+      "skill_group": "S1",
+      "evidence_type": "sound_to_letter",
+      "role": "posttest",
+      "interaction": "listen_choose_one",
+      "prompt": "استمع ثم اختر الحرف.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "LET-04",
+            "kind": "audio"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "ف",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "ق",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "ك",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [
+        "LET-04"
+      ],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-POST-Q04",
+      "source_v1_id": "POST-Q04",
+      "origin_v1": {
+        "interaction_type": "listen_choose_one",
+        "source_text": "يسمع «ق». الخيارات: ق، ف، ك، غ.",
+        "asset_ids": [
+          "LET-04"
+        ],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S2",
+      "evidence_type": "short_vowel_kasra",
+      "role": "posttest",
+      "interaction": "listen_choose_one",
+      "prompt": "استمع واختر الشكل.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "SYL-05",
+            "kind": "audio"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "مُ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "مَ",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "مِ",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "c"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [
+        "SYL-05"
+      ],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-POST-Q05",
+      "source_v1_id": "POST-Q05",
+      "origin_v1": {
+        "interaction_type": "listen_choose_image",
+        "source_text": "يسمع «ب». الصور: باب، قلم، موزة.",
+        "asset_ids": [
+          "LET-02",
+          "VOC-03",
+          "VOC-04",
+          "VOC-01"
+        ],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S2",
+      "evidence_type": "short_vowel_fatha",
+      "role": "posttest",
+      "interaction": "choose_one",
+      "prompt": "أي حرف عليه فتحة؟",
+      "stimulus": {
+        "text": "رَ / رِ / رُ",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "رُ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "رَ",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "رِ",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-POST-Q06",
+      "source_v1_id": "POST-Q06",
+      "origin_v1": {
+        "interaction_type": "listen_choose_one",
+        "source_text": "يسمع «نَخْلَة». الخيارات: ن، م، ل.",
+        "asset_ids": [
+          "WRD-09"
+        ],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S3",
+      "evidence_type": "syllable_reading",
+      "role": "posttest",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ المقطع.",
+      "stimulus": {
+        "text": "قُ",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference_text": "قُ",
+          "accept_equivalent": true,
+          "criteria": [
+            "صحة الأصوات والكلمات",
+            "عدم الحذف",
+            "الوقف الطبيعي"
+          ],
+          "academic_auto_grade": false
+        }
+      },
+      "reading_reference": "قُ",
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-POST-Q07",
+      "source_v1_id": "POST-Q07",
+      "origin_v1": {
+        "interaction_type": "listen_choose_one",
+        "source_text": "يسمع «قَمَر». الخيارات: ر، ق، م.",
+        "asset_ids": [
+          "WRD-08"
+        ],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S3",
+      "evidence_type": "syllable_blending",
+      "role": "posttest",
+      "interaction": "sequence",
+      "prompt": "رتب المقاطع لتكون كلمة سَبَحَ.",
+      "stimulus": {
+        "text": "سَ / بَ / حَ",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "بَ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "حَ",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "سَ",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "c",
+          "a",
+          "b"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-POST-Q08",
+      "source_v1_id": "POST-Q08",
+      "origin_v1": {
+        "interaction_type": "choose_one",
+        "source_text": "ل، كِتَاب، قَرَأَ خَالِدٌ الْكِتَابَ. اختر الحرف.",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S4",
+      "evidence_type": "simple_word_reading",
+      "role": "posttest",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الكلمة.",
+      "stimulus": {
+        "text": "نَخْلَة",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference_text": "نَخْلَة",
+          "accept_equivalent": true,
+          "criteria": [
+            "صحة الأصوات والكلمات",
+            "عدم الحذف",
+            "الوقف الطبيعي"
+          ],
+          "academic_auto_grade": false
+        }
+      },
+      "reading_reference": "نَخْلَة",
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-POST-Q09",
+      "source_v1_id": "POST-Q09",
+      "origin_v1": {
+        "interaction_type": "choose_one",
+        "source_text": "ك، نَخْلَة، ذَهَبَ مَاجِدٌ إِلَى الْبَحْرِ. اختر الكلمة.",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S4",
+      "evidence_type": "word_image_match",
+      "role": "posttest",
+      "interaction": "choose_image",
+      "prompt": "اقرأ الكلمة ثم اختر صورتها.",
+      "stimulus": {
+        "text": "قَمَر",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": null,
+          "media": [
+            {
+              "media_id": "VOC-09",
+              "kind": "image"
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "text": null,
+          "media": [
+            {
+              "media_id": "VOC-07",
+              "kind": "image"
+            }
+          ]
+        },
+        {
+          "id": "c",
+          "text": null,
+          "media": [
+            {
+              "media_id": "VOC-14",
+              "kind": "image"
+            }
+          ]
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [
+        "VOC-09",
+        "VOC-07",
+        "VOC-14"
+      ],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-POST-Q10",
+      "source_v1_id": "POST-Q10",
+      "origin_v1": {
+        "interaction_type": "sequence",
+        "source_text": "إخراج الكتاب، قراءة الكتاب، إعادته إلى الحقيبة.",
+        "asset_ids": [
+          "SEQ-07",
+          "SEQ-08",
+          "SEQ-09"
+        ],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S5",
+      "evidence_type": "word_construction",
+      "role": "posttest",
+      "interaction": "build_word",
+      "prompt": "رتب حروف كلمة سَمَك.",
+      "stimulus": {
+        "text": "سَمَك",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "ك",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "س",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "م",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b",
+          "c",
+          "a"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-POST-Q11",
+      "source_v1_id": "POST-Q11",
+      "origin_v1": {
+        "interaction_type": "listen_choose_one",
+        "source_text": "يسمع «مِ». مَ، مِ، مُ.",
+        "asset_ids": [
+          "LET-01"
+        ],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S5",
+      "evidence_type": "word_construction",
+      "role": "posttest",
+      "interaction": "choose_one",
+      "prompt": "اختر الحرف الناقص.",
+      "stimulus": {
+        "text": "بَ_َحْر",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "ب",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "ح",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "ن",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-POST-Q12",
+      "source_v1_id": "POST-Q12",
+      "origin_v1": {
+        "interaction_type": "listen_choose_one",
+        "source_text": "يسمع «نُو». نُ، نُو، نَا.",
+        "asset_ids": [
+          "SYL-11"
+        ],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S5",
+      "evidence_type": "word_writing",
+      "role": "posttest",
+      "interaction": "write_text",
+      "prompt": "اكتب اسم الشيء في الصورة.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "VOC-03",
+            "kind": "image"
+          }
+        ]
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference_text": "بَاب",
+          "accept_equivalent": true,
+          "criteria": [
+            "جملة مفيدة أو كلمة صحيحة",
+            "الترتيب",
+            "الإملاء المناسب للمستوى"
+          ],
+          "academic_auto_grade": false
+        }
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [
+        "VOC-03"
+      ],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [
+        "free_writing_not_confirmed_in_v1"
+      ],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-POST-Q13",
+      "source_v1_id": "POST-Q13",
+      "origin_v1": {
+        "interaction_type": "sequence",
+        "source_text": "مَكْ، تَب، نُور. كوّن «مَكْتَب».",
+        "asset_ids": [],
+        "decision": "reuse_with_edit"
+      },
+      "skill_group": "S6",
+      "evidence_type": "madd_waw",
+      "role": "posttest",
+      "interaction": "listen_choose_one",
+      "prompt": "اختر المقطع المسموع.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "SYL-11",
+            "kind": "audio"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "نُ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "نَا",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "نُو",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "c"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [
+        "SYL-11"
+      ],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-POST-Q14",
+      "source_v1_id": "POST-Q14",
+      "origin_v1": {
+        "interaction_type": "build_word",
+        "source_text": "صورة نخلة؛ ن، خ، ل، م.",
+        "asset_ids": [
+          "VOC-09"
+        ],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S6",
+      "evidence_type": "madd_alif",
+      "role": "posttest",
+      "interaction": "choose_one",
+      "prompt": "أي كلمة فيها مد بالألف؟",
+      "stimulus": {
+        "text": "اختر",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "بَاب",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "بُر",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "بِر",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-POST-Q15",
+      "source_v1_id": "POST-Q15",
+      "origin_v1": {
+        "interaction_type": "sequence",
+        "source_text": "ل، ف، ي. كوّن «فِيل».",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S7",
+      "evidence_type": "long_word_reading",
+      "role": "posttest",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الكلمة.",
+      "stimulus": {
+        "text": "مَكْتَبَة",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference_text": "مَكْتَبَة",
+          "accept_equivalent": true,
+          "criteria": [
+            "صحة الأصوات والكلمات",
+            "عدم الحذف",
+            "الوقف الطبيعي"
+          ],
+          "academic_auto_grade": false
+        }
+      },
+      "reading_reference": "مَكْتَبَة",
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-POST-Q16",
+      "source_v1_id": "POST-Q16",
+      "origin_v1": {
+        "interaction_type": "choose_one",
+        "source_text": "بَـ \\_ ـر؛ ح، خ، د.",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S7",
+      "evidence_type": "long_word_reading",
+      "role": "posttest",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الكلمة.",
+      "stimulus": {
+        "text": "حَدِيقَة",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference_text": "حَدِيقَة",
+          "accept_equivalent": true,
+          "criteria": [
+            "صحة الأصوات والكلمات",
+            "عدم الحذف",
+            "الوقف الطبيعي"
+          ],
+          "academic_auto_grade": false
+        }
+      },
+      "reading_reference": "حَدِيقَة",
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-POST-Q17",
+      "source_v1_id": "POST-Q17",
+      "origin_v1": {
+        "interaction_type": "choose_image",
+        "source_text": "قَمَر؛ القمر، الشمس، النخلة.",
+        "asset_ids": [
+          "VOC-07",
+          "VOC-06",
+          "VOC-09"
+        ],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S8",
+      "evidence_type": "sentence_reading",
+      "role": "posttest",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الجملة.",
+      "stimulus": {
+        "text": "زرعت هناء زهرة.",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference_text": "زَرَعَتْ هَنَاءُ زَهْرَةً.",
+          "accept_equivalent": true,
+          "criteria": [
+            "صحة الأصوات والكلمات",
+            "عدم الحذف",
+            "الوقف الطبيعي"
+          ],
+          "academic_auto_grade": false
+        }
+      },
+      "reading_reference": "زَرَعَتْ هَنَاءُ زَهْرَةً.",
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-POST-Q18",
+      "source_v1_id": "POST-Q18",
+      "origin_v1": {
+        "interaction_type": "listen_choose_one",
+        "source_text": "سُوق؛ سُوق، سَاق، سَمَك.",
+        "asset_ids": [
+          "WRD-22"
+        ],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S8",
+      "evidence_type": "sentence_direct_comprehension",
+      "role": "posttest",
+      "interaction": "choose_one",
+      "prompt": "ماذا رسم فارس؟",
+      "stimulus": {
+        "text": "رسم فارس شجرة في الدفتر.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "شجرة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "سيارة",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "بابا",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-POST-Q19",
+      "source_v1_id": "POST-Q19",
+      "origin_v1": {
+        "interaction_type": "read_aloud",
+        "source_text": "رَسَمَ.",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S9",
+      "evidence_type": "connected_sentence_reading",
+      "role": "posttest",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الجملتين.",
+      "stimulus": {
+        "text": "فتح عادل الباب. دخل صديقه مسرورا.",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference_text": "فَتَحَ عَادِلٌ الْبَابَ. دَخَلَ صَدِيقُهُ مَسْرُورًا.",
+          "accept_equivalent": true,
+          "criteria": [
+            "صحة الأصوات والكلمات",
+            "عدم الحذف",
+            "الوقف الطبيعي"
+          ],
+          "academic_auto_grade": false
+        }
+      },
+      "reading_reference": "فَتَحَ عَادِلٌ الْبَابَ. دَخَلَ صَدِيقُهُ مَسْرُورًا.",
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-POST-Q20",
+      "source_v1_id": "POST-Q20",
+      "origin_v1": {
+        "interaction_type": "read_aloud",
+        "source_text": "نَجْم.",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S9",
+      "evidence_type": "short_text_reading",
+      "role": "posttest",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ النص القصير.",
+      "stimulus": {
+        "text": "بعد المدرسة زار ماجد الحديقة. شاهد شجرة كبيرة. جلس تحتها يستريح.",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference_text": "بَعْدَ الْمَدْرَسَةِ زَارَ مَاجِدٌ الْحَدِيقَةَ. شَاهَدَ شَجَرَةً كَبِيرَةً. جَلَسَ تَحْتَهَا يَسْتَرِيحُ.",
+          "accept_equivalent": true,
+          "criteria": [
+            "صحة الأصوات والكلمات",
+            "عدم الحذف",
+            "الوقف الطبيعي"
+          ],
+          "academic_auto_grade": false
+        }
+      },
+      "reading_reference": "بَعْدَ الْمَدْرَسَةِ زَارَ مَاجِدٌ الْحَدِيقَةَ. شَاهَدَ شَجَرَةً كَبِيرَةً. جَلَسَ تَحْتَهَا يَسْتَرِيحُ.",
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-POST-Q21",
+      "source_v1_id": "POST-Q21",
+      "origin_v1": {
+        "interaction_type": "read_aloud",
+        "source_text": "نُور.",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S9",
+      "evidence_type": "connected_sentence_reading",
+      "role": "posttest",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الجملتين.",
+      "stimulus": {
+        "text": "حملت سعاد سلة صغيرة. وضعت فيها ثمارا طازجة.",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference_text": "حَمَلَتْ سُعَادُ سَلَّةً صَغِيرَةً. وَضَعَتْ فِيهَا ثِمَارًا طَازَجَةً.",
+          "accept_equivalent": true,
+          "criteria": [
+            "صحة الأصوات والكلمات",
+            "عدم الحذف",
+            "الوقف الطبيعي"
+          ],
+          "academic_auto_grade": false
+        }
+      },
+      "reading_reference": "حَمَلَتْ سُعَادُ سَلَّةً صَغِيرَةً. وَضَعَتْ فِيهَا ثِمَارًا طَازَجَةً.",
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-POST-Q22",
+      "source_v1_id": "POST-Q22",
+      "origin_v1": {
+        "interaction_type": "read_aloud",
+        "source_text": "سُلَّم.",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S10",
+      "evidence_type": "text_direct_comprehension",
+      "role": "posttest",
+      "interaction": "choose_one",
+      "prompt": "أين ذهب فهد؟",
+      "stimulus": {
+        "text": "ذهب فهد إلى الحديقة. شاهد فراشات ملونة. رسم فراشة في دفتره.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "إلى الحديقة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "إلى السوق",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "إلى المكتبة",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-POST-Q23",
+      "source_v1_id": "POST-Q23",
+      "origin_v1": {
+        "interaction_type": "read_aloud",
+        "source_text": "تَلْعَبُ مَرْيَمُ بِالْكُرَةِ.",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S10",
+      "evidence_type": "text_direct_comprehension",
+      "role": "posttest",
+      "interaction": "choose_one",
+      "prompt": "ماذا شاهد فهد؟",
+      "stimulus": {
+        "text": "ذهب فهد إلى الحديقة. شاهد فراشات ملونة. رسم فراشة في دفتره.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "أسماكا",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "فراشات",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "نخلا",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-POST-Q24",
+      "source_v1_id": "POST-Q24",
+      "origin_v1": {
+        "interaction_type": "read_aloud",
+        "source_text": "فِي صَبَاحٍ مُشْمِسٍ، ذَهَبَ مَاجِدٌ مَعَ وَالِدِهِ إِلَى الشَّاطِئِ. أَخَذَ دَلْوًا صَغِيرًا، وَحَمَلَ وَالِدُهُ مَاءً وَمِظَلَّةً. بَنَى مَاجِدٌ بَيْتًا مِنَ الرَّمْلِ، ثُمَّ جَمَعَ أَصْدَافًا مُلَوَّنَةً. قَبْلَ الْعَوْدَةِ، نَظَّفَا مَكَانَهُمَا.",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S10",
+      "evidence_type": "text_direct_comprehension",
+      "role": "posttest",
+      "interaction": "choose_one",
+      "prompt": "أين رسم فراشة؟",
+      "stimulus": {
+        "text": "ذهب فهد إلى الحديقة. شاهد فراشات ملونة. رسم فراشة في دفتره.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "على الجدار",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "في الدفتر",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "على الأرض",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-POST-Q25",
+      "source_v1_id": "POST-Q25",
+      "origin_v1": {
+        "interaction_type": "choose_one",
+        "source_text": "إلى أين ذهب ماجد؟ الشاطئ، المدرسة، الحديقة.",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S11",
+      "evidence_type": "event_sequence",
+      "role": "posttest",
+      "interaction": "sequence",
+      "prompt": "رتب الأحداث كما وردت.",
+      "stimulus": {
+        "text": "لبست ليلى معطفها. خرجت من المنزل. ركبت الحافلة.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "ركبت الحافلة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "لبست المعطف",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "خرجت من المنزل",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b",
+          "c",
+          "a"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-POST-Q26",
+      "source_v1_id": "POST-Q26",
+      "origin_v1": {
+        "interaction_type": "choose_one",
+        "source_text": "مع من ذهب؟ والده، معلمه، صديقه.",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S11",
+      "evidence_type": "event_sequence",
+      "role": "posttest",
+      "interaction": "sequence",
+      "prompt": "رتب الأحداث بحسب النص.",
+      "stimulus": {
+        "text": "فتح يوسف كتابه. قرأ الدرس. أعاد الكتاب إلى الحقيبة.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "أعاد الكتاب",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "فتح الكتاب",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "قرأ الدرس",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b",
+          "c",
+          "a"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-POST-Q27",
+      "source_v1_id": "POST-Q27",
+      "origin_v1": {
+        "interaction_type": "choose_one",
+        "source_text": "ماذا بنى؟ بيتًا من الرمل، قاربًا، سورًا.",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S12",
+      "evidence_type": "main_idea",
+      "role": "posttest",
+      "interaction": "choose_one",
+      "prompt": "ما الفكرة الرئيسة؟",
+      "stimulus": {
+        "text": "ساعد الطلاب معلمهم في ترتيب الصف. حمل بعضهم الكتب ووضع آخرون الأقلام في أماكنها.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "التعاون في ترتيب الصف",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "عدد الأقلام",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "لون الكتب",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-POST-Q28",
+      "source_v1_id": "POST-Q28",
+      "origin_v1": {
+        "interaction_type": "choose_one",
+        "source_text": "لماذا نظفا المكان؟ للمحافظة على نظافة الشاطئ، للبحث عن الدلو، للعب.",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S12",
+      "evidence_type": "main_idea",
+      "role": "posttest",
+      "interaction": "choose_one",
+      "prompt": "ما الموضوع العام للنص؟",
+      "stimulus": {
+        "text": "سقت ريم نباتها كل يوم. وضعته قرب الضوء. كبر النبات وظهرت أزهاره.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "العناية بالنبات",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "قرب الضوء وحده",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "شكل الوعاء",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-POST-Q29",
+      "source_v1_id": "POST-Q29",
+      "origin_v1": {
+        "interaction_type": "sequence",
+        "source_text": "ذهب إلى الشاطئ، بنى بيتًا من الرمل، نظفا المكان.",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S13",
+      "evidence_type": "sentence_construction",
+      "role": "posttest",
+      "interaction": "sequence",
+      "prompt": "رتب الكلمات لتبدأ الجملة بكلمة قرأت.",
+      "stimulus": {
+        "text": "قرأت / ليلى / القصة",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "القصة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "ليلى",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "قرأت",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "c",
+          "b",
+          "a"
+        ],
+        "rubric": null
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [],
+      "status": "draft_pending_assessment_equivalence_review"
+    },
+    {
+      "id": "V2-POST-Q30",
+      "source_v1_id": "POST-Q30",
+      "origin_v1": {
+        "interaction_type": "choose_one",
+        "source_text": "ما معنى «مُلَوَّنَة»؟ لها ألوان مختلفة، سوداء فقط، خالية من الألوان.",
+        "asset_ids": [],
+        "decision": "replace_with_new"
+      },
+      "skill_group": "S13",
+      "evidence_type": "sentence_writing",
+      "role": "posttest",
+      "interaction": "write_text",
+      "prompt": "اكتب جملة قصيرة عن المكتبة في الصورة.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "VOC-22",
+            "kind": "image"
+          }
+        ]
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference_text": "جملة مفيدة عن المكتبة",
+          "accept_equivalent": true,
+          "criteria": [
+            "جملة مفيدة أو كلمة صحيحة",
+            "الترتيب",
+            "الإملاء المناسب للمستوى"
+          ],
+          "academic_auto_grade": false
+        }
+      },
+      "reading_reference": null,
+      "role_specific_hints_allowed": false,
+      "media_ids": [
+        "VOC-22"
+      ],
+      "media_status": "pending_owner_review",
+      "technical_gaps": [
+        "free_writing_not_confirmed_in_v1"
+      ],
+      "status": "draft_pending_assessment_equivalence_review"
+    }
+  ],
+  "media": [
+    {
+      "id": "LET-03",
+      "kind": "audio",
+      "label": "سْ",
+      "origin_v1_id": "LET-03",
+      "status": "selected_from_v1_pending_owner_review",
+      "path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-03.mp3"
+    },
+    {
+      "id": "LET-04",
+      "kind": "audio",
+      "label": "قْ",
+      "origin_v1_id": "LET-04",
+      "status": "selected_from_v1_pending_owner_review",
+      "path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-04.mp3"
+    },
+    {
+      "id": "SYL-02",
+      "kind": "audio",
+      "label": "بِ",
+      "origin_v1_id": "SYL-02",
+      "status": "selected_from_v1_pending_owner_review",
+      "path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-02.mp3"
+    },
+    {
+      "id": "SYL-05",
+      "kind": "audio",
+      "label": "مِ",
+      "origin_v1_id": "SYL-05",
+      "status": "selected_from_v1_pending_owner_review",
+      "path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-05.mp3"
+    },
+    {
+      "id": "SYL-09",
+      "kind": "audio",
+      "label": "بَا",
+      "origin_v1_id": "SYL-09",
+      "status": "selected_from_v1_pending_owner_review",
+      "path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-09.mp3"
+    },
+    {
+      "id": "SYL-11",
+      "kind": "audio",
+      "label": "نُو",
+      "origin_v1_id": "SYL-11",
+      "status": "selected_from_v1_pending_owner_review",
+      "path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-11.mp3"
+    },
+    {
+      "id": "SYL-12",
+      "kind": "audio",
+      "label": "لِي",
+      "origin_v1_id": "SYL-12",
+      "status": "selected_from_v1_pending_owner_review",
+      "path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-12.mp3"
+    },
+    {
+      "id": "WRD-10",
+      "kind": "audio",
+      "label": "كُرَة",
+      "origin_v1_id": "WRD-10",
+      "status": "selected_from_v1_pending_owner_review",
+      "path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-10.mp3"
+    },
+    {
+      "id": "WRD-14",
+      "kind": "audio",
+      "label": "نَجْم",
+      "origin_v1_id": "WRD-14",
+      "status": "selected_from_v1_pending_owner_review",
+      "path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-14.mp3"
+    },
+    {
+      "id": "VOC-01",
+      "kind": "image",
+      "label": "موزة",
+      "origin_v1_id": "VOC-01",
+      "status": "selected_from_v1_pending_owner_review",
+      "path": null
+    },
+    {
+      "id": "VOC-03",
+      "kind": "image",
+      "label": "باب",
+      "origin_v1_id": "VOC-03",
+      "status": "selected_from_v1_pending_owner_review",
+      "path": null
+    },
+    {
+      "id": "VOC-04",
+      "kind": "image",
+      "label": "قلم",
+      "origin_v1_id": "VOC-04",
+      "status": "selected_from_v1_pending_owner_review",
+      "path": null
+    },
+    {
+      "id": "VOC-07",
+      "kind": "image",
+      "label": "قمر",
+      "origin_v1_id": "VOC-07",
+      "status": "selected_from_v1_pending_owner_review",
+      "path": null
+    },
+    {
+      "id": "VOC-09",
+      "kind": "image",
+      "label": "نخلة",
+      "origin_v1_id": "VOC-09",
+      "status": "selected_from_v1_pending_owner_review",
+      "path": null
+    },
+    {
+      "id": "VOC-14",
+      "kind": "image",
+      "label": "نجم",
+      "origin_v1_id": "VOC-14",
+      "status": "selected_from_v1_pending_owner_review",
+      "path": null
+    },
+    {
+      "id": "VOC-21",
+      "kind": "image",
+      "label": "حديقة",
+      "origin_v1_id": "VOC-21",
+      "status": "selected_from_v1_pending_owner_review",
+      "path": null
+    },
+    {
+      "id": "VOC-22",
+      "kind": "image",
+      "label": "مكتبة",
+      "origin_v1_id": "VOC-22",
+      "status": "selected_from_v1_pending_owner_review",
+      "path": null
+    },
+    {
+      "id": "VOC-28",
+      "kind": "image",
+      "label": "زهرة",
+      "origin_v1_id": "VOC-28",
+      "status": "selected_from_v1_pending_owner_review",
+      "path": null
+    }
+  ],
+  "distribution_target": {
+    "S1": 3,
+    "S2": 2,
+    "S3": 2,
+    "S4": 2,
+    "S5": 3,
+    "S6": 2,
+    "S7": 2,
+    "S8": 2,
+    "S9": 3,
+    "S10": 3,
+    "S11": 2,
+    "S12": 2,
+    "S13": 2
+  },
+  "policies": {
+    "items_per_test": 30,
+    "scores": "no_new_numeric_thresholds",
+    "speech_authority": "human_supervisor_only",
+    "no_hints": true,
+    "answers_private": true,
+    "pre_post_parallel_not_identical": true,
+    "diacritics": "general text unvowelled; phonics/reading reference as needed",
+    "videos": "not_assessment_material"
+  },
+  "qa_findings": [
+    "حُفظت مرجعية البنود الأصلية PRE/POST بجانب كل بند؛ بنود V2 التي تختلف أعيد تأليفها وهي ليست نسخًا آلية من المصدر.",
+    "تقييم الأصوات والكتابة لا ينتج قرارًا آليًا في هذه المسودة.",
+    "تحتاج البنود القرائية والأزواج القبلية والبعدية معايرة تربوية قبل الاستيراد أو استخدامها في تجربة بحثية.",
+    "S5/S13 تتضمن كتابة حقيقية غير مثبتة في V1؛ لا نفترض دعم المشغل.",
+    "لا صوت تلقائي لأسئلة فهم المقروء."
+  ]
+}
