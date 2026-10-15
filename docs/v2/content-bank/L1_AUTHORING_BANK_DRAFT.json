@@ -2996,18 +2996,18 @@
       "options": [
         {
           "id": "a",
-          "text": "س",
+          "text": "ص",
           "media": []
         },
         {
           "id": "b",
-          "text": "ص",
+          "text": "ض",
           "media": []
         }
       ],
       "private_answer": {
         "correct_option_ids": [
-          "b"
+          "a"
         ],
         "rubric": null
       },
@@ -3778,7 +3778,7 @@
         },
         {
           "id": "b",
-          "text": "ص",
+          "text": "ش",
           "media": []
         }
       ],
@@ -3889,7 +3889,7 @@
         "text": null,
         "media": [
           {
-            "media_id": "AUD-L1-TA",
+            "media_id": "AUD-L1-TAA",
             "kind": "audio"
           }
         ]
@@ -3897,7 +3897,7 @@
       "options": [
         {
           "id": "a",
-          "text": "ت",
+          "text": "د",
           "media": []
         },
         {
@@ -3908,7 +3908,7 @@
       ],
       "private_answer": {
         "correct_option_ids": [
-          "a"
+          "b"
         ],
         "rubric": null
       },
