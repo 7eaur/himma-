@@ -2299,9 +2299,9 @@
       "role": "guided_practice",
       "mode": "GP",
       "interaction": "read_aloud",
-      "prompt": "اجمع المقاطع ثم اقرأ الكلمة.",
+      "prompt": "اجمع المقاطع ثم اقرأ الكلمة بصوت واضح.",
       "stimulus": {
-        "text": "نَ + زَ + لَ ← نَزَلَ",
+        "text": "نَ + زَ + لَ",
         "media": []
       },
       "options": [],
@@ -2332,7 +2332,8 @@
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
       },
-      "reading_reference": "نَزَلَ"
+      "reading_reference": "نَزَلَ",
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة."
     },
     {
       "id": "L1-05-IC-A01",
@@ -2430,9 +2431,9 @@
       "role": "independent_check",
       "mode": "IC",
       "interaction": "read_aloud",
-      "prompt": "ادمج المقاطع واقرأ الكلمة.",
+      "prompt": "ادمج المقاطع ثم اقرأ الكلمة بصوت واضح.",
       "stimulus": {
-        "text": "رَ + كَ + بَ ← رَكَبَ",
+        "text": "رَ + كَ + بَ",
         "media": []
       },
       "options": [],
@@ -2458,7 +2459,8 @@
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
       "hint": null,
-      "reading_reference": "رَكَبَ"
+      "reading_reference": "رَكَبَ",
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة."
     },
     {
       "id": "L1-05-IC-A04",
@@ -3037,7 +3039,7 @@
         "text": null,
         "media": [
           {
-            "media_id": "LET-06",
+            "media_id": "LET-05",
             "kind": "audio"
           }
         ]
@@ -3045,12 +3047,12 @@
       "options": [
         {
           "id": "a",
-          "text": "ن",
+          "text": "ر",
           "media": []
         },
         {
           "id": "b",
-          "text": "م",
+          "text": "ن",
           "media": []
         }
       ],
@@ -3068,7 +3070,8 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": null
+      "hint": null,
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة."
     },
     {
       "id": "SUP-01-SC-02",
@@ -3076,26 +3079,26 @@
       "role": "support_check",
       "mode": "IC",
       "interaction": "choose_one",
-      "prompt": "أي حرف له نقطة فوق؟",
+      "prompt": "أي الحرفين له نقطة فوق؟",
       "stimulus": {
-        "text": "د / ذ",
+        "text": "ز / ر",
         "media": []
       },
       "options": [
         {
           "id": "a",
-          "text": "د",
+          "text": "ز",
           "media": []
         },
         {
           "id": "b",
-          "text": "ذ",
+          "text": "ر",
           "media": []
         }
       ],
       "private_answer": {
         "correct_option_ids": [
-          "b"
+          "a"
         ],
         "rubric": null
       },
@@ -3107,7 +3110,8 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": null
+      "hint": null,
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة."
     },
     {
       "id": "SUP-01-SC-03",
@@ -3120,7 +3124,7 @@
         "text": null,
         "media": [
           {
-            "media_id": "AUD-L1-TAA",
+            "media_id": "LET-03",
             "kind": "audio"
           }
         ]
@@ -3128,18 +3132,18 @@
       "options": [
         {
           "id": "a",
-          "text": "ت",
+          "text": "س",
           "media": []
         },
         {
           "id": "b",
-          "text": "ط",
+          "text": "ش",
           "media": []
         }
       ],
       "private_answer": {
         "correct_option_ids": [
-          "b"
+          "a"
         ],
         "rubric": null
       },
@@ -3153,7 +3157,8 @@
       ],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": null
+      "hint": null,
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة."
     },
     {
       "id": "SUP-02-GP-01",
@@ -3259,7 +3264,7 @@
         "text": null,
         "media": [
           {
-            "media_id": "AUD-L1-03-MU",
+            "media_id": "SYL-03",
             "kind": "audio"
           }
         ]
@@ -3267,12 +3272,12 @@
       "options": [
         {
           "id": "a",
-          "text": "مَ",
+          "text": "بَ",
           "media": []
         },
         {
           "id": "b",
-          "text": "مُ",
+          "text": "بُ",
           "media": []
         }
       ],
@@ -3292,7 +3297,8 @@
       ],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": null
+      "hint": null,
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة."
     },
     {
       "id": "SUP-02-SC-02",
@@ -3302,18 +3308,18 @@
       "interaction": "choose_one",
       "prompt": "أي الحرفين عليه فتحة؟",
       "stimulus": {
-        "text": "سَ / سُ",
+        "text": "قِ / قَ",
         "media": []
       },
       "options": [
         {
           "id": "a",
-          "text": "سُ",
+          "text": "قِ",
           "media": []
         },
         {
           "id": "b",
-          "text": "سَ",
+          "text": "قَ",
           "media": []
         }
       ],
@@ -3331,7 +3337,8 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": null
+      "hint": null,
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة."
     },
     {
       "id": "SUP-03-GP-01",
@@ -3432,7 +3439,7 @@
       "interaction": "read_aloud",
       "prompt": "اقرأ المقطع.",
       "stimulus": {
-        "text": "قَ",
+        "text": "دُ",
         "media": []
       },
       "options": [],
@@ -3440,7 +3447,7 @@
         "correct_option_ids": [],
         "rubric": {
           "evaluation_authority": "human_supervisor",
-          "reference_text": "قَ",
+          "reference_text": "دُ",
           "dimensions": [
             "صحة صوت الحرف/الحركة",
             "ترتيب الأصوات",
@@ -3457,7 +3464,9 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": null
+      "hint": null,
+      "reading_reference": "دُ",
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة."
     },
     {
       "id": "SUP-03-SC-02",
@@ -3880,7 +3889,7 @@
         "text": null,
         "media": [
           {
-            "media_id": "AUD-L1-SAD",
+            "media_id": "AUD-L1-TA",
             "kind": "audio"
           }
         ]
@@ -3888,18 +3897,18 @@
       "options": [
         {
           "id": "a",
-          "text": "س",
+          "text": "ت",
           "media": []
         },
         {
           "id": "b",
-          "text": "ص",
+          "text": "ط",
           "media": []
         }
       ],
       "private_answer": {
         "correct_option_ids": [
-          "b"
+          "a"
         ],
         "rubric": null
       },
@@ -3910,7 +3919,8 @@
       "hint": null,
       "retry": null,
       "status": "draft_pending_review",
-      "origin_v1": null
+      "origin_v1": null,
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة."
     },
     {
       "id": "SUP-02-GP-03",
@@ -4082,18 +4092,18 @@
       "interaction": "choose_one",
       "prompt": "اختر الحرف الذي عليه ضمة.",
       "stimulus": {
-        "text": "نِ / نُ",
+        "text": "رَ / رُ",
         "media": []
       },
       "options": [
         {
           "id": "a",
-          "text": "نِ",
+          "text": "رَ",
           "media": []
         },
         {
           "id": "b",
-          "text": "نُ",
+          "text": "رُ",
           "media": []
         }
       ],
@@ -4110,7 +4120,8 @@
       "hint": null,
       "retry": null,
       "status": "draft_pending_review",
-      "origin_v1": null
+      "origin_v1": null,
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة."
     },
     {
       "id": "SUP-02-SC-05",
@@ -4275,7 +4286,7 @@
       "interaction": "read_aloud",
       "prompt": "اقرأ المقطع.",
       "stimulus": {
-        "text": "مُ",
+        "text": "فِ",
         "media": []
       },
       "options": [],
@@ -4284,17 +4295,19 @@
         "rubric": {
           "authority": "human_supervisor",
           "reference": "مُ",
-          "no_auto_grade": true
+          "no_auto_grade": true,
+          "reference_text": "فِ"
         }
       },
       "skill_group": "S3",
       "evidence_type": "syllable_reading",
       "error_focus": "syllable_decoding",
-      "reading_reference": "مُ",
+      "reading_reference": "فِ",
       "hint": null,
       "retry": null,
       "status": "draft_pending_review",
-      "origin_v1": null
+      "origin_v1": null,
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة."
     },
     {
       "id": "SUP-03-SC-04",
@@ -4302,33 +4315,33 @@
       "mode": "IC",
       "role": "support_check",
       "interaction": "sequence",
-      "prompt": "رتب المقاطع لتكون حَمَلَ.",
+      "prompt": "رتب المقاطع لتكون كلمة دَرَسَ.",
       "stimulus": {
-        "text": "حَ / مَ / لَ",
+        "text": "دَ / رَ / سَ",
         "media": []
       },
       "options": [
         {
           "id": "a",
-          "text": "لَ",
+          "text": "رَ",
           "media": []
         },
         {
           "id": "b",
-          "text": "حَ",
+          "text": "سَ",
           "media": []
         },
         {
           "id": "c",
-          "text": "مَ",
+          "text": "دَ",
           "media": []
         }
       ],
       "private_answer": {
         "correct_option_ids": [
-          "b",
           "c",
-          "a"
+          "a",
+          "b"
         ],
         "rubric": null
       },
@@ -4339,7 +4352,8 @@
       "hint": null,
       "retry": null,
       "status": "draft_pending_review",
-      "origin_v1": null
+      "origin_v1": null,
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة."
     }
   ],
   "media": [
