@@ -21,10 +21,10 @@
       ],
       "video_brief": "الانتقال من جملة إلى جملتين مترابطتين، وملاحظة الربط والوقف لا قياس السرعة وحده.",
       "practice_question_ids": [
-        "L3-01-GP01",
-        "L3-01-GP02",
-        "L3-01-GP03",
-        "L3-01-GP04"
+        "L3-01-GP-01",
+        "L3-01-GP-02",
+        "L3-01-GP-03",
+        "L3-01-GP-04"
       ],
       "check_question_ids": [
         "L3-01-IC-A01",
@@ -60,10 +60,10 @@
       ],
       "video_brief": "اقرأ النص كاملًا مع متابعة الجمل ودقة النطق وعدم التخمين، دون تحويل الطلاقة إلى سرعة فقط.",
       "practice_question_ids": [
-        "L3-02-GP01",
-        "L3-02-GP02",
-        "L3-02-GP03",
-        "L3-02-GP04"
+        "L3-02-GP-01",
+        "L3-02-GP-02",
+        "L3-02-GP-03",
+        "L3-02-GP-04"
       ],
       "check_question_ids": [
         "L3-02-IC-A01",
@@ -100,10 +100,10 @@
       ],
       "video_brief": "العودة للنص لاستخراج من/أين/ماذا/متى، وعدم الاعتماد على استنتاج غير مذكور. لا صوت تلقائي في اختبار فهم المقروء.",
       "practice_question_ids": [
-        "L3-03-GP01",
-        "L3-03-GP02",
-        "L3-03-GP03",
-        "L3-03-GP04"
+        "L3-03-GP-01",
+        "L3-03-GP-02",
+        "L3-03-GP-03",
+        "L3-03-GP-04"
       ],
       "check_question_ids": [
         "L3-03-IC-A01",
@@ -139,10 +139,10 @@
       ],
       "video_brief": "تسلسل الأحداث من النص، وليس ترتيبًا اعتباطيًا للصور.",
       "practice_question_ids": [
-        "L3-04-GP01",
-        "L3-04-GP02",
-        "L3-04-GP03",
-        "L3-04-GP04"
+        "L3-04-GP-01",
+        "L3-04-GP-02",
+        "L3-04-GP-03",
+        "L3-04-GP-04"
       ],
       "check_question_ids": [
         "L3-04-IC-A01",
@@ -178,10 +178,10 @@
       ],
       "video_brief": "تعليم الفرق بين فكرة النص والتفاصيل المذكورة داخله، بأمثلة جديدة في التدريب.",
       "practice_question_ids": [
-        "L3-05-GP01",
-        "L3-05-GP02",
-        "L3-05-GP03",
-        "L3-05-GP04"
+        "L3-05-GP-01",
+        "L3-05-GP-02",
+        "L3-05-GP-03",
+        "L3-05-GP-04"
       ],
       "check_question_ids": [
         "L3-05-IC-A01",
@@ -217,10 +217,10 @@
       ],
       "video_brief": "الانتقال من إعادة الترتيب إلى إكمال المعنى، مع تجنب بدائل متعددة صحيحة.",
       "practice_question_ids": [
-        "L3-06-GP01",
-        "L3-06-GP02",
-        "L3-06-GP03",
-        "L3-06-GP04"
+        "L3-06-GP-01",
+        "L3-06-GP-02",
+        "L3-06-GP-03",
+        "L3-06-GP-04"
       ],
       "check_question_ids": [
         "L3-06-IC-A01",
@@ -257,10 +257,10 @@
       ],
       "video_brief": "تعلم اختيار فكرة بسيطة وكتابتها في جملة واحدة، مع مراجعة ترتيب الكلمات والمعنى دون تحويلها إلى نسخ نموذج واحد.",
       "practice_question_ids": [
-        "L3-07-GP01",
-        "L3-07-GP02",
-        "L3-07-GP03",
-        "L3-07-GP04"
+        "L3-07-GP-01",
+        "L3-07-GP-02",
+        "L3-07-GP-03",
+        "L3-07-GP-04"
       ],
       "check_question_ids": [
         "L3-07-IC-A01",
@@ -439,7 +439,7 @@
   ],
   "questions": [
     {
-      "id": "L3-01-GP01",
+      "id": "L3-01-GP-01",
       "owner_id": "L3-01",
       "mode": "GP",
       "role": "guided_practice",
@@ -475,7 +475,7 @@
       "retry": "hint_then_fresh_guided_retry_not_scored"
     },
     {
-      "id": "L3-01-GP02",
+      "id": "L3-01-GP-02",
       "owner_id": "L3-01",
       "mode": "GP",
       "role": "guided_practice",
@@ -511,7 +511,7 @@
       "retry": "hint_then_fresh_guided_retry_not_scored"
     },
     {
-      "id": "L3-01-GP03",
+      "id": "L3-01-GP-03",
       "owner_id": "L3-01",
       "mode": "GP",
       "role": "guided_practice",
@@ -555,7 +555,7 @@
       "retry": "hint_then_fresh_guided_retry_not_scored"
     },
     {
-      "id": "L3-01-GP04",
+      "id": "L3-01-GP-04",
       "owner_id": "L3-01",
       "mode": "GP",
       "role": "guided_practice",
@@ -739,7 +739,7 @@
       "hint": null
     },
     {
-      "id": "L3-02-GP01",
+      "id": "L3-02-GP-01",
       "owner_id": "L3-02",
       "mode": "GP",
       "role": "guided_practice",
@@ -775,7 +775,7 @@
       "retry": "hint_then_fresh_guided_retry_not_scored"
     },
     {
-      "id": "L3-02-GP02",
+      "id": "L3-02-GP-02",
       "owner_id": "L3-02",
       "mode": "GP",
       "role": "guided_practice",
@@ -819,7 +819,7 @@
       "retry": "hint_then_fresh_guided_retry_not_scored"
     },
     {
-      "id": "L3-02-GP03",
+      "id": "L3-02-GP-03",
       "owner_id": "L3-02",
       "mode": "GP",
       "role": "guided_practice",
@@ -855,7 +855,7 @@
       "retry": "hint_then_fresh_guided_retry_not_scored"
     },
     {
-      "id": "L3-02-GP04",
+      "id": "L3-02-GP-04",
       "owner_id": "L3-02",
       "mode": "GP",
       "role": "guided_practice",
@@ -996,7 +996,7 @@
       "hint": null
     },
     {
-      "id": "L3-03-GP01",
+      "id": "L3-03-GP-01",
       "owner_id": "L3-03",
       "mode": "GP",
       "role": "guided_practice",
@@ -1040,7 +1040,7 @@
       "retry": "hint_then_fresh_guided_retry_not_scored"
     },
     {
-      "id": "L3-03-GP02",
+      "id": "L3-03-GP-02",
       "owner_id": "L3-03",
       "mode": "GP",
       "role": "guided_practice",
@@ -1084,7 +1084,7 @@
       "retry": "hint_then_fresh_guided_retry_not_scored"
     },
     {
-      "id": "L3-03-GP03",
+      "id": "L3-03-GP-03",
       "owner_id": "L3-03",
       "mode": "GP",
       "role": "guided_practice",
@@ -1128,7 +1128,7 @@
       "retry": "hint_then_fresh_guided_retry_not_scored"
     },
     {
-      "id": "L3-03-GP04",
+      "id": "L3-03-GP-04",
       "owner_id": "L3-03",
       "mode": "GP",
       "role": "guided_practice",
@@ -1344,7 +1344,7 @@
       "hint": null
     },
     {
-      "id": "L3-04-GP01",
+      "id": "L3-04-GP-01",
       "owner_id": "L3-04",
       "mode": "GP",
       "role": "guided_practice",
@@ -1390,7 +1390,7 @@
       "retry": "hint_then_fresh_guided_retry_not_scored"
     },
     {
-      "id": "L3-04-GP02",
+      "id": "L3-04-GP-02",
       "owner_id": "L3-04",
       "mode": "GP",
       "role": "guided_practice",
@@ -1436,7 +1436,7 @@
       "retry": "hint_then_fresh_guided_retry_not_scored"
     },
     {
-      "id": "L3-04-GP03",
+      "id": "L3-04-GP-03",
       "owner_id": "L3-04",
       "mode": "GP",
       "role": "guided_practice",
@@ -1482,7 +1482,7 @@
       "retry": "hint_then_fresh_guided_retry_not_scored"
     },
     {
-      "id": "L3-04-GP04",
+      "id": "L3-04-GP-04",
       "owner_id": "L3-04",
       "mode": "GP",
       "role": "guided_practice",
@@ -1708,7 +1708,7 @@
       "hint": null
     },
     {
-      "id": "L3-05-GP01",
+      "id": "L3-05-GP-01",
       "owner_id": "L3-05",
       "mode": "GP",
       "role": "guided_practice",
@@ -1752,7 +1752,7 @@
       "retry": "hint_then_fresh_guided_retry_not_scored"
     },
     {
-      "id": "L3-05-GP02",
+      "id": "L3-05-GP-02",
       "owner_id": "L3-05",
       "mode": "GP",
       "role": "guided_practice",
@@ -1796,7 +1796,7 @@
       "retry": "hint_then_fresh_guided_retry_not_scored"
     },
     {
-      "id": "L3-05-GP03",
+      "id": "L3-05-GP-03",
       "owner_id": "L3-05",
       "mode": "GP",
       "role": "guided_practice",
@@ -1840,7 +1840,7 @@
       "retry": "hint_then_fresh_guided_retry_not_scored"
     },
     {
-      "id": "L3-05-GP04",
+      "id": "L3-05-GP-04",
       "owner_id": "L3-05",
       "mode": "GP",
       "role": "guided_practice",
@@ -2056,7 +2056,7 @@
       "hint": null
     },
     {
-      "id": "L3-06-GP01",
+      "id": "L3-06-GP-01",
       "owner_id": "L3-06",
       "mode": "GP",
       "role": "guided_practice",
@@ -2102,7 +2102,7 @@
       "retry": "hint_then_fresh_guided_retry_not_scored"
     },
     {
-      "id": "L3-06-GP02",
+      "id": "L3-06-GP-02",
       "owner_id": "L3-06",
       "mode": "GP",
       "role": "guided_practice",
@@ -2146,7 +2146,7 @@
       "retry": "hint_then_fresh_guided_retry_not_scored"
     },
     {
-      "id": "L3-06-GP03",
+      "id": "L3-06-GP-03",
       "owner_id": "L3-06",
       "mode": "GP",
       "role": "guided_practice",
@@ -2192,7 +2192,7 @@
       "retry": "hint_then_fresh_guided_retry_not_scored"
     },
     {
-      "id": "L3-06-GP04",
+      "id": "L3-06-GP-04",
       "owner_id": "L3-06",
       "mode": "GP",
       "role": "guided_practice",
@@ -2412,7 +2412,7 @@
       "hint": null
     },
     {
-      "id": "L3-07-GP01",
+      "id": "L3-07-GP-01",
       "owner_id": "L3-07",
       "mode": "GP",
       "role": "guided_practice",
@@ -2458,7 +2458,7 @@
       "retry": "hint_then_fresh_guided_retry_not_scored"
     },
     {
-      "id": "L3-07-GP02",
+      "id": "L3-07-GP-02",
       "owner_id": "L3-07",
       "mode": "GP",
       "role": "guided_practice",
@@ -2501,7 +2501,7 @@
       "retry": "hint_then_fresh_guided_retry_not_scored"
     },
     {
-      "id": "L3-07-GP03",
+      "id": "L3-07-GP-03",
       "owner_id": "L3-07",
       "mode": "GP",
       "role": "guided_practice",
@@ -2545,12 +2545,12 @@
       "retry": "hint_then_fresh_guided_retry_not_scored"
     },
     {
-      "id": "L3-07-GP04",
+      "id": "L3-07-GP-04",
       "owner_id": "L3-07",
       "mode": "GP",
       "role": "guided_practice",
       "interaction": "write_text",
-      "prompt": "اكتب جملة قصيرة عن طفل يقرأ.",
+      "prompt": "اكتب جملة قصيرة عن الطفل في الصورة.",
       "stimulus": {
         "text": null,
         "media": [
@@ -2582,7 +2582,7 @@
       "technical_gaps": [
         "writing_input_and_rubric_not_confirmed_in_v1"
       ],
-      "notes": "تقبل جملة مفيدة ولو اختلفت الكلمات عن المثال.",
+      "notes": "الصورة VOC-34 لطفل عامة ولا نفترض أنها تعرض القراءة.",
       "status": "draft",
       "hint": "ابدأ باسم الطفل، ثم اكتب فعلًا مناسبًا.",
       "retry": "hint_then_fresh_guided_retry_not_scored"
