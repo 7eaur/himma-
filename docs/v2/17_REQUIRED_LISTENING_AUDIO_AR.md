@@ -19,3 +19,24 @@
 - **لا** تُشغّل قراءة النص تلقائيًا في التحقق المستقل إذا كان الهدف قياس **فهم المقروء**.
 - المصدر النهائي لكل صوت: `asset_id, text_with_diacritics, audio_purpose, source_asset_id, path/manifest_id, qa_status, use_sites, missing, action`.
 - لا اعتماد دون فحص وضوح الصوت ونطق الحركات والضوضاء واتساق مستوى الصوت. لا نخلط صوت الحرف مع اسم الحرف.
+
+
+## جرد الأصوات المستخدمة في بنك L1 — 2026-10-15
+
+**القرار:** اختيار الأصول المعروفة من V1 الآن، ومراجعتها/اعتمادها من المالك لاحقًا. وجود ملف MP3 وWAV مثبت في المستودع، **لكن لم يتم الاستماع الصوتي النقدي لكل أصل في هذه المرحلة**. لا نوقف كتابة الدروس بسبب نقص الوسائط.
+
+| V1 ID | النص/الصوت المستهدف | المصدر المؤكد | الاستخدام في V2 | الحالة/الإجراء |
+|---|---|---|---|---|
+| LET-01 | مَ (وليس /م/ الخالص) | `assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-01.mp3` | L1-01 اختبار وسياقات لاحقة | selected_pending_review؛ مراجعة تطابق الفونيم |
+| LET-02 | صوت بْ | `assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-02.mp3` | L1-01 وSUP-01 | selected_pending_review |
+| LET-03 | صوت سْ | `assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-03.mp3` | L1-01/02 | selected_pending_review |
+| LET-04 | صوت قْ | `assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-04.mp3` | L1-01 | selected_pending_review |
+| LET-05 | صوت رْ | `assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-05.mp3` | L1-01 | selected_pending_review |
+| LET-06 | صوت نْ | `assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-06.mp3` | L1-01 / SUP-01 | selected_pending_review |
+| SYL-01/02/03 | بَ / بِ / بُ | `assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-0{1,2,3}.mp3` | L1-03/04 | selected_pending_review |
+| SYL-05/06/07/08 | مِ / سُ / رَ / قِ | `assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-0{5,6,7,8}.mp3` | L1-03/04 | selected_pending_review |
+| WRD-03/09/10 | باب / نخلة / كرة | `assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-{03,09,10}.mp3` | L1-06 / SUP-04 | selected_pending_review |
+
+**ناقص إنتاجه قبل التشغيل الفعلي** (لا تفترض رابطًا): `AUD-L1-L`، `AUD-L1-SAD`، `AUD-L1-TA`، `AUD-L1-TAA`، `AUD-L1-03-MU`، `AUD-L1-03-MA`، `AUD-L1-03-SA`، `AUD-L1-03-SI`، `AUD-L1-03-NU`، `AUD-L1-03-LI`.
+
+بيانات كل أصل جديد كاملة (النطق، الدور، سؤال الاستخدام، حالة النقص) موجودة في بنك JSON ومطابقة قبل الإنتاج. التسجيلات الجديدة يجب أن تكون أصواتًا أو مقاطع مناسبة، لا أسماء حروف تلقائية. لخيارات الصوت الحر تشغيل لكل خيار يحتاج تطويرًا لاحقًا دون افتراض أنه مدعوم الآن.

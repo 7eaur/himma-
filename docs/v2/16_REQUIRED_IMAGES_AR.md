@@ -16,3 +16,17 @@
 كل صف نهائي يوثق `asset_id, lesson/question/option_id, purpose, source(V1/new), v1_asset_id, path/manifest_id, licensing, format, qa_status, decision, missing_detail`. قد تستخدم **الصورة في السؤال نفسه أو كخيار جواب**؛ سجل رابط الموضع صراحة.
 
 **التصنيف:** confirmed_reuse / needs_edit / pending_inventory / missing_new / not_required. لا نزعم أن صور V1 صالحة دون فحص الملف وحقوق استخدامه ودلالته.
+
+
+## جرد استخدامات صور L1 المؤلفة — 2026-10-15
+
+لا صورة جديدة ضرورية في L1-01..L1-05؛ النص الحي أصلح للحروف والمقاطع، لا ننتج صور حروف للزينة. الصور التالية في تدريب/اختبار L1-06 من حزمة V1. جميعها **مختارة للمراجعة** وليست اعتماد جودة جديدًا.
+
+| الأصل / V2 ref | الدرس والسؤال | موضع العرض | معنى الصورة | المسار المؤكد في V1 | حالة V2 / المطلوب |
+|---|---|---|---|---|---|
+| `VOC-07` | L1-06-GP-04 | option[0] | قمر | `assets/education/assets/vocabulary/webp/hem-voc-07-moon-512.webp` | selected / مراجعة الدلالة |
+| `VOC-06` | L1-06-GP-04, IC-A04 | option | شمس | `assets/education/assets/vocabulary/webp/hem-voc-06-sun-512.webp` | selected / مراجعة الدلالة |
+| `VOC-09` | L1-06-GP-04, IC-A04 | option | نخلة | `assets/education/assets/vocabulary/webp/hem-voc-09-palm-tree-512.webp` | selected / مراجعة الدلالة |
+| `VOC-14` | L1-06-IC-A04 | option[1] | نجم | `assets/education/assets/vocabulary/webp/hem-voc-14-star-512.webp` | selected / مراجعة الدلالة |
+
+**قاعدة الإنتاج:** لا تستخدم صورًا في سؤال إذا كانت تكشف الإجابة دون قياس القراءة المطلوب. تحقق من الأصل بصريًا والترخيص عند الاعتماد النهائي. 
