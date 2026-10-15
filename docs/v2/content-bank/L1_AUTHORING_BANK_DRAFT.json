@@ -3356,7 +3356,7 @@
         "text": null,
         "media": [
           {
-            "media_id": "LET-03",
+            "media_id": "AUD-L1-TA",
             "kind": "audio"
           }
         ]
@@ -3364,12 +3364,12 @@
       "options": [
         {
           "id": "a",
-          "text": "س",
+          "text": "ت",
           "media": []
         },
         {
           "id": "b",
-          "text": "ش",
+          "text": "ط",
           "media": []
         }
       ],
