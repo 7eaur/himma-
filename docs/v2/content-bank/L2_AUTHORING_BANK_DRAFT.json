@@ -45,7 +45,9 @@
         "PRE-Q14 (للاختبارات فقط)"
       ],
       "support_group_id": "SUP-05",
-      "status": "authored_pending_review"
+      "status": "authored_pending_review",
+      "version": "0.3-draft",
+      "publish_state": "blocked_pending_runtime_media_qa"
     },
     {
       "id": "L2-02",
@@ -88,7 +90,9 @@
         "PRE-Q12 محفوظ"
       ],
       "support_group_id": "SUP-06",
-      "status": "authored_pending_review"
+      "status": "authored_pending_review",
+      "version": "0.3-draft",
+      "publish_state": "blocked_pending_runtime_media_qa"
     },
     {
       "id": "L2-03",
@@ -131,7 +135,9 @@
         "L2-CORE-07"
       ],
       "support_group_id": "SUP-07",
-      "status": "authored_pending_review"
+      "status": "authored_pending_review",
+      "version": "0.3-draft",
+      "publish_state": "blocked_pending_runtime_media_qa"
     },
     {
       "id": "L2-04",
@@ -171,7 +177,9 @@
         "PRE-Q23 محفوظ"
       ],
       "support_group_id": "SUP-08",
-      "status": "authored_pending_review"
+      "status": "authored_pending_review",
+      "version": "0.3-draft",
+      "publish_state": "blocked_pending_runtime_media_qa"
     },
     {
       "id": "L2-05",
@@ -211,7 +219,9 @@
         "L2-CORE-10"
       ],
       "support_group_id": "SUP-09",
-      "status": "authored_pending_review"
+      "status": "authored_pending_review",
+      "version": "0.3-draft",
+      "publish_state": "blocked_pending_runtime_media_qa"
     },
     {
       "id": "L2-06",
@@ -251,7 +261,9 @@
         "L3-REIN-03"
       ],
       "support_group_id": "SUP-12",
-      "status": "authored_pending_review"
+      "status": "authored_pending_review",
+      "version": "0.3-draft",
+      "publish_state": "blocked_pending_runtime_media_qa"
     }
   ],
   "questions": [
@@ -300,7 +312,9 @@
       "technical_gaps": [],
       "status": "draft",
       "hint": "ابدأ بحرف ر ثم س ثم م.",
-      "retry": "hint_on_error_then_one_more_try_no_test_evidence"
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-01-GP-02",
@@ -345,7 +359,9 @@
       "technical_gaps": [],
       "status": "draft",
       "hint": "تذكر عَلَم البلاد.",
-      "retry": "hint_on_error_then_one_more_try_no_test_evidence"
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-01-GP-03",
@@ -392,7 +408,9 @@
       "technical_gaps": [],
       "status": "draft",
       "hint": "ابدأ بنون ثم جيم ثم ميم.",
-      "retry": "hint_on_error_then_one_more_try_no_test_evidence"
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-01-GP-04",
@@ -447,7 +465,9 @@
           "وضوح الكتابة"
         ],
         "no_single_exact_answer": false
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-01-IC-A01",
@@ -493,7 +513,9 @@
       "reading_reference": null,
       "technical_gaps": [],
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-01-IC-A02",
@@ -548,7 +570,9 @@
           "وضوح الكتابة"
         ],
         "no_single_exact_answer": false
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-01-IC-A03",
@@ -592,7 +616,9 @@
       "reading_reference": null,
       "technical_gaps": [],
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-01-IC-A04",
@@ -647,7 +673,9 @@
           "وضوح الكتابة"
         ],
         "no_single_exact_answer": false
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-02-GP-01",
@@ -697,7 +725,9 @@
       "technical_gaps": [],
       "status": "draft",
       "hint": "الصوت الأطول فيه ألف بعد الفتحة.",
-      "retry": "hint_on_error_then_one_more_try_no_test_evidence"
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-02-GP-02",
@@ -747,7 +777,9 @@
       "technical_gaps": [],
       "status": "draft",
       "hint": "هل امتد صوت الكسرة إلى ياء؟",
-      "retry": "hint_on_error_then_one_more_try_no_test_evidence"
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-02-GP-03",
@@ -792,7 +824,9 @@
       "technical_gaps": [],
       "status": "draft",
       "hint": "ابحث عن الحرف الذي يطيل صوت الضمة.",
-      "retry": "hint_on_error_then_one_more_try_no_test_evidence"
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-02-GP-04",
@@ -842,7 +876,9 @@
       "technical_gaps": [],
       "status": "draft",
       "hint": "استمع إلى طول الصوت بعد الضمة.",
-      "retry": "hint_on_error_then_one_more_try_no_test_evidence"
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-02-IC-A01",
@@ -891,7 +927,9 @@
       "reading_reference": null,
       "technical_gaps": [],
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-02-IC-A02",
@@ -940,7 +978,9 @@
       "reading_reference": null,
       "technical_gaps": [],
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-02-IC-A03",
@@ -984,7 +1024,9 @@
       "reading_reference": null,
       "technical_gaps": [],
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-02-IC-A04",
@@ -1033,7 +1075,9 @@
       "reading_reference": null,
       "technical_gaps": [],
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-03-GP-01",
@@ -1077,7 +1121,9 @@
         "allow_valid_readings_of_unvowelled_text": false,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-03-GP-02",
@@ -1122,7 +1168,9 @@
       "technical_gaps": [],
       "status": "draft",
       "hint": "انطق الكلمة وحدد أجزاءها الممكنة.",
-      "retry": "hint_on_error_then_one_more_try_no_test_evidence"
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-03-GP-03",
@@ -1166,7 +1214,9 @@
         "allow_valid_readings_of_unvowelled_text": false,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-03-GP-04",
@@ -1211,7 +1261,9 @@
       "technical_gaps": [],
       "status": "draft",
       "hint": "اجمع الأجزاء بالترتيب.",
-      "retry": "hint_on_error_then_one_more_try_no_test_evidence"
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-03-IC-A01",
@@ -1254,7 +1306,9 @@
         "allow_valid_readings_of_unvowelled_text": false,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-03-IC-A02",
@@ -1297,7 +1351,9 @@
         "allow_valid_readings_of_unvowelled_text": false,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-03-IC-A03",
@@ -1341,7 +1397,9 @@
       "reading_reference": null,
       "technical_gaps": [],
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-03-IC-A04",
@@ -1384,7 +1442,9 @@
         "allow_valid_readings_of_unvowelled_text": false,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-04-GP-01",
@@ -1428,7 +1488,9 @@
         "allow_valid_readings_of_unvowelled_text": true,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-04-GP-02",
@@ -1472,7 +1534,9 @@
         "allow_valid_readings_of_unvowelled_text": true,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-04-GP-03",
@@ -1517,7 +1581,9 @@
       "technical_gaps": [],
       "status": "draft",
       "hint": "توقف عند نهاية المعنى والنقطة.",
-      "retry": "hint_on_error_then_one_more_try_no_test_evidence"
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-04-GP-04",
@@ -1561,7 +1627,9 @@
         "allow_valid_readings_of_unvowelled_text": true,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-04-IC-A01",
@@ -1604,7 +1672,9 @@
         "allow_valid_readings_of_unvowelled_text": true,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-04-IC-A02",
@@ -1647,7 +1717,9 @@
         "allow_valid_readings_of_unvowelled_text": true,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-04-IC-A03",
@@ -1690,7 +1762,9 @@
         "allow_valid_readings_of_unvowelled_text": true,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-04-IC-A04",
@@ -1733,7 +1807,9 @@
         "allow_valid_readings_of_unvowelled_text": true,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-05-GP-01",
@@ -1778,7 +1854,9 @@
       "technical_gaps": [],
       "status": "draft",
       "hint": "ارجع للجملة وابحث عن المكان.",
-      "retry": "hint_on_error_then_one_more_try_no_test_evidence"
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-05-GP-02",
@@ -1823,7 +1901,9 @@
       "technical_gaps": [],
       "status": "draft",
       "hint": "ابحث عن الشيء الذي شربته مريم.",
-      "retry": "hint_on_error_then_one_more_try_no_test_evidence"
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-05-GP-03",
@@ -1868,7 +1948,9 @@
       "technical_gaps": [],
       "status": "draft",
       "hint": "ابحث عن اسم الشخص في الجملة.",
-      "retry": "hint_on_error_then_one_more_try_no_test_evidence"
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-05-GP-04",
@@ -1913,7 +1995,9 @@
       "technical_gaps": [],
       "status": "draft",
       "hint": "ابحث عن كلمة تدل على الوقت.",
-      "retry": "hint_on_error_then_one_more_try_no_test_evidence"
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-05-IC-A01",
@@ -1957,7 +2041,9 @@
       "reading_reference": null,
       "technical_gaps": [],
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-05-IC-A02",
@@ -2001,7 +2087,9 @@
       "reading_reference": null,
       "technical_gaps": [],
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-05-IC-A03",
@@ -2045,7 +2133,9 @@
       "reading_reference": null,
       "technical_gaps": [],
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-05-IC-A04",
@@ -2089,7 +2179,9 @@
       "reading_reference": null,
       "technical_gaps": [],
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-06-GP-01",
@@ -2136,7 +2228,9 @@
       "technical_gaps": [],
       "status": "draft",
       "hint": "ابدأ بالفعل يقرأ ثم حدد من يقرأ.",
-      "retry": "hint_on_error_then_one_more_try_no_test_evidence"
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-06-GP-02",
@@ -2183,7 +2277,9 @@
       "technical_gaps": [],
       "status": "draft",
       "hint": "اختر شربت أولًا.",
-      "retry": "hint_on_error_then_one_more_try_no_test_evidence"
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-06-GP-03",
@@ -2228,7 +2324,9 @@
       "technical_gaps": [],
       "status": "draft",
       "hint": "ابحث عن فعل ثم فاعل ثم المكان.",
-      "retry": "hint_on_error_then_one_more_try_no_test_evidence"
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-06-GP-04",
@@ -2275,7 +2373,9 @@
       "technical_gaps": [],
       "status": "draft",
       "hint": "ضع زرعت أولًا، ثم اسم من زرع.",
-      "retry": "hint_on_error_then_one_more_try_no_test_evidence"
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-06-IC-A01",
@@ -2321,7 +2421,9 @@
       "reading_reference": null,
       "technical_gaps": [],
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-06-IC-A02",
@@ -2367,7 +2469,9 @@
       "reading_reference": null,
       "technical_gaps": [],
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-06-IC-A03",
@@ -2411,7 +2515,9 @@
       "reading_reference": null,
       "technical_gaps": [],
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L2-06-IC-A04",
@@ -2457,7 +2563,9 @@
       "reading_reference": null,
       "technical_gaps": [],
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-05-GP-01",
@@ -2497,14 +2605,16 @@
       },
       "evidence_type": "word_construction",
       "error_focus": "letter_order",
-      "skill_group": null,
+      "skill_group": "S5",
       "origin_v1": null,
       "notes": null,
       "reading_reference": null,
       "technical_gaps": [],
       "status": "draft",
       "hint": "ابدأ بب ثم ا.",
-      "retry": "hint_on_error_then_one_more_try_no_test_evidence"
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-05-GP-02",
@@ -2538,7 +2648,7 @@
       },
       "evidence_type": "word_writing",
       "error_focus": "spelling",
-      "skill_group": null,
+      "skill_group": "S5",
       "origin_v1": null,
       "notes": null,
       "reading_reference": null,
@@ -2559,7 +2669,9 @@
           "وضوح الكتابة"
         ],
         "no_single_exact_answer": false
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-05-SC-01",
@@ -2599,13 +2711,15 @@
       },
       "evidence_type": "word_construction",
       "error_focus": "letter_order",
-      "skill_group": null,
+      "skill_group": "S5",
       "origin_v1": null,
       "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
       "reading_reference": null,
       "technical_gaps": [],
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-05-SC-02",
@@ -2639,7 +2753,7 @@
       },
       "evidence_type": "word_writing",
       "error_focus": "spelling",
-      "skill_group": null,
+      "skill_group": "S5",
       "origin_v1": null,
       "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
       "reading_reference": null,
@@ -2659,7 +2773,9 @@
           "وضوح الكتابة"
         ],
         "no_single_exact_answer": false
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-06-GP-01",
@@ -2697,14 +2813,16 @@
       },
       "evidence_type": "madd_alif",
       "error_focus": "short_long_confusion",
-      "skill_group": null,
+      "skill_group": "S6",
       "origin_v1": null,
       "notes": null,
       "reading_reference": null,
       "technical_gaps": [],
       "status": "draft",
       "hint": "المد أطول من الحركة القصيرة.",
-      "retry": "hint_on_error_then_one_more_try_no_test_evidence"
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-06-GP-02",
@@ -2742,14 +2860,16 @@
       },
       "evidence_type": "madd_yaa",
       "error_focus": "madd_letter",
-      "skill_group": null,
+      "skill_group": "S6",
       "origin_v1": null,
       "notes": null,
       "reading_reference": null,
       "technical_gaps": [],
       "status": "draft",
       "hint": "ابحث عن الياء بعد الكسرة.",
-      "retry": "hint_on_error_then_one_more_try_no_test_evidence"
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-06-SC-01",
@@ -2782,13 +2902,15 @@
       },
       "evidence_type": "madd_waw",
       "error_focus": "short_long_confusion",
-      "skill_group": null,
+      "skill_group": "S6",
       "origin_v1": null,
       "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
       "reading_reference": null,
       "technical_gaps": [],
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-06-SC-02",
@@ -2826,13 +2948,15 @@
       },
       "evidence_type": "madd_alif",
       "error_focus": "madd_letter",
-      "skill_group": null,
+      "skill_group": "S6",
       "origin_v1": null,
       "notes": null,
       "reading_reference": null,
       "technical_gaps": [],
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-07-GP-01",
@@ -2861,7 +2985,7 @@
       },
       "evidence_type": "long_word_reading",
       "error_focus": "chunking_error",
-      "skill_group": null,
+      "skill_group": "S7",
       "origin_v1": null,
       "notes": null,
       "reading_reference": "حَدِيقَة",
@@ -2876,7 +3000,9 @@
         "allow_valid_readings_of_unvowelled_text": false,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-07-GP-02",
@@ -2909,14 +3035,16 @@
       },
       "evidence_type": "chunking",
       "error_focus": "blending_error",
-      "skill_group": null,
+      "skill_group": "S7",
       "origin_v1": null,
       "notes": null,
       "reading_reference": null,
       "technical_gaps": [],
       "status": "draft",
       "hint": "اجمع الجزأين دون إضافة.",
-      "retry": "hint_on_error_then_one_more_try_no_test_evidence"
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-07-SC-01",
@@ -2946,7 +3074,7 @@
       },
       "evidence_type": "long_word_reading",
       "error_focus": "chunking_error",
-      "skill_group": null,
+      "skill_group": "S7",
       "origin_v1": null,
       "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
       "reading_reference": "مَكْتَبَة",
@@ -2960,7 +3088,9 @@
         "allow_valid_readings_of_unvowelled_text": false,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-07-SC-02",
@@ -2993,13 +3123,15 @@
       },
       "evidence_type": "chunking",
       "error_focus": "chunking_error",
-      "skill_group": null,
+      "skill_group": "S7",
       "origin_v1": null,
       "notes": null,
       "reading_reference": null,
       "technical_gaps": [],
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-05-GP-03",
@@ -3044,7 +3176,10 @@
       "origin_v1": null,
       "status": "draft_pending_qa",
       "hint": "ابدأ بالراء.",
-      "retry": "hint_then_one_more_guided_attempt"
+      "retry": "hint_then_one_more_guided_attempt",
+      "skill_group": "S5",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-05-GP-04",
@@ -3099,7 +3234,10 @@
           "وضوح الكتابة"
         ],
         "no_single_exact_answer": false
-      }
+      },
+      "skill_group": "S5",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-05-SC-03",
@@ -3143,7 +3281,10 @@
       "technical_gaps": [],
       "origin_v1": null,
       "status": "draft_pending_qa",
-      "hint": null
+      "hint": null,
+      "skill_group": "S5",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-05-SC-04",
@@ -3190,7 +3331,10 @@
           "وضوح الكتابة"
         ],
         "no_single_exact_answer": false
-      }
+      },
+      "skill_group": "S5",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-06-GP-03",
@@ -3233,7 +3377,10 @@
       "origin_v1": null,
       "status": "draft_pending_qa",
       "hint": "استمع إلى المد الطويل.",
-      "retry": "hint_then_one_more_guided_attempt"
+      "retry": "hint_then_one_more_guided_attempt",
+      "skill_group": "S6",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-06-GP-04",
@@ -3276,7 +3423,10 @@
       "origin_v1": null,
       "status": "draft_pending_qa",
       "hint": "الياء تطيل صوت الكسرة.",
-      "retry": "hint_then_one_more_guided_attempt"
+      "retry": "hint_then_one_more_guided_attempt",
+      "skill_group": "S6",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-06-SC-03",
@@ -3318,7 +3468,10 @@
       "technical_gaps": [],
       "origin_v1": null,
       "status": "draft_pending_qa",
-      "hint": null
+      "hint": null,
+      "skill_group": "S6",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-06-SC-04",
@@ -3355,7 +3508,10 @@
       "technical_gaps": [],
       "origin_v1": null,
       "status": "draft_pending_qa",
-      "hint": null
+      "hint": null,
+      "skill_group": "S6",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-06-SC-05",
@@ -3392,7 +3548,10 @@
       "technical_gaps": [],
       "origin_v1": null,
       "status": "draft_pending_qa",
-      "hint": null
+      "hint": null,
+      "skill_group": "S6",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-06-SC-06",
@@ -3434,7 +3593,10 @@
       "technical_gaps": [],
       "origin_v1": null,
       "status": "draft_pending_qa",
-      "hint": null
+      "hint": null,
+      "skill_group": "S6",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-07-GP-03",
@@ -3472,7 +3634,10 @@
       "origin_v1": null,
       "status": "draft_pending_qa",
       "hint": "اقرأ أجزاء الكلمة.",
-      "retry": "hint_then_one_more_guided_attempt"
+      "retry": "hint_then_one_more_guided_attempt",
+      "skill_group": "S7",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-07-GP-04",
@@ -3517,7 +3682,10 @@
       "origin_v1": null,
       "status": "draft_pending_qa",
       "hint": "ابدأ بمَكْ.",
-      "retry": "hint_then_one_more_guided_attempt"
+      "retry": "hint_then_one_more_guided_attempt",
+      "skill_group": "S7",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-07-SC-03",
@@ -3554,7 +3722,10 @@
       "technical_gaps": [],
       "origin_v1": null,
       "status": "draft_pending_qa",
-      "hint": null
+      "hint": null,
+      "skill_group": "S7",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-07-SC-04",
@@ -3599,7 +3770,10 @@
       "origin_v1": null,
       "status": "draft_pending_qa",
       "hint": null,
-      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة."
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
+      "skill_group": "S7",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     }
   ],
   "supports": [
@@ -3662,7 +3836,14 @@
           "items_per_attempt": 2
         }
       },
-      "selection_rule": "يظهر دعم focus واحد و2 سؤال تحقق فقط بحسب الفجوة"
+      "selection_rule": "يظهر دعم focus واحد و2 سؤال تحقق فقط بحسب الفجوة",
+      "version": "0.3-draft",
+      "intro": {
+        "title": "بناء وكتابة الكلمة",
+        "text": "سنرتب الحروف ونكتب كلمة واضحة."
+      },
+      "teaching_media_strategy": "short_approved_video_audio_or_visual_pending_choice",
+      "publish_state": "blocked_pending_media_runtime_qa"
     },
     {
       "id": "SUP-06",
@@ -3734,7 +3915,14 @@
           "items_per_attempt": 2
         }
       },
-      "selection_rule": "يظهر دعم focus واحد و2 سؤال تحقق فقط بحسب الفجوة"
+      "selection_rule": "يظهر دعم focus واحد و2 سؤال تحقق فقط بحسب الفجوة",
+      "version": "0.3-draft",
+      "intro": {
+        "title": "المدود",
+        "text": "سنميز بين الصوت القصير والمد الطويل."
+      },
+      "teaching_media_strategy": "short_approved_video_audio_or_visual_pending_choice",
+      "publish_state": "blocked_pending_media_runtime_qa"
     },
     {
       "id": "SUP-07",
@@ -3795,7 +3983,14 @@
           "items_per_attempt": 2
         }
       },
-      "selection_rule": "يظهر دعم focus واحد و2 سؤال تحقق فقط بحسب الفجوة"
+      "selection_rule": "يظهر دعم focus واحد و2 سؤال تحقق فقط بحسب الفجوة",
+      "version": "0.3-draft",
+      "intro": {
+        "title": "الكلمات الأطول",
+        "text": "سنقسم الكلمة إلى أجزاء صغيرة ثم نقرأها كاملة."
+      },
+      "teaching_media_strategy": "short_approved_video_audio_or_visual_pending_choice",
+      "publish_state": "blocked_pending_media_runtime_qa"
     }
   ],
   "media": [
@@ -3806,7 +4001,9 @@
       "v1_asset_id": "SYL-04",
       "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-04.mp3",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "SYL-09",
@@ -3815,7 +4012,9 @@
       "v1_asset_id": "SYL-09",
       "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-09.mp3",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "SYL-10",
@@ -3824,7 +4023,9 @@
       "v1_asset_id": "SYL-10",
       "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-10.mp3",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "SYL-11",
@@ -3833,7 +4034,9 @@
       "v1_asset_id": "SYL-11",
       "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-11.mp3",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "SYL-12",
@@ -3842,7 +4045,9 @@
       "v1_asset_id": "SYL-12",
       "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-12.mp3",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "SYL-13",
@@ -3851,7 +4056,9 @@
       "v1_asset_id": "SYL-13",
       "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-13.mp3",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "WRD-03",
@@ -3860,7 +4067,9 @@
       "v1_asset_id": "WRD-03",
       "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-03.mp3",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "WRD-04",
@@ -3869,7 +4078,9 @@
       "v1_asset_id": "WRD-04",
       "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-04.mp3",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "WRD-05",
@@ -3878,7 +4089,9 @@
       "v1_asset_id": "WRD-05",
       "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-05.mp3",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "WRD-09",
@@ -3887,7 +4100,9 @@
       "v1_asset_id": "WRD-09",
       "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-09.mp3",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "WRD-14",
@@ -3896,7 +4111,9 @@
       "v1_asset_id": "WRD-14",
       "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-14.mp3",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "WRD-15",
@@ -3905,7 +4122,9 @@
       "v1_asset_id": "WRD-15",
       "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-15.mp3",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "WRD-16",
@@ -3914,7 +4133,9 @@
       "v1_asset_id": "WRD-16",
       "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-16.mp3",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "WRD-17",
@@ -3923,7 +4144,9 @@
       "v1_asset_id": "WRD-17",
       "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-17.mp3",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "WRD-18",
@@ -3932,7 +4155,9 @@
       "v1_asset_id": "WRD-18",
       "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-18.mp3",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "WRD-23",
@@ -3941,7 +4166,9 @@
       "v1_asset_id": "WRD-23",
       "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-23.mp3",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "VOC-03",
@@ -3950,7 +4177,9 @@
       "v1_asset_id": "VOC-03",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-03-door-512.webp",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "image",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "VOC-04",
@@ -3959,7 +4188,9 @@
       "v1_asset_id": "VOC-04",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-04-pencil-512.webp",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "image",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "VOC-09",
@@ -3968,7 +4199,9 @@
       "v1_asset_id": "VOC-09",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-09-palm-tree-512.webp",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "image",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "VOC-14",
@@ -3977,7 +4210,9 @@
       "v1_asset_id": "VOC-14",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-14-star-512.webp",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "image",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "VOC-18",
@@ -3986,7 +4221,9 @@
       "v1_asset_id": "VOC-18",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-18-school-512.webp",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "image",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "VOC-22",
@@ -3995,7 +4232,9 @@
       "v1_asset_id": "VOC-22",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-22-library-512.webp",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "image",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "VOC-28",
@@ -4004,7 +4243,9 @@
       "v1_asset_id": "VOC-28",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-28-flower-512.webp",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "image",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "VID-L2-01",
@@ -4013,7 +4254,9 @@
       "v1_asset_id": null,
       "source_path": null,
       "status": "missing_new",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "video",
+      "review_state": "awaiting_production"
     },
     {
       "id": "VID-L2-02",
@@ -4022,7 +4265,9 @@
       "v1_asset_id": null,
       "source_path": null,
       "status": "missing_new",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "video",
+      "review_state": "awaiting_production"
     },
     {
       "id": "AUD-L2-RA",
@@ -4031,7 +4276,9 @@
       "v1_asset_id": null,
       "source_path": null,
       "status": "missing_new",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "awaiting_production"
     },
     {
       "id": "VID-L2-03",
@@ -4040,7 +4287,9 @@
       "v1_asset_id": null,
       "source_path": null,
       "status": "missing_new",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "video",
+      "review_state": "awaiting_production"
     },
     {
       "id": "VID-L2-04",
@@ -4049,7 +4298,9 @@
       "v1_asset_id": null,
       "source_path": null,
       "status": "missing_new",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "video",
+      "review_state": "awaiting_production"
     },
     {
       "id": "VID-L2-05",
@@ -4058,7 +4309,9 @@
       "v1_asset_id": null,
       "source_path": null,
       "status": "missing_new",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "video",
+      "review_state": "awaiting_production"
     },
     {
       "id": "VID-L2-06",
@@ -4067,7 +4320,9 @@
       "v1_asset_id": null,
       "source_path": null,
       "status": "missing_new",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "video",
+      "review_state": "awaiting_production"
     },
     {
       "id": "VOC-12",
@@ -4076,7 +4331,9 @@
       "v1_asset_id": "VOC-12",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-12-duck-512.webp",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "image",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "VOC-10",
@@ -4085,7 +4342,9 @@
       "v1_asset_id": "VOC-10",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-10-ball-512.webp",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "image",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "VOC-06",
@@ -4094,7 +4353,9 @@
       "v1_asset_id": "VOC-06",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-06-sun-512.webp",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_later"
+      "review": "owner_later",
+      "type": "image",
+      "review_state": "owner_review_pending"
     }
   ],
   "qa_notes": []
