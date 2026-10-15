@@ -1,5 +1,5 @@
 {
-  "schema_version": "himma-v2-content-bank/0.1",
+  "schema_version": "himma-v2-content-bank/0.2",
   "example_only": true,
   "publication_status": "draft_not_published",
   "lesson": {
@@ -18,57 +18,7 @@
     "video": {
       "media_id": "VID-L1-01",
       "required_for_publish": true,
-      "scenes": [
-        {
-          "scene_id": "01",
-          "topic": "تقديم الفكرة",
-          "narration": "لكل حرف شكل نراه وصوت نسمعه. سنربط اليوم بين الشكل والصوت.",
-          "on_screen": "حرف كبير مع رمز استماع"
-        },
-        {
-          "scene_id": "02",
-          "topic": "م",
-          "narration": "هذا الحرف م. استمع إلى صوته. نسمعه في بداية كلمة مَوْز.",
-          "on_screen": "م ← مَوْز"
-        },
-        {
-          "scene_id": "03",
-          "topic": "ب",
-          "narration": "هذا الحرف ب. استمع إلى صوته. نسمعه في بداية كلمة بَاب.",
-          "on_screen": "ب ← بَاب"
-        },
-        {
-          "scene_id": "04",
-          "topic": "س",
-          "narration": "هذا الحرف س. استمع إلى صوته. نسمعه في بداية كلمة سَمَك.",
-          "on_screen": "س ← سَمَك"
-        },
-        {
-          "scene_id": "05",
-          "topic": "ق",
-          "narration": "هذا الحرف ق. استمع إلى صوته. نسمعه في بداية كلمة قَلَم.",
-          "on_screen": "ق ← قَلَم"
-        },
-        {
-          "scene_id": "06",
-          "topic": "ر",
-          "narration": "هذا الحرف ر. استمع إلى صوته. نسمعه في بداية كلمة رِيشَة.",
-          "on_screen": "ر ← رِيشَة"
-        },
-        {
-          "scene_id": "07",
-          "topic": "ن",
-          "narration": "هذا الحرف ن. استمع إلى صوته. نسمعه في بداية كلمة نَجْم.",
-          "on_screen": "ن ← نَجْم"
-        },
-        {
-          "scene_id": "08",
-          "topic": "تلخيص الفكرة",
-          "narration": "عندما ترى الحرف، تذكّر صوته. وعندما تسمع الصوت، ابحث عن الحرف.",
-          "on_screen": "شكل الحرف ↔ صوته"
-        }
-      ],
-      "completion_text": "أحسنت! عندما ترى الحرف تذكر صوته، وعندما تسمع الصوت ابحث عن الحرف الذي يمثله."
+      "brief_ref": "docs/v2/video-briefs/L1-01_VIDEO_BRIEF_AR.md"
     },
     "practice_question_ids": [
       "L1-01-GP-01",
@@ -109,27 +59,40 @@
       "interaction": "listen_choose_one",
       "prompt": "استمع ثم اختر الحرف.",
       "stimulus": {
-        "audio_id": "AUD-B"
+        "text": null,
+        "media": [
+          {
+            "media_id": "AUD-B",
+            "kind": "audio"
+          }
+        ]
       },
       "options": [
         {
           "id": "B",
-          "label": "ب"
+          "text": "ب",
+          "media": []
         },
         {
           "id": "M",
-          "label": "م"
+          "text": "م",
+          "media": []
         },
         {
           "id": "S",
-          "label": "س"
+          "text": "س",
+          "media": []
         }
       ],
       "correct_option_id": "B",
       "skill_group": "S1",
       "evidence_type": "sound_to_letter",
       "error_focus": "sound_mapping",
-      "hint": "استمع إلى بداية كلمة بَاب."
+      "hint": "استمع إلى بداية كلمة بَاب.",
+      "display": {
+        "layout": "auto",
+        "allow_replay_audio": true
+      }
     },
     {
       "id": "L1-01-GP-02",
@@ -137,30 +100,50 @@
       "interaction": "choose_one",
       "prompt": "انظر إلى الحرف واختر صوته.",
       "stimulus": {
-        "text": "ق"
+        "text": "ق",
+        "media": []
       },
       "options": [
         {
           "id": "Q",
-          "audio_id": "AUD-Q",
-          "label": null
+          "text": null,
+          "media": [
+            {
+              "media_id": "AUD-Q",
+              "kind": "audio"
+            }
+          ]
         },
         {
           "id": "M",
-          "audio_id": "AUD-M",
-          "label": null
+          "text": null,
+          "media": [
+            {
+              "media_id": "AUD-M",
+              "kind": "audio"
+            }
+          ]
         },
         {
           "id": "R",
-          "audio_id": "AUD-R",
-          "label": null
+          "text": null,
+          "media": [
+            {
+              "media_id": "AUD-R",
+              "kind": "audio"
+            }
+          ]
         }
       ],
       "correct_option_id": "Q",
       "skill_group": "S1",
       "evidence_type": "letter_to_sound",
       "error_focus": "sound_mapping",
-      "hint": "تذكر صوت الحرف في بداية قَلَم."
+      "hint": "تذكر صوت الحرف في بداية قَلَم.",
+      "display": {
+        "layout": "auto",
+        "allow_replay_audio": true
+      }
     },
     {
       "id": "L1-01-GP-03",
@@ -168,27 +151,40 @@
       "interaction": "listen_choose_one",
       "prompt": "استمع ثم اختر الحرف.",
       "stimulus": {
-        "audio_id": "AUD-N"
+        "text": null,
+        "media": [
+          {
+            "media_id": "AUD-N",
+            "kind": "audio"
+          }
+        ]
       },
       "options": [
         {
           "id": "N",
-          "label": "ن"
+          "text": "ن",
+          "media": []
         },
         {
           "id": "B",
-          "label": "ب"
+          "text": "ب",
+          "media": []
         },
         {
           "id": "M",
-          "label": "م"
+          "text": "م",
+          "media": []
         }
       ],
       "correct_option_id": "N",
       "skill_group": "S1",
       "evidence_type": "sound_to_letter",
       "error_focus": "sound_mapping",
-      "hint": "اسمع بداية كلمة نَجْم."
+      "hint": "اسمع بداية كلمة نَجْم.",
+      "display": {
+        "layout": "auto",
+        "allow_replay_audio": true
+      }
     },
     {
       "id": "L1-01-GP-04",
@@ -196,30 +192,50 @@
       "interaction": "choose_one",
       "prompt": "انظر إلى الحرف واختر صوته.",
       "stimulus": {
-        "text": "ر"
+        "text": "ر",
+        "media": []
       },
       "options": [
         {
           "id": "R",
-          "audio_id": "AUD-R",
-          "label": null
+          "text": null,
+          "media": [
+            {
+              "media_id": "AUD-R",
+              "kind": "audio"
+            }
+          ]
         },
         {
           "id": "S",
-          "audio_id": "AUD-S",
-          "label": null
+          "text": null,
+          "media": [
+            {
+              "media_id": "AUD-S",
+              "kind": "audio"
+            }
+          ]
         },
         {
           "id": "B",
-          "audio_id": "AUD-B",
-          "label": null
+          "text": null,
+          "media": [
+            {
+              "media_id": "AUD-B",
+              "kind": "audio"
+            }
+          ]
         }
       ],
       "correct_option_id": "R",
       "skill_group": "S1",
       "evidence_type": "letter_to_sound",
       "error_focus": "sound_mapping",
-      "hint": "استمع إلى بداية كلمة رِيشَة."
+      "hint": "استمع إلى بداية كلمة رِيشَة.",
+      "display": {
+        "layout": "auto",
+        "allow_replay_audio": true
+      }
     },
     {
       "id": "L1-01-GP-05",
@@ -227,27 +243,40 @@
       "interaction": "listen_choose_one",
       "prompt": "استمع ثم اختر الحرف.",
       "stimulus": {
-        "audio_id": "AUD-M"
+        "text": null,
+        "media": [
+          {
+            "media_id": "AUD-M",
+            "kind": "audio"
+          }
+        ]
       },
       "options": [
         {
           "id": "M",
-          "label": "م"
+          "text": "م",
+          "media": []
         },
         {
           "id": "N",
-          "label": "ن"
+          "text": "ن",
+          "media": []
         },
         {
           "id": "Q",
-          "label": "ق"
+          "text": "ق",
+          "media": []
         }
       ],
       "correct_option_id": "M",
       "skill_group": "S1",
       "evidence_type": "sound_to_letter",
       "error_focus": "sound_mapping",
-      "hint": "اسمع بداية كلمة مَوْز."
+      "hint": "اسمع بداية كلمة مَوْز.",
+      "display": {
+        "layout": "auto",
+        "allow_replay_audio": true
+      }
     },
     {
       "id": "L1-01-GP-06",
@@ -255,30 +284,50 @@
       "interaction": "choose_one",
       "prompt": "انظر إلى الحرف واختر صوته.",
       "stimulus": {
-        "text": "س"
+        "text": "س",
+        "media": []
       },
       "options": [
         {
           "id": "S",
-          "audio_id": "AUD-S",
-          "label": null
+          "text": null,
+          "media": [
+            {
+              "media_id": "AUD-S",
+              "kind": "audio"
+            }
+          ]
         },
         {
           "id": "Q",
-          "audio_id": "AUD-Q",
-          "label": null
+          "text": null,
+          "media": [
+            {
+              "media_id": "AUD-Q",
+              "kind": "audio"
+            }
+          ]
         },
         {
           "id": "N",
-          "audio_id": "AUD-N",
-          "label": null
+          "text": null,
+          "media": [
+            {
+              "media_id": "AUD-N",
+              "kind": "audio"
+            }
+          ]
         }
       ],
       "correct_option_id": "S",
       "skill_group": "S1",
       "evidence_type": "letter_to_sound",
       "error_focus": "sound_mapping",
-      "hint": "اسمع بداية كلمة سَمَك."
+      "hint": "اسمع بداية كلمة سَمَك.",
+      "display": {
+        "layout": "auto",
+        "allow_replay_audio": true
+      }
     },
     {
       "id": "L1-01-TR-01",
@@ -286,30 +335,50 @@
       "interaction": "choose_one",
       "prompt": "اختر صوت الحرف الجديد.",
       "stimulus": {
-        "text": "ل"
+        "text": "ل",
+        "media": []
       },
       "options": [
         {
           "id": "L",
-          "audio_id": "AUD-L",
-          "label": null
+          "text": null,
+          "media": [
+            {
+              "media_id": "AUD-L",
+              "kind": "audio"
+            }
+          ]
         },
         {
           "id": "M",
-          "audio_id": "AUD-M",
-          "label": null
+          "text": null,
+          "media": [
+            {
+              "media_id": "AUD-M",
+              "kind": "audio"
+            }
+          ]
         },
         {
           "id": "R",
-          "audio_id": "AUD-R",
-          "label": null
+          "text": null,
+          "media": [
+            {
+              "media_id": "AUD-R",
+              "kind": "audio"
+            }
+          ]
         }
       ],
       "correct_option_id": "L",
       "skill_group": "S1",
       "evidence_type": "letter_to_sound",
       "error_focus": "sound_mapping",
-      "hint": "جرب الطريقة نفسها، واستمع إلى بداية كلمة لَبَن."
+      "hint": "جرب الطريقة نفسها، واستمع إلى بداية كلمة لَبَن.",
+      "display": {
+        "layout": "auto",
+        "allow_replay_audio": true
+      }
     },
     {
       "id": "L1-01-IC-A01",
@@ -317,29 +386,49 @@
       "interaction": "choose_one",
       "prompt": "اختر صوت الحرف المعروض.",
       "stimulus": {
-        "text": "م"
+        "text": "م",
+        "media": []
       },
       "options": [
         {
           "id": "M",
-          "audio_id": "AUD-M",
-          "label": null
+          "text": null,
+          "media": [
+            {
+              "media_id": "AUD-M",
+              "kind": "audio"
+            }
+          ]
         },
         {
           "id": "B",
-          "audio_id": "AUD-B",
-          "label": null
+          "text": null,
+          "media": [
+            {
+              "media_id": "AUD-B",
+              "kind": "audio"
+            }
+          ]
         },
         {
           "id": "Q",
-          "audio_id": "AUD-Q",
-          "label": null
+          "text": null,
+          "media": [
+            {
+              "media_id": "AUD-Q",
+              "kind": "audio"
+            }
+          ]
         }
       ],
       "correct_option_id": "M",
       "skill_group": "S1",
       "evidence_type": "letter_to_sound",
-      "error_focus": "sound_mapping"
+      "error_focus": "sound_mapping",
+      "display": {
+        "layout": "auto",
+        "allow_replay_audio": true
+      }
     },
     {
       "id": "L1-01-IC-A02",
@@ -347,29 +436,49 @@
       "interaction": "choose_one",
       "prompt": "اختر صوت الحرف المعروض.",
       "stimulus": {
-        "text": "ن"
+        "text": "ن",
+        "media": []
       },
       "options": [
         {
           "id": "N",
-          "audio_id": "AUD-N",
-          "label": null
+          "text": null,
+          "media": [
+            {
+              "media_id": "AUD-N",
+              "kind": "audio"
+            }
+          ]
         },
         {
           "id": "R",
-          "audio_id": "AUD-R",
-          "label": null
+          "text": null,
+          "media": [
+            {
+              "media_id": "AUD-R",
+              "kind": "audio"
+            }
+          ]
         },
         {
           "id": "S",
-          "audio_id": "AUD-S",
-          "label": null
+          "text": null,
+          "media": [
+            {
+              "media_id": "AUD-S",
+              "kind": "audio"
+            }
+          ]
         }
       ],
       "correct_option_id": "N",
       "skill_group": "S1",
       "evidence_type": "letter_to_sound",
-      "error_focus": "sound_mapping"
+      "error_focus": "sound_mapping",
+      "display": {
+        "layout": "auto",
+        "allow_replay_audio": true
+      }
     },
     {
       "id": "L1-01-IC-A03",
@@ -377,26 +486,39 @@
       "interaction": "listen_choose_one",
       "prompt": "استمع واختر الحرف.",
       "stimulus": {
-        "audio_id": "AUD-Q"
+        "text": null,
+        "media": [
+          {
+            "media_id": "AUD-Q",
+            "kind": "audio"
+          }
+        ]
       },
       "options": [
         {
           "id": "Q",
-          "label": "ق"
+          "text": "ق",
+          "media": []
         },
         {
           "id": "N",
-          "label": "ن"
+          "text": "ن",
+          "media": []
         },
         {
           "id": "R",
-          "label": "ر"
+          "text": "ر",
+          "media": []
         }
       ],
       "correct_option_id": "Q",
       "skill_group": "S1",
       "evidence_type": "sound_to_letter",
-      "error_focus": "sound_mapping"
+      "error_focus": "sound_mapping",
+      "display": {
+        "layout": "auto",
+        "allow_replay_audio": true
+      }
     },
     {
       "id": "L1-01-IC-A04",
@@ -404,26 +526,39 @@
       "interaction": "listen_choose_one",
       "prompt": "استمع واختر الحرف.",
       "stimulus": {
-        "audio_id": "AUD-B"
+        "text": null,
+        "media": [
+          {
+            "media_id": "AUD-B",
+            "kind": "audio"
+          }
+        ]
       },
       "options": [
         {
           "id": "B",
-          "label": "ب"
+          "text": "ب",
+          "media": []
         },
         {
           "id": "S",
-          "label": "س"
+          "text": "س",
+          "media": []
         },
         {
           "id": "M",
-          "label": "م"
+          "text": "م",
+          "media": []
         }
       ],
       "correct_option_id": "B",
       "skill_group": "S1",
       "evidence_type": "sound_to_letter",
-      "error_focus": "sound_mapping"
+      "error_focus": "sound_mapping",
+      "display": {
+        "layout": "auto",
+        "allow_replay_audio": true
+      }
     },
     {
       "id": "L1-01-IC-B01",
@@ -431,29 +566,49 @@
       "interaction": "choose_one",
       "prompt": "اختر صوت الحرف المعروض.",
       "stimulus": {
-        "text": "س"
+        "text": "س",
+        "media": []
       },
       "options": [
         {
           "id": "S",
-          "audio_id": "AUD-S",
-          "label": null
+          "text": null,
+          "media": [
+            {
+              "media_id": "AUD-S",
+              "kind": "audio"
+            }
+          ]
         },
         {
           "id": "R",
-          "audio_id": "AUD-R",
-          "label": null
+          "text": null,
+          "media": [
+            {
+              "media_id": "AUD-R",
+              "kind": "audio"
+            }
+          ]
         },
         {
           "id": "M",
-          "audio_id": "AUD-M",
-          "label": null
+          "text": null,
+          "media": [
+            {
+              "media_id": "AUD-M",
+              "kind": "audio"
+            }
+          ]
         }
       ],
       "correct_option_id": "S",
       "skill_group": "S1",
       "evidence_type": "letter_to_sound",
-      "error_focus": "sound_mapping"
+      "error_focus": "sound_mapping",
+      "display": {
+        "layout": "auto",
+        "allow_replay_audio": true
+      }
     },
     {
       "id": "L1-01-IC-B02",
@@ -461,29 +616,49 @@
       "interaction": "choose_one",
       "prompt": "اختر صوت الحرف المعروض.",
       "stimulus": {
-        "text": "ر"
+        "text": "ر",
+        "media": []
       },
       "options": [
         {
           "id": "R",
-          "audio_id": "AUD-R",
-          "label": null
+          "text": null,
+          "media": [
+            {
+              "media_id": "AUD-R",
+              "kind": "audio"
+            }
+          ]
         },
         {
           "id": "Q",
-          "audio_id": "AUD-Q",
-          "label": null
+          "text": null,
+          "media": [
+            {
+              "media_id": "AUD-Q",
+              "kind": "audio"
+            }
+          ]
         },
         {
           "id": "N",
-          "audio_id": "AUD-N",
-          "label": null
+          "text": null,
+          "media": [
+            {
+              "media_id": "AUD-N",
+              "kind": "audio"
+            }
+          ]
         }
       ],
       "correct_option_id": "R",
       "skill_group": "S1",
       "evidence_type": "letter_to_sound",
-      "error_focus": "sound_mapping"
+      "error_focus": "sound_mapping",
+      "display": {
+        "layout": "auto",
+        "allow_replay_audio": true
+      }
     },
     {
       "id": "L1-01-IC-B03",
@@ -491,26 +666,39 @@
       "interaction": "listen_choose_one",
       "prompt": "استمع واختر الحرف.",
       "stimulus": {
-        "audio_id": "AUD-M"
+        "text": null,
+        "media": [
+          {
+            "media_id": "AUD-M",
+            "kind": "audio"
+          }
+        ]
       },
       "options": [
         {
           "id": "M",
-          "label": "م"
+          "text": "م",
+          "media": []
         },
         {
           "id": "Q",
-          "label": "ق"
+          "text": "ق",
+          "media": []
         },
         {
           "id": "B",
-          "label": "ب"
+          "text": "ب",
+          "media": []
         }
       ],
       "correct_option_id": "M",
       "skill_group": "S1",
       "evidence_type": "sound_to_letter",
-      "error_focus": "sound_mapping"
+      "error_focus": "sound_mapping",
+      "display": {
+        "layout": "auto",
+        "allow_replay_audio": true
+      }
     },
     {
       "id": "L1-01-IC-B04",
@@ -518,26 +706,39 @@
       "interaction": "listen_choose_one",
       "prompt": "استمع واختر الحرف.",
       "stimulus": {
-        "audio_id": "AUD-N"
+        "text": null,
+        "media": [
+          {
+            "media_id": "AUD-N",
+            "kind": "audio"
+          }
+        ]
       },
       "options": [
         {
           "id": "N",
-          "label": "ن"
+          "text": "ن",
+          "media": []
         },
         {
           "id": "S",
-          "label": "س"
+          "text": "س",
+          "media": []
         },
         {
           "id": "R",
-          "label": "ر"
+          "text": "ر",
+          "media": []
         }
       ],
       "correct_option_id": "N",
       "skill_group": "S1",
       "evidence_type": "sound_to_letter",
-      "error_focus": "sound_mapping"
+      "error_focus": "sound_mapping",
+      "display": {
+        "layout": "auto",
+        "allow_replay_audio": true
+      }
     }
   ],
   "media": [
@@ -588,6 +789,37 @@
       "type": "audio",
       "label": "الصوت الفونيمي للحرف ل",
       "status": "pending_media_qa_or_recording"
+    },
+    {
+      "id": "IMG-OPTION-EXAMPLE",
+      "type": "image",
+      "status": "illustrative_only",
+      "note": "يوضح قدرة البنك على دعم الصور في خيارات الأسئلة؛ ليس أصلًا مستخدمًا في L1-01."
     }
-  ]
+  ],
+  "capabilities": {
+    "question_media_locations": [
+      "stem",
+      "stimulus",
+      "options"
+    ],
+    "media_types": [
+      "image",
+      "audio",
+      "video"
+    ],
+    "option_fields": [
+      "text",
+      "media"
+    ],
+    "response_modes": [
+      "single_choice",
+      "multi_choice",
+      "ordering",
+      "building",
+      "recorded_reading",
+      "written_answer_with_rubric"
+    ],
+    "note": "هذه قدرات البيانات وليست وعدًا بأن كل تفاعل معروض في V1؛ قالب الإجابة الكتابية يتطلب تحقق تنفيذ."
+  }
 }
