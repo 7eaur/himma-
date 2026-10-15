@@ -686,28 +686,28 @@
         "decision": "replace_with_new"
       },
       "skill_group": "S6",
-      "evidence_type": "madd_yaa",
+      "evidence_type": "madd_waw",
       "role": "pretest",
       "interaction": "choose_one",
-      "prompt": "أي كلمة فيها مد بالياء؟",
+      "prompt": "أي كلمة فيها مد بالواو؟",
       "stimulus": {
-        "text": "اختر",
+        "text": "اختر الكلمة",
         "media": []
       },
       "options": [
         {
           "id": "a",
-          "text": "فِيل",
+          "text": "سُوق",
           "media": []
         },
         {
           "id": "b",
-          "text": "فُل",
+          "text": "سَكَن",
           "media": []
         },
         {
           "id": "c",
-          "text": "فَل",
+          "text": "سَمَك",
           "media": []
         }
       ],
@@ -722,7 +722,8 @@
       "media_ids": [],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "source_decision": "replace_with_new"
     },
     {
       "id": "V2-PRE-Q15",
@@ -987,36 +988,52 @@
         "asset_ids": [],
         "decision": "replace_with_new"
       },
-      "skill_group": "S9",
-      "evidence_type": "connected_sentence_reading",
+      "skill_group": "S6",
+      "evidence_type": "madd_yaa",
       "role": "pretest",
-      "interaction": "read_aloud",
-      "prompt": "اقرأ الجملتين بهدوء.",
+      "interaction": "listen_choose_one",
+      "prompt": "استمع ثم اختر المقطع المسموع.",
       "stimulus": {
-        "text": "رأى عادل مطرا. حمل مظلته وخرج.",
-        "media": []
+        "text": null,
+        "media": [
+          {
+            "media_id": "SYL-10",
+            "kind": "audio"
+          }
+        ]
       },
-      "options": [],
-      "private_answer": {
-        "correct_option_ids": [],
-        "rubric": {
-          "authority": "human_supervisor",
-          "reference_text": "رَأَى عَادِلٌ مَطَرًا. حَمَلَ مِظَلَّتَهُ وَخَرَجَ.",
-          "accept_equivalent": true,
-          "criteria": [
-            "صحة الأصوات والكلمات",
-            "عدم الحذف",
-            "الوقف الطبيعي"
-          ],
-          "academic_auto_grade": false
+      "options": [
+        {
+          "id": "a",
+          "text": "فِ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "فِي",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "فَا",
+          "media": []
         }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
       },
-      "reading_reference": "رَأَى عَادِلٌ مَطَرًا. حَمَلَ مِظَلَّتَهُ وَخَرَجَ.",
+      "reading_reference": null,
       "role_specific_hints_allowed": false,
-      "media_ids": [],
+      "media_ids": [
+        "SYL-10"
+      ],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "notes": "تمثل مد الياء بدل تسجيل قراءة إضافي؛ للاعتدال في عبء التسجيل."
     },
     {
       "id": "V2-PRE-Q22",
@@ -2446,36 +2463,52 @@
         "asset_ids": [],
         "decision": "replace_with_new"
       },
-      "skill_group": "S9",
-      "evidence_type": "connected_sentence_reading",
+      "skill_group": "S6",
+      "evidence_type": "madd_yaa",
       "role": "posttest",
-      "interaction": "read_aloud",
-      "prompt": "اقرأ الجملتين.",
+      "interaction": "listen_choose_one",
+      "prompt": "استمع ثم اختر المقطع المسموع.",
       "stimulus": {
-        "text": "حملت سعاد سلة صغيرة. وضعت فيها ثمارا طازجة.",
-        "media": []
+        "text": null,
+        "media": [
+          {
+            "media_id": "SYL-12",
+            "kind": "audio"
+          }
+        ]
       },
-      "options": [],
-      "private_answer": {
-        "correct_option_ids": [],
-        "rubric": {
-          "authority": "human_supervisor",
-          "reference_text": "حَمَلَتْ سُعَادُ سَلَّةً صَغِيرَةً. وَضَعَتْ فِيهَا ثِمَارًا طَازَجَةً.",
-          "accept_equivalent": true,
-          "criteria": [
-            "صحة الأصوات والكلمات",
-            "عدم الحذف",
-            "الوقف الطبيعي"
-          ],
-          "academic_auto_grade": false
+      "options": [
+        {
+          "id": "a",
+          "text": "لَ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "لِ",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "لِي",
+          "media": []
         }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "c"
+        ],
+        "rubric": null
       },
-      "reading_reference": "حَمَلَتْ سُعَادُ سَلَّةً صَغِيرَةً. وَضَعَتْ فِيهَا ثِمَارًا طَازَجَةً.",
+      "reading_reference": null,
       "role_specific_hints_allowed": false,
-      "media_ids": [],
+      "media_ids": [
+        "SYL-12"
+      ],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
-      "status": "draft_pending_assessment_equivalence_review"
+      "status": "draft_pending_assessment_equivalence_review",
+      "notes": "مد الياء في اختبار مواز ببديل صوتي مستقل."
     },
     {
       "id": "V2-POST-Q22",
@@ -3063,6 +3096,14 @@
       "origin_v1_id": "VOC-28",
       "status": "selected_from_v1_pending_owner_review",
       "path": null
+    },
+    {
+      "id": "SYL-10",
+      "kind": "audio",
+      "label": "فِي",
+      "origin_v1_id": "SYL-10",
+      "status": "selected_from_v1_pending_owner_review",
+      "path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-10.mp3"
     }
   ],
   "distribution_target": {
@@ -3071,10 +3112,10 @@
     "S3": 2,
     "S4": 2,
     "S5": 3,
-    "S6": 2,
+    "S6": 3,
     "S7": 2,
     "S8": 2,
-    "S9": 3,
+    "S9": 2,
     "S10": 3,
     "S11": 2,
     "S12": 2,
@@ -3095,6 +3136,7 @@
     "تقييم الأصوات والكتابة لا ينتج قرارًا آليًا في هذه المسودة.",
     "تحتاج البنود القرائية والأزواج القبلية والبعدية معايرة تربوية قبل الاستيراد أو استخدامها في تجربة بحثية.",
     "S5/S13 تتضمن كتابة حقيقية غير مثبتة في V1؛ لا نفترض دعم المشغل.",
-    "لا صوت تلقائي لأسئلة فهم المقروء."
+    "لا صوت تلقائي لأسئلة فهم المقروء.",
+    "مراجعة تربوية: كل من القبلي والبعدي يغطي المد بالألف والواو والياء في 3 بنود بدل فقدان أحد الأنواع، وخفض تسجيلات القراءة من 8 إلى 7 لتخفيف الإجهاد."
   ]
 }
