@@ -2420,25 +2420,25 @@
       "mode": "IC",
       "role": "support_check",
       "interaction": "build_word",
-      "prompt": "رتب الحروف لتكتب كلمة رَسَمَ.",
+      "prompt": "رتب حروف كلمة كَتَبَ.",
       "stimulus": {
-        "text": "رَسَمَ",
+        "text": "كَتَبَ",
         "media": []
       },
       "options": [
         {
           "id": "a",
-          "text": "م",
+          "text": "ب",
           "media": []
         },
         {
           "id": "b",
-          "text": "ر",
+          "text": "ك",
           "media": []
         },
         {
           "id": "c",
-          "text": "س",
+          "text": "ت",
           "media": []
         }
       ],
@@ -2454,7 +2454,7 @@
       "error_focus": "letter_order",
       "skill_group": null,
       "origin_v1": null,
-      "notes": null,
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
       "reading_reference": null,
       "technical_gaps": [],
       "status": "draft",
@@ -2466,17 +2466,22 @@
       "mode": "IC",
       "role": "support_check",
       "interaction": "write_text",
-      "prompt": "اكتب كلمة تدل على باب المنزل.",
+      "prompt": "اكتب اسم الشيء في الصورة.",
       "stimulus": {
-        "text": "مدخل المنزل",
-        "media": []
+        "text": null,
+        "media": [
+          {
+            "media_id": "VOC-09",
+            "kind": "image"
+          }
+        ]
       },
       "options": [],
       "private_answer": {
         "correct_option_ids": [],
         "rubric": {
           "authority": "human_supervisor",
-          "target_or_reference": "بَاب",
+          "target_or_reference": "نَخْلَة",
           "criteria": [
             "اكتمال الكلمة/الجملة",
             "سلامة ترتيب الحروف والكلمات",
@@ -2490,7 +2495,7 @@
       "error_focus": "spelling",
       "skill_group": null,
       "origin_v1": null,
-      "notes": null,
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
       "reading_reference": null,
       "technical_gaps": [
         "free_writing_input_and_scoring_unconfirmed_v1"
@@ -2593,32 +2598,27 @@
       "owner_id": "SUP-06",
       "mode": "IC",
       "role": "support_check",
-      "interaction": "listen_choose_one",
-      "prompt": "اختر الصوت المكتوب.",
+      "interaction": "choose_one",
+      "prompt": "أي كلمة فيها مد بالواو؟",
       "stimulus": {
-        "text": null,
-        "media": [
-          {
-            "media_id": "SYL-11",
-            "kind": "audio"
-          }
-        ]
+        "text": "اختر الكلمة",
+        "media": []
       },
       "options": [
         {
           "id": "a",
-          "text": "نُ",
+          "text": "سُوق",
           "media": []
         },
         {
           "id": "b",
-          "text": "نُو",
+          "text": "سَكَن",
           "media": []
         }
       ],
       "private_answer": {
         "correct_option_ids": [
-          "b"
+          "a"
         ],
         "rubric": null
       },
@@ -2626,7 +2626,7 @@
       "error_focus": "short_long_confusion",
       "skill_group": null,
       "origin_v1": null,
-      "notes": null,
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
       "reading_reference": null,
       "technical_gaps": [],
       "status": "draft",
@@ -2760,7 +2760,7 @@
       "interaction": "read_aloud",
       "prompt": "اقرأ الكلمة.",
       "stimulus": {
-        "text": "مِفْتَاح",
+        "text": "مَكْتَبَة",
         "media": []
       },
       "options": [],
@@ -2774,15 +2774,16 @@
             "سلامة الحركات الحاسمة",
             "الترتيب والوقف الطبيعي"
           ],
-          "needs_human_review": true
+          "needs_human_review": true,
+          "reference": "مَكْتَبَة"
         }
       },
       "evidence_type": "long_word_reading",
       "error_focus": "chunking_error",
       "skill_group": null,
       "origin_v1": null,
-      "notes": null,
-      "reading_reference": "مِفْتَاح",
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
+      "reading_reference": "مَكْتَبَة",
       "technical_gaps": [],
       "status": "draft",
       "hint": null
@@ -3356,33 +3357,33 @@
       "role": "support_check",
       "mode": "IC",
       "interaction": "sequence",
-      "prompt": "رتب المقاطع لتكون مَكْتَبَة.",
+      "prompt": "رتب المقاطع لتكوّن كلمة حَقِيبَة.",
       "stimulus": {
-        "text": "مَكْ / تَ / بَة",
+        "text": "حَ / قِي / بَة",
         "media": []
       },
       "options": [
         {
           "id": "a",
-          "text": "تَ",
-          "media": []
-        },
-        {
-          "id": "b",
           "text": "بَة",
           "media": []
         },
         {
+          "id": "b",
+          "text": "حَ",
+          "media": []
+        },
+        {
           "id": "c",
-          "text": "مَكْ",
+          "text": "قِي",
           "media": []
         }
       ],
       "private_answer": {
         "correct_option_ids": [
+          "b",
           "c",
-          "a",
-          "b"
+          "a"
         ],
         "rubric": null
       },
@@ -3392,7 +3393,8 @@
       "technical_gaps": [],
       "origin_v1": null,
       "status": "draft_pending_qa",
-      "hint": null
+      "hint": null,
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة."
     }
   ],
   "supports": [
