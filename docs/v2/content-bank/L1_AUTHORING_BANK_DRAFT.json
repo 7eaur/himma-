@@ -649,7 +649,18 @@
         "graded_as_check": false
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-01-GP-02",
@@ -717,7 +728,18 @@
         "graded_as_check": false
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "large_character",
+        "option_mode": "audio_cards",
+        "layout": "audio_choice_grid",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-01-GP-03",
@@ -773,7 +795,18 @@
         "graded_as_check": false
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-01-GP-04",
@@ -844,7 +877,18 @@
       },
       "notes": "تدريب نقل/Transfer لمثال جديد ضمن الأربعة.",
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "large_character",
+        "option_mode": "audio_cards",
+        "layout": "audio_choice_grid",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-01-IC-A01",
@@ -907,7 +951,18 @@
       "status": "authored_draft",
       "hint": null,
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "large_character",
+        "option_mode": "audio_cards",
+        "layout": "audio_choice_grid",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-01-IC-A02",
@@ -970,7 +1025,18 @@
       "status": "authored_draft",
       "hint": null,
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "large_character",
+        "option_mode": "audio_cards",
+        "layout": "audio_choice_grid",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-01-IC-A03",
@@ -1021,7 +1087,18 @@
       "status": "authored_draft",
       "hint": null,
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-01-IC-A04",
@@ -1073,7 +1150,18 @@
       "hint": null,
       "notes": "LET-01 ملفه الحالي ينطق مَ؛ الاستعمال رهين مراجعة المالك لاحقًا.",
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-02-GP-01",
@@ -1124,7 +1212,18 @@
         "graded_as_check": false
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "none",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-02-GP-02",
@@ -1175,7 +1274,18 @@
         "graded_as_check": false
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-02-GP-03",
@@ -1229,7 +1339,18 @@
       },
       "notes": "الأصل الصوتي جديد حتى يراجع.",
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-02-GP-04",
@@ -1282,7 +1403,18 @@
         "graded_as_check": false
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-02-IC-A01",
@@ -1323,7 +1455,18 @@
       "status": "authored_draft",
       "hint": null,
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-02-IC-A02",
@@ -1364,7 +1507,18 @@
       "status": "authored_draft",
       "hint": null,
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-02-IC-A03",
@@ -1410,7 +1564,18 @@
       "status": "authored_draft",
       "hint": null,
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-02-IC-A04",
@@ -1458,7 +1623,18 @@
       "status": "authored_draft",
       "hint": null,
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-03-GP-01",
@@ -1515,7 +1691,18 @@
       },
       "notes": "الصوت مطابق في V1: بِ",
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-03-GP-02",
@@ -1566,7 +1753,18 @@
         "graded_as_check": false
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "large_character",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-03-GP-03",
@@ -1624,7 +1822,18 @@
         "graded_as_check": false
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-03-GP-04",
@@ -1675,7 +1884,18 @@
         "graded_as_check": false
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-03-IC-A01",
@@ -1728,7 +1948,18 @@
       "status": "authored_draft",
       "hint": null,
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-03-IC-A02",
@@ -1781,7 +2012,18 @@
       "status": "authored_draft",
       "hint": null,
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-03-IC-A03",
@@ -1827,7 +2069,18 @@
       "status": "authored_draft",
       "hint": null,
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-03-IC-A04",
@@ -1878,7 +2131,18 @@
       "status": "authored_draft",
       "hint": null,
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-04-GP-01",
@@ -1934,7 +2198,18 @@
         "graded_as_check": false
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-04-GP-02",
@@ -1984,7 +2259,18 @@
         "academic_authority": "human_supervisor"
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "large_character",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
+      }
     },
     {
       "id": "L1-04-GP-03",
@@ -2040,7 +2326,18 @@
         "graded_as_check": false
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-04-GP-04",
@@ -2090,7 +2387,18 @@
         "academic_authority": "human_supervisor"
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "large_character",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
+      }
     },
     {
       "id": "L1-04-IC-A01",
@@ -2135,7 +2443,18 @@
         "academic_authority": "human_supervisor"
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "large_character",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
+      }
     },
     {
       "id": "L1-04-IC-A02",
@@ -2186,7 +2505,18 @@
       "status": "authored_draft",
       "hint": null,
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-04-IC-A03",
@@ -2231,7 +2561,18 @@
         "academic_authority": "human_supervisor"
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "large_character",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
+      }
     },
     {
       "id": "L1-04-IC-A04",
@@ -2282,7 +2623,18 @@
       "status": "authored_draft",
       "hint": null,
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-05-GP-01",
@@ -2335,7 +2687,18 @@
         "graded_as_check": false
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      }
     },
     {
       "id": "L1-05-GP-02",
@@ -2386,7 +2749,18 @@
         "graded_as_check": false
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-05-GP-03",
@@ -2439,7 +2813,18 @@
         "graded_as_check": false
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      }
     },
     {
       "id": "L1-05-GP-04",
@@ -2491,7 +2876,18 @@
         "academic_authority": "human_supervisor"
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
+      }
     },
     {
       "id": "L1-05-IC-A01",
@@ -2539,7 +2935,18 @@
       "status": "authored_draft",
       "hint": null,
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      }
     },
     {
       "id": "L1-05-IC-A02",
@@ -2585,7 +2992,18 @@
       "status": "authored_draft",
       "hint": null,
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-05-IC-A03",
@@ -2632,7 +3050,18 @@
         "academic_authority": "human_supervisor"
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
+      }
     },
     {
       "id": "L1-05-IC-A04",
@@ -2680,7 +3109,18 @@
       "status": "authored_draft",
       "hint": null,
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      }
     },
     {
       "id": "L1-06-GP-01",
@@ -2730,7 +3170,18 @@
         "academic_authority": "human_supervisor"
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
+      }
     },
     {
       "id": "L1-06-GP-02",
@@ -2786,7 +3237,18 @@
         "graded_as_check": false
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-06-GP-03",
@@ -2836,7 +3298,18 @@
         "academic_authority": "human_supervisor"
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
+      }
     },
     {
       "id": "L1-06-GP-04",
@@ -2902,7 +3375,18 @@
         "graded_as_check": false
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "image_cards",
+        "layout": "image_choice_grid",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-06-IC-A01",
@@ -2947,7 +3431,18 @@
         "academic_authority": "human_supervisor"
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
+      }
     },
     {
       "id": "L1-06-IC-A02",
@@ -2998,7 +3493,18 @@
       "status": "authored_draft",
       "hint": null,
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "L1-06-IC-A03",
@@ -3043,7 +3549,18 @@
         "academic_authority": "human_supervisor"
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
+      }
     },
     {
       "id": "L1-06-IC-A04",
@@ -3104,7 +3621,18 @@
       "status": "authored_draft",
       "hint": null,
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "image_cards",
+        "layout": "image_choice_grid",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "SUP-01-GP-01",
@@ -3155,7 +3683,18 @@
         "graded_as_check": false
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "SUP-01-GP-02",
@@ -3201,7 +3740,18 @@
         "graded_as_check": false
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "SUP-01-GP-03",
@@ -3254,7 +3804,18 @@
         "graded_as_check": false
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "SUP-01-SC-01",
@@ -3301,7 +3862,18 @@
       "hint": null,
       "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "SUP-01-SC-02",
@@ -3343,7 +3915,18 @@
       "hint": null,
       "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "SUP-01-SC-03",
@@ -3392,7 +3975,18 @@
       "hint": null,
       "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "SUP-02-GP-01",
@@ -3443,7 +4037,18 @@
         "graded_as_check": false
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "SUP-02-GP-02",
@@ -3489,7 +4094,18 @@
         "graded_as_check": false
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "SUP-02-SC-01",
@@ -3538,7 +4154,18 @@
       "hint": null,
       "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "SUP-02-SC-02",
@@ -3580,7 +4207,18 @@
       "hint": null,
       "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "SUP-03-GP-01",
@@ -3630,7 +4268,18 @@
         "academic_authority": "human_supervisor"
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "large_character",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
+      }
     },
     {
       "id": "SUP-03-GP-02",
@@ -3683,7 +4332,18 @@
         "graded_as_check": false
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      }
     },
     {
       "id": "SUP-03-SC-01",
@@ -3730,7 +4390,18 @@
         "academic_authority": "human_supervisor"
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "large_character",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
+      }
     },
     {
       "id": "SUP-03-SC-02",
@@ -3778,7 +4449,18 @@
       "status": "authored_draft",
       "hint": null,
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      }
     },
     {
       "id": "SUP-04-GP-01",
@@ -3828,7 +4510,18 @@
         "academic_authority": "human_supervisor"
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
+      }
     },
     {
       "id": "SUP-04-GP-02",
@@ -3879,7 +4572,18 @@
         "graded_as_check": false
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "SUP-04-SC-01",
@@ -3924,7 +4628,18 @@
         "academic_authority": "human_supervisor"
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
+      }
     },
     {
       "id": "SUP-04-SC-02",
@@ -3969,7 +4684,18 @@
         "academic_authority": "human_supervisor"
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
+      }
     },
     {
       "id": "SUP-01-GP-04",
@@ -4014,7 +4740,18 @@
       "status": "draft_pending_review",
       "origin_v1": null,
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "SUP-01-GP-05",
@@ -4054,7 +4791,18 @@
       "status": "draft_pending_review",
       "origin_v1": null,
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "SUP-01-GP-06",
@@ -4099,7 +4847,18 @@
       "status": "draft_pending_review",
       "origin_v1": null,
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "SUP-01-SC-04",
@@ -4144,7 +4903,18 @@
       "status": "draft_pending_review",
       "origin_v1": null,
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "SUP-01-SC-05",
@@ -4184,7 +4954,18 @@
       "status": "draft_pending_review",
       "origin_v1": null,
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "SUP-01-SC-06",
@@ -4230,7 +5011,18 @@
       "origin_v1": null,
       "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "SUP-02-GP-03",
@@ -4275,7 +5067,18 @@
       "status": "draft_pending_review",
       "origin_v1": null,
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "SUP-02-GP-04",
@@ -4315,7 +5118,18 @@
       "status": "draft_pending_review",
       "origin_v1": null,
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "SUP-02-GP-05",
@@ -4360,7 +5174,18 @@
       "status": "draft_pending_review",
       "origin_v1": null,
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "SUP-02-SC-03",
@@ -4400,7 +5225,18 @@
       "status": "draft_pending_review",
       "origin_v1": null,
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "SUP-02-SC-04",
@@ -4441,7 +5277,18 @@
       "origin_v1": null,
       "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "SUP-02-SC-05",
@@ -4486,7 +5333,18 @@
       "status": "draft_pending_review",
       "origin_v1": null,
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "SUP-02-SC-06",
@@ -4526,7 +5384,18 @@
       "status": "draft_pending_review",
       "origin_v1": null,
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
     },
     {
       "id": "SUP-03-GP-03",
@@ -4565,7 +5434,18 @@
         "academic_authority": "human_supervisor"
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "large_character",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
+      }
     },
     {
       "id": "SUP-03-GP-04",
@@ -4612,7 +5492,18 @@
       "status": "draft_pending_review",
       "origin_v1": null,
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      }
     },
     {
       "id": "SUP-03-SC-03",
@@ -4653,7 +5544,18 @@
         "academic_authority": "human_supervisor"
       },
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "large_character",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
+      }
     },
     {
       "id": "SUP-03-SC-04",
@@ -4701,7 +5603,18 @@
       "origin_v1": null,
       "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
       "version": "0.3-draft",
-      "authoring_state": "draft"
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      }
     }
   ],
   "media": [
