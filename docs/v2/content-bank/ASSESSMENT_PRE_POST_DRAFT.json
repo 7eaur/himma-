@@ -17,7 +17,7 @@
       "interaction": "choose_one",
       "prompt": "اختر الحرف ب.",
       "stimulus": {
-        "text": "اختر الحرف",
+        "text": null,
         "media": []
       },
       "options": [
@@ -65,7 +65,7 @@
       "interaction": "choose_one",
       "prompt": "أي حرف له نقطة تحت؟",
       "stimulus": {
-        "text": "الحرف المقصود",
+        "text": null,
         "media": []
       },
       "options": [
@@ -726,7 +726,7 @@
       "interaction": "choose_one",
       "prompt": "أي كلمة فيها مد بالواو؟",
       "stimulus": {
-        "text": "اختر الكلمة",
+        "text": null,
         "media": []
       },
       "options": [
@@ -1584,7 +1584,7 @@
       "interaction": "choose_one",
       "prompt": "اختر الحرف خ.",
       "stimulus": {
-        "text": "اختر الحرف",
+        "text": null,
         "media": []
       },
       "options": [
@@ -1632,7 +1632,7 @@
       "interaction": "choose_one",
       "prompt": "أي حرف له نقطتان فوق؟",
       "stimulus": {
-        "text": "الحرف المقصود",
+        "text": null,
         "media": []
       },
       "options": [
@@ -2290,7 +2290,7 @@
       "interaction": "choose_one",
       "prompt": "أي كلمة فيها مد بالألف؟",
       "stimulus": {
-        "text": "اختر",
+        "text": null,
         "media": []
       },
       "options": [
