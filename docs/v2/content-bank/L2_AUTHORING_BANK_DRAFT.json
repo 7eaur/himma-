@@ -1239,7 +1239,7 @@
       "mode": "GP",
       "role": "guided_practice",
       "interaction": "choose_one",
-      "prompt": "أي كلمة تضم ثلاثة أجزاء مقروءة؟",
+      "prompt": "ما الكلمة التي تتكوّن من المقاطع المعروضة؟",
       "stimulus": {
         "text": "حَ / قِي / بَة",
         "media": []
@@ -3030,7 +3030,7 @@
       "mode": "GP",
       "role": "guided_practice",
       "interaction": "choose_one",
-      "prompt": "ما الكلمة الناتجة من جمع مَكْ + تَب؟",
+      "prompt": "ما الكلمة الناتجة من جمع هذين المقطعين؟",
       "stimulus": {
         "text": "مَكْ / تَب",
         "media": []
@@ -3718,7 +3718,7 @@
       "role": "support_check",
       "mode": "IC",
       "interaction": "choose_one",
-      "prompt": "ما الكلمة الناتجة من حَ + دِي + قَة؟",
+      "prompt": "ما الكلمة الناتجة من جمع المقاطع؟",
       "stimulus": {
         "text": "حَ + دِي + قَة",
         "media": []
