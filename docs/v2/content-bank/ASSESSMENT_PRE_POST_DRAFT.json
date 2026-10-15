@@ -328,9 +328,9 @@
       "evidence_type": "syllable_blending",
       "role": "pretest",
       "interaction": "sequence",
-      "prompt": "رتب المقاطع لتكون كلمة فَتَحَ.",
+      "prompt": "رتب المقاطع لتكوّن الكلمة المناسبة للمعنى.",
       "stimulus": {
-        "text": "فَ / تَ / حَ",
+        "text": "فعل نفعله بالباب لنتمكن من الدخول.",
         "media": []
       },
       "options": [
@@ -497,10 +497,15 @@
       "evidence_type": "word_construction",
       "role": "pretest",
       "interaction": "build_word",
-      "prompt": "رتب حروف كلمة نَجْم.",
+      "prompt": "انظر إلى الصورة، ثم رتب الحروف لتكوّن اسمها.",
       "stimulus": {
-        "text": "نَجْم",
-        "media": []
+        "text": null,
+        "media": [
+          {
+            "media_id": "VOC-14",
+            "kind": "image"
+          }
+        ]
       },
       "options": [
         {
@@ -529,7 +534,9 @@
       },
       "reading_reference": null,
       "role_specific_hints_allowed": false,
-      "media_ids": [],
+      "media_ids": [
+        "VOC-14"
+      ],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
       "status": "draft_pending_assessment_equivalence_review"
@@ -1886,9 +1893,9 @@
       "evidence_type": "syllable_blending",
       "role": "posttest",
       "interaction": "sequence",
-      "prompt": "رتب المقاطع لتكون كلمة سَبَحَ.",
+      "prompt": "رتب المقاطع لتكوّن الكلمة المناسبة للمعنى.",
       "stimulus": {
-        "text": "سَ / بَ / حَ",
+        "text": "فعل نفعله عند الحركة في الماء.",
         "media": []
       },
       "options": [
@@ -2055,9 +2062,9 @@
       "evidence_type": "word_construction",
       "role": "posttest",
       "interaction": "build_word",
-      "prompt": "رتب حروف كلمة جَبَل.",
+      "prompt": "رتب الحروف لتكوّن الكلمة المناسبة للمعنى.",
       "stimulus": {
-        "text": "جَبَل",
+        "text": "اسم مكان طبيعي مرتفع عن الأرض.",
         "media": []
       },
       "options": [
@@ -2288,12 +2295,12 @@
         },
         {
           "id": "b",
-          "text": "بُر",
+          "text": "نَهَر",
           "media": []
         },
         {
           "id": "c",
-          "text": "بِر",
+          "text": "قَلَم",
           "media": []
         }
       ],
