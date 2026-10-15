@@ -41,7 +41,9 @@
         "L3-REIN-01"
       ],
       "support_group_id": "SUP-08",
-      "status": "draft_pending_owner_and_teacher_review"
+      "status": "draft_pending_owner_and_teacher_review",
+      "version": "0.3-draft",
+      "publish_state": "blocked_pending_runtime_media_qa"
     },
     {
       "id": "L3-02",
@@ -81,7 +83,9 @@
         "L3-REIN-04"
       ],
       "support_group_id": "SUP-08",
-      "status": "draft_pending_owner_and_teacher_review"
+      "status": "draft_pending_owner_and_teacher_review",
+      "version": "0.3-draft",
+      "publish_state": "blocked_pending_runtime_media_qa"
     },
     {
       "id": "L3-03",
@@ -120,7 +124,9 @@
         "PRE-Q25–27 (محجوزة للتقييم)"
       ],
       "support_group_id": "SUP-09",
-      "status": "draft_pending_owner_and_teacher_review"
+      "status": "draft_pending_owner_and_teacher_review",
+      "version": "0.3-draft",
+      "publish_state": "blocked_pending_runtime_media_qa"
     },
     {
       "id": "L3-04",
@@ -159,7 +165,9 @@
         "L1-CORE-10"
       ],
       "support_group_id": "SUP-10",
-      "status": "draft_pending_owner_and_teacher_review"
+      "status": "draft_pending_owner_and_teacher_review",
+      "version": "0.3-draft",
+      "publish_state": "blocked_pending_runtime_media_qa"
     },
     {
       "id": "L3-05",
@@ -198,7 +206,9 @@
         "L3-CORE-09 (بعض المفردات)"
       ],
       "support_group_id": "SUP-11",
-      "status": "draft_pending_owner_and_teacher_review"
+      "status": "draft_pending_owner_and_teacher_review",
+      "version": "0.3-draft",
+      "publish_state": "blocked_pending_runtime_media_qa"
     },
     {
       "id": "L3-06",
@@ -238,7 +248,9 @@
         "L3-REIN-03"
       ],
       "support_group_id": "SUP-12",
-      "status": "draft_pending_owner_and_teacher_review"
+      "status": "draft_pending_owner_and_teacher_review",
+      "version": "0.3-draft",
+      "publish_state": "blocked_pending_runtime_media_qa"
     },
     {
       "id": "L3-07",
@@ -279,7 +291,9 @@
         "كتابة حرة غير مؤكدة في V1"
       ],
       "support_group_id": "SUP-12",
-      "status": "draft_pending_owner_and_teacher_review"
+      "status": "draft_pending_owner_and_teacher_review",
+      "version": "0.3-draft",
+      "publish_state": "blocked_pending_runtime_media_qa"
     }
   ],
   "supports": [
@@ -343,7 +357,15 @@
           "items_per_attempt": 2
         }
       },
-      "selection_rule": "يدعم focus واحدًا؛ يعرض له تحققًا مستقلاً من بندين لا بنود جميع الفجوات"
+      "selection_rule": "يدعم focus واحدًا؛ يعرض له تحققًا مستقلاً من بندين لا بنود جميع الفجوات",
+      "version": "0.3-draft",
+      "intro": {
+        "title": "قراءة الجملة والنص",
+        "text": "سنقرأ جملًا قصيرة ونقف قليلًا عند نهاية كل جملة."
+      },
+      "video_media_id": null,
+      "teaching_media_strategy": "short_approved_video_audio_or_visual_pending_choice",
+      "publish_state": "blocked_pending_media_runtime_qa"
     },
     {
       "id": "SUP-09",
@@ -387,7 +409,15 @@
           "items_per_attempt": 2
         }
       },
-      "selection_rule": "يدعم focus واحدًا؛ يعرض له تحققًا مستقلاً من بندين لا بنود جميع الفجوات"
+      "selection_rule": "يدعم focus واحدًا؛ يعرض له تحققًا مستقلاً من بندين لا بنود جميع الفجوات",
+      "version": "0.3-draft",
+      "intro": {
+        "title": "الفهم المباشر",
+        "text": "سنبحث عن الإجابة داخل الجملة أو النص."
+      },
+      "video_media_id": null,
+      "teaching_media_strategy": "short_approved_video_audio_or_visual_pending_choice",
+      "publish_state": "blocked_pending_media_runtime_qa"
     },
     {
       "id": "SUP-10",
@@ -430,7 +460,15 @@
           "items_per_attempt": 2
         }
       },
-      "selection_rule": "يدعم focus واحدًا؛ يعرض له تحققًا مستقلاً من بندين لا بنود جميع الفجوات"
+      "selection_rule": "يدعم focus واحدًا؛ يعرض له تحققًا مستقلاً من بندين لا بنود جميع الفجوات",
+      "version": "0.3-draft",
+      "intro": {
+        "title": "ترتيب أحداث النص",
+        "text": "سنقرأ ما حدث ثم نرتب الأحداث من الأول إلى الأخير."
+      },
+      "video_media_id": null,
+      "teaching_media_strategy": "short_approved_video_audio_or_visual_pending_choice",
+      "publish_state": "blocked_pending_media_runtime_qa"
     },
     {
       "id": "SUP-11",
@@ -472,7 +510,15 @@
           "items_per_attempt": 2
         }
       },
-      "selection_rule": "يدعم focus واحدًا؛ يعرض له تحققًا مستقلاً من بندين لا بنود جميع الفجوات"
+      "selection_rule": "يدعم focus واحدًا؛ يعرض له تحققًا مستقلاً من بندين لا بنود جميع الفجوات",
+      "version": "0.3-draft",
+      "intro": {
+        "title": "تحديد الفكرة الرئيسة",
+        "text": "سنختار الفكرة التي تجمع معظم جمل النص."
+      },
+      "video_media_id": null,
+      "teaching_media_strategy": "short_approved_video_audio_or_visual_pending_choice",
+      "publish_state": "blocked_pending_media_runtime_qa"
     },
     {
       "id": "SUP-12",
@@ -534,7 +580,15 @@
           "items_per_attempt": 2
         }
       },
-      "selection_rule": "يدعم focus واحدًا؛ يعرض له تحققًا مستقلاً من بندين لا بنود جميع الفجوات"
+      "selection_rule": "يدعم focus واحدًا؛ يعرض له تحققًا مستقلاً من بندين لا بنود جميع الفجوات",
+      "version": "0.3-draft",
+      "intro": {
+        "title": "بناء وكتابة الجملة",
+        "text": "سنرتب الكلمات ثم نكتب جملة قصيرة مفيدة."
+      },
+      "video_media_id": null,
+      "teaching_media_strategy": "short_approved_video_audio_or_visual_pending_choice",
+      "publish_state": "blocked_pending_media_runtime_qa"
     }
   ],
   "questions": [
@@ -580,7 +634,10 @@
         "allow_valid_readings_of_unvowelled_text": true,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "skill_group": "S9",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-01-GP-02",
@@ -624,7 +681,10 @@
         "allow_valid_readings_of_unvowelled_text": true,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "skill_group": "S9",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-01-GP-03",
@@ -668,7 +728,10 @@
       "notes": null,
       "status": "draft",
       "hint": "ابحث عن الجملة الثانية التي تكمل الأولى.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "skill_group": "S9",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-01-GP-04",
@@ -712,7 +775,10 @@
         "allow_valid_readings_of_unvowelled_text": true,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "skill_group": "S9",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-01-IC-A01",
@@ -755,7 +821,10 @@
         "allow_valid_readings_of_unvowelled_text": true,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "skill_group": "S9",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-01-IC-A02",
@@ -798,7 +867,10 @@
         "allow_valid_readings_of_unvowelled_text": true,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "skill_group": "S9",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-01-IC-A03",
@@ -841,7 +913,10 @@
         "allow_valid_readings_of_unvowelled_text": true,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "skill_group": "S9",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-01-IC-A04",
@@ -884,7 +959,10 @@
       "technical_gaps": [],
       "notes": null,
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "skill_group": "S9",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-02-GP-01",
@@ -928,7 +1006,10 @@
         "allow_valid_readings_of_unvowelled_text": true,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "skill_group": "S9",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-02-GP-02",
@@ -972,7 +1053,10 @@
       "notes": null,
       "status": "draft",
       "hint": "توقف عند علامة النقطة أولًا.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "skill_group": "S9",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-02-GP-03",
@@ -1016,7 +1100,10 @@
         "allow_valid_readings_of_unvowelled_text": true,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "skill_group": "S9",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-02-GP-04",
@@ -1060,7 +1147,10 @@
         "allow_valid_readings_of_unvowelled_text": true,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "skill_group": "S9",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-02-IC-A01",
@@ -1103,7 +1193,10 @@
         "allow_valid_readings_of_unvowelled_text": true,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "skill_group": "S9",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-02-IC-A02",
@@ -1146,7 +1239,10 @@
         "allow_valid_readings_of_unvowelled_text": true,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "skill_group": "S9",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-02-IC-A03",
@@ -1189,7 +1285,10 @@
         "allow_valid_readings_of_unvowelled_text": true,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "skill_group": "S9",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-03-GP-01",
@@ -1233,7 +1332,10 @@
       "notes": null,
       "status": "draft",
       "hint": "ارجع إلى أول جملة.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "skill_group": "S10",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-03-GP-02",
@@ -1277,7 +1379,10 @@
       "notes": null,
       "status": "draft",
       "hint": "ابحث عن الشيء الذي زرعته سعاد.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "skill_group": "S10",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-03-GP-03",
@@ -1321,7 +1426,10 @@
       "notes": null,
       "status": "draft",
       "hint": "اقرأ أول النص ثم كلمة أعادته.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "skill_group": "S10",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-03-GP-04",
@@ -1365,7 +1473,10 @@
       "notes": null,
       "status": "draft",
       "hint": "انظر إلى بداية النص.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "skill_group": "S10",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-03-IC-A01",
@@ -1408,7 +1519,10 @@
       "technical_gaps": [],
       "notes": null,
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "skill_group": "S10",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-03-IC-A02",
@@ -1451,7 +1565,10 @@
       "technical_gaps": [],
       "notes": null,
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "skill_group": "S10",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-03-IC-A03",
@@ -1494,7 +1611,10 @@
       "technical_gaps": [],
       "notes": null,
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "skill_group": "S10",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-03-IC-A04",
@@ -1537,7 +1657,10 @@
       "technical_gaps": [],
       "notes": null,
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "skill_group": "S10",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-04-GP-01",
@@ -1583,7 +1706,10 @@
       "notes": null,
       "status": "draft",
       "hint": "ابحث عن أول فعل في النص.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "skill_group": "S11",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-04-GP-02",
@@ -1629,7 +1755,10 @@
       "notes": null,
       "status": "draft",
       "hint": "ماذا فعل قبل الأكل؟",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "skill_group": "S11",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-04-GP-03",
@@ -1675,7 +1804,10 @@
       "notes": null,
       "status": "draft",
       "hint": "فكر بما يسبق الكتابة.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "skill_group": "S11",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-04-GP-04",
@@ -1721,7 +1853,10 @@
       "notes": null,
       "status": "draft",
       "hint": "ابدأ بما رأته ليلى.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "skill_group": "S11",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-04-IC-A01",
@@ -1766,7 +1901,10 @@
       "technical_gaps": [],
       "notes": null,
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "skill_group": "S11",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-04-IC-A02",
@@ -1811,7 +1949,10 @@
       "technical_gaps": [],
       "notes": null,
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "skill_group": "S11",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-04-IC-A03",
@@ -1856,7 +1997,10 @@
       "technical_gaps": [],
       "notes": null,
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "skill_group": "S11",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-04-IC-A04",
@@ -1901,7 +2045,10 @@
       "technical_gaps": [],
       "notes": null,
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "skill_group": "S11",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-05-GP-01",
@@ -1945,7 +2092,10 @@
       "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها.",
       "status": "draft",
       "hint": "ابحث عن فكرة تشمل الأعمال كلها.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "skill_group": "S12",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-05-GP-02",
@@ -1989,7 +2139,10 @@
       "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها.",
       "status": "draft",
       "hint": "ما الموضوع الذي يشمل كل الجمل؟",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "skill_group": "S12",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-05-GP-03",
@@ -2033,7 +2186,10 @@
       "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها.",
       "status": "draft",
       "hint": "فكر في الأعمال التي كررتها هند.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "skill_group": "S12",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-05-GP-04",
@@ -2077,7 +2233,10 @@
       "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها.",
       "status": "draft",
       "hint": "أي اختيار يجمع ما فعله الجميع؟",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "skill_group": "S12",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-05-IC-A01",
@@ -2120,7 +2279,10 @@
       "technical_gaps": [],
       "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها.",
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "skill_group": "S12",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-05-IC-A02",
@@ -2163,7 +2325,10 @@
       "technical_gaps": [],
       "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها.",
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "skill_group": "S12",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-05-IC-A03",
@@ -2206,7 +2371,10 @@
       "technical_gaps": [],
       "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها.",
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "skill_group": "S12",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-05-IC-A04",
@@ -2249,7 +2417,10 @@
       "technical_gaps": [],
       "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها.",
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "skill_group": "S12",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-06-GP-01",
@@ -2295,7 +2466,10 @@
       "notes": null,
       "status": "draft",
       "hint": "ابدأ بالفعل كتب ثم حدد من كتب.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "skill_group": "S13",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-06-GP-02",
@@ -2339,7 +2513,10 @@
       "notes": null,
       "status": "draft",
       "hint": "فكر أين يوضع الكتاب عادة.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "skill_group": "S13",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-06-GP-03",
@@ -2385,7 +2562,10 @@
       "notes": null,
       "status": "draft",
       "hint": "ابدأ بسقى.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "skill_group": "S13",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-06-GP-04",
@@ -2429,7 +2609,10 @@
       "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
       "status": "draft",
       "hint": "فكر ماذا يفعل سامي في المدرسة.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "skill_group": "S13",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-06-IC-A01",
@@ -2474,7 +2657,10 @@
       "technical_gaps": [],
       "notes": null,
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "skill_group": "S13",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-06-IC-A02",
@@ -2517,7 +2703,10 @@
       "technical_gaps": [],
       "notes": null,
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "skill_group": "S13",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-06-IC-A03",
@@ -2562,7 +2751,10 @@
       "technical_gaps": [],
       "notes": null,
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "skill_group": "S13",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-06-IC-A04",
@@ -2605,7 +2797,10 @@
       "technical_gaps": [],
       "notes": null,
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "skill_group": "S13",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-07-GP-01",
@@ -2651,7 +2846,10 @@
       "notes": null,
       "status": "draft",
       "hint": "ضع فعل يقرأ أولًا.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "skill_group": "S13",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-07-GP-02",
@@ -2713,7 +2911,10 @@
           "إملاء مناسب للمستوى"
         ],
         "no_single_exact_answer": true
-      }
+      },
+      "skill_group": "S13",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-07-GP-03",
@@ -2757,7 +2958,10 @@
       "notes": null,
       "status": "draft",
       "hint": "اختر الجملة التي تخبرك بما حدث.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "skill_group": "S13",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-07-GP-04",
@@ -2819,7 +3023,10 @@
           "إملاء مناسب للمستوى"
         ],
         "no_single_exact_answer": true
-      }
+      },
+      "skill_group": "S13",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-07-IC-A01",
@@ -2880,7 +3087,10 @@
           "إملاء مناسب للمستوى"
         ],
         "no_single_exact_answer": true
-      }
+      },
+      "skill_group": "S13",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-07-IC-A02",
@@ -2941,7 +3151,10 @@
           "إملاء مناسب للمستوى"
         ],
         "no_single_exact_answer": true
-      }
+      },
+      "skill_group": "S13",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-07-IC-A03",
@@ -2997,7 +3210,10 @@
           "إملاء مناسب للمستوى"
         ],
         "no_single_exact_answer": true
-      }
+      },
+      "skill_group": "S13",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L3-07-IC-A04",
@@ -3053,7 +3269,10 @@
           "إملاء مناسب للمستوى"
         ],
         "no_single_exact_answer": true
-      }
+      },
+      "skill_group": "S13",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-08-GP-01",
@@ -3097,7 +3316,10 @@
         "allow_valid_readings_of_unvowelled_text": true,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "skill_group": "S9",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-08-GP-02",
@@ -3141,7 +3363,10 @@
       "notes": null,
       "status": "draft",
       "hint": "النقطة تحدد نهاية الجملة.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "skill_group": "S9",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-08-SC-01",
@@ -3184,7 +3409,10 @@
         "allow_valid_readings_of_unvowelled_text": true,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "skill_group": "S9",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-08-SC-02",
@@ -3227,7 +3455,10 @@
         "allow_valid_readings_of_unvowelled_text": true,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "skill_group": "S9",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-09-GP-01",
@@ -3266,7 +3497,10 @@
       "notes": null,
       "status": "draft",
       "hint": "اقرأ كلمة في ثم التي بعدها.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "skill_group": "S10",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-09-GP-02",
@@ -3305,7 +3539,10 @@
       "notes": null,
       "status": "draft",
       "hint": "ابحث عن اسم الشخص.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "skill_group": "S10",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-09-SC-01",
@@ -3343,7 +3580,10 @@
       "technical_gaps": [],
       "notes": null,
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "skill_group": "S10",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-09-SC-02",
@@ -3381,7 +3621,10 @@
       "technical_gaps": [],
       "notes": null,
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "skill_group": "S10",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-10-GP-01",
@@ -3427,7 +3670,10 @@
       "notes": null,
       "status": "draft",
       "hint": "ما الذي يفعله أحمد قبل القراءة؟",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "skill_group": "S11",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-10-GP-02",
@@ -3473,7 +3719,10 @@
       "notes": null,
       "status": "draft",
       "hint": "ابدأ بالبذرة.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "skill_group": "S11",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-10-SC-01",
@@ -3518,7 +3767,10 @@
       "technical_gaps": [],
       "notes": null,
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "skill_group": "S11",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-10-SC-02",
@@ -3563,7 +3815,10 @@
       "technical_gaps": [],
       "notes": null,
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "skill_group": "S11",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-11-GP-01",
@@ -3602,7 +3857,10 @@
       "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها.",
       "status": "draft",
       "hint": "اختر ما يجمع كل الجمل.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "skill_group": "S12",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-11-GP-02",
@@ -3641,7 +3899,10 @@
       "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها.",
       "status": "draft",
       "hint": "ما الشيء المشترك بين الفعلين؟",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "skill_group": "S12",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-11-SC-01",
@@ -3679,7 +3940,10 @@
       "technical_gaps": [],
       "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها.",
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "skill_group": "S12",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-11-SC-02",
@@ -3717,7 +3981,10 @@
       "technical_gaps": [],
       "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها.",
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "skill_group": "S12",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-12-GP-01",
@@ -3763,7 +4030,10 @@
       "notes": null,
       "status": "draft",
       "hint": "ابدأ بالفعل رسم.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "skill_group": "S13",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-12-GP-02",
@@ -3825,7 +4095,10 @@
           "إملاء مناسب للمستوى"
         ],
         "no_single_exact_answer": true
-      }
+      },
+      "skill_group": "S13",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-12-SC-01",
@@ -3870,7 +4143,10 @@
       "technical_gaps": [],
       "notes": null,
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "skill_group": "S13",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-12-SC-02",
@@ -3931,7 +4207,10 @@
           "إملاء مناسب للمستوى"
         ],
         "no_single_exact_answer": true
-      }
+      },
+      "skill_group": "S13",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-08-GP-03",
@@ -3968,7 +4247,10 @@
       "hint": "ابحث عن النقطة.",
       "technical_gaps": [],
       "status": "draft",
-      "retry": "hint_and_guided_retry"
+      "retry": "hint_and_guided_retry",
+      "skill_group": "S9",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-08-GP-04",
@@ -4009,7 +4291,10 @@
         "allow_valid_readings_of_unvowelled_text": true,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "skill_group": "S9",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-08-SC-03",
@@ -4045,7 +4330,10 @@
       "reading_reference": null,
       "hint": null,
       "technical_gaps": [],
-      "status": "draft"
+      "status": "draft",
+      "skill_group": "S9",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-08-SC-04",
@@ -4085,7 +4373,10 @@
         "allow_valid_readings_of_unvowelled_text": true,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "skill_group": "S9",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-12-GP-03",
@@ -4129,7 +4420,10 @@
       "hint": "ابدأ بلعب.",
       "technical_gaps": [],
       "status": "draft",
-      "retry": "hint_and_guided_retry"
+      "retry": "hint_and_guided_retry",
+      "skill_group": "S13",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-12-GP-04",
@@ -4179,7 +4473,10 @@
           "إملاء مناسب للمستوى"
         ],
         "no_single_exact_answer": true
-      }
+      },
+      "skill_group": "S13",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-12-SC-03",
@@ -4222,7 +4519,10 @@
       "reading_reference": null,
       "hint": null,
       "technical_gaps": [],
-      "status": "draft"
+      "status": "draft",
+      "skill_group": "S13",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-12-SC-04",
@@ -4270,7 +4570,10 @@
           "إملاء مناسب للمستوى"
         ],
         "no_single_exact_answer": true
-      }
+      },
+      "skill_group": "S13",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     }
   ],
   "media": [
@@ -4281,7 +4584,9 @@
       "source_v1_id": "VOC-22",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-22-library-512.webp",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_after_content_completion"
+      "review": "owner_after_content_completion",
+      "type": "image",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "VOC-28",
@@ -4290,7 +4595,9 @@
       "source_v1_id": "VOC-28",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-28-flower-512.webp",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_after_content_completion"
+      "review": "owner_after_content_completion",
+      "type": "image",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "VOC-34",
@@ -4299,7 +4606,9 @@
       "source_v1_id": "VOC-34",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-34-boy-512.webp",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_after_content_completion"
+      "review": "owner_after_content_completion",
+      "type": "image",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "VOC-35",
@@ -4308,7 +4617,9 @@
       "source_v1_id": "VOC-35",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-35-girl-512.webp",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_after_content_completion"
+      "review": "owner_after_content_completion",
+      "type": "image",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "VOC-20",
@@ -4317,7 +4628,9 @@
       "source_v1_id": "VOC-20",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-20-bird-512.webp",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_after_content_completion"
+      "review": "owner_after_content_completion",
+      "type": "image",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "VOC-30",
@@ -4326,7 +4639,9 @@
       "source_v1_id": "VOC-30",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-30-leaves-512.webp",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_after_content_completion"
+      "review": "owner_after_content_completion",
+      "type": "image",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "VOC-21",
@@ -4335,7 +4650,9 @@
       "source_v1_id": "VOC-21",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-21-garden-512.webp",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_after_content_completion"
+      "review": "owner_after_content_completion",
+      "type": "image",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "VOC-17",
@@ -4344,7 +4661,9 @@
       "source_v1_id": "VOC-17",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-17-school-bag-512.webp",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_after_content_completion"
+      "review": "owner_after_content_completion",
+      "type": "image",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "VOC-06",
@@ -4353,7 +4672,9 @@
       "source_v1_id": "VOC-06",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-06-sun-512.webp",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_after_content_completion"
+      "review": "owner_after_content_completion",
+      "type": "image",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "VOC-14",
@@ -4362,7 +4683,9 @@
       "source_v1_id": "VOC-14",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-14-star-512.webp",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_after_content_completion"
+      "review": "owner_after_content_completion",
+      "type": "image",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "VID-L3-01",
@@ -4371,7 +4694,9 @@
       "source_v1_id": null,
       "source_path": null,
       "status": "missing_new",
-      "review": "owner_after_content_completion"
+      "review": "owner_after_content_completion",
+      "type": "video",
+      "review_state": "awaiting_production"
     },
     {
       "id": "VID-L3-02",
@@ -4380,7 +4705,9 @@
       "source_v1_id": null,
       "source_path": null,
       "status": "missing_new",
-      "review": "owner_after_content_completion"
+      "review": "owner_after_content_completion",
+      "type": "video",
+      "review_state": "awaiting_production"
     },
     {
       "id": "VID-L3-03",
@@ -4389,7 +4716,9 @@
       "source_v1_id": null,
       "source_path": null,
       "status": "missing_new",
-      "review": "owner_after_content_completion"
+      "review": "owner_after_content_completion",
+      "type": "video",
+      "review_state": "awaiting_production"
     },
     {
       "id": "VID-L3-04",
@@ -4398,7 +4727,9 @@
       "source_v1_id": null,
       "source_path": null,
       "status": "missing_new",
-      "review": "owner_after_content_completion"
+      "review": "owner_after_content_completion",
+      "type": "video",
+      "review_state": "awaiting_production"
     },
     {
       "id": "VID-L3-05",
@@ -4407,7 +4738,9 @@
       "source_v1_id": null,
       "source_path": null,
       "status": "missing_new",
-      "review": "owner_after_content_completion"
+      "review": "owner_after_content_completion",
+      "type": "video",
+      "review_state": "awaiting_production"
     },
     {
       "id": "VID-L3-06",
@@ -4416,7 +4749,9 @@
       "source_v1_id": null,
       "source_path": null,
       "status": "missing_new",
-      "review": "owner_after_content_completion"
+      "review": "owner_after_content_completion",
+      "type": "video",
+      "review_state": "awaiting_production"
     },
     {
       "id": "VID-L3-07",
@@ -4425,7 +4760,9 @@
       "source_v1_id": null,
       "source_path": null,
       "status": "missing_new",
-      "review": "owner_after_content_completion"
+      "review": "owner_after_content_completion",
+      "type": "video",
+      "review_state": "awaiting_production"
     },
     {
       "id": "VOC-18",
@@ -4434,7 +4771,9 @@
       "source_v1_id": "VOC-18",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-18-school-512.webp",
       "status": "selected_from_v1_pending_owner_review",
-      "review": "owner_after_content_completion"
+      "review": "owner_after_content_completion",
+      "type": "image",
+      "review_state": "owner_review_pending"
     }
   ],
   "qa_notes": []
