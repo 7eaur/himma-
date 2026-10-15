@@ -302,12 +302,18 @@
       "practice_ids": [
         "SUP-01-GP-01",
         "SUP-01-GP-02",
-        "SUP-01-GP-03"
+        "SUP-01-GP-03",
+        "SUP-01-GP-04",
+        "SUP-01-GP-05",
+        "SUP-01-GP-06"
       ],
       "check_ids": [
         "SUP-01-SC-01",
         "SUP-01-SC-02",
-        "SUP-01-SC-03"
+        "SUP-01-SC-03",
+        "SUP-01-SC-04",
+        "SUP-01-SC-05",
+        "SUP-01-SC-06"
       ],
       "check_items_per_attempt": 2,
       "origin_v1": [
@@ -316,8 +322,43 @@
         "L1-CORE-06"
       ],
       "approval": "draft_pending_review",
-      "status": "draft",
-      "selection_rule": "يختار النظام focus واحدًا؛ يخصص تدريبًا وتحقيقًا مناسبين له (2–3 فقرات تحقق عند التنفيذ). المعروض هنا بنك محاور، لا تعرض المحاور الثلاثة في جلسة واحدة."
+      "status": "authored_focus_draft_pending_review",
+      "selection_rule": "يظهر focus واحد مناسب للفجوة، ويقدم منه تحققين فقط لكل محاولة",
+      "focus_item_map": {
+        "sound_mapping": {
+          "practice_ids": [
+            "SUP-01-GP-01",
+            "SUP-01-GP-04"
+          ],
+          "check_ids": [
+            "SUP-01-SC-01",
+            "SUP-01-SC-04"
+          ],
+          "items_per_attempt": 2
+        },
+        "visual_confusion": {
+          "practice_ids": [
+            "SUP-01-GP-02",
+            "SUP-01-GP-05"
+          ],
+          "check_ids": [
+            "SUP-01-SC-02",
+            "SUP-01-SC-05"
+          ],
+          "items_per_attempt": 2
+        },
+        "auditory_confusion": {
+          "practice_ids": [
+            "SUP-01-GP-03",
+            "SUP-01-GP-06"
+          ],
+          "check_ids": [
+            "SUP-01-SC-03",
+            "SUP-01-SC-06"
+          ],
+          "items_per_attempt": 2
+        }
+      }
     },
     {
       "id": "SUP-02",
@@ -340,19 +381,60 @@
       "teaching_media_type": "brief_targeted_audio_or_visual",
       "practice_ids": [
         "SUP-02-GP-01",
-        "SUP-02-GP-02"
+        "SUP-02-GP-02",
+        "SUP-02-GP-03",
+        "SUP-02-GP-04",
+        "SUP-02-GP-05"
       ],
       "check_ids": [
         "SUP-02-SC-01",
-        "SUP-02-SC-02"
+        "SUP-02-SC-02",
+        "SUP-02-SC-03",
+        "SUP-02-SC-04",
+        "SUP-02-SC-05",
+        "SUP-02-SC-06"
       ],
       "check_items_per_attempt": 2,
       "origin_v1": [
         "L2-CORE-01"
       ],
       "approval": "draft_pending_review",
-      "status": "draft",
-      "selection_rule": "يختار focus المناسب للحركة المتعثرة؛ بنك التحقق النصي تمهيدي ويستكمل بالبدائل في الإنتاج حسب نوع الحركة."
+      "status": "authored_focus_draft_pending_review",
+      "selection_rule": "يظهر focus واحد مناسب للفجوة، ويقدم منه تحققين فقط لكل محاولة",
+      "focus_item_map": {
+        "fatha": {
+          "practice_ids": [
+            "SUP-02-GP-01"
+          ],
+          "check_ids": [
+            "SUP-02-SC-02",
+            "SUP-02-SC-03"
+          ],
+          "items_per_attempt": 2
+        },
+        "damma": {
+          "practice_ids": [
+            "SUP-02-GP-03",
+            "SUP-02-GP-04"
+          ],
+          "check_ids": [
+            "SUP-02-SC-01",
+            "SUP-02-SC-04"
+          ],
+          "items_per_attempt": 2
+        },
+        "kasra": {
+          "practice_ids": [
+            "SUP-02-GP-02",
+            "SUP-02-GP-05"
+          ],
+          "check_ids": [
+            "SUP-02-SC-05",
+            "SUP-02-SC-06"
+          ],
+          "items_per_attempt": 2
+        }
+      }
     },
     {
       "id": "SUP-03",
@@ -375,11 +457,15 @@
       "teaching_media_type": "brief_targeted_audio_or_visual",
       "practice_ids": [
         "SUP-03-GP-01",
-        "SUP-03-GP-02"
+        "SUP-03-GP-02",
+        "SUP-03-GP-03",
+        "SUP-03-GP-04"
       ],
       "check_ids": [
         "SUP-03-SC-01",
-        "SUP-03-SC-02"
+        "SUP-03-SC-02",
+        "SUP-03-SC-03",
+        "SUP-03-SC-04"
       ],
       "check_items_per_attempt": 2,
       "origin_v1": [
@@ -387,8 +473,32 @@
         "L2-REIN-02"
       ],
       "approval": "draft_pending_review",
-      "status": "draft",
-      "selection_rule": "تُقدّم الفقرات الخاصة بالقراءة أو الدمج تبعًا للفجوة، لا كل الأسئلة لكل طفل."
+      "status": "authored_focus_draft_pending_review",
+      "selection_rule": "يظهر focus واحد مناسب للفجوة، ويقدم منه تحققين فقط لكل محاولة",
+      "focus_item_map": {
+        "syllable_reading": {
+          "practice_ids": [
+            "SUP-03-GP-01",
+            "SUP-03-GP-03"
+          ],
+          "check_ids": [
+            "SUP-03-SC-01",
+            "SUP-03-SC-03"
+          ],
+          "items_per_attempt": 2
+        },
+        "syllable_blending": {
+          "practice_ids": [
+            "SUP-03-GP-02",
+            "SUP-03-GP-04"
+          ],
+          "check_ids": [
+            "SUP-03-SC-02",
+            "SUP-03-SC-04"
+          ],
+          "items_per_attempt": 2
+        }
+      }
     },
     {
       "id": "SUP-04",
@@ -421,7 +531,21 @@
         "L2-REIN-04"
       ],
       "approval": "draft_pending_review",
-      "status": "draft"
+      "status": "authored_focus_draft_pending_review",
+      "focus_item_map": {
+        "word_decoding": {
+          "practice_ids": [
+            "SUP-04-GP-01",
+            "SUP-04-GP-02"
+          ],
+          "check_ids": [
+            "SUP-04-SC-01",
+            "SUP-04-SC-02"
+          ],
+          "items_per_attempt": 2
+        }
+      },
+      "selection_rule": "يظهر focus واحد مناسب للفجوة، ويقدم منه تحققين فقط لكل محاولة"
     }
   ],
   "questions": [
@@ -3537,6 +3661,683 @@
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
       "hint": null
+    },
+    {
+      "id": "SUP-01-GP-04",
+      "owner_id": "SUP-01",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "listen_choose_one",
+      "prompt": "استمع واختر الحرف.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "LET-06",
+            "kind": "audio"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "ن",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "م",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "skill_group": "S1",
+      "evidence_type": "sound_to_letter",
+      "error_focus": "sound_mapping",
+      "reading_reference": null,
+      "hint": "استمع إلى بداية كلمة نجم.",
+      "retry": "guided_try_after_hint",
+      "status": "draft_pending_review",
+      "origin_v1": null
+    },
+    {
+      "id": "SUP-01-GP-05",
+      "owner_id": "SUP-01",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "أي الحرفين له نقطة تحت؟",
+      "stimulus": {
+        "text": "ب / ت",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "ت",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "ب",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "skill_group": "S1",
+      "evidence_type": "visual_discrimination",
+      "error_focus": "visual_confusion",
+      "reading_reference": null,
+      "hint": "انظر أسفل الحرف.",
+      "retry": "guided_try_after_hint",
+      "status": "draft_pending_review",
+      "origin_v1": null
+    },
+    {
+      "id": "SUP-01-GP-06",
+      "owner_id": "SUP-01",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "listen_choose_one",
+      "prompt": "استمع ثم اختر.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "LET-03",
+            "kind": "audio"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "س",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "ص",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "skill_group": "S1",
+      "evidence_type": "auditory_discrimination",
+      "error_focus": "auditory_confusion",
+      "reading_reference": null,
+      "hint": "أعد الاستماع.",
+      "retry": "guided_try_after_hint",
+      "status": "draft_pending_review",
+      "origin_v1": null
+    },
+    {
+      "id": "SUP-01-SC-04",
+      "owner_id": "SUP-01",
+      "mode": "IC",
+      "role": "support_check",
+      "interaction": "listen_choose_one",
+      "prompt": "استمع ثم اختر الحرف.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "LET-04",
+            "kind": "audio"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "ف",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "ق",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "skill_group": "S1",
+      "evidence_type": "sound_to_letter",
+      "error_focus": "sound_mapping",
+      "reading_reference": null,
+      "hint": null,
+      "retry": null,
+      "status": "draft_pending_review",
+      "origin_v1": null
+    },
+    {
+      "id": "SUP-01-SC-05",
+      "owner_id": "SUP-01",
+      "mode": "IC",
+      "role": "support_check",
+      "interaction": "choose_one",
+      "prompt": "أي الحرفين له نقطة تحت؟",
+      "stimulus": {
+        "text": "ج / خ",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "ج",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "خ",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "skill_group": "S1",
+      "evidence_type": "visual_discrimination",
+      "error_focus": "visual_confusion",
+      "reading_reference": null,
+      "hint": null,
+      "retry": null,
+      "status": "draft_pending_review",
+      "origin_v1": null
+    },
+    {
+      "id": "SUP-01-SC-06",
+      "owner_id": "SUP-01",
+      "mode": "IC",
+      "role": "support_check",
+      "interaction": "listen_choose_one",
+      "prompt": "استمع ثم اختر.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "AUD-L1-SAD",
+            "kind": "audio"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "س",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "ص",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "skill_group": "S1",
+      "evidence_type": "auditory_discrimination",
+      "error_focus": "auditory_confusion",
+      "reading_reference": null,
+      "hint": null,
+      "retry": null,
+      "status": "draft_pending_review",
+      "origin_v1": null
+    },
+    {
+      "id": "SUP-02-GP-03",
+      "owner_id": "SUP-02",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "listen_choose_one",
+      "prompt": "استمع واختر الحرف بحركته.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "AUD-L1-03-MU",
+            "kind": "audio"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "مَ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "مُ",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "skill_group": "S2",
+      "evidence_type": "short_vowel_damma",
+      "error_focus": "damma",
+      "reading_reference": null,
+      "hint": "ابحث عن الضمة.",
+      "retry": "guided_try_after_hint",
+      "status": "draft_pending_review",
+      "origin_v1": null
+    },
+    {
+      "id": "SUP-02-GP-04",
+      "owner_id": "SUP-02",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "أي حرف عليه ضمة؟",
+      "stimulus": {
+        "text": "سِ / سُ",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "سِ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "سُ",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "skill_group": "S2",
+      "evidence_type": "short_vowel_damma",
+      "error_focus": "damma",
+      "reading_reference": null,
+      "hint": "ابحث فوق الحرف.",
+      "retry": "guided_try_after_hint",
+      "status": "draft_pending_review",
+      "origin_v1": null
+    },
+    {
+      "id": "SUP-02-GP-05",
+      "owner_id": "SUP-02",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "listen_choose_one",
+      "prompt": "استمع ثم اختر.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "SYL-05",
+            "kind": "audio"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "مَ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "مِ",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "skill_group": "S2",
+      "evidence_type": "short_vowel_kasra",
+      "error_focus": "kasra",
+      "reading_reference": null,
+      "hint": "الكسرة تحت الحرف.",
+      "retry": "guided_try_after_hint",
+      "status": "draft_pending_review",
+      "origin_v1": null
+    },
+    {
+      "id": "SUP-02-SC-03",
+      "owner_id": "SUP-02",
+      "mode": "IC",
+      "role": "support_check",
+      "interaction": "choose_one",
+      "prompt": "اختر الحرف الذي عليه فتحة.",
+      "stimulus": {
+        "text": "لُ / لَ",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "لُ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "لَ",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "skill_group": "S2",
+      "evidence_type": "short_vowel_fatha",
+      "error_focus": "fatha",
+      "reading_reference": null,
+      "hint": null,
+      "retry": null,
+      "status": "draft_pending_review",
+      "origin_v1": null
+    },
+    {
+      "id": "SUP-02-SC-04",
+      "owner_id": "SUP-02",
+      "mode": "IC",
+      "role": "support_check",
+      "interaction": "choose_one",
+      "prompt": "اختر الحرف الذي عليه ضمة.",
+      "stimulus": {
+        "text": "نِ / نُ",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "نِ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "نُ",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "skill_group": "S2",
+      "evidence_type": "short_vowel_damma",
+      "error_focus": "damma",
+      "reading_reference": null,
+      "hint": null,
+      "retry": null,
+      "status": "draft_pending_review",
+      "origin_v1": null
+    },
+    {
+      "id": "SUP-02-SC-05",
+      "owner_id": "SUP-02",
+      "mode": "IC",
+      "role": "support_check",
+      "interaction": "listen_choose_one",
+      "prompt": "استمع ثم اختر.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "SYL-02",
+            "kind": "audio"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "بُ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "بِ",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "skill_group": "S2",
+      "evidence_type": "short_vowel_kasra",
+      "error_focus": "kasra",
+      "reading_reference": null,
+      "hint": null,
+      "retry": null,
+      "status": "draft_pending_review",
+      "origin_v1": null
+    },
+    {
+      "id": "SUP-02-SC-06",
+      "owner_id": "SUP-02",
+      "mode": "IC",
+      "role": "support_check",
+      "interaction": "choose_one",
+      "prompt": "اختر الحرف الذي تحته كسرة.",
+      "stimulus": {
+        "text": "رَ / رِ",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "رَ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "رِ",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "skill_group": "S2",
+      "evidence_type": "short_vowel_kasra",
+      "error_focus": "kasra",
+      "reading_reference": null,
+      "hint": null,
+      "retry": null,
+      "status": "draft_pending_review",
+      "origin_v1": null
+    },
+    {
+      "id": "SUP-03-GP-03",
+      "owner_id": "SUP-03",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ المقطع.",
+      "stimulus": {
+        "text": "لِ",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference": "لِ",
+          "no_auto_grade": true
+        }
+      },
+      "skill_group": "S3",
+      "evidence_type": "syllable_reading",
+      "error_focus": "syllable_decoding",
+      "reading_reference": "لِ",
+      "hint": "اقرأه بصوت واحد.",
+      "retry": "guided_try_after_hint",
+      "status": "draft_pending_review",
+      "origin_v1": null
+    },
+    {
+      "id": "SUP-03-GP-04",
+      "owner_id": "SUP-03",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "sequence",
+      "prompt": "رتب المقاطع لتكون كَتَبَ.",
+      "stimulus": {
+        "text": "كَ / تَ / بَ",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "بَ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "كَ",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "تَ",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b",
+          "c",
+          "a"
+        ],
+        "rubric": null
+      },
+      "skill_group": "S3",
+      "evidence_type": "syllable_blending",
+      "error_focus": "blending_order",
+      "reading_reference": null,
+      "hint": "ابدأ بـكَ.",
+      "retry": "guided_try_after_hint",
+      "status": "draft_pending_review",
+      "origin_v1": null
+    },
+    {
+      "id": "SUP-03-SC-03",
+      "owner_id": "SUP-03",
+      "mode": "IC",
+      "role": "support_check",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ المقطع.",
+      "stimulus": {
+        "text": "مُ",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference": "مُ",
+          "no_auto_grade": true
+        }
+      },
+      "skill_group": "S3",
+      "evidence_type": "syllable_reading",
+      "error_focus": "syllable_decoding",
+      "reading_reference": "مُ",
+      "hint": null,
+      "retry": null,
+      "status": "draft_pending_review",
+      "origin_v1": null
+    },
+    {
+      "id": "SUP-03-SC-04",
+      "owner_id": "SUP-03",
+      "mode": "IC",
+      "role": "support_check",
+      "interaction": "sequence",
+      "prompt": "رتب المقاطع لتكون حَمَلَ.",
+      "stimulus": {
+        "text": "حَ / مَ / لَ",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "لَ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "حَ",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "مَ",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b",
+          "c",
+          "a"
+        ],
+        "rubric": null
+      },
+      "skill_group": "S3",
+      "evidence_type": "syllable_blending",
+      "error_focus": "blending_order",
+      "reading_reference": null,
+      "hint": null,
+      "retry": null,
+      "status": "draft_pending_review",
+      "origin_v1": null
     }
   ],
   "media": [
