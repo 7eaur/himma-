@@ -2297,9 +2297,9 @@
       "mode": "GP",
       "role": "guided_practice",
       "interaction": "choose_one",
-      "prompt": "أكمل الجملة بكلمة مناسبة.",
+      "prompt": "اختر الفعل المناسب لإكمال الجملة.",
       "stimulus": {
-        "text": "ذهب سامي إلى المدرسة ليـ ...",
+        "text": "ذهب سامي إلى المدرسة كي ...",
         "media": []
       },
       "options": [
@@ -2330,7 +2330,7 @@
       "origin_v1": null,
       "reading_reference": null,
       "technical_gaps": [],
-      "notes": null,
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
       "status": "draft",
       "hint": "فكر ماذا يفعل سامي في المدرسة.",
       "retry": "hint_then_fresh_guided_retry_not_scored"
@@ -3849,9 +3849,9 @@
       "mode": "GP",
       "role": "guided_practice",
       "interaction": "write_text",
-      "prompt": "اكتب جملة مفيدة فيها كلمة حديقة.",
+      "prompt": "اكتب جملة مفيدة تتضمن كلمة مدرسة.",
       "stimulus": {
-        "text": "حديقة",
+        "text": "مدرسة",
         "media": []
       },
       "options": [],
@@ -3876,7 +3876,8 @@
         "writing_input_not_confirmed_in_v1"
       ],
       "status": "draft",
-      "retry": "hint_and_guided_retry"
+      "retry": "hint_and_guided_retry",
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة."
     },
     {
       "id": "SUP-12-SC-03",
