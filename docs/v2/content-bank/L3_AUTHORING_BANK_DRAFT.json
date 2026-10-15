@@ -572,7 +572,15 @@
       "notes": null,
       "status": "draft",
       "hint": "اقرأ الجملة الأولى ثم الثانية، وتوقف عند النقطة.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "L3-01-GP-02",
@@ -608,7 +616,15 @@
       "notes": null,
       "status": "draft",
       "hint": "انتبه للكلمات التي تربط الجملتين.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "L3-01-GP-03",
@@ -688,7 +704,15 @@
       "notes": null,
       "status": "draft",
       "hint": "لا تحذف كلمة وأنت تنتقل للجملة التالية.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "L3-01-IC-A01",
@@ -723,7 +747,15 @@
       "technical_gaps": [],
       "notes": null,
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "L3-01-IC-A02",
@@ -758,7 +790,15 @@
       "technical_gaps": [],
       "notes": null,
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "L3-01-IC-A03",
@@ -793,7 +833,15 @@
       "technical_gaps": [],
       "notes": null,
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "L3-01-IC-A04",
@@ -872,7 +920,15 @@
       "notes": null,
       "status": "draft",
       "hint": "اقرأ جملة ثم أكمل التي بعدها دون تخطي كلمة.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "L3-02-GP-02",
@@ -952,7 +1008,15 @@
       "notes": null,
       "status": "draft",
       "hint": "انظر جيدًا إلى كل كلمة قبل نطقها.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "L3-02-GP-04",
@@ -988,7 +1052,15 @@
       "notes": null,
       "status": "draft",
       "hint": "قسم النص إلى جمل قصيرة ثم اقرأه كاملًا.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "L3-02-IC-A01",
@@ -1023,7 +1095,15 @@
       "technical_gaps": [],
       "notes": null,
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "L3-02-IC-A02",
@@ -1058,7 +1138,15 @@
       "technical_gaps": [],
       "notes": null,
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "L3-02-IC-A03",
@@ -1093,7 +1181,15 @@
       "technical_gaps": [],
       "notes": null,
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "L3-03-GP-01",
@@ -2585,7 +2681,13 @@
             "كتابة الكلمات",
             "مسافة وفصل الكلمات"
           ],
-          "no_auto_grade": true
+          "no_auto_grade": true,
+          "criteria": [
+            "معنى واضح مرتبط بالمطلوب",
+            "جملة مفيدة ولو اختلفت عن المثال",
+            "ترتيب الكلمات",
+            "إملاء مناسب للمستوى"
+          ]
         }
       },
       "evidence_type": "sentence_writing",
@@ -2598,7 +2700,20 @@
       "notes": "إجابة مفتوحة: مثال تقريبي «الزهرة جميلة.» لا يفرض على الطالب حرفيًا.",
       "status": "draft",
       "hint": "اكتب من أو ما الذي تراه، ثم ماذا يحدث له.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "writing_scoring_policy": {
+        "task_type": "short_open_sentence",
+        "reviewer": "human_supervisor",
+        "accept_equivalent_grammatical_answers": true,
+        "do_not_require_student_to_enter_diacritics": true,
+        "grade_dimensions": [
+          "معنى واضح مرتبط بالمطلوب",
+          "جملة مفيدة ولو اختلفت عن المثال",
+          "ترتيب الكلمات",
+          "إملاء مناسب للمستوى"
+        ],
+        "no_single_exact_answer": true
+      }
     },
     {
       "id": "L3-07-GP-03",
@@ -2672,7 +2787,13 @@
             "كتابة الكلمات",
             "مسافة وفصل الكلمات"
           ],
-          "no_auto_grade": true
+          "no_auto_grade": true,
+          "criteria": [
+            "معنى واضح مرتبط بالمطلوب",
+            "جملة مفيدة ولو اختلفت عن المثال",
+            "ترتيب الكلمات",
+            "إملاء مناسب للمستوى"
+          ]
         }
       },
       "evidence_type": "sentence_writing",
@@ -2685,7 +2806,20 @@
       "notes": "الصورة VOC-34 لطفل عامة ولا نفترض أنها تعرض القراءة.",
       "status": "draft",
       "hint": "ابدأ باسم الطفل، ثم اكتب فعلًا مناسبًا.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "writing_scoring_policy": {
+        "task_type": "short_open_sentence",
+        "reviewer": "human_supervisor",
+        "accept_equivalent_grammatical_answers": true,
+        "do_not_require_student_to_enter_diacritics": true,
+        "grade_dimensions": [
+          "معنى واضح مرتبط بالمطلوب",
+          "جملة مفيدة ولو اختلفت عن المثال",
+          "ترتيب الكلمات",
+          "إملاء مناسب للمستوى"
+        ],
+        "no_single_exact_answer": true
+      }
     },
     {
       "id": "L3-07-IC-A01",
@@ -2715,7 +2849,13 @@
             "كتابة الكلمات",
             "مسافة وفصل الكلمات"
           ],
-          "no_auto_grade": true
+          "no_auto_grade": true,
+          "criteria": [
+            "معنى واضح مرتبط بالمطلوب",
+            "جملة مفيدة ولو اختلفت عن المثال",
+            "ترتيب الكلمات",
+            "إملاء مناسب للمستوى"
+          ]
         }
       },
       "evidence_type": "sentence_writing",
@@ -2727,7 +2867,20 @@
       ],
       "notes": null,
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "writing_scoring_policy": {
+        "task_type": "short_open_sentence",
+        "reviewer": "human_supervisor",
+        "accept_equivalent_grammatical_answers": true,
+        "do_not_require_student_to_enter_diacritics": true,
+        "grade_dimensions": [
+          "معنى واضح مرتبط بالمطلوب",
+          "جملة مفيدة ولو اختلفت عن المثال",
+          "ترتيب الكلمات",
+          "إملاء مناسب للمستوى"
+        ],
+        "no_single_exact_answer": true
+      }
     },
     {
       "id": "L3-07-IC-A02",
@@ -2757,7 +2910,13 @@
             "كتابة الكلمات",
             "مسافة وفصل الكلمات"
           ],
-          "no_auto_grade": true
+          "no_auto_grade": true,
+          "criteria": [
+            "معنى واضح مرتبط بالمطلوب",
+            "جملة مفيدة ولو اختلفت عن المثال",
+            "ترتيب الكلمات",
+            "إملاء مناسب للمستوى"
+          ]
         }
       },
       "evidence_type": "sentence_writing",
@@ -2769,7 +2928,20 @@
       ],
       "notes": null,
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "writing_scoring_policy": {
+        "task_type": "short_open_sentence",
+        "reviewer": "human_supervisor",
+        "accept_equivalent_grammatical_answers": true,
+        "do_not_require_student_to_enter_diacritics": true,
+        "grade_dimensions": [
+          "معنى واضح مرتبط بالمطلوب",
+          "جملة مفيدة ولو اختلفت عن المثال",
+          "ترتيب الكلمات",
+          "إملاء مناسب للمستوى"
+        ],
+        "no_single_exact_answer": true
+      }
     },
     {
       "id": "L3-07-IC-A03",
@@ -2794,7 +2966,13 @@
             "كتابة الكلمات",
             "مسافة وفصل الكلمات"
           ],
-          "no_auto_grade": true
+          "no_auto_grade": true,
+          "criteria": [
+            "معنى واضح مرتبط بالمطلوب",
+            "جملة مفيدة ولو اختلفت عن المثال",
+            "ترتيب الكلمات",
+            "إملاء مناسب للمستوى"
+          ]
         }
       },
       "evidence_type": "sentence_writing",
@@ -2806,7 +2984,20 @@
       ],
       "notes": null,
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "writing_scoring_policy": {
+        "task_type": "short_open_sentence",
+        "reviewer": "human_supervisor",
+        "accept_equivalent_grammatical_answers": true,
+        "do_not_require_student_to_enter_diacritics": true,
+        "grade_dimensions": [
+          "معنى واضح مرتبط بالمطلوب",
+          "جملة مفيدة ولو اختلفت عن المثال",
+          "ترتيب الكلمات",
+          "إملاء مناسب للمستوى"
+        ],
+        "no_single_exact_answer": true
+      }
     },
     {
       "id": "L3-07-IC-A04",
@@ -2831,7 +3022,13 @@
             "كتابة الكلمات",
             "مسافة وفصل الكلمات"
           ],
-          "no_auto_grade": true
+          "no_auto_grade": true,
+          "criteria": [
+            "معنى واضح مرتبط بالمطلوب",
+            "جملة مفيدة ولو اختلفت عن المثال",
+            "ترتيب الكلمات",
+            "إملاء مناسب للمستوى"
+          ]
         }
       },
       "evidence_type": "sentence_writing",
@@ -2843,7 +3040,20 @@
       ],
       "notes": null,
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "writing_scoring_policy": {
+        "task_type": "short_open_sentence",
+        "reviewer": "human_supervisor",
+        "accept_equivalent_grammatical_answers": true,
+        "do_not_require_student_to_enter_diacritics": true,
+        "grade_dimensions": [
+          "معنى واضح مرتبط بالمطلوب",
+          "جملة مفيدة ولو اختلفت عن المثال",
+          "ترتيب الكلمات",
+          "إملاء مناسب للمستوى"
+        ],
+        "no_single_exact_answer": true
+      }
     },
     {
       "id": "SUP-08-GP-01",
@@ -2879,7 +3089,15 @@
       "notes": null,
       "status": "draft",
       "hint": "اقرأ الكلمات دون حذف ثم توقف عند النقطة.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "SUP-08-GP-02",
@@ -2958,7 +3176,15 @@
       "technical_gaps": [],
       "notes": null,
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "SUP-08-SC-02",
@@ -2993,7 +3219,15 @@
       "technical_gaps": [],
       "notes": null,
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "SUP-09-GP-01",
@@ -3559,7 +3793,13 @@
             "كتابة الكلمات",
             "مسافة وفصل الكلمات"
           ],
-          "no_auto_grade": true
+          "no_auto_grade": true,
+          "criteria": [
+            "معنى واضح مرتبط بالمطلوب",
+            "جملة مفيدة ولو اختلفت عن المثال",
+            "ترتيب الكلمات",
+            "إملاء مناسب للمستوى"
+          ]
         }
       },
       "evidence_type": "sentence_writing",
@@ -3572,7 +3812,20 @@
       "notes": "مثال معلم فقط: الطفلة تبتسم.",
       "status": "draft",
       "hint": "اختر فعلًا مناسبًا للطفلة ثم اكتب جملة.",
-      "retry": "hint_then_fresh_guided_retry_not_scored"
+      "retry": "hint_then_fresh_guided_retry_not_scored",
+      "writing_scoring_policy": {
+        "task_type": "short_open_sentence",
+        "reviewer": "human_supervisor",
+        "accept_equivalent_grammatical_answers": true,
+        "do_not_require_student_to_enter_diacritics": true,
+        "grade_dimensions": [
+          "معنى واضح مرتبط بالمطلوب",
+          "جملة مفيدة ولو اختلفت عن المثال",
+          "ترتيب الكلمات",
+          "إملاء مناسب للمستوى"
+        ],
+        "no_single_exact_answer": true
+      }
     },
     {
       "id": "SUP-12-SC-01",
@@ -3647,7 +3900,13 @@
             "كتابة الكلمات",
             "مسافة وفصل الكلمات"
           ],
-          "no_auto_grade": true
+          "no_auto_grade": true,
+          "criteria": [
+            "معنى واضح مرتبط بالمطلوب",
+            "جملة مفيدة ولو اختلفت عن المثال",
+            "ترتيب الكلمات",
+            "إملاء مناسب للمستوى"
+          ]
         }
       },
       "evidence_type": "sentence_writing",
@@ -3659,7 +3918,20 @@
       ],
       "notes": null,
       "status": "draft",
-      "hint": null
+      "hint": null,
+      "writing_scoring_policy": {
+        "task_type": "short_open_sentence",
+        "reviewer": "human_supervisor",
+        "accept_equivalent_grammatical_answers": true,
+        "do_not_require_student_to_enter_diacritics": true,
+        "grade_dimensions": [
+          "معنى واضح مرتبط بالمطلوب",
+          "جملة مفيدة ولو اختلفت عن المثال",
+          "ترتيب الكلمات",
+          "إملاء مناسب للمستوى"
+        ],
+        "no_single_exact_answer": true
+      }
     },
     {
       "id": "SUP-08-GP-03",
@@ -3729,7 +4001,15 @@
       "hint": "اقرأ جملة جملة.",
       "technical_gaps": [],
       "status": "draft",
-      "retry": "hint_and_guided_retry"
+      "retry": "hint_and_guided_retry",
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "SUP-08-SC-03",
@@ -3797,7 +4077,15 @@
       "reading_reference": "قَرَأَ بَاسِلٌ كِتَابًا. ثُمَّ أَعَادَهُ إِلَى الرَّفِّ.",
       "hint": null,
       "technical_gaps": [],
-      "status": "draft"
+      "status": "draft",
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      }
     },
     {
       "id": "SUP-12-GP-03",
@@ -3859,11 +4147,12 @@
         "correct_option_ids": [],
         "rubric": {
           "authority": "human_supervisor",
-          "reference": "حديقة",
+          "reference": "جملة مفيدة تتضمن كلمة مدرسة",
           "criteria": [
-            "صحة القراءة/الكتابة",
-            "الوقف الطبيعي",
-            "الوضوح"
+            "معنى واضح مرتبط بالمطلوب",
+            "جملة مفيدة ولو اختلفت عن المثال",
+            "ترتيب الكلمات",
+            "إملاء مناسب للمستوى"
           ],
           "no_auto_grade": true
         }
@@ -3877,7 +4166,20 @@
       ],
       "status": "draft",
       "retry": "hint_and_guided_retry",
-      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة."
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
+      "writing_scoring_policy": {
+        "task_type": "short_open_sentence",
+        "reviewer": "human_supervisor",
+        "accept_equivalent_grammatical_answers": true,
+        "do_not_require_student_to_enter_diacritics": true,
+        "grade_dimensions": [
+          "معنى واضح مرتبط بالمطلوب",
+          "جملة مفيدة ولو اختلفت عن المثال",
+          "ترتيب الكلمات",
+          "إملاء مناسب للمستوى"
+        ],
+        "no_single_exact_answer": true
+      }
     },
     {
       "id": "SUP-12-SC-03",
@@ -3938,11 +4240,12 @@
         "correct_option_ids": [],
         "rubric": {
           "authority": "human_supervisor",
-          "reference": "كتاب",
+          "reference": "جملة مفيدة تتحدث عن الكتاب",
           "criteria": [
-            "صحة القراءة/الكتابة",
-            "الوقف الطبيعي",
-            "الوضوح"
+            "معنى واضح مرتبط بالمطلوب",
+            "جملة مفيدة ولو اختلفت عن المثال",
+            "ترتيب الكلمات",
+            "إملاء مناسب للمستوى"
           ],
           "no_auto_grade": true
         }
@@ -3954,7 +4257,20 @@
       "technical_gaps": [
         "writing_input_not_confirmed_in_v1"
       ],
-      "status": "draft"
+      "status": "draft",
+      "writing_scoring_policy": {
+        "task_type": "short_open_sentence",
+        "reviewer": "human_supervisor",
+        "accept_equivalent_grammatical_answers": true,
+        "do_not_require_student_to_enter_diacritics": true,
+        "grade_dimensions": [
+          "معنى واضح مرتبط بالمطلوب",
+          "جملة مفيدة ولو اختلفت عن المثال",
+          "ترتيب الكلمات",
+          "إملاء مناسب للمستوى"
+        ],
+        "no_single_exact_answer": true
+      }
     }
   ],
   "media": [
