@@ -1,0 +1,3730 @@
+{
+  "schema_version": "himma-v2-authoring/0.3-draft",
+  "status": "draft_no_publish",
+  "level": "L3",
+  "language_policy": "النصوص العامة بلا تشكيل، لكن المرجع الداخلي لضبط القراءة يحدد الحركات اللازمة",
+  "lessons": [
+    {
+      "id": "L3-01",
+      "level": "L3",
+      "skill_group": "S9",
+      "title": "أقرأ جملًا مترابطة بنطق صحيح",
+      "objective": "أقرأ جملتين مترابطتين قراءة صحيحة وواضحة.",
+      "intro": {
+        "title": "أقرأ جملًا مترابطة بنطق صحيح",
+        "text": "عندما أقرأ جملتين متصلتين أتبع المعنى وأقف عند نهاية كل جملة."
+      },
+      "video_media_id": "VID-L3-01",
+      "video_examples": [
+        "دخل سالم الصف. جلس في مكانه.",
+        "أضاءت الشمس. خرجت العصافير."
+      ],
+      "video_brief": "الانتقال من جملة إلى جملتين مترابطتين، وملاحظة الربط والوقف لا قياس السرعة وحده.",
+      "practice_question_ids": [
+        "L3-01-GP01",
+        "L3-01-GP02",
+        "L3-01-GP03",
+        "L3-01-GP04"
+      ],
+      "check_question_ids": [
+        "L3-01-IC-A01",
+        "L3-01-IC-A02",
+        "L3-01-IC-A03",
+        "L3-01-IC-A04"
+      ],
+      "check_items_per_attempt": 4,
+      "evidence_types": [
+        "connected_sentence_reading"
+      ],
+      "origin_v1": [
+        "L3-CORE-03",
+        "L3-REIN-01"
+      ],
+      "support_group_id": "SUP-08",
+      "status": "draft_pending_owner_and_teacher_review"
+    },
+    {
+      "id": "L3-02",
+      "level": "L3",
+      "skill_group": "S9",
+      "title": "أقرأ نصًا قصيرًا بنطق صحيح",
+      "objective": "أقرأ نصًا قصيرًا من جمل مترابطة بدقة.",
+      "intro": {
+        "title": "أقرأ نصًا قصيرًا بنطق صحيح",
+        "text": "سأقرأ نصا قصيرا وأنتبه للكلمات والوقف بين الجمل."
+      },
+      "video_media_id": "VID-L3-02",
+      "video_examples": [
+        "خرج فارس إلى الحديقة. شاهد زهرة. سقاها بماء.",
+        "ذهبت مريم إلى المكتبة. اختارت قصة. قرأتها بهدوء."
+      ],
+      "video_brief": "اقرأ النص كاملًا مع متابعة الجمل ودقة النطق وعدم التخمين، دون تحويل الطلاقة إلى سرعة فقط.",
+      "practice_question_ids": [
+        "L3-02-GP01",
+        "L3-02-GP02",
+        "L3-02-GP03",
+        "L3-02-GP04"
+      ],
+      "check_question_ids": [
+        "L3-02-IC-A01",
+        "L3-02-IC-A02",
+        "L3-02-IC-A03"
+      ],
+      "check_items_per_attempt": 3,
+      "evidence_types": [
+        "short_text_reading",
+        "natural_pacing"
+      ],
+      "origin_v1": [
+        "L3-CORE-04",
+        "L3-CORE-06",
+        "L3-REIN-04"
+      ],
+      "support_group_id": "SUP-08",
+      "status": "draft_pending_owner_and_teacher_review"
+    },
+    {
+      "id": "L3-03",
+      "level": "L3",
+      "skill_group": "S10",
+      "title": "أفهم المعلومات المباشرة في النص",
+      "objective": "أستخرج معلومات واضحة من نص قصير.",
+      "intro": {
+        "title": "أفهم المعلومات المباشرة في النص",
+        "text": "سأقرأ النص وأعود إلى الجملة التي فيها الإجابة."
+      },
+      "video_media_id": "VID-L3-03",
+      "video_examples": [
+        "قرأت ريم كتابا في المكتبة.",
+        "حمل سامر المظلة عند نزول المطر."
+      ],
+      "video_brief": "العودة للنص لاستخراج من/أين/ماذا/متى، وعدم الاعتماد على استنتاج غير مذكور. لا صوت تلقائي في اختبار فهم المقروء.",
+      "practice_question_ids": [
+        "L3-03-GP01",
+        "L3-03-GP02",
+        "L3-03-GP03",
+        "L3-03-GP04"
+      ],
+      "check_question_ids": [
+        "L3-03-IC-A01",
+        "L3-03-IC-A02",
+        "L3-03-IC-A03",
+        "L3-03-IC-A04"
+      ],
+      "check_items_per_attempt": 4,
+      "evidence_types": [
+        "text_direct_comprehension"
+      ],
+      "origin_v1": [
+        "L3-CORE-07",
+        "PRE-Q25–27 (محجوزة للتقييم)"
+      ],
+      "support_group_id": "SUP-09",
+      "status": "draft_pending_owner_and_teacher_review"
+    },
+    {
+      "id": "L3-04",
+      "level": "L3",
+      "skill_group": "S11",
+      "title": "أرتب أحداث النص",
+      "objective": "أحدد ترتيب الأحداث من أول حدث إلى آخر حدث.",
+      "intro": {
+        "title": "أرتب أحداث النص",
+        "text": "سأقرأ ما حدث، ثم أرتب الأحداث كما وردت في النص."
+      },
+      "video_media_id": "VID-L3-04",
+      "video_examples": [
+        "زرعت ريم بذرة، ثم سقتها، فكبرت.",
+        "أخرج سامي كتابا، قرأه، ثم أعاده."
+      ],
+      "video_brief": "تسلسل الأحداث من النص، وليس ترتيبًا اعتباطيًا للصور.",
+      "practice_question_ids": [
+        "L3-04-GP01",
+        "L3-04-GP02",
+        "L3-04-GP03",
+        "L3-04-GP04"
+      ],
+      "check_question_ids": [
+        "L3-04-IC-A01",
+        "L3-04-IC-A02",
+        "L3-04-IC-A03",
+        "L3-04-IC-A04"
+      ],
+      "check_items_per_attempt": 4,
+      "evidence_types": [
+        "event_sequence"
+      ],
+      "origin_v1": [
+        "L3-CORE-10",
+        "L1-CORE-10"
+      ],
+      "support_group_id": "SUP-10",
+      "status": "draft_pending_owner_and_teacher_review"
+    },
+    {
+      "id": "L3-05",
+      "level": "L3",
+      "skill_group": "S12",
+      "title": "أحدد الفكرة الرئيسة",
+      "objective": "أعرف ما يتحدث عنه النص كله، وليس تفصيلًا واحدًا.",
+      "intro": {
+        "title": "أحدد الفكرة الرئيسة",
+        "text": "سأبحث عن الفكرة التي تجمع معظم جمل النص."
+      },
+      "video_media_id": "VID-L3-05",
+      "video_examples": [
+        "قرأ التلاميذ الكتب وتبادلوا القصص: أهمية القراءة.",
+        "زرع الأطفال الأشجار وسقوها: العناية بالنباتات."
+      ],
+      "video_brief": "تعليم الفرق بين فكرة النص والتفاصيل المذكورة داخله، بأمثلة جديدة في التدريب.",
+      "practice_question_ids": [
+        "L3-05-GP01",
+        "L3-05-GP02",
+        "L3-05-GP03",
+        "L3-05-GP04"
+      ],
+      "check_question_ids": [
+        "L3-05-IC-A01",
+        "L3-05-IC-A02",
+        "L3-05-IC-A03",
+        "L3-05-IC-A04"
+      ],
+      "check_items_per_attempt": 4,
+      "evidence_types": [
+        "main_idea"
+      ],
+      "origin_v1": [
+        "L3-REIN-05",
+        "L3-CORE-09 (بعض المفردات)"
+      ],
+      "support_group_id": "SUP-11",
+      "status": "draft_pending_owner_and_teacher_review"
+    },
+    {
+      "id": "L3-06",
+      "level": "L3",
+      "skill_group": "S13",
+      "title": "أبني وأكمل جملة ذات معنى",
+      "objective": "أرتب كلمات وأختار ما يكمل الجملة بصورة مناسبة.",
+      "intro": {
+        "title": "أبني وأكمل جملة ذات معنى",
+        "text": "سأرتب الكلمات ثم أختار الكلمة التي تجعل المعنى واضحا."
+      },
+      "video_media_id": "VID-L3-06",
+      "video_examples": [
+        "قرأ الطفل كتابا",
+        "وضعت سلمى الكتاب على الطاولة"
+      ],
+      "video_brief": "الانتقال من إعادة الترتيب إلى إكمال المعنى، مع تجنب بدائل متعددة صحيحة.",
+      "practice_question_ids": [
+        "L3-06-GP01",
+        "L3-06-GP02",
+        "L3-06-GP03",
+        "L3-06-GP04"
+      ],
+      "check_question_ids": [
+        "L3-06-IC-A01",
+        "L3-06-IC-A02",
+        "L3-06-IC-A03",
+        "L3-06-IC-A04"
+      ],
+      "check_items_per_attempt": 4,
+      "evidence_types": [
+        "sentence_construction",
+        "sentence_completion"
+      ],
+      "origin_v1": [
+        "L2-REIN-05",
+        "L3-REIN-03"
+      ],
+      "support_group_id": "SUP-12",
+      "status": "draft_pending_owner_and_teacher_review"
+    },
+    {
+      "id": "L3-07",
+      "level": "L3",
+      "skill_group": "S13",
+      "title": "أكتب جملة قصيرة",
+      "objective": "أكتب جملة قصيرة واضحة المعنى بطريقة أكثر استقلالًا.",
+      "intro": {
+        "title": "أكتب جملة قصيرة",
+        "text": "سأفكر في معنى أريد قوله، ثم أكتب جملة مفيدة."
+      },
+      "video_media_id": "VID-L3-07",
+      "video_examples": [
+        "طفل يقرأ كتابا",
+        "فتاة تسقي زهرة"
+      ],
+      "video_brief": "تعلم اختيار فكرة بسيطة وكتابتها في جملة واحدة، مع مراجعة ترتيب الكلمات والمعنى دون تحويلها إلى نسخ نموذج واحد.",
+      "practice_question_ids": [
+        "L3-07-GP01",
+        "L3-07-GP02",
+        "L3-07-GP03",
+        "L3-07-GP04"
+      ],
+      "check_question_ids": [
+        "L3-07-IC-A01",
+        "L3-07-IC-A02",
+        "L3-07-IC-A03",
+        "L3-07-IC-A04"
+      ],
+      "check_items_per_attempt": 4,
+      "evidence_types": [
+        "sentence_writing",
+        "sentence_completion"
+      ],
+      "origin_v1": [
+        "L3-REIN-03",
+        "L2-CORE-09",
+        "كتابة حرة غير مؤكدة في V1"
+      ],
+      "support_group_id": "SUP-12",
+      "status": "draft_pending_owner_and_teacher_review"
+    }
+  ],
+  "supports": [
+    {
+      "id": "SUP-08",
+      "title": "قراءة الجملة والنص",
+      "target_skill": "S9",
+      "linked_lessons": [
+        "L2-04",
+        "L3-01",
+        "L3-02"
+      ],
+      "focus": [
+        "word_omission",
+        "pause_or_order"
+      ],
+      "brief": "ابدأ بجملة قصيرة وعلّم الوقف ثم اقرأ جملتين مترابطتين.",
+      "examples": [
+        "جلس خالد قرب الباب.",
+        "أخذ نادر القلم. كتب اسمه."
+      ],
+      "practice_ids": [
+        "SUP-08-GP01",
+        "SUP-08-GP02"
+      ],
+      "check_ids": [
+        "SUP-08-SC01",
+        "SUP-08-SC02"
+      ],
+      "check_items_per_attempt": 2,
+      "origin_v1": [
+        "L3-REIN-01",
+        "L3-REIN-04"
+      ],
+      "status": "draft_pending_review"
+    },
+    {
+      "id": "SUP-09",
+      "title": "الفهم المباشر",
+      "target_skill": "S10",
+      "linked_lessons": [
+        "L2-05",
+        "L3-03"
+      ],
+      "focus": [
+        "find_explicit_answer"
+      ],
+      "brief": "حدد كلمة السؤال، ثم ارجع للنص وابحث عن جملة تتضمن الإجابة.",
+      "examples": [
+        "ذهب سالم إلى الحديقة."
+      ],
+      "practice_ids": [
+        "SUP-09-GP01",
+        "SUP-09-GP02"
+      ],
+      "check_ids": [
+        "SUP-09-SC01",
+        "SUP-09-SC02"
+      ],
+      "check_items_per_attempt": 2,
+      "origin_v1": [
+        "L3-CORE-07",
+        "L3-REIN-02"
+      ],
+      "status": "draft_pending_review"
+    },
+    {
+      "id": "SUP-10",
+      "title": "ترتيب أحداث النص",
+      "target_skill": "S11",
+      "linked_lessons": [
+        "L3-04"
+      ],
+      "focus": [
+        "event_sequence"
+      ],
+      "brief": "حدد أول فعل ثم ما حدث بعده في نص قصير.",
+      "examples": [
+        "غسل اليدين → الأكل"
+      ],
+      "practice_ids": [
+        "SUP-10-GP01",
+        "SUP-10-GP02"
+      ],
+      "check_ids": [
+        "SUP-10-SC01",
+        "SUP-10-SC02"
+      ],
+      "check_items_per_attempt": 2,
+      "origin_v1": [
+        "L1-CORE-10",
+        "L3-CORE-10"
+      ],
+      "status": "draft_pending_review"
+    },
+    {
+      "id": "SUP-11",
+      "title": "تحديد الفكرة الرئيسة",
+      "target_skill": "S12",
+      "linked_lessons": [
+        "L3-05"
+      ],
+      "focus": [
+        "detail_as_main_idea"
+      ],
+      "brief": "اقرأ النص كله وقارن الفكرة الشاملة بتفصيل واحد.",
+      "examples": [
+        "العناية بالنباتات"
+      ],
+      "practice_ids": [
+        "SUP-11-GP01",
+        "SUP-11-GP02"
+      ],
+      "check_ids": [
+        "SUP-11-SC01",
+        "SUP-11-SC02"
+      ],
+      "check_items_per_attempt": 2,
+      "origin_v1": [
+        "L3-REIN-05"
+      ],
+      "status": "draft_pending_review"
+    },
+    {
+      "id": "SUP-12",
+      "title": "بناء وكتابة الجملة",
+      "target_skill": "S13",
+      "linked_lessons": [
+        "L2-06",
+        "L3-06",
+        "L3-07"
+      ],
+      "focus": [
+        "word_order",
+        "sentence_writing"
+      ],
+      "brief": "ابدأ بترتيب كلمات قليلة ثم استعملها في جملة مستقلة.",
+      "examples": [
+        "قرأ سالم قصة.",
+        "الطفل يلعب."
+      ],
+      "practice_ids": [
+        "SUP-12-GP01",
+        "SUP-12-GP02"
+      ],
+      "check_ids": [
+        "SUP-12-SC01",
+        "SUP-12-SC02"
+      ],
+      "check_items_per_attempt": 2,
+      "origin_v1": [
+        "L2-REIN-05",
+        "L3-REIN-03"
+      ],
+      "status": "draft_pending_review"
+    }
+  ],
+  "questions": [
+    {
+      "id": "L3-01-GP01",
+      "owner_id": "L3-01",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الجملتين بصوت واضح.",
+      "stimulus": {
+        "text": "حمل عمر حقيبته. دخل المدرسة.",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference": "حَمَلَ عُمَرُ حَقِيبَتَهُ. دَخَلَ الْمَدْرَسَةَ.",
+          "dimensions": [
+            "صحة الكلمات",
+            "الحذف والإبدال",
+            "تسلسل القراءة",
+            "الوقف الطبيعي"
+          ],
+          "no_auto_grade": true
+        }
+      },
+      "evidence_type": "connected_sentence_reading",
+      "error_focus": "word_omission",
+      "origin_v1": null,
+      "reading_reference": "حَمَلَ عُمَرُ حَقِيبَتَهُ. دَخَلَ الْمَدْرَسَةَ.",
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "اقرأ الجملة الأولى ثم الثانية، وتوقف عند النقطة.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "L3-01-GP02",
+      "owner_id": "L3-01",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الجملتين.",
+      "stimulus": {
+        "text": "سقت هند الزهرة. فرحت عندما تفتحت.",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference": "سَقَتْ هِنْدٌ الزَّهْرَةَ. فَرِحَتْ عِنْدَمَا تَفَتَّحَتْ.",
+          "dimensions": [
+            "صحة الكلمات",
+            "الحذف والإبدال",
+            "تسلسل القراءة",
+            "الوقف الطبيعي"
+          ],
+          "no_auto_grade": true
+        }
+      },
+      "evidence_type": "connected_sentence_reading",
+      "error_focus": "pause_or_order",
+      "origin_v1": null,
+      "reading_reference": "سَقَتْ هِنْدٌ الزَّهْرَةَ. فَرِحَتْ عِنْدَمَا تَفَتَّحَتْ.",
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "انتبه للكلمات التي تربط الجملتين.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "L3-01-GP03",
+      "owner_id": "L3-01",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "أي جملتين ترتبطان في المعنى؟",
+      "stimulus": {
+        "text": "اختر",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "لعب فارس بالكرة. أعاد الكرة إلى الصندوق.",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "لعب فارس بالكرة. نام القمر في الصف.",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "أعاد الكتاب إلى المكتبة. شرب الحائط الماء.",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "connected_sentence_coherence",
+      "error_focus": "broken_link",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "ابحث عن الجملة الثانية التي تكمل الأولى.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "L3-01-GP04",
+      "owner_id": "L3-01",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الجملتين بهدوء.",
+      "stimulus": {
+        "text": "رأى نادر عصفورا. وضع له ماء في الحديقة.",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference": "رَأَى نَادِرٌ عُصْفُورًا. وَضَعَ لَهُ مَاءً فِي الْحَدِيقَةِ.",
+          "dimensions": [
+            "صحة الكلمات",
+            "الحذف والإبدال",
+            "تسلسل القراءة",
+            "الوقف الطبيعي"
+          ],
+          "no_auto_grade": true
+        }
+      },
+      "evidence_type": "connected_sentence_reading",
+      "error_focus": "word_omission",
+      "origin_v1": null,
+      "reading_reference": "رَأَى نَادِرٌ عُصْفُورًا. وَضَعَ لَهُ مَاءً فِي الْحَدِيقَةِ.",
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "لا تحذف كلمة وأنت تنتقل للجملة التالية.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "L3-01-IC-A01",
+      "owner_id": "L3-01",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الجملتين.",
+      "stimulus": {
+        "text": "فتحت ليلى النافذة. دخل الهواء إلى الغرفة.",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference": "فَتَحَتْ لَيْلَى النَّافِذَةَ. دَخَلَ الْهَوَاءُ إِلَى الْغُرْفَةِ.",
+          "dimensions": [
+            "صحة الكلمات",
+            "الحذف والإبدال",
+            "تسلسل القراءة",
+            "الوقف الطبيعي"
+          ],
+          "no_auto_grade": true
+        }
+      },
+      "evidence_type": "connected_sentence_reading",
+      "error_focus": "pause_or_order",
+      "origin_v1": null,
+      "reading_reference": "فَتَحَتْ لَيْلَى النَّافِذَةَ. دَخَلَ الْهَوَاءُ إِلَى الْغُرْفَةِ.",
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "L3-01-IC-A02",
+      "owner_id": "L3-01",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الجملتين.",
+      "stimulus": {
+        "text": "زرع ماجد بذرة. سقاها كل صباح.",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference": "زَرَعَ مَاجِدٌ بَذْرَةً. سَقَاهَا كُلَّ صَبَاحٍ.",
+          "dimensions": [
+            "صحة الكلمات",
+            "الحذف والإبدال",
+            "تسلسل القراءة",
+            "الوقف الطبيعي"
+          ],
+          "no_auto_grade": true
+        }
+      },
+      "evidence_type": "connected_sentence_reading",
+      "error_focus": "word_omission",
+      "origin_v1": null,
+      "reading_reference": "زَرَعَ مَاجِدٌ بَذْرَةً. سَقَاهَا كُلَّ صَبَاحٍ.",
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "L3-01-IC-A03",
+      "owner_id": "L3-01",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الجملتين.",
+      "stimulus": {
+        "text": "وجد أحمد كتابا. أعاده إلى صاحبته.",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference": "وَجَدَ أَحْمَدُ كِتَابًا. أَعَادَهُ إِلَى صَاحِبَتِهِ.",
+          "dimensions": [
+            "صحة الكلمات",
+            "الحذف والإبدال",
+            "تسلسل القراءة",
+            "الوقف الطبيعي"
+          ],
+          "no_auto_grade": true
+        }
+      },
+      "evidence_type": "connected_sentence_reading",
+      "error_focus": "word_omission",
+      "origin_v1": null,
+      "reading_reference": "وَجَدَ أَحْمَدُ كِتَابًا. أَعَادَهُ إِلَى صَاحِبَتِهِ.",
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "L3-01-IC-A04",
+      "owner_id": "L3-01",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "choose_one",
+      "prompt": "أي جملتين ترتبطان في المعنى؟",
+      "stimulus": {
+        "text": "اختر",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "قرأت سلمى قصة. ثم روتها لأختها.",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "قرأت سلمى قصة. جرى الباب بعيدا.",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "أشرقت الشمس. سافر القلم في الحقيبة.",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "connected_sentence_coherence",
+      "error_focus": "broken_link",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "L3-02-GP01",
+      "owner_id": "L3-02",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ النص بصوت واضح.",
+      "stimulus": {
+        "text": "في الصباح ذهب مازن إلى المدرسة. قابل صديقه عند الباب. دخلا الصف معا.",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference": "فِي الصَّبَاحِ ذَهَبَ مَازِنٌ إِلَى الْمَدْرَسَةِ. قَابَلَ صَدِيقَهُ عِنْدَ الْبَابِ. دَخَلَا الصَّفَّ مَعًا.",
+          "dimensions": [
+            "صحة الكلمات",
+            "الحذف والإبدال",
+            "تسلسل القراءة",
+            "الوقف الطبيعي"
+          ],
+          "no_auto_grade": true
+        }
+      },
+      "evidence_type": "short_text_reading",
+      "error_focus": "word_omission",
+      "origin_v1": null,
+      "reading_reference": "فِي الصَّبَاحِ ذَهَبَ مَازِنٌ إِلَى الْمَدْرَسَةِ. قَابَلَ صَدِيقَهُ عِنْدَ الْبَابِ. دَخَلَا الصَّفَّ مَعًا.",
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "اقرأ جملة ثم أكمل التي بعدها دون تخطي كلمة.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "L3-02-GP02",
+      "owner_id": "L3-02",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "أين ينبغي التوقف القصير في النص؟",
+      "stimulus": {
+        "text": "زرعت هدى بذرة. ثم سقتها بالماء.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "بعد كلمة بذرة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "بعد كلمة ثم",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "بعد كلمة بالماء فقط",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "natural_pacing",
+      "error_focus": "pause_error",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "توقف عند علامة النقطة أولًا.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "L3-02-GP03",
+      "owner_id": "L3-02",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ هذا النص.",
+      "stimulus": {
+        "text": "جلس فهد قرب النافذة. شاهد العصافير فوق الشجرة. كتب عنها جملة في دفتره.",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference": "جَلَسَ فَهْدٌ قُرْبَ النَّافِذَةِ. شَاهَدَ الْعَصَافِيرَ فَوْقَ الشَّجَرَةِ. كَتَبَ عَنْهَا جُمْلَةً فِي دَفْتَرِهِ.",
+          "dimensions": [
+            "صحة الكلمات",
+            "الحذف والإبدال",
+            "تسلسل القراءة",
+            "الوقف الطبيعي"
+          ],
+          "no_auto_grade": true
+        }
+      },
+      "evidence_type": "short_text_reading",
+      "error_focus": "word_substitution",
+      "origin_v1": null,
+      "reading_reference": "جَلَسَ فَهْدٌ قُرْبَ النَّافِذَةِ. شَاهَدَ الْعَصَافِيرَ فَوْقَ الشَّجَرَةِ. كَتَبَ عَنْهَا جُمْلَةً فِي دَفْتَرِهِ.",
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "انظر جيدًا إلى كل كلمة قبل نطقها.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "L3-02-GP04",
+      "owner_id": "L3-02",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ النص دون استعجال.",
+      "stimulus": {
+        "text": "حملت ليان سلة صغيرة. وضعت فيها التفاح. قدمتها لأمها عند الغداء.",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference": "حَمَلَتْ لَيَانُ سَلَّةً صَغِيرَةً. وَضَعَتْ فِيهَا التُّفَّاحَ. قَدَّمَتْهَا لِأُمِّهَا عِنْدَ الْغَدَاءِ.",
+          "dimensions": [
+            "صحة الكلمات",
+            "الحذف والإبدال",
+            "تسلسل القراءة",
+            "الوقف الطبيعي"
+          ],
+          "no_auto_grade": true
+        }
+      },
+      "evidence_type": "short_text_reading",
+      "error_focus": "word_omission",
+      "origin_v1": null,
+      "reading_reference": "حَمَلَتْ لَيَانُ سَلَّةً صَغِيرَةً. وَضَعَتْ فِيهَا التُّفَّاحَ. قَدَّمَتْهَا لِأُمِّهَا عِنْدَ الْغَدَاءِ.",
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "قسم النص إلى جمل قصيرة ثم اقرأه كاملًا.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "L3-02-IC-A01",
+      "owner_id": "L3-02",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ النص بصوت واضح.",
+      "stimulus": {
+        "text": "زارت هبة جدتها بعد المدرسة. جلستا في الحديقة. حدثتها الجدة عن النباتات.",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference": "زَارَتْ هِبَةُ جَدَّتَهَا بَعْدَ الْمَدْرَسَةِ. جَلَسَتَا فِي الْحَدِيقَةِ. حَدَّثَتْهَا الْجَدَّةُ عَنِ النَّبَاتَاتِ.",
+          "dimensions": [
+            "صحة الكلمات",
+            "الحذف والإبدال",
+            "تسلسل القراءة",
+            "الوقف الطبيعي"
+          ],
+          "no_auto_grade": true
+        }
+      },
+      "evidence_type": "short_text_reading",
+      "error_focus": "word_omission",
+      "origin_v1": null,
+      "reading_reference": "زَارَتْ هِبَةُ جَدَّتَهَا بَعْدَ الْمَدْرَسَةِ. جَلَسَتَا فِي الْحَدِيقَةِ. حَدَّثَتْهَا الْجَدَّةُ عَنِ النَّبَاتَاتِ.",
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "L3-02-IC-A02",
+      "owner_id": "L3-02",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ هذا النص.",
+      "stimulus": {
+        "text": "عاد ناصر من السوق. أحضر خبزا وفاكهة. رتب المشتريات مع أخته.",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference": "عَادَ نَاصِرٌ مِنَ السُّوقِ. أَحْضَرَ خُبْزًا وَفَاكِهَةً. رَتَّبَ الْمُشْتَرَيَاتِ مَعَ أُخْتِهِ.",
+          "dimensions": [
+            "صحة الكلمات",
+            "الحذف والإبدال",
+            "تسلسل القراءة",
+            "الوقف الطبيعي"
+          ],
+          "no_auto_grade": true
+        }
+      },
+      "evidence_type": "short_text_reading",
+      "error_focus": "word_substitution",
+      "origin_v1": null,
+      "reading_reference": "عَادَ نَاصِرٌ مِنَ السُّوقِ. أَحْضَرَ خُبْزًا وَفَاكِهَةً. رَتَّبَ الْمُشْتَرَيَاتِ مَعَ أُخْتِهِ.",
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "L3-02-IC-A03",
+      "owner_id": "L3-02",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ النص ثم أرسل تسجيلك.",
+      "stimulus": {
+        "text": "في المساء رأى يوسف القمر. أخبر أخاه عن شكله. رسما القمر في دفتر.",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference": "فِي الْمَسَاءِ رَأَى يُوسُفُ الْقَمَرَ. أَخْبَرَ أَخَاهُ عَنْ شَكْلِهِ. رَسَمَا الْقَمَرَ فِي دَفْتَرٍ.",
+          "dimensions": [
+            "صحة الكلمات",
+            "الحذف والإبدال",
+            "تسلسل القراءة",
+            "الوقف الطبيعي"
+          ],
+          "no_auto_grade": true
+        }
+      },
+      "evidence_type": "short_text_reading",
+      "error_focus": "natural_pacing",
+      "origin_v1": null,
+      "reading_reference": "فِي الْمَسَاءِ رَأَى يُوسُفُ الْقَمَرَ. أَخْبَرَ أَخَاهُ عَنْ شَكْلِهِ. رَسَمَا الْقَمَرَ فِي دَفْتَرٍ.",
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "L3-03-GP01",
+      "owner_id": "L3-03",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "إلى أين ذهب باسل؟",
+      "stimulus": {
+        "text": "ذهب باسل إلى المتحف مع والده. شاهد لوحات كثيرة.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "إلى المتحف",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "إلى البحر",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "إلى السوق",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "text_direct_comprehension",
+      "error_focus": "unsupported_guess",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "ارجع إلى أول جملة.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "L3-03-GP02",
+      "owner_id": "L3-03",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "ماذا سقت سعاد؟",
+      "stimulus": {
+        "text": "زرعت سعاد زهرة صغيرة. سقتها كل صباح.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "الشجرة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "الزهرة",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "الحديقة",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "text_direct_comprehension",
+      "error_focus": "unsupported_guess",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "ابحث عن الشيء الذي زرعته سعاد.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "L3-03-GP03",
+      "owner_id": "L3-03",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "من أعاد الكتاب؟",
+      "stimulus": {
+        "text": "وجدت مروة كتابا في الصف. أعادته إلى المعلمة.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "مروة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "سارة",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "هند",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "text_direct_comprehension",
+      "error_focus": "who_confusion",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "اقرأ أول النص ثم كلمة أعادته.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "L3-03-GP04",
+      "owner_id": "L3-03",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "متى نظف الأطفال الصف؟",
+      "stimulus": {
+        "text": "بعد انتهاء الدرس، نظف الأطفال طاولاتهم.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "قبل الدرس",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "بعد الدرس",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "في الليل",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "text_direct_comprehension",
+      "error_focus": "time_confusion",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "انظر إلى بداية النص.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "L3-03-IC-A01",
+      "owner_id": "L3-03",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "choose_one",
+      "prompt": "أين انتظرت ليلى؟",
+      "stimulus": {
+        "text": "انتظرت ليلى الحافلة أمام المدرسة. ثم ركبت مع زميلاتها.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "أمام المدرسة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "عند البحر",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "في الحديقة",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "text_direct_comprehension",
+      "error_focus": "unsupported_guess",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "L3-03-IC-A02",
+      "owner_id": "L3-03",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "choose_one",
+      "prompt": "ماذا صنع عادل؟",
+      "stimulus": {
+        "text": "جمع عادل الأوراق الملونة. صنع منها بطاقة لأمه.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "بطاقة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "كرة",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "شجرة",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "text_direct_comprehension",
+      "error_focus": "unsupported_guess",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "L3-03-IC-A03",
+      "owner_id": "L3-03",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "choose_one",
+      "prompt": "من ساعد هالة؟",
+      "stimulus": {
+        "text": "نسيت هالة قلمها في المنزل. أعارتها صديقتها قلما.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "المعلمة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "صديقتها",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "أمها",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "text_direct_comprehension",
+      "error_focus": "who_confusion",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "L3-03-IC-A04",
+      "owner_id": "L3-03",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "choose_one",
+      "prompt": "متى سافر سامي؟",
+      "stimulus": {
+        "text": "استيقظ سامي باكرا يوم الجمعة. سافر مع أسرته في الصباح.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "في الصباح",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "ليلا",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "بعد المغرب",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "text_direct_comprehension",
+      "error_focus": "time_confusion",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "L3-04-GP01",
+      "owner_id": "L3-04",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "sequence",
+      "prompt": "رتب الأحداث وفق النص.",
+      "stimulus": {
+        "text": "لبست هدى معطفها. خرجت من البيت. وصلت إلى المدرسة.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "وصلت إلى المدرسة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "لبست معطفها",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "خرجت من البيت",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b",
+          "c",
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "event_sequence",
+      "error_focus": "order_confusion",
+      "origin_v1": "L3-CORE-10 strategy",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "ابحث عن أول فعل في النص.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "L3-04-GP02",
+      "owner_id": "L3-04",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "sequence",
+      "prompt": "رتب ما حدث.",
+      "stimulus": {
+        "text": "غسل نادر التفاحة. قطعها ثم أكلها.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "أكل التفاحة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "غسل التفاحة",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "قطع التفاحة",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b",
+          "c",
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "event_sequence",
+      "error_focus": "order_confusion",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "ماذا فعل قبل الأكل؟",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "L3-04-GP03",
+      "owner_id": "L3-04",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "sequence",
+      "prompt": "رتب أحداث النص.",
+      "stimulus": {
+        "text": "فتح سالم حقيبته. أخرج الدفتر. كتب الواجب.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "كتب الواجب",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "أخرج الدفتر",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "فتح الحقيبة",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "c",
+          "b",
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "event_sequence",
+      "error_focus": "order_confusion",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "فكر بما يسبق الكتابة.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "L3-04-GP04",
+      "owner_id": "L3-04",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "sequence",
+      "prompt": "رتب ما حدث للقصة.",
+      "stimulus": {
+        "text": "رأت ليلى طائرا عطشان. وضعت له ماء. شرب الطائر.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "وضع الماء",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "شرب الطائر",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "رأت الطائر",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "c",
+          "a",
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "event_sequence",
+      "error_focus": "order_confusion",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "ابدأ بما رأته ليلى.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "L3-04-IC-A01",
+      "owner_id": "L3-04",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "sequence",
+      "prompt": "رتب الأحداث بالترتيب المذكور.",
+      "stimulus": {
+        "text": "دخل أحمد المكتبة. اختار كتابا. جلس لقراءته.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "جلس للقراءة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "دخل المكتبة",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "اختار الكتاب",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b",
+          "c",
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "event_sequence",
+      "error_focus": "order_confusion",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "L3-04-IC-A02",
+      "owner_id": "L3-04",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "sequence",
+      "prompt": "رتب أحداث النص.",
+      "stimulus": {
+        "text": "زرعت الأم شتلة. سقتها. ظهرت أوراق جديدة.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "ظهرت الأوراق",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "سقت الشتلة",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "زرعت الشتلة",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "c",
+          "b",
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "event_sequence",
+      "error_focus": "order_confusion",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "L3-04-IC-A03",
+      "owner_id": "L3-04",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "sequence",
+      "prompt": "رتب الأحداث.",
+      "stimulus": {
+        "text": "استيقظ خالد مبكرا. تناول الفطور. ذهب إلى المدرسة.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "تناول الفطور",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "ذهب إلى المدرسة",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "استيقظ مبكرا",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "c",
+          "a",
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "event_sequence",
+      "error_focus": "order_confusion",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "L3-04-IC-A04",
+      "owner_id": "L3-04",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "sequence",
+      "prompt": "رتب أحداث النص.",
+      "stimulus": {
+        "text": "جمع عمر الألعاب. وضعها في الصندوق. أغلق الصندوق.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "أغلق الصندوق",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "جمع الألعاب",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "وضعها في الصندوق",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b",
+          "c",
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "event_sequence",
+      "error_focus": "order_confusion",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "L3-05-GP01",
+      "owner_id": "L3-05",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "ما الفكرة الرئيسة؟",
+      "stimulus": {
+        "text": "نظف التلاميذ الصف. جمعوا الأوراق ورتبوا الطاولات. أصبح المكان نظيفا.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "المحافظة على نظافة الصف",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "الطاولات الخشبية",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "لون الأوراق",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "main_idea",
+      "error_focus": "detail_as_main_idea",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "ابحث عن فكرة تشمل الأعمال كلها.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "L3-05-GP02",
+      "owner_id": "L3-05",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "ما الفكرة الرئيسة للنص؟",
+      "stimulus": {
+        "text": "ذهب رائد إلى المكتبة. بحث عن كتاب مفيد ثم قرأه بهدوء.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "الاستفادة من المكتبة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "هدوء رائد",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "رفوف المكتبة",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "main_idea",
+      "error_focus": "detail_as_main_idea",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "ما الموضوع الذي يشمل كل الجمل؟",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "L3-05-GP03",
+      "owner_id": "L3-05",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "ما الفكرة العامة؟",
+      "stimulus": {
+        "text": "سقت هند الزهرة كل يوم. وضعتها قرب الضوء. نمت الزهرة جيدا.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "العناية بالزهرة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "لون الضوء",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "موعد النوم",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "main_idea",
+      "error_focus": "detail_as_main_idea",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "فكر في الأعمال التي كررتها هند.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "L3-05-GP04",
+      "owner_id": "L3-05",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "ما الفكرة الرئيسة؟",
+      "stimulus": {
+        "text": "تعاون الطلاب في صنع لوحة. رسم أحدهم وكتب آخر ثم عرضوها معا.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "التعاون في العمل",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "أقلام الرسم",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "عرض اللوحة فقط",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "main_idea",
+      "error_focus": "detail_as_main_idea",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "أي اختيار يجمع ما فعله الجميع؟",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "L3-05-IC-A01",
+      "owner_id": "L3-05",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "choose_one",
+      "prompt": "ما الفكرة الرئيسة؟",
+      "stimulus": {
+        "text": "قرأ علي قصة عن البحر. تعرف إلى الأسماك والشعاب المرجانية. تحدث عما تعلمه.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "التعرف إلى الحياة البحرية",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "اسم علي",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "لون البحر",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "main_idea",
+      "error_focus": "detail_as_main_idea",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "L3-05-IC-A02",
+      "owner_id": "L3-05",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "choose_one",
+      "prompt": "ما الفكرة العامة؟",
+      "stimulus": {
+        "text": "زرعت أسرة نور شجرة في الحديقة. سقتها وحافظت عليها حتى كبرت.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "الاهتمام بالشجرة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "كبر الشجرة فقط",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "باب الحديقة",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "main_idea",
+      "error_focus": "detail_as_main_idea",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "L3-05-IC-A03",
+      "owner_id": "L3-05",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "choose_one",
+      "prompt": "عن ماذا يتحدث النص؟",
+      "stimulus": {
+        "text": "جمع الأطفال الألعاب بعد اللعب. أعادوها إلى الرف. أصبح المكان مرتبا.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "ترتيب الألعاب بعد اللعب",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "شكل الرف",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "نوع لعبة واحدة",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "main_idea",
+      "error_focus": "detail_as_main_idea",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "L3-05-IC-A04",
+      "owner_id": "L3-05",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "choose_one",
+      "prompt": "ما الفكرة الرئيسة؟",
+      "stimulus": {
+        "text": "ذهب الطلاب في رحلة إلى الحديقة. شاهدوا الطيور وتعرفوا إلى الأشجار واستمتعوا بالطبيعة.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "التعلم من رحلة إلى الحديقة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "مشاهدة طائر واحد",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "وقت الانطلاق",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "main_idea",
+      "error_focus": "detail_as_main_idea",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "L3-06-GP01",
+      "owner_id": "L3-06",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "sequence",
+      "prompt": "رتب الكلمات لتبدأ الجملة بكلمة كتب.",
+      "stimulus": {
+        "text": "كتب / المعلم / الدرس",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "الدرس",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "كتب",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "المعلم",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b",
+          "c",
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "sentence_construction",
+      "error_focus": "word_order",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "ابدأ بالفعل كتب ثم حدد من كتب.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "L3-06-GP02",
+      "owner_id": "L3-06",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "ما الكلمة المناسبة لإكمال الجملة؟",
+      "stimulus": {
+        "text": "وضعت مها الكتاب على ...",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "الطاولة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "السماء",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "الصوت",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "sentence_completion",
+      "error_focus": "semantic_incoherence",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "فكر أين يوضع الكتاب عادة.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "L3-06-GP03",
+      "owner_id": "L3-06",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "sequence",
+      "prompt": "رتب الكلمات لتبدأ الجملة بكلمة سقى.",
+      "stimulus": {
+        "text": "سقى / الطفل / الزهرة",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "الطفل",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "الزهرة",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "سقى",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "c",
+          "a",
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "sentence_construction",
+      "error_focus": "word_order",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "ابدأ بسقى.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "L3-06-GP04",
+      "owner_id": "L3-06",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "أكمل الجملة بكلمة مناسبة.",
+      "stimulus": {
+        "text": "ذهب سامي إلى المدرسة ليـ ...",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "يتعلم",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "يسبح",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "يطير",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "sentence_completion",
+      "error_focus": "semantic_incoherence",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "فكر ماذا يفعل سامي في المدرسة.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "L3-06-IC-A01",
+      "owner_id": "L3-06",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "sequence",
+      "prompt": "رتب الكلمات لتبدأ الجملة بكلمة فتح.",
+      "stimulus": {
+        "text": "فتح / أحمد / الباب",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "أحمد",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "الباب",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "فتح",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "c",
+          "a",
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "sentence_construction",
+      "error_focus": "word_order",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "L3-06-IC-A02",
+      "owner_id": "L3-06",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "choose_one",
+      "prompt": "اختر إكمالًا مناسبًا.",
+      "stimulus": {
+        "text": "قرأ خالد الكتاب ثم ...",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "أعاده إلى مكانه",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "أكل النافذة",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "لبس الشجرة",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "sentence_completion",
+      "error_focus": "semantic_incoherence",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "L3-06-IC-A03",
+      "owner_id": "L3-06",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "sequence",
+      "prompt": "رتب الكلمات لتبدأ الجملة بكلمة زرعت.",
+      "stimulus": {
+        "text": "زرعت / هناء / بذرة",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "بذرة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "هناء",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "زرعت",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "c",
+          "b",
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "sentence_construction",
+      "error_focus": "word_order",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "L3-06-IC-A04",
+      "owner_id": "L3-06",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "choose_one",
+      "prompt": "أكمل الجملة بما يناسب.",
+      "stimulus": {
+        "text": "فتحت ليلى المظلة لأن ...",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "المطر نزل",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "الحقيبة قرأت",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "القلم طار",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "sentence_completion",
+      "error_focus": "semantic_incoherence",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "L3-07-GP01",
+      "owner_id": "L3-07",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "sequence",
+      "prompt": "رتب الكلمات لتكوّن جملة تبدأ بكلمة يقرأ.",
+      "stimulus": {
+        "text": "يقرأ / الولد / كتابا",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "كتابا",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "يقرأ",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "الولد",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b",
+          "c",
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "sentence_construction",
+      "error_focus": "word_order",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "ضع فعل يقرأ أولًا.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "L3-07-GP02",
+      "owner_id": "L3-07",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "write_text",
+      "prompt": "اكتب جملة قصيرة تصف الصورة.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "VOC-28",
+            "kind": "image"
+          }
+        ]
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference": null,
+          "dimensions": [
+            "سلامة المعنى",
+            "تكوين جملة مفيدة",
+            "كتابة الكلمات",
+            "مسافة وفصل الكلمات"
+          ],
+          "no_auto_grade": true
+        }
+      },
+      "evidence_type": "sentence_writing",
+      "error_focus": "incomplete_sentence",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [
+        "writing_input_and_rubric_not_confirmed_in_v1"
+      ],
+      "notes": "إجابة مفتوحة: مثال تقريبي «الزهرة جميلة.» لا يفرض على الطالب حرفيًا.",
+      "status": "draft",
+      "hint": "اكتب من أو ما الذي تراه، ثم ماذا يحدث له.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "L3-07-GP03",
+      "owner_id": "L3-07",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "أي جملة مكتملة المعنى؟",
+      "stimulus": {
+        "text": "اختر",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "يسقي الطفل الزهرة.",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "يسقي الزهرة إلى.",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "على طفل ماء.",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "sentence_completion",
+      "error_focus": "incomplete_sentence",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "اختر الجملة التي تخبرك بما حدث.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "L3-07-GP04",
+      "owner_id": "L3-07",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "write_text",
+      "prompt": "اكتب جملة قصيرة عن طفل يقرأ.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "VOC-34",
+            "kind": "image"
+          }
+        ]
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference": null,
+          "dimensions": [
+            "سلامة المعنى",
+            "تكوين جملة مفيدة",
+            "كتابة الكلمات",
+            "مسافة وفصل الكلمات"
+          ],
+          "no_auto_grade": true
+        }
+      },
+      "evidence_type": "sentence_writing",
+      "error_focus": "incomplete_sentence",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [
+        "writing_input_and_rubric_not_confirmed_in_v1"
+      ],
+      "notes": "تقبل جملة مفيدة ولو اختلفت الكلمات عن المثال.",
+      "status": "draft",
+      "hint": "ابدأ باسم الطفل، ثم اكتب فعلًا مناسبًا.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "L3-07-IC-A01",
+      "owner_id": "L3-07",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "write_text",
+      "prompt": "اكتب جملة قصيرة عن صورة العصفور.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "VOC-20",
+            "kind": "image"
+          }
+        ]
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference": "إجابة مفتوحة؛ مثال لمرجع المعلم: العصفور يطير.",
+          "dimensions": [
+            "سلامة المعنى",
+            "تكوين جملة مفيدة",
+            "كتابة الكلمات",
+            "مسافة وفصل الكلمات"
+          ],
+          "no_auto_grade": true
+        }
+      },
+      "evidence_type": "sentence_writing",
+      "error_focus": "incomplete_sentence",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [
+        "writing_input_and_rubric_not_confirmed_in_v1"
+      ],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "L3-07-IC-A02",
+      "owner_id": "L3-07",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "write_text",
+      "prompt": "اكتب جملة قصيرة عن المكتبة.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "VOC-22",
+            "kind": "image"
+          }
+        ]
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference": "مثال لا يُعرض: أحب القراءة في المكتبة.",
+          "dimensions": [
+            "سلامة المعنى",
+            "تكوين جملة مفيدة",
+            "كتابة الكلمات",
+            "مسافة وفصل الكلمات"
+          ],
+          "no_auto_grade": true
+        }
+      },
+      "evidence_type": "sentence_writing",
+      "error_focus": "incomplete_sentence",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [
+        "writing_input_and_rubric_not_confirmed_in_v1"
+      ],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "L3-07-IC-A03",
+      "owner_id": "L3-07",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "write_text",
+      "prompt": "اكتب جملة تتحدث فيها عما تفعله في الصباح.",
+      "stimulus": {
+        "text": "في الصباح",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference": "يقبل أي فعل مناسب ويحتوي جملة مفيدة.",
+          "dimensions": [
+            "سلامة المعنى",
+            "تكوين جملة مفيدة",
+            "كتابة الكلمات",
+            "مسافة وفصل الكلمات"
+          ],
+          "no_auto_grade": true
+        }
+      },
+      "evidence_type": "sentence_writing",
+      "error_focus": "incomplete_sentence",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [
+        "writing_input_and_rubric_not_confirmed_in_v1"
+      ],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "L3-07-IC-A04",
+      "owner_id": "L3-07",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "write_text",
+      "prompt": "اكتب جملة قصيرة تستعمل فيها كلمة «حديقة».",
+      "stimulus": {
+        "text": "حديقة",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference": "جملة مفيدة تتضمن كلمة حديقة؛ لا نموذج إجابة واحد.",
+          "dimensions": [
+            "سلامة المعنى",
+            "تكوين جملة مفيدة",
+            "كتابة الكلمات",
+            "مسافة وفصل الكلمات"
+          ],
+          "no_auto_grade": true
+        }
+      },
+      "evidence_type": "sentence_writing",
+      "error_focus": "incomplete_sentence",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [
+        "writing_input_and_rubric_not_confirmed_in_v1"
+      ],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "SUP-08-GP01",
+      "owner_id": "SUP-08",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الجملتين بهدوء.",
+      "stimulus": {
+        "text": "وقف مازن عند الباب. ثم دخل الصف.",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference": "وَقَفَ مَازِنٌ عِنْدَ الْبَابِ. ثُمَّ دَخَلَ الصَّفَّ.",
+          "dimensions": [
+            "صحة الكلمات",
+            "الحذف والإبدال",
+            "تسلسل القراءة",
+            "الوقف الطبيعي"
+          ],
+          "no_auto_grade": true
+        }
+      },
+      "evidence_type": "connected_sentence_reading",
+      "error_focus": "word_omission",
+      "origin_v1": null,
+      "reading_reference": "وَقَفَ مَازِنٌ عِنْدَ الْبَابِ. ثُمَّ دَخَلَ الصَّفَّ.",
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "اقرأ الكلمات دون حذف ثم توقف عند النقطة.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "SUP-08-GP02",
+      "owner_id": "SUP-08",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "أين تقف لحظة عند القراءة؟",
+      "stimulus": {
+        "text": "حمل نادر حقيبته. ذهب إلى المدرسة.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "بعد كلمة حقيبته",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "بعد كلمة ذهب",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "بعد كلمة إلى",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "natural_pacing",
+      "error_focus": "pause_or_order",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "النقطة تحدد نهاية الجملة.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "SUP-08-SC01",
+      "owner_id": "SUP-08",
+      "mode": "IC",
+      "role": "support_check",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الجملتين.",
+      "stimulus": {
+        "text": "زرع عمر بذرة. سقاها بالماء.",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference": "زَرَعَ عُمَرُ بَذْرَةً. سَقَاهَا بِالْمَاءِ.",
+          "dimensions": [
+            "صحة الكلمات",
+            "الحذف والإبدال",
+            "تسلسل القراءة",
+            "الوقف الطبيعي"
+          ],
+          "no_auto_grade": true
+        }
+      },
+      "evidence_type": "connected_sentence_reading",
+      "error_focus": "word_omission",
+      "origin_v1": null,
+      "reading_reference": "زَرَعَ عُمَرُ بَذْرَةً. سَقَاهَا بِالْمَاءِ.",
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "SUP-08-SC02",
+      "owner_id": "SUP-08",
+      "mode": "IC",
+      "role": "support_check",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ النص القصير.",
+      "stimulus": {
+        "text": "خرجت هند صباحا. رأت زهرة. وضعت لها ماء.",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference": "خَرَجَتْ هِنْدٌ صَبَاحًا. رَأَتْ زَهْرَةً. وَضَعَتْ لَهَا مَاءً.",
+          "dimensions": [
+            "صحة الكلمات",
+            "الحذف والإبدال",
+            "تسلسل القراءة",
+            "الوقف الطبيعي"
+          ],
+          "no_auto_grade": true
+        }
+      },
+      "evidence_type": "short_text_reading",
+      "error_focus": "word_omission",
+      "origin_v1": null,
+      "reading_reference": "خَرَجَتْ هِنْدٌ صَبَاحًا. رَأَتْ زَهْرَةً. وَضَعَتْ لَهَا مَاءً.",
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "SUP-09-GP01",
+      "owner_id": "SUP-09",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "أين لعبت سارة؟",
+      "stimulus": {
+        "text": "لعبت سارة في الساحة.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "في الساحة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "في المطبخ",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "direct_comprehension",
+      "error_focus": "unsupported_guess",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "اقرأ كلمة في ثم التي بعدها.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "SUP-09-GP02",
+      "owner_id": "SUP-09",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "من رسم الشجرة؟",
+      "stimulus": {
+        "text": "رسم خالد شجرة.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "خالد",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "ليلى",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "direct_comprehension",
+      "error_focus": "who_confusion",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "ابحث عن اسم الشخص.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "SUP-09-SC01",
+      "owner_id": "SUP-09",
+      "mode": "IC",
+      "role": "support_check",
+      "interaction": "choose_one",
+      "prompt": "ماذا شرب سامي؟",
+      "stimulus": {
+        "text": "شرب سامي الماء بعد اللعب.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "الماء",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "الحليب",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "direct_comprehension",
+      "error_focus": "unsupported_guess",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "SUP-09-SC02",
+      "owner_id": "SUP-09",
+      "mode": "IC",
+      "role": "support_check",
+      "interaction": "choose_one",
+      "prompt": "متى خرج نادر؟",
+      "stimulus": {
+        "text": "خرج نادر في الصباح.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "صباحا",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "مساء",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "direct_comprehension",
+      "error_focus": "when_confusion",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "SUP-10-GP01",
+      "owner_id": "SUP-10",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "sequence",
+      "prompt": "رتب ما حدث.",
+      "stimulus": {
+        "text": "فتح أحمد الكتاب. قرأه. أغلقه.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "أغلق الكتاب",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "فتح الكتاب",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "قرأ الكتاب",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b",
+          "c",
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "event_sequence",
+      "error_focus": "order_confusion",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "ما الذي يفعله أحمد قبل القراءة؟",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "SUP-10-GP02",
+      "owner_id": "SUP-10",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "sequence",
+      "prompt": "رتب ما حدث.",
+      "stimulus": {
+        "text": "زرعت هدى بذرة. سقتها. كبرت.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "كبرت",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "سقت",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "زرعت",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "c",
+          "b",
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "event_sequence",
+      "error_focus": "order_confusion",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "ابدأ بالبذرة.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "SUP-10-SC01",
+      "owner_id": "SUP-10",
+      "mode": "IC",
+      "role": "support_check",
+      "interaction": "sequence",
+      "prompt": "رتب الأحداث.",
+      "stimulus": {
+        "text": "لبست نورة حذاءها. خرجت. ركبت السيارة.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "ركبت السيارة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "لبست الحذاء",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "خرجت",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b",
+          "c",
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "event_sequence",
+      "error_focus": "order_confusion",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "SUP-10-SC02",
+      "owner_id": "SUP-10",
+      "mode": "IC",
+      "role": "support_check",
+      "interaction": "sequence",
+      "prompt": "رتب الأحداث.",
+      "stimulus": {
+        "text": "جمع ماجد الألعاب. وضعها في الصندوق. رتّب الرف.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "رتب الرف",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "جمع الألعاب",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "وضعها في الصندوق",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b",
+          "c",
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "event_sequence",
+      "error_focus": "order_confusion",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "SUP-11-GP01",
+      "owner_id": "SUP-11",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "ما الفكرة العامة للنص؟",
+      "stimulus": {
+        "text": "زرع ناصر نباتا صغيرا. سقاه كل يوم. نما النبات.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "العناية بالنبات",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "لون الماء",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "main_idea",
+      "error_focus": "detail_as_main_idea",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "اختر ما يجمع كل الجمل.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "SUP-11-GP02",
+      "owner_id": "SUP-11",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "ما الموضوع الرئيس؟",
+      "stimulus": {
+        "text": "قرأ الطلاب قصصا جديدة. ثم تبادلوا الحديث عما قرؤوا.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "أهمية القراءة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "اسم طالب واحد",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "main_idea",
+      "error_focus": "detail_as_main_idea",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "ما الشيء المشترك بين الفعلين؟",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "SUP-11-SC01",
+      "owner_id": "SUP-11",
+      "mode": "IC",
+      "role": "support_check",
+      "interaction": "choose_one",
+      "prompt": "ما الفكرة العامة؟",
+      "stimulus": {
+        "text": "نظف الأطفال الحديقة. جمعوا المخلفات ووضعوها في سلة المهملات.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "المحافظة على النظافة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "شكل السلة",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "main_idea",
+      "error_focus": "detail_as_main_idea",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "SUP-11-SC02",
+      "owner_id": "SUP-11",
+      "mode": "IC",
+      "role": "support_check",
+      "interaction": "choose_one",
+      "prompt": "عن ماذا يتحدث النص؟",
+      "stimulus": {
+        "text": "تعاونت الأسرة في إعداد الفطور. جهز الأب الخبز، وأعدت الأم الفاكهة.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "تعاون الأسرة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "نوع الخبز",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "main_idea",
+      "error_focus": "detail_as_main_idea",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "SUP-12-GP01",
+      "owner_id": "SUP-12",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "sequence",
+      "prompt": "رتب الكلمات لتبدأ الجملة بكلمة رسم.",
+      "stimulus": {
+        "text": "رسم / الطفل / بيتا",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "الطفل",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "رسم",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "بيتا",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b",
+          "a",
+          "c"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "sentence_construction",
+      "error_focus": "word_order",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": "ابدأ بالفعل رسم.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "SUP-12-GP02",
+      "owner_id": "SUP-12",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "write_text",
+      "prompt": "اكتب جملة بسيطة تصف الصورة.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "VOC-35",
+            "kind": "image"
+          }
+        ]
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference": null,
+          "dimensions": [
+            "سلامة المعنى",
+            "تكوين جملة مفيدة",
+            "كتابة الكلمات",
+            "مسافة وفصل الكلمات"
+          ],
+          "no_auto_grade": true
+        }
+      },
+      "evidence_type": "sentence_writing",
+      "error_focus": "incomplete_sentence",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [
+        "writing_input_and_rubric_not_confirmed_in_v1"
+      ],
+      "notes": "مثال معلم فقط: الطفلة تبتسم.",
+      "status": "draft",
+      "hint": "اختر فعلًا مناسبًا للطفلة ثم اكتب جملة.",
+      "retry": "hint_then_fresh_guided_retry_not_scored"
+    },
+    {
+      "id": "SUP-12-SC01",
+      "owner_id": "SUP-12",
+      "mode": "IC",
+      "role": "support_check",
+      "interaction": "sequence",
+      "prompt": "رتب الكلمات لتبدأ الجملة بكلمة قرأ.",
+      "stimulus": {
+        "text": "قرأ / فهد / الدرس",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "فهد",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "الدرس",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "قرأ",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "c",
+          "a",
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "sentence_construction",
+      "error_focus": "word_order",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    },
+    {
+      "id": "SUP-12-SC02",
+      "owner_id": "SUP-12",
+      "mode": "IC",
+      "role": "support_check",
+      "interaction": "write_text",
+      "prompt": "اكتب جملة قصيرة عن المدرسة.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "VOC-18",
+            "kind": "image"
+          }
+        ]
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference": "جملة صحيحة ذات معنى؛ لا تحكم بالنموذج النصي وحده.",
+          "dimensions": [
+            "سلامة المعنى",
+            "تكوين جملة مفيدة",
+            "كتابة الكلمات",
+            "مسافة وفصل الكلمات"
+          ],
+          "no_auto_grade": true
+        }
+      },
+      "evidence_type": "sentence_writing",
+      "error_focus": "incomplete_sentence",
+      "origin_v1": null,
+      "reading_reference": null,
+      "technical_gaps": [
+        "writing_input_and_rubric_not_confirmed_in_v1"
+      ],
+      "notes": null,
+      "status": "draft",
+      "hint": null
+    }
+  ],
+  "media": [
+    {
+      "id": "VOC-22",
+      "kind": "image",
+      "label": "مكتبة",
+      "source_v1_id": "VOC-22",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-22-library-512.webp",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_after_content_completion"
+    },
+    {
+      "id": "VOC-28",
+      "kind": "image",
+      "label": "زهرة",
+      "source_v1_id": "VOC-28",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-28-flower-512.webp",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_after_content_completion"
+    },
+    {
+      "id": "VOC-34",
+      "kind": "image",
+      "label": "طفل",
+      "source_v1_id": "VOC-34",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-34-boy-512.webp",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_after_content_completion"
+    },
+    {
+      "id": "VOC-35",
+      "kind": "image",
+      "label": "طفلة",
+      "source_v1_id": "VOC-35",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-35-girl-512.webp",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_after_content_completion"
+    },
+    {
+      "id": "VOC-20",
+      "kind": "image",
+      "label": "عصفور",
+      "source_v1_id": "VOC-20",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-20-bird-512.webp",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_after_content_completion"
+    },
+    {
+      "id": "VOC-30",
+      "kind": "image",
+      "label": "أوراق",
+      "source_v1_id": "VOC-30",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-30-leaves-512.webp",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_after_content_completion"
+    },
+    {
+      "id": "VOC-21",
+      "kind": "image",
+      "label": "حديقة",
+      "source_v1_id": "VOC-21",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-21-garden-512.webp",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_after_content_completion"
+    },
+    {
+      "id": "VOC-17",
+      "kind": "image",
+      "label": "حقيبة",
+      "source_v1_id": "VOC-17",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-17-school-bag-512.webp",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_after_content_completion"
+    },
+    {
+      "id": "VOC-06",
+      "kind": "image",
+      "label": "شمس",
+      "source_v1_id": "VOC-06",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-06-sun-512.webp",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_after_content_completion"
+    },
+    {
+      "id": "VOC-14",
+      "kind": "image",
+      "label": "نجم",
+      "source_v1_id": "VOC-14",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-14-star-512.webp",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_after_content_completion"
+    },
+    {
+      "id": "VID-L3-01",
+      "kind": "video",
+      "label": "أقرأ جملًا مترابطة بنطق صحيح",
+      "source_v1_id": null,
+      "source_path": null,
+      "status": "missing_new",
+      "review": "owner_after_content_completion"
+    },
+    {
+      "id": "VID-L3-02",
+      "kind": "video",
+      "label": "أقرأ نصًا قصيرًا بنطق صحيح",
+      "source_v1_id": null,
+      "source_path": null,
+      "status": "missing_new",
+      "review": "owner_after_content_completion"
+    },
+    {
+      "id": "VID-L3-03",
+      "kind": "video",
+      "label": "أفهم المعلومات المباشرة في النص",
+      "source_v1_id": null,
+      "source_path": null,
+      "status": "missing_new",
+      "review": "owner_after_content_completion"
+    },
+    {
+      "id": "VID-L3-04",
+      "kind": "video",
+      "label": "أرتب أحداث النص",
+      "source_v1_id": null,
+      "source_path": null,
+      "status": "missing_new",
+      "review": "owner_after_content_completion"
+    },
+    {
+      "id": "VID-L3-05",
+      "kind": "video",
+      "label": "أحدد الفكرة الرئيسة",
+      "source_v1_id": null,
+      "source_path": null,
+      "status": "missing_new",
+      "review": "owner_after_content_completion"
+    },
+    {
+      "id": "VID-L3-06",
+      "kind": "video",
+      "label": "أبني وأكمل جملة ذات معنى",
+      "source_v1_id": null,
+      "source_path": null,
+      "status": "missing_new",
+      "review": "owner_after_content_completion"
+    },
+    {
+      "id": "VID-L3-07",
+      "kind": "video",
+      "label": "أكتب جملة قصيرة",
+      "source_v1_id": null,
+      "source_path": null,
+      "status": "missing_new",
+      "review": "owner_after_content_completion"
+    },
+    {
+      "id": "VOC-18",
+      "kind": "image",
+      "label": "مدرسة",
+      "source_v1_id": "VOC-18",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-18-school-512.webp",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_after_content_completion"
+    }
+  ],
+  "qa_notes": []
+}
