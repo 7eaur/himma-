@@ -2878,10 +2878,15 @@
       "role": "guided_practice",
       "mode": "GP",
       "interaction": "write_text",
-      "prompt": "اكتب اسم طائر يسبح في الماء وله منقار.",
+      "prompt": "اكتب اسم الطائر في الصورة.",
       "stimulus": {
-        "text": "طائر يسبح في الماء",
-        "media": []
+        "text": null,
+        "media": [
+          {
+            "media_id": "VOC-12",
+            "kind": "image"
+          }
+        ]
       },
       "options": [],
       "private_answer": {
@@ -2908,7 +2913,7 @@
       "status": "draft_pending_qa",
       "hint": "انطق كلمة باب ثم اكتبها.",
       "retry": "hint_then_one_more_guided_attempt",
-      "notes": "الجواب المرجعي الخاص للمشرف: بَطَّة."
+      "notes": "المرجع الخاص بالمشرف بَطَّة؛ لا يُعرض للطالب."
     },
     {
       "id": "SUP-05-SC-03",
@@ -3864,6 +3869,15 @@
       "v1_asset_id": null,
       "source_path": null,
       "status": "missing_new",
+      "review": "owner_later"
+    },
+    {
+      "id": "VOC-12",
+      "kind": "image",
+      "meaning": "بطة",
+      "v1_asset_id": "VOC-12",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-12-duck-512.webp",
+      "status": "selected_from_v1_pending_owner_review",
       "review": "owner_later"
     }
   ],
