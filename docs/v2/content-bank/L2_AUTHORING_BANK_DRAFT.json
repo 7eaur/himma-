@@ -273,33 +273,38 @@
       "mode": "GP",
       "role": "guided_practice",
       "interaction": "build_word",
-      "prompt": "رتب الحروف لتكتب كلمة رَسَمَ.",
+      "prompt": "انظر إلى الصورة، ثم رتب الحروف لتكوّن اسمها.",
       "stimulus": {
-        "text": "رَسَمَ",
-        "media": []
+        "text": null,
+        "media": [
+          {
+            "media_id": "VOC-04",
+            "kind": "image"
+          }
+        ]
       },
       "options": [
         {
           "id": "a",
-          "text": "س",
-          "media": []
-        },
-        {
-          "id": "b",
           "text": "م",
           "media": []
         },
         {
+          "id": "b",
+          "text": "ق",
+          "media": []
+        },
+        {
           "id": "c",
-          "text": "ر",
+          "text": "ل",
           "media": []
         }
       ],
       "private_answer": {
         "correct_option_ids": [
+          "b",
           "c",
-          "a",
-          "b"
+          "a"
         ],
         "rubric": null
       },
@@ -311,7 +316,7 @@
       "reading_reference": null,
       "technical_gaps": [],
       "status": "draft",
-      "hint": "ابدأ بحرف ر ثم س ثم م.",
+      "hint": "ابحث عن الحرف الأول من اسم الصورة، ثم أكمل ترتيب الحروف.",
       "retry": "hint_on_error_then_one_more_try_no_test_evidence",
       "version": "0.3-draft",
       "authoring_state": "draft"
@@ -358,7 +363,7 @@
       "reading_reference": null,
       "technical_gaps": [],
       "status": "draft",
-      "hint": "تذكر عَلَم البلاد.",
+      "hint": "فكر في اسم الراية التي نرفعها.",
       "retry": "hint_on_error_then_one_more_try_no_test_evidence",
       "version": "0.3-draft",
       "authoring_state": "draft"
@@ -369,10 +374,15 @@
       "mode": "GP",
       "role": "guided_practice",
       "interaction": "build_word",
-      "prompt": "رتب الحروف لكتابة كلمة نَجْم.",
+      "prompt": "انظر إلى الصورة، ثم رتب الحروف لتكوّن اسمها.",
       "stimulus": {
-        "text": "نَجْم",
-        "media": []
+        "text": null,
+        "media": [
+          {
+            "media_id": "VOC-14",
+            "kind": "image"
+          }
+        ]
       },
       "options": [
         {
@@ -407,7 +417,7 @@
       "reading_reference": null,
       "technical_gaps": [],
       "status": "draft",
-      "hint": "ابدأ بنون ثم جيم ثم ميم.",
+      "hint": "ابدأ بالحرف الأول من اسم الصورة.",
       "retry": "hint_on_error_then_one_more_try_no_test_evidence",
       "version": "0.3-draft",
       "authoring_state": "draft"
@@ -452,7 +462,7 @@
         "free_writing_input_and_scoring_unconfirmed_v1"
       ],
       "status": "draft",
-      "hint": "انطق كلمة باب ببطء ثم اكتب حروفها.",
+      "hint": "انطق اسم الصورة ببطء ثم اكتب حروفه.",
       "retry": "hint_on_error_then_one_more_try_no_test_evidence",
       "writing_scoring_policy": {
         "task_type": "single_word_spelling",
@@ -475,10 +485,15 @@
       "mode": "IC",
       "role": "independent_check",
       "interaction": "build_word",
-      "prompt": "رتب الحروف لتكتب كلمة قَمَر.",
+      "prompt": "انظر إلى الصورة، ثم رتب الحروف لتكوّن اسمها.",
       "stimulus": {
-        "text": "قَمَر",
-        "media": []
+        "text": null,
+        "media": [
+          {
+            "media_id": "VOC-07",
+            "kind": "image"
+          }
+        ]
       },
       "options": [
         {
@@ -2573,33 +2588,38 @@
       "mode": "GP",
       "role": "guided_practice",
       "interaction": "build_word",
-      "prompt": "رتب الحروف لتكون كلمة قَلَم.",
+      "prompt": "انظر إلى الصورة، ثم رتب الحروف لتكوّن اسمها.",
       "stimulus": {
-        "text": "قَلَم",
-        "media": []
+        "text": null,
+        "media": [
+          {
+            "media_id": "VOC-10",
+            "kind": "image"
+          }
+        ]
       },
       "options": [
         {
           "id": "a",
-          "text": "م",
+          "text": "ر",
           "media": []
         },
         {
           "id": "b",
-          "text": "ق",
+          "text": "ة",
           "media": []
         },
         {
           "id": "c",
-          "text": "ل",
+          "text": "ك",
           "media": []
         }
       ],
       "private_answer": {
         "correct_option_ids": [
-          "b",
           "c",
-          "a"
+          "a",
+          "b"
         ],
         "rubric": null
       },
@@ -2611,7 +2631,7 @@
       "reading_reference": null,
       "technical_gaps": [],
       "status": "draft",
-      "hint": "ابدأ بب ثم ا.",
+      "hint": "ابدأ بالحرف الأول من اسم الصورة.",
       "retry": "hint_on_error_then_one_more_try_no_test_evidence",
       "version": "0.3-draft",
       "authoring_state": "draft"
@@ -2656,7 +2676,7 @@
         "free_writing_input_and_scoring_unconfirmed_v1"
       ],
       "status": "draft",
-      "hint": "انطق كلمة نجم ثم اكتبها.",
+      "hint": "انطق اسم الصورة ببطء، ثم اكتب الحرف الأول.",
       "retry": "hint_on_error_then_one_more_try_no_test_evidence",
       "writing_scoring_policy": {
         "task_type": "single_word_spelling",
@@ -2679,9 +2699,9 @@
       "mode": "IC",
       "role": "support_check",
       "interaction": "build_word",
-      "prompt": "رتب حروف كلمة كَتَبَ.",
+      "prompt": "رتب الحروف لتكوّن الكلمة المناسبة للمعنى.",
       "stimulus": {
-        "text": "كَتَبَ",
+        "text": "فعل يعني تدوين كلمات بالقلم.",
         "media": []
       },
       "options": [
@@ -3139,9 +3159,9 @@
       "role": "guided_practice",
       "mode": "GP",
       "interaction": "build_word",
-      "prompt": "رتب حروف كلمة رَسَمَ.",
+      "prompt": "رتب الحروف لتكوّن الكلمة المناسبة للمعنى.",
       "stimulus": {
-        "text": "رَسَمَ",
+        "text": "فعل يعني صنع صورة بالقلم.",
         "media": []
       },
       "options": [
@@ -3175,7 +3195,7 @@
       "technical_gaps": [],
       "origin_v1": null,
       "status": "draft_pending_qa",
-      "hint": "ابدأ بالراء.",
+      "hint": "فكر في الحرف الذي تبدأ به كلمة العمل المطلوب.",
       "retry": "hint_then_one_more_guided_attempt",
       "skill_group": "S5",
       "version": "0.3-draft",
@@ -3220,7 +3240,7 @@
       ],
       "origin_v1": null,
       "status": "draft_pending_qa",
-      "hint": "انطق كلمة باب ثم اكتبها.",
+      "hint": "انطق اسم الطائر ثم اكتب حروفه بالترتيب.",
       "retry": "hint_then_one_more_guided_attempt",
       "notes": "المرجع الخاص بالمشرف بَطَّة؛ لا يُعرض للطالب.",
       "writing_scoring_policy": {
@@ -3245,9 +3265,9 @@
       "role": "support_check",
       "mode": "IC",
       "interaction": "build_word",
-      "prompt": "رتب حروف كلمة سَمَك.",
+      "prompt": "رتب الحروف لتكوّن الكلمة المناسبة للمعنى.",
       "stimulus": {
-        "text": "سَمَك",
+        "text": "اسم حيوان يعيش في الماء.",
         "media": []
       },
       "options": [
@@ -3645,10 +3665,15 @@
       "role": "guided_practice",
       "mode": "GP",
       "interaction": "sequence",
-      "prompt": "رتب الأجزاء لتكون مَكْتَبَة.",
+      "prompt": "انظر إلى الصورة، ثم رتب المقاطع لتكوّن اسمها.",
       "stimulus": {
-        "text": "مَكْ / تَ / بَة",
-        "media": []
+        "text": null,
+        "media": [
+          {
+            "media_id": "VOC-22",
+            "kind": "image"
+          }
+        ]
       },
       "options": [
         {
@@ -3681,7 +3706,7 @@
       "technical_gaps": [],
       "origin_v1": null,
       "status": "draft_pending_qa",
-      "hint": "ابدأ بمَكْ.",
+      "hint": "ابدأ بمقطع الكلمة الأول.",
       "retry": "hint_then_one_more_guided_attempt",
       "skill_group": "S7",
       "version": "0.3-draft",
@@ -3733,10 +3758,15 @@
       "role": "support_check",
       "mode": "IC",
       "interaction": "sequence",
-      "prompt": "رتب المقاطع لتكوّن كلمة حَقِيبَة.",
+      "prompt": "انظر إلى الصورة، ثم رتب المقاطع لتكوّن اسمها.",
       "stimulus": {
-        "text": "حَ / قِي / بَة",
-        "media": []
+        "text": null,
+        "media": [
+          {
+            "media_id": "VOC-17",
+            "kind": "image"
+          }
+        ]
       },
       "options": [
         {
@@ -4355,6 +4385,26 @@
       "status": "selected_from_v1_pending_owner_review",
       "review": "owner_later",
       "type": "image",
+      "review_state": "owner_review_pending"
+    },
+    {
+      "id": "VOC-07",
+      "kind": "image",
+      "type": "image",
+      "meaning": "قمر",
+      "v1_asset_id": "VOC-07",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-07-moon-512.webp",
+      "status": "selected_from_v1_pending_owner_review",
+      "review_state": "owner_review_pending"
+    },
+    {
+      "id": "VOC-17",
+      "kind": "image",
+      "type": "image",
+      "meaning": "حقيبة",
+      "v1_asset_id": "VOC-17",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-17-school-bag-512.webp",
+      "status": "selected_from_v1_pending_owner_review",
       "review_state": "owner_review_pending"
     }
   ],
