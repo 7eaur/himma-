@@ -2668,7 +2668,7 @@
       "mode": "IC",
       "role": "independent_check",
       "interaction": "choose_one",
-      "prompt": "اختر إكمالًا مناسبًا.",
+      "prompt": "أي إكمال يدل على المحافظة على الكتاب؟",
       "stimulus": {
         "text": "قرأ خالد الكتاب ثم ...",
         "media": []
