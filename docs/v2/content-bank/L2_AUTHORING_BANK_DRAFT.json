@@ -2324,7 +2324,7 @@
       "hint": null
     },
     {
-      "id": "SUP-05-GP01",
+      "id": "SUP-05-GP-01",
       "owner_id": "SUP-05",
       "mode": "GP",
       "role": "guided_practice",
@@ -2371,7 +2371,7 @@
       "retry": "hint_on_error_then_one_more_try_no_test_evidence"
     },
     {
-      "id": "SUP-05-GP02",
+      "id": "SUP-05-GP-02",
       "owner_id": "SUP-05",
       "mode": "GP",
       "role": "guided_practice",
@@ -2415,7 +2415,7 @@
       "retry": "hint_on_error_then_one_more_try_no_test_evidence"
     },
     {
-      "id": "SUP-05-SC01",
+      "id": "SUP-05-SC-01",
       "owner_id": "SUP-05",
       "mode": "IC",
       "role": "support_check",
@@ -2461,7 +2461,7 @@
       "hint": null
     },
     {
-      "id": "SUP-05-SC02",
+      "id": "SUP-05-SC-02",
       "owner_id": "SUP-05",
       "mode": "IC",
       "role": "support_check",
@@ -2499,7 +2499,7 @@
       "hint": null
     },
     {
-      "id": "SUP-06-GP01",
+      "id": "SUP-06-GP-01",
       "owner_id": "SUP-06",
       "mode": "GP",
       "role": "guided_practice",
@@ -2544,7 +2544,7 @@
       "retry": "hint_on_error_then_one_more_try_no_test_evidence"
     },
     {
-      "id": "SUP-06-GP02",
+      "id": "SUP-06-GP-02",
       "owner_id": "SUP-06",
       "mode": "GP",
       "role": "guided_practice",
@@ -2589,7 +2589,7 @@
       "retry": "hint_on_error_then_one_more_try_no_test_evidence"
     },
     {
-      "id": "SUP-06-SC01",
+      "id": "SUP-06-SC-01",
       "owner_id": "SUP-06",
       "mode": "IC",
       "role": "support_check",
@@ -2633,7 +2633,7 @@
       "hint": null
     },
     {
-      "id": "SUP-06-SC02",
+      "id": "SUP-06-SC-02",
       "owner_id": "SUP-06",
       "mode": "IC",
       "role": "support_check",
@@ -2677,7 +2677,7 @@
       "hint": null
     },
     {
-      "id": "SUP-07-GP01",
+      "id": "SUP-07-GP-01",
       "owner_id": "SUP-07",
       "mode": "GP",
       "role": "guided_practice",
@@ -2713,7 +2713,7 @@
       "retry": "hint_on_error_then_one_more_try_no_test_evidence"
     },
     {
-      "id": "SUP-07-GP02",
+      "id": "SUP-07-GP-02",
       "owner_id": "SUP-07",
       "mode": "GP",
       "role": "guided_practice",
@@ -2753,7 +2753,7 @@
       "retry": "hint_on_error_then_one_more_try_no_test_evidence"
     },
     {
-      "id": "SUP-07-SC01",
+      "id": "SUP-07-SC-01",
       "owner_id": "SUP-07",
       "mode": "IC",
       "role": "support_check",
@@ -2788,7 +2788,7 @@
       "hint": null
     },
     {
-      "id": "SUP-07-SC02",
+      "id": "SUP-07-SC-02",
       "owner_id": "SUP-07",
       "mode": "IC",
       "role": "support_check",
@@ -2825,6 +2825,574 @@
       "technical_gaps": [],
       "status": "draft",
       "hint": null
+    },
+    {
+      "id": "SUP-05-GP-03",
+      "owner_id": "SUP-05",
+      "role": "guided_practice",
+      "mode": "GP",
+      "interaction": "build_word",
+      "prompt": "رتب حروف كلمة رَسَمَ.",
+      "stimulus": {
+        "text": "رَسَمَ",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "ر",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "س",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "م",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a",
+          "b",
+          "c"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "word_construction",
+      "error_focus": "letter_order",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "origin_v1": null,
+      "status": "draft_pending_qa",
+      "hint": "ابدأ بالراء.",
+      "retry": "hint_then_one_more_guided_attempt"
+    },
+    {
+      "id": "SUP-05-GP-04",
+      "owner_id": "SUP-05",
+      "role": "guided_practice",
+      "mode": "GP",
+      "interaction": "write_text",
+      "prompt": "اكتب اسم مدخل المنزل.",
+      "stimulus": {
+        "text": "مدخل المنزل",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference": "بَاب",
+          "criteria": [
+            "صحة الكلمة/الجملة",
+            "ترتيب الحروف",
+            "سلامة المعنى"
+          ],
+          "no_auto_grade": true
+        }
+      },
+      "evidence_type": "word_writing",
+      "error_focus": "spelling",
+      "reading_reference": null,
+      "technical_gaps": [
+        "writing_input_not_confirmed_v1"
+      ],
+      "origin_v1": null,
+      "status": "draft_pending_qa",
+      "hint": "انطق كلمة باب ثم اكتبها.",
+      "retry": "hint_then_one_more_guided_attempt"
+    },
+    {
+      "id": "SUP-05-SC-03",
+      "owner_id": "SUP-05",
+      "role": "support_check",
+      "mode": "IC",
+      "interaction": "build_word",
+      "prompt": "رتب حروف كلمة سَمَك.",
+      "stimulus": {
+        "text": "سَمَك",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "ك",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "م",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "س",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "c",
+          "b",
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "word_construction",
+      "error_focus": "letter_order",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "origin_v1": null,
+      "status": "draft_pending_qa",
+      "hint": null
+    },
+    {
+      "id": "SUP-05-SC-04",
+      "owner_id": "SUP-05",
+      "role": "support_check",
+      "mode": "IC",
+      "interaction": "write_text",
+      "prompt": "اكتب اسم الأداة التي نكتب بها.",
+      "stimulus": {
+        "text": "أداة للكتابة",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference": "قَلَم",
+          "criteria": [
+            "صحة الكلمة/الجملة",
+            "ترتيب الحروف",
+            "سلامة المعنى"
+          ],
+          "no_auto_grade": true
+        }
+      },
+      "evidence_type": "word_writing",
+      "error_focus": "spelling",
+      "reading_reference": null,
+      "technical_gaps": [
+        "writing_input_not_confirmed_v1"
+      ],
+      "origin_v1": null,
+      "status": "draft_pending_qa",
+      "hint": null
+    },
+    {
+      "id": "SUP-06-GP-03",
+      "owner_id": "SUP-06",
+      "role": "guided_practice",
+      "mode": "GP",
+      "interaction": "listen_choose_one",
+      "prompt": "استمع ثم اختر الصوت.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "SYL-11",
+            "kind": "audio"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "نُ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "نُو",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "madd_waw",
+      "error_focus": "waw",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "origin_v1": null,
+      "status": "draft_pending_qa",
+      "hint": "استمع إلى المد الطويل.",
+      "retry": "hint_then_one_more_guided_attempt"
+    },
+    {
+      "id": "SUP-06-GP-04",
+      "owner_id": "SUP-06",
+      "role": "guided_practice",
+      "mode": "GP",
+      "interaction": "listen_choose_one",
+      "prompt": "استمع واختر.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "SYL-12",
+            "kind": "audio"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "لِ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "لِي",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "madd_yaa",
+      "error_focus": "yaa",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "origin_v1": null,
+      "status": "draft_pending_qa",
+      "hint": "الياء تطيل صوت الكسرة.",
+      "retry": "hint_then_one_more_guided_attempt"
+    },
+    {
+      "id": "SUP-06-SC-03",
+      "owner_id": "SUP-06",
+      "role": "support_check",
+      "mode": "IC",
+      "interaction": "listen_choose_one",
+      "prompt": "استمع ثم اختر.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "SYL-13",
+            "kind": "audio"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "سَ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "سَا",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "madd_alif",
+      "error_focus": "alif",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "origin_v1": null,
+      "status": "draft_pending_qa",
+      "hint": null
+    },
+    {
+      "id": "SUP-06-SC-04",
+      "owner_id": "SUP-06",
+      "role": "support_check",
+      "mode": "IC",
+      "interaction": "choose_one",
+      "prompt": "أي كلمة فيها مد بالواو؟",
+      "stimulus": {
+        "text": "اختر",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "نُور",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "نَهْر",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "madd_waw",
+      "error_focus": "waw",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "origin_v1": null,
+      "status": "draft_pending_qa",
+      "hint": null
+    },
+    {
+      "id": "SUP-06-SC-05",
+      "owner_id": "SUP-06",
+      "role": "support_check",
+      "mode": "IC",
+      "interaction": "choose_one",
+      "prompt": "أي كلمة فيها مد بالياء؟",
+      "stimulus": {
+        "text": "اختر",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "فِيل",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "فَل",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "madd_yaa",
+      "error_focus": "yaa",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "origin_v1": null,
+      "status": "draft_pending_qa",
+      "hint": null
+    },
+    {
+      "id": "SUP-06-SC-06",
+      "owner_id": "SUP-06",
+      "role": "support_check",
+      "mode": "IC",
+      "interaction": "listen_choose_one",
+      "prompt": "اختر المقطع الذي تسمعه.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "SYL-10",
+            "kind": "audio"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "فِ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "فِي",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "madd_yaa",
+      "error_focus": "yaa",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "origin_v1": null,
+      "status": "draft_pending_qa",
+      "hint": null
+    },
+    {
+      "id": "SUP-07-GP-03",
+      "owner_id": "SUP-07",
+      "role": "guided_practice",
+      "mode": "GP",
+      "interaction": "choose_one",
+      "prompt": "اختر تقسيم الكلمة الصحيح.",
+      "stimulus": {
+        "text": "حَدِيقَة",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "حَ / دِي / قَة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "حَ / دِ / يَقَ",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "chunking",
+      "error_focus": "chunking",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "origin_v1": null,
+      "status": "draft_pending_qa",
+      "hint": "اقرأ أجزاء الكلمة.",
+      "retry": "hint_then_one_more_guided_attempt"
+    },
+    {
+      "id": "SUP-07-GP-04",
+      "owner_id": "SUP-07",
+      "role": "guided_practice",
+      "mode": "GP",
+      "interaction": "sequence",
+      "prompt": "رتب الأجزاء لتكون مَكْتَبَة.",
+      "stimulus": {
+        "text": "مَكْ / تَ / بَة",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "بَة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "مَكْ",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "تَ",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b",
+          "c",
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "syllable_blending",
+      "error_focus": "blending",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "origin_v1": null,
+      "status": "draft_pending_qa",
+      "hint": "ابدأ بمَكْ.",
+      "retry": "hint_then_one_more_guided_attempt"
+    },
+    {
+      "id": "SUP-07-SC-03",
+      "owner_id": "SUP-07",
+      "role": "support_check",
+      "mode": "IC",
+      "interaction": "choose_one",
+      "prompt": "ما الكلمة الناتجة من حَ + دِي + قَة؟",
+      "stimulus": {
+        "text": "حَ + دِي + قَة",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "حَدِيقَة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "حَقِيبَة",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "syllable_blending",
+      "error_focus": "blending",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "origin_v1": null,
+      "status": "draft_pending_qa",
+      "hint": null
+    },
+    {
+      "id": "SUP-07-SC-04",
+      "owner_id": "SUP-07",
+      "role": "support_check",
+      "mode": "IC",
+      "interaction": "sequence",
+      "prompt": "رتب المقاطع لتكون مَكْتَبَة.",
+      "stimulus": {
+        "text": "مَكْ / تَ / بَة",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "تَ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "بَة",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "مَكْ",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "c",
+          "a",
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "syllable_blending",
+      "error_focus": "blending",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "origin_v1": null,
+      "status": "draft_pending_qa",
+      "hint": null
     }
   ],
   "supports": [
@@ -2845,20 +3413,49 @@
         "نَجْم"
       ],
       "practice_ids": [
-        "SUP-05-GP01",
-        "SUP-05-GP02"
+        "SUP-05-GP-01",
+        "SUP-05-GP-02",
+        "SUP-05-GP-03",
+        "SUP-05-GP-04"
       ],
       "check_ids": [
-        "SUP-05-SC01",
-        "SUP-05-SC02"
+        "SUP-05-SC-01",
+        "SUP-05-SC-02",
+        "SUP-05-SC-03",
+        "SUP-05-SC-04"
       ],
       "check_items_per_attempt": 2,
       "video_media_id": null,
-      "status": "draft",
+      "status": "authored_focus_draft_pending_review",
       "origin_v1": [
         "L2-REIN-01",
         "L2-CORE-09"
-      ]
+      ],
+      "focus_item_map": {
+        "letter_order": {
+          "practice_ids": [
+            "SUP-05-GP-01",
+            "SUP-05-GP-03"
+          ],
+          "check_ids": [
+            "SUP-05-SC-01",
+            "SUP-05-SC-03"
+          ],
+          "items_per_attempt": 2
+        },
+        "spelling": {
+          "practice_ids": [
+            "SUP-05-GP-02",
+            "SUP-05-GP-04"
+          ],
+          "check_ids": [
+            "SUP-05-SC-02",
+            "SUP-05-SC-04"
+          ],
+          "items_per_attempt": 2
+        }
+      },
+      "selection_rule": "يظهر دعم focus واحد و2 سؤال تحقق فقط بحسب الفجوة"
     },
     {
       "id": "SUP-06",
@@ -2878,19 +3475,59 @@
         "فِ / فِي"
       ],
       "practice_ids": [
-        "SUP-06-GP01",
-        "SUP-06-GP02"
+        "SUP-06-GP-01",
+        "SUP-06-GP-02",
+        "SUP-06-GP-03",
+        "SUP-06-GP-04"
       ],
       "check_ids": [
-        "SUP-06-SC01",
-        "SUP-06-SC02"
+        "SUP-06-SC-01",
+        "SUP-06-SC-02",
+        "SUP-06-SC-03",
+        "SUP-06-SC-04",
+        "SUP-06-SC-05",
+        "SUP-06-SC-06"
       ],
       "check_items_per_attempt": 2,
       "video_media_id": null,
-      "status": "draft",
+      "status": "authored_focus_draft_pending_review",
       "origin_v1": [
         "L2-CORE-06"
-      ]
+      ],
+      "focus_item_map": {
+        "alif": {
+          "practice_ids": [
+            "SUP-06-GP-01"
+          ],
+          "check_ids": [
+            "SUP-06-SC-02",
+            "SUP-06-SC-03"
+          ],
+          "items_per_attempt": 2
+        },
+        "waw": {
+          "practice_ids": [
+            "SUP-06-GP-03"
+          ],
+          "check_ids": [
+            "SUP-06-SC-01",
+            "SUP-06-SC-04"
+          ],
+          "items_per_attempt": 2
+        },
+        "yaa": {
+          "practice_ids": [
+            "SUP-06-GP-02",
+            "SUP-06-GP-04"
+          ],
+          "check_ids": [
+            "SUP-06-SC-05",
+            "SUP-06-SC-06"
+          ],
+          "items_per_attempt": 2
+        }
+      },
+      "selection_rule": "يظهر دعم focus واحد و2 سؤال تحقق فقط بحسب الفجوة"
     },
     {
       "id": "SUP-07",
@@ -2909,20 +3546,49 @@
         "حَدِيقَة"
       ],
       "practice_ids": [
-        "SUP-07-GP01",
-        "SUP-07-GP02"
+        "SUP-07-GP-01",
+        "SUP-07-GP-02",
+        "SUP-07-GP-03",
+        "SUP-07-GP-04"
       ],
       "check_ids": [
-        "SUP-07-SC01",
-        "SUP-07-SC02"
+        "SUP-07-SC-01",
+        "SUP-07-SC-02",
+        "SUP-07-SC-03",
+        "SUP-07-SC-04"
       ],
       "check_items_per_attempt": 2,
       "video_media_id": null,
-      "status": "draft",
+      "status": "authored_focus_draft_pending_review",
       "origin_v1": [
         "L2-CORE-05",
         "L3-CORE-01"
-      ]
+      ],
+      "focus_item_map": {
+        "chunking": {
+          "practice_ids": [
+            "SUP-07-GP-01",
+            "SUP-07-GP-03"
+          ],
+          "check_ids": [
+            "SUP-07-SC-01",
+            "SUP-07-SC-02"
+          ],
+          "items_per_attempt": 2
+        },
+        "blending": {
+          "practice_ids": [
+            "SUP-07-GP-02",
+            "SUP-07-GP-04"
+          ],
+          "check_ids": [
+            "SUP-07-SC-03",
+            "SUP-07-SC-04"
+          ],
+          "items_per_attempt": 2
+        }
+      },
+      "selection_rule": "يظهر دعم focus واحد و2 سؤال تحقق فقط بحسب الفجوة"
     }
   ],
   "media": [
