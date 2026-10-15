@@ -48,7 +48,10 @@
       ],
       "linked_support": "SUP-01",
       "status": "draft_pending_qa",
-      "approved": false
+      "approved": false,
+      "version": "0.3-draft",
+      "support_group_id": "SUP-01",
+      "publish_state": "blocked_pending_runtime_media_qa"
     },
     {
       "id": "L1-02",
@@ -93,7 +96,10 @@
       ],
       "linked_support": "SUP-01",
       "status": "draft_pending_qa",
-      "approved": false
+      "approved": false,
+      "version": "0.3-draft",
+      "support_group_id": "SUP-01",
+      "publish_state": "blocked_pending_runtime_media_qa"
     },
     {
       "id": "L1-03",
@@ -140,7 +146,10 @@
       ],
       "linked_support": "SUP-02",
       "status": "draft_pending_qa",
-      "approved": false
+      "approved": false,
+      "version": "0.3-draft",
+      "support_group_id": "SUP-02",
+      "publish_state": "blocked_pending_runtime_media_qa"
     },
     {
       "id": "L1-04",
@@ -184,7 +193,10 @@
       ],
       "linked_support": "SUP-03",
       "status": "draft_pending_qa",
-      "approved": false
+      "approved": false,
+      "version": "0.3-draft",
+      "support_group_id": "SUP-03",
+      "publish_state": "blocked_pending_runtime_media_qa"
     },
     {
       "id": "L1-05",
@@ -228,7 +240,10 @@
       ],
       "linked_support": "SUP-03",
       "status": "draft_pending_qa",
-      "approved": false
+      "approved": false,
+      "version": "0.3-draft",
+      "support_group_id": "SUP-03",
+      "publish_state": "blocked_pending_runtime_media_qa"
     },
     {
       "id": "L1-06",
@@ -274,7 +289,10 @@
       ],
       "linked_support": "SUP-04",
       "status": "draft_pending_qa",
-      "approved": false
+      "approved": false,
+      "version": "0.3-draft",
+      "support_group_id": "SUP-04",
+      "publish_state": "blocked_pending_runtime_media_qa"
     }
   ],
   "supports": [
@@ -358,7 +376,14 @@
           ],
           "items_per_attempt": 2
         }
-      }
+      },
+      "version": "0.3-draft",
+      "intro": {
+        "title": "الحرف والصوت والتمييز",
+        "text": "سنراجع الحروف التي تتشابه. انظر جيدًا واستمع قبل أن تختار."
+      },
+      "teaching_media_strategy": "short_approved_video_audio_or_visual_pending_choice",
+      "publish_state": "blocked_pending_media_runtime_qa"
     },
     {
       "id": "SUP-02",
@@ -434,7 +459,14 @@
           ],
           "items_per_attempt": 2
         }
-      }
+      },
+      "version": "0.3-draft",
+      "intro": {
+        "title": "الحركات القصيرة",
+        "text": "سنراجع الحركات القصيرة. انتبه إلى مكان الحركة وصوت الحرف."
+      },
+      "teaching_media_strategy": "short_approved_video_audio_or_visual_pending_choice",
+      "publish_state": "blocked_pending_media_runtime_qa"
     },
     {
       "id": "SUP-03",
@@ -498,7 +530,14 @@
           ],
           "items_per_attempt": 2
         }
-      }
+      },
+      "version": "0.3-draft",
+      "intro": {
+        "title": "المقاطع والدمج",
+        "text": "سنقرأ المقطع مع حركته، ثم نجمع المقاطع لنقرأ كلمة."
+      },
+      "teaching_media_strategy": "short_approved_video_audio_or_visual_pending_choice",
+      "publish_state": "blocked_pending_media_runtime_qa"
     },
     {
       "id": "SUP-04",
@@ -545,7 +584,14 @@
           "items_per_attempt": 2
         }
       },
-      "selection_rule": "يظهر focus واحد مناسب للفجوة، ويقدم منه تحققين فقط لكل محاولة"
+      "selection_rule": "يظهر focus واحد مناسب للفجوة، ويقدم منه تحققين فقط لكل محاولة",
+      "version": "0.3-draft",
+      "intro": {
+        "title": "قراءة الكلمات البسيطة",
+        "text": "سنقرأ كلمة قصيرة خطوة خطوة، ثم نقرأها كاملة."
+      },
+      "teaching_media_strategy": "short_approved_video_audio_or_visual_pending_choice",
+      "publish_state": "blocked_pending_media_runtime_qa"
     }
   ],
   "questions": [
@@ -601,7 +647,9 @@
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-01-GP-02",
@@ -667,7 +715,9 @@
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-01-GP-03",
@@ -721,7 +771,9 @@
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-01-GP-04",
@@ -790,7 +842,9 @@
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
       },
-      "notes": "تدريب نقل/Transfer لمثال جديد ضمن الأربعة."
+      "notes": "تدريب نقل/Transfer لمثال جديد ضمن الأربعة.",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-01-IC-A01",
@@ -851,7 +905,9 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-01-IC-A02",
@@ -912,7 +968,9 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-01-IC-A03",
@@ -961,7 +1019,9 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-01-IC-A04",
@@ -1011,7 +1071,9 @@
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
       "hint": null,
-      "notes": "LET-01 ملفه الحالي ينطق مَ؛ الاستعمال رهين مراجعة المالك لاحقًا."
+      "notes": "LET-01 ملفه الحالي ينطق مَ؛ الاستعمال رهين مراجعة المالك لاحقًا.",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-02-GP-01",
@@ -1060,7 +1122,9 @@
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-02-GP-02",
@@ -1109,7 +1173,9 @@
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-02-GP-03",
@@ -1161,7 +1227,9 @@
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
       },
-      "notes": "الأصل الصوتي جديد حتى يراجع."
+      "notes": "الأصل الصوتي جديد حتى يراجع.",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-02-GP-04",
@@ -1212,7 +1280,9 @@
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-02-IC-A01",
@@ -1251,7 +1321,9 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-02-IC-A02",
@@ -1290,7 +1362,9 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-02-IC-A03",
@@ -1334,7 +1408,9 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-02-IC-A04",
@@ -1380,7 +1456,9 @@
       ],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-03-GP-01",
@@ -1435,7 +1513,9 @@
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
       },
-      "notes": "الصوت مطابق في V1: بِ"
+      "notes": "الصوت مطابق في V1: بِ",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-03-GP-02",
@@ -1484,7 +1564,9 @@
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-03-GP-03",
@@ -1540,7 +1622,9 @@
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-03-GP-04",
@@ -1589,7 +1673,9 @@
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-03-IC-A01",
@@ -1640,7 +1726,9 @@
       ],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-03-IC-A02",
@@ -1691,7 +1779,9 @@
       ],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-03-IC-A03",
@@ -1735,7 +1825,9 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-03-IC-A04",
@@ -1784,7 +1876,9 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-04-GP-01",
@@ -1838,7 +1932,9 @@
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-04-GP-02",
@@ -1886,7 +1982,9 @@
         "allow_valid_readings_of_unvowelled_text": false,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-04-GP-03",
@@ -1940,7 +2038,9 @@
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-04-GP-04",
@@ -1988,7 +2088,9 @@
         "allow_valid_readings_of_unvowelled_text": false,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-04-IC-A01",
@@ -2031,7 +2133,9 @@
         "allow_valid_readings_of_unvowelled_text": false,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-04-IC-A02",
@@ -2080,7 +2184,9 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-04-IC-A03",
@@ -2123,7 +2229,9 @@
         "allow_valid_readings_of_unvowelled_text": false,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-04-IC-A04",
@@ -2172,7 +2280,9 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-05-GP-01",
@@ -2223,7 +2333,9 @@
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-05-GP-02",
@@ -2272,7 +2384,9 @@
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-05-GP-03",
@@ -2323,7 +2437,9 @@
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-05-GP-04",
@@ -2373,7 +2489,9 @@
         "allow_valid_readings_of_unvowelled_text": false,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-05-IC-A01",
@@ -2419,7 +2537,9 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-05-IC-A02",
@@ -2463,7 +2583,9 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-05-IC-A03",
@@ -2508,7 +2630,9 @@
         "allow_valid_readings_of_unvowelled_text": false,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-05-IC-A04",
@@ -2554,7 +2678,9 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-06-GP-01",
@@ -2602,7 +2728,9 @@
         "allow_valid_readings_of_unvowelled_text": false,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-06-GP-02",
@@ -2656,7 +2784,9 @@
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-06-GP-03",
@@ -2704,7 +2834,9 @@
         "allow_valid_readings_of_unvowelled_text": false,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-06-GP-04",
@@ -2768,7 +2900,9 @@
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-06-IC-A01",
@@ -2811,7 +2945,9 @@
         "allow_valid_readings_of_unvowelled_text": false,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-06-IC-A02",
@@ -2860,7 +2996,9 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-06-IC-A03",
@@ -2903,7 +3041,9 @@
         "allow_valid_readings_of_unvowelled_text": false,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "L1-06-IC-A04",
@@ -2962,7 +3102,9 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-01-GP-01",
@@ -3011,7 +3153,9 @@
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-01-GP-02",
@@ -3055,7 +3199,9 @@
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-01-GP-03",
@@ -3106,7 +3252,9 @@
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-01-SC-01",
@@ -3151,7 +3299,9 @@
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
       "hint": null,
-      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة."
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-01-SC-02",
@@ -3191,7 +3341,9 @@
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
       "hint": null,
-      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة."
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-01-SC-03",
@@ -3238,7 +3390,9 @@
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
       "hint": null,
-      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة."
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-02-GP-01",
@@ -3287,7 +3441,9 @@
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-02-GP-02",
@@ -3331,7 +3487,9 @@
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-02-SC-01",
@@ -3378,7 +3536,9 @@
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
       "hint": null,
-      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة."
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-02-SC-02",
@@ -3418,7 +3578,9 @@
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
       "hint": null,
-      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة."
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-03-GP-01",
@@ -3466,7 +3628,9 @@
         "allow_valid_readings_of_unvowelled_text": false,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-03-GP-02",
@@ -3517,7 +3681,9 @@
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-03-SC-01",
@@ -3562,7 +3728,9 @@
         "allow_valid_readings_of_unvowelled_text": false,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-03-SC-02",
@@ -3608,7 +3776,9 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": null
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-04-GP-01",
@@ -3656,7 +3826,9 @@
         "allow_valid_readings_of_unvowelled_text": false,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-04-GP-02",
@@ -3705,7 +3877,9 @@
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
         "graded_as_check": false
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-04-SC-01",
@@ -3748,7 +3922,9 @@
         "allow_valid_readings_of_unvowelled_text": false,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-04-SC-02",
@@ -3791,7 +3967,9 @@
         "allow_valid_readings_of_unvowelled_text": false,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-01-GP-04",
@@ -3834,7 +4012,9 @@
       "hint": "استمع إلى بداية كلمة نجم.",
       "retry": "guided_try_after_hint",
       "status": "draft_pending_review",
-      "origin_v1": null
+      "origin_v1": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-01-GP-05",
@@ -3872,7 +4052,9 @@
       "hint": "انظر أسفل الحرف.",
       "retry": "guided_try_after_hint",
       "status": "draft_pending_review",
-      "origin_v1": null
+      "origin_v1": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-01-GP-06",
@@ -3915,7 +4097,9 @@
       "hint": "أعد الاستماع.",
       "retry": "guided_try_after_hint",
       "status": "draft_pending_review",
-      "origin_v1": null
+      "origin_v1": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-01-SC-04",
@@ -3958,7 +4142,9 @@
       "hint": null,
       "retry": null,
       "status": "draft_pending_review",
-      "origin_v1": null
+      "origin_v1": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-01-SC-05",
@@ -3996,7 +4182,9 @@
       "hint": null,
       "retry": null,
       "status": "draft_pending_review",
-      "origin_v1": null
+      "origin_v1": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-01-SC-06",
@@ -4040,7 +4228,9 @@
       "retry": null,
       "status": "draft_pending_review",
       "origin_v1": null,
-      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة."
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-02-GP-03",
@@ -4083,7 +4273,9 @@
       "hint": "ابحث عن الضمة.",
       "retry": "guided_try_after_hint",
       "status": "draft_pending_review",
-      "origin_v1": null
+      "origin_v1": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-02-GP-04",
@@ -4121,7 +4313,9 @@
       "hint": "ابحث فوق الحرف.",
       "retry": "guided_try_after_hint",
       "status": "draft_pending_review",
-      "origin_v1": null
+      "origin_v1": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-02-GP-05",
@@ -4164,7 +4358,9 @@
       "hint": "الكسرة تحت الحرف.",
       "retry": "guided_try_after_hint",
       "status": "draft_pending_review",
-      "origin_v1": null
+      "origin_v1": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-02-SC-03",
@@ -4202,7 +4398,9 @@
       "hint": null,
       "retry": null,
       "status": "draft_pending_review",
-      "origin_v1": null
+      "origin_v1": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-02-SC-04",
@@ -4241,7 +4439,9 @@
       "retry": null,
       "status": "draft_pending_review",
       "origin_v1": null,
-      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة."
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-02-SC-05",
@@ -4284,7 +4484,9 @@
       "hint": null,
       "retry": null,
       "status": "draft_pending_review",
-      "origin_v1": null
+      "origin_v1": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-02-SC-06",
@@ -4322,7 +4524,9 @@
       "hint": null,
       "retry": null,
       "status": "draft_pending_review",
-      "origin_v1": null
+      "origin_v1": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-03-GP-03",
@@ -4359,7 +4563,9 @@
         "allow_valid_readings_of_unvowelled_text": false,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-03-GP-04",
@@ -4404,7 +4610,9 @@
       "hint": "ابدأ بـكَ.",
       "retry": "guided_try_after_hint",
       "status": "draft_pending_review",
-      "origin_v1": null
+      "origin_v1": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-03-SC-03",
@@ -4443,7 +4651,9 @@
         "allow_valid_readings_of_unvowelled_text": false,
         "do_not_penalize_unshown_case_endings": true,
         "academic_authority": "human_supervisor"
-      }
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     },
     {
       "id": "SUP-03-SC-04",
@@ -4489,7 +4699,9 @@
       "retry": null,
       "status": "draft_pending_review",
       "origin_v1": null,
-      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة."
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
+      "version": "0.3-draft",
+      "authoring_state": "draft"
     }
   ],
   "media": [
@@ -4501,7 +4713,9 @@
       "v1_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-01.mp3",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "LET-02",
@@ -4511,7 +4725,9 @@
       "v1_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-02.mp3",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "LET-03",
@@ -4521,7 +4737,9 @@
       "v1_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-03.mp3",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "LET-04",
@@ -4531,7 +4749,9 @@
       "v1_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-04.mp3",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "LET-05",
@@ -4541,7 +4761,9 @@
       "v1_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-05.mp3",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "LET-06",
@@ -4551,7 +4773,9 @@
       "v1_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-06.mp3",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "SYL-01",
@@ -4561,7 +4785,9 @@
       "v1_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-01.mp3",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "SYL-02",
@@ -4571,7 +4797,9 @@
       "v1_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-02.mp3",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "SYL-03",
@@ -4581,7 +4809,9 @@
       "v1_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-03.mp3",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "SYL-05",
@@ -4591,7 +4821,9 @@
       "v1_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-05.mp3",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "SYL-06",
@@ -4601,7 +4833,9 @@
       "v1_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-06.mp3",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "SYL-07",
@@ -4611,7 +4845,9 @@
       "v1_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-07.mp3",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "SYL-08",
@@ -4621,7 +4857,9 @@
       "v1_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-08.mp3",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "SYL-10",
@@ -4631,7 +4869,9 @@
       "v1_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-10.mp3",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "WRD-03",
@@ -4641,7 +4881,9 @@
       "v1_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-03.mp3",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "WRD-04",
@@ -4651,7 +4893,9 @@
       "v1_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-04.mp3",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "WRD-05",
@@ -4661,7 +4905,9 @@
       "v1_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-05.mp3",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "WRD-07",
@@ -4671,7 +4917,9 @@
       "v1_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-07.mp3",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "WRD-08",
@@ -4681,7 +4929,9 @@
       "v1_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-08.mp3",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "WRD-09",
@@ -4691,7 +4941,9 @@
       "v1_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-09.mp3",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "WRD-10",
@@ -4701,7 +4953,9 @@
       "v1_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-10.mp3",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "WRD-14",
@@ -4711,7 +4965,9 @@
       "v1_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-14.mp3",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "WRD-29",
@@ -4721,7 +4977,9 @@
       "v1_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-29.mp3",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "VOC-01",
@@ -4731,7 +4989,9 @@
       "v1_path": "assets/education/assets/vocabulary/webp/hem-voc-01-banana-512.webp",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": true
+      "rights_review_required": true,
+      "type": "image",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "VOC-03",
@@ -4741,7 +5001,9 @@
       "v1_path": "assets/education/assets/vocabulary/webp/hem-voc-03-door-512.webp",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": true
+      "rights_review_required": true,
+      "type": "image",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "VOC-04",
@@ -4751,7 +5013,9 @@
       "v1_path": "assets/education/assets/vocabulary/webp/hem-voc-04-pencil-512.webp",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": true
+      "rights_review_required": true,
+      "type": "image",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "VOC-05",
@@ -4761,7 +5025,9 @@
       "v1_path": "assets/education/assets/vocabulary/webp/hem-voc-05-fish-512.webp",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": true
+      "rights_review_required": true,
+      "type": "image",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "VOC-06",
@@ -4771,7 +5037,9 @@
       "v1_path": "assets/education/assets/vocabulary/webp/hem-voc-06-sun-512.webp",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": true
+      "rights_review_required": true,
+      "type": "image",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "VOC-07",
@@ -4781,7 +5049,9 @@
       "v1_path": "assets/education/assets/vocabulary/webp/hem-voc-07-moon-512.webp",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": true
+      "rights_review_required": true,
+      "type": "image",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "VOC-08",
@@ -4791,7 +5061,9 @@
       "v1_path": "assets/education/assets/vocabulary/webp/hem-voc-08-tree-512.webp",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": true
+      "rights_review_required": true,
+      "type": "image",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "VOC-09",
@@ -4801,7 +5073,9 @@
       "v1_path": "assets/education/assets/vocabulary/webp/hem-voc-09-palm-tree-512.webp",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": true
+      "rights_review_required": true,
+      "type": "image",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "VOC-10",
@@ -4811,7 +5085,9 @@
       "v1_path": "assets/education/assets/vocabulary/webp/hem-voc-10-ball-512.webp",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": true
+      "rights_review_required": true,
+      "type": "image",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "VOC-14",
@@ -4821,7 +5097,9 @@
       "v1_path": "assets/education/assets/vocabulary/webp/hem-voc-14-star-512.webp",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": true
+      "rights_review_required": true,
+      "type": "image",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "VOC-28",
@@ -4831,7 +5109,9 @@
       "v1_path": "assets/education/assets/vocabulary/webp/hem-voc-28-flower-512.webp",
       "status": "selected_from_v1_pending_owner_review",
       "approval": "pending_owner_review",
-      "rights_review_required": true
+      "rights_review_required": true,
+      "type": "image",
+      "review_state": "owner_review_pending"
     },
     {
       "id": "VID-L1-01",
@@ -4841,7 +5121,9 @@
       "v1_path": null,
       "status": "missing_new",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "video",
+      "review_state": "awaiting_production"
     },
     {
       "id": "AUD-L1-L",
@@ -4851,7 +5133,9 @@
       "v1_path": null,
       "status": "missing_new",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "awaiting_production"
     },
     {
       "id": "VID-L1-02",
@@ -4861,7 +5145,9 @@
       "v1_path": null,
       "status": "missing_new",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "video",
+      "review_state": "awaiting_production"
     },
     {
       "id": "AUD-L1-SAD",
@@ -4871,7 +5157,9 @@
       "v1_path": null,
       "status": "missing_new",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "awaiting_production"
     },
     {
       "id": "AUD-L1-TA",
@@ -4881,7 +5169,9 @@
       "v1_path": null,
       "status": "missing_new",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "awaiting_production"
     },
     {
       "id": "AUD-L1-TAA",
@@ -4891,7 +5181,9 @@
       "v1_path": null,
       "status": "missing_new",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "awaiting_production"
     },
     {
       "id": "VID-L1-03",
@@ -4901,7 +5193,9 @@
       "v1_path": null,
       "status": "missing_new",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "video",
+      "review_state": "awaiting_production"
     },
     {
       "id": "AUD-L1-03-MU",
@@ -4911,7 +5205,9 @@
       "v1_path": null,
       "status": "missing_new",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "awaiting_production"
     },
     {
       "id": "AUD-L1-03-MA",
@@ -4921,7 +5217,9 @@
       "v1_path": null,
       "status": "missing_new",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "awaiting_production"
     },
     {
       "id": "AUD-L1-03-SA",
@@ -4931,7 +5229,9 @@
       "v1_path": null,
       "status": "missing_new",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "awaiting_production"
     },
     {
       "id": "AUD-L1-03-SI",
@@ -4941,7 +5241,9 @@
       "v1_path": null,
       "status": "missing_new",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "awaiting_production"
     },
     {
       "id": "AUD-L1-03-NU",
@@ -4951,7 +5253,9 @@
       "v1_path": null,
       "status": "missing_new",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "awaiting_production"
     },
     {
       "id": "AUD-L1-03-LI",
@@ -4961,7 +5265,9 @@
       "v1_path": null,
       "status": "missing_new",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "audio",
+      "review_state": "awaiting_production"
     },
     {
       "id": "VID-L1-04",
@@ -4971,7 +5277,9 @@
       "v1_path": null,
       "status": "missing_new",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "video",
+      "review_state": "awaiting_production"
     },
     {
       "id": "VID-L1-05",
@@ -4981,7 +5289,9 @@
       "v1_path": null,
       "status": "missing_new",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "video",
+      "review_state": "awaiting_production"
     },
     {
       "id": "VID-L1-06",
@@ -4991,7 +5301,9 @@
       "v1_path": null,
       "status": "missing_new",
       "approval": "pending_owner_review",
-      "rights_review_required": false
+      "rights_review_required": false,
+      "type": "video",
+      "review_state": "awaiting_production"
     }
   ],
   "v1_sources": [],
