@@ -5511,7 +5511,10 @@
       "status": "selected_from_v1_pending_owner_review",
       "review": "owner_after_content_completion",
       "type": "image",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_label_private": "مكتبة",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     },
     {
       "id": "VOC-28",
@@ -5522,7 +5525,10 @@
       "status": "selected_from_v1_pending_owner_review",
       "review": "owner_after_content_completion",
       "type": "image",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_label_private": "زهرة",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     },
     {
       "id": "VOC-34",
@@ -5533,7 +5539,10 @@
       "status": "selected_from_v1_pending_owner_review",
       "review": "owner_after_content_completion",
       "type": "image",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_label_private": "طفل",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     },
     {
       "id": "VOC-35",
@@ -5544,7 +5553,10 @@
       "status": "selected_from_v1_pending_owner_review",
       "review": "owner_after_content_completion",
       "type": "image",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_label_private": "طفلة",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     },
     {
       "id": "VOC-20",
@@ -5555,7 +5567,10 @@
       "status": "selected_from_v1_pending_owner_review",
       "review": "owner_after_content_completion",
       "type": "image",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_label_private": "عصفور",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     },
     {
       "id": "VOC-30",
@@ -5566,7 +5581,10 @@
       "status": "selected_from_v1_pending_owner_review",
       "review": "owner_after_content_completion",
       "type": "image",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_label_private": "أوراق شجر",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     },
     {
       "id": "VOC-21",
@@ -5577,7 +5595,10 @@
       "status": "selected_from_v1_pending_owner_review",
       "review": "owner_after_content_completion",
       "type": "image",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_label_private": "حديقة",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     },
     {
       "id": "VOC-17",
@@ -5588,7 +5609,10 @@
       "status": "selected_from_v1_pending_owner_review",
       "review": "owner_after_content_completion",
       "type": "image",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_label_private": "حقيبة",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     },
     {
       "id": "VOC-06",
@@ -5599,7 +5623,10 @@
       "status": "selected_from_v1_pending_owner_review",
       "review": "owner_after_content_completion",
       "type": "image",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_label_private": "شمس",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     },
     {
       "id": "VOC-14",
@@ -5610,7 +5637,10 @@
       "status": "selected_from_v1_pending_owner_review",
       "review": "owner_after_content_completion",
       "type": "image",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_label_private": "نجم",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     },
     {
       "id": "VID-L3-01",
@@ -5698,7 +5728,10 @@
       "status": "selected_from_v1_pending_owner_review",
       "review": "owner_after_content_completion",
       "type": "image",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_label_private": "مدرسة",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     }
   ],
   "qa_notes": []
