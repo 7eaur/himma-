@@ -579,7 +579,7 @@
       "interaction": "write_text",
       "prompt": "اكتب كلمة من ثلاثة أحرف تبدأ بحرف ب وتدل على مدخل المنزل.",
       "stimulus": {
-        "text": "باب",
+        "text": "مدخل المنزل",
         "media": []
       },
       "options": [],
@@ -601,7 +601,7 @@
       "error_focus": "spelling",
       "skill_group": "S5",
       "origin_v1": null,
-      "notes": "يتحقق المشرف من إجابة باب دون نص حل ظاهر للطالب",
+      "notes": "تعديل مراجعة الجودة: إزالة كشف الإجابة أو الافتراض غير المثبت في الصورة.",
       "reading_reference": null,
       "technical_gaps": [
         "free_writing_input_and_scoring_unconfirmed_v1"
