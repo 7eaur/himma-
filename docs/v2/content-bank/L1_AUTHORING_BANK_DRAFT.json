@@ -5628,7 +5628,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-01.mp3",
+      "reference_spoken_private": "مَ",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "LET-02",
@@ -5640,7 +5644,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-02.mp3",
+      "reference_spoken_private": "بْ",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "LET-03",
@@ -5652,7 +5660,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-03.mp3",
+      "reference_spoken_private": "سْ",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "LET-04",
@@ -5664,7 +5676,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-04.mp3",
+      "reference_spoken_private": "قْ",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "LET-05",
@@ -5676,7 +5692,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-05.mp3",
+      "reference_spoken_private": "رْ",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "LET-06",
@@ -5688,7 +5708,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-06.mp3",
+      "reference_spoken_private": "نْ",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "SYL-01",
@@ -5700,7 +5724,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-01.mp3",
+      "reference_spoken_private": "بَ",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "SYL-02",
@@ -5712,7 +5740,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-02.mp3",
+      "reference_spoken_private": "بِ",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "SYL-03",
@@ -5724,7 +5756,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-03.mp3",
+      "reference_spoken_private": "بُ",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "SYL-05",
@@ -5736,7 +5772,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-05.mp3",
+      "reference_spoken_private": "مِ",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "SYL-06",
@@ -5748,7 +5788,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-06.mp3",
+      "reference_spoken_private": "سُ",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "SYL-07",
@@ -5760,7 +5804,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-07.mp3",
+      "reference_spoken_private": "رَ",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "SYL-08",
@@ -5772,7 +5820,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-08.mp3",
+      "reference_spoken_private": "قِ",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "SYL-10",
@@ -5784,7 +5836,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-10.mp3",
+      "reference_spoken_private": "فِي",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "WRD-03",
@@ -5796,7 +5852,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-03.mp3",
+      "reference_spoken_private": "باب",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "WRD-04",
@@ -5808,7 +5868,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-04.mp3",
+      "reference_spoken_private": "قَلَم",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "WRD-05",
@@ -5820,7 +5884,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-05.mp3",
+      "reference_spoken_private": "سَمَك",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "WRD-07",
@@ -5832,7 +5900,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-07.mp3",
+      "reference_spoken_private": "شَمْس",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "WRD-08",
@@ -5844,7 +5916,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-08.mp3",
+      "reference_spoken_private": "قَمَر",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "WRD-09",
@@ -5856,7 +5932,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-09.mp3",
+      "reference_spoken_private": "نَخْلَة",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "WRD-10",
@@ -5868,7 +5948,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-10.mp3",
+      "reference_spoken_private": "كُرَة",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "WRD-14",
@@ -5880,7 +5964,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-14.mp3",
+      "reference_spoken_private": "نَجْم",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "WRD-29",
@@ -5892,7 +5980,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-29.mp3",
+      "reference_spoken_private": "موز",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
     },
     {
       "id": "VOC-01",
@@ -5904,7 +5996,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": true,
       "type": "image",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-01-banana-512.webp",
+      "source_label_private": "موزة",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     },
     {
       "id": "VOC-03",
@@ -5916,7 +6012,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": true,
       "type": "image",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-03-door-512.webp",
+      "source_label_private": "باب",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     },
     {
       "id": "VOC-04",
@@ -5928,7 +6028,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": true,
       "type": "image",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-04-pencil-512.webp",
+      "source_label_private": "قلم",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     },
     {
       "id": "VOC-05",
@@ -5940,7 +6044,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": true,
       "type": "image",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-05-fish-512.webp",
+      "source_label_private": "سمكة",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     },
     {
       "id": "VOC-06",
@@ -5952,7 +6060,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": true,
       "type": "image",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-06-sun-512.webp",
+      "source_label_private": "شمس",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     },
     {
       "id": "VOC-07",
@@ -5964,7 +6076,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": true,
       "type": "image",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-07-moon-512.webp",
+      "source_label_private": "قمر",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     },
     {
       "id": "VOC-08",
@@ -5976,7 +6092,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": true,
       "type": "image",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-08-tree-512.webp",
+      "source_label_private": "شجرة",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     },
     {
       "id": "VOC-09",
@@ -5988,7 +6108,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": true,
       "type": "image",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-09-palm-tree-512.webp",
+      "source_label_private": "نخلة",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     },
     {
       "id": "VOC-10",
@@ -6000,7 +6124,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": true,
       "type": "image",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-10-ball-512.webp",
+      "source_label_private": "كرة",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     },
     {
       "id": "VOC-14",
@@ -6012,7 +6140,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": true,
       "type": "image",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-14-star-512.webp",
+      "source_label_private": "نجم",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     },
     {
       "id": "VOC-28",
@@ -6024,7 +6156,11 @@
       "approval": "pending_owner_review",
       "rights_review_required": true,
       "type": "image",
-      "review_state": "owner_review_pending"
+      "review_state": "owner_review_pending",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-28-flower-512.webp",
+      "source_label_private": "زهرة",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
     },
     {
       "id": "VID-L1-01",
@@ -6048,7 +6184,10 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "awaiting_production"
+      "review_state": "awaiting_production",
+      "required_spoken_text": "لْ",
+      "required_by_questions": true,
+      "recording_state": "missing_required"
     },
     {
       "id": "VID-L1-02",
@@ -6072,7 +6211,10 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "awaiting_production"
+      "review_state": "awaiting_production",
+      "required_spoken_text": "صْ",
+      "required_by_questions": true,
+      "recording_state": "missing_required"
     },
     {
       "id": "AUD-L1-TA",
@@ -6084,7 +6226,10 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "awaiting_production"
+      "review_state": "awaiting_production",
+      "required_spoken_text": "تْ",
+      "required_by_questions": true,
+      "recording_state": "missing_required"
     },
     {
       "id": "AUD-L1-TAA",
@@ -6096,7 +6241,10 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "awaiting_production"
+      "review_state": "awaiting_production",
+      "required_spoken_text": "طْ",
+      "required_by_questions": true,
+      "recording_state": "missing_required"
     },
     {
       "id": "VID-L1-03",
@@ -6120,7 +6268,10 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "awaiting_production"
+      "review_state": "awaiting_production",
+      "required_spoken_text": "مُ",
+      "required_by_questions": true,
+      "recording_state": "missing_required"
     },
     {
       "id": "AUD-L1-03-MA",
@@ -6132,7 +6283,10 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "awaiting_production"
+      "review_state": "awaiting_production",
+      "required_spoken_text": "مَ",
+      "required_by_questions": false,
+      "recording_state": "missing_optional_unused"
     },
     {
       "id": "AUD-L1-03-SA",
@@ -6144,7 +6298,10 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "awaiting_production"
+      "review_state": "awaiting_production",
+      "required_spoken_text": "سَ",
+      "required_by_questions": true,
+      "recording_state": "missing_required"
     },
     {
       "id": "AUD-L1-03-SI",
@@ -6156,7 +6313,10 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "awaiting_production"
+      "review_state": "awaiting_production",
+      "required_spoken_text": "سِ",
+      "required_by_questions": false,
+      "recording_state": "missing_optional_unused"
     },
     {
       "id": "AUD-L1-03-NU",
@@ -6168,7 +6328,10 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "awaiting_production"
+      "review_state": "awaiting_production",
+      "required_spoken_text": "نُ",
+      "required_by_questions": true,
+      "recording_state": "missing_required"
     },
     {
       "id": "AUD-L1-03-LI",
@@ -6180,7 +6343,10 @@
       "approval": "pending_owner_review",
       "rights_review_required": false,
       "type": "audio",
-      "review_state": "awaiting_production"
+      "review_state": "awaiting_production",
+      "required_spoken_text": "لِ",
+      "required_by_questions": true,
+      "recording_state": "missing_required"
     },
     {
       "id": "VID-L1-04",
@@ -6225,7 +6391,9 @@
       "label": "ضْ",
       "required_spoken_text": "ضْ",
       "status": "missing_new",
-      "review_state": "awaiting_production"
+      "review_state": "awaiting_production",
+      "required_by_questions": true,
+      "recording_state": "missing_required"
     }
   ],
   "v1_sources": [],
