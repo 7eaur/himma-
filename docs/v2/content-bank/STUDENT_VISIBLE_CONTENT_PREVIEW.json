@@ -1,8 +1,9 @@
 {
-  "schema": "himma-v2-safe-student-preview/1.0",
-  "description": "تصور عرض للطالب من بنك التأليف، لا يتضمن مفاتيح الإجابات أو rubric ولا يمثل واجهة V2 التشغيلية",
+  "schema_version": "himma-v2-public-content-preview/1.1",
   "generated_on": "2026-10-16",
-  "lessons": [
+  "purpose": "عرض محتوى الطالب من حقول البنك فقط؛ دون الإجابات والتلميحات قبل المحاولة وملاحظات المؤلف",
+  "content_status": "draft_media_pending",
+  "lesson_headers": [
     {
       "id": "L1-01",
       "title": "الحرف وصوته",
@@ -408,7 +409,7 @@
       ]
     }
   ],
-  "supports": [
+  "support_headers": [
     {
       "id": "SUP-01",
       "title": "الحرف والصوت والتمييز",
@@ -416,12 +417,11 @@
         "title": "الحرف والصوت والتمييز",
         "text": "سنراجع الحروف التي تتشابه. انظر جيدًا واستمع قبل أن تختار."
       },
-      "focus_names": [
+      "focuses": [
         "sound_mapping",
         "visual_confusion",
         "auditory_confusion"
-      ],
-      "mode": "focused_remediation"
+      ]
     },
     {
       "id": "SUP-02",
@@ -430,12 +430,11 @@
         "title": "الحركات القصيرة",
         "text": "سنراجع الحركات القصيرة. انتبه إلى مكان الحركة وصوت الحرف."
       },
-      "focus_names": [
+      "focuses": [
         "fatha",
         "damma",
         "kasra"
-      ],
-      "mode": "focused_remediation"
+      ]
     },
     {
       "id": "SUP-03",
@@ -444,11 +443,10 @@
         "title": "المقاطع والدمج",
         "text": "سنقرأ المقطع مع حركته، ثم نجمع المقاطع لنقرأ كلمة."
       },
-      "focus_names": [
+      "focuses": [
         "syllable_reading",
         "syllable_blending"
-      ],
-      "mode": "focused_remediation"
+      ]
     },
     {
       "id": "SUP-04",
@@ -457,10 +455,9 @@
         "title": "قراءة الكلمات البسيطة",
         "text": "سنقرأ كلمة قصيرة خطوة خطوة، ثم نقرأها كاملة."
       },
-      "focus_names": [
+      "focuses": [
         "word_decoding"
-      ],
-      "mode": "focused_remediation"
+      ]
     },
     {
       "id": "SUP-05",
@@ -469,11 +466,10 @@
         "title": "بناء وكتابة الكلمة",
         "text": "سنرتب الحروف ونكتب كلمة واضحة."
       },
-      "focus_names": [
+      "focuses": [
         "letter_order",
         "spelling"
-      ],
-      "mode": "focused_remediation"
+      ]
     },
     {
       "id": "SUP-06",
@@ -482,12 +478,11 @@
         "title": "المدود",
         "text": "سنميز بين الصوت القصير والمد الطويل."
       },
-      "focus_names": [
+      "focuses": [
         "alif",
         "waw",
         "yaa"
-      ],
-      "mode": "focused_remediation"
+      ]
     },
     {
       "id": "SUP-07",
@@ -496,11 +491,10 @@
         "title": "الكلمات الأطول",
         "text": "سنقسم الكلمة إلى أجزاء صغيرة ثم نقرأها كاملة."
       },
-      "focus_names": [
+      "focuses": [
         "chunking",
         "blending"
-      ],
-      "mode": "focused_remediation"
+      ]
     },
     {
       "id": "SUP-08",
@@ -509,11 +503,10 @@
         "title": "قراءة الجملة والنص",
         "text": "سنقرأ جملًا قصيرة ونقف قليلًا عند نهاية كل جملة."
       },
-      "focus_names": [
+      "focuses": [
         "word_omission",
         "pause_or_order"
-      ],
-      "mode": "focused_remediation"
+      ]
     },
     {
       "id": "SUP-09",
@@ -522,10 +515,9 @@
         "title": "الفهم المباشر",
         "text": "سنبحث عن الإجابة داخل الجملة أو النص."
       },
-      "focus_names": [
+      "focuses": [
         "find_explicit_answer"
-      ],
-      "mode": "focused_remediation"
+      ]
     },
     {
       "id": "SUP-10",
@@ -534,10 +526,9 @@
         "title": "ترتيب أحداث النص",
         "text": "سنقرأ ما حدث ثم نرتب الأحداث من الأول إلى الأخير."
       },
-      "focus_names": [
+      "focuses": [
         "event_sequence"
-      ],
-      "mode": "focused_remediation"
+      ]
     },
     {
       "id": "SUP-11",
@@ -546,10 +537,9 @@
         "title": "تحديد الفكرة الرئيسة",
         "text": "سنختار الفكرة التي تجمع معظم جمل النص."
       },
-      "focus_names": [
+      "focuses": [
         "detail_as_main_idea"
-      ],
-      "mode": "focused_remediation"
+      ]
     },
     {
       "id": "SUP-12",
@@ -558,76 +548,11 @@
         "title": "بناء وكتابة الجملة",
         "text": "سنرتب الكلمات ثم نكتب جملة قصيرة مفيدة."
       },
-      "focus_names": [
+      "focuses": [
         "word_order",
         "sentence_writing"
-      ],
-      "mode": "focused_remediation"
+      ]
     }
-  ],
-  "pretest": [
-    "V2-PRE-Q01",
-    "V2-PRE-Q02",
-    "V2-PRE-Q03",
-    "V2-PRE-Q04",
-    "V2-PRE-Q05",
-    "V2-PRE-Q06",
-    "V2-PRE-Q07",
-    "V2-PRE-Q08",
-    "V2-PRE-Q09",
-    "V2-PRE-Q10",
-    "V2-PRE-Q11",
-    "V2-PRE-Q12",
-    "V2-PRE-Q13",
-    "V2-PRE-Q14",
-    "V2-PRE-Q15",
-    "V2-PRE-Q16",
-    "V2-PRE-Q17",
-    "V2-PRE-Q18",
-    "V2-PRE-Q19",
-    "V2-PRE-Q20",
-    "V2-PRE-Q21",
-    "V2-PRE-Q22",
-    "V2-PRE-Q23",
-    "V2-PRE-Q24",
-    "V2-PRE-Q25",
-    "V2-PRE-Q26",
-    "V2-PRE-Q27",
-    "V2-PRE-Q28",
-    "V2-PRE-Q29",
-    "V2-PRE-Q30"
-  ],
-  "posttest": [
-    "V2-POST-Q01",
-    "V2-POST-Q02",
-    "V2-POST-Q03",
-    "V2-POST-Q04",
-    "V2-POST-Q05",
-    "V2-POST-Q06",
-    "V2-POST-Q07",
-    "V2-POST-Q08",
-    "V2-POST-Q09",
-    "V2-POST-Q10",
-    "V2-POST-Q11",
-    "V2-POST-Q12",
-    "V2-POST-Q13",
-    "V2-POST-Q14",
-    "V2-POST-Q15",
-    "V2-POST-Q16",
-    "V2-POST-Q17",
-    "V2-POST-Q18",
-    "V2-POST-Q19",
-    "V2-POST-Q20",
-    "V2-POST-Q21",
-    "V2-POST-Q22",
-    "V2-POST-Q23",
-    "V2-POST-Q24",
-    "V2-POST-Q25",
-    "V2-POST-Q26",
-    "V2-POST-Q27",
-    "V2-POST-Q28",
-    "V2-POST-Q29",
-    "V2-POST-Q30"
   ],
   "items": [
     {
@@ -641,13 +566,13 @@
           {
             "media_id": "LET-02",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ب",
@@ -667,11 +592,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L1-01-GP-02",
@@ -683,7 +606,7 @@
         "media": [],
         "display_mode": "large_character"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": null,
@@ -692,7 +615,7 @@
             {
               "media_id": "LET-04",
               "kind": "audio",
-              "control_label": "تشغيل الصوت 1",
+              "button_label": "تشغيل الصوت 1",
               "caption": null
             }
           ]
@@ -705,7 +628,7 @@
             {
               "media_id": "LET-05",
               "kind": "audio",
-              "control_label": "تشغيل الصوت 2",
+              "button_label": "تشغيل الصوت 2",
               "caption": null
             }
           ]
@@ -718,17 +641,15 @@
             {
               "media_id": "LET-03",
               "kind": "audio",
-              "control_label": "تشغيل الصوت 3",
+              "button_label": "تشغيل الصوت 3",
               "caption": null
             }
           ]
         }
       ],
-      "render": {
-        "option_mode": "audio_cards",
-        "layout": "audio_choice_grid",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "audio_choice_grid",
+      "choice_media_mode": "audio_cards"
     },
     {
       "id": "L1-01-GP-03",
@@ -741,13 +662,13 @@
           {
             "media_id": "LET-06",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "م",
@@ -767,11 +688,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L1-01-GP-04",
@@ -783,7 +702,7 @@
         "media": [],
         "display_mode": "large_character"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": null,
@@ -792,7 +711,7 @@
             {
               "media_id": "AUD-L1-L",
               "kind": "audio",
-              "control_label": "تشغيل الصوت 1",
+              "button_label": "تشغيل الصوت 1",
               "caption": null
             }
           ]
@@ -805,7 +724,7 @@
             {
               "media_id": "LET-05",
               "kind": "audio",
-              "control_label": "تشغيل الصوت 2",
+              "button_label": "تشغيل الصوت 2",
               "caption": null
             }
           ]
@@ -818,17 +737,15 @@
             {
               "media_id": "LET-01",
               "kind": "audio",
-              "control_label": "تشغيل الصوت 3",
+              "button_label": "تشغيل الصوت 3",
               "caption": null
             }
           ]
         }
       ],
-      "render": {
-        "option_mode": "audio_cards",
-        "layout": "audio_choice_grid",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "audio_choice_grid",
+      "choice_media_mode": "audio_cards"
     },
     {
       "id": "L1-01-IC-A01",
@@ -840,7 +757,7 @@
         "media": [],
         "display_mode": "large_character"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": null,
@@ -849,7 +766,7 @@
             {
               "media_id": "LET-05",
               "kind": "audio",
-              "control_label": "تشغيل الصوت 1",
+              "button_label": "تشغيل الصوت 1",
               "caption": null
             }
           ]
@@ -862,7 +779,7 @@
             {
               "media_id": "LET-03",
               "kind": "audio",
-              "control_label": "تشغيل الصوت 2",
+              "button_label": "تشغيل الصوت 2",
               "caption": null
             }
           ]
@@ -875,17 +792,15 @@
             {
               "media_id": "LET-04",
               "kind": "audio",
-              "control_label": "تشغيل الصوت 3",
+              "button_label": "تشغيل الصوت 3",
               "caption": null
             }
           ]
         }
       ],
-      "render": {
-        "option_mode": "audio_cards",
-        "layout": "audio_choice_grid",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "audio_choice_grid",
+      "choice_media_mode": "audio_cards"
     },
     {
       "id": "L1-01-IC-A02",
@@ -897,7 +812,7 @@
         "media": [],
         "display_mode": "large_character"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": null,
@@ -906,7 +821,7 @@
             {
               "media_id": "LET-01",
               "kind": "audio",
-              "control_label": "تشغيل الصوت 1",
+              "button_label": "تشغيل الصوت 1",
               "caption": null
             }
           ]
@@ -919,7 +834,7 @@
             {
               "media_id": "LET-03",
               "kind": "audio",
-              "control_label": "تشغيل الصوت 2",
+              "button_label": "تشغيل الصوت 2",
               "caption": null
             }
           ]
@@ -932,17 +847,15 @@
             {
               "media_id": "LET-05",
               "kind": "audio",
-              "control_label": "تشغيل الصوت 3",
+              "button_label": "تشغيل الصوت 3",
               "caption": null
             }
           ]
         }
       ],
-      "render": {
-        "option_mode": "audio_cards",
-        "layout": "audio_choice_grid",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "audio_choice_grid",
+      "choice_media_mode": "audio_cards"
     },
     {
       "id": "L1-01-IC-A03",
@@ -955,13 +868,13 @@
           {
             "media_id": "LET-04",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ن",
@@ -981,11 +894,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L1-01-IC-A04",
@@ -998,13 +909,13 @@
           {
             "media_id": "LET-01",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "م",
@@ -1024,11 +935,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L1-02-GP-01",
@@ -1040,7 +949,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ب",
@@ -1060,11 +969,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L1-02-GP-02",
@@ -1076,7 +983,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ح",
@@ -1096,11 +1003,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L1-02-GP-03",
@@ -1113,13 +1018,13 @@
           {
             "media_id": "AUD-L1-SAD",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ص",
@@ -1133,11 +1038,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L1-02-GP-04",
@@ -1150,13 +1053,13 @@
           {
             "media_id": "AUD-L1-TA",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ط",
@@ -1170,11 +1073,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L1-02-IC-A01",
@@ -1186,7 +1087,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ق",
@@ -1200,11 +1101,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L1-02-IC-A02",
@@ -1216,7 +1115,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "د",
@@ -1230,11 +1129,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L1-02-IC-A03",
@@ -1247,13 +1144,13 @@
           {
             "media_id": "LET-03",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ص",
@@ -1267,11 +1164,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L1-02-IC-A04",
@@ -1284,13 +1179,13 @@
           {
             "media_id": "AUD-L1-TAA",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ت",
@@ -1304,11 +1199,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L1-03-GP-01",
@@ -1321,13 +1214,13 @@
           {
             "media_id": "SYL-02",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "بَ",
@@ -1347,11 +1240,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L1-03-GP-02",
@@ -1363,7 +1254,7 @@
         "media": [],
         "display_mode": "large_character"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "فوق الحرف",
@@ -1383,11 +1274,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L1-03-GP-03",
@@ -1400,13 +1289,13 @@
           {
             "media_id": "AUD-L1-03-SA",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "سِ",
@@ -1426,11 +1315,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L1-03-GP-04",
@@ -1442,7 +1329,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "مَ",
@@ -1462,11 +1349,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L1-03-IC-A01",
@@ -1479,13 +1364,13 @@
           {
             "media_id": "AUD-L1-03-NU",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "نَ",
@@ -1505,11 +1390,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L1-03-IC-A02",
@@ -1522,13 +1405,13 @@
           {
             "media_id": "AUD-L1-03-LI",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "لُ",
@@ -1548,11 +1431,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L1-03-IC-A03",
@@ -1564,7 +1445,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "رُ",
@@ -1584,11 +1465,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L1-03-IC-A04",
@@ -1601,13 +1480,13 @@
           {
             "media_id": "SYL-08",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "قَ",
@@ -1627,11 +1506,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L1-04-GP-01",
@@ -1644,13 +1521,13 @@
           {
             "media_id": "SYL-06",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "سَ",
@@ -1670,11 +1547,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L1-04-GP-02",
@@ -1686,12 +1561,10 @@
         "media": [],
         "display_mode": "large_character"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L1-04-GP-03",
@@ -1704,13 +1577,13 @@
           {
             "media_id": "SYL-05",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "مُ",
@@ -1730,11 +1603,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L1-04-GP-04",
@@ -1746,12 +1617,10 @@
         "media": [],
         "display_mode": "large_character"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L1-04-IC-A01",
@@ -1763,12 +1632,10 @@
         "media": [],
         "display_mode": "large_character"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L1-04-IC-A02",
@@ -1781,13 +1648,13 @@
           {
             "media_id": "SYL-07",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "رِ",
@@ -1807,11 +1674,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L1-04-IC-A03",
@@ -1823,12 +1688,10 @@
         "media": [],
         "display_mode": "large_character"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L1-04-IC-A04",
@@ -1841,13 +1704,13 @@
           {
             "media_id": "SYL-01",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "بَ",
@@ -1867,11 +1730,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L1-05-GP-01",
@@ -1883,7 +1744,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "سَ",
@@ -1903,11 +1764,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "L1-05-GP-02",
@@ -1919,7 +1778,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "دَرَسَ",
@@ -1939,11 +1798,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L1-05-GP-03",
@@ -1955,7 +1812,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "تَ",
@@ -1975,11 +1832,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "L1-05-GP-04",
@@ -1991,12 +1846,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L1-05-IC-A01",
@@ -2008,7 +1861,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "حَ",
@@ -2028,11 +1881,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "L1-05-IC-A02",
@@ -2044,7 +1895,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "كَسَرَ",
@@ -2064,11 +1915,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L1-05-IC-A03",
@@ -2080,12 +1929,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L1-05-IC-A04",
@@ -2097,7 +1944,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "مَ",
@@ -2117,11 +1964,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "L1-06-GP-01",
@@ -2133,12 +1978,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L1-06-GP-02",
@@ -2151,13 +1994,13 @@
           {
             "media_id": "WRD-03",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "بَاب",
@@ -2177,11 +2020,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L1-06-GP-03",
@@ -2193,12 +2034,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L1-06-GP-04",
@@ -2210,7 +2049,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": null,
@@ -2219,7 +2058,7 @@
             {
               "media_id": "VOC-07",
               "kind": "image",
-              "control_label": "الصورة 1",
+              "button_label": "الصورة 1",
               "caption": null
             }
           ]
@@ -2232,7 +2071,7 @@
             {
               "media_id": "VOC-06",
               "kind": "image",
-              "control_label": "الصورة 2",
+              "button_label": "الصورة 2",
               "caption": null
             }
           ]
@@ -2245,17 +2084,15 @@
             {
               "media_id": "VOC-09",
               "kind": "image",
-              "control_label": "الصورة 3",
+              "button_label": "الصورة 3",
               "caption": null
             }
           ]
         }
       ],
-      "render": {
-        "option_mode": "image_cards",
-        "layout": "image_choice_grid",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "image_choice_grid",
+      "choice_media_mode": "image_cards"
     },
     {
       "id": "L1-06-IC-A01",
@@ -2267,12 +2104,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L1-06-IC-A02",
@@ -2285,13 +2120,13 @@
           {
             "media_id": "WRD-10",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "كُرَة",
@@ -2311,11 +2146,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L1-06-IC-A03",
@@ -2327,12 +2160,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L1-06-IC-A04",
@@ -2344,7 +2175,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": null,
@@ -2353,7 +2184,7 @@
             {
               "media_id": "VOC-09",
               "kind": "image",
-              "control_label": "الصورة 1",
+              "button_label": "الصورة 1",
               "caption": null
             }
           ]
@@ -2366,7 +2197,7 @@
             {
               "media_id": "VOC-14",
               "kind": "image",
-              "control_label": "الصورة 2",
+              "button_label": "الصورة 2",
               "caption": null
             }
           ]
@@ -2379,17 +2210,15 @@
             {
               "media_id": "VOC-06",
               "kind": "image",
-              "control_label": "الصورة 3",
+              "button_label": "الصورة 3",
               "caption": null
             }
           ]
         }
       ],
-      "render": {
-        "option_mode": "image_cards",
-        "layout": "image_choice_grid",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "image_choice_grid",
+      "choice_media_mode": "image_cards"
     },
     {
       "id": "SUP-01-GP-01",
@@ -2402,13 +2231,13 @@
           {
             "media_id": "LET-02",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ب",
@@ -2422,11 +2251,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-01-GP-02",
@@ -2438,7 +2265,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ت",
@@ -2452,11 +2279,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-01-GP-03",
@@ -2469,13 +2294,13 @@
           {
             "media_id": "AUD-L1-SAD",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ص",
@@ -2489,11 +2314,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-01-SC-01",
@@ -2506,13 +2329,13 @@
           {
             "media_id": "LET-05",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ر",
@@ -2526,11 +2349,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-01-SC-02",
@@ -2542,7 +2363,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ز",
@@ -2556,11 +2377,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-01-SC-03",
@@ -2573,13 +2392,13 @@
           {
             "media_id": "AUD-V2-SUP-DAD",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ص",
@@ -2593,11 +2412,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-02-GP-01",
@@ -2610,13 +2427,13 @@
           {
             "media_id": "SYL-01",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "بَ",
@@ -2630,11 +2447,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-02-GP-02",
@@ -2646,7 +2461,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "نِ",
@@ -2660,11 +2475,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-02-SC-01",
@@ -2677,13 +2490,13 @@
           {
             "media_id": "SYL-03",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "بَ",
@@ -2697,11 +2510,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-02-SC-02",
@@ -2713,7 +2524,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "قِ",
@@ -2727,11 +2538,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-03-GP-01",
@@ -2743,12 +2552,10 @@
         "media": [],
         "display_mode": "large_character"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "SUP-03-GP-02",
@@ -2760,7 +2567,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "مَ",
@@ -2780,11 +2587,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "SUP-03-SC-01",
@@ -2796,12 +2601,10 @@
         "media": [],
         "display_mode": "large_character"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "SUP-03-SC-02",
@@ -2813,7 +2616,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "لَ",
@@ -2833,11 +2636,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "SUP-04-GP-01",
@@ -2849,12 +2650,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "SUP-04-GP-02",
@@ -2867,13 +2666,13 @@
           {
             "media_id": "WRD-09",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "نَخْلَة",
@@ -2887,11 +2686,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-04-SC-01",
@@ -2903,12 +2700,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "SUP-04-SC-02",
@@ -2920,12 +2715,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "SUP-01-GP-04",
@@ -2938,13 +2731,13 @@
           {
             "media_id": "LET-06",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ن",
@@ -2958,11 +2751,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-01-GP-05",
@@ -2974,7 +2765,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ت",
@@ -2988,11 +2779,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-01-GP-06",
@@ -3005,13 +2794,13 @@
           {
             "media_id": "LET-03",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "س",
@@ -3025,11 +2814,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-01-SC-04",
@@ -3042,13 +2829,13 @@
           {
             "media_id": "LET-04",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ف",
@@ -3062,11 +2849,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-01-SC-05",
@@ -3078,7 +2863,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ج",
@@ -3092,11 +2877,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-01-SC-06",
@@ -3109,13 +2892,13 @@
           {
             "media_id": "AUD-L1-TAA",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "د",
@@ -3129,11 +2912,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-02-GP-03",
@@ -3146,13 +2927,13 @@
           {
             "media_id": "AUD-L1-03-MU",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "مَ",
@@ -3166,11 +2947,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-02-GP-04",
@@ -3182,7 +2961,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "سِ",
@@ -3196,11 +2975,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-02-GP-05",
@@ -3213,13 +2990,13 @@
           {
             "media_id": "SYL-05",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "مَ",
@@ -3233,11 +3010,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-02-SC-03",
@@ -3249,7 +3024,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "لُ",
@@ -3263,11 +3038,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-02-SC-04",
@@ -3279,7 +3052,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "رَ",
@@ -3293,11 +3066,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-02-SC-05",
@@ -3310,13 +3081,13 @@
           {
             "media_id": "SYL-02",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "بُ",
@@ -3330,11 +3101,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-02-SC-06",
@@ -3346,7 +3115,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "رَ",
@@ -3360,11 +3129,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-03-GP-03",
@@ -3376,12 +3143,10 @@
         "media": [],
         "display_mode": "large_character"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "SUP-03-GP-04",
@@ -3393,7 +3158,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "بَ",
@@ -3413,11 +3178,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "SUP-03-SC-03",
@@ -3429,12 +3192,10 @@
         "media": [],
         "display_mode": "large_character"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "SUP-03-SC-04",
@@ -3442,11 +3203,11 @@
       "interaction": "sequence",
       "instruction": "رتب المقاطع لتكوّن الكلمة المناسبة للمعنى.",
       "stimulus": {
-        "text": "فعل يعني تعلم الدرس وفهمه.",
+        "text": "فعل نفعله لفهم المعلومات في الكتاب.",
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "رَ",
@@ -3466,11 +3227,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "L2-01-GP-01",
@@ -3483,13 +3242,13 @@
           {
             "media_id": "VOC-04",
             "kind": "image",
-            "control_label": "صورة السؤال",
+            "button_label": "صورة السؤال",
             "caption": null
           }
         ],
         "display_mode": "question_image"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "م",
@@ -3509,11 +3268,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_letters",
-        "layout": "ordered_letter_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_letter_tray",
+      "choice_media_mode": "ordered_letters"
     },
     {
       "id": "L2-01-GP-02",
@@ -3525,7 +3282,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ن",
@@ -3545,11 +3302,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L2-01-GP-03",
@@ -3562,13 +3317,13 @@
           {
             "media_id": "VOC-14",
             "kind": "image",
-            "control_label": "صورة السؤال",
+            "button_label": "صورة السؤال",
             "caption": null
           }
         ],
         "display_mode": "question_image"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ج",
@@ -3588,11 +3343,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_letters",
-        "layout": "ordered_letter_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_letter_tray",
+      "choice_media_mode": "ordered_letters"
     },
     {
       "id": "L2-01-GP-04",
@@ -3605,18 +3358,16 @@
           {
             "media_id": "VOC-03",
             "kind": "image",
-            "control_label": "صورة السؤال",
+            "button_label": "صورة السؤال",
             "caption": null
           }
         ],
         "display_mode": "question_image"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "arabic_written_response"
-      }
+      "choices": [],
+      "input": "arabic_written_response",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L2-01-IC-A01",
@@ -3629,13 +3380,13 @@
           {
             "media_id": "VOC-07",
             "kind": "image",
-            "control_label": "صورة السؤال",
+            "button_label": "صورة السؤال",
             "caption": null
           }
         ],
         "display_mode": "question_image"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "م",
@@ -3655,11 +3406,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_letters",
-        "layout": "ordered_letter_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_letter_tray",
+      "choice_media_mode": "ordered_letters"
     },
     {
       "id": "L2-01-IC-A02",
@@ -3672,30 +3421,35 @@
           {
             "media_id": "VOC-10",
             "kind": "image",
-            "control_label": "صورة السؤال",
+            "button_label": "صورة السؤال",
             "caption": null
           }
         ],
         "display_mode": "question_image"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "arabic_written_response"
-      }
+      "choices": [],
+      "input": "arabic_written_response",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L2-01-IC-A03",
       "phase": "independent_check",
       "interaction": "choose_one",
-      "instruction": "أي حرف ينقص لتكتمل كلمة سَمَك؟",
+      "instruction": "انظر إلى الصورة، ثم اختر الحرف الناقص لتكتمل الكلمة.",
       "stimulus": {
         "text": "سَ_َك",
-        "media": [],
-        "display_mode": "text_block"
+        "media": [
+          {
+            "media_id": "VOC-05",
+            "kind": "image",
+            "button_label": "صورة السؤال",
+            "caption": null
+          }
+        ],
+        "display_mode": "image_with_text"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "م",
@@ -3715,11 +3469,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L2-01-IC-A04",
@@ -3732,18 +3484,16 @@
           {
             "media_id": "VOC-06",
             "kind": "image",
-            "control_label": "صورة السؤال",
+            "button_label": "صورة السؤال",
             "caption": null
           }
         ],
         "display_mode": "question_image"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "arabic_written_response"
-      }
+      "choices": [],
+      "input": "arabic_written_response",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L2-02-GP-01",
@@ -3756,13 +3506,13 @@
           {
             "media_id": "SYL-09",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "بَ",
@@ -3782,11 +3532,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L2-02-GP-02",
@@ -3799,13 +3547,13 @@
           {
             "media_id": "SYL-10",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "فِ",
@@ -3825,11 +3573,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L2-02-GP-03",
@@ -3841,7 +3587,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "و",
@@ -3861,11 +3607,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L2-02-GP-04",
@@ -3878,13 +3622,13 @@
           {
             "media_id": "SYL-11",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "نُ",
@@ -3904,11 +3648,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L2-02-IC-A01",
@@ -3921,13 +3663,13 @@
           {
             "media_id": "SYL-13",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "سَ",
@@ -3947,11 +3689,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L2-02-IC-A02",
@@ -3964,13 +3704,13 @@
           {
             "media_id": "SYL-12",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "لِ",
@@ -3990,11 +3730,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L2-02-IC-A03",
@@ -4006,7 +3744,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "نُور",
@@ -4026,11 +3764,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L2-02-IC-A04",
@@ -4043,13 +3779,13 @@
           {
             "media_id": "AUD-L2-RA",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "رَ",
@@ -4069,11 +3805,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L2-03-GP-01",
@@ -4085,12 +3819,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L2-03-GP-02",
@@ -4102,7 +3834,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "حَ / دِي / قَة",
@@ -4122,11 +3854,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L2-03-GP-03",
@@ -4138,12 +3868,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L2-03-GP-04",
@@ -4155,7 +3883,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "حَقِيبَة",
@@ -4175,11 +3903,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L2-03-IC-A01",
@@ -4191,12 +3917,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L2-03-IC-A02",
@@ -4208,12 +3932,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L2-03-IC-A03",
@@ -4225,7 +3947,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "مَكْ / تَ / بَة",
@@ -4245,11 +3967,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L2-03-IC-A04",
@@ -4261,12 +3981,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L2-04-GP-01",
@@ -4278,12 +3996,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L2-04-GP-02",
@@ -4295,12 +4011,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L2-04-GP-03",
@@ -4312,7 +4026,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "بعد كلمة سالم",
@@ -4332,11 +4046,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L2-04-GP-04",
@@ -4348,12 +4060,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L2-04-IC-A01",
@@ -4365,12 +4075,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L2-04-IC-A02",
@@ -4382,12 +4090,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L2-04-IC-A03",
@@ -4399,12 +4105,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L2-04-IC-A04",
@@ -4416,12 +4120,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L2-05-GP-01",
@@ -4433,7 +4135,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "في الحديقة",
@@ -4453,11 +4155,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L2-05-GP-02",
@@ -4469,7 +4169,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "العصير",
@@ -4489,11 +4189,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L2-05-GP-03",
@@ -4505,7 +4203,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "سالم",
@@ -4525,11 +4223,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L2-05-GP-04",
@@ -4541,7 +4237,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "مساء",
@@ -4561,11 +4257,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L2-05-IC-A01",
@@ -4577,7 +4271,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "تحت الشجرة",
@@ -4597,11 +4291,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L2-05-IC-A02",
@@ -4613,7 +4305,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "كرة",
@@ -4633,11 +4325,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L2-05-IC-A03",
@@ -4649,7 +4339,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ياسر",
@@ -4669,11 +4359,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L2-05-IC-A04",
@@ -4685,7 +4373,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "صباحا",
@@ -4705,11 +4393,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L2-06-GP-01",
@@ -4721,7 +4407,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "سالم",
@@ -4741,11 +4427,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "L2-06-GP-02",
@@ -4757,7 +4441,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "الماء",
@@ -4777,11 +4461,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "L2-06-GP-03",
@@ -4793,7 +4475,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ذهب أحمد إلى المدرسة",
@@ -4813,11 +4495,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L2-06-GP-04",
@@ -4829,7 +4509,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "زهرة",
@@ -4849,11 +4529,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "L2-06-IC-A01",
@@ -4865,7 +4543,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "الحقيبة",
@@ -4885,11 +4563,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "L2-06-IC-A02",
@@ -4901,7 +4577,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "هند",
@@ -4921,11 +4597,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "L2-06-IC-A03",
@@ -4937,7 +4611,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ليلى قرأت القصة",
@@ -4957,11 +4631,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L2-06-IC-A04",
@@ -4973,7 +4645,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "فهد",
@@ -4993,11 +4665,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "SUP-05-GP-01",
@@ -5010,13 +4680,13 @@
           {
             "media_id": "VOC-10",
             "kind": "image",
-            "control_label": "صورة السؤال",
+            "button_label": "صورة السؤال",
             "caption": null
           }
         ],
         "display_mode": "question_image"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ر",
@@ -5036,11 +4706,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_letters",
-        "layout": "ordered_letter_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_letter_tray",
+      "choice_media_mode": "ordered_letters"
     },
     {
       "id": "SUP-05-GP-02",
@@ -5053,18 +4721,16 @@
           {
             "media_id": "VOC-14",
             "kind": "image",
-            "control_label": "صورة السؤال",
+            "button_label": "صورة السؤال",
             "caption": null
           }
         ],
         "display_mode": "question_image"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "arabic_written_response"
-      }
+      "choices": [],
+      "input": "arabic_written_response",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "SUP-05-SC-01",
@@ -5076,7 +4742,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ب",
@@ -5096,11 +4762,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_letters",
-        "layout": "ordered_letter_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_letter_tray",
+      "choice_media_mode": "ordered_letters"
     },
     {
       "id": "SUP-05-SC-02",
@@ -5113,18 +4777,16 @@
           {
             "media_id": "VOC-09",
             "kind": "image",
-            "control_label": "صورة السؤال",
+            "button_label": "صورة السؤال",
             "caption": null
           }
         ],
         "display_mode": "question_image"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "arabic_written_response"
-      }
+      "choices": [],
+      "input": "arabic_written_response",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "SUP-06-GP-01",
@@ -5137,13 +4799,13 @@
           {
             "media_id": "SYL-04",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "مَ",
@@ -5157,11 +4819,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-06-GP-02",
@@ -5173,7 +4833,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "فِيل",
@@ -5193,11 +4853,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-06-SC-01",
@@ -5209,7 +4867,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "سُوق",
@@ -5223,11 +4881,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-06-SC-02",
@@ -5239,7 +4895,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "و",
@@ -5259,11 +4915,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-07-GP-01",
@@ -5275,12 +4929,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "SUP-07-GP-02",
@@ -5292,7 +4944,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "مَكْتَب",
@@ -5306,11 +4958,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-07-SC-01",
@@ -5322,12 +4972,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "SUP-07-SC-02",
@@ -5339,7 +4987,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "مَدْ / رَ / سَة",
@@ -5353,11 +5001,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-05-GP-03",
@@ -5369,7 +5015,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ر",
@@ -5389,11 +5035,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_letters",
-        "layout": "ordered_letter_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_letter_tray",
+      "choice_media_mode": "ordered_letters"
     },
     {
       "id": "SUP-05-GP-04",
@@ -5406,18 +5050,16 @@
           {
             "media_id": "VOC-12",
             "kind": "image",
-            "control_label": "صورة السؤال",
+            "button_label": "صورة السؤال",
             "caption": null
           }
         ],
         "display_mode": "question_image"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "arabic_written_response"
-      }
+      "choices": [],
+      "input": "arabic_written_response",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "SUP-05-SC-03",
@@ -5429,7 +5071,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ك",
@@ -5449,11 +5091,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_letters",
-        "layout": "ordered_letter_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_letter_tray",
+      "choice_media_mode": "ordered_letters"
     },
     {
       "id": "SUP-05-SC-04",
@@ -5465,12 +5105,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "arabic_written_response"
-      }
+      "choices": [],
+      "input": "arabic_written_response",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "SUP-06-GP-03",
@@ -5483,13 +5121,13 @@
           {
             "media_id": "SYL-11",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "نُ",
@@ -5503,11 +5141,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-06-GP-04",
@@ -5520,13 +5156,13 @@
           {
             "media_id": "SYL-12",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "لِ",
@@ -5540,11 +5176,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-06-SC-03",
@@ -5557,13 +5191,13 @@
           {
             "media_id": "SYL-13",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "سَ",
@@ -5577,11 +5211,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-06-SC-04",
@@ -5593,7 +5225,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "نُور",
@@ -5607,11 +5239,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-06-SC-05",
@@ -5623,7 +5253,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "فِيل",
@@ -5637,11 +5267,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-06-SC-06",
@@ -5654,13 +5282,13 @@
           {
             "media_id": "SYL-10",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "فِ",
@@ -5674,11 +5302,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-07-GP-03",
@@ -5690,7 +5316,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "حَ / دِي / قَة",
@@ -5704,11 +5330,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-07-GP-04",
@@ -5721,13 +5345,13 @@
           {
             "media_id": "VOC-22",
             "kind": "image",
-            "control_label": "صورة السؤال",
+            "button_label": "صورة السؤال",
             "caption": null
           }
         ],
         "display_mode": "question_image"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "بَة",
@@ -5747,11 +5371,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "SUP-07-SC-03",
@@ -5763,7 +5385,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "حَدِيقَة",
@@ -5777,11 +5399,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-07-SC-04",
@@ -5794,13 +5414,13 @@
           {
             "media_id": "VOC-17",
             "kind": "image",
-            "control_label": "صورة السؤال",
+            "button_label": "صورة السؤال",
             "caption": null
           }
         ],
         "display_mode": "question_image"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "بَة",
@@ -5820,11 +5440,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "L3-01-GP-01",
@@ -5836,12 +5454,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L3-01-GP-02",
@@ -5853,12 +5469,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L3-01-GP-03",
@@ -5870,7 +5484,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "لعب فارس بالكرة. أعاد الكرة إلى الصندوق.",
@@ -5890,11 +5504,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L3-01-GP-04",
@@ -5906,12 +5518,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L3-01-IC-A01",
@@ -5923,12 +5533,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L3-01-IC-A02",
@@ -5940,12 +5548,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L3-01-IC-A03",
@@ -5957,12 +5563,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L3-01-IC-A04",
@@ -5974,7 +5578,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "قرأت سلمى قصة. ثم روتها لأختها.",
@@ -5994,11 +5598,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L3-02-GP-01",
@@ -6010,12 +5612,10 @@
         "media": [],
         "display_mode": "passage"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L3-02-GP-02",
@@ -6027,7 +5627,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "بعد كلمة بذرة",
@@ -6047,11 +5647,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L3-02-GP-03",
@@ -6063,12 +5661,10 @@
         "media": [],
         "display_mode": "passage"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L3-02-GP-04",
@@ -6080,12 +5676,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L3-02-IC-A01",
@@ -6097,12 +5691,10 @@
         "media": [],
         "display_mode": "passage"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L3-02-IC-A02",
@@ -6114,12 +5706,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L3-02-IC-A03",
@@ -6131,12 +5721,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L3-03-GP-01",
@@ -6148,7 +5736,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "إلى المتحف",
@@ -6168,11 +5756,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L3-03-GP-02",
@@ -6184,7 +5770,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "الشجرة",
@@ -6204,11 +5790,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L3-03-GP-03",
@@ -6220,7 +5804,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "مروة",
@@ -6240,11 +5824,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L3-03-GP-04",
@@ -6256,7 +5838,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "قبل الدرس",
@@ -6276,11 +5858,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L3-03-IC-A01",
@@ -6292,7 +5872,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "أمام المدرسة",
@@ -6312,11 +5892,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L3-03-IC-A02",
@@ -6328,7 +5906,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "بطاقة",
@@ -6348,11 +5926,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L3-03-IC-A03",
@@ -6364,7 +5940,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "المعلمة",
@@ -6384,11 +5960,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L3-03-IC-A04",
@@ -6400,7 +5974,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "في الصباح",
@@ -6420,11 +5994,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L3-04-GP-01",
@@ -6436,7 +6008,7 @@
         "media": [],
         "display_mode": "passage"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "وصلت إلى المدرسة",
@@ -6456,11 +6028,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "L3-04-GP-02",
@@ -6472,7 +6042,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "أكل التفاحة",
@@ -6492,11 +6062,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "L3-04-GP-03",
@@ -6508,7 +6076,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "كتب الواجب",
@@ -6528,11 +6096,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "L3-04-GP-04",
@@ -6544,7 +6110,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "وضع الماء",
@@ -6564,11 +6130,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "L3-04-IC-A01",
@@ -6580,7 +6144,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "جلس للقراءة",
@@ -6600,11 +6164,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "L3-04-IC-A02",
@@ -6616,7 +6178,7 @@
         "media": [],
         "display_mode": "passage"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ظهرت الأوراق",
@@ -6636,11 +6198,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "L3-04-IC-A03",
@@ -6652,7 +6212,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "تناول الفطور",
@@ -6672,11 +6232,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "L3-04-IC-A04",
@@ -6688,7 +6246,7 @@
         "media": [],
         "display_mode": "passage"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "أغلق الصندوق",
@@ -6708,11 +6266,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "L3-05-GP-01",
@@ -6724,7 +6280,7 @@
         "media": [],
         "display_mode": "passage"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "جمع الأوراق",
@@ -6744,11 +6300,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L3-05-GP-02",
@@ -6760,7 +6314,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "البحث عن كتاب",
@@ -6780,11 +6334,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L3-05-GP-03",
@@ -6796,7 +6348,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "العناية بالزهرة",
@@ -6816,11 +6368,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L3-05-GP-04",
@@ -6832,7 +6382,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "الرسم على اللوحة",
@@ -6852,11 +6402,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L3-05-IC-A01",
@@ -6868,7 +6416,7 @@
         "media": [],
         "display_mode": "passage"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "التعرف إلى الأسماك",
@@ -6888,11 +6436,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L3-05-IC-A02",
@@ -6904,7 +6450,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "زراعة الشجرة",
@@ -6924,11 +6470,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L3-05-IC-A03",
@@ -6940,7 +6484,7 @@
         "media": [],
         "display_mode": "passage"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ترتيب الألعاب بعد اللعب",
@@ -6960,11 +6504,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L3-05-IC-A04",
@@ -6976,7 +6518,7 @@
         "media": [],
         "display_mode": "passage"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "مشاهدة الطيور",
@@ -6996,11 +6538,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L3-06-GP-01",
@@ -7012,7 +6552,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "الدرس",
@@ -7032,11 +6572,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "L3-06-GP-02",
@@ -7048,7 +6586,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "الطاولة",
@@ -7068,11 +6606,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L3-06-GP-03",
@@ -7084,7 +6620,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "الطفل",
@@ -7104,11 +6640,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "L3-06-GP-04",
@@ -7120,7 +6654,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "يتعلم",
@@ -7140,11 +6674,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L3-06-IC-A01",
@@ -7156,7 +6688,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "أحمد",
@@ -7176,11 +6708,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "L3-06-IC-A02",
@@ -7192,7 +6722,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "أعاده إلى مكانه",
@@ -7212,11 +6742,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L3-06-IC-A03",
@@ -7228,7 +6756,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "بذرة",
@@ -7248,11 +6776,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "L3-06-IC-A04",
@@ -7264,7 +6790,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "المطر نزل",
@@ -7284,11 +6810,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L3-07-GP-01",
@@ -7300,7 +6824,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "كتابا",
@@ -7320,11 +6844,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "L3-07-GP-02",
@@ -7337,18 +6859,16 @@
           {
             "media_id": "VOC-28",
             "kind": "image",
-            "control_label": "صورة السؤال",
+            "button_label": "صورة السؤال",
             "caption": null
           }
         ],
         "display_mode": "question_image"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "arabic_written_response"
-      }
+      "choices": [],
+      "input": "arabic_written_response",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L3-07-GP-03",
@@ -7360,7 +6880,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "يسقي الطفل الزهرة.",
@@ -7380,11 +6900,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "L3-07-GP-04",
@@ -7397,18 +6915,16 @@
           {
             "media_id": "VOC-34",
             "kind": "image",
-            "control_label": "صورة السؤال",
+            "button_label": "صورة السؤال",
             "caption": null
           }
         ],
         "display_mode": "question_image"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "arabic_written_response"
-      }
+      "choices": [],
+      "input": "arabic_written_response",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L3-07-IC-A01",
@@ -7421,18 +6937,16 @@
           {
             "media_id": "VOC-20",
             "kind": "image",
-            "control_label": "صورة السؤال",
+            "button_label": "صورة السؤال",
             "caption": null
           }
         ],
         "display_mode": "question_image"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "arabic_written_response"
-      }
+      "choices": [],
+      "input": "arabic_written_response",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L3-07-IC-A02",
@@ -7445,18 +6959,16 @@
           {
             "media_id": "VOC-22",
             "kind": "image",
-            "control_label": "صورة السؤال",
+            "button_label": "صورة السؤال",
             "caption": null
           }
         ],
         "display_mode": "question_image"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "arabic_written_response"
-      }
+      "choices": [],
+      "input": "arabic_written_response",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L3-07-IC-A03",
@@ -7468,12 +6980,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "arabic_written_response"
-      }
+      "choices": [],
+      "input": "arabic_written_response",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "L3-07-IC-A04",
@@ -7485,12 +6995,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "arabic_written_response"
-      }
+      "choices": [],
+      "input": "arabic_written_response",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "SUP-08-GP-01",
@@ -7502,12 +7010,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "SUP-08-GP-02",
@@ -7519,7 +7025,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "بعد كلمة حقيبته",
@@ -7539,11 +7045,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-08-SC-01",
@@ -7555,12 +7059,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "SUP-08-SC-02",
@@ -7572,12 +7074,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "SUP-09-GP-01",
@@ -7589,7 +7089,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "في الساحة",
@@ -7603,11 +7103,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-09-GP-02",
@@ -7619,7 +7117,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "خالد",
@@ -7633,11 +7131,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-09-SC-01",
@@ -7649,7 +7145,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "الماء",
@@ -7663,11 +7159,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-09-SC-02",
@@ -7679,7 +7173,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "صباحا",
@@ -7693,11 +7187,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-10-GP-01",
@@ -7709,7 +7201,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "أغلق الكتاب",
@@ -7729,11 +7221,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "SUP-10-GP-02",
@@ -7745,7 +7235,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "كبرت",
@@ -7765,11 +7255,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "SUP-10-SC-01",
@@ -7781,7 +7269,7 @@
         "media": [],
         "display_mode": "passage"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ركبت السيارة",
@@ -7801,11 +7289,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "SUP-10-SC-02",
@@ -7817,7 +7303,7 @@
         "media": [],
         "display_mode": "passage"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "رتب الرف",
@@ -7837,11 +7323,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "SUP-11-GP-01",
@@ -7853,7 +7337,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "سقي النبات كل يوم",
@@ -7867,11 +7351,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-11-GP-02",
@@ -7883,7 +7365,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "أهمية القراءة",
@@ -7897,11 +7379,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-11-SC-01",
@@ -7913,7 +7393,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "جمع المخلفات من الحديقة",
@@ -7927,11 +7407,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-11-SC-02",
@@ -7943,7 +7421,7 @@
         "media": [],
         "display_mode": "passage"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "تعاون الأسرة",
@@ -7957,11 +7435,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-12-GP-01",
@@ -7973,7 +7449,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "الطفل",
@@ -7993,11 +7469,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "SUP-12-GP-02",
@@ -8010,18 +7484,16 @@
           {
             "media_id": "VOC-35",
             "kind": "image",
-            "control_label": "صورة السؤال",
+            "button_label": "صورة السؤال",
             "caption": null
           }
         ],
         "display_mode": "question_image"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "arabic_written_response"
-      }
+      "choices": [],
+      "input": "arabic_written_response",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "SUP-12-SC-01",
@@ -8033,7 +7505,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "فهد",
@@ -8053,11 +7525,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "SUP-12-SC-02",
@@ -8070,18 +7540,16 @@
           {
             "media_id": "VOC-18",
             "kind": "image",
-            "control_label": "صورة السؤال",
+            "button_label": "صورة السؤال",
             "caption": null
           }
         ],
         "display_mode": "question_image"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "arabic_written_response"
-      }
+      "choices": [],
+      "input": "arabic_written_response",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "SUP-08-GP-03",
@@ -8093,7 +7561,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "بعد حقيبتها",
@@ -8107,11 +7575,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-08-GP-04",
@@ -8123,12 +7589,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "SUP-08-SC-03",
@@ -8140,7 +7604,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "بعد المطر",
@@ -8154,11 +7618,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "SUP-08-SC-04",
@@ -8170,12 +7632,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "SUP-12-GP-03",
@@ -8187,7 +7647,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "بالكرة",
@@ -8207,11 +7667,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "SUP-12-GP-04",
@@ -8223,12 +7681,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "arabic_written_response"
-      }
+      "choices": [],
+      "input": "arabic_written_response",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "SUP-12-SC-03",
@@ -8240,7 +7696,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "الطفل",
@@ -8260,11 +7716,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "SUP-12-SC-04",
@@ -8276,12 +7730,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "arabic_written_response"
-      }
+      "choices": [],
+      "input": "arabic_written_response",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "V2-PRE-Q01",
@@ -8293,7 +7745,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ح",
@@ -8313,11 +7765,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "V2-PRE-Q02",
@@ -8329,7 +7779,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ت",
@@ -8349,11 +7799,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "V2-PRE-Q03",
@@ -8366,13 +7814,13 @@
           {
             "media_id": "LET-03",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "س",
@@ -8392,11 +7840,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "V2-PRE-Q04",
@@ -8409,13 +7855,13 @@
           {
             "media_id": "SYL-02",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "بَ",
@@ -8435,11 +7881,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "V2-PRE-Q05",
@@ -8451,7 +7895,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "مَ",
@@ -8471,11 +7915,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "V2-PRE-Q06",
@@ -8487,12 +7929,10 @@
         "media": [],
         "display_mode": "large_character"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "V2-PRE-Q07",
@@ -8504,7 +7944,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "حَ",
@@ -8524,11 +7964,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "V2-PRE-Q08",
@@ -8540,12 +7978,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "V2-PRE-Q09",
@@ -8557,7 +7993,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": null,
@@ -8566,7 +8002,7 @@
             {
               "media_id": "VOC-01",
               "kind": "image",
-              "control_label": "الصورة 1",
+              "button_label": "الصورة 1",
               "caption": null
             }
           ]
@@ -8579,7 +8015,7 @@
             {
               "media_id": "VOC-03",
               "kind": "image",
-              "control_label": "الصورة 2",
+              "button_label": "الصورة 2",
               "caption": null
             }
           ]
@@ -8592,17 +8028,15 @@
             {
               "media_id": "VOC-09",
               "kind": "image",
-              "control_label": "الصورة 3",
+              "button_label": "الصورة 3",
               "caption": null
             }
           ]
         }
       ],
-      "render": {
-        "option_mode": "image_cards",
-        "layout": "image_choice_grid",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "image_choice_grid",
+      "choice_media_mode": "image_cards"
     },
     {
       "id": "V2-PRE-Q10",
@@ -8615,13 +8049,13 @@
           {
             "media_id": "VOC-14",
             "kind": "image",
-            "control_label": "صورة السؤال",
+            "button_label": "صورة السؤال",
             "caption": null
           }
         ],
         "display_mode": "question_image"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ج",
@@ -8641,23 +8075,28 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_letters",
-        "layout": "ordered_letter_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_letter_tray",
+      "choice_media_mode": "ordered_letters"
     },
     {
       "id": "V2-PRE-Q11",
       "phase": "pretest",
       "interaction": "choose_one",
-      "instruction": "اختر الحرف الناقص.",
+      "instruction": "انظر إلى الصورة، ثم اختر الحرف الناقص لتكتمل الكلمة.",
       "stimulus": {
         "text": "قَ_َم",
-        "media": [],
-        "display_mode": "text_block"
+        "media": [
+          {
+            "media_id": "VOC-04",
+            "kind": "image",
+            "button_label": "صورة السؤال",
+            "caption": null
+          }
+        ],
+        "display_mode": "image_with_text"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ر",
@@ -8677,11 +8116,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "V2-PRE-Q12",
@@ -8694,18 +8131,16 @@
           {
             "media_id": "VOC-04",
             "kind": "image",
-            "control_label": "صورة السؤال",
+            "button_label": "صورة السؤال",
             "caption": null
           }
         ],
         "display_mode": "question_image"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "arabic_written_response"
-      }
+      "choices": [],
+      "input": "arabic_written_response",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "V2-PRE-Q13",
@@ -8718,13 +8153,13 @@
           {
             "media_id": "SYL-09",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "بَ",
@@ -8744,11 +8179,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "V2-PRE-Q14",
@@ -8760,7 +8193,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "سُوق",
@@ -8780,11 +8213,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "V2-PRE-Q15",
@@ -8796,12 +8227,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "V2-PRE-Q16",
@@ -8813,12 +8242,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "V2-PRE-Q17",
@@ -8830,12 +8257,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "V2-PRE-Q18",
@@ -8847,7 +8272,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "خبزا",
@@ -8867,11 +8292,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "V2-PRE-Q19",
@@ -8883,12 +8306,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "V2-PRE-Q20",
@@ -8900,12 +8321,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "V2-PRE-Q21",
@@ -8918,13 +8337,13 @@
           {
             "media_id": "SYL-10",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "فِ",
@@ -8944,11 +8363,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "V2-PRE-Q22",
@@ -8960,7 +8377,7 @@
         "media": [],
         "display_mode": "passage"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "في المكتبة",
@@ -8980,11 +8397,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "V2-PRE-Q23",
@@ -8996,7 +8411,7 @@
         "media": [],
         "display_mode": "passage"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "عن النباتات",
@@ -9016,11 +8431,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "V2-PRE-Q24",
@@ -9032,7 +8445,7 @@
         "media": [],
         "display_mode": "passage"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "اشترت كتابا",
@@ -9052,11 +8465,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "V2-PRE-Q25",
@@ -9068,7 +8479,7 @@
         "media": [],
         "display_mode": "passage"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "كتبت اسمها",
@@ -9088,11 +8499,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "V2-PRE-Q26",
@@ -9104,7 +8513,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ظهرت الأوراق",
@@ -9124,11 +8533,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "V2-PRE-Q27",
@@ -9140,7 +8547,7 @@
         "media": [],
         "display_mode": "passage"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "جمع الأوراق",
@@ -9160,11 +8567,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "V2-PRE-Q28",
@@ -9176,7 +8581,7 @@
         "media": [],
         "display_mode": "passage"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "مشاهدة الأدوات القديمة",
@@ -9196,11 +8601,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "V2-PRE-Q29",
@@ -9212,7 +8615,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "أخاه",
@@ -9232,11 +8635,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "V2-PRE-Q30",
@@ -9249,18 +8650,16 @@
           {
             "media_id": "VOC-07",
             "kind": "image",
-            "control_label": "صورة السؤال",
+            "button_label": "صورة السؤال",
             "caption": null
           }
         ],
         "display_mode": "question_image"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "arabic_written_response"
-      }
+      "choices": [],
+      "input": "arabic_written_response",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "V2-POST-Q01",
@@ -9272,7 +8671,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ح",
@@ -9292,11 +8691,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "V2-POST-Q02",
@@ -9308,7 +8705,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ب",
@@ -9328,11 +8725,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "V2-POST-Q03",
@@ -9345,13 +8740,13 @@
           {
             "media_id": "LET-04",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ف",
@@ -9371,11 +8766,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "V2-POST-Q04",
@@ -9388,13 +8781,13 @@
           {
             "media_id": "AUD-V2-POST-TI",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "تَ",
@@ -9414,11 +8807,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "V2-POST-Q05",
@@ -9430,7 +8821,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "رُ",
@@ -9450,11 +8841,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "V2-POST-Q06",
@@ -9466,12 +8855,10 @@
         "media": [],
         "display_mode": "large_character"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "V2-POST-Q07",
@@ -9483,7 +8870,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "رَ",
@@ -9503,11 +8890,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "V2-POST-Q08",
@@ -9519,12 +8904,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "V2-POST-Q09",
@@ -9536,7 +8919,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": null,
@@ -9545,7 +8928,7 @@
             {
               "media_id": "VOC-09",
               "kind": "image",
-              "control_label": "الصورة 1",
+              "button_label": "الصورة 1",
               "caption": null
             }
           ]
@@ -9558,7 +8941,7 @@
             {
               "media_id": "VOC-07",
               "kind": "image",
-              "control_label": "الصورة 2",
+              "button_label": "الصورة 2",
               "caption": null
             }
           ]
@@ -9571,17 +8954,15 @@
             {
               "media_id": "VOC-14",
               "kind": "image",
-              "control_label": "الصورة 3",
+              "button_label": "الصورة 3",
               "caption": null
             }
           ]
         }
       ],
-      "render": {
-        "option_mode": "image_cards",
-        "layout": "image_choice_grid",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "image_choice_grid",
+      "choice_media_mode": "image_cards"
     },
     {
       "id": "V2-POST-Q10",
@@ -9593,7 +8974,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ب",
@@ -9613,23 +8994,28 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_letters",
-        "layout": "ordered_letter_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_letter_tray",
+      "choice_media_mode": "ordered_letters"
     },
     {
       "id": "V2-POST-Q11",
       "phase": "posttest",
       "interaction": "choose_one",
-      "instruction": "اختر الحرف الناقص لتكتمل كلمة بَحْر.",
+      "instruction": "انظر إلى الصورة، ثم اختر الحرف الناقص لتكتمل الكلمة.",
       "stimulus": {
         "text": "بَ_ْر",
-        "media": [],
-        "display_mode": "text_block"
+        "media": [
+          {
+            "media_id": "VOC-24",
+            "kind": "image",
+            "button_label": "صورة السؤال",
+            "caption": null
+          }
+        ],
+        "display_mode": "image_with_text"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ب",
@@ -9649,11 +9035,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "V2-POST-Q12",
@@ -9666,18 +9050,16 @@
           {
             "media_id": "VOC-16",
             "kind": "image",
-            "control_label": "صورة السؤال",
+            "button_label": "صورة السؤال",
             "caption": null
           }
         ],
         "display_mode": "question_image"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "arabic_written_response"
-      }
+      "choices": [],
+      "input": "arabic_written_response",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "V2-POST-Q13",
@@ -9690,13 +9072,13 @@
           {
             "media_id": "AUD-V2-POST-BUU",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "بُ",
@@ -9716,11 +9098,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "V2-POST-Q14",
@@ -9732,7 +9112,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "بَاب",
@@ -9752,11 +9132,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "V2-POST-Q15",
@@ -9768,12 +9146,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "V2-POST-Q16",
@@ -9785,12 +9161,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "V2-POST-Q17",
@@ -9802,12 +9176,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "V2-POST-Q18",
@@ -9819,7 +9191,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "شجرة",
@@ -9839,11 +9211,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "V2-POST-Q19",
@@ -9855,12 +9225,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "V2-POST-Q20",
@@ -9872,12 +9240,10 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "voice_recording"
-      }
+      "choices": [],
+      "input": "voice_recording",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     },
     {
       "id": "V2-POST-Q21",
@@ -9890,13 +9256,13 @@
           {
             "media_id": "SYL-12",
             "kind": "audio",
-            "control_label": "استمع إلى السؤال",
+            "button_label": "استمع إلى الصوت",
             "caption": null
           }
         ],
         "display_mode": "audio_play_button"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "لَ",
@@ -9916,11 +9282,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "V2-POST-Q22",
@@ -9932,7 +9296,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "إلى الحديقة",
@@ -9952,11 +9316,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "V2-POST-Q23",
@@ -9968,7 +9330,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "أسماكا",
@@ -9988,11 +9350,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "V2-POST-Q24",
@@ -10004,7 +9364,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "على الجدار",
@@ -10024,11 +9384,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "V2-POST-Q25",
@@ -10040,7 +9398,7 @@
         "media": [],
         "display_mode": "passage"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "ركبت الحافلة",
@@ -10060,11 +9418,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "V2-POST-Q26",
@@ -10076,7 +9432,7 @@
         "media": [],
         "display_mode": "passage"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "أعاد الكتاب",
@@ -10096,11 +9452,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "V2-POST-Q27",
@@ -10112,7 +9466,7 @@
         "media": [],
         "display_mode": "passage"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "حمل الكتب",
@@ -10132,11 +9486,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "V2-POST-Q28",
@@ -10148,7 +9500,7 @@
         "media": [],
         "display_mode": "text_block"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "سقي النبات كل يوم",
@@ -10168,11 +9520,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "text_cards",
-        "layout": "adaptive_cards",
-        "input": "select_option"
-      }
+      "input": "select_option",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "text_cards"
     },
     {
       "id": "V2-POST-Q29",
@@ -10184,7 +9534,7 @@
         "media": [],
         "display_mode": "none"
       },
-      "options": [
+      "choices": [
         {
           "id": "a",
           "text": "القصة",
@@ -10204,11 +9554,9 @@
           "media": []
         }
       ],
-      "render": {
-        "option_mode": "ordered_tokens",
-        "layout": "ordered_token_tray",
-        "input": "tap_order"
-      }
+      "input": "tap_order",
+      "layout": "ordered_token_tray",
+      "choice_media_mode": "ordered_tokens"
     },
     {
       "id": "V2-POST-Q30",
@@ -10221,18 +9569,16 @@
           {
             "media_id": "VOC-06",
             "kind": "image",
-            "control_label": "صورة السؤال",
+            "button_label": "صورة السؤال",
             "caption": null
           }
         ],
         "display_mode": "question_image"
       },
-      "options": [],
-      "render": {
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "input": "arabic_written_response"
-      }
+      "choices": [],
+      "input": "arabic_written_response",
+      "layout": "adaptive_cards",
+      "choice_media_mode": "no_choices"
     }
   ]
 }
