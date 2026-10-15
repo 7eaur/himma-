@@ -302,19 +302,48 @@
         "أخذ نادر القلم. كتب اسمه."
       ],
       "practice_ids": [
-        "SUP-08-GP01",
-        "SUP-08-GP02"
+        "SUP-08-GP-01",
+        "SUP-08-GP-02",
+        "SUP-08-GP-03",
+        "SUP-08-GP-04"
       ],
       "check_ids": [
-        "SUP-08-SC01",
-        "SUP-08-SC02"
+        "SUP-08-SC-01",
+        "SUP-08-SC-02",
+        "SUP-08-SC-03",
+        "SUP-08-SC-04"
       ],
       "check_items_per_attempt": 2,
       "origin_v1": [
         "L3-REIN-01",
         "L3-REIN-04"
       ],
-      "status": "draft_pending_review"
+      "status": "authored_focus_draft_pending_review",
+      "focus_item_map": {
+        "word_omission": {
+          "practice_ids": [
+            "SUP-08-GP-01",
+            "SUP-08-GP-04"
+          ],
+          "check_ids": [
+            "SUP-08-SC-01",
+            "SUP-08-SC-02"
+          ],
+          "items_per_attempt": 2
+        },
+        "pause_or_order": {
+          "practice_ids": [
+            "SUP-08-GP-02",
+            "SUP-08-GP-03"
+          ],
+          "check_ids": [
+            "SUP-08-SC-03",
+            "SUP-08-SC-04"
+          ],
+          "items_per_attempt": 2
+        }
+      },
+      "selection_rule": "يدعم focus واحدًا؛ يعرض له تحققًا مستقلاً من بندين لا بنود جميع الفجوات"
     },
     {
       "id": "SUP-09",
@@ -332,19 +361,33 @@
         "ذهب سالم إلى الحديقة."
       ],
       "practice_ids": [
-        "SUP-09-GP01",
-        "SUP-09-GP02"
+        "SUP-09-GP-01",
+        "SUP-09-GP-02"
       ],
       "check_ids": [
-        "SUP-09-SC01",
-        "SUP-09-SC02"
+        "SUP-09-SC-01",
+        "SUP-09-SC-02"
       ],
       "check_items_per_attempt": 2,
       "origin_v1": [
         "L3-CORE-07",
         "L3-REIN-02"
       ],
-      "status": "draft_pending_review"
+      "status": "authored_focus_draft_pending_review",
+      "focus_item_map": {
+        "find_explicit_answer": {
+          "practice_ids": [
+            "SUP-09-GP-01",
+            "SUP-09-GP-02"
+          ],
+          "check_ids": [
+            "SUP-09-SC-01",
+            "SUP-09-SC-02"
+          ],
+          "items_per_attempt": 2
+        }
+      },
+      "selection_rule": "يدعم focus واحدًا؛ يعرض له تحققًا مستقلاً من بندين لا بنود جميع الفجوات"
     },
     {
       "id": "SUP-10",
@@ -361,19 +404,33 @@
         "غسل اليدين → الأكل"
       ],
       "practice_ids": [
-        "SUP-10-GP01",
-        "SUP-10-GP02"
+        "SUP-10-GP-01",
+        "SUP-10-GP-02"
       ],
       "check_ids": [
-        "SUP-10-SC01",
-        "SUP-10-SC02"
+        "SUP-10-SC-01",
+        "SUP-10-SC-02"
       ],
       "check_items_per_attempt": 2,
       "origin_v1": [
         "L1-CORE-10",
         "L3-CORE-10"
       ],
-      "status": "draft_pending_review"
+      "status": "authored_focus_draft_pending_review",
+      "focus_item_map": {
+        "event_sequence": {
+          "practice_ids": [
+            "SUP-10-GP-01",
+            "SUP-10-GP-02"
+          ],
+          "check_ids": [
+            "SUP-10-SC-01",
+            "SUP-10-SC-02"
+          ],
+          "items_per_attempt": 2
+        }
+      },
+      "selection_rule": "يدعم focus واحدًا؛ يعرض له تحققًا مستقلاً من بندين لا بنود جميع الفجوات"
     },
     {
       "id": "SUP-11",
@@ -390,18 +447,32 @@
         "العناية بالنباتات"
       ],
       "practice_ids": [
-        "SUP-11-GP01",
-        "SUP-11-GP02"
+        "SUP-11-GP-01",
+        "SUP-11-GP-02"
       ],
       "check_ids": [
-        "SUP-11-SC01",
-        "SUP-11-SC02"
+        "SUP-11-SC-01",
+        "SUP-11-SC-02"
       ],
       "check_items_per_attempt": 2,
       "origin_v1": [
         "L3-REIN-05"
       ],
-      "status": "draft_pending_review"
+      "status": "authored_focus_draft_pending_review",
+      "focus_item_map": {
+        "detail_as_main_idea": {
+          "practice_ids": [
+            "SUP-11-GP-01",
+            "SUP-11-GP-02"
+          ],
+          "check_ids": [
+            "SUP-11-SC-01",
+            "SUP-11-SC-02"
+          ],
+          "items_per_attempt": 2
+        }
+      },
+      "selection_rule": "يدعم focus واحدًا؛ يعرض له تحققًا مستقلاً من بندين لا بنود جميع الفجوات"
     },
     {
       "id": "SUP-12",
@@ -422,19 +493,48 @@
         "الطفل يلعب."
       ],
       "practice_ids": [
-        "SUP-12-GP01",
-        "SUP-12-GP02"
+        "SUP-12-GP-01",
+        "SUP-12-GP-02",
+        "SUP-12-GP-03",
+        "SUP-12-GP-04"
       ],
       "check_ids": [
-        "SUP-12-SC01",
-        "SUP-12-SC02"
+        "SUP-12-SC-01",
+        "SUP-12-SC-02",
+        "SUP-12-SC-03",
+        "SUP-12-SC-04"
       ],
       "check_items_per_attempt": 2,
       "origin_v1": [
         "L2-REIN-05",
         "L3-REIN-03"
       ],
-      "status": "draft_pending_review"
+      "status": "authored_focus_draft_pending_review",
+      "focus_item_map": {
+        "word_order": {
+          "practice_ids": [
+            "SUP-12-GP-01",
+            "SUP-12-GP-03"
+          ],
+          "check_ids": [
+            "SUP-12-SC-01",
+            "SUP-12-SC-03"
+          ],
+          "items_per_attempt": 2
+        },
+        "sentence_writing": {
+          "practice_ids": [
+            "SUP-12-GP-02",
+            "SUP-12-GP-04"
+          ],
+          "check_ids": [
+            "SUP-12-SC-02",
+            "SUP-12-SC-04"
+          ],
+          "items_per_attempt": 2
+        }
+      },
+      "selection_rule": "يدعم focus واحدًا؛ يعرض له تحققًا مستقلاً من بندين لا بنود جميع الفجوات"
     }
   ],
   "questions": [
@@ -2746,7 +2846,7 @@
       "hint": null
     },
     {
-      "id": "SUP-08-GP01",
+      "id": "SUP-08-GP-01",
       "owner_id": "SUP-08",
       "mode": "GP",
       "role": "guided_practice",
@@ -2782,7 +2882,7 @@
       "retry": "hint_then_fresh_guided_retry_not_scored"
     },
     {
-      "id": "SUP-08-GP02",
+      "id": "SUP-08-GP-02",
       "owner_id": "SUP-08",
       "mode": "GP",
       "role": "guided_practice",
@@ -2826,7 +2926,7 @@
       "retry": "hint_then_fresh_guided_retry_not_scored"
     },
     {
-      "id": "SUP-08-SC01",
+      "id": "SUP-08-SC-01",
       "owner_id": "SUP-08",
       "mode": "IC",
       "role": "support_check",
@@ -2861,7 +2961,7 @@
       "hint": null
     },
     {
-      "id": "SUP-08-SC02",
+      "id": "SUP-08-SC-02",
       "owner_id": "SUP-08",
       "mode": "IC",
       "role": "support_check",
@@ -2896,7 +2996,7 @@
       "hint": null
     },
     {
-      "id": "SUP-09-GP01",
+      "id": "SUP-09-GP-01",
       "owner_id": "SUP-09",
       "mode": "GP",
       "role": "guided_practice",
@@ -2935,7 +3035,7 @@
       "retry": "hint_then_fresh_guided_retry_not_scored"
     },
     {
-      "id": "SUP-09-GP02",
+      "id": "SUP-09-GP-02",
       "owner_id": "SUP-09",
       "mode": "GP",
       "role": "guided_practice",
@@ -2974,7 +3074,7 @@
       "retry": "hint_then_fresh_guided_retry_not_scored"
     },
     {
-      "id": "SUP-09-SC01",
+      "id": "SUP-09-SC-01",
       "owner_id": "SUP-09",
       "mode": "IC",
       "role": "support_check",
@@ -3012,7 +3112,7 @@
       "hint": null
     },
     {
-      "id": "SUP-09-SC02",
+      "id": "SUP-09-SC-02",
       "owner_id": "SUP-09",
       "mode": "IC",
       "role": "support_check",
@@ -3050,7 +3150,7 @@
       "hint": null
     },
     {
-      "id": "SUP-10-GP01",
+      "id": "SUP-10-GP-01",
       "owner_id": "SUP-10",
       "mode": "GP",
       "role": "guided_practice",
@@ -3096,7 +3196,7 @@
       "retry": "hint_then_fresh_guided_retry_not_scored"
     },
     {
-      "id": "SUP-10-GP02",
+      "id": "SUP-10-GP-02",
       "owner_id": "SUP-10",
       "mode": "GP",
       "role": "guided_practice",
@@ -3142,7 +3242,7 @@
       "retry": "hint_then_fresh_guided_retry_not_scored"
     },
     {
-      "id": "SUP-10-SC01",
+      "id": "SUP-10-SC-01",
       "owner_id": "SUP-10",
       "mode": "IC",
       "role": "support_check",
@@ -3187,7 +3287,7 @@
       "hint": null
     },
     {
-      "id": "SUP-10-SC02",
+      "id": "SUP-10-SC-02",
       "owner_id": "SUP-10",
       "mode": "IC",
       "role": "support_check",
@@ -3232,7 +3332,7 @@
       "hint": null
     },
     {
-      "id": "SUP-11-GP01",
+      "id": "SUP-11-GP-01",
       "owner_id": "SUP-11",
       "mode": "GP",
       "role": "guided_practice",
@@ -3271,7 +3371,7 @@
       "retry": "hint_then_fresh_guided_retry_not_scored"
     },
     {
-      "id": "SUP-11-GP02",
+      "id": "SUP-11-GP-02",
       "owner_id": "SUP-11",
       "mode": "GP",
       "role": "guided_practice",
@@ -3310,7 +3410,7 @@
       "retry": "hint_then_fresh_guided_retry_not_scored"
     },
     {
-      "id": "SUP-11-SC01",
+      "id": "SUP-11-SC-01",
       "owner_id": "SUP-11",
       "mode": "IC",
       "role": "support_check",
@@ -3348,7 +3448,7 @@
       "hint": null
     },
     {
-      "id": "SUP-11-SC02",
+      "id": "SUP-11-SC-02",
       "owner_id": "SUP-11",
       "mode": "IC",
       "role": "support_check",
@@ -3386,7 +3486,7 @@
       "hint": null
     },
     {
-      "id": "SUP-12-GP01",
+      "id": "SUP-12-GP-01",
       "owner_id": "SUP-12",
       "mode": "GP",
       "role": "guided_practice",
@@ -3432,7 +3532,7 @@
       "retry": "hint_then_fresh_guided_retry_not_scored"
     },
     {
-      "id": "SUP-12-GP02",
+      "id": "SUP-12-GP-02",
       "owner_id": "SUP-12",
       "mode": "GP",
       "role": "guided_practice",
@@ -3475,7 +3575,7 @@
       "retry": "hint_then_fresh_guided_retry_not_scored"
     },
     {
-      "id": "SUP-12-SC01",
+      "id": "SUP-12-SC-01",
       "owner_id": "SUP-12",
       "mode": "IC",
       "role": "support_check",
@@ -3520,7 +3620,7 @@
       "hint": null
     },
     {
-      "id": "SUP-12-SC02",
+      "id": "SUP-12-SC-02",
       "owner_id": "SUP-12",
       "mode": "IC",
       "role": "support_check",
@@ -3560,6 +3660,300 @@
       "notes": null,
       "status": "draft",
       "hint": null
+    },
+    {
+      "id": "SUP-08-GP-03",
+      "owner_id": "SUP-08",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "أين يكون الوقف القصير؟",
+      "stimulus": {
+        "text": "حملت هند حقيبتها. خرجت من البيت.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "بعد حقيبتها",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "بعد من",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "error_focus": "pause_or_order",
+      "evidence_type": "natural_pacing",
+      "reading_reference": null,
+      "hint": "ابحث عن النقطة.",
+      "technical_gaps": [],
+      "status": "draft",
+      "retry": "hint_and_guided_retry"
+    },
+    {
+      "id": "SUP-08-GP-04",
+      "owner_id": "SUP-08",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ النص القصير.",
+      "stimulus": {
+        "text": "جاء عمر مبكرا. جلس في الصف. فتح كتابه.",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference": "جَاءَ عُمَرُ مُبَكِّرًا. جَلَسَ فِي الصَّفِّ. فَتَحَ كِتَابَهُ.",
+          "criteria": [
+            "صحة القراءة/الكتابة",
+            "الوقف الطبيعي",
+            "الوضوح"
+          ],
+          "no_auto_grade": true
+        }
+      },
+      "error_focus": "word_omission",
+      "evidence_type": "short_text_reading",
+      "reading_reference": "جَاءَ عُمَرُ مُبَكِّرًا. جَلَسَ فِي الصَّفِّ. فَتَحَ كِتَابَهُ.",
+      "hint": "اقرأ جملة جملة.",
+      "technical_gaps": [],
+      "status": "draft",
+      "retry": "hint_and_guided_retry"
+    },
+    {
+      "id": "SUP-08-SC-03",
+      "owner_id": "SUP-08",
+      "mode": "IC",
+      "role": "support_check",
+      "interaction": "choose_one",
+      "prompt": "أين الوقف المناسب؟",
+      "stimulus": {
+        "text": "سقط المطر. فتحت نورة المظلة.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "بعد المطر",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "بعد فتحت",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "error_focus": "pause_or_order",
+      "evidence_type": "natural_pacing",
+      "reading_reference": null,
+      "hint": null,
+      "technical_gaps": [],
+      "status": "draft"
+    },
+    {
+      "id": "SUP-08-SC-04",
+      "owner_id": "SUP-08",
+      "mode": "IC",
+      "role": "support_check",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ مع الوقف بين الجملتين.",
+      "stimulus": {
+        "text": "قرأ باسل كتابا. ثم أعاده إلى الرف.",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference": "قَرَأَ بَاسِلٌ كِتَابًا. ثُمَّ أَعَادَهُ إِلَى الرَّفِّ.",
+          "criteria": [
+            "صحة القراءة/الكتابة",
+            "الوقف الطبيعي",
+            "الوضوح"
+          ],
+          "no_auto_grade": true
+        }
+      },
+      "error_focus": "pause_or_order",
+      "evidence_type": "connected_sentence_reading",
+      "reading_reference": "قَرَأَ بَاسِلٌ كِتَابًا. ثُمَّ أَعَادَهُ إِلَى الرَّفِّ.",
+      "hint": null,
+      "technical_gaps": [],
+      "status": "draft"
+    },
+    {
+      "id": "SUP-12-GP-03",
+      "owner_id": "SUP-12",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "sequence",
+      "prompt": "رتب الكلمات لتبدأ بكلمة لعب.",
+      "stimulus": {
+        "text": "لعب / نادر / بالكرة",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "بالكرة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "لعب",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "نادر",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b",
+          "c",
+          "a"
+        ],
+        "rubric": null
+      },
+      "error_focus": "word_order",
+      "evidence_type": "sentence_construction",
+      "reading_reference": null,
+      "hint": "ابدأ بلعب.",
+      "technical_gaps": [],
+      "status": "draft",
+      "retry": "hint_and_guided_retry"
+    },
+    {
+      "id": "SUP-12-GP-04",
+      "owner_id": "SUP-12",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "write_text",
+      "prompt": "اكتب جملة مفيدة فيها كلمة حديقة.",
+      "stimulus": {
+        "text": "حديقة",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference": "حديقة",
+          "criteria": [
+            "صحة القراءة/الكتابة",
+            "الوقف الطبيعي",
+            "الوضوح"
+          ],
+          "no_auto_grade": true
+        }
+      },
+      "error_focus": "sentence_writing",
+      "evidence_type": "sentence_writing",
+      "reading_reference": null,
+      "hint": "اكتب اسمًا وفعلًا مناسبًا.",
+      "technical_gaps": [
+        "writing_input_not_confirmed_in_v1"
+      ],
+      "status": "draft",
+      "retry": "hint_and_guided_retry"
+    },
+    {
+      "id": "SUP-12-SC-03",
+      "owner_id": "SUP-12",
+      "mode": "IC",
+      "role": "support_check",
+      "interaction": "sequence",
+      "prompt": "رتب الكلمات لتبدأ بكلمة نام.",
+      "stimulus": {
+        "text": "نام / الطفل / مبكرا",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "الطفل",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "نام",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "مبكرا",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b",
+          "a",
+          "c"
+        ],
+        "rubric": null
+      },
+      "error_focus": "word_order",
+      "evidence_type": "sentence_construction",
+      "reading_reference": null,
+      "hint": null,
+      "technical_gaps": [],
+      "status": "draft"
+    },
+    {
+      "id": "SUP-12-SC-04",
+      "owner_id": "SUP-12",
+      "mode": "IC",
+      "role": "support_check",
+      "interaction": "write_text",
+      "prompt": "اكتب جملة قصيرة عن الكتاب.",
+      "stimulus": {
+        "text": "كتاب",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "reference": "كتاب",
+          "criteria": [
+            "صحة القراءة/الكتابة",
+            "الوقف الطبيعي",
+            "الوضوح"
+          ],
+          "no_auto_grade": true
+        }
+      },
+      "error_focus": "sentence_writing",
+      "evidence_type": "sentence_writing",
+      "reading_reference": null,
+      "hint": null,
+      "technical_gaps": [
+        "writing_input_not_confirmed_in_v1"
+      ],
+      "status": "draft"
     }
   ],
   "media": [
