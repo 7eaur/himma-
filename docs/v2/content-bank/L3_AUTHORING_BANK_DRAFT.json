@@ -1821,23 +1821,23 @@
       "options": [
         {
           "id": "a",
-          "text": "المحافظة على نظافة الصف",
-          "media": []
-        },
-        {
-          "id": "b",
           "text": "الطاولات الخشبية",
           "media": []
         },
         {
-          "id": "c",
+          "id": "b",
           "text": "لون الأوراق",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "المحافظة على نظافة الصف",
           "media": []
         }
       ],
       "private_answer": {
         "correct_option_ids": [
-          "a"
+          "c"
         ],
         "rubric": null
       },
@@ -1846,7 +1846,7 @@
       "origin_v1": null,
       "reading_reference": null,
       "technical_gaps": [],
-      "notes": null,
+      "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها.",
       "status": "draft",
       "hint": "ابحث عن فكرة تشمل الأعمال كلها.",
       "retry": "hint_then_fresh_guided_retry_not_scored"
@@ -1865,12 +1865,12 @@
       "options": [
         {
           "id": "a",
-          "text": "الاستفادة من المكتبة",
+          "text": "هدوء رائد",
           "media": []
         },
         {
           "id": "b",
-          "text": "هدوء رائد",
+          "text": "الاستفادة من المكتبة",
           "media": []
         },
         {
@@ -1881,7 +1881,7 @@
       ],
       "private_answer": {
         "correct_option_ids": [
-          "a"
+          "b"
         ],
         "rubric": null
       },
@@ -1890,7 +1890,7 @@
       "origin_v1": null,
       "reading_reference": null,
       "technical_gaps": [],
-      "notes": null,
+      "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها.",
       "status": "draft",
       "hint": "ما الموضوع الذي يشمل كل الجمل؟",
       "retry": "hint_then_fresh_guided_retry_not_scored"
@@ -1934,7 +1934,7 @@
       "origin_v1": null,
       "reading_reference": null,
       "technical_gaps": [],
-      "notes": null,
+      "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها.",
       "status": "draft",
       "hint": "فكر في الأعمال التي كررتها هند.",
       "retry": "hint_then_fresh_guided_retry_not_scored"
@@ -1953,23 +1953,23 @@
       "options": [
         {
           "id": "a",
-          "text": "التعاون في العمل",
-          "media": []
-        },
-        {
-          "id": "b",
           "text": "أقلام الرسم",
           "media": []
         },
         {
-          "id": "c",
+          "id": "b",
           "text": "عرض اللوحة فقط",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "التعاون في العمل",
           "media": []
         }
       ],
       "private_answer": {
         "correct_option_ids": [
-          "a"
+          "c"
         ],
         "rubric": null
       },
@@ -1978,7 +1978,7 @@
       "origin_v1": null,
       "reading_reference": null,
       "technical_gaps": [],
-      "notes": null,
+      "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها.",
       "status": "draft",
       "hint": "أي اختيار يجمع ما فعله الجميع؟",
       "retry": "hint_then_fresh_guided_retry_not_scored"
@@ -1997,12 +1997,12 @@
       "options": [
         {
           "id": "a",
-          "text": "التعرف إلى الحياة البحرية",
+          "text": "اسم علي",
           "media": []
         },
         {
           "id": "b",
-          "text": "اسم علي",
+          "text": "التعرف إلى الحياة البحرية",
           "media": []
         },
         {
@@ -2013,7 +2013,7 @@
       ],
       "private_answer": {
         "correct_option_ids": [
-          "a"
+          "b"
         ],
         "rubric": null
       },
@@ -2022,7 +2022,7 @@
       "origin_v1": null,
       "reading_reference": null,
       "technical_gaps": [],
-      "notes": null,
+      "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها.",
       "status": "draft",
       "hint": null
     },
@@ -2040,23 +2040,23 @@
       "options": [
         {
           "id": "a",
-          "text": "الاهتمام بالشجرة",
-          "media": []
-        },
-        {
-          "id": "b",
           "text": "كبر الشجرة فقط",
           "media": []
         },
         {
-          "id": "c",
+          "id": "b",
           "text": "باب الحديقة",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "الاهتمام بالشجرة",
           "media": []
         }
       ],
       "private_answer": {
         "correct_option_ids": [
-          "a"
+          "c"
         ],
         "rubric": null
       },
@@ -2065,7 +2065,7 @@
       "origin_v1": null,
       "reading_reference": null,
       "technical_gaps": [],
-      "notes": null,
+      "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها.",
       "status": "draft",
       "hint": null
     },
@@ -2108,7 +2108,7 @@
       "origin_v1": null,
       "reading_reference": null,
       "technical_gaps": [],
-      "notes": null,
+      "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها.",
       "status": "draft",
       "hint": null
     },
@@ -2126,12 +2126,12 @@
       "options": [
         {
           "id": "a",
-          "text": "التعلم من رحلة إلى الحديقة",
+          "text": "مشاهدة طائر واحد",
           "media": []
         },
         {
           "id": "b",
-          "text": "مشاهدة طائر واحد",
+          "text": "التعلم من رحلة إلى الحديقة",
           "media": []
         },
         {
@@ -2142,7 +2142,7 @@
       ],
       "private_answer": {
         "correct_option_ids": [
-          "a"
+          "b"
         ],
         "rubric": null
       },
@@ -2151,7 +2151,7 @@
       "origin_v1": null,
       "reading_reference": null,
       "technical_gaps": [],
-      "notes": null,
+      "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها.",
       "status": "draft",
       "hint": null
     },
@@ -3345,18 +3345,18 @@
       "options": [
         {
           "id": "a",
-          "text": "العناية بالنبات",
+          "text": "لون الماء",
           "media": []
         },
         {
           "id": "b",
-          "text": "لون الماء",
+          "text": "العناية بالنبات",
           "media": []
         }
       ],
       "private_answer": {
         "correct_option_ids": [
-          "a"
+          "b"
         ],
         "rubric": null
       },
@@ -3365,7 +3365,7 @@
       "origin_v1": null,
       "reading_reference": null,
       "technical_gaps": [],
-      "notes": null,
+      "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها.",
       "status": "draft",
       "hint": "اختر ما يجمع كل الجمل.",
       "retry": "hint_then_fresh_guided_retry_not_scored"
@@ -3404,7 +3404,7 @@
       "origin_v1": null,
       "reading_reference": null,
       "technical_gaps": [],
-      "notes": null,
+      "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها.",
       "status": "draft",
       "hint": "ما الشيء المشترك بين الفعلين؟",
       "retry": "hint_then_fresh_guided_retry_not_scored"
@@ -3423,18 +3423,18 @@
       "options": [
         {
           "id": "a",
-          "text": "المحافظة على النظافة",
+          "text": "شكل السلة",
           "media": []
         },
         {
           "id": "b",
-          "text": "شكل السلة",
+          "text": "المحافظة على النظافة",
           "media": []
         }
       ],
       "private_answer": {
         "correct_option_ids": [
-          "a"
+          "b"
         ],
         "rubric": null
       },
@@ -3443,7 +3443,7 @@
       "origin_v1": null,
       "reading_reference": null,
       "technical_gaps": [],
-      "notes": null,
+      "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها.",
       "status": "draft",
       "hint": null
     },
@@ -3481,7 +3481,7 @@
       "origin_v1": null,
       "reading_reference": null,
       "technical_gaps": [],
-      "notes": null,
+      "notes": "QA: تنويع موضع الإجابة الصحيحة دون تعديل معناها.",
       "status": "draft",
       "hint": null
     },
