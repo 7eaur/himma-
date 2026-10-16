@@ -1,9 +1,9 @@
 {
-  "schema": "himma-v2-content-audit/1.0",
+  "schema": "himma-v2-content-audit/1.2",
   "generated_on": "2026-10-16",
   "summary": {
     "date": "2026-10-16",
-    "scope": "content_only_no_ui_comparison",
+    "scope": "content_only",
     "lessons": 19,
     "support_groups": 12,
     "items": 300,
@@ -22,7 +22,7 @@
       "build_word": 9,
       "write_text": 21
     },
-    "images_used": 19,
+    "images_used": 20,
     "audio_ids_used": 34,
     "missing_required_audio": [
       "AUD-L1-03-LI",
@@ -387,7 +387,7 @@
       "answer_key_valid": true,
       "no_exposed_assembled_word": true,
       "media_ids": [
-        "SYL-02"
+        "SYL-03"
       ],
       "question_media_mode": "audio_play_button",
       "choice_media_mode": "text_cards",
@@ -850,7 +850,7 @@
       "no_exposed_assembled_word": true,
       "media_ids": [],
       "question_media_mode": "text_block",
-      "choice_media_mode": "no_choices",
+      "choice_media_mode": "text_cards",
       "image_options_unlabeled_with_answer": true,
       "audio_options_unlabeled_with_answer": true,
       "checks_passed": true,
@@ -1622,7 +1622,7 @@
       "answer_key_valid": true,
       "no_exposed_assembled_word": true,
       "media_ids": [
-        "VOC-14"
+        "VOC-02"
       ],
       "question_media_mode": "question_image",
       "choice_media_mode": "ordered_letters",
@@ -1738,7 +1738,7 @@
       "answer_key_valid": true,
       "no_exposed_assembled_word": true,
       "media_ids": [
-        "SYL-09"
+        "SYL-04"
       ],
       "question_media_mode": "audio_play_button",
       "choice_media_mode": "text_cards",
@@ -1757,7 +1757,7 @@
       "answer_key_valid": true,
       "no_exposed_assembled_word": true,
       "media_ids": [
-        "SYL-10"
+        "SYL-05"
       ],
       "question_media_mode": "audio_play_button",
       "choice_media_mode": "text_cards",
@@ -1921,7 +1921,7 @@
       "no_exposed_assembled_word": true,
       "media_ids": [],
       "question_media_mode": "text_block",
-      "choice_media_mode": "no_choices",
+      "choice_media_mode": "text_cards",
       "image_options_unlabeled_with_answer": true,
       "audio_options_unlabeled_with_answer": true,
       "checks_passed": true,
@@ -1972,7 +1972,7 @@
       "no_exposed_assembled_word": true,
       "media_ids": [],
       "question_media_mode": "text_block",
-      "choice_media_mode": "no_choices",
+      "choice_media_mode": "text_cards",
       "image_options_unlabeled_with_answer": true,
       "audio_options_unlabeled_with_answer": true,
       "checks_passed": true,
