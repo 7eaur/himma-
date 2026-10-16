@@ -25,3 +25,5 @@
 | VOC-35 | طفلة | `assets/education/assets/vocabulary/webp/hem-voc-35-girl-512.webp` | SUP-12-GP-02:المثير | selected_pending_owner_review |
 
 **فجوة دلالية للمراجعة:** `VOC-07` مدونة قمر، لكن الصورة هلال؛ يجب التأكد من مناسبة الرسم لسؤال «قمر». كل صور الكتابة والصورة الاختيارية ترد بمعرف دون عرض اسم الشيء مسبقًا في نسخة الطالب.
+
+| VOC-02 | كتاب | `assets/education/assets/vocabulary/webp/hem-voc-02-book-512.webp` | L2-01-GP-03: المثير | selected_pending_owner_review |
