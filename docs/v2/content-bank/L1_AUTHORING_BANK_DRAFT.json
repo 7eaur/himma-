@@ -1647,7 +1647,7 @@
         "text": null,
         "media": [
           {
-            "media_id": "SYL-02",
+            "media_id": "SYL-03",
             "kind": "audio"
           }
         ]
@@ -1655,17 +1655,17 @@
       "options": [
         {
           "id": "a",
-          "text": "بَ",
-          "media": []
-        },
-        {
-          "id": "b",
           "text": "بِ",
           "media": []
         },
         {
-          "id": "c",
+          "id": "b",
           "text": "بُ",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "بَ",
           "media": []
         }
       ],
@@ -1683,7 +1683,7 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": "انظر إلى الكسرة تحت الحرف.",
+      "hint": "انتبه إلى صوت الضمة، ثم قارنه بالصوت القصير ذي الكسرة والفتحة.",
       "retry": {
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
@@ -1702,7 +1702,8 @@
         "hint_initially_visible": false,
         "answer_initially_visible": false,
         "student_input": "select_option"
-      }
+      },
+      "content_qa_note": "16-10-2026: تنويع المادة التعليمية لتجنب تكرار بنود الاختبار القبلي أو التحقق."
     },
     {
       "id": "L1-03-GP-02",
@@ -2770,23 +2771,23 @@
       "interaction": "sequence",
       "prompt": "رتب المقاطع لتكوّن الكلمة المناسبة للمعنى.",
       "stimulus": {
-        "text": "فعل نفعله بالباب لنتمكن من الدخول.",
+        "text": "فعل نفعله عندما ننقل شيئًا من الأرض إلى أعلى.",
         "media": []
       },
       "options": [
         {
           "id": "a",
-          "text": "تَ",
+          "text": "فَ",
           "media": []
         },
         {
           "id": "b",
-          "text": "حَ",
+          "text": "عَ",
           "media": []
         },
         {
           "id": "c",
-          "text": "فَ",
+          "text": "رَ",
           "media": []
         }
       ],
@@ -2806,7 +2807,7 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": "ابدأ بالمقطع فَ ثم أكمل.",
+      "hint": "ابحث عن المقطع الذي تبدأ به الكلمة، ثم اجمع المقاطع.",
       "retry": {
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
@@ -2824,7 +2825,8 @@
         "hint_initially_visible": false,
         "answer_initially_visible": false,
         "student_input": "tap_order"
-      }
+      },
+      "content_qa_note": "16-10-2026: تنويع المادة التعليمية لتجنب تكرار بنود الاختبار القبلي أو التحقق."
     },
     {
       "id": "L1-05-GP-04",
@@ -3258,7 +3260,7 @@
       "interaction": "read_aloud",
       "prompt": "اقرأ الكلمة.",
       "stimulus": {
-        "text": "وَرْدَة",
+        "text": "عَسَل",
         "media": []
       },
       "options": [],
@@ -3266,13 +3268,14 @@
         "correct_option_ids": [],
         "rubric": {
           "evaluation_authority": "human_supervisor",
-          "reference_text": "وَرْدَة",
+          "reference_text": "عَسَل",
           "dimensions": [
             "صحة صوت الحرف/الحركة",
             "ترتيب الأصوات",
             "وضوح القراءة"
           ],
-          "do_not_auto_score": true
+          "do_not_auto_score": true,
+          "target_or_reference": "عَسَل"
         }
       },
       "skill_group": "S4",
@@ -3283,7 +3286,7 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": "اقرأ الجزء الأول ثم أكمل.",
+      "hint": "اقرأ الحرف مع حركته ثم اجمع الأصوات.",
       "retry": {
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
@@ -3309,7 +3312,9 @@
         "hint_initially_visible": false,
         "answer_initially_visible": false,
         "student_input": "voice_recording"
-      }
+      },
+      "reading_reference": "عَسَل",
+      "content_qa_note": "16-10-2026: تنويع المادة التعليمية لتجنب تكرار بنود الاختبار القبلي أو التحقق."
     },
     {
       "id": "L1-06-GP-04",
