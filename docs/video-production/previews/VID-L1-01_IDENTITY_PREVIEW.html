@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>هِمّة — معاينة هوية VID-L1-01 (غير معتمدة)</title>
+<style>
+:root{--blue:#347FD9;--ink:#20364D;--bg:#F7FBFF;--line:#DCE8F2;--yellow:#FFC857}
+*{box-sizing:border-box}body{margin:0;background:#eaf2f9;color:var(--ink);font-family:Tajawal,"Noto Sans Arabic",Tahoma,Arial,sans-serif}
+.shell{max-width:1400px;margin:18px auto;padding:0 16px}.header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:12px}
+h1{font-size:21px;margin:0}.status{font-size:13px;color:#5c738a}.tools{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0;align-items:center}
+.group{border:1px solid #d0ddeb;border-radius:12px;background:white;padding:6px 8px;display:flex;gap:5px;align-items:center}
+.label{font-weight:700;margin:0 5px;font-size:13px}button{border:0;background:transparent;padding:8px 15px;border-radius:8px;color:#33536f;cursor:pointer;font:700 15px inherit}
+button.active{background:var(--blue);color:white}button:focus-visible{outline:3px solid #ffc857;outline-offset:2px}
+.window{width:100%;position:relative;overflow:hidden;border-radius:18px;background:var(--bg);box-shadow:0 8px 28px #20364d18}
+.scene{position:absolute;right:0;top:0;width:1280px;height:720px;transform-origin:top right;background:var(--bg);overflow:hidden}
+.logo{position:absolute;left:55px;top:29px;width:175px;height:auto;z-index:3}
+.topic{position:absolute;right:76px;top:43px;margin:0;font-weight:900;font-size:46px;color:var(--ink);line-height:1.35}
+.subtitle{position:absolute;right:78px;top:105px;font-size:22px;color:#54728b}
+.board{position:absolute;right:48px;top:170px;width:865px;height:489px;border:3px solid var(--line);background:white;border-radius:32px;box-shadow:0 5px 0 #dfeef8;display:flex;align-items:center;justify-content:space-evenly;padding:30px 50px;gap:35px}
+.visual{width:330px;height:330px;object-fit:contain;flex-shrink:0}
+.words{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-width:270px}
+.letter{font-size:148px;font-weight:900;line-height:1.2;color:var(--blue)}
+.word{font-size:63px;font-weight:800;line-height:1.4;color:var(--ink);white-space:nowrap}
+.accent{width:122px;height:9px;background:var(--yellow);border-radius:50px}
+.character{position:absolute;left:-30px;bottom:-63px;width:445px;height:630px;object-fit:contain;object-position:bottom;z-index:2;pointer-events:none}
+.footer{position:absolute;right:75px;bottom:28px;font-size:19px;color:#758ca2}
+.note{font-size:13px;color:#5a7288;line-height:1.9;margin:11px 0}.sources a{color:#0c639f;text-decoration:underline}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main class="shell">
+<div class="header"><div><h1>معاينة الاستوديو التعليمي — VID-L1-01</h1><div class="status">مقترح للمراجعة فقط • لم يُعتمد • بلا توليد AI أو استهلاك رصيد</div></div><div class="status">أصول GitHub الأصلية • نسخة ثابتة 11a7fb0</div></div>
+<div class="tools">
+<div class="group" role="group" aria-label="الشخصية"><span class="label">الشخصية</span><button id="boy" class="active" type="button" aria-pressed="true">الولد</button><button id="girl" type="button" aria-pressed="false">البنت</button></div>
+<div class="group" role="group" aria-label="الأمثلة"><span class="label">مثال</span><button id="exM" class="active" type="button" aria-pressed="true">م — مَوْز</button><button id="exB" type="button" aria-pressed="false">ب — بَاب</button><button id="exS" type="button" aria-pressed="false">س — سَمَك</button></div>
+</div>
+<div id="window" class="window" aria-label="إطار معاينة الفيديو، ستة عشر إلى تسعة">
+<div id="scene" class="scene">
+<img id="logo" class="logo" alt="شعار هِمّة الأصلي">
+<h2 class="topic">الحرف وصوته</h2><div class="subtitle">أنظر إلى الحرف، وأستمع إلى صوته</div>
+<div class="board"><div class="words"><div id="letter" class="letter">م</div><div id="word" class="word">مَوْز</div><div class="accent"></div></div><img id="visual" class="visual" alt="رسم موزة من أصول هِمّة"></div>
+<img id="character" class="character" alt="شخصية هِمّة الرسمية في وضعية شرح">
+<div id="foot" class="footer">مثال ١ من ٣</div>
+</div></div>
+<p class="note">هذه لوحة هوية ثابتة: تغيير الأزرار يبدّل فقط <strong>الأصول الأصلية</strong>، وليس توليد مشاهد أو اختبارات. الحروف كلمات حية قابلة للتحرير. صور الشخصيات ووضعيات الشرح يرتدي فيها الولد والبنت نظارة؛ وضعيات الترحيب والتشجيع الرسمية لا ترتدي نظارة، لذا لا ينبغي الخلط بينها في فيديو واحد دون قرار.</p>
+<p class="note sources"><a href="https://github.com/7eaur/himma-/tree/video-production/gemini-handoff-20261018/docs/video-production" target="_blank" rel="noopener">وثائق إنتاج الفيديوهات</a> — <a href="https://github.com/7eaur/himma-/blob/video-production/gemini-handoff-20261018/docs/video-production/09_VISUAL_IDENTITY_AUDIT_VID-L1-01_AR.md" target="_blank" rel="noopener">سجل الفحص</a></p>
+</main>
+<script>
+const base="https://raw.githubusercontent.com/7eaur/himma-/11a7fb025c740e372711a621a06b28261d7835ea/";
+const root="assets/characters/assets/characters/";
+const exRoot="assets/education/assets/vocabulary/png/";
+const samples={M:{letter:"م",word:"مَوْز",img:"hem-voc-01-banana-1024.png",alt:"موزة",foot:"مثال ١ من ٣"},B:{letter:"ب",word:"بَاب",img:"hem-voc-03-door-1024.png",alt:"باب",foot:"مثال ٢ من ٣"},S:{letter:"س",word:"سَمَك",img:"hem-voc-05-fish-1024.png",alt:"سمكة",foot:"مثال ٣ من ٣"}};
+let current="M",gender="boy";
+document.getElementById("logo").src=base+"assets/brand/assets/logo/png/himma-logo-gradient-960.png";
+function pickButton(ids,selected){for(const id of ids){const b=document.getElementById(id);b.classList.toggle("active",id===selected);b.setAttribute("aria-pressed",String(id===selected))}}
+function draw(){
+const s=samples[current];document.getElementById("letter").textContent=s.letter;
+document.getElementById("word").textContent=s.word;
+const v=document.getElementById("visual");v.src=base+exRoot+s.img;v.alt=s.alt;
+document.getElementById("foot").textContent=s.foot;
+const code=gender==="boy"?"b":"g";
+document.getElementById("character").src=base+root+gender+"/png/hem-chr-"+code+"-02-explain-1024.png";
+pickButton(["boy","girl"],gender);pickButton(["exM","exB","exS"],"ex"+current);
+}
+document.getElementById("boy").onclick=()=>{gender="boy";draw()};
+document.getElementById("girl").onclick=()=>{gender="girl";draw()};
+for(const e of ["M","B","S"])document.getElementById("ex"+e).onclick=()=>{current=e;draw()};
+function size(){const w=document.getElementById("window");const factor=Math.min(1,w.clientWidth/1280);w.style.height=(720*factor)+"px";document.getElementById("scene").style.transform="scale("+factor+")"}
+addEventListener("resize",size);size();draw();
+</script>
+</body></html>
