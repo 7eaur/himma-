@@ -12,7 +12,7 @@
 - **فرعنا المستقل والوحيد للكتابة في هذه المهمة:** `video-production/gemini-handoff-20261018`
 - مصدر خطة وبنك V2: `v2/01-learning-foundation-20261007`.
 - لا تكتب في `main` أو `stage/02-content` أو فرع V2 الأصلي دون طلب صريح. لا دمج ولا نشر تلقائيًا.
-- اقرأ **آخر HEAD الفعلي** للفرع؛ افحص تغييرات المستودع قبل أي تعديل.
+- اقرأ **آخر HEAD الفعلي** للفرع؛ افحص تغييرات المستودع قبل أي تعديل. مرجع V2 الحي سبق أن تقدم على نقطة تفرعنا في وثائق تنفيذية؛ اقرأ `08_LIVE_SOURCE_AND_GEMINI_CAPABILITIES_AR.md` وتحقق من أي تحديث حديث قبل تخطيط الفيديو.
 
 ## تسلسل قراءة إلزامي قبل التنفيذ
 
@@ -23,10 +23,11 @@
 5. `docs/video-production/03_BATCH_ROADMAP_AND_ACCEPTANCE_AR.md`
 6. `docs/video-production/04_IDENTITY_AND_SOURCE_ASSETS_AR.md`
 7. `docs/video-production/05_VID-L1-01_PILOT_STORYBOARD_AR.md`
-8. `docs/v2/video-production/01_BRAND_CHARACTER_ENVIRONMENT_REFERENCE_AR.md`
-9. `docs/v2/README.md` و`docs/v2/20_VERIFIED_CONTENT_BASELINE_AND_GAPS_AR.md` و`docs/v2/DECISIONS_AR.md`
-10. `docs/v2/15_ALL_LESSON_VIDEO_BRIEFS_AR.md` ثم **بنوك التأليف الأصلية الأربع** في `docs/v2/content-bank/` (L1, L2, L3, ASSESSMENT_PRE_POST).
-11. مراجع الهوية: `assets/brand/README_AR.md`، `assets/characters/README_AR.md`، `assets/education/README_AR.md` وملفات assets الأصلية.
+8. `docs/video-production/08_LIVE_SOURCE_AND_GEMINI_CAPABILITIES_AR.md` — تحقق الفرق بين المصدر الحي وفرع التسليم، وحدود Gemini Omni Flash الرسمية (خصوصًا Extend/الحوار).
+9. `docs/v2/video-production/01_BRAND_CHARACTER_ENVIRONMENT_REFERENCE_AR.md`
+10. `docs/v2/README.md` و`docs/v2/20_VERIFIED_CONTENT_BASELINE_AND_GAPS_AR.md` و`docs/v2/DECISIONS_AR.md`
+11. `docs/v2/15_ALL_LESSON_VIDEO_BRIEFS_AR.md` ثم **بنوك التأليف الأصلية الأربع** في `docs/v2/content-bank/` (L1, L2, L3, ASSESSMENT_PRE_POST).
+12. مراجع الهوية: `assets/brand/README_AR.md`، `assets/characters/README_AR.md`، `assets/education/README_AR.md` وملفات assets الأصلية.
 
 إذا تعارض ملف ملخص مع البنك، **المصدر الفعلي JSON وملف قرارات V2** أولًا، ثم البطاقة التعليمية للفيديو. لا تعيد تأليف أسئلة أو تعتمد تقرير PDF لنسخ محتوى جديد. ميز بين ما هو «مرجع محتوى مكتمل» وما هو «وسائط وفيديو غير منتجة» وما هو «غير معتمد تربويًا بعد».
 
