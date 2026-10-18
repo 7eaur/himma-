@@ -112,3 +112,12 @@
 - validator/importer/versioned schema وواجهة درس حقيقية واختبارات اندماج وrollback.
 
 **الخطوة التنفيذية المعتمدة:** P01 في `09_IMPLEMENTATION_ROADMAP_AR.md` بعد إغلاق بوابة التوثيق P00.
+
+
+## 9. مشغل الفيديو وعقد الوسائط الذي لا يعتمد على وجود الملف النهائي (قرار 2026-10-18)
+
+- المصدر الواحد لأي فيديو: `lesson.video_media_id → versioned media manifest → media provider → secure playback URL`.
+- `MediaProvider` يسمح في **Staging فقط** بمزود `test_only_fixture`، ويعمل في الإنتاج بـ`approved_real_asset` فقط. لا تغيير في `LessonRenderer` عندما تصل الفيديوهات؛ تتغير بيانات manifest والحالة.
+- المشغل يجب أن يدعم `loading/ready/buffering/playing/paused/ended/failed/missing`، التحكم في التشغيل/الصوت/إعادة المحاولة، واستكمال حالة الطالب مع سياسة مشاهدة واضحة؛ لا تُحتسب المشاهدة نجاحًا أكاديميًا.
+- الاختبار الوظيفي للنظام كاملًا يسبق إنتاج الفيديوهات النهائية؛ لكن الإفراج عن المحتوى للطالب **يتطلب ملفات نهائية سليمة وتحققًا من الصورة/الصوت والفيديو**.
+- متطلبات هذه العقد ومصفوفة السيناريوهات المفصلة في `22_FULL_SYSTEM_COVERAGE_AND_ACCEPTANCE_MATRIX_AR.md`؛ تصميم التنفيذ والتسليم P02–P10 في `09_IMPLEMENTATION_ROADMAP_AR.md`.
