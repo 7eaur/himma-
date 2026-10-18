@@ -255,4 +255,23 @@
 | O13 | mapping gap/escalation/API errors تحمل أكوادًا آمنة وCTA قابلًا للاسترداد | Problem Details contract + E2E |
 | O14 | رحلة E2E الحقيقية لا تُختصر بسكربت يحقن learning history | run كامل بواجهات/APIs V2 وfixtures معلّمة |
 
-**الحالة:** التصميم/الفجوات `ready_for_review_source_only`، والتنفيذ كله `NOT_VERIFIED`. لا انتقال إلى P01-D قبل «تم».
+**الحالة:** اعتمد المالك فحص المصدر لـP01-C بعبارة «تم» في 2026-10-19؛ التنفيذ والاختبارات تظل `NOT_VERIFIED`.
+
+## P. معايير قبول الدرس والاختبارات والتفاعلات والوسائط — P01-D
+
+**المرجع التفصيلي:** `31_P01D_LESSON_ASSESSMENT_INTERACTIONS_MEDIA_AUDIT_AR.md`. لا يعد أي بند ناجحًا دون run حديث مرتبط بـSHA.
+
+| ID | معيار القبول | الدليل المطلوب |
+|---|---|---|
+| P-D01 | استيراد 300 بندًا و19 درسًا و12 دعمًا من البنك المعتمد بلا فقد أو تكرار | compiler contract + checksum + dry-run |
+| P-D02 | جلسة الدرس مثبتة بإصدار وتستأنف `intro/video/practice/check` من الخادم | DB/API/E2E عبر refresh وجهاز آخر |
+| P-D03 | الفيديو reusable يدعم التحكم والترجمة والحالات البطيئة/الفاشلة، وfixture موسوم لا يصل للإنتاج | component/network/release tests |
+| P-D04 | الأنواع السبعة تعمل دون تسريب answer/rubric؛ وتشمل صوتًا مستقلًا لكل خيار عند الحاجة | DTO/security/unit/E2E |
+| P-D05 | `read_aloud` و`write_text` يحفظان الدليل والمسودة والمراجعة البشرية والتاريخ دون auto-grade | full-stack/review/audit tests |
+| P-D06 | التدريب الموجّه وحده يطبق hint/feedback، والتحقق المستقل والقبلي/البعدي لا يكشف الإجابة | policy/API/E2E |
+| P-D07 | draft/old content لا يدخل الاختبار، والإصدار N لا يتغير أثناء نشر N+1 | DB/integration/security |
+| P-D08 | الرفع ثم الإرسال قابلان للاستعادة بلا object يتيم أو تضارب idempotency | failure-injection integration |
+| P-D09 | Renderer/Recorder/MediaSlot مشتركة بلا نسخ بين النشاط والتقييم، مع تكافؤ وظائف V1 | architecture/component/regression |
+| P-D10 | الهاتف/اللوحي/الديسكتوب والكيبورد و200% وRTL والصوت المتداخل وreduced motion ناجحة | visual + axe + browser matrix |
+
+**الحالة:** `P01-D=ready_for_review_source_only`؛ التنفيذ والاختبارات `D-T01–D-T24` غير منفذة. لا انتقال إلى P01-E قبل اعتماد المالك.
