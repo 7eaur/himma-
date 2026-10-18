@@ -292,4 +292,20 @@
 | `RG22/RG23/RG24` الهاتف والوصول والميديا | CSS/اختبارات تاريخية جزئية، بلا video/write_text/option audio | visual+axe على 360–desktop و200% وkeyboard وslow network والحالات الفاشلة |
 | `RG25` الأدلة والتكيف | محاولة/تلميح V1 عامة لكل step؛ لا role يفصل التدريب عن التحقق | evidence مستقل بلا hint، وpending قراءة/كتابة لا يحسب إتقانًا |
 
-**الحالة:** لا screenshot أو Browser/Audio/Video QA ولا CI حديثة. `P01-D=ready_for_review_source_only`، وكل `RGxx` أعلاه يظل بوابة Regression لا ادعاء نجاح.
+**الحالة:** لا screenshot أو Browser/Audio/Video QA ولا CI حديثة. `P01-D=approved_source_audit` باعتماد المالك لفحص المصدر فقط، وكل `RGxx` أعلاه يظل بوابة Regression لا ادعاء نجاح.
+
+## 14. ربط P01-E بالصفحات والإصلاحات السابقة — التكيف والتقوية والمراجعات
+
+**المرجع:** `32_P01E_ADAPTATION_SUPPORT_AND_REVIEW_AUDIT_AR.md`. حالة الدليل `source_verified` فقط.
+
+| المرجع السابق | نتيجة P01-E | الحماية المطلوبة |
+|---|---|---|
+| `PG04/PG06` لوحة الطالب والنشاط | overlay للتقوية وrerecord tasks موجودان، لكن الحالة موزعة وpolling يقرأ endpoint يكتب | CurrentAction واحد ورسائل دقيقة غير وصمية وعودة لموضع الدرس |
+| `PG09` ملف الطالب | لوحة إسناد تقوية يدوية تحفظ السبب وAudit، لكنها تعرض كل نشاط المستوى | قصر الخيارات على support/focus المتوافق وتوضيح الاستثناء |
+| `PG11` مراجعة الصوت | أحدث تسجيل فقط، قرار واعتماد رقمي وإعادة تسجيل مع حفظ السابق | ReviewTask موحد، حفظ سبب/ملاحظة الرفض، ومنع قرارين متزامنين |
+| `RG04/RG12/RG16` pending/rerecord | الفصل الأكاديمي وعدم محو التسجيل محفوظان جزئيًا | القراءة والكتابة محايدتان، مهمة دائمة بلا خطف أو تكرار أو انتظار أبدي |
+| `RG05/RG15/RG25` الاستئناف والتكيف | دورة durable ومنع demotion موجودان، لكن 10/6 والعتبات والـsame-level من V1 | 19 درسًا/12 دعمًا وreturn bookmark وfocus وidempotent transitions |
+| `RG06/RG07/RG08` واجهة المشرف والتنبيهات | audio queue وتنبيه التصعيد موجودان؛ mapping gap بلا تنبيه | queue واضحة على الهاتف وتنبيه durable لكل hold ومؤشر قرار قابل للتفسير |
+| `RG11/RG22/RG23/RG24` التشجيع والهاتف والوصول | شخصية هِمّة والبطاقات موجودة؛ لا QA حديث للحالات المتنوعة | visual/axe/audio لكل support/hold/review/rerecord على 360–desktop |
+
+**الحالة:** لم تُشغّل لقطات أو Browser/Audio/Concurrency QA. `P01-E=ready_for_review_source_only`، وكل إصلاح تاريخي يظل Regression gate لا دليل نجاح حالي.

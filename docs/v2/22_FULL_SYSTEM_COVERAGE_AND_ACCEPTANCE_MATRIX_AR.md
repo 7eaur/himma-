@@ -274,4 +274,23 @@
 | P-D09 | Renderer/Recorder/MediaSlot مشتركة بلا نسخ بين النشاط والتقييم، مع تكافؤ وظائف V1 | architecture/component/regression |
 | P-D10 | الهاتف/اللوحي/الديسكتوب والكيبورد و200% وRTL والصوت المتداخل وreduced motion ناجحة | visual + axe + browser matrix |
 
-**الحالة:** `P01-D=ready_for_review_source_only`؛ التنفيذ والاختبارات `D-T01–D-T24` غير منفذة. لا انتقال إلى P01-E قبل اعتماد المالك.
+**الحالة:** اعتمد المالك فحص المصدر لـP01-D بعبارة «تم» في 2026-10-19؛ التنفيذ والاختبارات `D-T01–D-T24` تظل `NOT_VERIFIED`.
+
+## Q. معايير قبول التكيف والتقوية والمراجعات — P01-E
+
+**المرجع التفصيلي:** `32_P01E_ADAPTATION_SUPPORT_AND_REVIEW_AUDIT_AR.md`. لا يعد أي بند ناجحًا دون run حديث مرتبط بـSHA.
+
+| ID | معيار القبول | الدليل المطلوب |
+|---|---|---|
+| P-E01 | PolicyVersion معايرة لـ19 درسًا/13 مهارة بلا ثوابت 10/6 أو نقل عتبات V1 | policy contract + boundary matrix + اعتماد تربوي |
+| P-E02 | التدريب الموجه لا يدخل evidence، والخطأ المستقل الواحد لا يرسل للدعم | API/unit/property tests |
+| P-E03 | كل `error_focus` يربط دعمًا وfocus واحدًا معتمدًا أو hold صريحًا | compiler/coverage contract |
+| P-E04 | الدعم يعرض focus واحدًا وتحققين بديلين، ثم يعود إلى مرحلة الدرس المحفوظة | DB/API/E2E |
+| P-E05 | فجوة من مستوى سابق تعالج داخل المسار الحالي دون demotion | policy/E2E L2/L3 |
+| P-E06 | القراءة والكتابة pending محايدتان مع ReviewTask وتاريخ وقرار/إعادة | full-stack review/audit |
+| P-E07 | طلب الحالة read-only؛ الأوامر idempotent ولا polling أو tabان يكرران القرار/الدورة | DB/concurrency/network |
+| P-E08 | mapping gap والتصعيد يظهران كـCurrentAction وتنبيه للمشرف بلا حبس صامت | integration/E2E |
+| P-E09 | المكافأة والتقرير يفصلان GP/IC/support/focus/review/release | contract/regression |
+| P-E10 | واجهات الدعم/الانتظار/المراجعة/إعادة التسجيل ناجحة على الهاتف واللوحي والديسكتوب | visual + axe + browser/audio QA |
+
+**الحالة:** `P01-E=ready_for_review_source_only`؛ التنفيذ والاختبارات `AE-T01–AE-T24` غير منفذة. لا انتقال إلى P01-F قبل اعتماد المالك.
