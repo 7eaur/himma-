@@ -233,3 +233,26 @@
 | N08 | اختبار الواجهة العامة ودخول الطالب والمشرف | إزالة Assertions التاريخية لكود الحروف `stu-1234` والـHeadings القديمة، ثم اختبارات/لقطات Playwright فعلية |
 
 **حالة المراجعة:** تدقيق مصدر `P01-B=ready_for_review_source_only`؛ التنفيذ والاختبار ليسا مكتملين. لا انتقال إلى `P01-C` قبل اعتماد المستخدم.
+
+## O. معايير قبول لوحة الطالب ورحلته — P01-C
+
+**المرجع التفصيلي:** `30_P01C_STUDENT_DASHBOARD_AND_JOURNEY_AUDIT_AR.md`. لا يعد أي بند أدناه ناجحًا دون run حديث مرتبط بـSHA.
+
+| ID | اختبار قبول لا يتجاوز | الدليل المطلوب |
+|---|---|---|
+| O01 | 19 درسًا تظهر 6/6/7 من content release، لا عداد 10 ثابت | Contract/API/E2E مع release pinned |
+| O02 | كل درس يستأنف عند intro/video/practice/check بعد refresh/device | DB integration + E2E لكل مرحلة |
+| O03 | `CurrentAction` واحد يميز القبلي/الدرس/الدعم/الصوت/إعادة التسجيل/التعليق/البعدي/الاكتمال | schema exhaustiveness + transition tests |
+| O04 | تسكين L1/L2/L3 له نتيجة durable ولا يعاد تطبيقه بعد البعدي | API/E2E + visual copy assertions |
+| O05 | locked/skipped/active/completed والترقية المبكرة لا تزيف نسبة إكمال الدروس | policy/unit + journey snapshots |
+| O06 | pending audio محايد، وrerecord لا يخطف المسار ولا يظهر مرتين | API/E2E core/pre/post و0/1/many tasks |
+| O07 | الدعم يعود إلى الدرس/المرحلة الأصلية بلا demotion أو حلقة | policy/integration/E2E |
+| O08 | فشل أي مصدر لا يحول unavailable إلى صفر أو حالة أكاديمية مختلفة | component/API failure matrix + retry |
+| O09 | double-click/tabين/retry لا تنشئ جلستين أو مكافأتين | concurrency/idempotency integration |
+| O10 | الهوية والشخصيات والشارات والنتائج وإجراء واحد تبقى عبر refactor | parity + visual snapshots لكل حالة |
+| O11 | 360/390/430/tablet/desktop وkeyboard/zoom/reduced-motion/audio control | Playwright visual + axe + manual AT evidence |
+| O12 | لا polling عالمي غير محدود؛ backoff/background/request budget مقاس | network/performance trace |
+| O13 | mapping gap/escalation/API errors تحمل أكوادًا آمنة وCTA قابلًا للاسترداد | Problem Details contract + E2E |
+| O14 | رحلة E2E الحقيقية لا تُختصر بسكربت يحقن learning history | run كامل بواجهات/APIs V2 وfixtures معلّمة |
+
+**الحالة:** التصميم/الفجوات `ready_for_review_source_only`، والتنفيذ كله `NOT_VERIFIED`. لا انتقال إلى P01-D قبل «تم».
