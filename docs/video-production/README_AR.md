@@ -9,11 +9,12 @@
 
 1. [07_NEXT_CHAT_PROMPT_AR.md](07_NEXT_CHAT_PROMPT_AR.md) — أمر الاستلام التنفيذي، ويمكن نسخه للمحادثة الجديدة.
 2. [06_HANDOFF_STATUS_AND_NEXT_STEPS_AR.md](06_HANDOFF_STATUS_AND_NEXT_STEPS_AR.md) — أين توقفنا وما المنجز وما لم ينجز.
-3. [01_PROJECT_AND_BANK_CONTEXT_AR.md](01_PROJECT_AND_BANK_CONTEXT_AR.md) — فهم مشروع هِمّة، بنك الأسئلة، رحلة الدرس، حدود الدور.
-4. [02_GEMINI_PRODUCTION_RULEBOOK_AR.md](02_GEMINI_PRODUCTION_RULEBOOK_AR.md) — قرارات جيمناي وهندسة مشاهد الفيديو والصوت والتوفير.
-5. [03_BATCH_ROADMAP_AND_ACCEPTANCE_AR.md](03_BATCH_ROADMAP_AND_ACCEPTANCE_AR.md) — الدفعات والبوابات والجودة ومصادر التسليم.
-6. [04_IDENTITY_AND_SOURCE_ASSETS_AR.md](04_IDENTITY_AND_SOURCE_ASSETS_AR.md) — الشخصية والشعار والبيئة وملفات المصدر الدقيقة.
-7. [05_VID-L1-01_PILOT_STORYBOARD_AR.md](05_VID-L1-01_PILOT_STORYBOARD_AR.md) — النموذج الأول والمشاهد المقترحة للبدء.
+3. [08_LIVE_SOURCE_AND_GEMINI_CAPABILITIES_AR.md](08_LIVE_SOURCE_AND_GEMINI_CAPABILITIES_AR.md) — مقارنة المصدر الحي بقيود Gemini والتكاليف دون توليد.
+4. [01_PROJECT_AND_BANK_CONTEXT_AR.md](01_PROJECT_AND_BANK_CONTEXT_AR.md) — فهم مشروع هِمّة، بنك الأسئلة، رحلة الدرس، حدود الدور.
+5. [02_GEMINI_PRODUCTION_RULEBOOK_AR.md](02_GEMINI_PRODUCTION_RULEBOOK_AR.md) — قرارات جيمناي وهندسة مشاهد الفيديو والصوت والتوفير.
+6. [03_BATCH_ROADMAP_AND_ACCEPTANCE_AR.md](03_BATCH_ROADMAP_AND_ACCEPTANCE_AR.md) — الدفعات والبوابات والجودة ومصادر التسليم.
+7. [04_IDENTITY_AND_SOURCE_ASSETS_AR.md](04_IDENTITY_AND_SOURCE_ASSETS_AR.md) — الشخصية والشعار والبيئة وملفات المصدر الدقيقة.
+8. [05_VID-L1-01_PILOT_STORYBOARD_AR.md](05_VID-L1-01_PILOT_STORYBOARD_AR.md) — النموذج الأول والمشاهد المقترحة للبدء.
 
 ## مصادر الحقيقة؛ لا تعتمد الملخص بدلها
 
