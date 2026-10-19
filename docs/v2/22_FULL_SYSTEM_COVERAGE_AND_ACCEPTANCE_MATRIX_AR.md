@@ -293,4 +293,23 @@
 | P-E09 | المكافأة والتقرير يفصلان GP/IC/support/focus/review/release | contract/regression |
 | P-E10 | واجهات الدعم/الانتظار/المراجعة/إعادة التسجيل ناجحة على الهاتف واللوحي والديسكتوب | visual + axe + browser/audio QA |
 
-**الحالة:** `P01-E=ready_for_review_source_only`؛ التنفيذ والاختبارات `AE-T01–AE-T24` غير منفذة. لا انتقال إلى P01-F قبل اعتماد المالك.
+**الحالة:** اعتمد المالك فحص المصدر لـP01-E بعبارة «تم» في 2026-10-19؛ التنفيذ والاختبارات `AE-T01–AE-T24` تظل `NOT_VERIFIED`.
+
+## R. معايير قبول المشرف والإدارة والتقارير — P01-F
+
+**المرجع التفصيلي:** `33_P01F_ADMIN_AND_SUPERVISOR_AUDIT_AR.md`. لا يعد أي بند ناجحًا دون run حديث مرتبط بـSHA.
+
+| ID | معيار القبول | الدليل المطلوب |
+|---|---|---|
+| P-F01 | كل أمر/قراءة/تصدير يطبق capability وcohort scope خادميًا، لا دور `researcher` العام فقط | RBAC API matrix + negative tests |
+| P-F02 | إدارة الطلاب تحافظ على الإنشاء والكود والحالة مع pagination وminimal DTO وإبطال الجلسة | API/security/performance/E2E |
+| P-F03 | ملف الطالب يعرض CurrentAction ورحلة V2 والمراجعات والتدخلات وسجل محاولات الاختبار | contract/full-stack/mobile |
+| P-F04 | إعادة الاختبار متاحة من UI بسبب موثق وتبقي محاولة رسمية واحدة وتاريخًا كاملًا | DB/API/E2E/concurrency |
+| P-F05 | Dashboard counters ومهام الانتباه تأتي من read model V2 قابل للمصالحة وتظهر partial failures | reconciliation/network tests |
+| P-F06 | إشعارات القراءة/claim scoped لكل مشرف، ووجهاتها داخلية typed وآمنة | multi-user/security/E2E |
+| P-F07 | معاينة المحتوى readonly ومثبتة بالإصدار النشط وتغطي كل 300 بند ومراحل/وسائط V2 | release contract + visual/media QA |
+| P-F08 | التقارير/API/PDF/XLSX تستخدم official evidence وتعرض الإصدار والمنهجية ولا تخلط GP/IC/support/retry | dataset reconciliation + export tests |
+| P-F09 | Excel يعامل الأسماء غير الموثوقة كنص، وكل تصدير/أمر حساس مدقق دون كشف أسرار | security/audit/download tests |
+| P-F10 | دورة حياة المشرف آمنة، وكل PG07–PG16 وRG07/RG08/RG17/RG18 ناجح على الهاتف/اللوحي/الديسكتوب | full-stack + visual + axe |
+
+**الحالة:** `P01-F=ready_for_review_source_only`؛ التنفيذ والاختبارات `AF-T01–AF-T26` غير منفذة. لا انتقال إلى P01-G قبل اعتماد المالك.

@@ -309,3 +309,23 @@
 | `RG11/RG22/RG23/RG24` التشجيع والهاتف والوصول | شخصية هِمّة والبطاقات موجودة؛ لا QA حديث للحالات المتنوعة | visual/axe/audio لكل support/hold/review/rerecord على 360–desktop |
 
 **الحالة:** لم تُشغّل لقطات أو Browser/Audio/Concurrency QA. `P01-E=ready_for_review_source_only`، وكل إصلاح تاريخي يظل Regression gate لا دليل نجاح حالي.
+
+## 15. ربط P01-F بصفحات المشرف والإصلاحات السابقة
+
+**المرجع:** `33_P01F_ADMIN_AND_SUPERVISOR_AUDIT_AR.md`. حالة الدليل `source_verified` فقط.
+
+| المرجع السابق | نتيجة P01-F | الحماية المطلوبة |
+|---|---|---|
+| `PG07` Dashboard | aggregation للصوت موجود، لكن progress/counters من نموذج 10 أنشطة وفشل المصادر الثانوية يبدو فارغًا | read model V2 ومصالحة counters وحالة partial error |
+| `PG08/PG09` الطلاب/الإضافة | الجدول والبطاقات والكود الحقيقي auto/manual موجودة؛ القائمة تحمل الجميع وكل الأكواد | pagination/search خادمي وmasked/reveal مدقق مع حفظ تسليم الكود |
+| `PG10` ملف الطالب | سبعة تبويبات وإجراءات محفوظة، لكن لا UI لإعادة الاختبار/سجل محاولاته | إضافة الوظيفة داخل الملف نفسه وربط CurrentAction/ReviewTask |
+| `PG11` المراجعة | طابور القراءة قائم | تعميم ReviewTask للقراءة/الكتابة وclaim ومنع التعارض وفق P01-E |
+| `PG12/RG18` المعاينة | readonly وإجابات المشرف والوسائط موجودة | active release pin وعقد 300 بند ومراحل V2 وrenderer مشترك |
+| `PG13/PG14` التقارير | API وPDF/XLSX والمهارات محفوظة | official selector وversioned evidence وتعقيم Excel ومصالحة البيانات |
+| `PG15/PG16/RG17` الإعدادات والحساب | الاسم وكلمة المرور وإضافة المشرف وroute التوافق موجودة | RBAC ودورة حياة المشرف وإعادة ضبط/تعطيل آمن وlast-admin guard |
+| `RG07` التنبيهات | الصوت مجمع وdedupe domain موجود | read/claim لكل مشرف، لا صف `is_read` عالمي |
+| `RG08` الموبايل | cards/tabs/Admin dialog improvements موجودة في المصدر | visual+axe وfocus/overflow على كل PG07–PG16 |
+
+**تصحيح مرجعي:** السطر السابق في قسم P01-E الذي سمّى لوحة إسناد التقوية `PG09` يقصد وظيفيًا `PG10 /admin/students/[id]`; `PG09` يبقى صفحة إضافة الطالب.
+
+**الحالة:** لا Browser/Download/Visual/Performance run حديث. `P01-F=ready_for_review_source_only`، وكل `RGxx` بوابة Regression لا ادعاء نجاح.
