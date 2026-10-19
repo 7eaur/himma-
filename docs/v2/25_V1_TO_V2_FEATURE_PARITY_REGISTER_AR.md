@@ -158,4 +158,12 @@
 - نحافظ على كل وظائف V1: إنشاء الطالب والكود الحقيقي اليدوي/التلقائي، ملفه وتبويباته، التفعيل وإبطال الجلسة، فتح البعدي، التدخل المدقق، إعادة الاختبار مع التاريخ، مراجعة الصوت، المعاينة readonly، الحساب والمشرفون، وكل PDF/XLSX.
 - يجب إغلاق: RBAC/scope، واجهة إعادة الاختبار، اختيار `official_for_reporting`، read state للإشعار لكل مشرف، pin للإصدار، read models لـV2، وتقارير تفصل official evidence عن GP/IC/support/retry/review.
 - `/admin/account` يبقى route توافق إلى `/admin/settings`؛ هذا توحيد مقصود لا حذف لوظيفة الحساب.
-- `P01-F=ready_for_review_source_only`; الفجوات `AF01–AF24` والاختبارات `AF-T01–AF-T26` غير منفذة. لا يبدأ P01-G قبل اعتماد المالك.
+- كان `P01-F=ready_for_review_source_only` عند تسليمه، ثم اعتمده المالك «تم» وأصبح `approved_source_audit`؛ الفجوات `AF01–AF24` والاختبارات `AF-T01–AF-T26` تبقى غير منفذة.
+
+## 13. مراجعة P01-G — الخدمات والأمن والتشغيل
+
+- اعتمد المالك P01-F كتدقيق مصدر، ثم ثبت التقرير `34` أن طبقات FastAPI/PostgreSQL/Alembic/Redis/S3/BFF وCI والـworker نفسها جزء من تكافؤ V1، وليست بنية يجوز إسقاطها عند بناء الدروس الجديدة.
+- قدرات المحافظة المضافة `SG-K01–SG-K18`: BFF/Cookie، JWT/session epoch، Redis rate limit، correlation، readiness، migrations/constraints/idempotency، canonical atomicity، private recording streaming، human review authority، Audit، CI/M09/backup-restore.
+- لا يوجد `RETIRE_APPROVED`. المسارات القديمة المتداخلة تُوحّد تحت مالك واحد، لكنها لا تُحذف وظيفيًا: retake/completion/history/recording/review/reporting تبقى عقودًا مطلوبة.
+- الفجوات `SG01–SG26` والاختبارات `SG-T01–SG-T20` هي شروط التنفيذ والتكافؤ. لا تعد أعداد ملفات الاختبار أو نجاح Vercel إثبات نجاح.
+- الحالة: `P01-G=ready_for_review_source_only` وP01 الكلية تنتظر الاعتماد؛ P02 لم تبدأ.

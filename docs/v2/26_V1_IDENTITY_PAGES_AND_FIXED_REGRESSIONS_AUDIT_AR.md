@@ -329,3 +329,19 @@
 **تصحيح مرجعي:** السطر السابق في قسم P01-E الذي سمّى لوحة إسناد التقوية `PG09` يقصد وظيفيًا `PG10 /admin/students/[id]`; `PG09` يبقى صفحة إضافة الطالب.
 
 **الحالة:** لا Browser/Download/Visual/Performance run حديث. `P01-F=ready_for_review_source_only`، وكل `RGxx` بوابة Regression لا ادعاء نجاح.
+
+## 16. ربط P01-G بمنع عودة الأعطال عبر حدود الخدمات
+
+يضيف التقرير `34_P01G_SERVICES_SECURITY_TESTS_AND_P01_CLOSURE_AR.md` طبقة حماية تحت `RG01–RG25`:
+
+| الحماية | سبب أهميتها للهوية/الصفحات والإصلاحات |
+|---|---|
+| CI exact-SHA على `v2/*` | يمنع اعتبار build واجهة ناجحًا بينما API/DB/E2E لم تعمل |
+| route owner واحد | يمنع تغير رحلة الطالب أو نتيجة الاختبار بسبب ترتيب تركيب routers |
+| release pin للجلسة | يمنع تغير النص/الصوت/الصورة أو الإجابة أثناء الاستئناف |
+| BFF limits/timeouts/streaming | يمنع انهيار صفحات التسجيل والتصدير أو إخفاء 503 كعطل مبهم |
+| Recording lifecycle موحد | يحفظ إصلاحات pending/rerecord/history ولا يترك وسائط يتيمة |
+| RBAC/scope + Audit | يحمي صفحات الطالب والتسجيلات والتقارير من وصول مشرف غير مخول |
+| performance/query budgets | يمنع تراجع الهاتف/لوحة المشرف عند نمو الطلاب والطوابير |
+
+لم تُنفذ لقطات أو Browser/Audio/Load/Security suites في P01-G. تبقى كل RG بوابة إلزامية في P03–P09، ولا تتحول إلى Passed قبل run مرتبط بالـSHA.

@@ -312,4 +312,23 @@
 | P-F09 | Excel يعامل الأسماء غير الموثوقة كنص، وكل تصدير/أمر حساس مدقق دون كشف أسرار | security/audit/download tests |
 | P-F10 | دورة حياة المشرف آمنة، وكل PG07–PG16 وRG07/RG08/RG17/RG18 ناجح على الهاتف/اللوحي/الديسكتوب | full-stack + visual + axe |
 
-**الحالة:** `P01-F=ready_for_review_source_only`؛ التنفيذ والاختبارات `AF-T01–AF-T26` غير منفذة. لا انتقال إلى P01-G قبل اعتماد المالك.
+**الحالة الحالية:** `P01-F=approved_source_audit` باعتماد المالك «تم»؛ التنفيذ والاختبارات `AF-T01–AF-T26` ما زالت غير منفذة. انتقل الفحص إلى P01-G فقط.
+
+## S. معايير قبول الخدمات والأمن وCI وإغلاق P01 — P01-G
+
+| ID | معيار القبول | الدليل المطلوب لاحقًا |
+|---|---|---|
+| S01 | `v2/*` مشمول في required CI ولا نجاح منقول من SHA تاريخي | Security/Backend/Frontend/Integration runs مرتبطة بالـSHA |
+| S02 | مالك واحد لكل FastAPI method/path، خصوصًا assessment start/finish | AST/OpenAPI/runtime route ownership tests |
+| S03 | كل assessment/lesson/support session مثبتة على content release immutable | N→N+1 resume/report tests |
+| S04 | BFF/API يفرضان limits/timeouts وstreaming/error contract | oversized/slow/disconnect/load tests |
+| S05 | CSRF/Origin/CORS/Cookie/epoch/rate-limit تعمل fail-closed | security matrix في `SG-T08` |
+| S06 | التسجيل يمر عبر lifecycle واحد ويُرفض الملف المتنكر/التالف وتُنظف الأيتام | upload/storage failure-injection suite |
+| S07 | RBAC/scope يحمي الطلاب والتسجيلات والمراجعات والتقارير والتصدير | 401/403/cross-cohort matrix |
+| S08 | schema/migrations/constraints تمنع الجلسات/الإصدارات/الأحداث المتناقضة | Alembic + concurrency + drift tests |
+| S09 | التقارير والطوابير والقوائم لا تعتمد N+1 أو `.all()` غير محدود | query/latency/memory budgets |
+| S10 | dependencies/backend image reproducible وعلى runtime متوافق مع CI | locked build + audit + image smoke |
+| S11 | `/ready` يغطي V2 دون تكلفة probe خطرة، والعامل الصوتي feature-off أو monitored | readiness/load/worker recovery evidence |
+| S12 | backup/restore وDB↔object↔release reconciliation مثبتة لـV2 | isolated restore run وRPO/RTO |
+
+**الحالة:** `P01-G=ready_for_review_source_only`؛ المرجع التفصيلي `34`. لم تُنفذ `SG-T01–SG-T20`. اكتمال جرد P01 لا يعني نجاح Runtime؛ لا يبدأ P02 قبل اعتماد المالك.

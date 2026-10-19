@@ -191,3 +191,16 @@ LAST LEVEL → POSTTEST → SUMMARY/REPORT
 3. **نحافظ على الإصلاحات**: أي عرض جديد يجب أن يمر باختبارات RG01–RG25 ومنع الارتداد إلى مشاكل سابقة أو تجاوز fallback/audio/review.
 4. **نعالج الجذور لا التكديس**: توحيد CSS/Design tokens والمكونات بدل إضافة طبقات من CSS corrections، مع تجارب مرئية/وظيفية على الهاتف والديسكتوب وبالـRTL.
 5. **لا نعتبر مرحلة واجهات مكتملة** دون Screenshots + Regression للصفحات القديمة + Accessibility/Performance/CI؛ المسار الجديد للفيديو وحده لا يضمن عدم فقد ما كان قائمًا.
+
+## 14. ملحق P01-G — حدود الخدمات والتشغيل الملزمة
+
+يكمل التقرير `34_P01G_SERVICES_SECURITY_TESTS_AND_P01_CLOSURE_AR.md` هذا العقد بالنقاط التالية:
+
+1. composition root واحد ومالك واحد لكل method/path؛ router modules لا تكون خدمات ولا يقرر ترتيب التسجيل السلوك.
+2. كل جلسة تقييم/درس/دعم تحمل `content_release_id` ولا تتغير دلالتها عند تفعيل إصدار جديد.
+3. BFF يفرض body limits وtimeouts وstreaming ويحفظ headers الأمنية والتشغيلية، مع error envelope موحد.
+4. Commands الأكاديمية والإدارية تعمل داخل transaction/idempotency واضح، وتخرج أحداثها بعد commit بطريقة قابلة للاستعادة.
+5. التسجيل/التخزين/المراجعة lifecycle واحد مع تحقق حقيقي من الوسيط، scope، تنظيف أيتام وretention؛ لا raw storage key كسلطة وصول.
+6. CI لـ`v2/*` وdependency lock وruntime parity شروط P02 الأولى، لا تحسينات مؤجلة إلى ما قبل النشر.
+
+هذه إضافة إلى العقد وليست تنفيذًا. حالة P01 `ready_for_review_source_only` إلى أن يعتمدها المالك؛ P02 لم تبدأ.

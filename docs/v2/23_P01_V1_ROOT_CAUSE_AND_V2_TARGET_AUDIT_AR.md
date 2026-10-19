@@ -164,6 +164,12 @@ Supervisor: audio/writing review, progress, evidence, assets, reports
 
 **تعريف الجاهزية هنا:** `ready_for_review` = جميع قرارات تصميم P01 الرئيسية قابلة للمراجعة، مع مخاطر تنفيذ موثقة ومالكي مراحل. **لا تعني** `P01 approved` ولا `runtime-ready` ولا `release-ready`. لا تعدل أي خدمة Railway أو إنتاج V1.
 
+## 13. إغلاق فحص المصدر P01-G — 2026-10-19
+
+أكمل التقرير `34_P01G_SERVICES_SECURITY_TESTS_AND_P01_CLOSURE_AR.md` بوابات الجذور المتبقية من FastAPI إلى DB/Redis/S3/BFF/CI. ثبت أن `v2/*` خارج triggers ولا توجد Actions على HEAD `414574f13f022413598f7f69d31556194de83dc4`، وأن نجاح Vercel وحده ليس Quality Gate. كما صحح افتراض ملكية المسارات: `POST /assessment/start` و`POST /assessment/session/{session_id}/finish` لكل منهما أكثر من handler، والسلوك يعتمد ترتيب تركيب routers.
+
+تنتقل وثيقة الفحص الآن إلى `ready_for_review_source_only`: جرد A–G كامل، وA–F معتمدة من المالك في نطاق المصدر، أما G وP01 الكلية فتنتظران الاعتماد. لا يعني ذلك إغلاق أي فجوة أو نجاح CI/Runtime، وP02 لم تبدأ.
+
 
 ## 12. تعديل جوهري لنطاق P01: نفس المنصة مع احتفاظ كل ميزاتها
 
