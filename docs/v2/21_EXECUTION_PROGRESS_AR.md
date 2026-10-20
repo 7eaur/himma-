@@ -251,4 +251,6 @@ next_phase:
 - أزيل ازدواج route ownership لمساري بدء/إنهاء التقييم مع إبقاء retake/official reporting، وفُعّلت workflows على `v2/*`.
 - حُصنت حدود CORS/Origin وBFF بحجم 12MB ومهلة 30 ثانية وبث response وعقد 413/503، وقُفلت تبعيات Python 3.12.
 - دليل التنفيذ والحدود والاختبارات: `35_P02_CONTENT_RELEASE_MEDIA_FOUNDATION_DELIVERY_AR.md`.
+- تحقق GitHub Actions على implementation SHA `5af288cb03b9817b11656d8b658874e189682ced`: Quality Gate run `39362979612` وM04 run `39362979618` وM09 run `39362979616` كلها `success`. شمل ذلك PostgreSQL migrations/drift/seed، الأمن والواجهة، Playwright، readiness، واستعادة PostgreSQL والتخزين الخاص.
+- صحح الإغلاق عقد اختبار V1 الذي كان يخلط فجوة ربط التقوية بتصعيد فشل التحقق؛ صار كل hold يُختبر بدلالته دون تغيير Runtime أو بيانات.
 - **الحالة:** `P02=ready_for_review`; لا تفعيل release، لا نشر، لا بيانات طلاب، و`P03=not_started` حتى موافقة «تم» مستقلة.

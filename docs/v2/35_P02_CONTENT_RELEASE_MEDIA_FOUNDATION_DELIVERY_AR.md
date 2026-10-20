@@ -56,8 +56,13 @@
 | Frontend Jest | PASS: 11 suites / 44 tests |
 | Frontend ESLint | PASS |
 | Python `pip-audit` / npm production audit | PASS؛ لا ثغرات معروفة |
+| GitHub CI — Quality Gate | PASS على implementation SHA `5af288cb03b9817b11656d8b658874e189682ced`؛ backend/security/frontend/integration كلها ناجحة، run `39362979612` |
+| GitHub M04 — Responsive Visual Gate | PASS على SHA نفسه، run `39362979618` |
+| GitHub M09 — Release Readiness Gate | PASS على SHA نفسه؛ Browser regression واستعادة PostgreSQL وprivate object storage وعدم بقاء artifacts كلها ناجحة، run `39362979616` |
 
-الـmigration صُممت لـPostgreSQL مع upgrade/downgrade، ويظل دليل PostgreSQL الفعلي و`alembic check` وGitHub Actions مطلوبًا على SHA النهائي؛ لا يُستبدل بنتيجة SQLite.
+تحقق GitHub فعليًا من PostgreSQL عبر upgrade/downgrade/upgrade و`alembic check` وseed idempotency، ثم شغّل التكامل على PostgreSQL/Redis/MinIO. لم تعد نتيجة SQLite هي الدليل الوحيد.
+
+أثناء الإغلاق كشف M09 خللًا في **عقد اختبار** الرحلة القديمة: كان يخلط بين فجوة ربط التقوية التي لها إجراء إسناد، وتصعيد فشل التحقق المحدود الذي له إشراف مختلف. فُصل المساران في `vertical-slice.spec.ts`، ثم قُيد محدد رسالة التصعيد لأن Next.js يضيف route-announcer آخر بدور `alert`. لم يتغير منطق المنتج أو بياناته بسبب هذا التصحيح، ونجحت الجولات الثلاث اللاحقة كاملة.
 
 ## 6. ما لم يُنجز عمدًا
 
