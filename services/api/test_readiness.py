@@ -19,6 +19,7 @@ _REQUIRED_ENV = {
     "S3_SECRET_KEY": "test-secret",
     "S3_BUCKET_NAME": "himma-audio-test",
     "REDIS_URL": "redis://localhost:6379/0",
+    "CORS_ORIGINS": "http://localhost:3000",
 }
 
 

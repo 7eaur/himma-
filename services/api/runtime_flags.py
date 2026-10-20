@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from urllib.parse import urlparse
 
 _PROTECTED_RUNTIME_ENVS = {"trial", "production"}
 _MIN_SECRET_BYTES = 32
@@ -50,3 +51,12 @@ def validate_runtime_safety() -> None:
         raise RuntimeError(
             "API_SECRET_KEY must contain at least 32 characters/UTF-8 bytes in trial/production"
         )
+
+    origins = [value.strip() for value in os.getenv("CORS_ORIGINS", "").split(",") if value.strip()]
+    if not origins:
+        raise RuntimeError("CORS_ORIGINS must contain explicit origins in trial/production")
+    for origin in origins:
+        parsed = urlparse(origin)
+        local_trial = runtime_environment() == "trial" and parsed.scheme == "http" and parsed.hostname in {"localhost", "127.0.0.1"}
+        if origin == "*" or parsed.path not in {"", "/"} or not parsed.netloc or (parsed.scheme != "https" and not local_trial):
+            raise RuntimeError("CORS_ORIGINS must contain explicit HTTPS origins (localhost HTTP is trial-only)")

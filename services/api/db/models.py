@@ -94,6 +94,12 @@ class ContentRelease(Base):
     version = Column(String(50), unique=True, nullable=False)
     is_active = Column(Boolean, default=False, nullable=False)
     released_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    checksum = Column(String(64), nullable=True)
+    schema_version = Column(String(100), nullable=True)
+    status = Column(String(32), default="legacy_published", server_default="legacy_published", nullable=False)
+    manifest_json = Column(JSON().with_variant(JSONB, "postgresql"), nullable=True)
+    approved_at = Column(DateTime(timezone=True), nullable=True)
+    is_immutable = Column(Boolean, default=False, server_default="false", nullable=False)
 
 
 class ContentItem(Base):
@@ -194,6 +200,7 @@ class AssessmentSession(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     student_id = Column(Integer, ForeignKey("students.id"), nullable=False)
+    content_release_id = Column(Integer, ForeignKey("content_releases.id", ondelete="RESTRICT"), nullable=True)
     session_type = Column(String(50), nullable=False)
     status = Column(String(50), nullable=False, default="in_progress")
     started_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))

@@ -263,4 +263,9 @@ def finish_assessment(
     ).first()
     if not session or session.status != "in_progress":
         raise HTTPException(status_code=400, detail="الجلسة غير صالحة أو مكتملة")
-    return finish_session(db, student, session)
+    result = finish_session(db, student, session)
+    from assessment_retake import mark_official_completed_attempt
+
+    mark_official_completed_attempt(db, session)
+    db.commit()
+    return result

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { responseCacheControl } from "./cachePolicy";
+import { boundedRequestBody, proxyError, rejectUnsafeMutation, upstreamSignal } from "../proxySecurity";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const REQUEST_ID_PATTERN = /^[A-Za-z0-9._-]{8,128}$/;
@@ -10,6 +11,8 @@ function correlationId(req: NextRequest): string {
 }
 
 async function proxy(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
+  const rejected = rejectUnsafeMutation(req);
+  if (rejected) return rejected;
   const { path } = await params;
   const upstreamPath = path.join("/");
   const search = req.nextUrl.search;
@@ -29,16 +32,13 @@ async function proxy(req: NextRequest, { params }: { params: Promise<{ path: str
   if (idempotencyKey) headers["idempotency-key"] = idempotencyKey;
   if (rangeHeader) headers.range = rangeHeader;
 
-  const init: RequestInit = {
-    method: req.method,
-    cache: "no-store",
-    headers,
-  };
-
-  if (!["GET", "HEAD"].includes(req.method)) init.body = await req.blob();
-
-  const upstream = await fetch(url, init);
-  const body = await upstream.arrayBuffer();
+  let upstream: Response;
+  try {
+    const body = await boundedRequestBody(req);
+    upstream = await fetch(url, { method: req.method, cache: "no-store", headers, body, signal: upstreamSignal() });
+  } catch (error) {
+    return proxyError(error, requestId);
+  }
   const upstreamRequestId = upstream.headers.get("x-request-id") ?? requestId;
   const setCookie = upstream.headers.get("set-cookie");
   const cacheControl = responseCacheControl({
@@ -54,12 +54,12 @@ async function proxy(req: NextRequest, { params }: { params: Promise<{ path: str
     "cache-control": cacheControl,
     "x-request-id": upstreamRequestId,
   };
-  for (const name of ["accept-ranges", "content-range", "content-length", "content-disposition"]) {
+  for (const name of ["accept-ranges", "content-range", "content-length", "content-disposition", "retry-after"]) {
     const value = upstream.headers.get(name);
     if (value) responseHeaders[name] = value;
   }
 
-  const res = new NextResponse(body, {
+  const res = new NextResponse(upstream.body, {
     status: upstream.status,
     headers: responseHeaders,
   });

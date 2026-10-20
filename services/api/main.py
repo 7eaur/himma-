@@ -1,5 +1,6 @@
 import os
-from fastapi import FastAPI, Response
+from fastapi import FastAPI, Request, Response
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from auth import router as auth_router
 from protected import router as protected_router
@@ -23,10 +24,12 @@ from skill_reports import router as skill_reports_router
 from admin_notifications import router as admin_notifications_router
 from content_preview import router as content_preview_router
 from reward_catalog_api import router as reward_catalog_router
+from v2_content_api import router as v2_content_router
 from observability import request_correlation_middleware
 from readiness import readiness_report
 from runtime_flags import runtime_security_ready, validate_runtime_safety
 import notification_events  # noqa: F401 — registers transactional notification projections
+import db.learning_models  # noqa: F401 — registers V2 session tables in Base.metadata
 
 
 # Runtime configuration still fails closed for unsafe provider/test settings.
@@ -45,6 +48,7 @@ app = FastAPI(
 app.middleware("http")(request_correlation_middleware)
 
 _origins = os.environ.get("CORS_ORIGINS", "http://localhost:3000").split(",")
+_allowed_origins = {origin.strip().rstrip("/") for origin in _origins if origin.strip()}
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[o.strip() for o in _origins],
@@ -52,6 +56,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def csrf_origin_boundary(request: Request, call_next):
+    if request.method in {"POST", "PUT", "PATCH", "DELETE"}:
+        origin = request.headers.get("origin")
+        fetch_site = request.headers.get("sec-fetch-site", "").lower()
+        if origin == "null" or (origin and origin.rstrip("/") not in _allowed_origins) or fetch_site == "cross-site":
+            return JSONResponse(status_code=403, content={"detail": "مصدر الطلب غير مسموح"})
+    return await call_next(request)
 
 # Critical assessment/activity URLs each have one mounted owner; helper modules
 # may be reused as services but never decide behavior by router registration order.
@@ -77,6 +91,7 @@ app.include_router(skill_reports_router)
 app.include_router(admin_notifications_router)
 app.include_router(content_preview_router)
 app.include_router(reward_catalog_router)
+app.include_router(v2_content_router)
 
 
 @app.get("/health")

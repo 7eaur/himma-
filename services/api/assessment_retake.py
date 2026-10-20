@@ -162,7 +162,6 @@ def start_assessment_with_retake_policy(request: schemas.AssessmentStartRequest,
     return new_session
 
 
-@router.post("/assessment/session/{session_id}/finish")
 def finish_assessment_and_select_official_attempt(session_id: int, db: Session = Depends(get_db), student: Student = Depends(get_current_student)):
     # Completion is a permanent academic service. Retakes must never depend on
     # development bypass modules or router ordering.

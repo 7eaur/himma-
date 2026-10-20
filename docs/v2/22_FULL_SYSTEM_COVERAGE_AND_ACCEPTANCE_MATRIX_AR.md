@@ -331,4 +331,4 @@
 | S11 | `/ready` يغطي V2 دون تكلفة probe خطرة، والعامل الصوتي feature-off أو monitored | readiness/load/worker recovery evidence |
 | S12 | backup/restore وDB↔object↔release reconciliation مثبتة لـV2 | isolated restore run وRPO/RTO |
 
-**الحالة:** `P01-G=ready_for_review_source_only`؛ المرجع التفصيلي `34`. لم تُنفذ `SG-T01–SG-T20`. اكتمال جرد P01 لا يعني نجاح Runtime؛ لا يبدأ P02 قبل اعتماد المالك.
+**الحالة:** اعتمد المالك P01 كتدقيق مصدر. نُفذ من بوابات P02: تفعيل CI لـ`v2/*`، مالك route واحد، compiler/DTO آمن، CORS/Origin وBFF limits/timeout/streaming، pin schema وdependency lock. تبقى بوابات PostgreSQL/GitHub Actions مرتبطة بالـSHA النهائي، ولا يبدأ P03 قبل اعتماد P02.
