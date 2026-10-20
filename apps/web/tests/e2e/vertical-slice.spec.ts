@@ -479,6 +479,7 @@ test.describe("Himma recovered vertical slice", () => {
     let capturedRichActivity = false;
     let capturedLearningAudioHold = false;
     let adaptiveReviewHold = false;
+    let verificationEscalatedHold = false;
     while ((await activityRoot.getAttribute("data-phase")) !== "done" && current) {
       activityInteractions += 1;
       expect(activityInteractions, "Adaptive learning path should terminate").toBeLessThan(100);
@@ -524,14 +525,24 @@ test.describe("Himma recovered vertical slice", () => {
       }
       if (nextResponse.status() === 409) {
         const blocked = await nextResponse.json();
-        expect(String(blocked?.detail || "")).toMatch(
+        const blockedDetail = String(blocked?.detail || "");
+        expect(blockedDetail).toMatch(
           /(?:ربط نشاط تقوية معتمد|مراجعة المشرف بعد محاولات التقوية)/,
         );
-        adaptiveReviewHold = true;
-        const hold = page.getByTestId("student-adaptive-hold");
-        await expect(hold).toBeVisible({ timeout: 7000 });
-        await expect(hold.getByRole("heading", { name: /نجهّز لك الخطوة الأنسب/ })).toBeVisible();
-        await shot(page, "14-adaptive-review-hold");
+        if (blockedDetail.includes("ربط نشاط تقوية معتمد")) {
+          adaptiveReviewHold = true;
+          const hold = page.getByTestId("student-adaptive-hold");
+          await expect(hold).toBeVisible({ timeout: 7000 });
+          await expect(hold.getByRole("heading", { name: /نجهّز لك الخطوة الأنسب/ })).toBeVisible();
+          await shot(page, "14-adaptive-review-hold");
+        } else {
+          verificationEscalatedHold = true;
+          await expect(page.getByRole("alert")).toContainText(
+            "يحتاج هذا الضعف إلى مراجعة المشرف بعد محاولات التقوية والتحقق",
+            { timeout: 7000 },
+          );
+          await shot(page, "14-verification-escalated-hold");
+        }
         break;
       }
       expect(nextResponse.status()).toBe(200);
@@ -541,7 +552,7 @@ test.describe("Himma recovered vertical slice", () => {
     }
 
     expect(capturedLearningAudioHold).toBe(true);
-    if (!adaptiveReviewHold) {
+    if (!adaptiveReviewHold && !verificationEscalatedHold) {
       await expect(activityRoot).toHaveAttribute("data-phase", "done", { timeout: 15000 });
       await shot(page, "14-learning-complete");
     }
@@ -607,7 +618,14 @@ test.describe("Himma recovered vertical slice", () => {
     await page.goto("/admin/reports");
     await expect(page.getByRole("heading", { name: "التقارير والإحصائيات" })).toBeVisible();
     await expect(page.getByRole("table").getByRole("link", { name: studentName, exact: true })).toBeVisible();
-    await shot(page, adaptiveReviewHold ? "18-supervisor-live-reports" : "16-supervisor-live-reports");
+    await shot(
+      page,
+      adaptiveReviewHold
+        ? "18-supervisor-live-reports"
+        : verificationEscalatedHold
+          ? "16-supervisor-escalated-live-reports"
+          : "16-supervisor-live-reports",
+    );
 
     await page.goto("/admin/students");
     await expect(page.getByRole("table").getByRole("link", { name: studentName, exact: true })).toBeVisible({ timeout: 5000 });
