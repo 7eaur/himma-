@@ -537,10 +537,11 @@ test.describe("Himma recovered vertical slice", () => {
           await shot(page, "14-adaptive-review-hold");
         } else {
           verificationEscalatedHold = true;
-          await expect(page.getByRole("alert")).toContainText(
-            "يحتاج هذا الضعف إلى مراجعة المشرف بعد محاولات التقوية والتحقق",
-            { timeout: 7000 },
-          );
+          await expect(
+            page.getByRole("alert").filter({
+              hasText: "يحتاج هذا الضعف إلى مراجعة المشرف بعد محاولات التقوية والتحقق",
+            }),
+          ).toBeVisible({ timeout: 7000 });
           await shot(page, "14-verification-escalated-hold");
         }
         break;
