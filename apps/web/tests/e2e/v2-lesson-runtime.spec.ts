@@ -58,7 +58,7 @@ test("P03 lesson catalog, video state and P04 boundary remain responsive", async
 
   await page.getByRole("button", { name: "معاينة الدرس" }).first().click();
   await expect(page).toHaveURL(/\/student\/learning-v2\/44$/);
-  await expect(page.getByRole("heading", { name: "الحرف وصوته" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "الحرف وصوته", level: 1 })).toBeVisible();
   await page.getByRole("button", { name: /التالي/ }).click();
   const player = page.getByTestId("v2-video-player");
   await expect(player).toBeVisible();
