@@ -1,5 +1,9 @@
 import { expect, test } from "@playwright/test";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const SUPERVISOR_USERNAME = process.env.E2E_RESEARCHER_USERNAME ?? "admin";
+const SUPERVISOR_PASSWORD = process.env.E2E_RESEARCHER_PASSWORD;
+
 const lessons = [
   { lesson_id: "L1-01", title: "الحرف وصوته", level: "L1", state: "current", preview_enabled: true, session_id: null },
   { lesson_id: "L2-01", title: "أبني وأكتب كلمة بسيطة", level: "L2", state: "locked", preview_enabled: true, session_id: null },
@@ -18,7 +22,19 @@ function payload(stage: "intro" | "teaching_video" | "guided_practice") {
   };
 }
 
-test("P03 lesson catalog, video state and P04 boundary remain responsive", async ({ page }) => {
+test("P03 lesson catalog, video state and P04 boundary remain responsive", async ({ page, request, context }) => {
+  if (!SUPERVISOR_PASSWORD) throw new Error("E2E_RESEARCHER_PASSWORD is required");
+  const supervisor = await request.post(`${API_URL}/auth/login`, { data: { username: SUPERVISOR_USERNAME, password: SUPERVISOR_PASSWORD } });
+  expect(supervisor.status()).toBe(200);
+  const created = await request.post(`${API_URL}/researcher/students`, { data: { full_name: `طالب P03 ${Date.now()}`, grade_level: 3 } });
+  expect(created.status()).toBe(201);
+  const accessCode = (await created.json()).access_code as string;
+  const student = await request.post(`${API_URL}/auth/student-login`, { data: { access_code: accessCode } });
+  expect(student.status()).toBe(200);
+  const cookie = student.headers()["set-cookie"]?.match(/access_token=([^;]+)/)?.[1];
+  expect(cookie).toBeTruthy();
+  await context.addCookies([{ name: "access_token", value: cookie!, domain: "localhost", path: "/", httpOnly: true, sameSite: "Lax", secure: false }]);
+
   let stage: "intro" | "teaching_video" | "guided_practice" = "intro";
   await page.route("**/api/v2/lessons/**", async (route) => {
     const url = new URL(route.request().url());
