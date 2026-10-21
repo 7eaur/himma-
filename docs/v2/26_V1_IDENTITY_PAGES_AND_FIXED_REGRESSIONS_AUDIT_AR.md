@@ -345,3 +345,10 @@
 | performance/query budgets | يمنع تراجع الهاتف/لوحة المشرف عند نمو الطلاب والطوابير |
 
 لم تُنفذ لقطات أو Browser/Audio/Load/Security suites في P01-G. تبقى كل RG بوابة إلزامية في P03–P09، ولا تتحول إلى Passed قبل run مرتبط بالـSHA.
+
+## 17. أثر P03 على الهوية والصفحات والإصلاحات
+
+- أضيفت `/student/learning-v2` و`[sessionId]` تحت Student layout نفسه، ورابط مرحلي داخل Dashboard، وصفحة `/admin/v2-media` تحت Admin layout والتنقل الحالي؛ لا shell أو login مكرر.
+- أعيد استخدام `logo-gradient.svg` وشخصية الطالبة وحزمة الخطوط والألوان وRTL وreduced-motion، مع CSS Modules جديدة بدل إضافة `!important` إلى ملفات التصحيحات المتراكمة.
+- لم تتغير `PG05/PG06` أو pending/rerecord/rewards؛ اختبارات Jest القديمة عدلت فقط لتسجيل طلب catalog الإضافي واستمرت 47/47.
+- أضيف Browser contract للهاتف 390 والديسكتوب 1440 ومنع overflow وحد P03/P04؛ لا يسجل PASS بصريًا حتى يعمل على GitHub exact-SHA وتراجع اللقطات/المرئيات البشرية.

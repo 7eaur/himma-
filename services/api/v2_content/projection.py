@@ -58,3 +58,25 @@ def student_manifest(release: dict[str, Any]) -> dict[str, Any]:
             "posttest": [row["id"] for row in release["questions"] if row["role"] == "posttest"],
         },
     }
+
+
+def student_lesson(lesson: dict[str, Any], media: dict[str, Any]) -> dict[str, Any]:
+    """Project only the reviewed fields needed by the P03 lesson shell."""
+    return {
+        "lesson_id": lesson["id"],
+        "title": lesson["title"],
+        "level": lesson["level"],
+        "skill_group": lesson["skill_group"],
+        "objective": lesson.get("objective"),
+        "intro": {
+            "title": lesson["intro"].get("title") or lesson["title"],
+            "text": lesson["intro"].get("text") or "",
+            "button": lesson["intro"].get("button") or "ابدأ الشرح",
+        },
+        "video": media,
+        "practice": {
+            "count": len(lesson["practice_question_ids"]),
+            "first_question_id": lesson["practice_question_ids"][0],
+        },
+        "independent_check": {"count": len(lesson["check_question_ids"])},
+    }

@@ -175,3 +175,11 @@
 - حُفظت S3 والتسجيلات والمراجعة البشرية؛ `MediaProvider` الجديد يخص محتوى الدرس ولا يستبدل lifecycle تسجيل الطالب.
 - حُفظت جميع صفحات الطالب والمشرف والأصول دون تعديل مرئي في P02؛ البناء المرئي يبدأ P03 بعد الموافقة.
 - الدليل التفصيلي واختبارات عدم التسريب/idempotency/release pin: `35_P02_CONTENT_RELEASE_MEDIA_FOUNDATION_DELIVERY_AR.md`.
+
+## 15. أثر P03 على سجل المحافظة
+
+- أضيف LessonShell/VideoPlayer إلى Dashboard الطالب الحالي ومسار Auth/BFF/FastAPI/SQLAlchemy نفسه؛ لم يُنشأ تطبيق تعلم موازٍ.
+- بقي `PG05/PG06` القديمان وجميع وظائف الأسئلة/التسجيل/التقوية/المكافآت قيد العمل؛ P03 لا يحذفهما قبل تكامل P04–P06.
+- طُبقت من `F24–F26/F28` دلالات الاستئناف الخادمي، release pin، idempotent progress events، وMediaProvider القابل للاستبدال.
+- حافظت الواجهة على شعارات وشخصيات وألوان هِمّة وRTL، وأضافت link مرحليًا يظهر فقط عندما يسمح API للـcandidate؛ البيئات المحمية تفشل مغلقة.
+- لا `RETIRE_APPROVED` جديد. الدليل التفصيلي: `36_P03_LESSON_PLAYER_VIDEO_RESUME_DELIVERY_AR.md`.

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { BookOpenCheck, Check, LogOut, Map, RotateCcw, Star } from "lucide-react";
 import styles from "./home.module.css";
+import "./v2-preview-card.css";
 
 interface StudentMe {
   id: number;
@@ -103,6 +104,7 @@ export default function StudentHomePage() {
   const [journey, setJourney] = useState<JourneySummary | null>(null);
   const [rewards, setRewards] = useState<RewardEvent[] | null>(null);
   const [rerecordTasks, setRerecordTasks] = useState<RerecordTask[]>([]);
+  const [v2PreviewAvailable, setV2PreviewAvailable] = useState(false);
   const [openingRerecordId, setOpeningRerecordId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
@@ -141,6 +143,11 @@ export default function StudentHomePage() {
               setRewards(Array.isArray(rewardData) ? rewardData : null);
             })
             .catch(() => setRewards(null)),
+        );
+        requests.push(
+          fetch("/api/v2/lessons/catalog", { cache: "no-store" })
+            .then((response) => { setV2PreviewAvailable(response.ok); })
+            .catch(() => setV2PreviewAvailable(false)),
         );
         if (
           profile.active_session?.session_type === "pretest"
@@ -432,6 +439,17 @@ export default function StudentHomePage() {
           </div>
           <div className={styles.heroVisual}><Image src={character} alt="شخصية هِمّة" width={190} height={228} priority /></div>
         </section>
+
+        {v2PreviewAvailable && (
+          <section className="v2-preview-card" data-testid="v2-learning-preview">
+            <div>
+              <span>معاينة مرحلية · TEST ONLY</span>
+              <h2>جرّب مشغّل درس هِمّة V2</h2>
+              <p>مقدمة وفيديو واستئناف محفوظ، قبل إضافة تفاعلات الأسئلة في المرحلة التالية.</p>
+            </div>
+            <button type="button" onClick={() => router.push("/student/learning-v2")}>فتح معاينة الدروس</button>
+          </section>
+        )}
 
         {rerecordTasks.length > 0 && (
           <section className="rounded-[28px] border border-border bg-white p-4 sm:p-6 shadow-sm" data-testid="assessment-rerecord-tasks" aria-labelledby="assessment-rerecord-title">

@@ -19,3 +19,7 @@ def get_question(question_id: str) -> dict[str, Any] | None:
 
 def get_media(asset_id: str) -> dict[str, Any] | None:
     return next((row for row in get_release()["media"] if row["id"] == asset_id), None)
+
+
+def get_lesson(lesson_id: str) -> dict[str, Any] | None:
+    return next((row for row in get_release()["lessons"] if row["id"] == lesson_id), None)

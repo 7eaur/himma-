@@ -50,7 +50,7 @@ class MediaProvider:
                 asset_id,
                 kind,
                 "ready",
-                f"/api/v2/test-fixtures/{kind}/{asset_id}",
+                f"/api/v2/lessons/test-fixtures/{kind}/{asset_id}",
                 True,
             )
         state = "missing" if status in MISSING_STATES else "pending"

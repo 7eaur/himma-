@@ -2,7 +2,7 @@
 
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, CheckConstraint, Column, DateTime, ForeignKey, Index, Integer, JSON, String, UniqueConstraint, text
+from sqlalchemy import Boolean, CheckConstraint, Column, DateTime, Float, ForeignKey, Index, Integer, JSON, String, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import JSONB
 
 from db.models import Base
@@ -45,6 +45,10 @@ class LessonSession(Base):
     step_index = Column(Integer, nullable=False, default=0, server_default="0")
     status = Column(String(32), nullable=False, default="in_progress", server_default="in_progress")
     video_seen = Column(Boolean, nullable=False, default=False, server_default="false")
+    intro_seen = Column(Boolean, nullable=False, default=False, server_default="false")
+    video_position_seconds = Column(Float, nullable=False, default=0, server_default="0")
+    video_duration_seconds = Column(Float, nullable=True)
+    video_completed_at = Column(DateTime(timezone=True), nullable=True)
     return_to = Column(JSON().with_variant(JSONB, "postgresql"), nullable=True)
     version = Column(Integer, nullable=False, default=1, server_default="1")
     created_at = Column(DateTime(timezone=True), nullable=False, default=_now)
@@ -57,6 +61,28 @@ class LessonSession(Base):
         CheckConstraint("step_index >= 0", name="ck_lesson_sessions_step"),
         CheckConstraint("version >= 1", name="ck_lesson_sessions_version"),
         Index("uq_lesson_sessions_active_student", "student_id", unique=True, postgresql_where=text("status IN ('in_progress','waiting_review')"), sqlite_where=text("status IN ('in_progress','waiting_review')")),
+    )
+
+
+class LessonProgressEvent(Base):
+    """Small idempotent event log for resumable P03 lesson transitions."""
+
+    __tablename__ = "lesson_progress_events"
+
+    id = Column(Integer, primary_key=True)
+    lesson_session_id = Column(Integer, ForeignKey("lesson_sessions.id", ondelete="CASCADE"), nullable=False)
+    event_key = Column(String(100), nullable=False)
+    event_type = Column(String(40), nullable=False)
+    payload_json = Column(JSON().with_variant(JSONB, "postgresql"), nullable=False, default=dict)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=_now)
+
+    __table_args__ = (
+        CheckConstraint(
+            "event_type IN ('intro_complete','video_progress','video_ended')",
+            name="ck_lesson_progress_events_type",
+        ),
+        UniqueConstraint("lesson_session_id", "event_key", name="uq_lesson_progress_event_key"),
+        Index("ix_lesson_progress_events_session_created", "lesson_session_id", "created_at"),
     )
 
 

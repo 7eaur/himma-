@@ -17,6 +17,7 @@ These are deterministic executable acceptance tests and must be named explicitly
 - `media-fidelity.spec.ts` — approved media fidelity.
 - `question-experience.spec.ts` — current question experience contract.
 - `admin-responsive.spec.ts` — Admin shell critical responsive acceptance.
+- `v2-lesson-runtime.spec.ts` — P03 candidate catalog, responsive lesson shell, real video state transition and explicit P04 boundary.
 
 ## Targeted regression
 

@@ -198,7 +198,7 @@ describe("Student page", () => {
     expect(action).toBeDisabled();
     fireEvent.click(action);
     expect(push).not.toHaveBeenCalled();
-    expect(global.fetch).toHaveBeenCalledTimes(4);
+    expect(global.fetch).toHaveBeenCalledTimes(5);
   });
 
   it("surfaces rerecord work as a separate dashboard task and opens it only on learner action", async () => {
@@ -215,6 +215,7 @@ describe("Student page", () => {
       }))
       .mockResolvedValueOnce(response(journey))
       .mockResolvedValueOnce(response([]))
+      .mockResolvedValueOnce(response({ detail: "preview disabled" }, false))
       .mockResolvedValueOnce(response([
         {
           submission_id: 501,

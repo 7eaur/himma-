@@ -322,6 +322,7 @@ jobs:
           tests/e2e/question-experience.spec.ts
           tests/e2e/admin-responsive.spec.ts
           tests/e2e/ux-system-visual-qa.spec.ts
+          tests/e2e/v2-lesson-runtime.spec.ts
           --reporter=list
       - name: Upload Playwright report
         if: always()

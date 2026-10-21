@@ -36,7 +36,7 @@ export default defineConfig({
   // Next.js dev server — reuses the one started manually in terminal
   // Start it first: cd apps/web && set NEXT_PUBLIC_API_URL=http://localhost:8000 && npm run dev
   webServer: {
-    command: "npm run dev",
+    command: "npm run dev -- --hostname 127.0.0.1",
     url: "http://localhost:3000",
     reuseExistingServer: true,
     timeout: 60000,
