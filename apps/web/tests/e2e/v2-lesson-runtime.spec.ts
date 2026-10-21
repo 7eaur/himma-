@@ -53,8 +53,7 @@ test("P03 lesson catalog, video state and P04 boundary remain responsive", async
       stage = body.event_type === "video_ended" ? "guided_practice" : body.event_type === "intro_complete" ? "teaching_video" : stage;
       return route.fulfill({ json: payload(stage, savedPosition) });
     }
-    if (url.pathname.endsWith("/captions")) return route.fulfill({ contentType: "text/vtt", body: "WEBVTT\n\n00:00.000 --> 00:06.000\nTEST ONLY" });
-    return route.fulfill({ status: 206, contentType: "video/mp4", headers: { "accept-ranges": "bytes", "content-range": "bytes 0-0/1" }, body: Buffer.from([0]) });
+    return route.fallback();
   });
 
   await page.setViewportSize({ width: 390, height: 844 });
@@ -72,34 +71,31 @@ test("P03 lesson catalog, video state and P04 boundary remain responsive", async
   await expect(player).toBeVisible();
   await expect(player.getByText(/TEST ONLY/)).toBeVisible();
   await expect(player.locator("video")).toHaveAttribute("controls", "");
+  await expect.poll(() => player.locator("video").evaluate((element) => (element as HTMLVideoElement).duration)).toBeGreaterThan(0);
 
   const checkpointResponse = page.waitForResponse((response) => response.url().endsWith("/sessions/44/events") && response.request().postData()?.includes("video_progress") === true);
-  await player.locator("video").evaluate((video) => {
-    Object.defineProperty(video, "duration", { configurable: true, value: 6 });
-    Object.defineProperty(video, "currentTime", { configurable: true, writable: true, value: 5.5 });
+  await player.locator("video").evaluate((element) => {
+    const video = element as HTMLVideoElement;
+    video.currentTime = 5.5;
     video.dispatchEvent(new Event("timeupdate"));
   });
   await checkpointResponse;
   await page.reload();
   const resumedPlayer = page.getByTestId("v2-video-player");
   await expect(resumedPlayer).toBeVisible();
-  await resumedPlayer.locator("video").evaluate((video) => {
-    Object.defineProperty(video, "duration", { configurable: true, value: 6 });
-    video.dispatchEvent(new Event("loadedmetadata"));
-  });
-  await expect.poll(() => resumedPlayer.locator("video").evaluate((element) => (element as HTMLVideoElement).currentTime)).toBe(5.5);
+  await expect.poll(() => resumedPlayer.locator("video").evaluate((element) => (element as HTMLVideoElement).duration)).toBeGreaterThan(0);
+  await expect.poll(() => resumedPlayer.locator("video").evaluate((element) => (element as HTMLVideoElement).currentTime)).toBeGreaterThanOrEqual(5.4);
   await page.screenshot({ path: path.join(SCREENSHOT_DIR, "mobile-390-video-resumed.png"), fullPage: true });
 
   await resumedPlayer.locator("video").evaluate((video) => video.dispatchEvent(new Event("error")));
   await expect(resumedPlayer.getByRole("alert")).toContainText("تعذر تشغيل الفيديو");
   await page.screenshot({ path: path.join(SCREENSHOT_DIR, "mobile-390-video-error.png"), fullPage: true });
   await resumedPlayer.getByRole("button", { name: "إعادة المحاولة" }).click();
-  await resumedPlayer.locator("video").evaluate((video) => video.dispatchEvent(new Event("canplay")));
   await expect(resumedPlayer.getByRole("alert")).toHaveCount(0);
 
-  await resumedPlayer.locator("video").evaluate((video) => {
-    Object.defineProperty(video, "duration", { configurable: true, value: 6 });
-    Object.defineProperty(video, "currentTime", { configurable: true, value: 6 });
+  await resumedPlayer.locator("video").evaluate((element) => {
+    const video = element as HTMLVideoElement;
+    video.currentTime = video.duration;
     video.dispatchEvent(new Event("ended"));
   });
   await expect(page.getByRole("heading", { name: /أصبح التدريب الموجّه جاهزًا/ })).toBeVisible();
