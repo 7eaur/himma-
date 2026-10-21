@@ -13,6 +13,8 @@ const lessons = [
 ];
 
 const SCREENSHOT_DIR = path.join(process.cwd(), "playwright-report", "screenshots", "p03");
+const VIDEO_FIXTURE = path.resolve(process.cwd(), "../../services/api/test_fixtures/himma-v2-video-test-only.mp4");
+const CAPTIONS_FIXTURE = path.resolve(process.cwd(), "../../services/api/test_fixtures/himma-v2-video-test-only.vtt");
 
 function payload(stage: "intro" | "teaching_video" | "guided_practice", savedPosition = 0) {
   return {
@@ -44,6 +46,15 @@ test("P03 lesson catalog, video state and P04 boundary remain responsive", async
   let savedPosition = 0;
   await page.route("**/api/v2/lessons/**", async (route) => {
     const url = new URL(route.request().url());
+    // The M09 gate deliberately runs the API as `trial`, where TEST_ONLY media
+    // is blocked. Fulfil only the already-mocked browser fixture here so the UI
+    // contract stays deterministic without weakening the backend fail-closed test.
+    if (url.pathname.endsWith("/test-fixtures/video/VID-L1-01/captions")) {
+      return route.fulfill({ path: CAPTIONS_FIXTURE, contentType: "text/vtt; charset=utf-8" });
+    }
+    if (url.pathname.endsWith("/test-fixtures/video/VID-L1-01")) {
+      return route.fulfill({ path: VIDEO_FIXTURE, contentType: "video/mp4" });
+    }
     if (url.pathname.endsWith("/catalog")) return route.fulfill({ json: { mode: "candidate_preview", test_only: true, release_version: "candidate", lessons } });
     if (url.pathname.endsWith("/L1-01/start")) return route.fulfill({ json: payload(stage, savedPosition) });
     if (url.pathname.endsWith("/sessions/44") && route.request().method() === "GET") return route.fulfill({ json: payload(stage, savedPosition) });
