@@ -23,6 +23,16 @@ describe("VideoPlayer", () => {
     expect(screen.getByText(/TEST ONLY/)).toBeInTheDocument();
   });
 
+  it("restores a saved position when cached metadata was ready before the listener", () => {
+    const props = { src: "/fixture.mp4", startAt: 0, onCheckpoint: jest.fn(), onEnded: jest.fn() };
+    const { rerender } = render(<VideoPlayer {...props} />);
+    const video = screen.getByText("متصفحك لا يدعم تشغيل الفيديو.").closest("video") as HTMLVideoElement;
+    setMediaTime(video, 0);
+    Object.defineProperty(video, "readyState", { configurable: true, value: HTMLMediaElement.HAVE_METADATA });
+    rerender(<VideoPlayer {...props} startAt={2.5} />);
+    expect(video.currentTime).toBe(2.5);
+  });
+
   it("saves checkpoints and reports completion without deciding mastery", () => {
     const onCheckpoint = jest.fn();
     const onEnded = jest.fn();

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, Play, RotateCcw } from "lucide-react";
 import styles from "./VideoPlayer.module.css";
 
@@ -43,6 +43,18 @@ export default function VideoPlayer({ src, captionsSrc, startAt = 0, testOnly = 
     if (video && startAt > 0 && startAt < video.duration - 1) video.currentTime = startAt;
     setState("ready");
   };
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const restoreSavedPosition = () => {
+      if (startAt > 0 && Number.isFinite(video.duration) && startAt < video.duration - 1) video.currentTime = startAt;
+      setState("ready");
+    };
+    video.addEventListener("loadedmetadata", restoreSavedPosition);
+    if (video.readyState >= HTMLMediaElement.HAVE_METADATA) restoreSavedPosition();
+    return () => video.removeEventListener("loadedmetadata", restoreSavedPosition);
+  }, [src, startAt]);
 
   const replay = () => {
     const video = videoRef.current;
