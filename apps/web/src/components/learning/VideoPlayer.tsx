@@ -40,7 +40,7 @@ export default function VideoPlayer({ src, captionsSrc, startAt = 0, testOnly = 
 
   const resume = () => {
     const video = videoRef.current;
-    if (video && startAt > 0 && startAt < video.duration - 1) video.currentTime = startAt;
+    if (video && startAt > 0 && startAt <= video.duration - 1) video.currentTime = startAt;
     setState("ready");
   };
 
@@ -48,7 +48,7 @@ export default function VideoPlayer({ src, captionsSrc, startAt = 0, testOnly = 
     const video = videoRef.current;
     if (!video) return;
     const restoreSavedPosition = () => {
-      if (startAt > 0 && Number.isFinite(video.duration) && startAt < video.duration - 1) video.currentTime = startAt;
+      if (startAt > 0 && Number.isFinite(video.duration) && startAt <= video.duration - 1) video.currentTime = startAt;
       setState("ready");
     };
     video.addEventListener("loadedmetadata", restoreSavedPosition);

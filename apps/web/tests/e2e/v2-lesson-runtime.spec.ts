@@ -76,7 +76,7 @@ test("P03 lesson catalog, video state and P04 boundary remain responsive", async
   const checkpointResponse = page.waitForResponse((response) => response.url().endsWith("/sessions/44/events") && response.request().postData()?.includes("video_progress") === true);
   await player.locator("video").evaluate((element) => {
     const video = element as HTMLVideoElement;
-    video.currentTime = 5.5;
+    video.currentTime = 5;
     video.dispatchEvent(new Event("timeupdate"));
   });
   await checkpointResponse;
@@ -84,7 +84,7 @@ test("P03 lesson catalog, video state and P04 boundary remain responsive", async
   const resumedPlayer = page.getByTestId("v2-video-player");
   await expect(resumedPlayer).toBeVisible();
   await expect.poll(() => resumedPlayer.locator("video").evaluate((element) => (element as HTMLVideoElement).duration)).toBeGreaterThan(0);
-  await expect.poll(() => resumedPlayer.locator("video").evaluate((element) => (element as HTMLVideoElement).currentTime)).toBeGreaterThanOrEqual(5.4);
+  await expect.poll(() => resumedPlayer.locator("video").evaluate((element) => (element as HTMLVideoElement).currentTime)).toBeGreaterThanOrEqual(4.9);
   await page.screenshot({ path: path.join(SCREENSHOT_DIR, "mobile-390-video-resumed.png"), fullPage: true });
 
   await resumedPlayer.locator("video").evaluate((video) => video.dispatchEvent(new Event("error")));
