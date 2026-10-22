@@ -32,8 +32,12 @@ jobs:
         working-directory: apps/web
         # Production dependencies are the deployable attack surface. The full
         # development tree currently inherits an unfixed braces advisory from
-        # Next's ESLint plugin; lint still runs in the frontend job below.
-        run: npm audit --omit=dev --audit-level=high
+        # Next's ESLint plugin; lint still runs in the frontend job below. Build
+        # the production tree first so npm uses a validated dependency graph
+        # instead of the retiring quick-audit endpoint's lock-only fallback.
+        run: |
+          npm ci --omit=dev --ignore-scripts
+          npm audit --omit=dev --audit-level=high
       - name: Scan current tree for committed secrets
         shell: bash
         run: |

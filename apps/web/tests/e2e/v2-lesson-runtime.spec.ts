@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { mkdir } from "node:fs/promises";
+import { mkdir, readFile } from "node:fs/promises";
 import path from "node:path";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -30,6 +30,7 @@ function payload(stage: "intro" | "teaching_video" | "guided_practice", savedPos
 
 test("P03 lesson catalog, video state and P04 boundary remain responsive", async ({ page, request, context }) => {
   await mkdir(SCREENSHOT_DIR, { recursive: true });
+  const videoBytes = await readFile(VIDEO_FIXTURE);
   if (!SUPERVISOR_PASSWORD) throw new Error("E2E_RESEARCHER_PASSWORD is required");
   const supervisor = await request.post(`${API_URL}/auth/login`, { data: { username: SUPERVISOR_USERNAME, password: SUPERVISOR_PASSWORD } });
   expect(supervisor.status()).toBe(200);
@@ -53,7 +54,28 @@ test("P03 lesson catalog, video state and P04 boundary remain responsive", async
       return route.fulfill({ path: CAPTIONS_FIXTURE, contentType: "text/vtt; charset=utf-8" });
     }
     if (url.pathname.endsWith("/test-fixtures/video/VID-L1-01")) {
-      return route.fulfill({ path: VIDEO_FIXTURE, contentType: "video/mp4" });
+      const range = route.request().headers().range?.match(/^bytes=(\d+)-(\d*)$/);
+      if (range) {
+        const start = Number(range[1]);
+        const requestedEnd = range[2] ? Number(range[2]) : videoBytes.length - 1;
+        const end = Math.min(requestedEnd, videoBytes.length - 1);
+        const body = videoBytes.subarray(start, end + 1);
+        return route.fulfill({
+          status: 206,
+          contentType: "video/mp4",
+          headers: {
+            "Accept-Ranges": "bytes",
+            "Content-Range": `bytes ${start}-${end}/${videoBytes.length}`,
+            "Content-Length": String(body.length),
+          },
+          body,
+        });
+      }
+      return route.fulfill({
+        contentType: "video/mp4",
+        headers: { "Accept-Ranges": "bytes", "Content-Length": String(videoBytes.length) },
+        body: videoBytes,
+      });
     }
     if (url.pathname.endsWith("/catalog")) return route.fulfill({ json: { mode: "candidate_preview", test_only: true, release_version: "candidate", lessons } });
     if (url.pathname.endsWith("/L1-01/start")) return route.fulfill({ json: payload(stage, savedPosition) });
