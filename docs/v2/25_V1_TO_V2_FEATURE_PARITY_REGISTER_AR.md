@@ -181,5 +181,6 @@
 - أضيف LessonShell/VideoPlayer إلى Dashboard الطالب الحالي ومسار Auth/BFF/FastAPI/SQLAlchemy نفسه؛ لم يُنشأ تطبيق تعلم موازٍ.
 - بقي `PG05/PG06` القديمان وجميع وظائف الأسئلة/التسجيل/التقوية/المكافآت قيد العمل؛ P03 لا يحذفهما قبل تكامل P04–P06.
 - طُبقت من `F24–F26/F28` دلالات الاستئناف الخادمي، release pin، idempotent progress events، وMediaProvider القابل للاستبدال.
+- أثبت Browser QA الاستئناف بعد refresh وحالات error/retry والتجاوب 390/1440، وكشف سباق metadata المخزنة مؤقتًا فأُصلح دون تغيير أسماء العقود أو حذف مسار V1.
 - حافظت الواجهة على شعارات وشخصيات وألوان هِمّة وRTL، وأضافت link مرحليًا يظهر فقط عندما يسمح API للـcandidate؛ البيئات المحمية تفشل مغلقة.
 - لا `RETIRE_APPROVED` جديد. الدليل التفصيلي: `36_P03_LESSON_PLAYER_VIDEO_RESUME_DELIVERY_AR.md`.

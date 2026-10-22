@@ -331,4 +331,4 @@
 | S11 | `/ready` يغطي V2 دون تكلفة probe خطرة، والعامل الصوتي feature-off أو monitored | readiness/load/worker recovery evidence |
 | S12 | backup/restore وDB↔object↔release reconciliation مثبتة لـV2 | isolated restore run وRPO/RTO |
 
-**الحالة:** اعتمد المالك P01 كتدقيق مصدر وP02 تنفيذًا. نُفذ في P03: LessonShell/VideoPlayer، stages/resume الخادمي، fixture MP4/VTT وRange، حجب candidate في البيئات المحمية، inventory يفصل حالة المصدر عن TEST_ONLY، واختبار Browser حتمي. تبقى بوابات exact-SHA والـQA البصري/السمعي غير ناجحة حتى تسجلها Actions/المراجعة، ولا يبدأ P04 قبل اعتماد P03.
+**الحالة:** اعتمد المالك P01 كتدقيق مصدر وP02 تنفيذًا. نُفذ في P03: LessonShell/VideoPlayer، stages/resume الخادمي، fixture MP4/VTT وRange، حجب candidate في البيئات المحمية، inventory يفصل حالة المصدر عن TEST_ONLY، واختبار Browser حتمي. نجحت بوابات التنفيذ exact-SHA `35848eb99fba832563f853dbcfa3ab682deb6074` في CI `39716552917` وM04 `39716552940` وM09 `39716552932`، ورُوجعت لقطات نطاق P03؛ يبقى QA السمعي/التربوي والأصول النهائية مؤجلًا ولا يبدأ P04 قبل اعتماد P03.

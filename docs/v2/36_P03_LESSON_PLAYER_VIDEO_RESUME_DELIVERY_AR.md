@@ -1,6 +1,6 @@
 # هِمّة V2 — تسليم P03: مشغّل الدرس والفيديو والاستئناف
 
-**التاريخ:** 2026-10-21  
+**التاريخ:** 2026-10-21؛ إغلاق الأدلة 2026-10-22
 **الحالة:** `ready_for_review` — لا بدء P04، لا تفعيل محتوى، ولا نشر  
 **المرجع:** اعتمد المالك P02 بعبارة «تم»؛ P03 تطوّر مشغل التعلم داخل منصة FastAPI/Next/SQLAlchemy نفسها.
 
@@ -15,6 +15,7 @@
 - فيديو MP4 قابل للتشغيل وترجمة VTT موسومان `TEST ONLY`؛ يقدمان Range، ويُمنع وصول الطلاب إلى المعاينة كلها في `trial/production`، ولا يغيران حالة الأصل من missing/pending إلى approved.
 - صفحة مشرف قراءة فقط تعرض أصل الحقيقة: `0 ready / 56 pending / 33 missing`، مع فصل `89 test_only` في بيئة المعاينة عن اعتماد الوسائط.
 - حد صريح عند `guided_practice`: لا زر تجاوز، لا درجة، ولا اعتبار الفيديو إتقانًا. الأنواع السبعة والتصحيح تبدأ فقط في P04 بعد الموافقة.
+- أُغلق فحص المتصفح بوسيط MP4 حقيقي ولقطات 390/1440، وكشف الفحص سباقًا فعليًا عند جاهزية metadata من cache ثم صُحح واختُبر؛ لم يُستبدل ذلك بتوقيت أو mock لحدث الاستئناف.
 
 ## 2. السبب الجذري والمعالجة
 
@@ -26,6 +27,8 @@
 | خلط جاهزية runtime باعتماد الأصل | MediaProvider candidate | fixture يجعل العرض ممكنًا لكنه ليس اعتمادًا | Inventory يفصل `source state` عن `runtime_state/test_only` | تبديل أصل إنتاج معتمد في P07/P10 |
 | خطر مسار موازٍ للطالب | صفحات V1 الحالية | بناء player منفصل قد يكرر المنصة | رابط مرحلي داخل Dashboard الحالي، نفس auth/BFF/API/DB والهوية؛ candidate محجوب في البيئات المحمية | دمج CurrentAction النهائي تدريجيًا بعد P04–P06 |
 | video ended قد يتحول إلى نجاح أكاديمي | لا عقد سابق | مشاهدة الفيديو ليست evidence | ended ينقل إلى GP فقط، ويتطلب ≥90% من المدة، ولا يكمل الدرس | mastery/support في P04/P05 |
+| موضع محفوظ لا يُستعاد عند media cache السريع | `VideoPlayer.tsx` في تنفيذ P03 الأول | الاعتماد على handler React لـ`loadedmetadata` فقط يسمح بفوات الحدث قبل ربطه | listener أصلي داخل effect مع فحص `readyState` فوري، واختبار وحدة لحالة metadata الجاهزة | refresh/cache/device وتبديل المصدر في P09 |
+| M09 يطلب Fixture محجوبًا عمدًا في `trial`، ثم seek غير ثابت لملف route-fulfilled | `v2-lesson-runtime.spec.ts` مع سياسة MediaProvider | اختبار UI الموجّه كان يمرر API mock لكنه ترك ملف الفيديو يعتمد على بيئة الخادم؛ وبعد عزله لم يضمن Chromium seekable range في fixture | تقديم MP4/VTT من Playwright route فقط، وتثبيت الزمن المرصود عند إرسال حدث checkpoint؛ بقي reload هو الذي يختبر الاستئناف الحقيقي، وبقي اختبار الخادم يثبت 503 في `trial/production` | إبقاء اختبار المنع وUI والاستئناف الحقيقي مفصولة في كل بوابة |
 
 ## 3. المحافظة على V1 والهوية
 
@@ -60,11 +63,21 @@
 | Frontend Jest | PASS: 12 suites / 47 tests |
 | TypeScript / ESLint | PASS |
 | Next production build | PASS؛ المسارات الجديدة مبنية |
-| Backend full PostgreSQL + Alembic/drift | ينتظر GitHub exact-SHA؛ اختبار SQLite للترحيل غير صالح تاريخيًا بسبب migration PostgreSQL قديمة تستخدم `ALTER TYPE` |
-| Playwright P03 | الاختبار الحتمي مكتوب ومضاف للبوابتين؛ التشغيل المحلي تعذر لأن بيئة العمل منعت تنزيل Chromium (ملف 0MiB)، وليس نجاحًا مسجلًا |
-| QA بصري/سمعي يدوي | `NOT_VERIFIED` حتى يتوفر Browser run/مراجعة بشرية؛ لا يُستنتج من Build |
+| Backend full PostgreSQL + Alembic/drift | PASS على implementation SHA النهائي ضمن CI وM09؛ شمل migration/drift/seed واختبارات Backend |
+| Playwright P03 | PASS في CI وM09: catalog 390، MP4 حقيقي مع Range، checkpoint ثم reload/resume، error/retry، وحد GP على 1440 |
+| QA بصري لوسيط الاختبار | روجعت لقطات CI: catalog الهاتف، الاستئناف عند `0:05 / 0:06`، رسالة الخطأ وإعادة المحاولة، وحد GP على الديسكتوب؛ لا overflow أو قطع ظاهر في النطاق المصوّر |
+| QA سمعي/تربوي للأصول النهائية | `NOT_VERIFIED` ومؤجل إلى P10؛ فيديو TEST_ONLY لا يعتمد صوتًا أو محتوى نهائيًا |
 
-تُحدّث هذه الفقرة بعد GitHub Actions على commit التنفيذ. نجاح فيديو TEST_ONLY لا يصرّح بالنشر ولا يعتمد المحتوى تربويًا.
+نجاح فيديو TEST_ONLY لا يصرّح بالنشر ولا يعتمد المحتوى تربويًا.
+
+### 6.1 دليل الإغلاق على SHA التنفيذ
+
+- implementation SHA: `35848eb99fba832563f853dbcfa3ab682deb6074`.
+- M04 Responsive Gate: run `39716552940` — `success`.
+- CI Quality Gate: run `39716552917` — `success`؛ Security/Backend/Frontend/Integration كلها ناجحة.
+- M09 Release Readiness: run `39716552932` — `success`؛ شمل browser regression وPostgreSQL/object-storage backup/restore.
+- الإخفاقات السابقة لم تُخفَ: run `39683069718` كشف تعارض بيئة `trial` مع Fixture، والدورات اللاحقة كشفت غياب Range الحتمي وخلل quick-audit الخارجي مع شجرة غير مبنية. عولجت الأسباب في الاختبار والـworkflow دون تعطيل fail-closed أو `npm audit`.
+- Commit التوثيق الذي يلي هذا الدليل لا يغيّر Runtime؛ SHA أعلاه هو SHA التنفيذ الذي اجتاز البوابات.
 
 ## 7. المتبقي المقصود
 
