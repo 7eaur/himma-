@@ -85,12 +85,17 @@ test("P03 lesson catalog, video state and P04 boundary remain responsive", async
   await expect.poll(() => player.locator("video").evaluate((element) => (element as HTMLVideoElement).duration)).toBeGreaterThan(0);
 
   const checkpointResponse = page.waitForResponse((response) => response.url().endsWith("/sessions/44/events") && response.request().postData()?.includes("video_progress") === true);
-  await player.locator("video").evaluate((element) => {
-    const video = element as HTMLVideoElement;
-    video.currentTime = 5;
-    video.dispatchEvent(new Event("timeupdate"));
-  });
-  await checkpointResponse;
+  await Promise.all([
+    checkpointResponse,
+    player.locator("video").evaluate((element) => {
+      const video = element as HTMLVideoElement;
+      // Chromium may not expose a seekable range for a route-fulfilled MP4 even
+      // though its metadata is valid. Pin the observed time so this checks the
+      // React checkpoint contract, while the following reload checks real resume.
+      Object.defineProperty(video, "currentTime", { configurable: true, get: () => 5 });
+      video.dispatchEvent(new Event("timeupdate", { bubbles: true }));
+    }),
+  ]);
   await page.reload();
   const resumedPlayer = page.getByTestId("v2-video-player");
   await expect(resumedPlayer).toBeVisible();
@@ -106,8 +111,8 @@ test("P03 lesson catalog, video state and P04 boundary remain responsive", async
 
   await resumedPlayer.locator("video").evaluate((element) => {
     const video = element as HTMLVideoElement;
-    video.currentTime = video.duration;
-    video.dispatchEvent(new Event("ended"));
+    Object.defineProperty(video, "currentTime", { configurable: true, get: () => video.duration });
+    video.dispatchEvent(new Event("ended", { bubbles: true }));
   });
   await expect(page.getByRole("heading", { name: /أصبح التدريب الموجّه جاهزًا/ })).toBeVisible();
   await expect(page.getByText(/حد P03 \/ P04/)).toBeVisible();
