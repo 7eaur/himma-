@@ -1,0 +1,4 @@
+# Railway Railpack detection for the existing Himma monorepo.
+# Keep repository root as build context: services/api needs docs/v2/content-bank,
+# assets/audio, and shared project files at runtime.
+-r services/api/requirements.txt
