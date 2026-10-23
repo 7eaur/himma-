@@ -336,3 +336,16 @@
 | S12 | backup/restore وDB↔object↔release reconciliation مثبتة لـV2 | isolated restore run وRPO/RTO |
 
 **الحالة:** اعتمد المالك P01 كتدقيق مصدر وP02 وP03 تنفيذًا. أضافت P04 Renderer موحدًا للأنواع السبعة وفصل GP/IC والمسودة والتسجيل pending على implementation SHA `0fba42aaee3517912e81b26a8b9201dd6694faca`؛ دليل البوابات وحدود البنود الجزئية في التقرير `37`. يبقى QA السمعي/التربوي والأصول النهائية مؤجلًا، ولا يبدأ P05 قبل اعتماد P04.
+## تحديث تغطية P06 — 2026-10-23
+
+| المجال | المنفذ والمختبر | المتبقي قبل القبول النهائي |
+|---|---|---|
+| القبلي/البعدي | 30+30، معرفات مختلفة، DTO بلا مفاتيح خاصة، resume/idempotency | تحكيم تكافؤ الصعوبة واعتماد تربوي |
+| القراءة/الكتابة | pending محايد + قرار بشري + Audit | claim/rerecord/rewrite/concurrency في P08/P09 |
+| التسكين | L1/L2/L3 يدوي مسبب، دون threshold غير معتمد | اعتماد سياسة معايرة نهائية |
+| CurrentAction | قبلي/جلسة/درس/انتظار/بعدي/اكتمال | E2E Browser كامل وحالات offline/race |
+| المشرف والتقارير | queue وsummary وإصدار/محاولة/زمن/مهارات ومتوسط null-not-zero | دمج صادرات V2 وDownload QA كامل |
+| الأمان | فصل student/researcher، no answer leakage، pin release | PostgreSQL CI exact-SHA واختبارات تحميل/اختراق الموسعة |
+| responsive/accessibility | component/build فقط | 360/390/430/tablet/desktop + axe + 200% في P09/P10 |
+
+لا يحول نجاح build أو الاختبارات المستهدفة البنود المتبقية إلى PASS. مرجع التنفيذ والتفاصيل: التقرير `39`.

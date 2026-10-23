@@ -111,4 +111,21 @@ describe("InteractionPlayer", () => {
     render(<InteractionPlayer sessionId={11} interaction={support} onLessonChange={jest.fn()}/>);
     expect(screen.getByText(label)).toBeInTheDocument();
   });
+
+  it("uses the assessment endpoint and labels pretest without exposing feedback", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({ submission: { retry_required: false, status: "graded", message: "تم حفظ إجابتك." }, assessment: { session: { state: "answering" } } }),
+    });
+    const pretest = payload({ role: "pretest" });
+    pretest.progress = { index: 1, total: 30, stage: "pretest" };
+    render(<InteractionPlayer sessionId={17} interaction={pretest} endpointBase="/api/v2/assessments" onLessonChange={jest.fn()}/>);
+    expect(screen.getByText("الاختبار القبلي")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "اختيار الخيار 1" }));
+    fireEvent.click(screen.getByRole("button", { name: "تحقق من الإجابة" }));
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledWith(
+      "/api/v2/assessments/sessions/17/answers",
+      expect.objectContaining({ method: "POST" }),
+    ));
+  });
 });

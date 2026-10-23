@@ -11,7 +11,7 @@ interface MediaRef { media_id: string; kind: MediaKind; }
 interface Option { id: string; text: string | null; media: MediaRef[]; }
 interface Question {
   question_id: string;
-  role: "guided_practice" | "independent_check" | "support_check";
+  role: "guided_practice" | "independent_check" | "support_check" | "pretest" | "posttest";
   interaction: InteractionKind;
   prompt: string;
   stimulus: { text: string | null; media: MediaRef[] };
@@ -32,13 +32,14 @@ interface Props {
   sessionId: number;
   interaction: InteractionPayload;
   onLessonChange: (lesson: unknown) => void;
+  endpointBase?: string;
 }
 
 function requestKey(prefix: string) {
   return `${prefix}:${Date.now()}:${crypto.randomUUID()}`;
 }
 
-export default function InteractionPlayer({ sessionId, interaction, onLessonChange }: Props) {
+export default function InteractionPlayer({ sessionId, interaction, onLessonChange, endpointBase = "/api/v2/lessons" }: Props) {
   const { question, media } = interaction;
   const [selected, setSelected] = useState<string[]>([]);
   const [text, setText] = useState(interaction.draft ?? "");
@@ -67,7 +68,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   useEffect(() => {
     if (question.interaction !== "write_text" || text === (interaction.draft ?? "")) return;
     const timer = window.setTimeout(() => {
-      void fetch(`/api/v2/lessons/sessions/${sessionId}/draft`, {
+      void fetch(`${endpointBase}/sessions/${sessionId}/draft`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
@@ -77,7 +78,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
       }).catch(() => setDraftState("error"));
     }, 650);
     return () => window.clearTimeout(timer);
-  }, [interaction.draft, question.interaction, sessionId, text]);
+  }, [endpointBase, interaction.draft, question.interaction, sessionId, text]);
 
   const ordered = question.interaction === "sequence" || question.interaction === "build_word";
   const ready = useMemo(() => {
@@ -164,7 +165,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
         if (!audioBlob) throw new Error("سجل قراءتك أولًا");
         const form = new FormData();
         form.append("file", audioBlob, "v2-reading.webm");
-        const upload = await fetch(`/api/v2/lessons/sessions/${sessionId}/recording`, {
+        const upload = await fetch(`${endpointBase}/sessions/${sessionId}/recording`, {
           method: "POST", headers: { "Idempotency-Key": uploadKeyRef.current }, body: form,
         });
         const uploaded = await upload.json().catch(() => null);
@@ -172,7 +173,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
         answer = { ...uploaded, audio_duration_seconds: Math.max(1, recordingSeconds) };
       } else answer = { selected_option_ids: selected };
 
-      const response = await fetch(`/api/v2/lessons/sessions/${sessionId}/answers`, {
+      const response = await fetch(`${endpointBase}/sessions/${sessionId}/answers`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ submit_key: answerKeyRef.current, ...answer }),
@@ -182,7 +183,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
       setFeedback(result.submission);
       answerKeyRef.current = requestKey("answer");
       uploadKeyRef.current = requestKey("upload");
-      if (!result.submission.retry_required) onLessonChange(result.lesson);
+      if (!result.submission.retry_required) onLessonChange(result.lesson ?? result.assessment);
       else setSelected([]);
     } catch (reason) { setError(reason instanceof Error ? reason.message : "تعذر حفظ الإجابة"); }
     finally { setSaving(false); }
@@ -203,6 +204,8 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
     : interaction.progress.stage === "support_practice" ? "مساعدة مركزة"
     : interaction.progress.stage === "additional_check" ? "تحقق قصير"
     : interaction.progress.stage === "support_check" ? "تحقق بعد المساعدة"
+    : interaction.progress.stage === "pretest" ? "الاختبار القبلي"
+    : interaction.progress.stage === "posttest" ? "الاختبار البعدي"
     : "اختبار مستقل";
 
   return <section className={styles.shell} data-testid="v2-interaction-player" data-interaction={question.interaction}>

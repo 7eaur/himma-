@@ -242,3 +242,70 @@ class AdaptationDecision(Base):
         UniqueConstraint("lesson_session_id", "decision_key", name="uq_adaptation_decisions_v2_key"),
         Index("ix_adaptation_decisions_v2_student_created", "student_id", "created_at"),
     )
+
+
+class AssessmentQuestionResponse(Base):
+    """One immutable V2 pre/post response; open evidence stays neutral."""
+
+    __tablename__ = "assessment_question_responses"
+
+    id = Column(Integer, primary_key=True)
+    assessment_session_id = Column(Integer, ForeignKey("assessment_sessions.id", ondelete="CASCADE"), nullable=False)
+    question_id = Column(String(160), nullable=False)
+    role = Column(String(20), nullable=False)
+    answer_json = Column(JSON().with_variant(JSONB, "postgresql"), nullable=False)
+    submit_key = Column(String(100), nullable=False)
+    status = Column(String(32), nullable=False)
+    is_correct = Column(Boolean, nullable=True)
+    skill_group = Column(String(10), nullable=False)
+    evidence_type = Column(String(80), nullable=False)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=_now)
+    reviewed_at = Column(DateTime(timezone=True), nullable=True)
+    reviewed_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    review_note = Column(String, nullable=True)
+
+    __table_args__ = (
+        CheckConstraint("role IN ('pretest','posttest')", name="ck_assessment_responses_role"),
+        CheckConstraint("status IN ('pending_review','graded')", name="ck_assessment_responses_status"),
+        UniqueConstraint("assessment_session_id", "question_id", name="uq_assessment_response_question"),
+        UniqueConstraint("assessment_session_id", "submit_key", name="uq_assessment_response_submit"),
+        Index("ix_assessment_responses_review", "status", "role", "created_at"),
+    )
+
+
+class AssessmentQuestionDraft(Base):
+    __tablename__ = "assessment_question_drafts"
+
+    id = Column(Integer, primary_key=True)
+    assessment_session_id = Column(Integer, ForeignKey("assessment_sessions.id", ondelete="CASCADE"), nullable=False)
+    question_id = Column(String(160), nullable=False)
+    draft_json = Column(JSON().with_variant(JSONB, "postgresql"), nullable=False, default=dict)
+    version = Column(Integer, nullable=False, default=1, server_default="1")
+    created_at = Column(DateTime(timezone=True), nullable=False, default=_now)
+    updated_at = Column(DateTime(timezone=True), nullable=False, default=_now, onupdate=_now)
+
+    __table_args__ = (
+        UniqueConstraint("assessment_session_id", "question_id", name="uq_assessment_question_draft"),
+        CheckConstraint("version >= 1", name="ck_assessment_question_draft_version"),
+    )
+
+
+class PlacementDecisionV2(Base):
+    """Audited human placement; no unapproved score threshold is encoded."""
+
+    __tablename__ = "placement_decisions_v2"
+
+    id = Column(Integer, primary_key=True)
+    student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
+    assessment_session_id = Column(Integer, ForeignKey("assessment_sessions.id", ondelete="CASCADE"), nullable=False, unique=True)
+    content_release_id = Column(Integer, ForeignKey("content_releases.id", ondelete="RESTRICT"), nullable=False)
+    assigned_level = Column(Integer, nullable=False)
+    reason = Column(String, nullable=False)
+    policy_version = Column(String(100), nullable=False)
+    decided_by = Column(Integer, ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=_now)
+
+    __table_args__ = (
+        CheckConstraint("assigned_level BETWEEN 1 AND 3", name="ck_placement_v2_level"),
+        Index("ix_placement_v2_student_created", "student_id", "created_at"),
+    )

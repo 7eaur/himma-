@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
-import { BarChart3, BookOpenCheck, ClipboardList, Film, LayoutDashboard, LogOut, Menu, Mic, Settings, UserPlus, Users, X } from "lucide-react";
+import { BarChart3, BookOpenCheck, ClipboardCheck, ClipboardList, Film, LayoutDashboard, LogOut, Menu, Mic, Settings, UserPlus, Users, X } from "lucide-react";
 import ReinforcementReviewPanel from "@/components/ReinforcementReviewPanel";
 import AdminNotifications from "@/components/admin/AdminNotifications";
 import { useAccessibleDialog } from "@/hooks/useAccessibleDialog";
@@ -12,7 +12,7 @@ import styles from "./dashboard-layout.module.css";
 import "./admin-workflow.css";
 
 const navSections = [
-  { label: "المتابعة", items: [{ href: "/admin", label: "نظرة عامة", icon: LayoutDashboard }, { href: "/admin/audio-review", label: "مراجعة التسجيلات", icon: Mic }] },
+  { label: "المتابعة", items: [{ href: "/admin", label: "نظرة عامة", icon: LayoutDashboard }, { href: "/admin/v2-assessments", label: "تقييمات V2", icon: ClipboardCheck }, { href: "/admin/audio-review", label: "مراجعة التسجيلات", icon: Mic }] },
   { label: "الطلاب", items: [{ href: "/admin/students", label: "جميع الطلاب", icon: Users }, { href: "/admin/students/new", label: "إضافة طالب", icon: UserPlus }] },
   { label: "النتائج والتقارير", items: [{ href: "/admin/reports", label: "التقارير", icon: BarChart3 }, { href: "/admin/skill-reports", label: "ملخص المهارات", icon: ClipboardList }] },
   { label: "إدارة المنصة", items: [{ href: "/admin/content-preview", label: "المحتوى المعتمد", icon: BookOpenCheck }, { href: "/admin/v2-media", label: "وسائط V2", icon: Film }, { href: "/admin/settings", label: "الإعدادات والمشرفون", icon: Settings }] },

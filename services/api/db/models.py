@@ -216,12 +216,23 @@ class AssessmentSession(Base):
     assessment_attempt_no = Column(Integer, default=1, server_default="1", nullable=False)
     supersedes_session_id = Column(Integer, ForeignKey("assessment_sessions.id", ondelete="SET NULL"), nullable=True)
     official_for_reporting = Column(Boolean, default=False, server_default="false", nullable=False)
+    # P06 V2 state is additive so the proven V1 assessment lifecycle remains
+    # intact while candidate releases use stable string question identifiers.
+    v2_question_index = Column(Integer, default=0, server_default="0", nullable=False)
+    v2_state = Column(String(40), nullable=True)
+    v2_result_json = Column(JSON().with_variant(JSONB, "postgresql"), nullable=True)
+    v2_policy_version = Column(String(100), nullable=True)
 
     __table_args__ = (
         CheckConstraint("session_type IN ('pretest', 'posttest', 'core')", name="ck_assessment_sessions_type"),
         CheckConstraint("status IN ('in_progress', 'completed')", name="ck_assessment_sessions_status"),
         CheckConstraint("elapsed_seconds >= 0", name="ck_assessment_sessions_elapsed"),
         CheckConstraint("assessment_attempt_no >= 1", name="ck_assessment_sessions_attempt_no"),
+        CheckConstraint("v2_question_index >= 0", name="ck_assessment_sessions_v2_question_index"),
+        CheckConstraint(
+            "v2_state IS NULL OR v2_state IN ('answering','waiting_review','placement_pending_review','completed')",
+            name="ck_assessment_sessions_v2_state",
+        ),
         Index(
             "uq_assessment_sessions_active_student",
             "student_id",
@@ -335,6 +346,7 @@ class AudioSubmission(Base):
     # object. Exactly one owner is required; this avoids a second audio store.
     response_id = Column(Integer, ForeignKey("attempt_responses.id"), nullable=True)
     lesson_response_id = Column(Integer, ForeignKey("lesson_question_responses.id", ondelete="CASCADE"), nullable=True)
+    assessment_response_id = Column(Integer, ForeignKey("assessment_question_responses.id", ondelete="CASCADE"), nullable=True)
     storage_key = Column(String(255), nullable=False)
     file_size = Column(Integer, nullable=False)
     mime_type = Column(String(100), nullable=False)
@@ -344,8 +356,9 @@ class AudioSubmission(Base):
 
     __table_args__ = (
         CheckConstraint(
-            "(response_id IS NOT NULL AND lesson_response_id IS NULL) OR "
-            "(response_id IS NULL AND lesson_response_id IS NOT NULL)",
+            "(CASE WHEN response_id IS NOT NULL THEN 1 ELSE 0 END + "
+            "CASE WHEN lesson_response_id IS NOT NULL THEN 1 ELSE 0 END + "
+            "CASE WHEN assessment_response_id IS NOT NULL THEN 1 ELSE 0 END) = 1",
             name="ck_audio_submissions_one_response_owner",
         ),
     )
