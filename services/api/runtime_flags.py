@@ -18,6 +18,18 @@ def protected_runtime() -> bool:
     return runtime_environment() in _PROTECTED_RUNTIME_ENVS
 
 
+def trial_v2_preview_allowed() -> bool:
+    """Opt-in preview of the unapproved V2 bank in a protected trial runtime.
+
+    This does not enable candidate release in production. Student login and
+    the protected Redis-backed rate limiting remain mandatory.
+    """
+    return (
+        runtime_environment() == "trial"
+        and os.getenv("HIMMA_TRIAL_V2_PREVIEW", "").strip().lower() == "true"
+    )
+
+
 def secure_session_cookie_required() -> bool:
     """Session cookies are Secure in every real learner/supervisor environment."""
     return protected_runtime()
