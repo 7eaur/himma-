@@ -157,7 +157,7 @@ test("P03 video resume and P04 guided interaction remain responsive", async ({ p
   await expect(interaction.getByRole("heading", { name: "استمع ثم اختر الحرف." })).toBeVisible();
   await interaction.getByRole("button", { name: "اختيار الخيار 2" }).click();
   await interaction.getByRole("button", { name: "تحقق من الإجابة" }).click();
-  await expect(interaction.getByText("حاول مرة أخرى")).toBeVisible();
+  await expect(interaction.getByText("حاول مرة أخرى", { exact: true })).toBeVisible();
   await expect(interaction.getByText(/تلميح: استمع إلى بداية كلمة بَاب/)).toBeVisible();
   await expect(page.getByRole("button", { name: /تجاوز|إكمال الدرس/ })).toHaveCount(0);
 
