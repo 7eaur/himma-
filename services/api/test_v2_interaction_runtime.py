@@ -141,8 +141,14 @@ def test_writing_draft_is_not_evidence_and_submission_waits_for_review(student_c
 
 def test_reading_upload_reuses_private_storage_and_is_academically_neutral(student_client, monkeypatch):
     session_id = _start_at_questions(student_client, "L1-05", 3)
-    storage_key = "audio/1/test-v2-reading.webm"
-    monkeypatch.setattr("v2_interaction_runtime.storage.upload_audio", lambda *args, **kwargs: (storage_key, 2048, "digest"))
+    monkeypatch.setattr(
+        "v2_interaction_runtime.storage.upload_audio",
+        lambda _file, student_id, _idempotency_key: (
+            f"audio/{student_id}/test-v2-reading.webm",
+            2048,
+            "digest",
+        ),
+    )
     monkeypatch.setattr("v2_interaction_runtime.storage.verify_audio", lambda *args, **kwargs: None)
     upload = student_client.post(
         f"/v2/lessons/sessions/{session_id}/recording",
