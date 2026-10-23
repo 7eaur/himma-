@@ -11,6 +11,8 @@
 
 > **نتيجة P01-G — 2026-10-19:** نحافظ على FastAPI/PostgreSQL/Alembic/Redis/S3/idempotency/readiness/audit والاختبارات النافعة، لكن `v2/*` خارج CI ولا توجد Actions على HEAD، ويوجد ازدواج ملكية لمساري بدء/إنهاء التقييم، ولا release pin للجلسات، وتحتاج BFF/التخزين/المعاملات/التبعيات إلى تحصين. لم تُشغّل suite ولم يتغير Runtime/DB/نشر.
 
+> **استضافة التطوير الحالية (2026-10-23):** أحدث V2 منشورة للمراجعة على Railway في نفس مشروع «وصل تك كلاود همّه»، مع Web/API + PostgreSQL/Redis + S3 Bucket فقط، وتحديث تلقائي من الفرع المعتمد. **تفاصيل الحالة الفعلية والروابط والقيود:** [`40_RAILWAY_WASL_CLOUD_STAGING_HANDOFF_AR.md`](40_RAILWAY_WASL_CLOUD_STAGING_HANDOFF_AR.md). هذه معاينة `trial/TEST_ONLY`، لا إطلاق تربوي للإنتاج.
+
 ## في دقيقة واحدة
 
 - **13 مجموعة مهارية.**
