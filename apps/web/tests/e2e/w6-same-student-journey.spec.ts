@@ -250,7 +250,7 @@ test("W6 keeps one student identity from live pretest through learning handoff t
   await context.clearCookies();
   await loginStudent(request, context, accessCode);
   await page.goto("/student");
-  await page.getByRole("button", { name: "ابدأ الاختبار" }).click();
+  await page.getByTestId("student-primary-action").click();
   await expect(page).toHaveURL(/\/student\/session\/\d+/, { timeout: 10000 });
   const pretestId = page.url().match(/\/student\/session\/(\d+)/)?.[1];
   expect(pretestId).toBeTruthy();
