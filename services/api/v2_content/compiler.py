@@ -14,6 +14,7 @@ from .contracts import (
     AuthoringQuestion,
     AuthoringSupport,
 )
+from .adaptation_mapping import EXPLICIT_HOLD_QUESTION_IDS, resolve_question_focus
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -213,6 +214,23 @@ def compile_release(bank_root: Path = BANK_ROOT) -> dict[str, Any]:
             raise ContentBankError(f"question {question.id} references unknown media")
         if question.owner_id and question.owner_id not in lesson_ids | support_ids:
             raise ContentBankError(f"question {question.id} has an unknown owner")
+
+    support_by_lesson = {
+        lesson_id: support.model_dump(mode="json")
+        for support in supports
+        for lesson_id in support.linked_lessons
+    }
+    mapping_holds = set()
+    for question in questions:
+        if question.role != "independent_check":
+            continue
+        support = support_by_lesson.get(question.owner_id or "")
+        if not support or resolve_question_focus(question.model_dump(mode="json"), support) is None:
+            mapping_holds.add(question.id)
+    if mapping_holds != EXPLICIT_HOLD_QUESTION_IDS:
+        raise ContentBankError(
+            f"adaptation mapping must be total or explicitly held: {sorted(mapping_holds)}"
+        )
 
     authored_learning_questions = {question.id for question in questions if question.role not in {"pretest", "posttest"}}
     if referenced_learning_questions != authored_learning_questions:

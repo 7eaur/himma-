@@ -199,8 +199,14 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
     return <div className={styles.mediaMissing} role="alert">الوسيط غير جاهز</div>;
   };
 
+  const stageLabel = interaction.progress.stage === "guided_practice" ? "تدريب موجّه"
+    : interaction.progress.stage === "support_practice" ? "مساعدة مركزة"
+    : interaction.progress.stage === "additional_check" ? "تحقق قصير"
+    : interaction.progress.stage === "support_check" ? "تحقق بعد المساعدة"
+    : "اختبار مستقل";
+
   return <section className={styles.shell} data-testid="v2-interaction-player" data-interaction={question.interaction}>
-    <div className={styles.topline}><span>{interaction.progress.stage === "guided_practice" ? "تدريب موجّه" : "اختبار مستقل"}</span><span>{interaction.progress.index} من {interaction.progress.total}</span></div>
+    <div className={styles.topline}><span>{stageLabel}</span><span>{interaction.progress.index} من {interaction.progress.total}</span></div>
     <h2>{question.prompt}</h2>
     {question.stimulus.text && <div className={styles.stimulusText}>{question.stimulus.text}</div>}
     {question.stimulus.media.length > 0 && <div className={styles.stimulusMedia}>{question.stimulus.media.map((item) => <div key={item.media_id}>{renderMedia(item)}</div>)}</div>}

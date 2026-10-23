@@ -7,12 +7,12 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, BookOpenCheck, LockKeyhole, Play } from "lucide-react";
 import styles from "./learning-v2.module.css";
 
-type LessonState = "current" | "locked" | "done";
+type LessonState = "current" | "locked" | "done" | "skipped";
 interface LessonRow { lesson_id: string; title: string; level: "L1" | "L2" | "L3"; state: LessonState; preview_enabled: boolean; session_id: number | null; }
 interface Catalog { test_only: true; release_version: string; lessons: LessonRow[]; }
 
 const LEVEL_LABELS = { L1: "المستوى الأول — الاستعداد للقراءة", L2: "المستوى الثاني — بناء الكلمة", L3: "المستوى الثالث — الطلاقة والفهم" };
-const STATE_LABELS: Record<LessonState, string> = { current: "الحالي", locked: "مغلق", done: "مكتمل" };
+const STATE_LABELS: Record<LessonState, string> = { current: "الحالي", locked: "مغلق", done: "مكتمل", skipped: "متجاوز بالتسكين" };
 
 export default function V2LearningCatalogPage() {
   const router = useRouter();
@@ -56,6 +56,6 @@ export default function V2LearningCatalogPage() {
     <section className={styles.hero}><div><span className={styles.eyebrow}><BookOpenCheck size={16} /> معاينة رحلة التعلم V2</span><h1>رحلة درس واضحة ومحفوظة</h1><p>المقدمة ثم الفيديو ثم التدريب الموجّه والاختبار المستقل، مع سبعة أنواع تفاعل تحفظ هِمّة تقدمها بأمان.</p></div><Image className={styles.character} src="/characters/girl/explain.png" alt="شخصية هِمّة تشرح" width={180} height={210} priority /></section>
     <p className={styles.notice}>هذه معاينة مرحلية TEST ONLY للمشغّل والتفاعلات. الأصول المرشحة غير معتمدة للنشر، ولا تُحسب المشاهدة أو الإجابة المعلّقة إتقانًا.</p>
     {error && <div className={styles.error} role="alert">{error}</div>}
-    <div className={styles.levels}>{(["L1","L2","L3"] as const).map((level) => <section key={level} className={styles.level}><h2>{LEVEL_LABELS[level]}</h2><div className={styles.cards}>{grouped[level].map((lesson) => <article key={lesson.lesson_id} className={`${styles.card} ${lesson.state === "current" ? styles.cardCurrent : ""} ${lesson.state === "done" ? styles.cardDone : ""} ${lesson.state === "locked" ? styles.cardLocked : ""}`}><div className={styles.cardTop}><span>{lesson.lesson_id}</span><span className={styles.state}>{STATE_LABELS[lesson.state]}</span></div><h3>{lesson.title}</h3><p>{lesson.preview_enabled ? "متاح لمراجعة المشغّل والتفاعلات في بيئة الاختبار." : "يبقى ضمن المسار، ويفتح وفق تقدم الطالب بعد اكتمال المراحل التالية."}</p><button type="button" className={styles.start} disabled={!lesson.preview_enabled || Boolean(starting)} onClick={() => void start(lesson)}>{lesson.preview_enabled ? <><Play size={16} />{starting === lesson.lesson_id ? "جاري الفتح..." : lesson.session_id ? "متابعة الدرس" : "معاينة الدرس"}</> : <><LockKeyhole size={15} /> غير متاح بعد</>}</button></article>)}</div></section>)}</div>
+    <div className={styles.levels}>{(["L1","L2","L3"] as const).map((level) => <section key={level} className={styles.level}><h2>{LEVEL_LABELS[level]}</h2><div className={styles.cards}>{grouped[level].map((lesson) => <article key={lesson.lesson_id} className={`${styles.card} ${lesson.state === "current" ? styles.cardCurrent : ""} ${lesson.state === "done" || lesson.state === "skipped" ? styles.cardDone : ""} ${lesson.state === "locked" ? styles.cardLocked : ""}`}><div className={styles.cardTop}><span>{lesson.lesson_id}</span><span className={styles.state}>{STATE_LABELS[lesson.state]}</span></div><h3>{lesson.title}</h3><p>{lesson.preview_enabled ? "هذه خطوتك الحالية، ويمكنك متابعتها من موضعك المحفوظ." : lesson.state === "skipped" ? "تجاوزته وفق التسكين، وليس إكمالًا دراسيًا زائفًا." : "يبقى ضمن المسار، ويفتح وفق تقدم الطالب."}</p><button type="button" className={styles.start} disabled={!lesson.preview_enabled || Boolean(starting)} onClick={() => void start(lesson)}>{lesson.preview_enabled ? <><Play size={16} />{starting === lesson.lesson_id ? "جاري الفتح..." : lesson.session_id ? "متابعة الدرس" : "ابدأ الدرس"}</> : <><LockKeyhole size={15} /> غير متاح الآن</>}</button></article>)}</div></section>)}</div>
   </div></div>;
 }

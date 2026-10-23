@@ -100,4 +100,15 @@ describe("InteractionPlayer", () => {
     expect(screen.getByText("حُفظت المسودة")).toBeInTheDocument();
     jest.useRealTimers();
   });
+
+  it.each([
+    ["support_practice", "مساعدة مركزة"],
+    ["additional_check", "تحقق قصير"],
+    ["support_check", "تحقق بعد المساعدة"],
+  ])("labels the %s detour as help rather than a level failure", (stage, label) => {
+    const support = payload();
+    support.progress.stage = stage;
+    render(<InteractionPlayer sessionId={11} interaction={support} onLessonChange={jest.fn()}/>);
+    expect(screen.getByText(label)).toBeInTheDocument();
+  });
 });

@@ -16,13 +16,20 @@ from pydantic import BaseModel, Field, model_validator
 from sqlalchemy.orm import Session
 
 import storage
-from db.learning_models import LessonQuestionDraft, LessonQuestionResponse, LessonSession
+from db.learning_models import LessonQuestionDraft, LessonQuestionResponse, LessonSession, SupportAssignment
 from db.models import AudioSubmission, Student
 from dependencies import get_db
 from v2_content.media import MediaProvider
 from v2_content.projection import student_question
 from v2_content.repository import get_lesson, get_media, get_question
 from v2_lesson_runtime import _require_preview_student, _session_or_404, _session_payload
+from v2_adaptation_runtime import (
+    active_support_assignment,
+    finish_independent_check,
+    finish_support_check,
+    record_response_evidence,
+    student_adaptation_payload,
+)
 
 
 router = APIRouter(prefix="/v2/lessons", tags=["v2-interactions"])
@@ -32,6 +39,9 @@ OPEN_INTERACTIONS = {"read_aloud", "write_text"}
 STAGE_ROLE = {
     "guided_practice": "guided_practice",
     "independent_check": "independent_check",
+    "support_practice": "guided_practice",
+    "additional_check": "support_check",
+    "support_check": "support_check",
 }
 
 
@@ -59,7 +69,14 @@ class DraftRequest(BaseModel):
     text: str = Field(max_length=500)
 
 
-def _question_ids(session: LessonSession) -> list[str]:
+def _question_ids(db: Session, session: LessonSession) -> list[str]:
+    if session.stage in {"support_practice", "additional_check", "support_check"}:
+        assignment = active_support_assignment(db, session.id)
+        if not assignment:
+            raise HTTPException(status_code=409, detail="إسناد المساعدة غير موجود")
+        if session.stage == "support_practice":
+            return list(assignment.practice_question_ids or [])
+        return list(assignment.check_question_ids or [])
     lesson = get_lesson(session.lesson_id)
     if not lesson:
         raise HTTPException(status_code=404, detail="الدرس غير موجود")
@@ -70,8 +87,8 @@ def _question_ids(session: LessonSession) -> list[str]:
     return []
 
 
-def _current_question(session: LessonSession) -> dict[str, Any]:
-    question_ids = _question_ids(session)
+def _current_question(db: Session, session: LessonSession) -> dict[str, Any]:
+    question_ids = _question_ids(db, session)
     if not question_ids:
         raise HTTPException(status_code=409, detail="لا يوجد سؤال متاح في مرحلة الدرس الحالية")
     if session.step_index >= len(question_ids):
@@ -111,6 +128,7 @@ def _draft(db: Session, session_id: int, question_id: str) -> LessonQuestionDraf
 
 def _interaction_payload(db: Session, session: LessonSession) -> dict[str, Any]:
     base = _session_payload(session)
+    base["adaptation"] = student_adaptation_payload(db, session)
     if session.stage not in STAGE_ROLE:
         base["interaction"] = None
         base["summary"] = {
@@ -124,8 +142,8 @@ def _interaction_payload(db: Session, session: LessonSession) -> dict[str, Any]:
         }
         return base
 
-    question = _current_question(session)
-    question_ids = _question_ids(session)
+    question = _current_question(db, session)
+    question_ids = _question_ids(db, session)
     projected = student_question(question)
     saved_draft = _draft(db, session.id, question["id"])
     base["interaction"] = {
@@ -187,22 +205,31 @@ def _canonical_answer(question: dict[str, Any], body: AnswerRequest, student_id:
     raise HTTPException(status_code=409, detail="نوع التفاعل غير مدعوم")
 
 
-def _advance(session: LessonSession, question_count: int, *, has_pending: bool, db: Session) -> None:
+def _advance(
+    session: LessonSession,
+    question_count: int,
+    *,
+    db: Session,
+    assignment: SupportAssignment | None,
+) -> None:
     if session.step_index + 1 < question_count:
         session.step_index += 1
     elif session.stage == "guided_practice":
         session.stage = "independent_check"
         session.step_index = 0
-    else:
-        pending_count = db.query(LessonQuestionResponse).filter(
-            LessonQuestionResponse.lesson_session_id == session.id,
-            LessonQuestionResponse.status == "pending_review",
-        ).count()
-        session.stage = "waiting_review" if pending_count or has_pending else "complete"
-        session.status = "waiting_review" if pending_count or has_pending else "completed"
+    elif session.stage == "support_practice":
+        session.stage = "support_check"
         session.step_index = 0
-        if session.status == "completed":
-            session.completed_at = datetime.now(timezone.utc)
+    elif session.stage == "independent_check":
+        finish_independent_check(db, session)
+        return
+    elif session.stage in {"additional_check", "support_check"}:
+        if not assignment:
+            raise HTTPException(status_code=409, detail="إسناد المساعدة غير موجود")
+        finish_support_check(db, session, assignment)
+        return
+    else:
+        raise HTTPException(status_code=409, detail="مرحلة التفاعل غير صالحة للانتقال")
     session.version += 1
     session.updated_at = datetime.now(timezone.utc)
 
@@ -224,7 +251,7 @@ def save_writing_draft(
     db: Session = Depends(get_db),
 ):
     session = _session_or_404(db, session_id, student.id)
-    question = _current_question(session)
+    question = _current_question(db, session)
     if question["interaction"] != "write_text":
         raise HTTPException(status_code=409, detail="المسودة متاحة لسؤال الكتابة الحالي فقط")
     draft = _draft(db, session.id, question["id"])
@@ -255,7 +282,7 @@ def upload_reading(
     db: Session = Depends(get_db),
 ):
     session = _session_or_404(db, session_id, student.id)
-    question = _current_question(session)
+    question = _current_question(db, session)
     if question["interaction"] != "read_aloud":
         raise HTTPException(status_code=409, detail="التسجيل متاح لسؤال القراءة الحالي فقط")
     if not file.content_type or not file.content_type.startswith("audio/"):
@@ -311,7 +338,8 @@ def submit_answer(
 
     if session.status != "in_progress" or session.stage not in STAGE_ROLE:
         raise HTTPException(status_code=409, detail="جلسة الدرس لا تقبل إجابات الآن")
-    question = _current_question(session)
+    assignment = active_support_assignment(db, session.id)
+    question = _current_question(db, session)
     canonical = _canonical_answer(question, body, student.id)
     attempts = db.query(LessonQuestionResponse).filter(
         LessonQuestionResponse.lesson_session_id == session.id,
@@ -327,7 +355,7 @@ def submit_answer(
     else:
         is_correct = set(canonical["selected_option_ids"]) == set(expected)
 
-    guided = session.stage == "guided_practice"
+    guided = session.stage in {"guided_practice", "support_practice"}
     should_advance = is_open or not guided or bool(is_correct)
     public_result: dict[str, Any] = {
         "question_id": question["id"],
@@ -355,9 +383,11 @@ def submit_answer(
         status="pending_review" if is_open else "graded",
         is_correct=is_correct,
         hint_used=guided and is_correct is False,
+        support_assignment_id=assignment.id if assignment else None,
     )
     db.add(response)
     db.flush()
+    record_response_evidence(db, session, response, question, assignment)
     if question["interaction"] == "read_aloud":
         db.add(AudioSubmission(
             response_id=None,
@@ -373,7 +403,12 @@ def submit_answer(
         if draft:
             db.delete(draft)
     if should_advance:
-        _advance(session, len(_question_ids(session)), has_pending=is_open, db=db)
+        _advance(
+            session,
+            len(_question_ids(db, session)),
+            db=db,
+            assignment=assignment,
+        )
     db.commit()
     db.refresh(session)
     return {

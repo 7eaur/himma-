@@ -27,7 +27,6 @@ FIXTURE_CAPTIONS = Path(__file__).resolve().parent / "test_fixtures" / "himma-v2
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FALLBACK_AUDIO = REPO_ROOT / "assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-01.mp3"
 FALLBACK_IMAGE = REPO_ROOT / "assets/education/generated_vocabulary/webp/hem-gen-voc-001-house-512.webp"
-PREVIEW_LESSONS = {"L1-01", "L1-05", "L1-06", "L2-01", "L3-03"}
 EXTERNAL_STAGE = {"video": "teaching_video", "complete": "outcome"}
 
 
@@ -99,14 +98,20 @@ def lesson_catalog(
             LessonSession.status == "completed",
         )
     }
+    journey = db.query(StudentJourney).filter(StudentJourney.student_id == student.id).one_or_none()
+    first_for_level = next(
+        row["id"] for row in release["lessons"] if int(row["level"][1]) == student.current_level
+    )
+    current_lesson_id = active.lesson_id if active else (journey.current_lesson_id if journey else first_for_level)
+    current_level = journey.current_level if journey else student.current_level
     rows = []
-    for index, lesson in enumerate(release["lessons"]):
+    for lesson in release["lessons"]:
         if lesson["id"] in completed:
             state = "done"
-        elif active and active.lesson_id == lesson["id"]:
+        elif current_lesson_id == lesson["id"]:
             state = "current"
-        elif not active and index == 0:
-            state = "current"
+        elif int(lesson["level"][1]) < current_level:
+            state = "skipped"
         else:
             state = "locked"
         rows.append({
@@ -114,13 +119,14 @@ def lesson_catalog(
             "title": lesson["title"],
             "level": lesson["level"],
             "state": state,
-            "preview_enabled": lesson["id"] in PREVIEW_LESSONS,
+            "preview_enabled": state == "current",
             "session_id": active.id if active and active.lesson_id == lesson["id"] else None,
         })
     return {
         "mode": "candidate_preview",
         "test_only": True,
         "release_version": release["version"],
+        "current_action": "posttest_ready" if journey and journey.placement_state == "posttest_ready" else "lesson",
         "lessons": rows,
     }
 
@@ -132,8 +138,6 @@ def start_lesson(
     db: Session = Depends(get_db),
 ):
     _lesson_or_404(lesson_id)
-    if lesson_id not in PREVIEW_LESSONS:
-        raise HTTPException(status_code=409, detail="هذا الدرس غير مفعّل في معاينة P03")
     active = db.query(LessonSession).filter(
         LessonSession.student_id == student.id,
         LessonSession.status.in_(("in_progress", "waiting_review")),
@@ -149,19 +153,32 @@ def start_lesson(
     release_row = register_candidate_release(db)
     journey = db.query(StudentJourney).filter(StudentJourney.student_id == student.id).one_or_none()
     if journey is None:
+        first_lesson = next(
+            row["id"] for row in get_release()["lessons"] if int(row["level"][1]) == student.current_level
+        )
+        if lesson_id != first_lesson:
+            raise HTTPException(
+                status_code=409,
+                detail={"message": "هذا الدرس ما يزال مغلقًا", "current_lesson_id": first_lesson},
+            )
         journey = StudentJourney(
             student_id=student.id,
             content_release_id=release_row.id,
-            current_level=int(lesson_id[1]),
+            current_level=student.current_level,
             current_lesson_id=lesson_id,
         )
         db.add(journey)
     elif journey.content_release_id != release_row.id:
         raise HTTPException(status_code=409, detail="رحلة الطالب مثبتة على إصدار محتوى مختلف")
-    else:
-        journey.current_level = int(lesson_id[1])
-        journey.current_lesson_id = lesson_id
-        journey.version += 1
+    elif journey.current_lesson_id != lesson_id:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "message": "هذا الدرس ما يزال مغلقًا",
+                "current_lesson_id": journey.current_lesson_id,
+                "posttest_ready": journey.placement_state == "posttest_ready",
+            },
+        )
 
     session = LessonSession(
         student_id=student.id,

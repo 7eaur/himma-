@@ -56,7 +56,10 @@ class LessonSession(Base):
     completed_at = Column(DateTime(timezone=True), nullable=True)
 
     __table_args__ = (
-        CheckConstraint("stage IN ('intro','video','guided_practice','independent_check','waiting_review','complete')", name="ck_lesson_sessions_stage"),
+        CheckConstraint(
+            "stage IN ('intro','video','guided_practice','independent_check','additional_check','support_practice','support_check','waiting_review','supervisor_hold','complete')",
+            name="ck_lesson_sessions_stage",
+        ),
         CheckConstraint("status IN ('in_progress','waiting_review','completed','abandoned')", name="ck_lesson_sessions_status"),
         CheckConstraint("step_index >= 0", name="ck_lesson_sessions_step"),
         CheckConstraint("version >= 1", name="ck_lesson_sessions_version"),
@@ -101,6 +104,7 @@ class LessonQuestionResponse(Base):
     hint_used = Column(Boolean, nullable=False, default=False, server_default="false")
     created_at = Column(DateTime(timezone=True), nullable=False, default=_now)
     reviewed_at = Column(DateTime(timezone=True), nullable=True)
+    support_assignment_id = Column(Integer, ForeignKey("support_assignments.id", ondelete="SET NULL"), nullable=True)
 
     __table_args__ = (
         CheckConstraint("role IN ('guided_practice','independent_check','support_check')", name="ck_lesson_responses_role"),
@@ -131,4 +135,110 @@ class LessonQuestionDraft(Base):
     __table_args__ = (
         CheckConstraint("version >= 1", name="ck_lesson_question_drafts_version"),
         UniqueConstraint("lesson_session_id", "question_id", name="uq_lesson_question_draft"),
+    )
+
+
+class SupportAssignment(Base):
+    """A bounded support/check detour that returns to one lesson session."""
+
+    __tablename__ = "support_assignments"
+
+    id = Column(Integer, primary_key=True)
+    lesson_session_id = Column(Integer, ForeignKey("lesson_sessions.id", ondelete="CASCADE"), nullable=False)
+    student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
+    content_release_id = Column(Integer, ForeignKey("content_releases.id", ondelete="RESTRICT"), nullable=False)
+    support_id = Column(String(20), nullable=False)
+    focus = Column(String(80), nullable=False)
+    target_skill = Column(String(10), nullable=False)
+    source_lesson_id = Column(String(20), nullable=False)
+    source_level = Column(Integer, nullable=False)
+    support_level = Column(Integer, nullable=False)
+    mode = Column(String(32), nullable=False)
+    status = Column(String(32), nullable=False, default="active", server_default="active")
+    verification_round = Column(Integer, nullable=False, default=0, server_default="0")
+    practice_question_ids = Column(JSON().with_variant(JSONB, "postgresql"), nullable=False, default=list)
+    check_question_ids = Column(JSON().with_variant(JSONB, "postgresql"), nullable=False, default=list)
+    return_to = Column(JSON().with_variant(JSONB, "postgresql"), nullable=False)
+    policy_version = Column(String(100), nullable=False)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=_now)
+    updated_at = Column(DateTime(timezone=True), nullable=False, default=_now, onupdate=_now)
+    resolved_at = Column(DateTime(timezone=True), nullable=True)
+
+    __table_args__ = (
+        CheckConstraint("source_level BETWEEN 1 AND 3", name="ck_support_assignments_source_level"),
+        CheckConstraint("support_level BETWEEN 1 AND 3", name="ck_support_assignments_support_level"),
+        CheckConstraint("mode IN ('additional_check','targeted_support')", name="ck_support_assignments_mode"),
+        CheckConstraint("status IN ('active','waiting_review','resolved','escalated')", name="ck_support_assignments_status"),
+        CheckConstraint("verification_round BETWEEN 0 AND 1", name="ck_support_assignments_round"),
+        Index(
+            "uq_support_assignments_active_session",
+            "lesson_session_id",
+            unique=True,
+            postgresql_where=text("status IN ('active','waiting_review')"),
+            sqlite_where=text("status IN ('active','waiting_review')"),
+        ),
+        Index("ix_support_assignments_student_status", "student_id", "status"),
+    )
+
+
+class SkillEvidence(Base):
+    """Immutable projection of one response for policy and reporting."""
+
+    __tablename__ = "skill_evidence"
+
+    id = Column(Integer, primary_key=True)
+    response_id = Column(Integer, ForeignKey("lesson_question_responses.id", ondelete="CASCADE"), nullable=False, unique=True)
+    lesson_session_id = Column(Integer, ForeignKey("lesson_sessions.id", ondelete="CASCADE"), nullable=False)
+    student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
+    content_release_id = Column(Integer, ForeignKey("content_releases.id", ondelete="RESTRICT"), nullable=False)
+    support_assignment_id = Column(Integer, ForeignKey("support_assignments.id", ondelete="SET NULL"), nullable=True)
+    question_id = Column(String(160), nullable=False)
+    source_kind = Column(String(20), nullable=False)
+    role = Column(String(32), nullable=False)
+    skill_group = Column(String(10), nullable=False)
+    evidence_type = Column(String(80), nullable=False)
+    error_focus = Column(String(80), nullable=True)
+    support_focus = Column(String(80), nullable=True)
+    review_status = Column(String(32), nullable=False)
+    is_correct = Column(Boolean, nullable=True)
+    hint_used = Column(Boolean, nullable=False, default=False, server_default="false")
+    counts_for_mastery = Column(Boolean, nullable=False, default=False, server_default="false")
+    policy_version = Column(String(100), nullable=False)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=_now)
+    reviewed_at = Column(DateTime(timezone=True), nullable=True)
+
+    __table_args__ = (
+        CheckConstraint("source_kind IN ('lesson','support')", name="ck_skill_evidence_source"),
+        CheckConstraint("role IN ('guided_practice','independent_check','support_check')", name="ck_skill_evidence_role"),
+        CheckConstraint("review_status IN ('pending_review','graded')", name="ck_skill_evidence_review"),
+        Index("ix_skill_evidence_student_skill", "student_id", "skill_group", "created_at"),
+        Index("ix_skill_evidence_session_role", "lesson_session_id", "role"),
+    )
+
+
+class AdaptationDecision(Base):
+    """Durable and explainable result of a policy boundary evaluation."""
+
+    __tablename__ = "adaptation_decisions_v2"
+
+    id = Column(Integer, primary_key=True)
+    lesson_session_id = Column(Integer, ForeignKey("lesson_sessions.id", ondelete="CASCADE"), nullable=False)
+    student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
+    content_release_id = Column(Integer, ForeignKey("content_releases.id", ondelete="RESTRICT"), nullable=False)
+    support_assignment_id = Column(Integer, ForeignKey("support_assignments.id", ondelete="SET NULL"), nullable=True)
+    decision_key = Column(String(120), nullable=False)
+    decision_kind = Column(String(40), nullable=False)
+    reason_code = Column(String(100), nullable=False)
+    evidence_ids = Column(JSON().with_variant(JSONB, "postgresql"), nullable=False, default=list)
+    explanation_json = Column(JSON().with_variant(JSONB, "postgresql"), nullable=False, default=dict)
+    policy_version = Column(String(100), nullable=False)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=_now)
+
+    __table_args__ = (
+        CheckConstraint(
+            "decision_kind IN ('next_lesson','additional_check','targeted_support','waiting_review','supervisor_hold')",
+            name="ck_adaptation_decisions_v2_kind",
+        ),
+        UniqueConstraint("lesson_session_id", "decision_key", name="uq_adaptation_decisions_v2_key"),
+        Index("ix_adaptation_decisions_v2_student_created", "student_id", "created_at"),
     )

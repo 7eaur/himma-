@@ -3,13 +3,29 @@ from uuid import uuid4
 import pytest
 
 from conftest import TestingSessionLocal
-from db.learning_models import LessonQuestionDraft, LessonQuestionResponse, LessonSession
-from db.models import AudioSubmission
+from db.learning_models import LessonQuestionDraft, LessonQuestionResponse, LessonSession, StudentJourney
+from db.models import AudioSubmission, Student
 from v2_content.compiler import compile_release
 from v2_content.contracts import PRIVATE_KEYS
+from v2_content.importer import register_candidate_release
 
 
 def _start_at_questions(student_client, lesson_id: str, step_index: int = 0):
+    # Component/runtime coverage deliberately opens representative questions
+    # from all levels. Seed the authoritative current lesson instead of
+    # weakening the production route's lesson-lock check.
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        student.current_level = int(lesson_id[1])
+        release = register_candidate_release(db)
+        db.add(StudentJourney(
+            student_id=student.id,
+            content_release_id=release.id,
+            current_level=int(lesson_id[1]),
+            current_lesson_id=lesson_id,
+            placement_state="placed",
+        ))
+        db.commit()
     started = student_client.post(f"/v2/lessons/{lesson_id}/start").json()
     session_id = started["session"]["session_id"]
     student_client.post(

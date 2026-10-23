@@ -23,9 +23,8 @@ def test_catalog_is_candidate_test_only_and_requires_student(student_client):
     payload = response.json()
     assert payload["test_only"] is True
     assert len(payload["lessons"]) == 19
-    assert {row["lesson_id"] for row in payload["lessons"] if row["preview_enabled"]} == {
-        "L1-01", "L1-05", "L1-06", "L2-01", "L3-03"
-    }
+    assert {row["lesson_id"] for row in payload["lessons"] if row["preview_enabled"]} == {"L1-01"}
+    assert next(row for row in payload["lessons"] if row["lesson_id"] == "L1-02")["state"] == "locked"
 
 
 def test_catalog_rejects_researcher(researcher_client):
@@ -45,6 +44,14 @@ def test_start_is_release_pinned_resumable_and_other_lesson_is_blocked(student_c
         session = db.query(LessonSession).filter(LessonSession.id == first["session"]["session_id"]).one()
         assert session.content_release_id is not None
         assert session.return_to == {"path": "/student/learning-v2"}
+
+
+def test_direct_url_cannot_bypass_the_current_lesson_lock(student_client):
+    response = student_client.post("/v2/lessons/L1-05/start")
+    assert response.status_code == 409
+    assert response.json()["detail"]["current_lesson_id"] == "L1-01"
+    with TestingSessionLocal() as db:
+        assert db.query(LessonSession).count() == 0
 
 
 def test_intro_video_progress_and_ended_are_persistent_and_idempotent(student_client):

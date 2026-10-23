@@ -9,7 +9,7 @@ import VideoPlayer from "@/components/learning/VideoPlayer";
 import InteractionPlayer, { type InteractionPayload } from "@/components/learning/InteractionPlayer";
 import styles from "../learning-v2.module.css";
 
-type Stage = "intro" | "teaching_video" | "guided_practice" | "independent_check" | "outcome";
+type Stage = "intro" | "teaching_video" | "guided_practice" | "independent_check" | "additional_check" | "support_practice" | "support_check" | "supervisor_hold" | "outcome";
 interface LessonPayload {
   lesson_id: string; title: string; level: string; objective?: string | null;
   intro: { title: string; text: string; button: string };
@@ -19,6 +19,7 @@ interface LessonPayload {
   session: { session_id: number; stage: Stage | "waiting_review"; status: string; video_position_seconds: number; video_duration_seconds: number | null; version: number };
   interaction?: InteractionPayload | null;
   summary?: { submitted: number; pending_review: number };
+  adaptation?: { state: string; message: string; support?: { title: string; focus: string; mode: string } | null } | null;
 }
 const STAGES: Array<{ key: Stage; label: string }> = [{key:"intro",label:"المقدمة"},{key:"teaching_video",label:"الشرح"},{key:"guided_practice",label:"التدريب"},{key:"independent_check",label:"الاختبار"}];
 
@@ -74,9 +75,11 @@ export default function V2LessonPage() {
       {error && <div className={styles.error} role="alert">{error}</div>}
       {lesson.session.stage === "intro" && <section className={styles.intro}><div><span className={styles.eyebrow}>هيا نبدأ</span><h2>{lesson.intro.title}</h2><p>{lesson.intro.text}</p><button type="button" className={styles.primary} disabled={saving} onClick={() => void completeIntro()}>{saving ? "جاري الحفظ..." : lesson.intro.button}<ArrowLeft size={18}/></button></div><Image src="/characters/girl/welcome.png" alt="شخصية هِمّة ترحب" width={180} height={215}/></section>}
       {lesson.session.stage === "teaching_video" && (lesson.video.url ? <VideoPlayer src={lesson.video.url} captionsSrc={captions} startAt={lesson.session.video_position_seconds} testOnly={lesson.video.test_only} onCheckpoint={checkpoint} onEnded={ended}/> : <div className={styles.error} role="alert">فيديو الدرس غير جاهز، ولن تتجاوز هِمّة هذه الخطوة تلقائيًا.</div>)}
-      {(lesson.session.stage === "guided_practice" || lesson.session.stage === "independent_check") && lesson.interaction && <InteractionPlayer key={lesson.interaction.question.question_id} sessionId={sessionId} interaction={lesson.interaction} onLessonChange={(updated) => setLesson(updated as LessonPayload)}/>}
+      {(["additional_check", "support_practice", "support_check"] as string[]).includes(lesson.session.stage) && lesson.adaptation?.support && <section className={styles.supportIntro}><span className={styles.boundaryTag}>مساعدة قصيرة وليست خفضًا للمستوى</span><h2>{lesson.adaptation.support.title}</h2><p>{lesson.adaptation.message}</p></section>}
+      {(["guided_practice", "independent_check", "additional_check", "support_practice", "support_check"] as string[]).includes(lesson.session.stage) && lesson.interaction && <InteractionPlayer key={lesson.interaction.question.question_id} sessionId={sessionId} interaction={lesson.interaction} onLessonChange={(updated) => setLesson(updated as LessonPayload)}/>}
       {lesson.session.stage === "waiting_review" && <section className={styles.practiceBoundary}><Image src="/characters/girl/encourage.png" alt="شخصية هِمّة تشجع" width={150} height={180}/><span className={styles.boundaryTag}>محفوظ بأمان</span><h2><CheckCircle2 size={25} aria-hidden="true"/> إجاباتك تنتظر مراجعة المشرف</h2><p>أكملت أسئلة الدرس، ولديك {lesson.summary?.pending_review ?? 1} إجابة كتابة أو قراءة معلّقة. لم تُحتسب صحيحة أو خاطئة، وسيحسمها المشرف.</p><Link href="/student/learning-v2" className={styles.back}>العودة إلى خريطة الدروس</Link></section>}
-      {lesson.session.stage === "outcome" && <section className={styles.practiceBoundary}><Image src="/characters/girl/success.png" alt="شخصية هِمّة تحتفل" width={150} height={180}/><h2><CheckCircle2 size={25} aria-hidden="true"/> أكملت أسئلة الدرس</h2><p>حُفظت إجاباتك. سيحدد منطق التكيف في المرحلة التالية خطوتك التعليمية دون اعتبار مشاهدة الفيديو وحدها إتقانًا.</p><Link href="/student/learning-v2" className={styles.back}>العودة إلى خريطة الدروس</Link></section>}
+      {lesson.session.stage === "supervisor_hold" && <section className={styles.practiceBoundary}><Image src="/characters/girl/encourage.png" alt="شخصية هِمّة تشجع" width={150} height={180}/><span className={styles.boundaryTag}>تقدمك محفوظ</span><h2>سيختار المشرف أفضل مساعدة لك</h2><p>{lesson.adaptation?.message ?? "لن نخفض مستواك ولن نكرر المساعدة بلا نهاية."}</p><Link href="/student/learning-v2" className={styles.back}>العودة إلى خريطة الدروس</Link></section>}
+      {lesson.session.stage === "outcome" && <section className={styles.practiceBoundary}><Image src="/characters/girl/success.png" alt="شخصية هِمّة تحتفل" width={150} height={180}/><h2><CheckCircle2 size={25} aria-hidden="true"/> أكملت أسئلة الدرس</h2><p>{lesson.adaptation?.message ?? "أصبحت خطوتك التعليمية التالية جاهزة."}</p><Link href="/student/learning-v2" className={styles.back}>العودة إلى خريطة الدروس</Link></section>}
     </main>
   </div></div>;
 }
