@@ -3,7 +3,7 @@
 **التاريخ:** 2026-10-23  
 **الحالة:** `ready_for_review` — لا بدء P07، لا تفعيل محتوى مرشح، ولا نشر  
 **مرجع الانتقال:** اعتمد المالك P05 بعبارة «تم»، ثم نُفذت P06 فقط.  
-**Implementation SHA:** `daf538909cbf56a8ffee1de22e94ed3dc20ea4e9`  
+**Implementation SHA:** `0265c5810a79ffc71bb261791723b9d4f5d6faa8`  
 **سياسة التقييم:** `himma-v2-assessment/manual-placement-1-candidate`
 
 ## 1. النتيجة
