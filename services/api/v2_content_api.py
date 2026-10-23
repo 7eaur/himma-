@@ -3,7 +3,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 
 from dependencies import get_any_authenticated
-from runtime_flags import protected_runtime
+from runtime_flags import protected_runtime, trial_v2_preview_allowed
 from v2_content.media import MediaProvider
 from v2_content.projection import student_manifest, student_question
 from v2_content.repository import get_media, get_question, get_release
@@ -14,7 +14,7 @@ router = APIRouter(prefix="/v2/content", tags=["v2-content"])
 
 def _require_candidate_access(auth=Depends(get_any_authenticated)):
     role, entity = auth
-    if role == "student" and protected_runtime():
+    if role == "student" and protected_runtime() and not trial_v2_preview_allowed():
         raise HTTPException(status_code=503, detail="محتوى الإصدار الثاني غير معتمد للطلاب بعد")
     return role, entity
 
