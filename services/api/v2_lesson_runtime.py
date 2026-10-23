@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 from db.learning_models import LessonProgressEvent, LessonSession, StudentJourney
 from db.models import ContentRelease, Student, User
 from dependencies import get_current_student, get_current_user, get_db
-from runtime_flags import protected_runtime
+from runtime_flags import protected_runtime, trial_v2_preview_allowed
 from v2_content.importer import register_candidate_release
 from v2_content.media import APPROVED_STATES, MISSING_STATES, MediaProvider
 from v2_content.projection import student_lesson
@@ -38,7 +38,7 @@ class LessonEventRequest(BaseModel):
 
 
 def _require_preview_student(student: Student = Depends(get_current_student)) -> Student:
-    if protected_runtime():
+    if protected_runtime() and not trial_v2_preview_allowed():
         raise HTTPException(status_code=503, detail="معاينة دروس الإصدار الثاني غير متاحة للطلاب في هذه البيئة")
     return student
 
