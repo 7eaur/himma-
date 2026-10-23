@@ -9,7 +9,7 @@ permissions:
   contents: write
 jobs:
   import-provided-media:
-    if: contains(github.event.head_commit.message, 'chore(media-import): start one-time asset transfer')
+    if: startsWith(github.event.head_commit.message, 'chore(media-import)')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
