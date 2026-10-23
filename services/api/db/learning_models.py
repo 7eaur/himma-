@@ -109,3 +109,26 @@ class LessonQuestionResponse(Base):
         UniqueConstraint("lesson_session_id", "question_id", "attempt_no", name="uq_lesson_response_question_attempt"),
         UniqueConstraint("lesson_session_id", "submit_key", name="uq_lesson_response_submit_key"),
     )
+
+
+class LessonQuestionDraft(Base):
+    """One server-side open-response draft per lesson question.
+
+    Drafts are deliberately separate from attempts: autosave must never create
+    evidence, consume an attempt, or move the lesson state machine.
+    """
+
+    __tablename__ = "lesson_question_drafts"
+
+    id = Column(Integer, primary_key=True)
+    lesson_session_id = Column(Integer, ForeignKey("lesson_sessions.id", ondelete="CASCADE"), nullable=False)
+    question_id = Column(String(160), nullable=False)
+    draft_json = Column(JSON().with_variant(JSONB, "postgresql"), nullable=False, default=dict)
+    version = Column(Integer, nullable=False, default=1, server_default="1")
+    created_at = Column(DateTime(timezone=True), nullable=False, default=_now)
+    updated_at = Column(DateTime(timezone=True), nullable=False, default=_now, onupdate=_now)
+
+    __table_args__ = (
+        CheckConstraint("version >= 1", name="ck_lesson_question_drafts_version"),
+        UniqueConstraint("lesson_session_id", "question_id", name="uq_lesson_question_draft"),
+    )

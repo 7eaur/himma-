@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
 import VideoPlayer from "@/components/learning/VideoPlayer";
+import InteractionPlayer, { type InteractionPayload } from "@/components/learning/InteractionPlayer";
 import styles from "../learning-v2.module.css";
 
 type Stage = "intro" | "teaching_video" | "guided_practice" | "independent_check" | "outcome";
@@ -15,7 +16,9 @@ interface LessonPayload {
   video: { asset_id: string; url: string | null; test_only: boolean; state: string };
   practice: { count: number; first_question_id: string };
   independent_check: { count: number };
-  session: { session_id: number; stage: Stage; video_position_seconds: number; video_duration_seconds: number | null; version: number };
+  session: { session_id: number; stage: Stage | "waiting_review"; status: string; video_position_seconds: number; video_duration_seconds: number | null; version: number };
+  interaction?: InteractionPayload | null;
+  summary?: { submitted: number; pending_review: number };
 }
 const STAGES: Array<{ key: Stage; label: string }> = [{key:"intro",label:"المقدمة"},{key:"teaching_video",label:"الشرح"},{key:"guided_practice",label:"التدريب"},{key:"independent_check",label:"الاختبار"}];
 
@@ -31,22 +34,27 @@ export default function V2LessonPage() {
   const sessionId = Number(params.sessionId);
   const invalidSessionId = !Number.isInteger(sessionId) || sessionId < 1;
 
-  useEffect(() => {
+  const loadLesson = useCallback(async () => {
     if (invalidSessionId) return;
-    void fetch(`/api/v2/lessons/sessions/${sessionId}`, { cache: "no-store" }).then(async (response) => {
+    return fetch(`/api/v2/lessons/sessions/${sessionId}/interaction`, { cache: "no-store" }).then(async (response) => {
       const data = await response.json().catch(() => null);
       if (response.status === 401 || response.status === 403) { router.replace("/student/login"); return; }
       if (!response.ok) throw new Error(data?.detail || "تعذر استعادة الدرس");
       setLesson(data);
-    }).catch((reason) => setError(reason instanceof Error ? reason.message : "تعذر استعادة الدرس")).finally(() => setLoading(false));
+    });
   }, [invalidSessionId, router, sessionId]);
+
+  useEffect(() => {
+    void loadLesson().catch((reason) => setError(reason instanceof Error ? reason.message : "تعذر استعادة الدرس")).finally(() => setLoading(false));
+  }, [loadLesson]);
 
   const sendEvent = useCallback(async (event_type: "intro_complete" | "video_progress" | "video_ended", position_seconds?: number, duration_seconds?: number) => {
     const response = await fetch(`/api/v2/lessons/sessions/${sessionId}/events`, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ event_key:eventKey(event_type), event_type, position_seconds, duration_seconds }), keepalive:event_type === "video_progress" });
     const data = await response.json().catch(() => null);
     if (!response.ok) throw new Error(data?.detail || "تعذر حفظ تقدم الدرس");
-    setLesson(data);
-  }, [sessionId]);
+    if (["guided_practice", "independent_check", "waiting_review", "outcome"].includes(data?.session?.stage)) await loadLesson();
+    else setLesson(data);
+  }, [loadLesson, sessionId]);
 
   const completeIntro = async () => { setSaving(true); setError(""); try { await sendEvent("intro_complete"); } catch (reason) { setError(reason instanceof Error ? reason.message : "تعذر فتح الفيديو"); } finally { setSaving(false); } };
   const checkpoint = useCallback((position: number, duration: number) => { void sendEvent("video_progress", position, duration).catch(() => setError("تعذر حفظ موضع الفيديو مؤقتًا. حاول الإيقاف ثم التشغيل.")); }, [sendEvent]);
@@ -55,7 +63,8 @@ export default function V2LessonPage() {
   if (invalidSessionId) return <div className={styles.page} dir="rtl"><div className={styles.container}><div className={styles.error} role="alert">رابط جلسة الدرس غير صالح</div><Link href="/student/learning-v2" className={styles.back}><ArrowRight size={17}/> العودة إلى الدروس</Link></div></div>;
   if (loading) return <div className={styles.page} dir="rtl"><div className={styles.loading}><div><div className={styles.spinner} /><p>نستعيد موضعك المحفوظ...</p></div></div></div>;
   if (!lesson) return <div className={styles.page} dir="rtl"><div className={styles.container}><div className={styles.error} role="alert">{error || "تعذر فتح الدرس"}</div><Link href="/student/learning-v2" className={styles.back}><ArrowRight size={17}/> العودة إلى الدروس</Link></div></div>;
-  const activeIndex = Math.max(0, STAGES.findIndex((stage) => stage.key === lesson.session.stage));
+  const stageIndex = STAGES.findIndex((stage) => stage.key === lesson.session.stage);
+  const activeIndex = stageIndex >= 0 ? stageIndex : STAGES.length - 1;
   const captions = lesson.video.test_only ? `${lesson.video.url}/captions` : undefined;
 
   return <div className={styles.page} dir="rtl"><div className={styles.container}>
@@ -65,7 +74,9 @@ export default function V2LessonPage() {
       {error && <div className={styles.error} role="alert">{error}</div>}
       {lesson.session.stage === "intro" && <section className={styles.intro}><div><span className={styles.eyebrow}>هيا نبدأ</span><h2>{lesson.intro.title}</h2><p>{lesson.intro.text}</p><button type="button" className={styles.primary} disabled={saving} onClick={() => void completeIntro()}>{saving ? "جاري الحفظ..." : lesson.intro.button}<ArrowLeft size={18}/></button></div><Image src="/characters/girl/welcome.png" alt="شخصية هِمّة ترحب" width={180} height={215}/></section>}
       {lesson.session.stage === "teaching_video" && (lesson.video.url ? <VideoPlayer src={lesson.video.url} captionsSrc={captions} startAt={lesson.session.video_position_seconds} testOnly={lesson.video.test_only} onCheckpoint={checkpoint} onEnded={ended}/> : <div className={styles.error} role="alert">فيديو الدرس غير جاهز، ولن تتجاوز هِمّة هذه الخطوة تلقائيًا.</div>)}
-      {lesson.session.stage === "guided_practice" && <section className={styles.practiceBoundary}><Image src="/characters/girl/success.png" alt="شخصية هِمّة تشجع" width={150} height={180}/><span className={styles.boundaryTag}>حد P03 / P04</span><h2><CheckCircle2 size={25} aria-hidden="true"/> أصبح التدريب الموجّه جاهزًا</h2><p>حُفظ اكتمال الفيديو وانتقلت الجلسة إلى التدريب الموجّه ({lesson.practice.count} أسئلة، أولها {lesson.practice.first_question_id}). تنفيذ التفاعلات والتصحيح والإتقان يبدأ في P04؛ لذلك لا يوجد زر يتجاوز التدريب أو يمنح نتيجة الآن.</p><Link href="/student/learning-v2" className={styles.back}>العودة إلى خريطة الدروس</Link></section>}
+      {(lesson.session.stage === "guided_practice" || lesson.session.stage === "independent_check") && lesson.interaction && <InteractionPlayer key={lesson.interaction.question.question_id} sessionId={sessionId} interaction={lesson.interaction} onLessonChange={(updated) => setLesson(updated as LessonPayload)}/>}
+      {lesson.session.stage === "waiting_review" && <section className={styles.practiceBoundary}><Image src="/characters/girl/encourage.png" alt="شخصية هِمّة تشجع" width={150} height={180}/><span className={styles.boundaryTag}>محفوظ بأمان</span><h2><CheckCircle2 size={25} aria-hidden="true"/> إجاباتك تنتظر مراجعة المشرف</h2><p>أكملت أسئلة الدرس، ولديك {lesson.summary?.pending_review ?? 1} إجابة كتابة أو قراءة معلّقة. لم تُحتسب صحيحة أو خاطئة، وسيحسمها المشرف.</p><Link href="/student/learning-v2" className={styles.back}>العودة إلى خريطة الدروس</Link></section>}
+      {lesson.session.stage === "outcome" && <section className={styles.practiceBoundary}><Image src="/characters/girl/success.png" alt="شخصية هِمّة تحتفل" width={150} height={180}/><h2><CheckCircle2 size={25} aria-hidden="true"/> أكملت أسئلة الدرس</h2><p>حُفظت إجاباتك. سيحدد منطق التكيف في المرحلة التالية خطوتك التعليمية دون اعتبار مشاهدة الفيديو وحدها إتقانًا.</p><Link href="/student/learning-v2" className={styles.back}>العودة إلى خريطة الدروس</Link></section>}
     </main>
   </div></div>;
 }

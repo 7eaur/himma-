@@ -331,13 +331,24 @@ class AudioSubmission(Base):
     __tablename__ = "audio_submissions"
 
     id = Column(Integer, primary_key=True, index=True)
-    response_id = Column(Integer, ForeignKey("attempt_responses.id"), nullable=False)
+    # V1 attempts and V2 lesson responses share the same private recording
+    # object. Exactly one owner is required; this avoids a second audio store.
+    response_id = Column(Integer, ForeignKey("attempt_responses.id"), nullable=True)
+    lesson_response_id = Column(Integer, ForeignKey("lesson_question_responses.id", ondelete="CASCADE"), nullable=True)
     storage_key = Column(String(255), nullable=False)
     file_size = Column(Integer, nullable=False)
     mime_type = Column(String(100), nullable=False)
     duration_seconds = Column(Numeric(precision=10, scale=2), nullable=True)
     status = Column(String(50), nullable=False, default="uploaded")
     submitted_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+    __table_args__ = (
+        CheckConstraint(
+            "(response_id IS NOT NULL AND lesson_response_id IS NULL) OR "
+            "(response_id IS NULL AND lesson_response_id IS NOT NULL)",
+            name="ck_audio_submissions_one_response_owner",
+        ),
+    )
 
 
 class AudioReview(Base):

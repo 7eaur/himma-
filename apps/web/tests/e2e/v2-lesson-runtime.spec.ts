@@ -12,7 +12,7 @@ const lessons = [
   { lesson_id: "L3-03", title: "أفهم المعلومات المباشرة في النص", level: "L3", state: "locked", preview_enabled: true, session_id: null },
 ];
 
-const SCREENSHOT_DIR = path.join(process.cwd(), "playwright-report", "screenshots", "p03");
+const SCREENSHOT_DIR = path.join(process.cwd(), "playwright-report", "screenshots", "p04");
 const VIDEO_FIXTURE = path.resolve(process.cwd(), "../../services/api/test_fixtures/himma-v2-video-test-only.mp4");
 const CAPTIONS_FIXTURE = path.resolve(process.cwd(), "../../services/api/test_fixtures/himma-v2-video-test-only.vtt");
 
@@ -25,10 +25,19 @@ function payload(stage: "intro" | "teaching_video" | "guided_practice", savedPos
     practice: { count: 4, first_question_id: "L1-01-GP-01" },
     independent_check: { count: 4 },
     session: { session_id: 44, stage, status: "in_progress", step_index: 0, intro_seen: stage !== "intro", video_seen: stage === "guided_practice", video_position_seconds: stage === "guided_practice" ? 6 : savedPosition, video_duration_seconds: 6, version: 2, updated_at: "2026-10-21T12:00:00Z" },
+    interaction: stage === "guided_practice" ? {
+      question: {
+        question_id: "L1-01-GP-01", owner_id: "L1-01", role: "guided_practice", interaction: "listen_choose_one",
+        prompt: "استمع ثم اختر الحرف.", stimulus: { text: null, media: [] },
+        options: [{ id: "a", text: "ب", media: [] }, { id: "b", text: "م", media: [] }, { id: "c", text: "س", media: [] }],
+        skill_group: "S1", evidence_type: "sound_to_letter", presentation: {}, hint: "استمع إلى بداية كلمة بَاب.",
+      },
+      media: {}, progress: { index: 1, total: 4, stage: "guided_practice" }, attempts: 0, draft: null,
+    } : null,
   };
 }
 
-test("P03 lesson catalog, video state and P04 boundary remain responsive", async ({ page, request, context }) => {
+test("P03 video resume and P04 guided interaction remain responsive", async ({ page, request, context }) => {
   await mkdir(SCREENSHOT_DIR, { recursive: true });
   const videoBytes = await readFile(VIDEO_FIXTURE);
   if (!SUPERVISOR_PASSWORD) throw new Error("E2E_RESEARCHER_PASSWORD is required");
@@ -79,12 +88,19 @@ test("P03 lesson catalog, video state and P04 boundary remain responsive", async
     }
     if (url.pathname.endsWith("/catalog")) return route.fulfill({ json: { mode: "candidate_preview", test_only: true, release_version: "candidate", lessons } });
     if (url.pathname.endsWith("/L1-01/start")) return route.fulfill({ json: payload(stage, savedPosition) });
-    if (url.pathname.endsWith("/sessions/44") && route.request().method() === "GET") return route.fulfill({ json: payload(stage, savedPosition) });
+    if (url.pathname.endsWith("/sessions/44/interaction") && route.request().method() === "GET") return route.fulfill({ json: payload(stage, savedPosition) });
     if (url.pathname.endsWith("/sessions/44/events")) {
       const body = route.request().postDataJSON();
       if (body.event_type === "video_progress") savedPosition = body.position_seconds;
       stage = body.event_type === "video_ended" ? "guided_practice" : body.event_type === "intro_complete" ? "teaching_video" : stage;
       return route.fulfill({ json: payload(stage, savedPosition) });
+    }
+    if (url.pathname.endsWith("/sessions/44/answers")) {
+      return route.fulfill({ json: {
+        status: "ok",
+        submission: { question_id: "L1-01-GP-01", status: "graded", accepted: true, retry_required: true, correct: false, hint: "استمع إلى بداية كلمة بَاب.", message: "اقتربت! اقرأ التلميح ثم حاول مرة أخرى." },
+        lesson: payload("guided_practice", savedPosition),
+      } });
     }
     return route.fallback();
   });
@@ -136,11 +152,16 @@ test("P03 lesson catalog, video state and P04 boundary remain responsive", async
     Object.defineProperty(video, "currentTime", { configurable: true, get: () => video.duration });
     video.dispatchEvent(new Event("ended", { bubbles: true }));
   });
-  await expect(page.getByRole("heading", { name: /أصبح التدريب الموجّه جاهزًا/ })).toBeVisible();
-  await expect(page.getByText(/حد P03 \/ P04/)).toBeVisible();
+  const interaction = page.getByTestId("v2-interaction-player");
+  await expect(interaction).toBeVisible();
+  await expect(interaction.getByRole("heading", { name: "استمع ثم اختر الحرف." })).toBeVisible();
+  await interaction.getByRole("button", { name: "اختيار الخيار 2" }).click();
+  await interaction.getByRole("button", { name: "تحقق من الإجابة" }).click();
+  await expect(interaction.getByText("حاول مرة أخرى")).toBeVisible();
+  await expect(interaction.getByText(/تلميح: استمع إلى بداية كلمة بَاب/)).toBeVisible();
   await expect(page.getByRole("button", { name: /تجاوز|إكمال الدرس/ })).toHaveCount(0);
 
   await page.setViewportSize({ width: 1440, height: 900 });
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  await page.screenshot({ path: path.join(SCREENSHOT_DIR, "desktop-1440-guided-practice-boundary.png"), fullPage: true });
+  await page.screenshot({ path: path.join(SCREENSHOT_DIR, "desktop-1440-guided-practice.png"), fullPage: true });
 });

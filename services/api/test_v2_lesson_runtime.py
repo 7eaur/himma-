@@ -24,7 +24,7 @@ def test_catalog_is_candidate_test_only_and_requires_student(student_client):
     assert payload["test_only"] is True
     assert len(payload["lessons"]) == 19
     assert {row["lesson_id"] for row in payload["lessons"] if row["preview_enabled"]} == {
-        "L1-01", "L2-01", "L3-03"
+        "L1-01", "L1-05", "L1-06", "L2-01", "L3-03"
     }
 
 
@@ -101,6 +101,16 @@ def test_fixture_is_real_private_mp4(student_client):
     assert ranged.status_code == 206
     assert ranged.headers["accept-ranges"] == "bytes"
     assert ranged.headers["content-range"].startswith("bytes 0-15/")
+
+    audio = student_client.get("/v2/lessons/test-fixtures/audio/LET-04")
+    assert audio.status_code == 200
+    assert audio.headers["content-type"].startswith("audio/")
+    assert audio.headers["x-himma-test-only"] == "true"
+
+    image = student_client.get("/v2/lessons/test-fixtures/image/VOC-04")
+    assert image.status_code == 200
+    assert image.headers["content-type"].startswith("image/")
+    assert image.headers["x-himma-test-only"] == "true"
 
 
 def test_admin_inventory_reports_source_gaps_not_fixture_readiness(researcher_client):

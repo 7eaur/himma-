@@ -24,7 +24,10 @@ from v2_content.repository import get_lesson, get_media, get_release
 router = APIRouter(prefix="/v2/lessons", tags=["v2-lessons"])
 FIXTURE_VIDEO = Path(__file__).resolve().parent / "test_fixtures" / "himma-v2-video-test-only.mp4"
 FIXTURE_CAPTIONS = Path(__file__).resolve().parent / "test_fixtures" / "himma-v2-video-test-only.vtt"
-PREVIEW_LESSONS = {"L1-01", "L2-01", "L3-03"}
+REPO_ROOT = Path(__file__).resolve().parents[2]
+FALLBACK_AUDIO = REPO_ROOT / "assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-01.mp3"
+FALLBACK_IMAGE = REPO_ROOT / "assets/education/generated_vocabulary/webp/hem-gen-voc-001-house-512.webp"
+PREVIEW_LESSONS = {"L1-01", "L1-05", "L1-06", "L2-01", "L3-03"}
 EXTERNAL_STAGE = {"video": "teaching_video", "complete": "outcome"}
 
 
@@ -261,6 +264,52 @@ def test_video_captions(
     return FileResponse(
         FIXTURE_CAPTIONS,
         media_type="text/vtt; charset=utf-8",
+        headers={"Cache-Control": "private, no-store", "X-Himma-Test-Only": "true"},
+    )
+
+
+def _fixture_source(asset: dict, *, kind: str) -> Path:
+    source = asset.get("source_path") or asset.get("path") or asset.get("v1_path")
+    if source:
+        candidate = (REPO_ROOT / str(source)).resolve()
+        if candidate.is_relative_to(REPO_ROOT) and candidate.is_file():
+            return candidate
+    return FALLBACK_AUDIO if kind == "audio" else FALLBACK_IMAGE
+
+
+@router.get("/test-fixtures/audio/{asset_id}")
+def test_audio_fixture(
+    asset_id: str,
+    _student: Student = Depends(_require_preview_student),
+):
+    asset = get_media(asset_id)
+    if not asset or (asset.get("kind") or asset.get("type")) != "audio":
+        raise HTTPException(status_code=404, detail="صوت المعاينة غير موجود")
+    source = _fixture_source(asset, kind="audio")
+    if not source.is_file():
+        raise HTTPException(status_code=503, detail="صوت المعاينة غير جاهز")
+    return FileResponse(
+        source,
+        media_type="audio/mpeg",
+        headers={"Cache-Control": "private, no-store", "X-Himma-Test-Only": "true"},
+    )
+
+
+@router.get("/test-fixtures/image/{asset_id}")
+def test_image_fixture(
+    asset_id: str,
+    _student: Student = Depends(_require_preview_student),
+):
+    asset = get_media(asset_id)
+    if not asset or (asset.get("kind") or asset.get("type")) != "image":
+        raise HTTPException(status_code=404, detail="صورة المعاينة غير موجودة")
+    source = _fixture_source(asset, kind="image")
+    if not source.is_file():
+        raise HTTPException(status_code=503, detail="صورة المعاينة غير جاهزة")
+    media_type = "image/webp" if source.suffix.lower() == ".webp" else "image/png"
+    return FileResponse(
+        source,
+        media_type=media_type,
         headers={"Cache-Control": "private, no-store", "X-Himma-Test-Only": "true"},
     )
 

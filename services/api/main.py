@@ -26,6 +26,7 @@ from content_preview import router as content_preview_router
 from reward_catalog_api import router as reward_catalog_router
 from v2_content_api import router as v2_content_router
 from v2_lesson_runtime import router as v2_lesson_router
+from v2_interaction_runtime import router as v2_interaction_router
 from observability import request_correlation_middleware
 from readiness import readiness_report
 from runtime_flags import runtime_security_ready, validate_runtime_safety
@@ -94,6 +95,7 @@ app.include_router(content_preview_router)
 app.include_router(reward_catalog_router)
 app.include_router(v2_content_router)
 app.include_router(v2_lesson_router)
+app.include_router(v2_interaction_router)
 
 
 @app.get("/health")
