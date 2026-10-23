@@ -6,6 +6,8 @@ from dataclasses import dataclass
 import os
 from typing import Any
 
+from runtime_flags import trial_v2_preview_allowed
+
 
 APPROVED_STATES = {"approved", "ready", "published"}
 MISSING_STATES = {"missing", "missing_new"}
@@ -45,7 +47,10 @@ class MediaProvider:
         source_path = asset.get("source_path") or asset.get("v1_path")
         if status in APPROVED_STATES and source_path:
             return ResolvedMedia(asset_id, kind, "ready", f"/api/v2/media/{asset_id}", False)
-        if self.fixture_enabled and self.environment in {"development", "test", "staging"}:
+        if self.fixture_enabled and (
+            self.environment in {"development", "test", "staging"}
+            or (self.environment == "trial" and trial_v2_preview_allowed())
+        ):
             return ResolvedMedia(
                 asset_id,
                 kind,
