@@ -54,3 +54,44 @@
 - **لا حذف** الخدمة القديمة أو موارد أخرى؛ لا تبديل الإنتاج ولا نشر للعامة دون جاهزية وإذن. يسمح إعداد Staging المعزول عندما تكون بوابات CI سليمة والحماية قائمة.
 - لا تكتب «تم النشر» إلا عند ظهور `SUCCESS` + اختبارات HTTP وتشغيل حقيقي على Commit محدد. وحتى عند ذلك قل **«معاينة تجريبية»** وليس «تم إطلاق هِمّة V2».
 - نموذج Work يبقى على قواعد موافقات P00–P10 كما في `docs/v2/21_EXECUTION_PROGRESS_AR.md`؛ تشغيل بيئة معاينة لا يعني اعتماد P06 أو P07.
+
+
+## 6. التنفيذ الفعلي بعد كتابة الخطة — Railway LIVE Trial بتاريخ 2026-10-23
+
+> هذا القسم **أحدث زمنيًا** من أقسام الحالة السابقة. أصبح Railway يشغّل هِمّة V2 بصفة **trial development** للمراجعة، وليس إطلاق المحتوى المرشح إنتاجيًا. **اسم Environment في Railway هو `production` لأسباب تنظيمية في المشروع الأصلي، لكن متغير API `ENV=trial`**. لذلك تجنب وصف هذا بأنه اعتماد إنتاجي، ولا تغيّر `ENV` إلى `production` قبل P10.
+
+**المشروع نفسه:** `intelligent-courtesy`، المعرف `968ce1df-b94f-4de8-a365-88e5073d3d11`، حساب «وصل تك كلاود همّه». **لا أُنشئت بيئة أخرى**.
+
+**الموارد الفعلية الخمسة فقط** (أربع خدمات وBucket واحدة):
+
+| مورد | المعرف | الحالة المرصودة |
+|---|---|---|
+| خدمة الخادم API `himma-` | `9f34b0d0-f3c2-4747-8be1-257855b2e326` | `SUCCESS` نشر `f35d4fdc-45da-40fa-a902-11febc6b8c24` |
+| خدمة الواجهة `himma-web` | `f1b83b7b-3164-44f1-932a-6a7067f76339` | `SUCCESS` نشر `4385d9b4-3550-405e-b20a-fb3a32f27700` |
+| PostgreSQL `Postgres` | `aec061a2-cfa5-49c7-ac87-8b58bc53b749` | `SUCCESS` ومعها persistent volume |
+| Redis `Redis` | `607b2c20-0801-4d4c-86c1-f601be516776` | `SUCCESS` |
+| S3 `himma-private-audio` | `36bafa78-4d3b-4c33-93a6-f31a3e8cc5a0` | Bucket منشأة بنفس المشروع، لا خدمة حوسبة إضافية |
+
+**الرابط العام للواجهة:** [https://himma-web-production-eafd.up.railway.app/](https://himma-web-production-eafd.up.railway.app/). Railway يؤكد Domain managed والخدمتان `SUCCESS` و`online`؛ **فحص GET خارجي مستقل لم يثبت نجاحه من بيئة المراجعة**، ولا تدعِ أنه مرئي على كل شبكة قبل Browser QA.
+
+**المصدر وتحديثات المستقبل:** API/Web متصلتان بفرع `v2/01-learning-foundation-20261007` دون pin. يطلق Railway النشر عند Push في الملفات ذات الصلة:
+- API: `services/api/**`, `docs/v2/content-bank/**`, `requirements.txt`, `.python-version`, `assets/audio/**`, `packages/content/**`.
+- Web: `apps/web/**`.
+- الهدف خفض عدد عمليات Build وعدم إعادة نشر المنصة لتغيير وثائق Markdown فقط؛ لا تفسر `push` أو `QUEUED` بأنها نجاح حتى تظهر `SUCCESS`.
+
+**إعدادات التشغيل التي ثُبتت:**
+- API: root monorepo `/` للحفاظ على `docs/v2/content-bank`; Python `3.12` عبر `.python-version`, `requirements.txt` مكتمل في الجذر لRailpack؛ build `python -m compileall -q services/api`; start `cd services/api && python -m uvicorn main:app --host 0.0.0.0 --port 8000`; `PORT=8000`, healthcheck `/health`; قبل النشر `cd services/api && alembic upgrade head && python -m db.seed`. سجل أحدث نشر يثبت نجاح migrations وseed وFastAPI.
+- Web: root `/apps/web`; build `npm run build`; start `npm run start -- -H 0.0.0.0 -p $PORT`; healthcheck `/`. `NEXT_PUBLIC_API_URL` يشير إلى API DNS الداخلي `http://himma.railway.internal:8000` وليس endpoint API عامًا.
+- API: `ENV=trial` و`HIMMA_TRIAL_V2_PREVIEW=true` و`V2_FIXTURE_MEDIA_ENABLED=true`. معاينة V2 مشروطة **بتسجيل دخول صالح** ولا تُفعّل في `ENV=production`، مع استمرار حماية الجلسة/Redis. **حسابات اصطناعية فقط، بلا بيانات أطفال حقيقية.**
+- PostgreSQL عبر `DATABASE_URL` مرجع Railway `Postgres`، وRedis عبر `REDIS_URL` مرجع `Redis`، وS3 عبر مراجع `himma-private-audio`. `API_SECRET_KEY` و`ADMIN_PASSWORD` تم توليدهما وإضافتهما في Railway Variables، **ولا تُنسخ قيمهما إلى GitHub**. Username المشرف الابتدائي `admin`. لا تعرض السر في سجلات/Documentation.
+- أول فشل نشر API كان بسبب Root Railpack الذي لا ينسخ `services/api/requirements.txt` أثناء مرحلة requirements المبكرة؛ أصلح بإضافة Root requirements **مستقل بذاته**، وبـPython 3.12. فشل healthcheck التالي كان بسبب عدم تثبيت `PORT`؛ حُل بإضافة `PORT=8000`، وشهدنا `SUCCESS` للخادم بعد ذلك. لا حاجة لـDocker.
+
+**مصدر بنك المحتوى ومسار البيانات:**
+- **تأليف بنك V2:** ملفات JSON الأربعة تحت `docs/v2/content-bank` في GitHub، يقرؤها `v2_content/compiler.py` ويجمع `candidate_not_approved` ذا checksum وversion. **ليس صحيحًا أن كل البنود التعليمية انتقلت بالفعل إلى PostgreSQL بصورة Release معتمد**.
+- **PostgreSQL:** تحفظ حسابات الاختبار الجديدة، الجلسات، التقدم، نتائج الأسئلة، evidence والمراجعات، وإشارات/نسخ `ContentRelease` المرتبطة بالرحلة عند تسجيلها. لا ترحيل لبيانات أطفال V1.
+- **الوسائط:** أصول صور وصوت V1 الموجودة ملفات في المستودع، ومعاينة الفيديو/الصوت التجريبية `TEST_ONLY` تستخدم Provider/fixtures. **19 فيديو و14 صوتًا جديدًا حقيقيًا ما تزال ناقصة**. S3 الحاضر يُستخدم للتسجيلات الخاصة؛ يُمكن مستقبلًا استخدامه أيضًا لتخزين ملفات فيديو/صوت إنتاجية بمسارات مفصولة وسياسة وصول آمنة عبر مرحلة P07/P10، دون Bucket ثانية **لكن الربط الإنتاجي غير مطبق بعد**. تخزين Bytes وسائط في PostgreSQL غير مقصود؛ قاعدة البيانات تحمل identifiers/metadata.
+- `/ready` القديم يشترط Catalog V1 المعتمد وإكمال الوسائط، لذا يستخدم Healthcheck Railway `/health` للتحقق من تشغيل API في هذه النسخة التجريبية. نجاح `/health` **لا يعني** قبول P06 أو P07–P10 أو سلامة كل الوظائف تربويًا.
+
+**مراجعة الجودة:** عند نشر أول نسخة Trial، كان آخر CI على `be3848582c99b22552b483410ed30129047d8f9e` في GitHub `in_progress`، لا تسجله Passed؛ وP06 لم تحصل على اعتماد المالك النهائي. تم تحديث اختبارات V1 لتمييز `student-primary-action` عن CTA V2 بدل تعطيلها.
+
+**المتابعة:** في كل جلسة Work، افحص Railway `environment_status` و`list_deployments` و`get_logs`، وSHA الفعلي للـWeb/API، وربطهما بأحدث Commit مستهدف. لا تغيّر موارد الاستضافة أو الأسرار أو Public Trial Access دون سبب/اعتماد؛ كل مراحل النشر التالية تلقائية من Push ومراقبة نتائجها ضرورية.
