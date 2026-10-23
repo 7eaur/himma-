@@ -20,6 +20,60 @@ describe("BFF mutation boundary", () => {
     expect(rejectUnsafeMutation(serverRequest)).toBeNull();
   });
 
+  it("accepts Railway HTTPS public origin even if Next sees the internal HTTP URL", () => {
+    const previous = process.env.RAILWAY_PUBLIC_DOMAIN;
+    process.env.RAILWAY_PUBLIC_DOMAIN = "himma-web-production-eafd.up.railway.app";
+    try {
+      const request = new NextRequest("http://localhost:8080/api/auth/login", {
+        method: "POST",
+        headers: {
+          origin: "https://himma-web-production-eafd.up.railway.app",
+          "sec-fetch-site": "same-origin",
+        },
+      });
+      expect(rejectUnsafeMutation(request)).toBeNull();
+    } finally {
+      if (previous === undefined) delete process.env.RAILWAY_PUBLIC_DOMAIN;
+      else process.env.RAILWAY_PUBLIC_DOMAIN = previous;
+    }
+  });
+
+  it("rejects untrusted origin despite an internal URL and same-site claim", () => {
+    const previous = process.env.RAILWAY_PUBLIC_DOMAIN;
+    process.env.RAILWAY_PUBLIC_DOMAIN = "himma-web-production-eafd.up.railway.app";
+    try {
+      const request = new NextRequest("http://localhost:8080/api/auth/login", {
+        method: "POST",
+        headers: {
+          origin: "https://attacker.example",
+          "sec-fetch-site": "same-origin",
+        },
+      });
+      expect(rejectUnsafeMutation(request)?.status).toBe(403);
+    } finally {
+      if (previous === undefined) delete process.env.RAILWAY_PUBLIC_DOMAIN;
+      else process.env.RAILWAY_PUBLIC_DOMAIN = previous;
+    }
+  });
+
+  it("keeps rejecting cross-site mutations with a matching public origin", () => {
+    const previous = process.env.RAILWAY_PUBLIC_DOMAIN;
+    process.env.RAILWAY_PUBLIC_DOMAIN = "himma-web-production-eafd.up.railway.app";
+    try {
+      const request = new NextRequest("http://localhost:8080/api/auth/login", {
+        method: "POST",
+        headers: {
+          origin: "https://himma-web-production-eafd.up.railway.app",
+          "sec-fetch-site": "cross-site",
+        },
+      });
+      expect(rejectUnsafeMutation(request)?.status).toBe(403);
+    } finally {
+      if (previous === undefined) delete process.env.RAILWAY_PUBLIC_DOMAIN;
+      else process.env.RAILWAY_PUBLIC_DOMAIN = previous;
+    }
+  });
+
   it("rejects oversized bodies before buffering", async () => {
     const request = new NextRequest("https://himma.example/api/recordings", {
       method: "POST",
