@@ -9,7 +9,13 @@ export function rejectUnsafeMutation(req: NextRequest): NextResponse | null {
   if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return null;
   const origin = req.headers.get("origin");
   const fetchSite = req.headers.get("sec-fetch-site")?.toLowerCase();
-  if (origin === "null" || (origin && origin !== req.nextUrl.origin) || fetchSite === "cross-site") {
+  // Railway terminates HTTPS before forwarding to Next.js. Use its fixed
+  // public domain instead of the internal request URL or spoofable headers.
+  const publicDomain = process.env.RAILWAY_PUBLIC_DOMAIN?.trim().toLowerCase();
+  const trustedOrigin = publicDomain && /^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/.test(publicDomain)
+    ? `https://${publicDomain}`
+    : req.nextUrl.origin;
+  if (origin === "null" || (origin && origin !== trustedOrigin) || fetchSite === "cross-site") {
     return NextResponse.json({ detail: "مصدر الطلب غير مسموح" }, { status: 403 });
   }
   return null;
