@@ -25,6 +25,8 @@ router = APIRouter(prefix="/v2/lessons", tags=["v2-lessons"])
 FIXTURE_VIDEO = Path(__file__).resolve().parent / "test_fixtures" / "himma-v2-video-test-only.mp4"
 FIXTURE_CAPTIONS = Path(__file__).resolve().parent / "test_fixtures" / "himma-v2-video-test-only.vtt"
 REPO_ROOT = Path(__file__).resolve().parents[2]
+DEMO_LESSON_VIDEO = REPO_ROOT / "assets/video/HIMMA_V2_DEMO/gemini_generated_video_72256b30.mp4"
+NEW_V2_AUDIO_ROOT = REPO_ROOT / "assets/audio/HIMMA_AUDIO_V2/web_mp3"
 FALLBACK_AUDIO = REPO_ROOT / "assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-01.mp3"
 FALLBACK_IMAGE = REPO_ROOT / "assets/education/generated_vocabulary/webp/hem-gen-voc-001-house-512.webp"
 EXTERNAL_STAGE = {"video": "teaching_video", "complete": "outcome"}
@@ -261,10 +263,12 @@ def test_video_fixture(
     asset = get_media(asset_id)
     if not asset or (asset.get("kind") or asset.get("type")) != "video":
         raise HTTPException(status_code=404, detail="فيديو المعاينة غير موجود")
-    if not FIXTURE_VIDEO.is_file():
+    # Temporary lesson preview shared by all 19 IDs; the source video IDs stay unchanged.
+    video_file = DEMO_LESSON_VIDEO if DEMO_LESSON_VIDEO.is_file() else FIXTURE_VIDEO
+    if not video_file.is_file():
         raise HTTPException(status_code=503, detail="فيديو المعاينة غير جاهز")
     return FileResponse(
-        FIXTURE_VIDEO,
+        video_file,
         media_type="video/mp4",
         headers={"Cache-Control": "private, no-store", "X-Himma-Test-Only": "true"},
     )
@@ -286,6 +290,13 @@ def test_video_captions(
 
 
 def _fixture_source(asset: dict, *, kind: str) -> Path:
+    # New recordings supplied with V2 replace the generic audio preview fallback.
+    if kind == "audio":
+        asset_id = str(asset.get("id") or "")
+        if asset_id.startswith("AUD-") and "/" not in asset_id and "\\" not in asset_id:
+            recorded = NEW_V2_AUDIO_ROOT / f"{asset_id}.mp3"
+            if recorded.is_file():
+                return recorded
     source = asset.get("source_path") or asset.get("path") or asset.get("v1_path")
     if source:
         candidate = (REPO_ROOT / str(source)).resolve()
