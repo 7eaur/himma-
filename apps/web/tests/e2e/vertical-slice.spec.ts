@@ -380,7 +380,7 @@ test.describe("Himma recovered vertical slice", () => {
     await expect(page.getByRole("heading", { name: /مرحبًا يا/ })).toBeVisible({ timeout: 10000 });
     await shot(page, "05-student-journey-dashboard");
 
-    await page.getByRole("button", { name: "ابدأ الاختبار" }).click();
+    await page.getByTestId("student-primary-action").click();
     await expect(page).toHaveURL(/\/student\/session\/\d+/, { timeout: 10000 });
     const sessionId = page.url().match(/\/student\/session\/(\d+)/)?.[1];
     expect(sessionId).toBeTruthy();
