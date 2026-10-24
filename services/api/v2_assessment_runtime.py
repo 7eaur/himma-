@@ -413,7 +413,10 @@ def _review_item(
         audio = db.query(AudioSubmission).filter(AudioSubmission.assessment_response_id == row.id).one_or_none()
     is_reading = question["interaction"] == "read_aloud"
     is_writing = question["interaction"] == "write_text"
-    evidence_ready = bool(audio and audio.storage_key and audio.file_size > 0) if is_reading else bool((row.answer_json or {}).get("text_response", "").strip()) if is_writing else False
+    evidence_ready = bool(
+        audio and audio.status == "pending_review" and audio.file_size > 0
+        and audio.storage_key.startswith(f"audio/{session.student_id}/")
+    ) if is_reading else bool((row.answer_json or {}).get("text_response", "").strip()) if is_writing else False
     return {
         "response_id": row.id, "session_id": session.id, "student_id": student.id,
         "student_name": student.name, "question_id": row.question_id,
@@ -515,6 +518,14 @@ def review_response(response_id: int, body: ReviewRequest, user: User = Depends(
     evidence = _review_item(db, row, session, student)
     if not evidence["evidence_ready"]:
         raise HTTPException(status_code=409, detail="لا يمكن تقييم إجابة دون دليل صوتي أو كتابي صالح")
+    if evidence["interaction"] == "read_aloud":
+        audio_to_verify = db.query(AudioSubmission).filter(AudioSubmission.assessment_response_id == row.id).one()
+        try:
+            storage.verify_audio(audio_to_verify.storage_key, audio_to_verify.file_size, audio_to_verify.mime_type)
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail="ملف التسجيل الصوتي مفقود أو تغير بعد إرساله") from exc
+        except RuntimeError as exc:
+            raise HTTPException(status_code=503, detail="تعذر التحقق من التسجيل؛ يرجى إعادة المحاولة") from exc
     row.status = "graded"; row.is_correct = body.is_correct; row.review_note = body.note
     row.reviewed_by = user.id; row.reviewed_at = datetime.now(timezone.utc)
     audio = db.query(AudioSubmission).filter(AudioSubmission.assessment_response_id == row.id).one_or_none()

@@ -56,7 +56,9 @@ def test_objective_answer_is_private_idempotent_and_advances(student_client):
         assert db.query(AssessmentQuestionResponse).one().is_correct is True
 
 
-def test_open_responses_keep_placement_pending_until_human_review_and_manual_decision(researcher_client):
+def test_open_responses_keep_placement_pending_until_human_review_and_manual_decision(researcher_client, monkeypatch):
+    import storage
+    monkeypatch.setattr(storage, "verify_audio", lambda *args, **kwargs: None)
     with TestingSessionLocal() as db:
         student = db.query(Student).filter(Student.access_code == "STU001").one()
         release = register_candidate_release(db)
@@ -223,3 +225,30 @@ def test_v2_pretest_does_not_bypass_completed_v1_history(student_client):
     assert "تفويض" in started.json()["detail"]
     with TestingSessionLocal() as db:
         assert db.query(AssessmentSession).count() == 1
+
+def test_reading_review_requires_unchanged_private_object(researcher_client, monkeypatch):
+    import storage
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        release = register_candidate_release(db)
+        session = AssessmentSession(student_id=student.id, content_release_id=release.id, session_type="pretest",
+            status="in_progress", v2_state="waiting_review", v2_question_index=30)
+        db.add(session); db.flush()
+        q = next(q for q in get_release()["questions"] if q["role"] == "pretest" and q["interaction"] == "read_aloud")
+        response = AssessmentQuestionResponse(assessment_session_id=session.id, question_id=q["id"], role="pretest",
+            answer_json={"audio_storage_key": f"audio/{student.id}/lost.webm"}, submit_key=str(uuid4()),
+            status="pending_review", is_correct=None, skill_group=q["skill_group"], evidence_type=q["evidence_type"])
+        db.add(response); db.flush()
+        db.add(AudioSubmission(assessment_response_id=response.id, storage_key=f"audio/{student.id}/lost.webm",
+            file_size=5120, mime_type="audio/webm", status="pending_review"))
+        response_id = response.id
+        db.commit()
+    def missing(*_args, **_kwargs):
+        raise ValueError("missing")
+    monkeypatch.setattr(storage, "verify_audio", missing)
+    response = researcher_client.post(f"/v2/assessments/admin/responses/{response_id}/review",
+        json={"is_correct": True, "note": "استماع ومراجعة"})
+    assert response.status_code == 409
+    with TestingSessionLocal() as db:
+        row = db.query(AssessmentQuestionResponse).filter(AssessmentQuestionResponse.id == response_id).one()
+        assert row.status == "pending_review" and row.is_correct is None
