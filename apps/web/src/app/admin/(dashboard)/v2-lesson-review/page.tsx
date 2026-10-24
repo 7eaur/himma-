@@ -9,7 +9,7 @@ interface ReviewItem {
   question_id: string; lesson_id: string; interaction: "read_aloud" | "write_text";
   prompt: string; reference: unknown; rubric: unknown;
   text_response: string | null; audio_url: string | null;
-  evidence_ready: boolean; submitted_at: string | null;
+  evidence_ready: boolean; submitted_at: string | null; retry_state?: "requested" | "submitted" | null;
 }
 interface ReviewQueue { items: ReviewItem[]; next_offset: number | null }
 
@@ -44,6 +44,22 @@ export default function V2LessonReviewPage() {
     const timer = window.setTimeout(() => { void load(); }, 0);
     return () => window.clearTimeout(timer);
   }, [load]);
+
+  const requestRetry = async (item: ReviewItem) => {
+    const reason = (notes[item.response_id] || "").trim();
+    if (reason.length < 10 || item.retry_state === "requested") return;
+    setBusy(item.response_id); setError("");
+    try {
+      const response = await fetch(`/api/v2/retries/admin/lesson/${item.response_id}/request`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason }),
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(result?.detail || "تعذر إنشاء طلب الإعادة");
+      await load();
+    } catch (reason) { setError(reason instanceof Error ? reason.message : "تعذر طلب الإعادة"); }
+    finally { setBusy(null); }
+  };
 
   const decide = async (item: ReviewItem, isCorrect: boolean) => {
     const note = (notes[item.response_id] || "").trim();
@@ -106,7 +122,12 @@ export default function V2LessonReviewPage() {
                     className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-bold text-white disabled:opacity-40">مستوفٍ</button>
                   <button type="button" disabled={disabled} onClick={() => void decide(item, false)}
                     className="rounded-lg bg-rose-700 px-4 py-2 text-sm font-bold text-white disabled:opacity-40">غير مستوفٍ</button>
+                  <button type="button" disabled={busy !== null || note.trim().length < 10 || item.retry_state === "requested"}
+                    onClick={() => void requestRetry(item)} className="rounded-lg border border-amber-600 px-4 py-2 text-sm font-bold text-amber-900 disabled:opacity-40">
+                    {item.interaction === "read_aloud" ? "اطلب إعادة القراءة" : "اطلب إعادة الكتابة"}</button>
                 </div>
+                {item.retry_state === "requested" && <p role="status" className="text-sm text-amber-700">بانتظار إرسال الطالب نسخة جديدة.</p>}
+                {item.retry_state === "submitted" && <p role="status" className="text-sm text-blue-700">وصلت نسخة جديدة، راجعها قبل اعتماد القرار.</p>
               </div>
             </article>;
           })}

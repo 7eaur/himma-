@@ -9,7 +9,7 @@ interface ReviewItem {
   question_id: string; kind: string; skill_group: string; evidence_type: string;
   interaction: string; prompt: string; stimulus_text: string | null;
   reference: unknown; rubric: unknown; text_response: string | null;
-  audio_url: string | null; evidence_ready: boolean; submitted_at: string;
+  audio_url: string | null; evidence_ready: boolean; submitted_at: string; retry_state?: "requested" | "submitted" | null;
 }
 interface PlacementItem {
   session_id: number; student_id: number; student_name: string; attempt_no: number;
@@ -66,6 +66,22 @@ export default function V2AssessmentsPage() {
       if (!response.ok) throw new Error(data?.detail || "تعذر حفظ المراجعة");
       await load();
     } catch (reason) { setError(reason instanceof Error ? reason.message : "تعذر حفظ المراجعة"); }
+    finally { setBusy(null); }
+  };
+
+  const requestRetry = async (item: ReviewItem) => {
+    const reason = (notes[item.response_id] || "").trim();
+    if (reason.length < 10 || item.retry_state === "requested") return;
+    setBusy(`retry:${item.response_id}`); setError("");
+    try {
+      const response = await fetch(`/api/v2/retries/admin/assessment/${item.response_id}/request`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason }),
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(data?.detail || "تعذر طلب الإعادة");
+      await load();
+    } catch (reason) { setError(reason instanceof Error ? reason.message : "تعذر طلب الإعادة"); }
     finally { setBusy(null); }
   };
 
@@ -129,7 +145,11 @@ export default function V2AssessmentsPage() {
               onClick={() => void review(item, true)} className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-bold text-white disabled:opacity-40">مستوفٍ</button>
             <button type="button" disabled={!item.evidence_ready || (notes[item.response_id] || "").trim().length < 2 || busy !== null}
               onClick={() => void review(item, false)} className="rounded-xl bg-rose-700 px-4 py-2 text-sm font-bold text-white disabled:opacity-40">غير مستوفٍ</button>
+            <button type="button" disabled={item.retry_state === "requested" || (notes[item.response_id] || "").trim().length < 10 || busy !== null}
+              onClick={() => void requestRetry(item)} className="rounded-xl border border-amber-600 px-4 py-2 text-sm font-bold text-amber-900 disabled:opacity-40">{item.interaction === "read_aloud" ? "اطلب إعادة التسجيل" : "اطلب إعادة الكتابة"}</button>
           </div>
+          {item.retry_state === "requested" && <p role="status" className="text-sm text-amber-700">تم إرسال طلب الإعادة للطالب؛ لا يمكن اعتماد التسجيل الأصلي.</p>}
+          {item.retry_state === "submitted" && <p role="status" className="text-sm text-blue-700">وصل دليل جديد؛ راجعه قبل القرار.</p>}
         </article>)}</div>}
       <div className="mt-3 flex items-center justify-between gap-2">
         <button type="button" className="rounded-lg border px-3 py-2 disabled:opacity-40" disabled={reviewOffset === 0} onClick={() => setReviewOffset(Math.max(0, reviewOffset - 25))}>السابق</button>
