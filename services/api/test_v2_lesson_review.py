@@ -65,9 +65,11 @@ def test_p08_lesson_decision_rejects_evidence_without_audio(student_client, monk
     import v2_interaction_runtime
     monkeypatch.setattr(v2_interaction_runtime.storage, "verify_audio", lambda *a, **kw: None)
     sid = _start_at_questions(student_client, "L1-05", 3)
+    with TestingSessionLocal() as db:
+        student_id = db.query(Student).filter(Student.access_code == "STU001").one().id
     sent = student_client.post(
         f"/v2/lessons/sessions/{sid}/answers",
-        json={"submit_key": str(uuid4()), "audio_storage_key": "audio/1/test-p08.webm",
+        json={"submit_key": str(uuid4()), "audio_storage_key": f"audio/{student_id}/test-p08.webm",
               "audio_file_size": 100, "audio_mime_type": "audio/webm", "audio_duration_seconds": 3},
     )
     assert sent.status_code == 200, sent.text
