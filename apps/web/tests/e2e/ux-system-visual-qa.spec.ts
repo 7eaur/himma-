@@ -176,6 +176,11 @@ test.describe("Himma UX system visual QA regression", () => {
     await page.setViewportSize({ width: 390, height: 844 });
     const accessCode = await createStudent(page, request, context, "طالب مراجعة القراءة");
     await loginStudent(request, context, accessCode);
+    // Simulate preview/current-action unavailability. A previously assigned
+    // human-review retry must remain visible and actionable regardless.
+    await page.route("**/api/v2/assessments/current-action", async (route) => {
+      await route.fulfill({ status: 503, contentType: "application/json", body: '{"detail":"preview temporarily unavailable"}' });
+    });
     await page.route("**/api/v2/retries/student/tasks", async (route) => {
       await route.fulfill({
         status: 200,
@@ -211,6 +216,11 @@ test.describe("Himma UX system visual QA regression", () => {
     let acceptedAnswer: Record<string, unknown> | null = null;
     let completed = false;
 
+    // The task belongs to the student's real authenticated history, even if
+    // a separately loaded journey preview is disabled in this environment.
+    await page.route("**/api/v2/assessments/current-action", async (route) => {
+      await route.fulfill({ status: 503, contentType: "application/json", body: '{"detail":"preview temporarily unavailable"}' });
+    });
     await page.route("**/api/v2/retries/student/tasks", async (route) => {
       await route.fulfill({
         status: 200, contentType: "application/json",

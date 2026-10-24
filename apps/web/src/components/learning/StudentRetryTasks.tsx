@@ -66,6 +66,9 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
         const mimeType = recorder.mimeType || chunksRef.current[0]?.type || "audio/webm";
         const blob = new Blob(chunksRef.current, { type: mimeType });
         if (!blob.size || blob.size > 10 * 1024 * 1024) {
+          // Recording may fail after permission succeeds: never leave the
+          // child's microphone stream running on an empty/oversize file.
+          stream.getTracks().forEach((track) => track.stop());
           setError("التسجيل فارغ أو تجاوز الحجم المسموح (10 ميجابايت). سجّل قراءة أقصر.");
           return;
         }
@@ -186,7 +189,7 @@ export default function StudentRetryTasks({ kind, sessionId, dashboard = false }
   const submitted = tasks.filter((task) => task.status === "submitted");
   // The student dashboard must not show an empty review card: it pushes the
   // learning journey below the viewport despite no actionable review request.
-  if (dashboard && tasks.length === 0 && !error && !sent) return null;
+  if (dashboard && tasks.length === 0 && !sent) return null;
   return <section className={dashboard
     ? "mt-3 space-y-3 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5"
     : "mt-4 space-y-3"} dir="rtl" data-testid={dashboard ? "v2-active-retry-tasks" : undefined}>
