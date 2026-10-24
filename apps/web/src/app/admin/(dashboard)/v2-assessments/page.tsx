@@ -52,7 +52,7 @@ export default function V2AssessmentsPage() {
     }
   }, [reviewOffset, placementOffset]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { const timer = window.setTimeout(() => { void load(); }, 0); return () => window.clearTimeout(timer); }, [load]);
 
   const review = async (item: ReviewItem, isCorrect: boolean) => {
     if (!item.evidence_ready || (notes[item.response_id] || "").trim().length < 2) return;
