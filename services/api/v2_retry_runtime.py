@@ -65,8 +65,10 @@ def request_retry(
         db.flush()  # Free the partial unique active-task index before inserting the next request.
     if kind == "assessment" and session.v2_state not in ("waiting_review",):
         raise HTTPException(status_code=409, detail="إعادة التقييم لا تتاح قبل إكمال أسئلة الاختبار")
-    if kind == "lesson" and session.status not in ("in_progress", "waiting_review"):
-        raise HTTPException(status_code=409, detail="جلسة الدرس غير نشطة")
+    if kind == "lesson" and session.status not in ("in_progress", "waiting_review") and not (
+        session.status == "completed" and row.role == "guided_practice"
+    ):
+        raise HTTPException(status_code=409, detail="جلسة الدرس غير نشطة ولا يمكن طلب دليل جديد")
     request_kind = "rerecord" if question["interaction"] == "read_aloud" else "rewrite"
     replacement = V2ReviewRetryTask(
         lesson_response_id=row.id if kind == "lesson" else None,
@@ -135,7 +137,9 @@ def _student_task(db: Session, task_id: int, student: Student, *, lock: bool = F
     current = active_retry(db, **{f"{kind}_response_id": row.id})
     if not current or current.id != task.id:
         raise HTTPException(status_code=409, detail="مهمة الإعادة استبدلت بطلب أحدث")
-    if kind == "lesson" and session.status not in ("in_progress", "waiting_review"):
+    if kind == "lesson" and session.status not in ("in_progress", "waiting_review") and not (
+        session.status == "completed" and row.role == "guided_practice"
+    ):
         raise HTTPException(status_code=409, detail="جلسة الدرس منتهية")
     if kind == "assessment" and session.v2_state != "waiting_review":
         raise HTTPException(status_code=409, detail="جلسة الاختبار غير متاحة للإعادة")

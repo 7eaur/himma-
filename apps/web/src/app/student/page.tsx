@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { BookOpenCheck, Check, LogOut, Map, RotateCcw, Star } from "lucide-react";
 import styles from "./home.module.css";
 import "./v2-preview-card.css";
+import StudentRetryTasks from "@/components/learning/StudentRetryTasks";
 
 interface StudentMe {
   id: number;
@@ -472,6 +473,13 @@ export default function StudentHomePage() {
               <p>{v2Action?.state === "waiting_review" ? "إجاباتك محفوظة وتنتظر مراجعة المشرف." : "القبلي والتسكين والدروس والبعدي في مسار واحد قابل للاستئناف."}</p>
             </div>
             <button type="button" disabled={startingV2 || v2Action?.action === "waiting_posttest_enable"} onClick={() => void handleV2Action()}>{startingV2 ? "جاري الفتح..." : v2Action?.label || "فتح رحلة V2"}</button>
+          </section>
+        )}
+        {v2PreviewAvailable && (
+          <section className="mt-3 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5" aria-label="مهام إعادة القراءة والكتابة في V2">
+            <h2 className="text-lg font-bold text-slate-900">طلبات مراجعة القراءة والكتابة — V2</h2>
+            <p className="mt-1 text-sm text-slate-600">إذا طلب المشرف إعادة إجابة سابقة، تظهر هنا ولو كنت أكملت الدرس. نتيجة القراءة لا تُحسب قبل مراجعة بشرية.</p>
+            <StudentRetryTasks/>
           </section>
         )}
 

@@ -122,7 +122,7 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
   </section>;
 }
 
-export default function StudentRetryTasks({ kind, sessionId }: { kind: "lesson" | "assessment"; sessionId: number }) {
+export default function StudentRetryTasks({ kind, sessionId }: { kind?: "lesson" | "assessment"; sessionId?: number }) {
   const [tasks, setTasks] = useState<RetryItem[]>([]);
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
@@ -131,7 +131,10 @@ export default function StudentRetryTasks({ kind, sessionId }: { kind: "lesson" 
       const response = await fetch("/api/v2/retries/student/tasks", { cache: "no-store" });
       const payload = await response.json().catch(() => null);
       if (!response.ok) throw new Error(payload?.detail || "تعذر تحميل طلبات الإعادة");
-      setTasks((payload.items as RetryItem[]).filter((item) => item.kind === kind && item.session_id === sessionId));
+      setTasks((payload.items as RetryItem[]).filter((item) =>
+        (kind === undefined || item.kind === kind) &&
+        (sessionId === undefined || item.session_id === sessionId)
+      ));
       setError("");
     } catch (reason) { setError(reason instanceof Error ? reason.message : "تعذر تحميل الإعادات"); }
   }, [kind, sessionId]);
