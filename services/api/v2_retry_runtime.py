@@ -182,9 +182,15 @@ def student_retry_recording(
         raise HTTPException(status_code=409, detail="انتهى طلب إعادة التسجيل قبل اكتمال الرفع")
     previous = current.replacement_json if isinstance(current.replacement_json, dict) else {}
     old_staged = previous.get("staged_audio")
+    superseded = list(previous.get("superseded_staged_audio") or [])
+    # When the child explicitly records again, retain prior private object keys
+    # for controlled retention; never delete or orphan earlier uploads silently.
     if old_staged and old_staged != metadata:
-        raise HTTPException(status_code=409, detail="سبق رفع ملف مختلف لهذه المهمة؛ أعد فتح المهمة للتحقق")
-    current.replacement_json = {"staged_audio": metadata}
+        superseded.append(old_staged)
+    current.replacement_json = {
+        "staged_audio": metadata,
+        "superseded_staged_audio": superseded,
+    }
     db.commit()
     return metadata
 

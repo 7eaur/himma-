@@ -25,6 +25,12 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
   const [seconds, setSeconds] = useState(0);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [stagedAudio, setStagedAudio] = useState(task.staged_audio ?? null);
+
+  useEffect(() => {
+    // A refresh may recover a completed upload even if the last response was
+    // lost: mirror the server metadata without ever storing audio in the browser.
+    if (task.staged_audio) setStagedAudio(task.staged_audio);
+  }, [task.staged_audio]);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
