@@ -200,3 +200,30 @@ def test_p08_completed_guided_lesson_still_allows_retry_without_reopening_studen
         assert session.stage == "complete" and session.status == "completed"
         assert evidence.is_correct is True and evidence.counts_for_mastery is False
         assert task.status == "resolved"
+
+
+def test_p08_students_cannot_read_or_submit_other_student_retry_task(student_client):
+    sid, qid = _writing_response(student_client)
+    with TestingSessionLocal() as db:
+        row = db.query(LessonQuestionResponse).filter(
+            LessonQuestionResponse.lesson_session_id == sid,
+            LessonQuestionResponse.question_id == qid,
+        ).one()
+        rid = row.id
+        db.add(Student(access_code="STU002", name="طالب مستقل", current_level=1))
+        db.commit()
+    _login_researcher(student_client)
+    asked = student_client.post(f"/v2/retries/admin/lesson/{rid}/request", json={
+        "reason": "أعد كتابة الكلمة لأتمكن من مراجعتها بوضوح",
+    })
+    assert asked.status_code == 200, asked.text
+    task_id = asked.json()["task_id"]
+    assert student_client.post("/auth/student-login", json={"access_code": "STU002"}).status_code == 200
+    tasks = student_client.get("/v2/retries/student/tasks")
+    assert tasks.status_code == 200 and tasks.json()["items"] == []
+    result = student_client.post(f"/v2/retries/student/tasks/{task_id}/submit", json={
+        "submit_key": str(uuid4()), "text_response": "باب",
+    })
+    assert result.status_code == 404
+    assert student_client.get("/v2/review/lesson-queue").status_code in (401, 403)
+    assert student_client.post(f"/v2/review-claims/admin/lesson/{rid}/claim").status_code in (401, 403)
