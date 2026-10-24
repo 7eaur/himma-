@@ -197,6 +197,57 @@ test.describe("Himma UX system visual QA regression", () => {
     await expectNoHorizontalOverflow(page);
   });
 
+  test("student resumes private staged rerecord after reload without uploading again", async ({ page, context, request }) => {
+    test.setTimeout(120000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    const accessCode = await createStudent(page, request, context, "طالب استئناف القراءة");
+    await loginStudent(request, context, accessCode);
+    const staged = {
+      audio_storage_key: "audio/test-owned-fixture/staged.webm",
+      audio_file_size: 1024, audio_mime_type: "audio/webm",
+      audio_duration_seconds: 4,
+    };
+    let uploadedAgain = false;
+    let acceptedAnswer: Record<string, unknown> | null = null;
+    let completed = false;
+
+    await page.route("**/api/v2/retries/student/tasks", async (route) => {
+      await route.fulfill({
+        status: 200, contentType: "application/json",
+        body: JSON.stringify({ items: [{
+          task_id: 456, kind: "lesson", session_id: 777,
+          question_id: "L1-05-GP-02", request_kind: "rerecord",
+          status: completed ? "submitted" : "requested",
+          reason: "إعادة القراءة بعد ضعف التسجيل السابق",
+          prompt: "اقرأ المقطع المعروض", staged_audio: completed ? null : staged,
+        }] }),
+      });
+    });
+    await page.route("**/api/v2/retries/student/tasks/456/recording", async (route) => {
+      uploadedAgain = true;
+      await route.fulfill({ status: 409, contentType: "application/json", body: '{"detail":"unnecessary reupload"}' });
+    });
+    await page.route("**/api/v2/retries/student/tasks/456/submit", async (route) => {
+      acceptedAnswer = route.request().postDataJSON() as Record<string, unknown>;
+      completed = true;
+      await route.fulfill({
+        status: 200, contentType: "application/json",
+        body: '{"status":"submitted","task_id":456,"awaiting_human_review":true}',
+      });
+    });
+    await page.goto("/student");
+    const tasks = page.getByTestId("v2-active-retry-tasks");
+    await expect(tasks).toBeVisible({ timeout: 15000 });
+    await expect(tasks).toContainText("التسجيل السابق محفوظ في الخدمة");
+    const submit = tasks.getByRole("button", { name: "إرسال الإجابة الجديدة للمراجعة" });
+    await expect(submit).toBeEnabled();
+    await submit.click();
+    await expect(tasks).toContainText("وصلت إجابتك الجديدة");
+    expect(uploadedAgain).toBe(false);
+    expect(acceptedAnswer).toMatchObject(staged);
+    expect((acceptedAnswer as Record<string, unknown>)?.submit_key).toBeTruthy();
+  });
+
   test("mobile assessment keeps title, image choices, and sequence choices compact", async ({ page, context, request }) => {
     test.setTimeout(120000);
     await page.setViewportSize({ width: 390, height: 844 });
