@@ -60,6 +60,7 @@ def request_retry(
             raise HTTPException(status_code=409, detail="المهمة مطلوبة بالفعل؛ انتظر الطالب")
         task.status = "superseded"
         task.resolved_at = datetime.now(timezone.utc)
+        db.flush()  # Free the partial unique active-task index before inserting the next request.
     if kind == "assessment" and session.v2_state not in ("waiting_review",):
         raise HTTPException(status_code=409, detail="إعادة التقييم لا تتاح قبل إكمال أسئلة الاختبار")
     if kind == "lesson" and session.status not in ("in_progress", "waiting_review"):
