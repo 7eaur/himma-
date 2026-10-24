@@ -224,10 +224,11 @@ def student_retry_submit(
         raise HTTPException(status_code=409, detail="نوع الدليل لا يطابق طلب الإعادة")
     if task.request_kind == "rerecord":
         staged = (task.replacement_json or {}).get("staged_audio")
-        if staged:
-            fields = ("audio_storage_key", "audio_file_size", "audio_mime_type", "audio_duration_seconds")
-            if any(staged.get(field) != canonical.get(field) for field in fields):
-                raise HTTPException(status_code=409, detail="ملف الإعادة المرسل لا يطابق التسجيل المرفوع للمهمة")
+        if not staged:
+            raise HTTPException(status_code=409, detail="ارفع تسجيلًا جديدًا خاصًا بهذه المهمة قبل الإرسال")
+        fields = ("audio_storage_key", "audio_file_size", "audio_mime_type", "audio_duration_seconds")
+        if any(staged.get(field) != canonical.get(field) for field in fields):
+            raise HTTPException(status_code=409, detail="ملف الإعادة المرسل لا يطابق التسجيل المرفوع للمهمة")
     if task.request_kind == "rerecord":
         # Preserve private keys of replaced, never-submitted uploads for later
         # retention management. Reviewers still grade only the current audio.

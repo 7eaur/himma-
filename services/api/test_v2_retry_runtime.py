@@ -107,9 +107,24 @@ def test_p08_learner_audio_retry_never_overwrites_original_recording(student_cli
     task_id = request.json()["task_id"]
     _student(student_client)
     new_key = f"audio/{student_id}/updated.webm"
+    # A rerecord request cannot accept a previously uploaded audio key unless
+    # the new recording was staged for this specific task.
+    rejected_old = student_client.post(f"/v2/retries/student/tasks/{task_id}/submit", json={
+        "submit_key": str(uuid4()), "audio_storage_key": original_key,
+        "audio_file_size": 132, "audio_mime_type": "audio/webm", "audio_duration_seconds": 3,
+    })
+    assert rejected_old.status_code == 409
+    monkeypatch.setattr(storage, "upload_audio",
+                        lambda _file, owner, _op: (new_key, 256, "test-sha256"))
+    staged = student_client.post(
+        f"/v2/retries/student/tasks/{task_id}/recording",
+        files={"file": ("rerecorded.webm", b"test-fixture-only", "audio/webm")},
+        data={"duration_seconds": "4"},
+        headers={"Idempotency-Key": "unique-retry-key-1"},
+    )
+    assert staged.status_code == 200, staged.text
     resent = student_client.post(f"/v2/retries/student/tasks/{task_id}/submit", json={
-        "submit_key": str(uuid4()), "audio_storage_key": new_key,
-        "audio_file_size": 256, "audio_mime_type": "audio/webm", "audio_duration_seconds": 4,
+        "submit_key": str(uuid4()), **staged.json(),
     })
     assert resent.status_code == 200, resent.text
     _researcher(student_client)
