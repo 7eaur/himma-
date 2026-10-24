@@ -1,6 +1,6 @@
 """Separate private assessment answer snapshots from release metadata.
 
-Revision ID: 0021_private_content_bank_snapshot
+Revision ID: 0021_private_bank_snapshot
 Revises: 0020_v2_official_attempt_guard
 """
 from datetime import datetime, timezone
@@ -8,7 +8,7 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
-revision = "0021_private_content_bank_snapshot"
+revision = "0021_private_bank_snapshot"
 down_revision = "0020_v2_official_attempt_guard"
 branch_labels = None
 depends_on = None
