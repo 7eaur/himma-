@@ -3,6 +3,7 @@ from uuid import uuid4
 from conftest import TestingSessionLocal
 from db.learning_models import AssessmentQuestionResponse, PlacementDecisionV2, StudentJourney
 from db.models import AssessmentSession, AudioSubmission, Student
+from assessment_retake import mark_official_completed_attempt
 from v2_content.contracts import PRIVATE_KEYS
 from v2_content.repository import get_question, get_release
 from v2_content.importer import register_candidate_release
@@ -105,9 +106,12 @@ def test_posttest_gate_requires_ready_journey_and_explicit_enable(student_client
     assert blocked.status_code == 409
 
 
-def test_review_queue_includes_evidence_and_blocks_student_access(researcher_client, student_client):
+def test_v2_admin_queues_reject_student(student_client):
     assert student_client.get("/v2/assessments/admin/review-queue").status_code == 403
     assert student_client.get("/v2/assessments/admin/placement-queue").status_code == 403
+
+
+def test_review_queue_includes_evidence_and_blocks_student_access(researcher_client):
     with TestingSessionLocal() as db:
         student = db.query(Student).filter(Student.access_code == "STU001").one()
         release = register_candidate_release(db)
@@ -156,3 +160,53 @@ def test_pinned_assessment_snapshot_survives_candidate_bank_rotation(student_cli
     resumed = student_client.get(f"/v2/assessments/sessions/{session_id}")
     assert resumed.status_code == 200
     assert resumed.json()["interaction"]["question"]["question_id"] == started["interaction"]["question"]["question_id"]
+
+def test_shared_official_selection_preserves_history_and_report_average(researcher_client):
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        original = AssessmentSession(student_id=student.id, session_type="pretest", status="completed",
+            assessment_attempt_no=1, v2_state="completed", official_for_reporting=False, final_score=20)
+        newer = AssessmentSession(student_id=student.id, session_type="pretest", status="completed",
+            assessment_attempt_no=2, v2_state="completed", official_for_reporting=False, final_score=80)
+        db.add_all([original, newer]); db.flush()
+        newer.supersedes_session_id = original.id
+        mark_official_completed_attempt(db, original)
+        db.commit()
+        mark_official_completed_attempt(db, newer)
+        db.commit()
+        history = db.query(AssessmentSession).filter(AssessmentSession.student_id == student.id).order_by(AssessmentSession.assessment_attempt_no).all()
+        assert len(history) == 2
+        assert [row.official_for_reporting for row in history] == [False, True]
+        assert newer.supersedes_session_id == original.id
+    report = researcher_client.get("/v2/assessments/admin/reports/summary")
+    assert report.status_code == 200
+    assert report.json()["averages"]["pretest"] == 80.0
+
+
+def test_private_audio_stream_resolves_only_linked_assessment_evidence(researcher_client, monkeypatch):
+    from fastapi.responses import Response
+    import recordings
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        release = register_candidate_release(db)
+        session = AssessmentSession(student_id=student.id, content_release_id=release.id, session_type="pretest",
+            status="in_progress", v2_state="waiting_review", v2_question_index=30)
+        db.add(session); db.flush()
+        q = next(q for q in get_release()["questions"] if q["role"] == "pretest" and q["interaction"] == "read_aloud")
+        row = AssessmentQuestionResponse(assessment_session_id=session.id, question_id=q["id"], role="pretest",
+            answer_json={"audio_storage_key": f"audio/{student.id}/owned.webm"}, submit_key=str(uuid4()),
+            status="pending_review", is_correct=None, skill_group=q["skill_group"], evidence_type=q["evidence_type"])
+        db.add(row); db.flush()
+        db.add(AudioSubmission(assessment_response_id=row.id, storage_key=f"audio/{student.id}/owned.webm",
+            file_size=2000, mime_type="audio/webm", status="pending_review"))
+        response_id = row.id
+        db.commit()
+    checked = []
+    def fake_play_by_key(*, key, range_header, researcher):
+        checked.append((key, range_header, researcher.role))
+        return Response(b"test-audio", media_type="audio/webm")
+    monkeypatch.setattr(recordings, "play_by_key", fake_play_by_key)
+    result = researcher_client.get(f"/v2/assessments/admin/responses/{response_id}/audio", headers={"Range": "bytes=0-2"})
+    assert result.status_code == 200
+    assert checked == [(f"audio/{student.id}/owned.webm", "bytes=0-2", "researcher")]
+    assert researcher_client.get("/v2/assessments/admin/responses/999999/audio").status_code == 404
