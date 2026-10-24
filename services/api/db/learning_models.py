@@ -309,3 +309,13 @@ class PlacementDecisionV2(Base):
         CheckConstraint("assigned_level BETWEEN 1 AND 3", name="ck_placement_v2_level"),
         Index("ix_placement_v2_student_created", "student_id", "created_at"),
     )
+
+
+class PrivateContentBankSnapshot(Base):
+    """Internal immutable assessment bank with private answer keys; never public metadata."""
+    __tablename__ = "private_content_bank_snapshots"
+
+    content_release_id = Column(Integer, ForeignKey("content_releases.id", ondelete="RESTRICT"), primary_key=True)
+    checksum = Column(String(64), nullable=False)
+    payload_json = Column(JSON().with_variant(JSONB, "postgresql"), nullable=False)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=_now)

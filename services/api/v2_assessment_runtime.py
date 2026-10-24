@@ -25,6 +25,7 @@ from db.learning_models import (
     PlacementDecisionV2,
     StudentJourney,
     LessonSession,
+    PrivateContentBankSnapshot,
 )
 from db.models import AssessmentRetakeAuthorization, AssessmentSession, AudioSubmission, AuditLog, ContentRelease, Student, User
 from dependencies import get_current_user, get_db
@@ -121,9 +122,12 @@ def _session_release(db: Session, session: AssessmentSession) -> dict[str, Any]:
     record = db.query(ContentRelease).filter(ContentRelease.id == session.content_release_id).one_or_none()
     if not record:
         raise HTTPException(status_code=409, detail="إصدار أسئلة هذه الجلسة غير مسجل")
-    snapshot = (record.manifest_json or {}).get("bank_snapshot")
-    if snapshot:
-        if snapshot.get("checksum") != record.checksum or snapshot.get("version") != record.version:
+    frozen = db.query(PrivateContentBankSnapshot).filter(
+        PrivateContentBankSnapshot.content_release_id == record.id,
+    ).one_or_none()
+    if frozen:
+        snapshot = frozen.payload_json
+        if frozen.checksum != record.checksum or snapshot.get("checksum") != record.checksum or snapshot.get("version") != record.version:
             raise HTTPException(status_code=409, detail="بصمة محتوى الجلسة لا تطابق النسخة المحفوظة")
         return snapshot
     current = get_release()

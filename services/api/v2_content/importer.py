@@ -7,6 +7,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from db.models import ContentRelease
+from db.learning_models import PrivateContentBankSnapshot
 from .compiler import compile_release
 
 
@@ -16,9 +17,6 @@ class ReleaseConflict(RuntimeError):
 
 def _database_manifest(release: dict[str, Any]) -> dict[str, Any]:
     return {
-        # Frozen authoring rows are internal DB-only evidence. They are never sent
-        # through the student-facing manifest projection.
-        "bank_snapshot": {key: release[key] for key in ("version", "checksum", "lessons", "supports", "questions", "media")},
         "state": release["state"],
         "counts": release["counts"],
         "sources": release["sources"],
@@ -29,17 +27,30 @@ def _database_manifest(release: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _write_private_snapshot(db: Session, row: ContentRelease, release: dict[str, Any]) -> None:
+    """Persist private answer keys away from the public release metadata."""
+    existing = db.query(PrivateContentBankSnapshot).filter(PrivateContentBankSnapshot.content_release_id == row.id).one_or_none()
+    if existing:
+        if existing.checksum != release["checksum"]:
+            raise ReleaseConflict("private bank snapshot checksum mismatch")
+        return
+    db.add(PrivateContentBankSnapshot(
+        content_release_id=row.id, checksum=release["checksum"],
+        payload_json={key: release[key] for key in ("version", "checksum", "lessons", "supports", "questions", "media")},
+    ))
+    db.flush()
+
+
 def register_candidate_release(db: Session, release: dict[str, Any] | None = None) -> ContentRelease:
     release = release or compile_release()
     current = db.query(ContentRelease).filter(ContentRelease.version == release["version"]).one_or_none()
     if current:
         if current.checksum != release["checksum"]:
             raise ReleaseConflict("release version already exists with a different checksum")
-        if "bank_snapshot" not in (current.manifest_json or {}):
-            # Safe one-time freeze of a pre-P06 candidate: the bank checksum must
-            # match exactly; do not alter any authoring question or ID.
+        if "bank_snapshot" in (current.manifest_json or {}):
             current.manifest_json = _database_manifest(release)
             db.flush()
+        _write_private_snapshot(db, current, release)
         return current
 
     row = ContentRelease(
@@ -57,5 +68,5 @@ def register_candidate_release(db: Session, release: dict[str, Any] | None = Non
     # The legacy column has a Python default because V1 rows were published at
     # creation. A V2 candidate is explicitly not released until approval.
     row.released_at = None
-    db.flush()
+    _write_private_snapshot(db, row, release)
     return row

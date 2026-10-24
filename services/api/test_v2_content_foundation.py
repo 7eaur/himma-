@@ -5,7 +5,7 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 
 from conftest import TestingSessionLocal
-from db.learning_models import LessonQuestionResponse, LessonSession, StudentJourney
+from db.learning_models import LessonQuestionResponse, LessonSession, StudentJourney, PrivateContentBankSnapshot
 from db.models import ContentRelease, Student
 from v2_content.compiler import BANK_FILES, BANK_ROOT, ContentBankError, compile_release
 from v2_content.contracts import PRIVATE_KEYS
@@ -91,6 +91,9 @@ def test_candidate_registration_is_idempotent_and_private():
         assert first.released_at is None
         assert "questions" not in first.manifest_json
         assert "private_answer" not in json.dumps(first.manifest_json)
+        snapshot = db.query(PrivateContentBankSnapshot).filter(PrivateContentBankSnapshot.content_release_id == first.id).one()
+        assert snapshot.checksum == first.checksum
+        assert any("private_answer" in q for q in snapshot.payload_json["questions"])
 
         changed = dict(release, checksum="0" * 64)
         with pytest.raises(ReleaseConflict):

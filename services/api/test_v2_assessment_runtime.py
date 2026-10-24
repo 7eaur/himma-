@@ -1,7 +1,7 @@
 from uuid import uuid4
 
 from conftest import TestingSessionLocal
-from db.learning_models import AssessmentQuestionResponse, PlacementDecisionV2, StudentJourney
+from db.learning_models import AssessmentQuestionResponse, PlacementDecisionV2, StudentJourney, PrivateContentBankSnapshot
 from db.models import AssessmentSession, AudioSubmission, Student
 from assessment_retake import mark_official_completed_attempt
 from v2_content.contracts import PRIVATE_KEYS
@@ -155,7 +155,8 @@ def test_pinned_assessment_snapshot_survives_candidate_bank_rotation(student_cli
     with TestingSessionLocal() as db:
         session = db.query(AssessmentSession).filter(AssessmentSession.id == session_id).one()
         release = register_candidate_release(db)
-        assert (release.manifest_json or {}).get("bank_snapshot")
+        assert "bank_snapshot" not in (release.manifest_json or {})
+        assert db.query(PrivateContentBankSnapshot).filter(PrivateContentBankSnapshot.content_release_id == release.id).one_or_none() is not None
         db.commit()
     import v2_assessment_runtime as runtime
     monkeypatch.setattr(runtime, "get_release", lambda: {"checksum": "different", "version": "future"})
@@ -202,6 +203,7 @@ def test_private_audio_stream_resolves_only_linked_assessment_evidence(researche
         db.add(AudioSubmission(assessment_response_id=row.id, storage_key=f"audio/{student.id}/owned.webm",
             file_size=2000, mime_type="audio/webm", status="pending_review"))
         response_id = row.id
+        student_id = student.id
         db.commit()
     checked = []
     def fake_play_by_key(*, key, range_header, researcher):
@@ -210,7 +212,7 @@ def test_private_audio_stream_resolves_only_linked_assessment_evidence(researche
     monkeypatch.setattr(recordings, "play_by_key", fake_play_by_key)
     result = researcher_client.get(f"/v2/assessments/admin/responses/{response_id}/audio", headers={"Range": "bytes=0-2"})
     assert result.status_code == 200
-    assert checked == [(f"audio/{student.id}/owned.webm", "bytes=0-2", "researcher")]
+    assert checked == [(f"audio/{student_id}/owned.webm", "bytes=0-2", "researcher")]
     assert researcher_client.get("/v2/assessments/admin/responses/999999/audio").status_code == 404
 
 def test_v2_pretest_does_not_bypass_completed_v1_history(student_client):
