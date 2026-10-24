@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { BarChart3, ClipboardCheck, Clock3, RefreshCw } from "lucide-react";
 import { AdminAction, AdminEmptyState, AdminPage, AdminPageHeader, AdminPanel, AdminStat, AdminStatGrid } from "@/components/admin/AdminUI";
+import SupervisorClaimActions from "@/components/admin/SupervisorClaimActions";
 
 interface ReviewItem {
   response_id: number; session_id: number; student_id: number; student_name: string;
@@ -141,6 +142,7 @@ export default function V2AssessmentsPage() {
             value={notes[item.response_id] || ""} onChange={event => setNotes(previous => ({ ...previous, [item.response_id]: event.target.value }))}
             placeholder="اذكر ما لاحظته في القراءة أو الكتابة" className="w-full rounded-xl border border-slate-300 p-3" />
           <div className="flex flex-wrap gap-2">
+            <SupervisorClaimActions kind="assessment" responseId={item.response_id}/>
             <button type="button" disabled={!item.evidence_ready || (notes[item.response_id] || "").trim().length < 2 || busy !== null}
               onClick={() => void review(item, true)} className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-bold text-white disabled:opacity-40">مستوفٍ</button>
             <button type="button" disabled={!item.evidence_ready || (notes[item.response_id] || "").trim().length < 2 || busy !== null}

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { ClipboardCheck, Clock3, RefreshCw } from "lucide-react";
 import { AdminAction, AdminEmptyState, AdminPage, AdminPageHeader, AdminPanel } from "@/components/admin/AdminUI";
+import SupervisorClaimActions from "@/components/admin/SupervisorClaimActions";
 
 interface ReviewItem {
   response_id: number; session_id: number; student_id: number; student_name: string;
@@ -118,6 +119,7 @@ export default function V2LessonReviewPage() {
                   className="w-full rounded-xl border border-slate-300 p-3 text-sm" placeholder="ما سبب قبول الدليل أو عدم استيفائه؟" />
                 {!item.evidence_ready && <p className="text-sm text-amber-700">يجب توفر دليل صوتي/كتابي قبل إصدار القرار.</p>}
                 <div className="flex flex-wrap gap-3">
+                  <SupervisorClaimActions kind="lesson" responseId={item.response_id}/>
                   <button type="button" disabled={disabled} onClick={() => void decide(item, true)}
                     className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-bold text-white disabled:opacity-40">مستوفٍ</button>
                   <button type="button" disabled={disabled} onClick={() => void decide(item, false)}
