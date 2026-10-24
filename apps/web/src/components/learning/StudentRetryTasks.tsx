@@ -24,13 +24,11 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
   const [recording, setRecording] = useState(false);
   const [seconds, setSeconds] = useState(0);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
-  const [stagedAudio, setStagedAudio] = useState(task.staged_audio ?? null);
-
-  useEffect(() => {
-    // A refresh may recover a completed upload even if the last response was
-    // lost: mirror the server metadata without ever storing audio in the browser.
-    if (task.staged_audio) setStagedAudio(task.staged_audio);
-  }, [task.staged_audio]);
+  // Derive recovery state from the server's latest response, avoiding effect-
+  // driven React state updates and retaining a successful local upload until
+  // the next refresh. Never persist the student's raw recording in storage.
+  const [uploadedAudio, setUploadedAudio] = useState<RetryItem["staged_audio"]>(null);
+  const stagedAudio = uploadedAudio ?? task.staged_audio ?? null;
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -59,7 +57,7 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
       if (audioUrl) URL.revokeObjectURL(audioUrl);
       setAudioUrl(null);
       setAudioBlob(null);
-      setStagedAudio(null);
+      setUploadedAudio(null);
       uploadKey.current = newKey();
       submitKey.current = newKey();
       chunksRef.current = [];
@@ -109,7 +107,7 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
           const payload = await response.json().catch(() => null);
           if (!response.ok) throw new Error(payload?.detail || "تعذر رفع التسجيل");
           answer = payload;
-          setStagedAudio(payload);
+          setUploadedAudio(payload);
         } else {
           if (!stagedAudio?.audio_duration_seconds) throw new Error("مدة التسجيل غير محفوظة. يُرجى إعادة التسجيل.");
           answer = stagedAudio;
@@ -143,7 +141,7 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
           : <><audio controls src={audioUrl || undefined} className="w-full"/>
             <button type="button" onClick={() => {
               setAudioBlob(null);
-              setStagedAudio(null);
+              setUploadedAudio(null);
               if (audioUrl) URL.revokeObjectURL(audioUrl);
               setAudioUrl(null);
               uploadKey.current = newKey();
