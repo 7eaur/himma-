@@ -122,7 +122,7 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
   </section>;
 }
 
-export default function StudentRetryTasks({ kind, sessionId }: { kind?: "lesson" | "assessment"; sessionId?: number }) {
+export default function StudentRetryTasks({ kind, sessionId, dashboard = false }: { kind?: "lesson" | "assessment"; sessionId?: number; dashboard?: boolean }) {
   const [tasks, setTasks] = useState<RetryItem[]>([]);
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
@@ -146,12 +146,21 @@ export default function StudentRetryTasks({ kind, sessionId }: { kind?: "lesson"
 
   const requested = tasks.filter((task) => task.status === "requested");
   const submitted = tasks.filter((task) => task.status === "submitted");
-  return <div className="mt-4 space-y-3" dir="rtl">
+  // The student dashboard must not show an empty review card: it pushes the
+  // learning journey below the viewport despite no actionable review request.
+  if (dashboard && tasks.length === 0 && !error && !sent) return null;
+  return <section className={dashboard
+    ? "mt-3 space-y-3 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5"
+    : "mt-4 space-y-3"} dir="rtl" data-testid={dashboard ? "v2-active-retry-tasks" : undefined}>
+    {dashboard && <>
+      <h2 className="text-lg font-bold text-slate-900">طلبات مراجعة القراءة والكتابة — V2</h2>
+      <p className="text-sm text-slate-600">إذا طلب المشرف إعادة إجابة سابقة، تظهر هنا ولو أكملت الدرس. لا تُحسب نتيجة القراءة قبل المراجعة البشرية.</p>
+    </>}
     <button type="button" className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm"
       onClick={() => void load()}><RefreshCw size={15}/> تحديث طلبات المشرف</button>
     {error && <p role="alert" className="text-sm text-rose-700">{error}</p>}
     {sent && <p role="status" className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">وصلت إجابتك الجديدة؛ بانتظار قرار المشرف.</p>}
     {submitted.length > 0 && <p role="status" className="rounded-lg border border-blue-200 p-3 text-sm">لديك {submitted.length} إجابة جديدة وصلت وتنتظر المراجعة.</p>}
     {requested.map((task) => <RetryCard key={task.task_id} task={task} onSaved={() => { setSent(true); void load(); }}/>)}
-  </div>;
+  </section>;
 }

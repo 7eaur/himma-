@@ -137,6 +137,8 @@ test.describe("Himma UX system visual QA regression", () => {
       }
 
       await expect(page.getByTestId("student-results")).toHaveCount(0);
+      // No active retry means no empty card/extra vertical space.
+      await expect(page.getByTestId("v2-active-retry-tasks")).toHaveCount(0);
       await expect(page.getByTestId("level-journey")).toHaveCount(0);
 
       const boxes = await Promise.all([identity, nextAction, journey, progress].map((locator) => locator.boundingBox()));
