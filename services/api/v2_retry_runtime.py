@@ -117,11 +117,15 @@ def _student_task(db: Session, task_id: int, student: Student, *, lock: bool = F
     query = db.query(V2ReviewRetryTask).filter(
         V2ReviewRetryTask.id == task_id, V2ReviewRetryTask.student_id == student.id,
     )
+    initial = query.one_or_none()
+    if not initial:
+        raise HTTPException(status_code=404, detail="مهمة الإعادة غير موجودة")
+    kind = "lesson" if initial.lesson_response_id is not None else "assessment"
+    # Consistent lock order: response first, retry task second, as in supervisor requests.
+    row, session, question = _owner(db, kind, initial.lesson_response_id or initial.assessment_response_id, lock=lock)
     task = (query.with_for_update() if lock else query).one_or_none()
     if not task:
         raise HTTPException(status_code=404, detail="مهمة الإعادة غير موجودة")
-    kind = "lesson" if task.lesson_response_id is not None else "assessment"
-    row, session, question = _owner(db, kind, task.lesson_response_id or task.assessment_response_id, lock=lock)
     if row.status != "pending_review" or session.student_id != student.id:
         raise HTTPException(status_code=409, detail="المهمة غير متاحة لهذا الطالب")
     current = active_retry(db, **{f"{kind}_response_id": row.id})

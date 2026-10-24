@@ -25,6 +25,7 @@ from v2_adaptation_runtime import (
     finish_support_check,
 )
 from v2_content.repository import get_question
+from v2_retry_state import active_retry
 
 router = APIRouter(prefix="/v2/review", tags=["v2-review"])
 
@@ -35,6 +36,14 @@ class LessonDecision(BaseModel):
 
 
 def _lesson_audio(db: Session, response_id: int) -> AudioSubmission | None:
+    task = active_retry(db, lesson_response_id=response_id)
+    if task:
+        if task.status != "submitted" or not task.audio_submission_id:
+            return None
+        return db.query(AudioSubmission).filter(
+            AudioSubmission.id == task.audio_submission_id,
+            AudioSubmission.lesson_response_id == response_id,
+        ).one_or_none()
     return db.query(AudioSubmission).filter(
         AudioSubmission.lesson_response_id == response_id
     ).order_by(AudioSubmission.id.desc()).first()
@@ -49,15 +58,20 @@ def _question(row: LessonQuestionResponse) -> dict:
 
 def _item(db: Session, row: LessonQuestionResponse, session: LessonSession, student: Student) -> dict:
     question = _question(row)
+    task = active_retry(db, lesson_response_id=row.id)
     audio = _lesson_audio(db, row.id) if question["interaction"] == "read_aloud" else None
-    answer = (row.answer_json or {}).get("answer") or {}
+    answer = (task.replacement_json if task and task.status == "submitted" else
+              (row.answer_json or {}).get("answer")) or {}
     ready = (
         bool(audio and audio.status == "pending_review" and audio.file_size > 0
              and audio.storage_key.startswith(f"audio/{session.student_id}/"))
         if audio is not None or question["interaction"] == "read_aloud"
         else bool(str(answer.get("text_response") or "").strip())
     )
+    if task and task.status == "requested":
+        ready = False
     return {
+        "retry_state": task.status if task else None,
         "response_id": row.id, "session_id": session.id,
         "student_id": student.id, "student_name": student.name,
         "question_id": row.question_id, "lesson_id": session.lesson_id,
@@ -141,6 +155,12 @@ def decide_lesson(
     proof = db.query(SkillEvidence).filter(SkillEvidence.response_id == row.id).with_for_update().one_or_none()
     if not proof:
         raise HTTPException(status_code=409, detail="دليل المهارة المرتبط بالإجابة غير موجود")
+    task = active_retry(db, lesson_response_id=row.id)
+    if task and task.status == "requested":
+        raise HTTPException(status_code=409, detail="المشرف طلب إعادة الدليل؛ انتظر النسخة الجديدة")
+    if task and task.status == "submitted":
+        task.status = "resolved"
+        task.resolved_at = now
     proof.review_status = "graded"
     proof.is_correct = body.is_correct
     proof.reviewed_at = now

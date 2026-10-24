@@ -35,6 +35,7 @@ from v2_content.projection import student_question
 from v2_content.repository import get_release
 from v2_interaction_runtime import AnswerRequest, CHOICE_INTERACTIONS, OPEN_INTERACTIONS, ORDER_INTERACTIONS, _canonical_answer
 from v2_lesson_runtime import _require_preview_student
+from v2_retry_state import active_retry
 
 
 router = APIRouter(prefix="/v2/assessments", tags=["v2-assessments"])
@@ -415,23 +416,38 @@ def _review_item(
     question = next((q for q in release["questions"] if q["id"] == row.question_id), None)
     if not question or question["role"] != row.role:
         raise HTTPException(status_code=409, detail="سؤال المراجعة لا يطابق الإصدار")
-    if not preloaded_audio:
-        audio = db.query(AudioSubmission).filter(AudioSubmission.assessment_response_id == row.id).one_or_none()
+    task = active_retry(db, assessment_response_id=row.id)
+    if task:
+        if task.status == "submitted":
+            audio = db.query(AudioSubmission).filter(
+                AudioSubmission.id == task.audio_submission_id,
+                AudioSubmission.assessment_response_id == row.id,
+            ).one_or_none() if task.audio_submission_id else None
+        else:
+            audio = None
+    elif not preloaded_audio:
+        audio = db.query(AudioSubmission).filter(
+            AudioSubmission.assessment_response_id == row.id
+        ).order_by(AudioSubmission.id.desc()).first()
+    answer = (task.replacement_json if task and task.status == "submitted" else row.answer_json) or {}
     is_reading = question["interaction"] == "read_aloud"
     is_writing = question["interaction"] == "write_text"
     evidence_ready = bool(
         audio and audio.status == "pending_review" and audio.file_size > 0
         and audio.storage_key.startswith(f"audio/{session.student_id}/")
-    ) if is_reading else bool((row.answer_json or {}).get("text_response", "").strip()) if is_writing else False
+    ) if is_reading else bool(answer.get("text_response", "").strip()) if is_writing else False
+    if task and task.status == "requested":
+        evidence_ready = False
     return {
-        "response_id": row.id, "session_id": session.id, "student_id": student.id,
+        "response_id": row.id, "retry_state": task.status if task else None,
+        "session_id": session.id, "student_id": student.id,
         "student_name": student.name, "question_id": row.question_id,
         "kind": row.role, "skill_group": row.skill_group, "evidence_type": row.evidence_type,
         "interaction": question["interaction"], "prompt": question["prompt"],
         "stimulus_text": (question.get("stimulus") or {}).get("text"),
         "reference": question.get("reading_reference") if is_reading else None,
         "rubric": (question.get("private_answer") or {}).get("rubric"),
-        "text_response": (row.answer_json or {}).get("text_response") if is_writing else None,
+        "text_response": answer.get("text_response") if is_writing else None,
         "audio_url": f"/api/v2/assessments/admin/responses/{row.id}/audio" if is_reading and evidence_ready else None,
         "evidence_ready": evidence_ready, "submitted_at": row.created_at.isoformat(),
     }
@@ -454,7 +470,7 @@ def review_queue(
     audios = {
         audio.assessment_response_id: audio for audio in db.query(AudioSubmission).filter(
             AudioSubmission.assessment_response_id.in_(response_ids),
-        ).all()
+        ).order_by(AudioSubmission.id).all()
     } if response_ids else {}
     items = []
     for row, session, student in page:
@@ -481,7 +497,18 @@ def review_audio(
     question = next((q for q in release["questions"] if q["id"] == row.question_id), None)
     if not question or question["interaction"] != "read_aloud":
         raise HTTPException(status_code=404, detail="لا يوجد تسجيل لهذا السؤال")
-    audio = db.query(AudioSubmission).filter(AudioSubmission.assessment_response_id == row.id).one_or_none()
+    task = active_retry(db, assessment_response_id=row.id)
+    if task and task.status == "requested":
+        raise HTTPException(status_code=404, detail="انتظار إعادة تسجيل الطالب")
+    if task:
+        audio = db.query(AudioSubmission).filter(
+            AudioSubmission.id == task.audio_submission_id,
+            AudioSubmission.assessment_response_id == row.id,
+        ).one_or_none() if task.audio_submission_id else None
+    else:
+        audio = db.query(AudioSubmission).filter(
+            AudioSubmission.assessment_response_id == row.id,
+        ).order_by(AudioSubmission.id.desc()).first()
     if not audio or not audio.storage_key.startswith(f"audio/{session.student_id}/"):
         raise HTTPException(status_code=404, detail="تسجيل الطالب غير متاح")
     return recordings.play_by_key(key=audio.storage_key, range_header=range_header, researcher=user)
@@ -524,8 +551,21 @@ def review_response(response_id: int, body: ReviewRequest, user: User = Depends(
     evidence = _review_item(db, row, session, student)
     if not evidence["evidence_ready"]:
         raise HTTPException(status_code=409, detail="لا يمكن تقييم إجابة دون دليل صوتي أو كتابي صالح")
+    task = active_retry(db, assessment_response_id=row.id)
+    if task and task.status == "requested":
+        raise HTTPException(status_code=409, detail="الإجابة تنتظر إعادة دليل الطالب")
     if evidence["interaction"] == "read_aloud":
-        audio_to_verify = db.query(AudioSubmission).filter(AudioSubmission.assessment_response_id == row.id).one()
+        if task:
+            audio_to_verify = db.query(AudioSubmission).filter(
+                AudioSubmission.id == task.audio_submission_id,
+                AudioSubmission.assessment_response_id == row.id,
+            ).one()
+        else:
+            audio_to_verify = db.query(AudioSubmission).filter(
+                AudioSubmission.assessment_response_id == row.id,
+            ).order_by(AudioSubmission.id.desc()).first()
+        if audio_to_verify is None:
+            raise HTTPException(status_code=409, detail="ملف التسجيل غير موجود")
         try:
             storage.verify_audio(audio_to_verify.storage_key, audio_to_verify.file_size, audio_to_verify.mime_type)
         except ValueError as exc:
@@ -534,8 +574,13 @@ def review_response(response_id: int, body: ReviewRequest, user: User = Depends(
             raise HTTPException(status_code=503, detail="تعذر التحقق من التسجيل؛ يرجى إعادة المحاولة") from exc
     row.status = "graded"; row.is_correct = body.is_correct; row.review_note = body.note
     row.reviewed_by = user.id; row.reviewed_at = datetime.now(timezone.utc)
-    audio = db.query(AudioSubmission).filter(AudioSubmission.assessment_response_id == row.id).one_or_none()
+    audio = (db.query(AudioSubmission).filter(AudioSubmission.id == task.audio_submission_id).one_or_none()
+             if task and task.audio_submission_id else
+             db.query(AudioSubmission).filter(AudioSubmission.assessment_response_id == row.id).order_by(AudioSubmission.id.desc()).first())
     if audio: audio.status = "graded"
+    if task and task.status == "submitted":
+        task.status = "resolved"
+        task.resolved_at = datetime.now(timezone.utc)
     _finish_if_ready(db, session)
     db.add(AuditLog(actor_role="researcher", actor_id=user.id, action="v2_assessment_response_reviewed", entity_type="assessment_question_response", entity_id=str(row.id), details=f"is_correct={body.is_correct}; note={body.note}"))
     db.commit()
