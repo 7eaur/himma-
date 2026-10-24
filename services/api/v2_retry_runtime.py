@@ -168,8 +168,20 @@ def student_retry_submit(
 ):
     task, kind, row, question = _student_task(db, task_id, student, lock=True)
     if task.status == "submitted":
+        previous = task.replacement_json or {}
         if task.submit_key != body.submit_key:
             raise HTTPException(status_code=409, detail="أُرسلت المهمة بالفعل ولا تقبل التكرار")
+        if task.request_kind == "rewrite":
+            same = (body.text_response or "").strip() == previous.get("text_response")
+        else:
+            same = (
+                body.audio_storage_key == previous.get("audio_storage_key")
+                and body.audio_file_size == previous.get("audio_file_size")
+                and body.audio_mime_type == previous.get("audio_mime_type")
+                and body.audio_duration_seconds == previous.get("audio_duration_seconds")
+            )
+        if not same:
+            raise HTTPException(status_code=409, detail="مفتاح الإرسال سبق استخدامه لدليل مختلف")
         return {"status": "replayed", "task_id": task.id}
     if task.status != "requested":
         raise HTTPException(status_code=409, detail="مهمة الإعادة ليست مفتوحة")

@@ -127,7 +127,7 @@ export default function V2LessonReviewPage() {
                     {item.interaction === "read_aloud" ? "اطلب إعادة القراءة" : "اطلب إعادة الكتابة"}</button>
                 </div>
                 {item.retry_state === "requested" && <p role="status" className="text-sm text-amber-700">بانتظار إرسال الطالب نسخة جديدة.</p>}
-                {item.retry_state === "submitted" && <p role="status" className="text-sm text-blue-700">وصلت نسخة جديدة، راجعها قبل اعتماد القرار.</p>
+                {item.retry_state === "submitted" && <p role="status" className="text-sm text-blue-700">وصلت نسخة جديدة، راجعها قبل اعتماد القرار.</p>}
               </div>
             </article>;
           })}
