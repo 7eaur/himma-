@@ -185,6 +185,8 @@ def student_retry_recording(
     superseded = list(previous.get("superseded_staged_audio") or [])
     # When the child explicitly records again, retain prior private object keys
     # for controlled retention; never delete or orphan earlier uploads silently.
+    if old_staged and old_staged["audio_storage_key"] == metadata["audio_storage_key"] and old_staged != metadata:
+        raise HTTPException(status_code=409, detail="مفتاح الرفع استُخدم بمدة أو بيانات مختلفة")
     if old_staged and old_staged != metadata:
         superseded.append(old_staged)
     current.replacement_json = {

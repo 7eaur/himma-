@@ -182,6 +182,11 @@ def test_p08_rerecord_stage_survives_reload_and_rejects_wrong_file(student_clien
     again = student_client.post(route, files=form, data={"duration_seconds": "4"},
                                 headers={"Idempotency-Key": "stage-test-key-1"})
     assert again.status_code == 200 and again.json() == meta
+    changed_duration = student_client.post(
+        route, files=form, data={"duration_seconds": "5"},
+        headers={"Idempotency-Key": "stage-test-key-1"},
+    )
+    assert changed_duration.status_code == 409
     tasks = student_client.get("/v2/retries/student/tasks")
     assert tasks.status_code == 200
     task = next(x for x in tasks.json()["items"] if x["task_id"] == task_id)
