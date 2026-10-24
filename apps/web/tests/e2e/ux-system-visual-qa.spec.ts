@@ -202,6 +202,40 @@ test.describe("Himma UX system visual QA regression", () => {
     await expectNoHorizontalOverflow(page);
   });
 
+  test("student retry task recovers after a transient offline failure", async ({ page, context, request }) => {
+    test.setTimeout(120000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    const accessCode = await createStudent(page, request, context, "طالب يتابع بعد انقطاع");
+    await loginStudent(request, context, accessCode);
+    let connected = false;
+    await page.route("**/api/v2/assessments/current-action", async (route) => {
+      await route.fulfill({ status: 503, contentType: "application/json", body: '{"detail":"preview unavailable"}' });
+    });
+    await page.route("**/api/v2/retries/student/tasks", async (route) => {
+      await route.fulfill(connected
+        ? { status: 200, contentType: "application/json", body: JSON.stringify({ items: [{
+            task_id: 509, kind: "lesson", session_id: 77, question_id: "L2-01-GP-01",
+            request_kind: "rewrite", status: "requested", reason: "أعد الكتابة بعد عودة الاتصال",
+            prompt: "اكتب النص مرة أخرى",
+          }] })}
+        : { status: 503, contentType: "application/json", body: '{"detail":"network unavailable"}' });
+    });
+    const initialFailure = page.waitForResponse((response) =>
+      response.url().includes("/v2/retries/student/tasks") && response.status() === 503,
+    );
+    await page.goto("/student");
+    await initialFailure;
+    await expect(page.getByTestId("student-home")).toBeVisible();
+    await expect(page.getByTestId("v2-active-retry-tasks")).toHaveCount(0);
+    connected = true;
+    await page.evaluate(() => window.dispatchEvent(new Event("online")));
+    const tasks = page.getByTestId("v2-active-retry-tasks");
+    await expect(tasks).toBeVisible({ timeout: 15000 });
+    await expect(tasks).toContainText("أعد الكتابة بعد عودة الاتصال");
+    await expect(tasks.getByLabel("إجابتك الجديدة")).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+  });
+
   test("student resumes private staged rerecord after reload without uploading again", async ({ page, context, request }) => {
     test.setTimeout(120000);
     await page.setViewportSize({ width: 390, height: 844 });

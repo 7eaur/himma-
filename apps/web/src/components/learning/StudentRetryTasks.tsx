@@ -49,8 +49,10 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
       setError("متصفحك لا يدعم التسجيل؛ افتح الموقع في متصفح يدعم الميكروفون."); return;
     }
     setError("");
+    let openedStream: MediaStream | null = null;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      openedStream = stream;
       const supported = ["audio/webm;codecs=opus", "audio/mp4", "audio/webm"].find((type) => MediaRecorder.isTypeSupported(type));
       const recorder = supported ? new MediaRecorder(stream, { mimeType: supported }) : new MediaRecorder(stream);
       // New audio is a new submission: never reuse the old audio idempotency key.
@@ -61,8 +63,17 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
       uploadKey.current = newKey();
       submitKey.current = newKey();
       chunksRef.current = [];
+      let recorderFailed = false;
       recorder.ondataavailable = (event) => { if (event.data.size) chunksRef.current.push(event.data); };
+      recorder.onerror = () => {
+        recorderFailed = true;
+        stream.getTracks().forEach((track) => track.stop());
+        setRecording(false);
+        setError("حدث خطأ أثناء التسجيل. حاول مرة أخرى بعد التحقق من إذن الميكروفون.");
+      };
       recorder.onstop = () => {
+        stream.getTracks().forEach((track) => track.stop());
+        if (recorderFailed) return;
         const mimeType = recorder.mimeType || chunksRef.current[0]?.type || "audio/webm";
         const blob = new Blob(chunksRef.current, { type: mimeType });
         if (!blob.size || blob.size > 10 * 1024 * 1024) {
@@ -81,7 +92,13 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
       recorderRef.current = recorder;
       startedAt.current = Date.now();
       setRecording(true);
-    } catch { setError("تعذر الوصول إلى الميكروفون. اسمح بالتسجيل ثم حاول مجددًا."); }
+    } catch {
+      // Some browsers grant a MediaStream but reject MediaRecorder.start().
+      // Release the microphone even when setup fails after permission.
+      openedStream?.getTracks().forEach((track) => track.stop());
+      setRecording(false);
+      setError("تعذر تشغيل الميكروفون. تحقق من إذنه ثم حاول مجددًا.");
+    }
   };
 
   const stopRecording = () => {
@@ -167,22 +184,39 @@ export default function StudentRetryTasks({ kind, sessionId, dashboard = false }
   const [tasks, setTasks] = useState<RetryItem[]>([]);
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
+  const requestSequence = useRef(0);
   const load = useCallback(async () => {
+    const sequence = ++requestSequence.current;
     try {
       const response = await fetch("/api/v2/retries/student/tasks", { cache: "no-store" });
       const payload = await response.json().catch(() => null);
       if (!response.ok) throw new Error(payload?.detail || "تعذر تحميل طلبات الإعادة");
+      if (sequence !== requestSequence.current) return;
       setTasks((payload.items as RetryItem[]).filter((item) =>
         (kind === undefined || item.kind === kind) &&
         (sessionId === undefined || item.session_id === sessionId)
       ));
       setError("");
-    } catch (reason) { setError(reason instanceof Error ? reason.message : "تعذر تحميل الإعادات"); }
+    } catch (reason) {
+      if (sequence === requestSequence.current) {
+        setError(reason instanceof Error ? reason.message : "تعذر تحميل الإعادات");
+      }
+    }
   }, [kind, sessionId]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => { void load(); }, 0);
-    return () => window.clearTimeout(timer);
+    const onOnline = () => { void load(); };
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") void load();
+    };
+    window.addEventListener("online", onOnline);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("online", onOnline);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, [load]);
 
   const requested = tasks.filter((task) => task.status === "requested");
