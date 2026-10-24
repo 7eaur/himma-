@@ -55,4 +55,9 @@ def upgrade():
 
 
 def downgrade():
-    raise RuntimeError("Unsafe downgrade would destroy pinned private answer snapshots")
+    conn = op.get_bind()
+    count = conn.execute(sa.text("SELECT COUNT(*) FROM private_content_bank_snapshots")).scalar()
+    if count:
+        raise RuntimeError("Refusing downgrade: pinned private answer snapshots require retention")
+    # Empty development / CI databases are safe to downgrade and rebuild.
+    op.drop_table("private_content_bank_snapshots")
