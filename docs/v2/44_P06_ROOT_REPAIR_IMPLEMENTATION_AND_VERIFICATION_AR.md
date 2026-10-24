@@ -54,3 +54,11 @@
 ## 6. قرار التنفيذ
 
 تم تحويل العوائق المذكورة من «لا إصلاح» إلى **«إصلاحات مرفوعة وجاهزة للتحقق»**. لا تُختم `P06=approved` إلا بعد دليل اختبارات وQA نهائي وقول المالك «تم». `P07=not_started`، ولا نشر إنتاج معتمد.
+
+
+## فحص P06 المتوازي كشف وتصحيح ترحيلين — 2026-10-24
+
+- كشف اختبار GitHub `test_candidate_registration_is_idempotent_and_private` أن الإصدار الأول من `bank_snapshot` وضع مفاتيح الإجابة في سجل `ContentRelease.manifest_json`، خلافًا لعقد الخصوصية الأصلي؛ فُصل إلى جدول `private_content_bank_snapshots` خاص وليس ضمن release manifest أو Student DTO، وترحيل 0021 ينقل نسخ بنك P06 الموجودة قبل إزالة المفتاح من metadata.
+- كشف اختبار آخر `DetachedInstanceError` بعد غلق SQLite session عند مقارنة رابط الصوت؛ صُحح الاختبار باستخدام `student_id` scalar المحفوظ داخل الجلسة، دون إضعاف فحص الحماية.
+- فشلت أول جولة Alembic بعد الإصلاح بسبب اسم `0021_private_content_bank_snapshot` الأطول من طول `alembic_version.version_num` الافتراضي 32؛ تغير المعرف إلى `0021_private_bank_snapshot`، وصار downgrade يسمح بالقاعدة الفارغة التجريبية ويرفض حذف snapshots تحتوي بيانات.
+- هذا سجل للحوادث وإصلاحها، **لا يثبت نجاح CI/M09 على آخر كود إلى حين النتائج**. تعرض GitHub Actions نتائج كل SHA، ولا يجوز الاستدلال بنجاح M04 وحده على الجاهزية.
