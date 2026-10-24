@@ -244,8 +244,7 @@ test.describe("Himma UX system visual QA regression", () => {
     await submit.click();
     await expect(tasks).toContainText("وصلت إجابتك الجديدة");
     expect(uploadedAgain).toBe(false);
-    expect(acceptedAnswer).toMatchObject(staged);
-    expect((acceptedAnswer as Record<string, unknown>)?.submit_key).toBeTruthy();
+    expect(acceptedAnswer).toMatchObject({ ...staged, submit_key: expect.any(String) });
   });
 
   test("mobile assessment keeps title, image choices, and sequence choices compact", async ({ page, context, request }) => {
