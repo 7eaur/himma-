@@ -329,6 +329,47 @@ class V2LessonReviewAction(Base):
     )
 
 
+class V2ReviewRetryTask(Base):
+    """An immutable request + one submitted revision; never overwrite original evidence."""
+    __tablename__ = "v2_review_retry_tasks"
+
+    id = Column(Integer, primary_key=True)
+    lesson_response_id = Column(Integer, ForeignKey("lesson_question_responses.id", ondelete="CASCADE"), nullable=True)
+    assessment_response_id = Column(Integer, ForeignKey("assessment_question_responses.id", ondelete="CASCADE"), nullable=True)
+    student_id = Column(Integer, ForeignKey("students.id", ondelete="CASCADE"), nullable=False)
+    requested_by = Column(Integer, ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)
+    request_kind = Column(String(20), nullable=False)
+    status = Column(String(20), nullable=False, default="requested", server_default="requested")
+    reason = Column(String, nullable=False)
+    replacement_json = Column(JSON().with_variant(JSONB, "postgresql"), nullable=True)
+    audio_submission_id = Column(Integer, ForeignKey("audio_submissions.id", ondelete="SET NULL"), nullable=True)
+    submit_key = Column(String(100), nullable=True)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=_now)
+    submitted_at = Column(DateTime(timezone=True), nullable=True)
+    resolved_at = Column(DateTime(timezone=True), nullable=True)
+
+    __table_args__ = (
+        CheckConstraint(
+            "(CASE WHEN lesson_response_id IS NOT NULL THEN 1 ELSE 0 END + "
+            "CASE WHEN assessment_response_id IS NOT NULL THEN 1 ELSE 0 END) = 1",
+            name="ck_v2_retry_exactly_one_owner",
+        ),
+        CheckConstraint("request_kind IN ('rerecord','rewrite')", name="ck_v2_retry_kind"),
+        CheckConstraint("status IN ('requested','submitted','superseded','resolved')", name="ck_v2_retry_status"),
+        Index(
+            "uq_v2_retry_active_lesson", "lesson_response_id", unique=True,
+            postgresql_where=text("lesson_response_id IS NOT NULL AND status IN ('requested','submitted')"),
+            sqlite_where=text("lesson_response_id IS NOT NULL AND status IN ('requested','submitted')"),
+        ),
+        Index(
+            "uq_v2_retry_active_assessment", "assessment_response_id", unique=True,
+            postgresql_where=text("assessment_response_id IS NOT NULL AND status IN ('requested','submitted')"),
+            sqlite_where=text("assessment_response_id IS NOT NULL AND status IN ('requested','submitted')"),
+        ),
+        Index("ix_v2_retry_student_state", "student_id", "status"),
+    )
+
+
 class PrivateContentBankSnapshot(Base):
     """Internal immutable assessment bank with private answer keys; never public metadata."""
     __tablename__ = "private_content_bank_snapshots"
