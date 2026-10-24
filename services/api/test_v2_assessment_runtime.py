@@ -210,3 +210,16 @@ def test_private_audio_stream_resolves_only_linked_assessment_evidence(researche
     assert result.status_code == 200
     assert checked == [(f"audio/{student.id}/owned.webm", "bytes=0-2", "researcher")]
     assert researcher_client.get("/v2/assessments/admin/responses/999999/audio").status_code == 404
+
+def test_v2_pretest_does_not_bypass_completed_v1_history(student_client):
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        old = AssessmentSession(student_id=student.id, session_type="pretest", status="completed",
+            assessment_attempt_no=1, official_for_reporting=True, final_score=75)
+        db.add(old)
+        db.commit()
+    started = student_client.post("/v2/assessments/pretest/start")
+    assert started.status_code == 409
+    assert "تفويض" in started.json()["detail"]
+    with TestingSessionLocal() as db:
+        assert db.query(AssessmentSession).count() == 1

@@ -241,11 +241,12 @@ def start_assessment(
             raise HTTPException(status_code=409, detail="لديك جلسة أخرى قيد التنفيذ")
         return _payload(db, active)
     journey = db.query(StudentJourney).filter(StudentJourney.student_id == student.id).one_or_none()
+    # V1 and V2 share the same attempt history and uniqueness index. A V1
+    # completed assessment must never be bypassed as a first V2 attempt.
     previous = db.query(AssessmentSession).filter(
         AssessmentSession.student_id == student.id,
         AssessmentSession.session_type == kind,
-        AssessmentSession.v2_state.is_not(None),
-    ).order_by(AssessmentSession.assessment_attempt_no.desc()).first()
+    ).order_by(AssessmentSession.assessment_attempt_no.desc(), AssessmentSession.id.desc()).first()
     authorization = None
     if previous:
         authorization = db.query(AssessmentRetakeAuthorization).filter(
@@ -258,6 +259,8 @@ def start_assessment(
             raise HTTPException(status_code=409, detail="إعادة التقييم تحتاج تفويضًا صريحًا من المشرف")
     if kind == "pretest" and not authorization and journey and journey.placement_state not in {"not_started", "in_progress"}:
         raise HTTPException(status_code=409, detail="اكتمل الاختبار القبلي والتسكين")
+    if kind == "posttest" and not journey:
+        raise HTTPException(status_code=409, detail="لا توجد رحلة V2 جاهزة للاختبار البعدي")
     if kind == "posttest" and not authorization and (not journey or journey.placement_state != "posttest_ready" or not student.posttest_enabled):
         raise HTTPException(status_code=409, detail="الاختبار البعدي غير متاح بعد")
     release = register_candidate_release(db)
