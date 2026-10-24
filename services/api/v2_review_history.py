@@ -42,7 +42,7 @@ def review_history(
     db: Session = Depends(get_db),
 ):
     row, session, question = _owner(db, kind, response_id)
-    original = (row.answer_json or {}).get("answer", {}) if kind == "lesson" else (row.answer_json or {})
+    original = ((row.answer_json or {}).get("answer") or {}) if kind == "lesson" else (row.answer_json or {})
     tasks = _retry_query(db, kind, response_id).order_by(V2ReviewRetryTask.id).all()
     audios = _audio_query(db, kind, response_id).order_by(AudioSubmission.id).all()
     if kind == "lesson":

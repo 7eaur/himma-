@@ -115,7 +115,7 @@ export default function V2LessonReviewPage() {
               </details>
               <V2EvidenceHistory kind="lesson" responseId={item.response_id}/>
               <div className="space-y-2">
-                <label htmlFor={`note-${item.response_id}` className="block text-sm font-semibold">سبب قرار المراجعة (مطلوب)</label>
+                <label htmlFor={`note-${item.response_id}`} className="block text-sm font-semibold">سبب قرار المراجعة (مطلوب)</label>
                 <textarea id={`note-${item.response_id}`} value={note} maxLength={2000} rows={2}
                   onChange={(event) => setNotes((previous) => ({ ...previous, [item.response_id]: event.target.value }))}
                   className="w-full rounded-xl border border-slate-300 p-3 text-sm" placeholder="ما سبب قبول الدليل أو عدم استيفائه؟" />
