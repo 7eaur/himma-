@@ -24,7 +24,8 @@ from v2_adaptation_runtime import (
     active_support_assignment, finish_independent_check,
     finish_support_check,
 )
-from v2_content.repository import get_question
+from v2_content.repository import get_release
+from v2_assessment_runtime import _session_release
 from v2_retry_state import active_retry
 
 router = APIRouter(prefix="/v2/review", tags=["v2-review"])
@@ -49,15 +50,18 @@ def _lesson_audio(db: Session, response_id: int) -> AudioSubmission | None:
     ).order_by(AudioSubmission.id.desc()).first()
 
 
-def _question(row: LessonQuestionResponse) -> dict:
-    question = get_question(row.question_id)
+def _question(db: Session, row: LessonQuestionResponse, session: LessonSession) -> dict:
+    # An older learner's human reading rubric must never be silently replaced by
+    # a newer release's rubric. The shared assessment resolver is checksum-pinned.
+    release = _session_release(db, session)
+    question = next((q for q in release["questions"] if q["id"] == row.question_id), None)
     if not question or question["role"] != row.role or question["interaction"] not in {"read_aloud", "write_text"}:
-        raise HTTPException(status_code=409, detail="دليل الدرس لا يطابق بنك الأسئلة")
+        raise HTTPException(status_code=409, detail="دليل الدرس لا يطابق نسخته الأصلية")
     return question
 
 
 def _item(db: Session, row: LessonQuestionResponse, session: LessonSession, student: Student) -> dict:
-    question = _question(row)
+    question = _question(db, row, session)
     task = active_retry(db, lesson_response_id=row.id)
     audio = _lesson_audio(db, row.id) if question["interaction"] == "read_aloud" else None
     answer = (task.replacement_json if task and task.status == "submitted" else
@@ -109,9 +113,11 @@ def lesson_audio(
     db: Session = Depends(get_db),
 ):
     row = db.query(LessonQuestionResponse).filter(LessonQuestionResponse.id == response_id).one_or_none()
-    if not row or _question(row)["interaction"] != "read_aloud":
+    if not row:
         raise HTTPException(status_code=404, detail="لا يوجد تسجيل لهذه الإجابة")
     session = db.query(LessonSession).filter(LessonSession.id == row.lesson_session_id).one()
+    if _question(db, row, session)["interaction"] != "read_aloud":
+        raise HTTPException(status_code=404, detail="لا يوجد تسجيل لهذا السؤال")
     audio = _lesson_audio(db, row.id)
     if not audio or not audio.storage_key.startswith(f"audio/{session.student_id}/"):
         raise HTTPException(status_code=404, detail="تسجيل الطالب غير متاح")
@@ -180,6 +186,13 @@ def decide_lesson(
         LessonQuestionResponse.status == "pending_review",
     ).count()
     if not remaining and session.stage == "waiting_review" and session.status == "waiting_review":
+        # P05 progression is still compiled from the live bank; do not mutate
+        # an immutable old session using different support/lesson definitions.
+        from db.models import ContentRelease
+        pinned = db.query(ContentRelease).filter(ContentRelease.id == session.content_release_id).one()
+        compiled = get_release()
+        if pinned.checksum != compiled["checksum"] or pinned.version != compiled["version"]:
+            raise HTTPException(status_code=409, detail="قرار التكيف يتطلب إصدار الدرس المحفوظ")
         decision = db.query(AdaptationDecision).filter(
             AdaptationDecision.lesson_session_id == session.id
         ).order_by(AdaptationDecision.id.desc()).first()

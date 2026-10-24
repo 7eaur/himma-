@@ -14,7 +14,6 @@ from db.models import AssessmentSession, AudioSubmission, AuditLog, Student, Use
 from dependencies import get_current_user, get_db
 from v2_assessment_runtime import _session_release
 from v2_content.projection import student_question
-from v2_content.repository import get_question
 from v2_interaction_runtime import AnswerRequest, _canonical_answer
 from v2_lesson_runtime import _require_preview_student
 from v2_retry_state import active_retry
@@ -36,7 +35,8 @@ def _owner(db: Session, kind: Literal["lesson", "assessment"], response_id: int,
         raise HTTPException(status_code=404, detail="الإجابة غير موجودة")
     if kind == "lesson":
         session = db.query(LessonSession).filter(LessonSession.id == row.lesson_session_id).one()
-        question = get_question(row.question_id)
+        release = _session_release(db, session)
+        question = next((q for q in release["questions"] if q["id"] == row.question_id), None)
     else:
         session = db.query(AssessmentSession).filter(AssessmentSession.id == row.assessment_session_id).one()
         release = _session_release(db, session)
