@@ -153,3 +153,50 @@ def test_p08_students_cannot_request_retry_for_themselves(student_client):
         f"/v2/retries/admin/lesson/{response_id}/request",
         json={"reason": "اختبار الصلاحيات يحظر الطالب"},
     ).status_code in (401, 403)
+
+
+def test_p08_completed_guided_lesson_still_allows_retry_without_reopening_student_progress(student_client):
+    """A guided answer can remain neutral after the lesson journey advances."""
+    from db.learning_models import LessonSession, V2ReviewRetryTask
+    from datetime import datetime, timezone
+
+    sid, qid = _writing_response(student_client)
+    with TestingSessionLocal() as db:
+        session = db.query(LessonSession).filter(LessonSession.id == sid).one()
+        response = db.query(LessonQuestionResponse).filter(
+            LessonQuestionResponse.lesson_session_id == sid,
+            LessonQuestionResponse.question_id == qid,
+        ).one()
+        assert response.role == "guided_practice"
+        rid = response.id
+        session.stage = "complete"
+        session.status = "completed"
+        session.completed_at = datetime.now(timezone.utc)
+        db.commit()
+
+    _login_researcher(student_client)
+    asked = student_client.post(f"/v2/retries/admin/lesson/{rid}/request", json={
+        "reason": "وصلت إجابة التمرين الموجه ولكن نحتاج كتابتها مجددًا بوضوح",
+    })
+    assert asked.status_code == 200, asked.text
+    task_id = asked.json()["task_id"]
+    assert student_client.post("/auth/student-login", json={"access_code": "STU001"}).status_code == 200
+    tasks = student_client.get("/v2/retries/student/tasks")
+    assert tasks.status_code == 200
+    assert any(t["task_id"] == task_id for t in tasks.json()["items"])
+    result = student_client.post(f"/v2/retries/student/tasks/{task_id}/submit", json={
+        "submit_key": str(uuid4()), "text_response": "باب",
+    })
+    assert result.status_code == 200, result.text
+    _login_researcher(student_client)
+    reviewed = student_client.post(f"/v2/review/lessons/{rid}/decision", json={
+        "is_correct": True, "note": "جرى تقييم الكتابة الجديدة بعد اكتمال التمرين الموجه",
+    })
+    assert reviewed.status_code == 200, reviewed.text
+    with TestingSessionLocal() as db:
+        session = db.query(LessonSession).filter(LessonSession.id == sid).one()
+        evidence = db.query(SkillEvidence).filter(SkillEvidence.response_id == rid).one()
+        task = db.query(V2ReviewRetryTask).filter(V2ReviewRetryTask.id == task_id).one()
+        assert session.stage == "complete" and session.status == "completed"
+        assert evidence.is_correct is True and evidence.counts_for_mastery is False
+        assert task.status == "resolved"
