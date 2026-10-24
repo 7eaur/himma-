@@ -147,6 +147,10 @@ def _media(question: dict[str, Any], release: dict[str, Any]) -> dict[str, dict[
 
 def _result(db: Session, session: AssessmentSession) -> dict[str, Any]:
     rows = db.query(AssessmentQuestionResponse).filter(AssessmentQuestionResponse.assessment_session_id == session.id).all()
+    return _result_from_rows(rows)
+
+
+def _result_from_rows(rows: list[AssessmentQuestionResponse]) -> dict[str, Any]:
     pending = sum(row.status == "pending_review" for row in rows)
     skill: dict[str, dict[str, int]] = defaultdict(lambda: {"graded": 0, "correct": 0, "pending": 0})
     for row in rows:
@@ -397,12 +401,16 @@ def answer(session_id: int, body: AnswerRequest, student: Student = Depends(_req
     }
 
 
-def _review_item(db: Session, row: AssessmentQuestionResponse, session: AssessmentSession, student: Student) -> dict[str, Any]:
-    release = _session_release(db, session)
+def _review_item(
+    db: Session, row: AssessmentQuestionResponse, session: AssessmentSession, student: Student,
+    *, release: dict[str, Any] | None = None, audio: AudioSubmission | None = None, preloaded_audio: bool = False,
+) -> dict[str, Any]:
+    release = release if release is not None else _session_release(db, session)
     question = next((q for q in release["questions"] if q["id"] == row.question_id), None)
     if not question or question["role"] != row.role:
         raise HTTPException(status_code=409, detail="سؤال المراجعة لا يطابق الإصدار")
-    audio = db.query(AudioSubmission).filter(AudioSubmission.assessment_response_id == row.id).one_or_none()
+    if not preloaded_audio:
+        audio = db.query(AudioSubmission).filter(AudioSubmission.assessment_response_id == row.id).one_or_none()
     is_reading = question["interaction"] == "read_aloud"
     is_writing = question["interaction"] == "write_text"
     evidence_ready = bool(audio and audio.storage_key and audio.file_size > 0) if is_reading else bool((row.answer_json or {}).get("text_response", "").strip()) if is_writing else False
@@ -431,10 +439,23 @@ def review_queue(
         AssessmentQuestionResponse.status == "pending_review", AssessmentSession.v2_state.is_not(None),
     )
     rows = query.order_by(AssessmentQuestionResponse.created_at, AssessmentQuestionResponse.id).offset(offset).limit(limit + 1).all()
-    return {
-        "items": [_review_item(db, row, session, student) for row, session, student in rows[:limit]],
-        "next_offset": offset + limit if len(rows) > limit else None,
-    }
+    page = rows[:limit]
+    release_cache: dict[int, dict[str, Any]] = {}
+    response_ids = [row.id for row, _, _ in page]
+    audios = {
+        audio.assessment_response_id: audio for audio in db.query(AudioSubmission).filter(
+            AudioSubmission.assessment_response_id.in_(response_ids),
+        ).all()
+    } if response_ids else {}
+    items = []
+    for row, session, student in page:
+        if session.content_release_id not in release_cache:
+            release_cache[session.content_release_id] = _session_release(db, session)
+        items.append(_review_item(
+            db, row, session, student, release=release_cache[session.content_release_id],
+            audio=audios.get(row.id), preloaded_audio=True,
+        ))
+    return {"items": items, "next_offset": offset + limit if len(rows) > limit else None}
 
 
 @router.get("/admin/responses/{response_id}/audio")
@@ -465,11 +486,19 @@ def placement_queue(
     rows = db.query(AssessmentSession, Student).join(Student, Student.id == AssessmentSession.student_id).filter(
         AssessmentSession.session_type == "pretest", AssessmentSession.v2_state == "placement_pending_review",
     ).order_by(AssessmentSession.started_at, AssessmentSession.id).offset(offset).limit(limit + 1).all()
+    page = rows[:limit]
+    session_ids = [session.id for session, _ in page]
+    grouped: dict[int, list[AssessmentQuestionResponse]] = defaultdict(list)
+    if session_ids:
+        for response in db.query(AssessmentQuestionResponse).filter(
+            AssessmentQuestionResponse.assessment_session_id.in_(session_ids),
+        ).all():
+            grouped[response.assessment_session_id].append(response)
     return {
         "items": [{
             "session_id": session.id, "student_id": student.id, "student_name": student.name,
-            "attempt_no": session.assessment_attempt_no, "result": _result(db, session),
-        } for session, student in rows[:limit]],
+            "attempt_no": session.assessment_attempt_no, "result": _result_from_rows(grouped[session.id]),
+        } for session, student in page],
         "next_offset": offset + limit if len(rows) > limit else None,
     }
 
