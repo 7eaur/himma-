@@ -181,7 +181,7 @@ test.describe("Himma UX system visual QA regression", () => {
     await page.route("**/api/v2/assessments/current-action", async (route) => {
       await route.fulfill({ status: 503, contentType: "application/json", body: '{"detail":"preview temporarily unavailable"}' });
     });
-    await page.route("**/api/v2/retries/student/tasks", async (route) => {
+    await page.route(/\/api\/v2\/retries\/student\/tasks(?:\?.*)?$/, async (route) => {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -211,7 +211,7 @@ test.describe("Himma UX system visual QA regression", () => {
     await page.route("**/api/v2/assessments/current-action", async (route) => {
       await route.fulfill({ status: 503, contentType: "application/json", body: '{"detail":"preview unavailable"}' });
     });
-    await page.route("**/api/v2/retries/student/tasks", async (route) => {
+    await page.route(/\/api\/v2\/retries\/student\/tasks(?:\?.*)?$/, async (route) => {
       await route.fulfill(connected
         ? { status: 200, contentType: "application/json", body: JSON.stringify({ items: [{
             task_id: 509, kind: "lesson", session_id: 77, question_id: "L2-01-GP-01",
@@ -255,7 +255,7 @@ test.describe("Himma UX system visual QA regression", () => {
     await page.route("**/api/v2/assessments/current-action", async (route) => {
       await route.fulfill({ status: 503, contentType: "application/json", body: '{"detail":"preview temporarily unavailable"}' });
     });
-    await page.route("**/api/v2/retries/student/tasks", async (route) => {
+    await page.route(/\/api\/v2\/retries\/student\/tasks(?:\?.*)?$/, async (route) => {
       await route.fulfill({
         status: 200, contentType: "application/json",
         body: JSON.stringify({ items: [{
