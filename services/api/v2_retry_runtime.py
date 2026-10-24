@@ -91,7 +91,7 @@ def request_retry(
     db.add(AuditLog(
         actor_role="researcher", actor_id=user.id, action="v2_open_evidence_retry_requested",
         entity_type="v2_review_retry_task", entity_id=str(replacement.id),
-        details=f"{kind}:{row.id}; {request_kind}; reason={body.reason}",
+        details=f"{kind}:{row.id}; {request_kind}; reason_location=v2_review_retry_tasks" ,
     ))
     db.commit()
     return {"status": "requested", "task_id": replacement.id, "request_kind": request_kind}

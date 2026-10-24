@@ -585,7 +585,7 @@ def review_response(response_id: int, body: ReviewRequest, user: User = Depends(
         task.resolved_at = datetime.now(timezone.utc)
     clear_review_claim(db, "assessment", row.id)
     _finish_if_ready(db, session)
-    db.add(AuditLog(actor_role="researcher", actor_id=user.id, action="v2_assessment_response_reviewed", entity_type="assessment_question_response", entity_id=str(row.id), details=f"is_correct={body.is_correct}; note={body.note}"))
+    db.add(AuditLog(actor_role="researcher", actor_id=user.id, action="v2_assessment_response_reviewed", entity_type="assessment_question_response", entity_id=str(row.id), details=f"is_correct={body.is_correct}; note_location=assessment_question_responses.review_note"))
     db.commit()
     return {"status": "graded", "session_state": session.v2_state}
 

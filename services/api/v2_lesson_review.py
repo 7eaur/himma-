@@ -181,7 +181,7 @@ def decide_lesson(
     db.add(AuditLog(
         actor_role="researcher", actor_id=user.id, action="v2_lesson_response_reviewed",
         entity_type="lesson_question_response", entity_id=str(row.id),
-        details=f"decision={body.is_correct}; note={body.note}",
+        details=f"decision={body.is_correct}; note_location=v2_lesson_review_actions",
     ))
     db.flush()
     remaining = db.query(LessonQuestionResponse).filter(
