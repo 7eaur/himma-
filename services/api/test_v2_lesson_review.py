@@ -281,3 +281,79 @@ def test_p08_student_retry_inbox_paginates_two_distinct_pending_answers(student_
     assert {page1.json()["items"][0]["question_id"], page2.json()["items"][0]["question_id"]} == {
         first_question_id, "L2-01-IC-A02",
     }
+
+
+def test_p08_rewrite_draft_recovers_after_reload_without_grading(student_client):
+    from db.learning_models import V2ReviewRetryTask
+
+    sid, qid = _writing_response(student_client)
+    with TestingSessionLocal() as db:
+        rid = db.query(LessonQuestionResponse).filter(
+            LessonQuestionResponse.lesson_session_id == sid,
+            LessonQuestionResponse.question_id == qid,
+        ).one().id
+
+    _login_researcher(student_client)
+    request = student_client.post(f"/v2/retries/admin/lesson/{rid}/request", json={
+        "reason": "الكتابة السابقة لم تكن واضحة؛ أعد كتابة الإجابة قبل المراجعة",
+    })
+    assert request.status_code == 200, request.text
+    task_id = request.json()["task_id"]
+
+    assert student_client.post("/auth/student-login", json={"access_code": "STU001"}).status_code == 200
+    draft = student_client.post(f"/v2/retries/student/tasks/{task_id}/draft",
+                                json={"text_response": "مسودة لا تدخل التقييم"})
+    assert draft.status_code == 200, draft.text
+    assert draft.json()["status"] == "draft_saved"
+    inbox = student_client.get("/v2/retries/student/tasks")
+    assert inbox.status_code == 200, inbox.text
+    saved = next(x for x in inbox.json()["items"] if x["task_id"] == task_id)
+    assert saved["draft_text"] == "مسودة لا تدخل التقييم"
+    assert saved["status"] == "requested"
+
+    with TestingSessionLocal() as db:
+        answer = db.query(LessonQuestionResponse).filter(LessonQuestionResponse.id == rid).one()
+        task = db.query(V2ReviewRetryTask).filter(V2ReviewRetryTask.id == task_id).one()
+        assert answer.status == "pending_review" and answer.is_correct is None
+        assert task.status == "requested" and task.replacement_json == {"draft_text": "مسودة لا تدخل التقييم"}
+
+    saved_again = student_client.post(f"/v2/retries/student/tasks/{task_id}/draft",
+                                      json={"text_response": "باب"})
+    assert saved_again.status_code == 200
+    sent = student_client.post(f"/v2/retries/student/tasks/{task_id}/submit",
+                               json={"submit_key": str(uuid4()), "text_response": "باب"})
+    assert sent.status_code == 200, sent.text
+    assert student_client.post(f"/v2/retries/student/tasks/{task_id}/draft",
+                               json={"text_response": "لا تغير جوابًا مرسلًا"}).status_code == 409
+    with TestingSessionLocal() as db:
+        task = db.query(V2ReviewRetryTask).filter(V2ReviewRetryTask.id == task_id).one()
+        assert task.status == "submitted" and task.replacement_json["text_response"] == "باب"
+
+
+def test_p08_audio_retry_cannot_save_a_writing_draft(student_client, monkeypatch):
+    import storage
+    from db.learning_models import LessonQuestionResponse
+
+    monkeypatch.setattr(storage, "verify_audio", lambda *args, **kwargs: None)
+    sid = _start_at_questions(student_client, "L1-05", 3)
+    with TestingSessionLocal() as db:
+        student_id = db.query(Student).filter(Student.access_code == "STU001").one().id
+    response = student_client.post(f"/v2/lessons/sessions/{sid}/answers", json={
+        "submit_key": str(uuid4()), "audio_storage_key": f"audio/{student_id}/first.webm",
+        "audio_file_size": 100, "audio_mime_type": "audio/webm",
+        "audio_duration_seconds": 3,
+    })
+    assert response.status_code == 200, response.text
+    with TestingSessionLocal() as db:
+        rid = db.query(LessonQuestionResponse).filter(
+            LessonQuestionResponse.lesson_session_id == sid
+        ).one().id
+    _login_researcher(student_client)
+    asked = student_client.post(f"/v2/retries/admin/lesson/{rid}/request", json={
+        "reason": "التسجيل غير واضح؛ حاول القراءة مرة أخرى بوضوح",
+    })
+    assert asked.status_code == 200, asked.text
+    task_id = asked.json()["task_id"]
+    assert student_client.post("/auth/student-login", json={"access_code": "STU001"}).status_code == 200
+    assert student_client.post(f"/v2/retries/student/tasks/{task_id}/draft",
+                               json={"text_response": "نص لا ينطبق على التسجيل"}).status_code == 409

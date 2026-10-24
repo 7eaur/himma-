@@ -26,6 +26,11 @@ class RetryRequest(BaseModel):
     reason: str = Field(min_length=10, max_length=2000)
 
 
+class RetryDraftRequest(BaseModel):
+    # An unsent draft is never a graded answer; saving an empty string clears it.
+    text_response: str = Field(max_length=500)
+
+
 def _owner(db: Session, kind: Literal["lesson", "assessment"], response_id: int, *, lock: bool = False):
     if kind == "lesson":
         query = db.query(LessonQuestionResponse).filter(LessonQuestionResponse.id == response_id)
@@ -114,6 +119,10 @@ def student_tasks(
         staged = task.replacement_json if task.status == "requested" else None
         items.append({
             "staged_audio": staged.get("staged_audio") if isinstance(staged, dict) else None,
+            "draft_text": (
+                staged.get("draft_text") if task.request_kind == "rewrite"
+                and isinstance(staged, dict) else None
+            ),
             "task_id": task.id, "kind": kind,
             "session_id": session.id, "question_id": row.question_id,
             "status": task.status, "request_kind": task.request_kind,
@@ -147,6 +156,22 @@ def _student_task(db: Session, task_id: int, student: Student, *, lock: bool = F
     if kind == "assessment" and session.v2_state != "waiting_review":
         raise HTTPException(status_code=409, detail="جلسة الاختبار غير متاحة للإعادة")
     return task, kind, row, question
+
+
+@router.post("/student/tasks/{task_id}/draft")
+def student_retry_draft(
+    task_id: int, body: RetryDraftRequest,
+    student: Student = Depends(_require_preview_student),
+    db: Session = Depends(get_db),
+):
+    task, _, _, question = _student_task(db, task_id, student, lock=True)
+    if task.status != "requested" or task.request_kind != "rewrite" or question["interaction"] != "write_text":
+        raise HTTPException(status_code=409, detail="هذه المهمة لا تقبل مسودة كتابة")
+    # Same private retry row and existing student authorization; never append
+    # to SkillEvidence or create an Answer/AudioSubmission before final submit.
+    task.replacement_json = {"draft_text": body.text_response}
+    db.commit()
+    return {"status": "draft_saved", "task_id": task.id, "length": len(body.text_response)}
 
 
 @router.post("/student/tasks/{task_id}/recording")

@@ -7,6 +7,7 @@ interface RetryItem {
   task_id: number; kind: "lesson" | "assessment"; session_id: number;
   question_id: string; status: "requested" | "submitted";
   request_kind: "rerecord" | "rewrite"; reason: string; prompt: string;
+  draft_text?: string | null;
   staged_audio?: {
     audio_storage_key: string; audio_file_size: number;
     audio_mime_type: string; audio_duration_seconds: number | null;
@@ -20,7 +21,8 @@ function newKey(): string {
 }
 
 function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) {
-  const [text, setText] = useState("");
+  const [text, setText] = useState(task.draft_text ?? "");
+  const [draftSaved, setDraftSaved] = useState(false);
   const [recording, setRecording] = useState(false);
   const [seconds, setSeconds] = useState(0);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
@@ -106,6 +108,21 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
     setRecording(false);
   };
 
+  const saveDraft = async () => {
+    if (busy || task.request_kind !== "rewrite") return;
+    setBusy(true); setError(""); setDraftSaved(false);
+    try {
+      const response = await fetch(`/api/v2/retries/student/tasks/${task.task_id}/draft`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text_response: text }),
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.detail || "تعذر حفظ مسودة الكتابة");
+      setDraftSaved(true);
+    } catch (reason) { setError(reason instanceof Error ? reason.message : "تعذر حفظ المسودة"); }
+    finally { setBusy(false); }
+  };
+
   const submit = async () => {
     if (busy || recording) return;
     setBusy(true); setError("");
@@ -151,7 +168,15 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
     {task.request_kind === "rewrite"
       ? <div><label className="block text-sm font-semibold" htmlFor={`retry-write-${task.task_id}`}>إجابتك الجديدة</label>
         <textarea id={`retry-write-${task.task_id}`} value={text} maxLength={500} rows={3}
-          onChange={(event) => setText(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 bg-white p-3" /></div>
+          onChange={(event) => { setText(event.target.value); setDraftSaved(false); }} className="mt-1 w-full rounded-lg border border-slate-300 bg-white p-3" />
+        <button type="button" disabled={busy} onClick={() => void saveDraft()}
+          className="mt-2 rounded-lg border border-slate-400 bg-white px-3 py-2 text-sm font-semibold disabled:opacity-40">
+          حفظ مسودة الكتابة
+        </button>
+        {draftSaved && <span role="status" className="mx-2 text-sm text-emerald-700">حُفظت مسودتك ويمكن استعادتها بعد إعادة فتح الصفحة.</span>}
+        {!draftSaved && task.draft_text !== null && task.draft_text !== undefined &&
+          <span className="mx-2 text-xs text-slate-600">آخر مسودة محفوظة على الخادم</span>}
+      </div>
       : <div className="space-y-2">
         {!audioBlob
           ? <button type="button" disabled={busy} onClick={recording ? stopRecording : () => void startRecording()}
