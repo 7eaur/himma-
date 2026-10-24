@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import json
 from pathlib import Path
 from typing import Literal
 
@@ -28,6 +29,7 @@ FIXTURE_CAPTIONS = Path(__file__).resolve().parent / "test_fixtures" / "himma-v2
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEMO_LESSON_VIDEO = REPO_ROOT / "assets/video/HIMMA_V2_DEMO/gemini_generated_video_72256b30.mp4"
 NEW_V2_AUDIO_ROOT = REPO_ROOT / "assets/audio/HIMMA_AUDIO_V2/web_mp3"
+PREVIEW_BINDINGS_FILE = REPO_ROOT / "services/api/test_fixtures/v2-preview-bindings.json"
 FALLBACK_AUDIO = REPO_ROOT / "assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-01.mp3"
 FALLBACK_IMAGE = REPO_ROOT / "assets/education/generated_vocabulary/webp/hem-gen-voc-001-house-512.webp"
 EXTERNAL_STAGE = {"video": "teaching_video", "complete": "outcome"}
@@ -256,6 +258,40 @@ def record_lesson_event(
     return _session_payload(session)
 
 
+
+def _bound_preview_source(asset_id: str, kind: str) -> Path | None:
+    """Optional allowlisted per-ID preview binding, never a student upload path.
+
+    Change only the JSON mapping to swap media binaries in a protected preview.
+    Missing explicit files fail closed rather than silently playing another
+    sound/video under the requested educational asset ID.
+    """
+    try:
+        contents = json.loads(PREVIEW_BINDINGS_FILE.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return None
+    except (OSError, ValueError) as exc:
+        raise HTTPException(status_code=503, detail="ملف إعداد المعاينة غير صالح") from exc
+    if contents.get("schema") != "himma-v2-preview-bindings/1" or not isinstance(contents.get("bindings"), dict):
+        raise HTTPException(status_code=503, detail="عقد ربط المعاينة غير مدعوم")
+    entry = contents["bindings"].get(asset_id)
+    if entry is None:
+        return None
+    if not isinstance(entry, dict) or entry.get("kind") != kind:
+        raise HTTPException(status_code=503, detail="نوع وسيط المعاينة لا يطابق المعرّف")
+    raw = entry.get("path")
+    suffixes = {"video": {".mp4"}, "audio": {".mp3"}, "image": {".webp", ".png"}}
+    if not isinstance(raw, str) or not (
+        raw.startswith("assets/") or raw.startswith("services/api/test_fixtures/")
+    ):
+        raise HTTPException(status_code=503, detail="مسار ملف المعاينة غير مسموح")
+    path = (REPO_ROOT / raw).resolve()
+    allowed_roots = [(REPO_ROOT / "assets").resolve(), (REPO_ROOT / "services/api/test_fixtures").resolve()]
+    if not any(root in path.parents for root in allowed_roots) or path.suffix.lower() not in suffixes[kind] or not path.is_file():
+        raise HTTPException(status_code=503, detail="ملف المعاينة المحدد غير متاح")
+    return path
+
+
 @router.get("/test-fixtures/video/{asset_id}")
 def test_video_fixture(
     asset_id: str,
@@ -265,7 +301,7 @@ def test_video_fixture(
     if not asset or (asset.get("kind") or asset.get("type")) != "video":
         raise HTTPException(status_code=404, detail="فيديو المعاينة غير موجود")
     # Temporary lesson preview shared by all 19 IDs; the source video IDs stay unchanged.
-    video_file = DEMO_LESSON_VIDEO if DEMO_LESSON_VIDEO.is_file() else FIXTURE_VIDEO
+    video_file = _bound_preview_source(asset_id, "video") or (DEMO_LESSON_VIDEO if DEMO_LESSON_VIDEO.is_file() else FIXTURE_VIDEO)
     if not video_file.is_file():
         raise HTTPException(status_code=503, detail="فيديو المعاينة غير جاهز")
     return FileResponse(
@@ -291,6 +327,9 @@ def test_video_captions(
 
 
 def _fixture_source(asset: dict, *, kind: str) -> Path:
+    explicit = _bound_preview_source(str(asset.get("id") or ""), kind)
+    if explicit is not None:
+        return explicit
     # New recordings supplied with V2 replace the generic audio preview fallback.
     if kind == "audio":
         asset_id = str(asset.get("id") or "")

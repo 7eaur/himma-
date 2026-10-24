@@ -146,3 +146,36 @@ def test_p07_media_contract_keeps_preview_separate_from_approval(researcher_clie
     audio = next(x for x in data["items"] if x["asset_id"] == "AUD-L1-L")
     assert audio["publication_blocker"] and audio["uses"]
     assert "private_answer" not in response.text
+
+
+def test_p07_preview_binding_swaps_only_requested_asset_without_runtime_change(student_client, monkeypatch, tmp_path):
+    import json
+    from v2_lesson_runtime import FIXTURE_VIDEO
+    manifest = tmp_path / "bindings.json"
+    manifest.write_text(json.dumps({
+        "schema": "himma-v2-preview-bindings/1",
+        "test_only": True,
+        "bindings": {
+            "VID-L1-01": {
+                "kind": "video",
+                "path": "services/api/test_fixtures/himma-v2-video-test-only.mp4"
+            }
+        },
+    }), encoding="utf-8")
+    monkeypatch.setattr("v2_lesson_runtime.PREVIEW_BINDINGS_FILE", manifest)
+    response = student_client.get("/v2/lessons/test-fixtures/video/VID-L1-01")
+    assert response.status_code == 200
+    assert response.content == FIXTURE_VIDEO.read_bytes()
+    assert response.headers["x-himma-test-only"] == "true"
+    other = student_client.get("/v2/lessons/test-fixtures/video/VID-L1-02")
+    assert other.status_code == 200
+    assert other.headers["x-himma-test-only"] == "true"
+
+    # The exact same renderer refuses an invalid replacement instead of
+    # substituting another arbitrary educational video or reading voice.
+    manifest.write_text(json.dumps({
+        "schema": "himma-v2-preview-bindings/1",
+        "bindings": {"VID-L1-01": {"kind": "video", "path": "../../etc/passwd"}},
+    }), encoding="utf-8")
+    refused = student_client.get("/v2/lessons/test-fixtures/video/VID-L1-01")
+    assert refused.status_code == 503
