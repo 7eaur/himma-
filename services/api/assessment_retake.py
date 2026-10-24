@@ -86,6 +86,9 @@ def _attempt_payload(session: AssessmentSession) -> AssessmentAttemptSummary:
 def mark_official_completed_attempt(db: Session, session: AssessmentSession) -> None:
     if session.session_type not in {"pretest", "posttest"} or session.status != "completed":
         return
+    # All V1/V2 paths serialize official selection on this student row.
+    # The partial unique index additionally protects against concurrent writers.
+    db.query(Student.id).filter(Student.id == session.student_id).with_for_update().one()
     db.query(AssessmentSession).filter(AssessmentSession.student_id == session.student_id, AssessmentSession.session_type == session.session_type, AssessmentSession.id != session.id).update({AssessmentSession.official_for_reporting: False}, synchronize_session=False)
     session.official_for_reporting = True
 
@@ -124,6 +127,7 @@ def assessment_attempt_history(student_id: int, user: User = Depends(get_current
 def start_assessment_with_retake_policy(request: schemas.AssessmentStartRequest, db: Session = Depends(get_db), student: Student = Depends(get_current_student)):
     if not student.is_active:
         raise HTTPException(status_code=403, detail="حساب الطالب غير نشط")
+    db.query(Student.id).filter(Student.id == student.id).with_for_update().one()
     active = db.query(AssessmentSession).filter(AssessmentSession.student_id == student.id, AssessmentSession.status == "in_progress").first()
     if active:
         if active.session_type == request.session_type:
@@ -170,6 +174,7 @@ def finish_assessment_and_select_official_attempt(session_id: int, db: Session =
     session = db.query(AssessmentSession).filter(AssessmentSession.id == session_id, AssessmentSession.student_id == student.id).first()
     if not session or session.status != "in_progress":
         raise HTTPException(status_code=400, detail="الجلسة غير صالحة أو مكتملة")
+    db.query(Student.id).filter(Student.id == student.id).with_for_update().one()
     result = finish_session(db, student, session)
     mark_official_completed_attempt(db, session)
     db.commit()

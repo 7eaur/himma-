@@ -241,6 +241,12 @@ class AssessmentSession(Base):
             sqlite_where=text("status = 'in_progress'"),
         ),
         Index(
+            "uq_assessment_sessions_official_student_kind",
+            "student_id", "session_type", unique=True,
+            postgresql_where=text("official_for_reporting IS TRUE AND status = 'completed' AND session_type IN ('pretest','posttest')"),
+            sqlite_where=text("official_for_reporting IS TRUE AND status = 'completed' AND session_type IN ('pretest','posttest')"),
+        ),
+        Index(
             "uq_assessment_sessions_prepost_attempt_no",
             "student_id",
             "session_type",

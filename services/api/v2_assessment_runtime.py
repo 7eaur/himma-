@@ -11,11 +11,14 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from typing import Any, Literal
 
-from fastapi import APIRouter, Depends, File, Header, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Header, HTTPException, Query, UploadFile
 from pydantic import BaseModel, Field
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 import storage
+import recordings
+from assessment_retake import mark_official_completed_attempt
 from db.learning_models import (
     AssessmentQuestionDraft,
     AssessmentQuestionResponse,
@@ -107,6 +110,17 @@ def _current(session: AssessmentSession) -> dict[str, Any]:
     return question
 
 
+def _assert_release_current(db: Session, session: AssessmentSession) -> None:
+    """Never grade a pinned assessment against a different author's bank.
+
+    Historical releases need a full immutable snapshot reader before a bank
+    upgrade; until then a checksum mismatch fails closed without touching data.
+    """
+    row = db.query(ContentRelease).filter(ContentRelease.id == session.content_release_id).one_or_none()
+    if not row or not row.checksum or row.checksum != get_release()["checksum"]:
+        raise HTTPException(status_code=409, detail="إصدار أسئلة الجلسة تغيّر؛ يلزم استرجاع النسخة المثبتة قبل المتابعة")
+
+
 def _media(question: dict[str, Any]) -> dict[str, dict[str, Any]]:
     ids = {m["media_id"] for m in question.get("stimulus", {}).get("media", [])}
     ids |= {m["media_id"] for option in question.get("options", []) for m in option.get("media", [])}
@@ -158,6 +172,7 @@ def _payload(db: Session, session: AssessmentSession) -> dict[str, Any]:
         "interaction": None,
     }
     if session.v2_state == "answering":
+        _assert_release_current(db, session)
         question = _current(session)
         draft = db.query(AssessmentQuestionDraft).filter(
             AssessmentQuestionDraft.assessment_session_id == session.id,
@@ -190,7 +205,7 @@ def _finish_if_ready(db: Session, session: AssessmentSession) -> None:
     session.status = "completed"
     session.completed_at = datetime.now(timezone.utc)
     session.final_score = result["score_percent"]
-    session.official_for_reporting = True
+    mark_official_completed_attempt(db, session)
     journey = db.query(StudentJourney).filter(StudentJourney.student_id == session.student_id).one_or_none()
     if journey:
         journey.placement_state = "completed"
@@ -205,6 +220,8 @@ def start_assessment(
     student: Student = Depends(_require_preview_student),
     db: Session = Depends(get_db),
 ):
+    # Serialize V1/V2 assessment starts for the same student (PostgreSQL).
+    db.query(Student).filter(Student.id == student.id).with_for_update().one()
     active = db.query(AssessmentSession).filter(
         AssessmentSession.student_id == student.id,
         AssessmentSession.status == "in_progress",
@@ -270,6 +287,7 @@ def assessment_session(session_id: int, student: Student = Depends(_require_prev
 @router.put("/sessions/{session_id}/draft")
 def save_draft(session_id: int, body: DraftRequest, student: Student = Depends(_require_preview_student), db: Session = Depends(get_db)):
     session = _session(db, session_id, student.id)
+    _assert_release_current(db, session)
     question = _current(session)
     if question["interaction"] != "write_text":
         raise HTTPException(status_code=409, detail="المسودة متاحة لسؤال الكتابة فقط")
@@ -295,6 +313,7 @@ def upload_recording(
     db: Session = Depends(get_db),
 ):
     session = _session(db, session_id, student.id)
+    _assert_release_current(db, session)
     question = _current(session)
     if question["interaction"] != "read_aloud" or not file.content_type or not file.content_type.startswith("audio/"):
         raise HTTPException(status_code=400, detail="التسجيل غير صالح للسؤال الحالي")
@@ -321,12 +340,14 @@ def answer(session_id: int, body: AnswerRequest, student: Student = Depends(_req
         AssessmentQuestionResponse.submit_key == body.submit_key,
     ).one_or_none()
     if existing:
+        _assert_release_current(db, session)
         candidate = get_question(existing.question_id)
         if not candidate or existing.answer_json != _canonical_answer(candidate, body, student.id):
             raise HTTPException(status_code=409, detail="مفتاح الإرسال استُخدم لإجابة مختلفة")
         return {"status": "replayed", "submission": {"status": existing.status, "accepted": True}, "assessment": _payload(db, session)}
     if session.v2_state != "answering":
         raise HTTPException(status_code=409, detail="الجلسة لا تقبل إجابات الآن")
+    _assert_release_current(db, session)
     question = _current(session)
     canonical = _canonical_answer(question, body, student.id)
     is_open = question["interaction"] in OPEN_INTERACTIONS
@@ -366,10 +387,81 @@ def answer(session_id: int, body: AnswerRequest, student: Student = Depends(_req
     }
 
 
+def _review_item(db: Session, row: AssessmentQuestionResponse, session: AssessmentSession, student: Student) -> dict[str, Any]:
+    _assert_release_current(db, session)
+    question = get_question(row.question_id)
+    if not question or question["role"] != row.role:
+        raise HTTPException(status_code=409, detail="سؤال المراجعة لا يطابق الإصدار")
+    audio = db.query(AudioSubmission).filter(AudioSubmission.assessment_response_id == row.id).one_or_none()
+    is_reading = question["interaction"] == "read_aloud"
+    is_writing = question["interaction"] == "write_text"
+    evidence_ready = bool(audio and audio.storage_key and audio.file_size > 0) if is_reading else bool((row.answer_json or {}).get("text_response", "").strip()) if is_writing else False
+    return {
+        "response_id": row.id, "session_id": session.id, "student_id": student.id,
+        "student_name": student.name, "question_id": row.question_id,
+        "kind": row.role, "skill_group": row.skill_group, "evidence_type": row.evidence_type,
+        "interaction": question["interaction"], "prompt": question["prompt"],
+        "stimulus_text": (question.get("stimulus") or {}).get("text"),
+        "reference": question.get("reading_reference") if is_reading else None,
+        "rubric": (question.get("private_answer") or {}).get("rubric"),
+        "text_response": (row.answer_json or {}).get("text_response") if is_writing else None,
+        "audio_url": f"/api/v2/assessments/admin/responses/{row.id}/audio" if is_reading and evidence_ready else None,
+        "evidence_ready": evidence_ready, "submitted_at": row.created_at.isoformat(),
+    }
+
+
 @router.get("/admin/review-queue")
-def review_queue(_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    rows = db.query(AssessmentQuestionResponse).filter(AssessmentQuestionResponse.status == "pending_review").order_by(AssessmentQuestionResponse.created_at).all()
-    return {"items": [{"response_id": row.id, "session_id": row.assessment_session_id, "question_id": row.question_id, "kind": row.role, "skill_group": row.skill_group, "evidence_type": row.evidence_type, "submitted_at": row.created_at.isoformat()} for row in rows]}
+def review_queue(
+    limit: int = Query(default=50, ge=1, le=100), offset: int = Query(default=0, ge=0),
+    _user: User = Depends(get_current_user), db: Session = Depends(get_db),
+):
+    query = db.query(AssessmentQuestionResponse, AssessmentSession, Student).join(
+        AssessmentSession, AssessmentQuestionResponse.assessment_session_id == AssessmentSession.id
+    ).join(Student, Student.id == AssessmentSession.student_id).filter(
+        AssessmentQuestionResponse.status == "pending_review", AssessmentSession.v2_state.is_not(None),
+    )
+    rows = query.order_by(AssessmentQuestionResponse.created_at, AssessmentQuestionResponse.id).offset(offset).limit(limit + 1).all()
+    return {
+        "items": [_review_item(db, row, session, student) for row, session, student in rows[:limit]],
+        "next_offset": offset + limit if len(rows) > limit else None,
+    }
+
+
+@router.get("/admin/responses/{response_id}/audio")
+def review_audio(
+    response_id: int,
+    range_header: str | None = Header(default=None, alias="Range"),
+    user: User = Depends(get_current_user), db: Session = Depends(get_db),
+):
+    row = db.query(AssessmentQuestionResponse).filter(AssessmentQuestionResponse.id == response_id).one_or_none()
+    if not row:
+        raise HTTPException(status_code=404, detail="الإجابة غير موجودة")
+    session = _session(db, row.assessment_session_id)
+    _assert_release_current(db, session)
+    question = get_question(row.question_id)
+    if not question or question["interaction"] != "read_aloud":
+        raise HTTPException(status_code=404, detail="لا يوجد تسجيل لهذا السؤال")
+    audio = db.query(AudioSubmission).filter(AudioSubmission.assessment_response_id == row.id).one_or_none()
+    if not audio or not audio.storage_key.startswith(f"audio/{session.student_id}/"):
+        raise HTTPException(status_code=404, detail="تسجيل الطالب غير متاح")
+    return recordings.play_by_key(key=audio.storage_key, range_header=range_header, researcher=user)
+
+
+@router.get("/admin/placement-queue")
+def placement_queue(
+    limit: int = Query(default=50, ge=1, le=100), offset: int = Query(default=0, ge=0),
+    _user: User = Depends(get_current_user), db: Session = Depends(get_db),
+):
+    rows = db.query(AssessmentSession, Student).join(Student, Student.id == AssessmentSession.student_id).filter(
+        AssessmentSession.session_type == "pretest", AssessmentSession.v2_state == "placement_pending_review",
+    ).order_by(AssessmentSession.started_at, AssessmentSession.id).offset(offset).limit(limit + 1).all()
+    return {
+        "items": [{
+            "session_id": session.id, "student_id": student.id, "student_name": student.name,
+            "attempt_no": session.assessment_attempt_no, "result": _result(db, session),
+        } for session, student in rows[:limit]],
+        "next_offset": offset + limit if len(rows) > limit else None,
+    }
 
 
 @router.post("/admin/responses/{response_id}/review")
@@ -379,11 +471,15 @@ def review_response(response_id: int, body: ReviewRequest, user: User = Depends(
         raise HTTPException(status_code=404, detail="الإجابة غير موجودة")
     if row.status != "pending_review":
         raise HTTPException(status_code=409, detail="تمت مراجعة الإجابة سابقًا")
+    session = _session(db, row.assessment_session_id)
+    student = db.query(Student).filter(Student.id == session.student_id).one()
+    evidence = _review_item(db, row, session, student)
+    if not evidence["evidence_ready"]:
+        raise HTTPException(status_code=409, detail="لا يمكن تقييم إجابة دون دليل صوتي أو كتابي صالح")
     row.status = "graded"; row.is_correct = body.is_correct; row.review_note = body.note
     row.reviewed_by = user.id; row.reviewed_at = datetime.now(timezone.utc)
     audio = db.query(AudioSubmission).filter(AudioSubmission.assessment_response_id == row.id).one_or_none()
     if audio: audio.status = "graded"
-    session = _session(db, row.assessment_session_id)
     _finish_if_ready(db, session)
     db.add(AuditLog(actor_role="researcher", actor_id=user.id, action="v2_assessment_response_reviewed", entity_type="assessment_question_response", entity_id=str(row.id), details=f"is_correct={body.is_correct}; note={body.note}"))
     db.commit()
@@ -392,11 +488,16 @@ def review_response(response_id: int, body: ReviewRequest, user: User = Depends(
 
 @router.post("/admin/sessions/{session_id}/placement")
 def place_student(session_id: int, body: PlacementRequest, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    session = _session(db, session_id)
+    session = db.query(AssessmentSession).filter(
+        AssessmentSession.id == session_id, AssessmentSession.v2_state.is_not(None),
+    ).with_for_update().one_or_none()
+    if not session:
+        raise HTTPException(status_code=404, detail="جلسة التقييم غير موجودة")
     if session.session_type != "pretest" or session.v2_state != "placement_pending_review":
         raise HTTPException(status_code=409, detail="الجلسة غير جاهزة للتسكين")
     if db.query(PlacementDecisionV2).filter(PlacementDecisionV2.assessment_session_id == session.id).first():
         raise HTTPException(status_code=409, detail="تم اعتماد التسكين سابقًا")
+    _assert_release_current(db, session)
     first_lesson = next(row["id"] for row in get_release()["lessons"] if row["level"] == f"L{body.assigned_level}")
     journey = db.query(StudentJourney).filter(StudentJourney.student_id == session.student_id).one()
     student = db.query(Student).filter(Student.id == session.student_id).one()
@@ -404,7 +505,8 @@ def place_student(session_id: int, body: PlacementRequest, user: User = Depends(
     db.add(PlacementDecisionV2(student_id=student.id, assessment_session_id=session.id, content_release_id=session.content_release_id, assigned_level=body.assigned_level, reason=body.reason, policy_version=POLICY_VERSION, decided_by=user.id))
     session.assigned_level = body.assigned_level; session.final_score = result["score_percent"]
     session.v2_result_json = result; session.v2_state = "completed"; session.status = "completed"
-    session.completed_at = datetime.now(timezone.utc); session.official_for_reporting = True
+    session.completed_at = datetime.now(timezone.utc)
+    mark_official_completed_attempt(db, session)
     journey.current_level = body.assigned_level; journey.current_lesson_id = first_lesson; journey.placement_state = "placed"
     student.current_level = body.assigned_level
     db.add(AuditLog(actor_role="researcher", actor_id=user.id, action="v2_manual_placement_approved", entity_type="assessment_session", entity_id=str(session.id), details=f"level={body.assigned_level}; policy={POLICY_VERSION}; reason={body.reason}"))
@@ -435,15 +537,19 @@ def student_summary(student_id: int, _user: User = Depends(get_current_user), db
 
 @router.get("/admin/reports/summary")
 def reports_summary(_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    sessions = db.query(AssessmentSession).filter(AssessmentSession.v2_state.is_not(None)).all()
-    result: dict[str, Any] = {"counts": defaultdict(int), "averages": {"pretest": None, "posttest": None}}
-    scores: dict[str, list[float]] = {"pretest": [], "posttest": []}
-    for row in sessions:
-        result["counts"][f"{row.session_type}:{row.v2_state}"] += 1
-        if row.official_for_reporting and row.final_score is not None and row.session_type in scores:
-            scores[row.session_type].append(float(row.final_score))
-    result["counts"] = dict(result["counts"])
-    for kind, values in scores.items():
-        result["averages"][kind] = round(sum(values) / len(values), 2) if values else None
+    counts = db.query(AssessmentSession.session_type, AssessmentSession.v2_state, func.count(AssessmentSession.id)).filter(
+        AssessmentSession.v2_state.is_not(None),
+    ).group_by(AssessmentSession.session_type, AssessmentSession.v2_state).all()
+    averages = db.query(AssessmentSession.session_type, func.avg(AssessmentSession.final_score)).filter(
+        AssessmentSession.v2_state.is_not(None), AssessmentSession.status == "completed",
+        AssessmentSession.official_for_reporting.is_(True), AssessmentSession.final_score.is_not(None),
+        AssessmentSession.session_type.in_(("pretest", "posttest")),
+    ).group_by(AssessmentSession.session_type).all()
+    result: dict[str, Any] = {
+        "counts": {f"{kind}:{state}": count for kind, state, count in counts},
+        "averages": {"pretest": None, "posttest": None},
+    }
+    for kind, mean in averages:
+        result["averages"][kind] = round(float(mean), 2) if mean is not None else None
     result["missing_policy"] = "null_not_zero"
     return result

@@ -2,7 +2,7 @@ from uuid import uuid4
 
 from conftest import TestingSessionLocal
 from db.learning_models import AssessmentQuestionResponse, PlacementDecisionV2, StudentJourney
-from db.models import AssessmentSession, Student
+from db.models import AssessmentSession, AudioSubmission, Student
 from v2_content.contracts import PRIVATE_KEYS
 from v2_content.repository import get_question, get_release
 from v2_content.importer import register_candidate_release
@@ -64,12 +64,16 @@ def test_open_responses_keep_placement_pending_until_human_review_and_manual_dec
         db.add(session); db.flush()
         questions = [q for q in get_release()["questions"] if q["role"] == "pretest"]
         for q in questions:
-            db.add(AssessmentQuestionResponse(
-                assessment_session_id=session.id, question_id=q["id"], role="pretest", answer_json={"test": True},
+            response = AssessmentQuestionResponse(
+                assessment_session_id=session.id, question_id=q["id"], role="pretest", answer_json={"text_response": "نص مُقدّم"} if q["interaction"] == "write_text" else {"audio_storage_key": f"audio/{student.id}/test.webm"} if q["interaction"] == "read_aloud" else {"test": True},
                 submit_key=str(uuid4()), status="pending_review" if q["interaction"] in {"read_aloud", "write_text"} else "graded",
                 is_correct=None if q["interaction"] in {"read_aloud", "write_text"} else True,
                 skill_group=q["skill_group"], evidence_type=q["evidence_type"],
-            ))
+            )
+            db.add(response)
+            db.flush()
+            if q["interaction"] == "read_aloud":
+                db.add(AudioSubmission(assessment_response_id=response.id, storage_key=f"audio/{student.id}/test.webm", file_size=2048, mime_type="audio/webm", status="pending_review"))
         db.commit()
         pending_ids = [r.id for r in db.query(AssessmentQuestionResponse).filter(AssessmentQuestionResponse.status == "pending_review").all()]
         session_id = session.id
