@@ -4,13 +4,32 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import os
+from pathlib import Path
 from typing import Any
+
+from .compiler import REPO_ROOT
 
 from runtime_flags import trial_v2_preview_allowed
 
 
 APPROVED_STATES = {"approved", "ready", "published"}
 MISSING_STATES = {"missing", "missing_new"}
+_ALLOWED_SUFFIXES = {"audio": {".mp3", ".wav", ".ogg", ".m4a"}, "image": {".webp", ".png", ".jpg", ".jpeg"}, "video": {".mp4", ".webm"}}
+
+
+def approved_asset_path(asset: dict[str, Any]) -> Path | None:
+    """Return only approved, present and safely rooted educational binaries."""
+    status = str(asset.get("status") or "").lower()
+    kind = str(asset.get("kind") or asset.get("type") or "")
+    source = asset.get("source_path") or asset.get("v1_path")
+    if status not in APPROVED_STATES or kind not in _ALLOWED_SUFFIXES or not isinstance(source, str) or not source.startswith("assets/"):
+        return None
+    root = (REPO_ROOT / "assets").resolve()
+    path = (REPO_ROOT / source).resolve()
+    if root not in path.parents or path.suffix.lower() not in _ALLOWED_SUFFIXES[kind] or not path.is_file():
+        return None
+    return path
+
 
 
 @dataclass(frozen=True)
@@ -44,8 +63,7 @@ class MediaProvider:
         asset_id = str(asset["id"])
         kind = str(asset.get("kind") or asset.get("type"))
         status = str(asset.get("status") or "missing").lower()
-        source_path = asset.get("source_path") or asset.get("v1_path")
-        if status in APPROVED_STATES and source_path:
+        if approved_asset_path(asset) is not None:
             return ResolvedMedia(asset_id, kind, "ready", f"/api/v2/media/{asset_id}", False)
         if self.fixture_enabled and (
             self.environment in {"development", "test", "staging"}

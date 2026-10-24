@@ -1,10 +1,11 @@
 """Authenticated, learner-safe preview boundary for the unapproved V2 release."""
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import FileResponse
 
 from dependencies import get_any_authenticated
 from runtime_flags import protected_runtime, trial_v2_preview_allowed
-from v2_content.media import MediaProvider
+from v2_content.media import MediaProvider, approved_asset_path
 from v2_content.projection import student_manifest, student_question
 from v2_content.repository import get_media, get_question, get_release
 
@@ -38,3 +39,15 @@ def candidate_media(asset_id: str, _=Depends(_require_candidate_access)):
     if not asset:
         raise HTTPException(status_code=404, detail="الوسيط غير موجود")
     return MediaProvider().resolve(asset).as_dict()
+
+
+@router.get("/media/{asset_id}")
+def approved_media_file(asset_id: str, _=Depends(_require_candidate_access)):
+    """Serve a verified approved educational asset, never a TEST_ONLY fixture."""
+    asset = get_media(asset_id)
+    path = approved_asset_path(asset) if asset else None
+    if path is None:
+        raise HTTPException(status_code=404, detail="ملف الوسيط غير معتمد أو غير موجود")
+    import mimetypes
+    return FileResponse(path, media_type=mimetypes.guess_type(path.name)[0] or "application/octet-stream",
+                        headers={"Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff"})
