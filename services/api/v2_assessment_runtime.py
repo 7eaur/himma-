@@ -208,6 +208,8 @@ def _finish_if_ready(db: Session, session: AssessmentSession) -> None:
     if session.v2_question_index < 30:
         return
     result = _result(db, session)
+    if result["answered"] != 30:
+        raise HTTPException(status_code=409, detail="بيانات التقييم ناقصة؛ لا يمكن إكمال جلسة غير مكتملة")
     session.v2_result_json = result
     if result["pending_review"]:
         session.v2_state = "waiting_review"
@@ -552,6 +554,8 @@ def place_student(session_id: int, body: PlacementRequest, user: User = Depends(
     journey = db.query(StudentJourney).filter(StudentJourney.student_id == session.student_id).one()
     student = db.query(Student).filter(Student.id == session.student_id).one()
     result = _result(db, session)
+    if result["answered"] != 30 or result["pending_review"] or result["score_percent"] is None:
+        raise HTTPException(status_code=409, detail="لا يمكن تسكين طالب قبل اكتمال التقييم ومراجعة جميع الأدلة")
     db.add(PlacementDecisionV2(student_id=student.id, assessment_session_id=session.id, content_release_id=session.content_release_id, assigned_level=body.assigned_level, reason=body.reason, policy_version=POLICY_VERSION, decided_by=user.id))
     session.assigned_level = body.assigned_level; session.final_score = result["score_percent"]
     session.v2_result_json = result; session.v2_state = "completed"; session.status = "completed"
