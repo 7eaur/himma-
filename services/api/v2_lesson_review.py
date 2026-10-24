@@ -27,6 +27,7 @@ from v2_adaptation_runtime import (
 from v2_content.repository import get_release
 from v2_assessment_runtime import _session_release
 from v2_retry_state import active_retry
+from v2_review_claims import enforce_review_claim, clear_review_claim
 
 router = APIRouter(prefix="/v2/review", tags=["v2-review"])
 
@@ -152,6 +153,7 @@ def decide_lesson(
         except RuntimeError as exc:
             raise HTTPException(status_code=503, detail="تعذر التحقق من الملف الصوتي الآن") from exc
 
+    enforce_review_claim(db, "lesson", row.id, user.id)
     now = datetime.now(timezone.utc)
     row.status = "graded"
     row.is_correct = body.is_correct
@@ -171,6 +173,7 @@ def decide_lesson(
     proof.is_correct = body.is_correct
     proof.reviewed_at = now
     proof.counts_for_mastery = row.role in {"independent_check", "support_check"}
+    clear_review_claim(db, "lesson", row.id)
     db.add(V2LessonReviewAction(
         lesson_response_id=row.id, reviewer_id=user.id, action="graded",
         is_correct=body.is_correct, note=body.note, created_at=now,

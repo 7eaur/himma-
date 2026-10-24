@@ -36,6 +36,7 @@ from v2_content.repository import get_release
 from v2_interaction_runtime import AnswerRequest, CHOICE_INTERACTIONS, OPEN_INTERACTIONS, ORDER_INTERACTIONS, _canonical_answer
 from v2_lesson_runtime import _require_preview_student
 from v2_retry_state import active_retry
+from v2_review_claims import enforce_review_claim, clear_review_claim
 
 
 router = APIRouter(prefix="/v2/assessments", tags=["v2-assessments"])
@@ -546,6 +547,7 @@ def review_response(response_id: int, body: ReviewRequest, user: User = Depends(
         raise HTTPException(status_code=404, detail="الإجابة غير موجودة")
     if row.status != "pending_review":
         raise HTTPException(status_code=409, detail="تمت مراجعة الإجابة سابقًا")
+    enforce_review_claim(db, "assessment", row.id, user.id)
     session = _session(db, row.assessment_session_id)
     student = db.query(Student).filter(Student.id == session.student_id).one()
     evidence = _review_item(db, row, session, student)
@@ -581,6 +583,7 @@ def review_response(response_id: int, body: ReviewRequest, user: User = Depends(
     if task and task.status == "submitted":
         task.status = "resolved"
         task.resolved_at = datetime.now(timezone.utc)
+    clear_review_claim(db, "assessment", row.id)
     _finish_if_ready(db, session)
     db.add(AuditLog(actor_role="researcher", actor_id=user.id, action="v2_assessment_response_reviewed", entity_type="assessment_question_response", entity_id=str(row.id), details=f"is_correct={body.is_correct}; note={body.note}"))
     db.commit()

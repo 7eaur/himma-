@@ -370,6 +370,27 @@ class V2ReviewRetryTask(Base):
     )
 
 
+class V2ReviewClaim(Base):
+    """Short supervisor review lease; uniqueness is scoped to the original response."""
+    __tablename__ = "v2_review_claims"
+
+    id = Column(Integer, primary_key=True)
+    lesson_response_id = Column(Integer, ForeignKey("lesson_question_responses.id", ondelete="CASCADE"), nullable=True, unique=True)
+    assessment_response_id = Column(Integer, ForeignKey("assessment_question_responses.id", ondelete="CASCADE"), nullable=True, unique=True)
+    reviewer_id = Column(Integer, ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)
+    claimed_at = Column(DateTime(timezone=True), nullable=False, default=_now)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+
+    __table_args__ = (
+        CheckConstraint(
+            "(CASE WHEN lesson_response_id IS NOT NULL THEN 1 ELSE 0 END + "
+            "CASE WHEN assessment_response_id IS NOT NULL THEN 1 ELSE 0 END) = 1",
+            name="ck_v2_review_claim_exactly_one_owner",
+        ),
+        Index("ix_v2_review_claim_reviewer", "reviewer_id", "expires_at"),
+    )
+
+
 class PrivateContentBankSnapshot(Base):
     """Internal immutable assessment bank with private answer keys; never public metadata."""
     __tablename__ = "private_content_bank_snapshots"

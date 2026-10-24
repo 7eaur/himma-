@@ -17,6 +17,7 @@ from v2_content.projection import student_question
 from v2_interaction_runtime import AnswerRequest, _canonical_answer
 from v2_lesson_runtime import _require_preview_student
 from v2_retry_state import active_retry
+from v2_review_claims import enforce_review_claim, clear_review_claim
 
 router = APIRouter(prefix="/v2/retries", tags=["v2-retries"])
 
@@ -54,6 +55,7 @@ def request_retry(
     row, session, question = _owner(db, kind, response_id, lock=True)
     if row.status != "pending_review":
         raise HTTPException(status_code=409, detail="لا يمكن طلب إعادة دليل مُقيَّم")
+    enforce_review_claim(db, kind, row.id, user.id)
     task = active_retry(db, **{f"{kind}_response_id": row.id})
     if task:
         if task.status == "requested":
@@ -83,6 +85,7 @@ def request_retry(
             old_audio.status = "rerecord_required"
     db.add(replacement)
     db.flush()
+    clear_review_claim(db, kind, row.id)
     db.add(AuditLog(
         actor_role="researcher", actor_id=user.id, action="v2_open_evidence_retry_requested",
         entity_type="v2_review_retry_task", entity_id=str(replacement.id),
