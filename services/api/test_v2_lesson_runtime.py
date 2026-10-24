@@ -194,3 +194,41 @@ def test_p07_supervisor_media_inventory_omits_dormant_assets_from_runtime_gate(r
     assert data["unused_assets"] == 16
     assert data["publishable"] is False
     assert all(row["uses"] for row in data["items"] if row["required_for_runtime"])
+
+def test_p07_preview_bindings_require_explicit_test_only_marker(student_client, monkeypatch, tmp_path):
+    import json
+    manifest = tmp_path / "bindings.json"
+    monkeypatch.setattr("v2_lesson_runtime.PREVIEW_BINDINGS_FILE", manifest)
+    manifest.write_text(json.dumps({
+        "schema": "himma-v2-preview-bindings/1",
+        "test_only": False,
+        "bindings": {"VID-L1-01": {
+            "kind": "video", "path": "services/api/test_fixtures/himma-v2-video-test-only.mp4"
+        }},
+    }), encoding="utf-8")
+    assert student_client.get("/v2/lessons/test-fixtures/video/VID-L1-01").status_code == 503
+    manifest.write_text("[]", encoding="utf-8")
+    assert student_client.get("/v2/lessons/test-fixtures/video/VID-L1-01").status_code == 503
+
+
+def test_p07_unapproved_preview_cannot_read_other_repository_files(student_client, monkeypatch, tmp_path):
+    from pathlib import Path
+    import v2_lesson_runtime
+    original = v2_lesson_runtime.get_media
+    monkeypatch.setattr(v2_lesson_runtime, "PREVIEW_BINDINGS_FILE", tmp_path / "absent-preview-map.json")
+    def unsafe_file(asset_id):
+        asset = original(asset_id)
+        if asset_id == "LET-01":
+            return dict(asset, source_path="services/api/main.py", v1_path=None, path=None)
+        if asset_id == "VOC-04":
+            return dict(asset, source_path="services/api/main.py", v1_path=None, path=None)
+        return asset
+    monkeypatch.setattr(v2_lesson_runtime, "get_media", unsafe_file)
+    assert student_client.get("/v2/lessons/test-fixtures/audio/LET-01").status_code == 503
+    assert student_client.get("/v2/lessons/test-fixtures/image/VOC-04").status_code == 503
+    # Even a path under assets is rejected when its extension is wrong.
+    def wrong_extension(asset_id):
+        asset = original(asset_id)
+        return dict(asset, source_path="assets/brand/ASSET_MANIFEST.json", v1_path=None, path=None)
+    monkeypatch.setattr(v2_lesson_runtime, "get_media", wrong_extension)
+    assert student_client.get("/v2/lessons/test-fixtures/audio/LET-01").status_code == 503

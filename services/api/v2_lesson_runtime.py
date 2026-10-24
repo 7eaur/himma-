@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 import json
+import mimetypes
 from pathlib import Path
 from typing import Literal
 
@@ -272,7 +273,7 @@ def _bound_preview_source(asset_id: str, kind: str) -> Path | None:
         return None
     except (OSError, ValueError) as exc:
         raise HTTPException(status_code=503, detail="ملف إعداد المعاينة غير صالح") from exc
-    if contents.get("schema") != "himma-v2-preview-bindings/1" or not isinstance(contents.get("bindings"), dict):
+    if not isinstance(contents, dict) or contents.get("schema") != "himma-v2-preview-bindings/1" or contents.get("test_only") is not True or not isinstance(contents.get("bindings"), dict):
         raise HTTPException(status_code=503, detail="عقد ربط المعاينة غير مدعوم")
     entry = contents["bindings"].get(asset_id)
     if entry is None:
@@ -339,8 +340,17 @@ def _fixture_source(asset: dict, *, kind: str) -> Path:
                 return recorded
     source = asset.get("source_path") or asset.get("path") or asset.get("v1_path")
     if source:
-        candidate = (REPO_ROOT / str(source)).resolve()
-        if candidate.is_relative_to(REPO_ROOT) and candidate.is_file():
+        allowed_suffixes = {
+            "audio": {".mp3", ".wav", ".ogg", ".m4a"},
+            "image": {".webp", ".png", ".jpg", ".jpeg"},
+        }
+        if not isinstance(source, str) or not source.startswith("assets/"):
+            raise HTTPException(status_code=503, detail="مسار الوسيط التعليمي غير مسموح")
+        candidate = (REPO_ROOT / source).resolve()
+        assets_root = (REPO_ROOT / "assets").resolve()
+        if assets_root not in candidate.parents or candidate.suffix.lower() not in allowed_suffixes[kind]:
+            raise HTTPException(status_code=503, detail="صيغة أو مسار الوسيط التعليمي غير آمن")
+        if candidate.is_file():
             return candidate
     return FALLBACK_AUDIO if kind == "audio" else FALLBACK_IMAGE
 
@@ -358,7 +368,7 @@ def test_audio_fixture(
         raise HTTPException(status_code=503, detail="صوت المعاينة غير جاهز")
     return FileResponse(
         source,
-        media_type="audio/mpeg",
+        media_type=mimetypes.guess_type(source.name)[0] or "audio/mpeg",
         headers={"Cache-Control": "private, no-store", "X-Himma-Test-Only": "true"},
     )
 
@@ -374,7 +384,7 @@ def test_image_fixture(
     source = _fixture_source(asset, kind="image")
     if not source.is_file():
         raise HTTPException(status_code=503, detail="صورة المعاينة غير جاهزة")
-    media_type = "image/webp" if source.suffix.lower() == ".webp" else "image/png"
+    media_type = mimetypes.guess_type(source.name)[0] or "image/png"
     return FileResponse(
         source,
         media_type=media_type,
