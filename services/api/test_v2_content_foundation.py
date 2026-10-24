@@ -161,3 +161,22 @@ def test_p07_production_resolution_points_to_existing_approved_media_route():
     resolved = MediaProvider(environment="production", fixture_enabled=False).resolve(asset)
     assert resolved.state == "ready" and resolved.test_only is False
     assert resolved.url == "/api/v2/content/media/LET-01"
+
+
+def test_p07_approved_media_endpoint_never_serves_unapproved_or_missing_assets(student_client, monkeypatch):
+    from v2_content import media as media_module
+    import v2_content_api
+    # The existing bank remains unapproved, so its educational MP3 cannot be
+    # mistaken for a production-approved asset.
+    assert student_client.get("/v2/content/media/LET-01").status_code == 404
+    approved = {
+        "id": "LET-01", "kind": "audio", "status": "approved",
+        "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-01.mp3",
+    }
+    monkeypatch.setattr(v2_content_api, "get_media", lambda asset_id: approved if asset_id == "LET-01" else None)
+    res = student_client.get("/v2/content/media/LET-01")
+    assert res.status_code == 200
+    assert res.headers["content-type"].startswith("audio/")
+    assert res.headers.get("x-himma-test-only") is None
+    approved["source_path"] = "assets/audio/HIMMA_AUDIO_V1/web_mp3/NOT-FOUND.mp3"
+    assert student_client.get("/v2/content/media/LET-01").status_code == 404

@@ -180,6 +180,13 @@ def test_p07_preview_binding_swaps_only_requested_asset_without_runtime_change(s
     refused = student_client.get("/v2/lessons/test-fixtures/video/VID-L1-01")
     assert refused.status_code == 503
 
+    # Returning to the original mapping does not change Player or API code.
+    manifest.unlink()
+    restored = student_client.get("/v2/lessons/test-fixtures/video/VID-L1-01")
+    assert restored.status_code == 200
+    assert restored.headers["x-himma-test-only"] == "true"
+
+
 
 def test_p07_supervisor_media_inventory_omits_dormant_assets_from_runtime_gate(researcher_client):
     data = researcher_client.get("/v2/lessons/admin/media-inventory").json()
