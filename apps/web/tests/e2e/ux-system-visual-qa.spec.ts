@@ -171,6 +171,32 @@ test.describe("Himma UX system visual QA regression", () => {
     }
   });
 
+  test("student dashboard reveals cross-session V2 rewrite task only when requested", async ({ page, context, request }) => {
+    test.setTimeout(120000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    const accessCode = await createStudent(page, request, context, "طالب مراجعة القراءة");
+    await loginStudent(request, context, accessCode);
+    await page.route("**/api/v2/retries/student/tasks", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ items: [{
+          task_id: 108, kind: "lesson", session_id: 99,
+          question_id: "L2-01-GP-01", request_kind: "rewrite",
+          status: "requested", reason: "أعد كتابة الإجابة بوضوح حتى يتمكن المشرف من مراجعتها",
+          prompt: "اكتب الكلمة المطلوبة مرة أخرى",
+        }] }),
+      });
+    });
+    await page.goto("/student");
+    await expect(page.getByTestId("student-home")).toBeVisible();
+    const tasks = page.getByTestId("v2-active-retry-tasks");
+    await expect(tasks).toBeVisible({ timeout: 15000 });
+    await expect(tasks).toContainText("أعد كتابة الإجابة بوضوح");
+    await expect(tasks.getByLabel("إجابتك الجديدة")).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+  });
+
   test("mobile assessment keeps title, image choices, and sequence choices compact", async ({ page, context, request }) => {
     test.setTimeout(120000);
     await page.setViewportSize({ width: 390, height: 844 });
