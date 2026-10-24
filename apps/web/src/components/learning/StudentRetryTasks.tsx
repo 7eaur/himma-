@@ -188,11 +188,27 @@ export default function StudentRetryTasks({ kind, sessionId, dashboard = false }
   const load = useCallback(async () => {
     const sequence = ++requestSequence.current;
     try {
-      const response = await fetch("/api/v2/retries/student/tasks", { cache: "no-store" });
-      const payload = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(payload?.detail || "تعذر تحميل طلبات الإعادة");
+      const allTasks: RetryItem[] = [];
+      let nextOffset: number | null = 0;
+      // A student may have open review evidence from multiple finished lessons.
+      // Never silently truncate the queue to the first 50 most recent tasks.
+      for (let page = 0; nextOffset !== null && page < 30; page += 1) {
+        const offset: number = nextOffset;
+        const response = await fetch(`/api/v2/retries/student/tasks?limit=100&offset=${offset}`, { cache: "no-store" });
+        const payload = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(payload?.detail || "تعذر تحميل طلبات الإعادة");
+        if (sequence !== requestSequence.current) return;
+        if (!Array.isArray(payload?.items)) throw new Error("قائمة الإعادات غير صالحة");
+        allTasks.push(...(payload.items as RetryItem[]));
+        const following: unknown = payload.next_offset ?? null;
+        if (following !== null && (!Number.isSafeInteger(following) || (following as number) <= offset)) {
+          throw new Error("تعذر استكمال قائمة الإعادات");
+        }
+        nextOffset = following as number | null;
+      }
+      if (nextOffset !== null) throw new Error("قائمة الإعادات كبيرة جدًا، أعد تحميل الصفحة");
       if (sequence !== requestSequence.current) return;
-      setTasks((payload.items as RetryItem[]).filter((item) =>
+      setTasks(allTasks.filter((item) =>
         (kind === undefined || item.kind === kind) &&
         (sessionId === undefined || item.session_id === sessionId)
       ));

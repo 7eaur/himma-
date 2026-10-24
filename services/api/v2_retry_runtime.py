@@ -100,14 +100,15 @@ def request_retry(
 @router.get("/student/tasks")
 def student_tasks(
     limit: int = Query(default=50, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
     student: Student = Depends(_require_preview_student), db: Session = Depends(get_db),
 ):
     rows = db.query(V2ReviewRetryTask).filter(
         V2ReviewRetryTask.student_id == student.id,
         V2ReviewRetryTask.status.in_(("requested", "submitted")),
-    ).order_by(V2ReviewRetryTask.id.desc()).limit(limit).all()
+    ).order_by(V2ReviewRetryTask.id.desc()).offset(offset).limit(limit + 1).all()
     items = []
-    for task in rows:
+    for task in rows[:limit]:
         kind = "lesson" if task.lesson_response_id is not None else "assessment"
         row, session, question = _owner(db, kind, task.lesson_response_id or task.assessment_response_id)
         staged = task.replacement_json if task.status == "requested" else None
@@ -118,7 +119,7 @@ def student_tasks(
             "status": task.status, "request_kind": task.request_kind,
             "reason": task.reason, "prompt": student_question(question)["prompt"],
         })
-    return {"items": items}
+    return {"items": items, "next_offset": offset + limit if len(rows) > limit else None}
 
 
 def _student_task(db: Session, task_id: int, student: Student, *, lock: bool = False):

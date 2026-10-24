@@ -114,6 +114,14 @@ def test_p08_rewrite_request_resubmit_and_human_decision_preserve_original(stude
     tasks = student_client.get("/v2/retries/student/tasks")
     assert tasks.status_code == 200
     assert any(task["task_id"] == task_id for task in tasks.json()["items"])
+    # The student's retry inbox has explicit pagination, not an invisible 50-task cut.
+    first_page = student_client.get("/v2/retries/student/tasks?limit=1&offset=0")
+    last_page = student_client.get("/v2/retries/student/tasks?limit=1&offset=1")
+    assert first_page.status_code == 200 and last_page.status_code == 200
+    assert first_page.json()["items"][0]["task_id"] == task_id
+    assert first_page.json()["next_offset"] is None
+    assert last_page.json() == {"items": [], "next_offset": None}
+    assert student_client.get("/v2/retries/student/tasks?offset=-1").status_code == 422
     submit_key = str(uuid4())
     submitted = student_client.post(f"/v2/retries/student/tasks/{task_id}/submit", json={
         "submit_key": submit_key, "text_response": "باب",
