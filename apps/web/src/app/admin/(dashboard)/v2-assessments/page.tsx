@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { BarChart3, ClipboardCheck, Clock3, RefreshCw } from "lucide-react";
 import { AdminAction, AdminEmptyState, AdminPage, AdminPageHeader, AdminPanel, AdminStat, AdminStatGrid } from "@/components/admin/AdminUI";
 import SupervisorClaimActions from "@/components/admin/SupervisorClaimActions";
+import V2EvidenceHistory from "@/components/admin/V2EvidenceHistory";
 
 interface ReviewItem {
   response_id: number; session_id: number; student_id: number; student_name: string;
@@ -137,6 +138,7 @@ export default function V2AssessmentsPage() {
             ? <div className="space-y-1"><label htmlFor={`audio-${item.response_id}`} className="text-sm font-semibold">استمع للتسجيل قبل التقييم</label>
                 <audio id={`audio-${item.response_id}`} controls preload="none" src={item.audio_url} className="w-full" /></div>
             : <p role="alert" className="text-sm text-rose-700">ملف التسجيل غير متاح، لا يمكن اعتماد هذه الإجابة.</p>)}
+          <V2EvidenceHistory kind="assessment" responseId={item.response_id}/>
           <label htmlFor={`note-${item.response_id}`} className="block text-sm font-semibold">سبب القرار في سجل التدقيق</label>
           <textarea id={`note-${item.response_id}`} rows={2} maxLength={2000}
             value={notes[item.response_id] || ""} onChange={event => setNotes(previous => ({ ...previous, [item.response_id]: event.target.value }))}

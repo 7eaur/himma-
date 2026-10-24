@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ClipboardCheck, Clock3, RefreshCw } from "lucide-react";
 import { AdminAction, AdminEmptyState, AdminPage, AdminPageHeader, AdminPanel } from "@/components/admin/AdminUI";
 import SupervisorClaimActions from "@/components/admin/SupervisorClaimActions";
+import V2EvidenceHistory from "@/components/admin/V2EvidenceHistory";
 
 interface ReviewItem {
   response_id: number; session_id: number; student_id: number; student_name: string;
@@ -112,8 +113,9 @@ export default function V2LessonReviewPage() {
                 <summary className="cursor-pointer font-semibold text-sm">المرجع والمعيار الخاص بالمشرف</summary>
                 <pre className="mt-2 whitespace-pre-wrap break-words text-xs text-slate-700 font-sans">{reference(item.reference)}{"\n"}{reference(item.rubric)}</pre>
               </details>
+              <V2EvidenceHistory kind="lesson" responseId={item.response_id}/>
               <div className="space-y-2">
-                <label htmlFor={`note-${item.response_id}`} className="block text-sm font-semibold">سبب قرار المراجعة (مطلوب)</label>
+                <label htmlFor={`note-${item.response_id}` className="block text-sm font-semibold">سبب قرار المراجعة (مطلوب)</label>
                 <textarea id={`note-${item.response_id}`} value={note} maxLength={2000} rows={2}
                   onChange={(event) => setNotes((previous) => ({ ...previous, [item.response_id]: event.target.value }))}
                   className="w-full rounded-xl border border-slate-300 p-3 text-sm" placeholder="ما سبب قبول الدليل أو عدم استيفائه؟" />

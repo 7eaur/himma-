@@ -32,6 +32,7 @@ from v2_assessment_runtime import router as v2_assessment_router
 from v2_lesson_review import router as v2_lesson_review_router
 from v2_retry_runtime import router as v2_retry_router
 from v2_review_claims import router as v2_review_claims_router
+from v2_review_history import router as v2_review_history_router
 from observability import request_correlation_middleware
 from readiness import readiness_report
 from runtime_flags import runtime_security_ready, validate_runtime_safety
@@ -106,6 +107,7 @@ app.include_router(v2_assessment_router)
 app.include_router(v2_lesson_review_router)
 app.include_router(v2_retry_router)
 app.include_router(v2_review_claims_router)
+app.include_router(v2_review_history_router)
 
 
 @app.get("/health")
