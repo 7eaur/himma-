@@ -233,6 +233,9 @@ def test_p08_students_cannot_read_or_submit_other_student_retry_task(student_cli
         "submit_key": str(uuid4()), "text_response": "باب",
     })
     assert result.status_code == 404
+    draft = student_client.post(f"/v2/retries/student/tasks/{task_id}/draft",
+                                json={"text_response": "لا يمكنني حفظ مسودة طالب آخر"})
+    assert draft.status_code == 404
     assert student_client.get("/v2/review/lesson-queue").status_code in (401, 403)
     assert student_client.post(f"/v2/review-claims/admin/lesson/{rid}/claim").status_code in (401, 403)
 

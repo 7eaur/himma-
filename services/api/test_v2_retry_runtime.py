@@ -61,6 +61,12 @@ def test_p08_pretest_rewrite_resumes_original_30_questions_and_keeps_history(stu
     _student(student_client)
     student_tasks = student_client.get("/v2/retries/student/tasks").json()["items"]
     assert any(task["task_id"] == task_id and task["question_id"] == "V2-PRE-Q12" for task in student_tasks)
+    draft = student_client.post(f"/v2/retries/student/tasks/{task_id}/draft",
+                                json={"text_response": "مسودة الاختبار القبلي"})
+    assert draft.status_code == 200, draft.text
+    recovered = student_client.get("/v2/retries/student/tasks")
+    assert recovered.status_code == 200
+    assert next(t for t in recovered.json()["items"] if t["task_id"] == task_id)["draft_text"] == "مسودة الاختبار القبلي"
     result = student_client.post(f"/v2/retries/student/tasks/{task_id}/submit", json={
         "submit_key": str(uuid4()), "text_response": "باب",
     })
