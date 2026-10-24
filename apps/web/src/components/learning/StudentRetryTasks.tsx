@@ -239,7 +239,17 @@ export default function StudentRetryTasks({ kind, sessionId, dashboard = false }
   const submitted = tasks.filter((task) => task.status === "submitted");
   // The student dashboard must not show an empty review card: it pushes the
   // learning journey below the viewport despite no actionable review request.
-  if (dashboard && tasks.length === 0 && !sent) return null;
+  if (dashboard && tasks.length === 0 && !sent) {
+    if (!error) return null;
+    // On a failed request the inbox is unknown, not confirmed empty.
+    // Keep retry available without falsely claiming the student has no tasks.
+    return <div role="alert" className="mt-3 flex flex-wrap items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+      <span>تعذر تحديث طلبات المشرف: {error}</span>
+      <button type="button" onClick={() => void load()} className="rounded-lg border border-amber-400 px-3 py-1.5 font-semibold">
+        إعادة المحاولة
+      </button>
+    </div>;
+  }
   return <section className={dashboard
     ? "mt-3 space-y-3 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5"
     : "mt-4 space-y-3"} dir="rtl" data-testid={dashboard ? "v2-active-retry-tasks" : undefined}>

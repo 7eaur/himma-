@@ -235,3 +235,49 @@ def test_p08_students_cannot_read_or_submit_other_student_retry_task(student_cli
     assert result.status_code == 404
     assert student_client.get("/v2/review/lesson-queue").status_code in (401, 403)
     assert student_client.post(f"/v2/review-claims/admin/lesson/{rid}/claim").status_code in (401, 403)
+
+
+def test_p08_student_retry_inbox_paginates_two_distinct_pending_answers(student_client):
+    from db.learning_models import LessonSession, V2ReviewRetryTask
+    from db.models import User
+
+    sid, first_question_id = _writing_response(student_client)
+    with TestingSessionLocal() as db:
+        session = db.query(LessonSession).filter(LessonSession.id == sid).one()
+        first = db.query(LessonQuestionResponse).filter(
+            LessonQuestionResponse.lesson_session_id == sid,
+            LessonQuestionResponse.question_id == first_question_id,
+        ).one()
+        reviewer_id = db.query(User).filter(User.username == "researcher1").one().id
+        second = LessonQuestionResponse(
+            lesson_session_id=sid, question_id="L2-01-IC-A02",
+            role="independent_check",
+            answer_json={"answer": {"text_response": "محاولة كتابة ثانية"}},
+            submit_key=str(uuid4()), status="pending_review",
+        )
+        db.add(second)
+        db.flush()
+        db.add_all([
+            V2ReviewRetryTask(
+                lesson_response_id=first.id, student_id=session.student_id,
+                requested_by=reviewer_id, request_kind="rewrite", status="requested",
+                reason="اطلب إعادة كتابة التدريب الموجه",
+            ),
+            V2ReviewRetryTask(
+                lesson_response_id=second.id, student_id=session.student_id,
+                requested_by=reviewer_id, request_kind="rewrite", status="requested",
+                reason="اطلب إعادة كتابة التحقق المستقل",
+            ),
+        ])
+        db.commit()
+
+    page1 = student_client.get("/v2/retries/student/tasks?limit=1&offset=0")
+    page2 = student_client.get("/v2/retries/student/tasks?limit=1&offset=1")
+    page3 = student_client.get("/v2/retries/student/tasks?limit=1&offset=2")
+    assert (page1.status_code, page2.status_code, page3.status_code) == (200, 200, 200)
+    assert page1.json()["next_offset"] == 1
+    assert page2.json()["next_offset"] is None
+    assert page3.json() == {"items": [], "next_offset": None}
+    assert {page1.json()["items"][0]["question_id"], page2.json()["items"][0]["question_id"]} == {
+        first_question_id, "L2-01-IC-A02",
+    }
