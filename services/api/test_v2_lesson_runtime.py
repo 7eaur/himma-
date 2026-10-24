@@ -130,3 +130,19 @@ def test_student_preview_is_blocked_in_protected_runtime(student_client, monkeyp
     monkeypatch.setattr("v2_lesson_runtime.protected_runtime", lambda: True)
     assert student_client.get("/v2/lessons/catalog").status_code == 503
     assert student_client.post("/v2/lessons/L1-01/start").status_code == 503
+
+
+def test_p07_media_contract_keeps_preview_separate_from_approval(researcher_client):
+    response = researcher_client.get("/v2/lessons/admin/media-inventory")
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data["items"]) == 89
+    assert data["counts"] == {"ready": 0, "pending": 56, "missing": 33, "test_only": 89}
+    assert data["publishable"] is False
+    assert data["media_requirements"] == {"audio": 47, "image": 23, "video": 19}
+    video = next(x for x in data["items"] if x["asset_id"] == "VID-L1-01")
+    assert video["publication_blocker"] and video["preview_kind"] == "shared_test_only_video"
+    assert any(r["owner_id"] == "L1-01" for r in video["uses"])
+    audio = next(x for x in data["items"] if x["asset_id"] == "AUD-L1-L")
+    assert audio["publication_blocker"] and audio["uses"]
+    assert "private_answer" not in response.text

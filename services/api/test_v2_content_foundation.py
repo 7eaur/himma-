@@ -115,3 +115,24 @@ def test_learning_state_is_release_pinned_and_submit_idempotent():
         db.add(LessonQuestionResponse(lesson_session_id=session.id, question_id="L1-01-QP2", role="guided_practice", answer_json={"option_id": "B"}, submit_key="same-request"))
         with pytest.raises(IntegrityError):
             db.flush()
+
+
+def test_p07_missing_approved_binary_cannot_be_published():
+    import pytest
+    asset = {"id": "BAD-MEDIA", "kind": "video", "status": "approved",
+             "source_path": "assets/video/not-a-real-file-p07.mp4"}
+    resolved = MediaProvider(environment="production", fixture_enabled=False).resolve(asset)
+    assert resolved.url is None and resolved.state == "pending"
+    with pytest.raises(RuntimeError, match="TEST_ONLY"):
+        MediaProvider(environment="production", fixture_enabled=False).assert_publishable([asset])
+
+
+def test_p07_approved_media_requires_existing_file_and_safe_type():
+    from v2_content.media import approved_asset_path
+    valid = {"id": "LET-01", "kind": "audio", "status": "approved",
+             "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-01.mp3"}
+    assert approved_asset_path(valid) is not None
+    assert MediaProvider(environment="production", fixture_enabled=False).resolve(valid).test_only is False
+    assert approved_asset_path(dict(valid, source_path="../services/api/main.py")) is None
+    assert approved_asset_path(dict(valid, kind="image")) is None
+    assert approved_asset_path(dict(valid, status="missing_new")) is None

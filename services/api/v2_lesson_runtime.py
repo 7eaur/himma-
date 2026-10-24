@@ -17,6 +17,7 @@ from dependencies import get_current_student, get_current_user, get_db
 from runtime_flags import protected_runtime, trial_v2_preview_allowed
 from v2_content.importer import register_candidate_release
 from v2_content.media import APPROVED_STATES, MISSING_STATES, MediaProvider
+from v2_content.readiness import media_readiness_contract
 from v2_content.projection import student_lesson
 from v2_content.repository import get_lesson, get_media, get_release
 
@@ -346,22 +347,4 @@ def test_image_fixture(
 def media_inventory(
     _user: User = Depends(get_current_user),
 ):
-    provider = MediaProvider()
-    items = []
-    counts = {"ready": 0, "pending": 0, "missing": 0, "test_only": 0}
-    for asset in get_release()["media"]:
-        resolved = provider.resolve(asset)
-        source_status = str(asset.get("status") or "missing").lower()
-        source_state = "ready" if source_status in APPROVED_STATES else "missing" if source_status in MISSING_STATES else "pending"
-        counts[source_state] += 1
-        if resolved.test_only:
-            counts["test_only"] += 1
-        items.append({
-            "asset_id": resolved.asset_id,
-            "kind": resolved.kind,
-            "state": source_state,
-            "runtime_state": resolved.state,
-            "test_only": resolved.test_only,
-            "source_status": asset.get("status"),
-        })
-    return {"mode": "read_only", "release_state": get_release()["state"], "counts": counts, "items": items}
+    return media_readiness_contract(get_release(), provider=MediaProvider())
