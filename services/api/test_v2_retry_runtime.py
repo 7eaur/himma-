@@ -171,6 +171,15 @@ def test_p08_rerecord_stage_survives_reload_and_rejects_wrong_file(student_clien
     assert tasks.status_code == 200
     task = next(x for x in tasks.json()["items"] if x["task_id"] == task_id)
     assert task["staged_audio"] == meta
+    # Student may intentionally rerecord; retain the old private object key.
+    replaced = student_client.post(route, files=form, data={"duration_seconds": "5"},
+                                   headers={"Idempotency-Key": "stage-test-key-2"})
+    assert replaced.status_code == 200, replaced.text
+    new_meta = replaced.json()
+    task_now = next(x for x in student_client.get("/v2/retries/student/tasks").json()["items"]
+                    if x["task_id"] == task_id)
+    assert task_now["staged_audio"] == new_meta
+    meta = new_meta
     bad = student_client.post(f"/v2/retries/student/tasks/{task_id}/submit",
                               json={"submit_key": str(uuid4()), "audio_storage_key": f"audio/{student_id}/wrong.webm",
                                     "audio_file_size": 128, "audio_mime_type": "audio/webm;codecs=opus",
@@ -185,6 +194,8 @@ def test_p08_rerecord_stage_survives_reload_and_rejects_wrong_file(student_clien
         assert task.status == "submitted"
         assert task.audio_submission_id is not None
         assert task.replacement_json["audio_storage_key"] == meta["audio_storage_key"]
+        assert len(task.replacement_json["superseded_staged_audio"]) == 1
+        assert task.replacement_json["superseded_staged_audio"][0]["audio_storage_key"] != meta["audio_storage_key"]
 
 
 def test_p08_invalid_audio_type_rejected_before_upload(student_client, monkeypatch):

@@ -228,6 +228,13 @@ def student_retry_submit(
             fields = ("audio_storage_key", "audio_file_size", "audio_mime_type", "audio_duration_seconds")
             if any(staged.get(field) != canonical.get(field) for field in fields):
                 raise HTTPException(status_code=409, detail="ملف الإعادة المرسل لا يطابق التسجيل المرفوع للمهمة")
+    if task.request_kind == "rerecord":
+        # Preserve private keys of replaced, never-submitted uploads for later
+        # retention management. Reviewers still grade only the current audio.
+        old_staging = task.replacement_json if isinstance(task.replacement_json, dict) else {}
+        superseded = old_staging.get("superseded_staged_audio") or []
+        if superseded:
+            canonical["superseded_staged_audio"] = superseded
     task.replacement_json = canonical
     task.submit_key = body.submit_key
     task.submitted_at = datetime.now(timezone.utc)
