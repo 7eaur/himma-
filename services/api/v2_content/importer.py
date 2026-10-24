@@ -16,6 +16,9 @@ class ReleaseConflict(RuntimeError):
 
 def _database_manifest(release: dict[str, Any]) -> dict[str, Any]:
     return {
+        # Frozen authoring rows are internal DB-only evidence. They are never sent
+        # through the student-facing manifest projection.
+        "bank_snapshot": {key: release[key] for key in ("version", "checksum", "lessons", "supports", "questions", "media")},
         "state": release["state"],
         "counts": release["counts"],
         "sources": release["sources"],
@@ -32,6 +35,11 @@ def register_candidate_release(db: Session, release: dict[str, Any] | None = Non
     if current:
         if current.checksum != release["checksum"]:
             raise ReleaseConflict("release version already exists with a different checksum")
+        if "bank_snapshot" not in (current.manifest_json or {}):
+            # Safe one-time freeze of a pre-P06 candidate: the bank checksum must
+            # match exactly; do not alter any authoring question or ID.
+            current.manifest_json = _database_manifest(release)
+            db.flush()
         return current
 
     row = ContentRelease(

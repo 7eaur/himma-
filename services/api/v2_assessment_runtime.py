@@ -31,7 +31,7 @@ from dependencies import get_current_user, get_db
 from v2_content.importer import register_candidate_release
 from v2_content.media import MediaProvider
 from v2_content.projection import student_question
-from v2_content.repository import get_media, get_question, get_release
+from v2_content.repository import get_release
 from v2_interaction_runtime import AnswerRequest, CHOICE_INTERACTIONS, OPEN_INTERACTIONS, ORDER_INTERACTIONS, _canonical_answer
 from v2_lesson_runtime import _require_preview_student
 
@@ -86,8 +86,8 @@ def current_action(student: Student = Depends(_require_preview_student), db: Ses
     return {"action": "lesson_catalog", "href": "/student/learning-v2", "label": "متابعة الرحلة التعليمية"}
 
 
-def _ids(role: str) -> list[str]:
-    return [q["id"] for q in get_release()["questions"] if q["role"] == role]
+def _ids(role: str, release: dict[str, Any]) -> list[str]:
+    return [q["id"] for q in release["questions"] if q["role"] == role]
 
 
 def _session(db: Session, session_id: int, student_id: int | None = None) -> AssessmentSession:
@@ -100,34 +100,45 @@ def _session(db: Session, session_id: int, student_id: int | None = None) -> Ass
     return row
 
 
-def _current(session: AssessmentSession) -> dict[str, Any]:
-    ids = _ids(session.session_type)
+def _current(db: Session, session: AssessmentSession) -> dict[str, Any]:
+    release = _session_release(db, session)
+    ids = _ids(session.session_type, release)
     if session.v2_question_index >= len(ids):
         raise HTTPException(status_code=409, detail="اكتملت أسئلة هذه الجلسة")
-    question = get_question(ids[session.v2_question_index])
+    question = next((row for row in release["questions"] if row["id"] == ids[session.v2_question_index]), None)
     if not question:
         raise HTTPException(status_code=409, detail="سؤال التقييم غير موجود في الإصدار")
     return question
 
 
-def _assert_release_current(db: Session, session: AssessmentSession) -> None:
-    """Never grade a pinned assessment against a different author's bank.
+def _session_release(db: Session, session: AssessmentSession) -> dict[str, Any]:
+    """Resolve the original immutable bank for this exact assessment attempt.
 
-    Historical releases need a full immutable snapshot reader before a bank
-    upgrade; until then a checksum mismatch fails closed without touching data.
+    Earlier candidates without a snapshot may read the current compiled bank
+    only when the stored checksum still matches. Never silently remap an old
+    student attempt onto a newer bank.
     """
-    row = db.query(ContentRelease).filter(ContentRelease.id == session.content_release_id).one_or_none()
-    if not row or not row.checksum or row.checksum != get_release()["checksum"]:
-        raise HTTPException(status_code=409, detail="إصدار أسئلة الجلسة تغيّر؛ يلزم استرجاع النسخة المثبتة قبل المتابعة")
+    record = db.query(ContentRelease).filter(ContentRelease.id == session.content_release_id).one_or_none()
+    if not record:
+        raise HTTPException(status_code=409, detail="إصدار أسئلة هذه الجلسة غير مسجل")
+    snapshot = (record.manifest_json or {}).get("bank_snapshot")
+    if snapshot:
+        if snapshot.get("checksum") != record.checksum or snapshot.get("version") != record.version:
+            raise HTTPException(status_code=409, detail="بصمة محتوى الجلسة لا تطابق النسخة المحفوظة")
+        return snapshot
+    current = get_release()
+    if record.checksum == current["checksum"] and record.version == current["version"]:
+        return current
+    raise HTTPException(status_code=409, detail="النسخة الأصلية غير محفوظة؛ تم إيقاف التقييم لحماية الإجابات")
 
 
-def _media(question: dict[str, Any]) -> dict[str, dict[str, Any]]:
+def _media(question: dict[str, Any], release: dict[str, Any]) -> dict[str, dict[str, Any]]:
     ids = {m["media_id"] for m in question.get("stimulus", {}).get("media", [])}
     ids |= {m["media_id"] for option in question.get("options", []) for m in option.get("media", [])}
     result: dict[str, dict[str, Any]] = {}
     provider = MediaProvider()
     for media_id in sorted(ids):
-        asset = get_media(media_id)
+        asset = next((row for row in release["media"] if row["id"] == media_id), None)
         if not asset:
             raise HTTPException(status_code=409, detail="أحد أصول التقييم غير مسجل")
         result[media_id] = provider.resolve(asset).as_dict()
@@ -172,15 +183,14 @@ def _payload(db: Session, session: AssessmentSession) -> dict[str, Any]:
         "interaction": None,
     }
     if session.v2_state == "answering":
-        _assert_release_current(db, session)
-        question = _current(session)
+        question = _current(db, session)
         draft = db.query(AssessmentQuestionDraft).filter(
             AssessmentQuestionDraft.assessment_session_id == session.id,
             AssessmentQuestionDraft.question_id == question["id"],
         ).one_or_none()
         payload["interaction"] = {
             "question": student_question(question),
-            "media": _media(question),
+            "media": _media(question, _session_release(db, session)),
             "progress": {"index": session.v2_question_index + 1, "total": 30, "stage": session.session_type},
             "attempts": 0,
             "draft": (draft.draft_json or {}).get("text") if draft else None,
@@ -287,8 +297,7 @@ def assessment_session(session_id: int, student: Student = Depends(_require_prev
 @router.put("/sessions/{session_id}/draft")
 def save_draft(session_id: int, body: DraftRequest, student: Student = Depends(_require_preview_student), db: Session = Depends(get_db)):
     session = _session(db, session_id, student.id)
-    _assert_release_current(db, session)
-    question = _current(session)
+    question = _current(db, session)
     if question["interaction"] != "write_text":
         raise HTTPException(status_code=409, detail="المسودة متاحة لسؤال الكتابة فقط")
     row = db.query(AssessmentQuestionDraft).filter(
@@ -313,8 +322,7 @@ def upload_recording(
     db: Session = Depends(get_db),
 ):
     session = _session(db, session_id, student.id)
-    _assert_release_current(db, session)
-    question = _current(session)
+    question = _current(db, session)
     if question["interaction"] != "read_aloud" or not file.content_type or not file.content_type.startswith("audio/"):
         raise HTTPException(status_code=400, detail="التسجيل غير صالح للسؤال الحالي")
     try:
@@ -340,15 +348,14 @@ def answer(session_id: int, body: AnswerRequest, student: Student = Depends(_req
         AssessmentQuestionResponse.submit_key == body.submit_key,
     ).one_or_none()
     if existing:
-        _assert_release_current(db, session)
-        candidate = get_question(existing.question_id)
+        release = _session_release(db, session)
+        candidate = next((q for q in release["questions"] if q["id"] == existing.question_id), None)
         if not candidate or existing.answer_json != _canonical_answer(candidate, body, student.id):
             raise HTTPException(status_code=409, detail="مفتاح الإرسال استُخدم لإجابة مختلفة")
         return {"status": "replayed", "submission": {"status": existing.status, "accepted": True}, "assessment": _payload(db, session)}
     if session.v2_state != "answering":
         raise HTTPException(status_code=409, detail="الجلسة لا تقبل إجابات الآن")
-    _assert_release_current(db, session)
-    question = _current(session)
+    question = _current(db, session)
     canonical = _canonical_answer(question, body, student.id)
     is_open = question["interaction"] in OPEN_INTERACTIONS
     expected = question["private_answer"]["correct_option_ids"]
@@ -388,8 +395,8 @@ def answer(session_id: int, body: AnswerRequest, student: Student = Depends(_req
 
 
 def _review_item(db: Session, row: AssessmentQuestionResponse, session: AssessmentSession, student: Student) -> dict[str, Any]:
-    _assert_release_current(db, session)
-    question = get_question(row.question_id)
+    release = _session_release(db, session)
+    question = next((q for q in release["questions"] if q["id"] == row.question_id), None)
     if not question or question["role"] != row.role:
         raise HTTPException(status_code=409, detail="سؤال المراجعة لا يطابق الإصدار")
     audio = db.query(AudioSubmission).filter(AudioSubmission.assessment_response_id == row.id).one_or_none()
@@ -437,8 +444,8 @@ def review_audio(
     if not row:
         raise HTTPException(status_code=404, detail="الإجابة غير موجودة")
     session = _session(db, row.assessment_session_id)
-    _assert_release_current(db, session)
-    question = get_question(row.question_id)
+    release = _session_release(db, session)
+    question = next((q for q in release["questions"] if q["id"] == row.question_id), None)
     if not question or question["interaction"] != "read_aloud":
         raise HTTPException(status_code=404, detail="لا يوجد تسجيل لهذا السؤال")
     audio = db.query(AudioSubmission).filter(AudioSubmission.assessment_response_id == row.id).one_or_none()
@@ -497,8 +504,8 @@ def place_student(session_id: int, body: PlacementRequest, user: User = Depends(
         raise HTTPException(status_code=409, detail="الجلسة غير جاهزة للتسكين")
     if db.query(PlacementDecisionV2).filter(PlacementDecisionV2.assessment_session_id == session.id).first():
         raise HTTPException(status_code=409, detail="تم اعتماد التسكين سابقًا")
-    _assert_release_current(db, session)
-    first_lesson = next(row["id"] for row in get_release()["lessons"] if row["level"] == f"L{body.assigned_level}")
+    release = _session_release(db, session)
+    first_lesson = next(row["id"] for row in release["lessons"] if row["level"] == f"L{body.assigned_level}")
     journey = db.query(StudentJourney).filter(StudentJourney.student_id == session.student_id).one()
     student = db.query(Student).filter(Student.id == session.student_id).one()
     result = _result(db, session)

@@ -103,3 +103,56 @@ def test_reports_use_null_for_missing_and_student_cannot_open_admin(student_clie
 def test_posttest_gate_requires_ready_journey_and_explicit_enable(student_client):
     blocked = student_client.post("/v2/assessments/posttest/start")
     assert blocked.status_code == 409
+
+
+def test_review_queue_includes_evidence_and_blocks_student_access(researcher_client, student_client):
+    assert student_client.get("/v2/assessments/admin/review-queue").status_code == 403
+    assert student_client.get("/v2/assessments/admin/placement-queue").status_code == 403
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        release = register_candidate_release(db)
+        session = AssessmentSession(student_id=student.id, content_release_id=release.id, session_type="pretest", status="in_progress", v2_state="waiting_review", v2_question_index=30)
+        db.add(session); db.flush()
+        q = next(q for q in get_release()["questions"] if q["role"] == "pretest" and q["interaction"] == "write_text")
+        response = AssessmentQuestionResponse(assessment_session_id=session.id, question_id=q["id"], role="pretest", answer_json={"text_response": "كتابة الطالب"},
+            submit_key=str(uuid4()), status="pending_review", is_correct=None, skill_group=q["skill_group"], evidence_type=q["evidence_type"])
+        db.add(response); db.commit()
+        response_id = response.id
+    queue = researcher_client.get("/v2/assessments/admin/review-queue").json()
+    item = next(item for item in queue["items"] if item["response_id"] == response_id)
+    assert item["evidence_ready"] is True
+    assert item["text_response"] == "كتابة الطالب"
+    assert item["prompt"] and item["rubric"]
+    assert "audio_storage_key" not in str(item)
+    assert researcher_client.get(f"/v2/assessments/admin/responses/{response_id}/audio").status_code == 404
+    assert researcher_client.get("/v2/assessments/admin/review-queue?limit=101").status_code == 422
+
+
+def test_review_refuses_missing_actual_student_evidence(researcher_client):
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        release = register_candidate_release(db)
+        session = AssessmentSession(student_id=student.id, content_release_id=release.id, session_type="pretest", status="in_progress", v2_state="waiting_review", v2_question_index=30)
+        db.add(session); db.flush()
+        q = next(q for q in get_release()["questions"] if q["role"] == "pretest" and q["interaction"] == "read_aloud")
+        response = AssessmentQuestionResponse(assessment_session_id=session.id, question_id=q["id"], role="pretest", answer_json={"audio_storage_key": "audio/999/missing.webm"},
+            submit_key=str(uuid4()), status="pending_review", is_correct=None, skill_group=q["skill_group"], evidence_type=q["evidence_type"])
+        db.add(response); db.commit()
+        response_id = response.id
+    denied = researcher_client.post(f"/v2/assessments/admin/responses/{response_id}/review", json={"is_correct": True, "note": "لا يوجد تسجيل"})
+    assert denied.status_code == 409
+
+
+def test_pinned_assessment_snapshot_survives_candidate_bank_rotation(student_client, monkeypatch):
+    started = student_client.post("/v2/assessments/pretest/start").json()
+    session_id = started["session"]["session_id"]
+    with TestingSessionLocal() as db:
+        session = db.query(AssessmentSession).filter(AssessmentSession.id == session_id).one()
+        release = register_candidate_release(db)
+        assert (release.manifest_json or {}).get("bank_snapshot")
+        db.commit()
+    import v2_assessment_runtime as runtime
+    monkeypatch.setattr(runtime, "get_release", lambda: {"checksum": "different", "version": "future"})
+    resumed = student_client.get(f"/v2/assessments/sessions/{session_id}")
+    assert resumed.status_code == 200
+    assert resumed.json()["interaction"]["question"]["question_id"] == started["interaction"]["question"]["question_id"]
