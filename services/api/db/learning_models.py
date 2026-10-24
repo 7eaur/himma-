@@ -311,6 +311,24 @@ class PlacementDecisionV2(Base):
     )
 
 
+class V2LessonReviewAction(Base):
+    """Append-only human decisions for V2 lesson reading and writing evidence."""
+    __tablename__ = "v2_lesson_review_actions"
+
+    id = Column(Integer, primary_key=True)
+    lesson_response_id = Column(Integer, ForeignKey("lesson_question_responses.id", ondelete="CASCADE"), nullable=False)
+    reviewer_id = Column(Integer, ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)
+    action = Column(String(32), nullable=False)
+    is_correct = Column(Boolean, nullable=False)
+    note = Column(String, nullable=False)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=_now)
+
+    __table_args__ = (
+        CheckConstraint("action IN ('graded')", name="ck_v2_lesson_review_action_kind"),
+        Index("ix_v2_lesson_review_actions_response", "lesson_response_id", "created_at"),
+    )
+
+
 class PrivateContentBankSnapshot(Base):
     """Internal immutable assessment bank with private answer keys; never public metadata."""
     __tablename__ = "private_content_bank_snapshots"

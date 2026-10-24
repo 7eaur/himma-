@@ -208,7 +208,7 @@ def _complete_lesson(db: Session, session: LessonSession, assignment: SupportAss
     journey.updated_at = now
 
 
-def finish_independent_check(db: Session, session: LessonSession) -> AdaptationDecision:
+def finish_independent_check(db: Session, session: LessonSession, *, decision_key: str = "independent:1") -> AdaptationDecision:
     rows = db.query(SkillEvidence).filter(
         SkillEvidence.lesson_session_id == session.id,
         SkillEvidence.support_assignment_id.is_(None),
@@ -218,7 +218,7 @@ def finish_independent_check(db: Session, session: LessonSession) -> AdaptationD
     if any(value is None for value in questions.values()):
         raise RuntimeError("independent evidence references missing release questions")
     outcome = evaluate_independent(_signals(rows, session.lesson_id), questions)  # type: ignore[arg-type]
-    decision = _decision(db, session, "independent:1", outcome)
+    decision = _decision(db, session, decision_key, outcome)
     if outcome.kind == "next_lesson":
         _complete_lesson(db, session)
     elif outcome.kind in {"additional_check", "targeted_support"}:
@@ -237,7 +237,7 @@ def finish_independent_check(db: Session, session: LessonSession) -> AdaptationD
     return decision
 
 
-def finish_support_check(db: Session, session: LessonSession, assignment: SupportAssignment) -> AdaptationDecision:
+def finish_support_check(db: Session, session: LessonSession, assignment: SupportAssignment, *, decision_key: str | None = None) -> AdaptationDecision:
     rows = db.query(SkillEvidence).filter(
         SkillEvidence.lesson_session_id == session.id,
         SkillEvidence.support_assignment_id == assignment.id,
@@ -245,7 +245,7 @@ def finish_support_check(db: Session, session: LessonSession, assignment: Suppor
     ).order_by(SkillEvidence.id).all()
     was_additional = assignment.mode == "additional_check"
     outcome = evaluate_support(_signals(rows, session.lesson_id), was_additional_check=was_additional)
-    decision = _decision(db, session, f"support:{assignment.id}:1", outcome, assignment)
+    decision = _decision(db, session, decision_key or f"support:{assignment.id}:1", outcome, assignment)
     now = datetime.now(timezone.utc)
     if outcome.kind == "next_lesson":
         _complete_lesson(db, session, assignment)
