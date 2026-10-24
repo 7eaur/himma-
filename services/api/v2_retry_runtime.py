@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Literal
 
-from fastapi import APIRouter, Depends, File, Header, HTTPException, Query, UploadFile
+from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, Query, UploadFile
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
@@ -110,7 +110,9 @@ def student_tasks(
     for task in rows:
         kind = "lesson" if task.lesson_response_id is not None else "assessment"
         row, session, question = _owner(db, kind, task.lesson_response_id or task.assessment_response_id)
+        staged = task.replacement_json if task.status == "requested" else None
         items.append({
+            "staged_audio": staged.get("staged_audio") if isinstance(staged, dict) else None,
             "task_id": task.id, "kind": kind,
             "session_id": session.id, "question_id": row.question_id,
             "status": task.status, "request_kind": task.request_kind,
@@ -149,14 +151,16 @@ def _student_task(db: Session, task_id: int, student: Student, *, lock: bool = F
 @router.post("/student/tasks/{task_id}/recording")
 def student_retry_recording(
     task_id: int, file: UploadFile = File(...),
+    duration_seconds: int | None = Form(default=None, ge=1, le=600),
     idempotency_key: str = Header(..., alias="Idempotency-Key", min_length=8, max_length=100),
     student: Student = Depends(_require_preview_student), db: Session = Depends(get_db),
 ):
     task, kind, row, question = _student_task(db, task_id, student)
     if task.status != "requested" or task.request_kind != "rerecord" or question["interaction"] != "read_aloud":
         raise HTTPException(status_code=409, detail="هذه المهمة لا تقبل ملف قراءة")
-    if not file.content_type or not file.content_type.startswith("audio/"):
-        raise HTTPException(status_code=400, detail="ملف القراءة غير صالح")
+    accepted_formats = {"audio/webm", "audio/mp4", "audio/ogg", "audio/mpeg", "audio/wav", "audio/x-wav"}
+    if (not file.content_type or file.content_type.split(";", 1)[0].strip().lower() not in accepted_formats):
+        raise HTTPException(status_code=400, detail="صيغة التسجيل غير مدعومة")
     try:
         key, size, _ = storage.upload_audio(
             file, student.id, f"v2-retry:{task.id}:{idempotency_key}",
@@ -165,7 +169,24 @@ def student_retry_recording(
         raise HTTPException(status_code=400, detail="ملف القراءة غير صالح") from exc
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail="تعذر رفع التسجيل الآن") from exc
-    return {"audio_storage_key": key, "audio_file_size": size, "audio_mime_type": file.content_type}
+    metadata = {
+        "audio_storage_key": key,
+        "audio_file_size": size,
+        "audio_mime_type": file.content_type,
+        "audio_duration_seconds": duration_seconds,
+    }
+    # The request may have been finalized during an S3 upload. Recheck the
+    # locked response before recording resumable upload metadata.
+    current, _, _, _ = _student_task(db, task_id, student, lock=True)
+    if current.status != "requested":
+        raise HTTPException(status_code=409, detail="انتهى طلب إعادة التسجيل قبل اكتمال الرفع")
+    previous = current.replacement_json if isinstance(current.replacement_json, dict) else {}
+    old_staged = previous.get("staged_audio")
+    if old_staged and old_staged != metadata:
+        raise HTTPException(status_code=409, detail="سبق رفع ملف مختلف لهذه المهمة؛ أعد فتح المهمة للتحقق")
+    current.replacement_json = {"staged_audio": metadata}
+    db.commit()
+    return metadata
 
 
 @router.post("/student/tasks/{task_id}/submit")
@@ -195,6 +216,12 @@ def student_retry_submit(
     canonical = _canonical_answer(question, body, student.id)
     if (question["interaction"] == "read_aloud") != (task.request_kind == "rerecord"):
         raise HTTPException(status_code=409, detail="نوع الدليل لا يطابق طلب الإعادة")
+    if task.request_kind == "rerecord":
+        staged = (task.replacement_json or {}).get("staged_audio")
+        if staged:
+            fields = ("audio_storage_key", "audio_file_size", "audio_mime_type", "audio_duration_seconds")
+            if any(staged.get(field) != canonical.get(field) for field in fields):
+                raise HTTPException(status_code=409, detail="ملف الإعادة المرسل لا يطابق التسجيل المرفوع للمهمة")
     task.replacement_json = canonical
     task.submit_key = body.submit_key
     task.submitted_at = datetime.now(timezone.utc)

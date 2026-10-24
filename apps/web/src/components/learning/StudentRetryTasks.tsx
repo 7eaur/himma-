@@ -7,6 +7,10 @@ interface RetryItem {
   task_id: number; kind: "lesson" | "assessment"; session_id: number;
   question_id: string; status: "requested" | "submitted";
   request_kind: "rerecord" | "rewrite"; reason: string; prompt: string;
+  staged_audio?: {
+    audio_storage_key: string; audio_file_size: number;
+    audio_mime_type: string; audio_duration_seconds: number | null;
+  } | null;
 }
 
 function newKey(): string {
@@ -20,6 +24,7 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
   const [recording, setRecording] = useState(false);
   const [seconds, setSeconds] = useState(0);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [stagedAudio, setStagedAudio] = useState(task.staged_audio ?? null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -44,10 +49,22 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const supported = ["audio/webm;codecs=opus", "audio/mp4", "audio/webm"].find((type) => MediaRecorder.isTypeSupported(type));
       const recorder = supported ? new MediaRecorder(stream, { mimeType: supported }) : new MediaRecorder(stream);
+      // New audio is a new submission: never reuse the old audio idempotency key.
+      if (audioUrl) URL.revokeObjectURL(audioUrl);
+      setAudioUrl(null);
+      setAudioBlob(null);
+      setStagedAudio(null);
+      uploadKey.current = newKey();
+      submitKey.current = newKey();
       chunksRef.current = [];
       recorder.ondataavailable = (event) => { if (event.data.size) chunksRef.current.push(event.data); };
       recorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
+        const mimeType = recorder.mimeType || chunksRef.current[0]?.type || "audio/webm";
+        const blob = new Blob(chunksRef.current, { type: mimeType });
+        if (!blob.size || blob.size > 10 * 1024 * 1024) {
+          setError("التسجيل فارغ أو تجاوز الحجم المسموح (10 ميجابايت). سجّل قراءة أقصر.");
+          return;
+        }
         setAudioBlob(blob);
         setAudioUrl((previous) => { if (previous) URL.revokeObjectURL(previous); return URL.createObjectURL(blob); });
         stream.getTracks().forEach((track) => track.stop());
@@ -75,15 +92,22 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
         if (!value) throw new Error("اكتب إجابتك قبل الإرسال");
         answer = { text_response: value };
       } else {
-        if (!audioBlob) throw new Error("سجل قراءتك أولًا");
-        const form = new FormData();
-        form.append("file", audioBlob, audioBlob.type.includes("mp4") ? "v2-retry.m4a" : "v2-retry.webm");
-        const response = await fetch(`/api/v2/retries/student/tasks/${task.task_id}/recording`, {
-          method: "POST", headers: { "Idempotency-Key": uploadKey.current }, body: form,
-        });
-        const payload = await response.json().catch(() => null);
-        if (!response.ok) throw new Error(payload?.detail || "تعذر رفع التسجيل");
-        answer = { ...payload, audio_duration_seconds: Math.max(1, seconds) };
+        if (!audioBlob && !stagedAudio) throw new Error("سجل قراءتك أولًا");
+        if (audioBlob) {
+          const form = new FormData();
+          form.append("file", audioBlob, audioBlob.type.includes("mp4") ? "v2-retry.m4a" : "v2-retry.webm");
+          form.append("duration_seconds", String(Math.max(1, seconds)));
+          const response = await fetch(`/api/v2/retries/student/tasks/${task.task_id}/recording`, {
+            method: "POST", headers: { "Idempotency-Key": uploadKey.current }, body: form,
+          });
+          const payload = await response.json().catch(() => null);
+          if (!response.ok) throw new Error(payload?.detail || "تعذر رفع التسجيل");
+          answer = payload;
+          setStagedAudio(payload);
+        } else {
+          if (!stagedAudio?.audio_duration_seconds) throw new Error("مدة التسجيل غير محفوظة. يُرجى إعادة التسجيل.");
+          answer = stagedAudio;
+        }
       }
       const response = await fetch(`/api/v2/retries/student/tasks/${task.task_id}/submit`, {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -111,12 +135,22 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
               {recording ? <MicOff size={19}/> : <Mic size={19}/>}
               {recording ? "إيقاف التسجيل" : "تسجيل القراءة من جديد"}</button>
           : <><audio controls src={audioUrl || undefined} className="w-full"/>
-            <button type="button" onClick={() => { setAudioBlob(null); if (audioUrl) URL.revokeObjectURL(audioUrl); setAudioUrl(null); uploadKey.current = newKey(); }}
+            <button type="button" onClick={() => {
+              setAudioBlob(null);
+              setStagedAudio(null);
+              if (audioUrl) URL.revokeObjectURL(audioUrl);
+              setAudioUrl(null);
+              uploadKey.current = newKey();
+              submitKey.current = newKey();
+            }}
               className="inline-flex items-center gap-2 rounded-lg border border-slate-400 px-3 py-2 text-sm"><RotateCcw size={16}/> إعادة المحاولة</button></>}
+        {stagedAudio && !audioBlob && <p role="status" className="text-sm text-emerald-700">
+          التسجيل السابق محفوظ في الخدمة. يمكنك إرسال النسخة دون رفعها مرة أخرى، أو إعادة التسجيل.
+        </p>}
         <p className="text-sm text-slate-700">القراءة الجديدة ستظل بانتظار مراجعة المشرف، ولن تُحتسب نتيجة تلقائية.</p>
       </div>}
     {error && <p role="alert" className="text-sm text-rose-700">{error}</p>}
-    <button type="button" disabled={busy || recording || (task.request_kind === "rewrite" ? !text.trim() : !audioBlob)}
+    <button type="button" disabled={busy || recording || (task.request_kind === "rewrite" ? !text.trim() : (!audioBlob && !stagedAudio))}
       onClick={() => void submit()} className="rounded-xl bg-emerald-700 px-5 py-2 font-semibold text-white disabled:opacity-40">
       {busy ? "جاري حفظ الدليل..." : "إرسال الإجابة الجديدة للمراجعة"}</button>
   </section>;
