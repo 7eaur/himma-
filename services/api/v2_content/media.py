@@ -64,7 +64,7 @@ class MediaProvider:
         kind = str(asset.get("kind") or asset.get("type"))
         status = str(asset.get("status") or "missing").lower()
         if approved_asset_path(asset) is not None:
-            return ResolvedMedia(asset_id, kind, "ready", f"/api/v2/media/{asset_id}", False)
+            return ResolvedMedia(asset_id, kind, "ready", f"/api/v2/content/media/{asset_id}", False)
         if self.fixture_enabled and (
             self.environment in {"development", "test", "staging"}
             or (self.environment == "trial" and trial_v2_preview_allowed())

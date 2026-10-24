@@ -29,6 +29,12 @@ def usage_map(release: dict[str, Any]) -> dict[str, list[dict[str, str]]]:
     return dict(usages)
 
 
+def required_media_assets(release: dict[str, Any]) -> list[dict[str, Any]]:
+    """Active lesson/question dependencies, excluding dormant authoring assets."""
+    required = set(usage_map(release))
+    return [asset for asset in release["media"] if asset["id"] in required]
+
+
 def _candidate_path(asset: dict[str, Any]) -> Path | None:
     kind = str(asset.get("kind") or asset.get("type"))
     asset_id = str(asset.get("id") or "")
@@ -51,6 +57,8 @@ def media_readiness_contract(release: dict[str, Any], *, provider: MediaProvider
     by_kind: dict[str, int] = defaultdict(int)
     present = 0
     approved_count = 0
+    required_total = 0
+    unused_total = 0
     items = []
     for asset in release["media"]:
         resolved = provider.resolve(asset)
@@ -63,7 +71,10 @@ def media_readiness_contract(release: dict[str, Any], *, provider: MediaProvider
         by_kind[kind] += 1
         candidate = _candidate_path(asset)
         present += int(candidate is not None)
-        approved_count += int(state == "ready" and not resolved.test_only)
+        active = bool(usages.get(str(asset["id"])))
+        required_total += int(active)
+        unused_total += int(not active)
+        approved_count += int(active and state == "ready" and not resolved.test_only)
         if kind == "video":
             preview_kind = "shared_test_only_video"
         elif kind == "audio" and str(asset["id"]).startswith("AUD-") and candidate is not None:
@@ -77,7 +88,8 @@ def media_readiness_contract(release: dict[str, Any], *, provider: MediaProvider
             "candidate_path": str(candidate.relative_to(REPO_ROOT)) if candidate else None,
             "uses": usages.get(str(asset["id"]), []),
             "preview_kind": preview_kind,
-            "publication_blocker": state != "ready" or resolved.test_only,
+            "publication_blocker": active and (state != "ready" or resolved.test_only),
+            "required_for_runtime": active,
             "rights_pending": bool(asset.get("rights_review_required")),
             "academic_qa_pending": state != "ready",
             "exact_spoken_text_private": asset.get("reference_spoken_private") if kind == "audio" else None,
@@ -87,6 +99,7 @@ def media_readiness_contract(release: dict[str, Any], *, provider: MediaProvider
         "mode": "read_only", "release_state": release["state"], "release_checksum": release["checksum"],
         "counts": counts, "items": items, "media_requirements": dict(sorted(by_kind.items())),
         "candidate_files_present": present, "published_assets": approved_count,
-        "publishable": approved_count == len(items) and bool(items),
+        "required_assets": required_total, "unused_assets": unused_total,
+        "publishable": approved_count == required_total and bool(required_total),
         "test_only_warning": "TEST ONLY media never count as approved educational assets",
     }

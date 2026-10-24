@@ -136,3 +136,28 @@ def test_p07_approved_media_requires_existing_file_and_safe_type():
     assert approved_asset_path(dict(valid, source_path="../services/api/main.py")) is None
     assert approved_asset_path(dict(valid, kind="image")) is None
     assert approved_asset_path(dict(valid, status="missing_new")) is None
+
+
+def test_p07_required_media_gate_ignores_unused_bank_assets_without_approving_them():
+    from v2_content.readiness import required_media_assets, media_readiness_contract
+    release = compile_release()
+    needed = required_media_assets(release)
+    assert len(needed) == 73
+    assert {a["id"] for a in needed}.issubset({a["id"] for a in release["media"]})
+    inventory = media_readiness_contract(release, provider=MediaProvider(environment="test", fixture_enabled=True))
+    assert inventory["required_assets"] == 73
+    assert inventory["unused_assets"] == 16
+    assert inventory["published_assets"] == 0
+    assert inventory["publishable"] is False
+    unused = next(row for row in inventory["items"] if row["asset_id"] == "AUD-L1-03-MA")
+    assert not unused["required_for_runtime"] and not unused["publication_blocker"]
+
+
+def test_p07_production_resolution_points_to_existing_approved_media_route():
+    from v2_content.media import approved_asset_path
+    asset = {"id": "LET-01", "kind": "audio", "status": "approved",
+             "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-01.mp3"}
+    assert approved_asset_path(asset) is not None
+    resolved = MediaProvider(environment="production", fixture_enabled=False).resolve(asset)
+    assert resolved.state == "ready" and resolved.test_only is False
+    assert resolved.url == "/api/v2/content/media/LET-01"
