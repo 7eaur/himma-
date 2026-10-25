@@ -176,6 +176,7 @@
 
 - **مرجع البنك:** `VID-L1-04`، أمثلة `بَ / مِ / سُ`، الهدف قراءة الحرف وحركته كوحدة صوتية قصيرة؛ يُحظر إدخال المدود أو الكشف عن بنود الاختبار الفعلية.
 - **حالة ElevenLabs:** محاولة أولى بتاريخ 2026-10-25 أعادت `429 rate_limited` دون تسجيل صوتي. ثم في 2026-10-26 قُدمت محاولة جديدة عبر [Flow `OrO1BgJz2XVk7XEf2z7V`](https://elevenlabs.io/app/flows/OrO1BgJz2XVk7XEf2z7V)، Generation `1WVWTOv1WGSQoL8wkR13`، وانتهت بالفشل `failed` برسالة المزوّد: `Unusual activity has been detected on your account, so Free Tier access has been disabled. This can be triggered by using a proxy or VPN, or by creating multiple free accounts. Please upgrade to a paid subscription to continue.` هذه رسالة المزوّد ولا تعني إثبات سبب معين على حساب المستخدم. **لا يوجد تسجيل صوتي جديد أو نسخة معتمدة من L1-04**. يلزم حل قيد الحساب مع ElevenLabs قبل استئناف الإنتاج؛ لا ينبغي تكرار توليد مدفوع أو محاولة تجاوز القيود.
+- **تحديث التحقق:** في 2026-10-26، تمت محاولة واحدة جديدة لإنتاج L1-04 بنفس نص المسودة والصوت والنموذج، عبر [Flow `5LbHlKnUALD7nH0kQ6jr`](https://elevenlabs.io/app/flows/5LbHlKnUALD7nH0kQ6jr)، Generation `2JLs82iehEa8VTLrtO57`؛ عادت النتيجة `failed` وبنفس خطأ ElevenLabs: `Unusual activity has been detected on your account, so Free Tier access has been disabled`. لا توجد نسخة صوتية جديدة. لم يُعَد تنفيذ الطلب بعد هذا الفشل.
 - **الحالة:** مسودة سكربت جاهزة للتوليد والتحكيم؛ أي تسجيل لاحق يُضاف برقم Generation ID ورابط ومدة بعد نجاحه.
 
 ### السكربت الجاهز للتسجيل — غير معتمد صوتيًا
