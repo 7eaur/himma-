@@ -172,3 +172,42 @@ test("P09.0 V2 supervisor pages keep a desktop visual baseline", async ({ page }
     await capture(page, "desktop-1440x900", route);
   }
 });
+
+test("P09.1-D: supervisor sees official V2 first without V1 stars, and access code stays private", async ({ page }) => {
+  test.setTimeout(120000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await login(page);
+  await page.goto("/admin/students/new");
+  const name = `طالب التحقق V2 ${Date.now()}`;
+  await page.getByTestId("input-student-name").fill(name);
+  await page.getByTestId("submit-create-student").click();
+  const code = (await page.getByTestId("student-access-code").textContent())?.trim() ?? "";
+  expect(code).toMatch(/^\d{6}$/);
+
+  await page.goto("/admin/students");
+  await page.getByRole("textbox", { name: "البحث عن طالب بالاسم" }).fill(name);
+  const studentLink = page.getByRole("link", { name, exact: true }).first();
+  await expect(studentLink).toBeVisible({ timeout: 15000 });
+  const id = (await studentLink.getAttribute("href"))?.match(/\/admin\/students\/(\d+)/)?.[1];
+  expect(id).toBeTruthy();
+  await expect(page.getByText(code, { exact: true })).toHaveCount(0);
+
+  await page.goto(`/admin/students/${id}`);
+  const projection = page.getByTestId("supervisor-v2-overview");
+  await expect(projection).toBeVisible({ timeout: 10000 });
+  await expect(projection.getByTestId("supervisor-v2-level")).toContainText("لم يُعتمد بعد");
+  await expect(projection.getByTestId("supervisor-v2-progress")).toContainText("بانتظار الاعتماد");
+  await expect(projection.getByTestId("supervisor-v2-action")).toBeVisible();
+  await expect(projection.getByText("لم تُعتمد نتيجة")).toHaveCount(2);
+  await expect(projection.getByText("تعذر تحميل سجل هِمّة V2")).toHaveCount(0);
+  await expect(page.getByText(code, { exact: true })).toHaveCount(0);
+
+  await page.getByRole("button", { name: "الحساب", exact: true }).click();
+  await expect(page.getByText(code, { exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "إظهار الرمز" }).click();
+  await expect(page.getByText(code, { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "إخفاء الرمز" }).click();
+  await expect(page.getByText(code, { exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "مسار هِمّة V2" }).click();
+  await expect(page.getByTestId("supervisor-v2-overview")).toBeVisible();
+});
