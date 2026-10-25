@@ -202,8 +202,22 @@ test("P09.1-D: supervisor sees official V2 first without V1 stars, and access co
   await expect(projection.getByTestId("supervisor-v2-lessons")).toHaveCount(0);
   await expect(projection.getByText("تعذر تحميل سجل هِمّة V2")).toHaveCount(0);
   await mkdir(SCREENSHOT_DIR, { recursive: true });
-  await expectNoHorizontalOverflow(page);
-  await page.screenshot({ path: path.join(SCREENSHOT_DIR, "phone-390x844-student360-v2.png"), fullPage: true });
+  for (const viewport of [
+    { name: "phone-360x780", width: 360, height: 780 },
+    { name: "phone-390x844", width: 390, height: 844 },
+    { name: "phone-430x932", width: 430, height: 932 },
+    { name: "tablet-768x1024", width: 768, height: 1024 },
+    { name: "desktop-1440x900", width: 1440, height: 900 },
+  ]) {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    await expectNoHorizontalOverflow(page);
+    await expect(projection.getByTestId("supervisor-v2-level")).toBeVisible();
+    await page.screenshot({
+      path: path.join(SCREENSHOT_DIR, `${viewport.name}-student360-v2.png`),
+      fullPage: viewport.width < 900,
+    });
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.getByText(code, { exact: true })).toHaveCount(0);
 
   await page.getByRole("button", { name: "الحساب", exact: true }).click();
@@ -214,4 +228,22 @@ test("P09.1-D: supervisor sees official V2 first without V1 stars, and access co
   await expect(page.getByText(code, { exact: true })).toHaveCount(0);
   await page.getByRole("button", { name: "مسار هِمّة V2" }).click();
   await expect(page.getByTestId("supervisor-v2-overview")).toBeVisible();
+
+  // Simulate an unavailable official V2 read-model. The supervisor must
+  // see a bounded error, NEVER a V1 score replacing the current V2 source.
+  const v2Route = `**/api/v2/student/admin/students/${id}/home`;
+  await page.route(v2Route, route => route.fulfill({
+    status: 503, contentType: "application/json", body: '{"detail":"temporary unavailable"}',
+  }));
+  await page.reload();
+  await expect(page.getByRole("alert").filter({ hasText: "تعذر تحميل سجل هِمّة V2" })).toBeVisible({ timeout: 15000 });
+  await expect(page.getByTestId("supervisor-v2-progress")).toHaveCount(0);
+  await expectNoHorizontalOverflow(page);
+  await page.screenshot({
+    path: path.join(SCREENSHOT_DIR, "phone-390x844-student360-v2-source-error.png"),
+    fullPage: true,
+  });
+  await page.unroute(v2Route);
+  await page.getByRole("button", { name: "إعادة المحاولة" }).click();
+  await expect(page.getByTestId("supervisor-v2-progress")).toContainText("بانتظار الاعتماد", { timeout: 15000 });
 });
