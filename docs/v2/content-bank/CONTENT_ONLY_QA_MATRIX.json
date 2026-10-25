@@ -1,8 +1,8 @@
 {
   "schema": "himma-v2-content-audit/1.2",
-  "generated_on": "2026-10-16",
+  "generated_on": "2026-10-25",
   "summary": {
-    "date": "2026-10-16",
+    "date": "2026-10-25",
     "scope": "content_only",
     "lessons": 19,
     "support_groups": 12,
@@ -17,10 +17,10 @@
       "listen_choose_one": 52,
       "choose_one": 107,
       "read_aloud": 62,
-      "sequence": 45,
+      "sequence": 57,
       "choose_image": 4,
-      "build_word": 9,
-      "write_text": 21
+      "build_word": 18,
+      "write_text": 0
     },
     "images_used": 20,
     "audio_ids_used": 34,
@@ -69,7 +69,8 @@
       "S13": 2
     },
     "validation_failures": 0,
-    "warning_count": 5
+    "warning_count": 5,
+    "revision": "Owner-approved conversion of 21 written responses to deterministic tile-building questions; other existing media warnings remain"
   },
   "items": [
     {
@@ -1636,7 +1637,7 @@
       "id": "L2-01-GP-04",
       "owner_id": "L2-01",
       "role": "guided_practice",
-      "interaction": "write_text",
+      "interaction": "build_word",
       "prompt_present": true,
       "answer_key_valid": true,
       "no_exposed_assembled_word": true,
@@ -1644,12 +1645,13 @@
         "VOC-03"
       ],
       "question_media_mode": "question_image",
-      "choice_media_mode": "no_choices",
+      "choice_media_mode": "ordered_letters",
       "image_options_unlabeled_with_answer": true,
       "audio_options_unlabeled_with_answer": true,
       "checks_passed": true,
       "warnings": [],
-      "errors": []
+      "errors": [],
+      "conversion_audit": "owner_approved_2026_10_25"
     },
     {
       "id": "L2-01-IC-A01",
@@ -1676,7 +1678,7 @@
       "id": "L2-01-IC-A02",
       "owner_id": "L2-01",
       "role": "independent_check",
-      "interaction": "write_text",
+      "interaction": "build_word",
       "prompt_present": true,
       "answer_key_valid": true,
       "no_exposed_assembled_word": true,
@@ -1684,12 +1686,13 @@
         "VOC-10"
       ],
       "question_media_mode": "question_image",
-      "choice_media_mode": "no_choices",
+      "choice_media_mode": "ordered_letters",
       "image_options_unlabeled_with_answer": true,
       "audio_options_unlabeled_with_answer": true,
       "checks_passed": true,
       "warnings": [],
-      "errors": []
+      "errors": [],
+      "conversion_audit": "owner_approved_2026_10_25"
     },
     {
       "id": "L2-01-IC-A03",
@@ -1714,7 +1717,7 @@
       "id": "L2-01-IC-A04",
       "owner_id": "L2-01",
       "role": "independent_check",
-      "interaction": "write_text",
+      "interaction": "build_word",
       "prompt_present": true,
       "answer_key_valid": true,
       "no_exposed_assembled_word": true,
@@ -1722,12 +1725,13 @@
         "VOC-06"
       ],
       "question_media_mode": "question_image",
-      "choice_media_mode": "no_choices",
+      "choice_media_mode": "ordered_letters",
       "image_options_unlabeled_with_answer": true,
       "audio_options_unlabeled_with_answer": true,
       "checks_passed": true,
       "warnings": [],
-      "errors": []
+      "errors": [],
+      "conversion_audit": "owner_approved_2026_10_25"
     },
     {
       "id": "L2-02-GP-01",
@@ -2444,7 +2448,7 @@
       "id": "SUP-05-GP-02",
       "owner_id": "SUP-05",
       "role": "guided_practice",
-      "interaction": "write_text",
+      "interaction": "build_word",
       "prompt_present": true,
       "answer_key_valid": true,
       "no_exposed_assembled_word": true,
@@ -2452,12 +2456,13 @@
         "VOC-14"
       ],
       "question_media_mode": "question_image",
-      "choice_media_mode": "no_choices",
+      "choice_media_mode": "ordered_letters",
       "image_options_unlabeled_with_answer": true,
       "audio_options_unlabeled_with_answer": true,
       "checks_passed": true,
       "warnings": [],
-      "errors": []
+      "errors": [],
+      "conversion_audit": "owner_approved_2026_10_25"
     },
     {
       "id": "SUP-05-SC-01",
@@ -2480,7 +2485,7 @@
       "id": "SUP-05-SC-02",
       "owner_id": "SUP-05",
       "role": "support_check",
-      "interaction": "write_text",
+      "interaction": "build_word",
       "prompt_present": true,
       "answer_key_valid": true,
       "no_exposed_assembled_word": true,
@@ -2488,12 +2493,13 @@
         "VOC-09"
       ],
       "question_media_mode": "question_image",
-      "choice_media_mode": "no_choices",
+      "choice_media_mode": "ordered_letters",
       "image_options_unlabeled_with_answer": true,
       "audio_options_unlabeled_with_answer": true,
       "checks_passed": true,
       "warnings": [],
-      "errors": []
+      "errors": [],
+      "conversion_audit": "owner_approved_2026_10_25"
     },
     {
       "id": "SUP-06-GP-01",
@@ -2654,7 +2660,7 @@
       "id": "SUP-05-GP-04",
       "owner_id": "SUP-05",
       "role": "guided_practice",
-      "interaction": "write_text",
+      "interaction": "build_word",
       "prompt_present": true,
       "answer_key_valid": true,
       "no_exposed_assembled_word": true,
@@ -2662,12 +2668,13 @@
         "VOC-12"
       ],
       "question_media_mode": "question_image",
-      "choice_media_mode": "no_choices",
+      "choice_media_mode": "ordered_letters",
       "image_options_unlabeled_with_answer": true,
       "audio_options_unlabeled_with_answer": true,
       "checks_passed": true,
       "warnings": [],
-      "errors": []
+      "errors": [],
+      "conversion_audit": "owner_approved_2026_10_25"
     },
     {
       "id": "SUP-05-SC-03",
@@ -2690,18 +2697,19 @@
       "id": "SUP-05-SC-04",
       "owner_id": "SUP-05",
       "role": "support_check",
-      "interaction": "write_text",
+      "interaction": "build_word",
       "prompt_present": true,
       "answer_key_valid": true,
       "no_exposed_assembled_word": true,
       "media_ids": [],
       "question_media_mode": "text_block",
-      "choice_media_mode": "no_choices",
+      "choice_media_mode": "ordered_letters",
       "image_options_unlabeled_with_answer": true,
       "audio_options_unlabeled_with_answer": true,
       "checks_passed": true,
       "warnings": [],
-      "errors": []
+      "errors": [],
+      "conversion_audit": "owner_approved_2026_10_25"
     },
     {
       "id": "SUP-06-GP-03",
@@ -3705,7 +3713,7 @@
       "id": "L3-07-GP-02",
       "owner_id": "L3-07",
       "role": "guided_practice",
-      "interaction": "write_text",
+      "interaction": "sequence",
       "prompt_present": true,
       "answer_key_valid": true,
       "no_exposed_assembled_word": true,
@@ -3713,12 +3721,13 @@
         "VOC-28"
       ],
       "question_media_mode": "question_image",
-      "choice_media_mode": "no_choices",
+      "choice_media_mode": "ordered_tokens",
       "image_options_unlabeled_with_answer": true,
       "audio_options_unlabeled_with_answer": true,
       "checks_passed": true,
       "warnings": [],
-      "errors": []
+      "errors": [],
+      "conversion_audit": "owner_approved_2026_10_25"
     },
     {
       "id": "L3-07-GP-03",
@@ -3741,7 +3750,7 @@
       "id": "L3-07-GP-04",
       "owner_id": "L3-07",
       "role": "guided_practice",
-      "interaction": "write_text",
+      "interaction": "sequence",
       "prompt_present": true,
       "answer_key_valid": true,
       "no_exposed_assembled_word": true,
@@ -3749,18 +3758,19 @@
         "VOC-34"
       ],
       "question_media_mode": "question_image",
-      "choice_media_mode": "no_choices",
+      "choice_media_mode": "ordered_tokens",
       "image_options_unlabeled_with_answer": true,
       "audio_options_unlabeled_with_answer": true,
       "checks_passed": true,
       "warnings": [],
-      "errors": []
+      "errors": [],
+      "conversion_audit": "owner_approved_2026_10_25"
     },
     {
       "id": "L3-07-IC-A01",
       "owner_id": "L3-07",
       "role": "independent_check",
-      "interaction": "write_text",
+      "interaction": "sequence",
       "prompt_present": true,
       "answer_key_valid": true,
       "no_exposed_assembled_word": true,
@@ -3768,18 +3778,19 @@
         "VOC-20"
       ],
       "question_media_mode": "question_image",
-      "choice_media_mode": "no_choices",
+      "choice_media_mode": "ordered_tokens",
       "image_options_unlabeled_with_answer": true,
       "audio_options_unlabeled_with_answer": true,
       "checks_passed": true,
       "warnings": [],
-      "errors": []
+      "errors": [],
+      "conversion_audit": "owner_approved_2026_10_25"
     },
     {
       "id": "L3-07-IC-A02",
       "owner_id": "L3-07",
       "role": "independent_check",
-      "interaction": "write_text",
+      "interaction": "sequence",
       "prompt_present": true,
       "answer_key_valid": true,
       "no_exposed_assembled_word": true,
@@ -3787,46 +3798,49 @@
         "VOC-22"
       ],
       "question_media_mode": "question_image",
-      "choice_media_mode": "no_choices",
+      "choice_media_mode": "ordered_tokens",
       "image_options_unlabeled_with_answer": true,
       "audio_options_unlabeled_with_answer": true,
       "checks_passed": true,
       "warnings": [],
-      "errors": []
+      "errors": [],
+      "conversion_audit": "owner_approved_2026_10_25"
     },
     {
       "id": "L3-07-IC-A03",
       "owner_id": "L3-07",
       "role": "independent_check",
-      "interaction": "write_text",
+      "interaction": "sequence",
       "prompt_present": true,
       "answer_key_valid": true,
       "no_exposed_assembled_word": true,
       "media_ids": [],
       "question_media_mode": "text_block",
-      "choice_media_mode": "no_choices",
+      "choice_media_mode": "ordered_tokens",
       "image_options_unlabeled_with_answer": true,
       "audio_options_unlabeled_with_answer": true,
       "checks_passed": true,
       "warnings": [],
-      "errors": []
+      "errors": [],
+      "conversion_audit": "owner_approved_2026_10_25"
     },
     {
       "id": "L3-07-IC-A04",
       "owner_id": "L3-07",
       "role": "independent_check",
-      "interaction": "write_text",
+      "interaction": "sequence",
       "prompt_present": true,
       "answer_key_valid": true,
       "no_exposed_assembled_word": true,
       "media_ids": [],
       "question_media_mode": "text_block",
-      "choice_media_mode": "no_choices",
+      "choice_media_mode": "ordered_tokens",
       "image_options_unlabeled_with_answer": true,
       "audio_options_unlabeled_with_answer": true,
       "checks_passed": true,
       "warnings": [],
-      "errors": []
+      "errors": [],
+      "conversion_audit": "owner_approved_2026_10_25"
     },
     {
       "id": "SUP-08-GP-01",
@@ -4121,7 +4135,7 @@
       "id": "SUP-12-GP-02",
       "owner_id": "SUP-12",
       "role": "guided_practice",
-      "interaction": "write_text",
+      "interaction": "sequence",
       "prompt_present": true,
       "answer_key_valid": true,
       "no_exposed_assembled_word": true,
@@ -4129,12 +4143,13 @@
         "VOC-35"
       ],
       "question_media_mode": "question_image",
-      "choice_media_mode": "no_choices",
+      "choice_media_mode": "ordered_tokens",
       "image_options_unlabeled_with_answer": true,
       "audio_options_unlabeled_with_answer": true,
       "checks_passed": true,
       "warnings": [],
-      "errors": []
+      "errors": [],
+      "conversion_audit": "owner_approved_2026_10_25"
     },
     {
       "id": "SUP-12-SC-01",
@@ -4157,7 +4172,7 @@
       "id": "SUP-12-SC-02",
       "owner_id": "SUP-12",
       "role": "support_check",
-      "interaction": "write_text",
+      "interaction": "sequence",
       "prompt_present": true,
       "answer_key_valid": true,
       "no_exposed_assembled_word": true,
@@ -4165,12 +4180,13 @@
         "VOC-18"
       ],
       "question_media_mode": "question_image",
-      "choice_media_mode": "no_choices",
+      "choice_media_mode": "ordered_tokens",
       "image_options_unlabeled_with_answer": true,
       "audio_options_unlabeled_with_answer": true,
       "checks_passed": true,
       "warnings": [],
-      "errors": []
+      "errors": [],
+      "conversion_audit": "owner_approved_2026_10_25"
     },
     {
       "id": "SUP-08-GP-03",
@@ -4261,18 +4277,19 @@
       "id": "SUP-12-GP-04",
       "owner_id": "SUP-12",
       "role": "guided_practice",
-      "interaction": "write_text",
+      "interaction": "sequence",
       "prompt_present": true,
       "answer_key_valid": true,
       "no_exposed_assembled_word": true,
       "media_ids": [],
       "question_media_mode": "text_block",
-      "choice_media_mode": "no_choices",
+      "choice_media_mode": "ordered_tokens",
       "image_options_unlabeled_with_answer": true,
       "audio_options_unlabeled_with_answer": true,
       "checks_passed": true,
       "warnings": [],
-      "errors": []
+      "errors": [],
+      "conversion_audit": "owner_approved_2026_10_25"
     },
     {
       "id": "SUP-12-SC-03",
@@ -4295,18 +4312,19 @@
       "id": "SUP-12-SC-04",
       "owner_id": "SUP-12",
       "role": "support_check",
-      "interaction": "write_text",
+      "interaction": "sequence",
       "prompt_present": true,
       "answer_key_valid": true,
       "no_exposed_assembled_word": true,
       "media_ids": [],
       "question_media_mode": "text_block",
-      "choice_media_mode": "no_choices",
+      "choice_media_mode": "ordered_tokens",
       "image_options_unlabeled_with_answer": true,
       "audio_options_unlabeled_with_answer": true,
       "checks_passed": true,
       "warnings": [],
-      "errors": []
+      "errors": [],
+      "conversion_audit": "owner_approved_2026_10_25"
     },
     {
       "id": "V2-PRE-Q01",
@@ -4511,7 +4529,7 @@
       "id": "V2-PRE-Q12",
       "owner_id": "pretest",
       "role": "pretest",
-      "interaction": "write_text",
+      "interaction": "build_word",
       "prompt_present": true,
       "answer_key_valid": true,
       "no_exposed_assembled_word": true,
@@ -4519,12 +4537,13 @@
         "VOC-04"
       ],
       "question_media_mode": "question_image",
-      "choice_media_mode": "no_choices",
+      "choice_media_mode": "ordered_letters",
       "image_options_unlabeled_with_answer": true,
       "audio_options_unlabeled_with_answer": true,
       "checks_passed": true,
       "warnings": [],
-      "errors": []
+      "errors": [],
+      "conversion_audit": "owner_approved_2026_10_25"
     },
     {
       "id": "V2-PRE-Q13",
@@ -4823,7 +4842,7 @@
       "id": "V2-PRE-Q30",
       "owner_id": "pretest",
       "role": "pretest",
-      "interaction": "write_text",
+      "interaction": "sequence",
       "prompt_present": true,
       "answer_key_valid": true,
       "no_exposed_assembled_word": true,
@@ -4831,14 +4850,15 @@
         "VOC-07"
       ],
       "question_media_mode": "question_image",
-      "choice_media_mode": "no_choices",
+      "choice_media_mode": "ordered_tokens",
       "image_options_unlabeled_with_answer": true,
       "audio_options_unlabeled_with_answer": true,
       "checks_passed": true,
       "warnings": [
         "صورة VOC-07: الهلال يمثل القمر ويحتاج اعتمادًا بصريًا للمعنى"
       ],
-      "errors": []
+      "errors": [],
+      "conversion_audit": "owner_approved_2026_10_25"
     },
     {
       "id": "V2-POST-Q01",
@@ -5043,7 +5063,7 @@
       "id": "V2-POST-Q12",
       "owner_id": "posttest",
       "role": "posttest",
-      "interaction": "write_text",
+      "interaction": "build_word",
       "prompt_present": true,
       "answer_key_valid": true,
       "no_exposed_assembled_word": true,
@@ -5051,12 +5071,13 @@
         "VOC-16"
       ],
       "question_media_mode": "question_image",
-      "choice_media_mode": "no_choices",
+      "choice_media_mode": "ordered_letters",
       "image_options_unlabeled_with_answer": true,
       "audio_options_unlabeled_with_answer": true,
       "checks_passed": true,
       "warnings": [],
-      "errors": []
+      "errors": [],
+      "conversion_audit": "owner_approved_2026_10_25"
     },
     {
       "id": "V2-POST-Q13",
@@ -5355,7 +5376,7 @@
       "id": "V2-POST-Q30",
       "owner_id": "posttest",
       "role": "posttest",
-      "interaction": "write_text",
+      "interaction": "sequence",
       "prompt_present": true,
       "answer_key_valid": true,
       "no_exposed_assembled_word": true,
@@ -5363,12 +5384,13 @@
         "VOC-06"
       ],
       "question_media_mode": "question_image",
-      "choice_media_mode": "no_choices",
+      "choice_media_mode": "ordered_tokens",
       "image_options_unlabeled_with_answer": true,
       "audio_options_unlabeled_with_answer": true,
       "checks_passed": true,
       "warnings": [],
-      "errors": []
+      "errors": [],
+      "conversion_audit": "owner_approved_2026_10_25"
     }
   ],
   "remaining_asset_review_warnings": [
