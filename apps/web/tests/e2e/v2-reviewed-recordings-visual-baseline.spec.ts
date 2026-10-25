@@ -93,7 +93,7 @@ test("P09.0 reviewed audio archive visual states have private players and no ove
         expect(JSON.stringify(urls)).not.toContain("storage_key");
       }
       if (state === "failed") {
-        await expect(page.getByRole("alert")).toContainText("تعذر الاتصال بالأرشيف التجريبي");
+        await expect(page.locator("p[role='alert'].alert-error")).toContainText("تعذر الاتصال بالأرشيف التجريبي");
         await expect(page.locator("audio")).toHaveCount(0);
         await expect(page.getByText("تعذر عرض التسجيلات")).toBeVisible();
       }
@@ -116,7 +116,7 @@ test("P09.0 reviewed audio archive visual states have private players and no ove
   await expect(page.locator("audio")).toHaveCount(2);
   mode = "failed";
   await page.getByRole("button", { name: "تحديث" }).click();
-  await expect(page.getByRole("alert")).toContainText("تعذر الاتصال بالأرشيف التجريبي");
+  await expect(page.locator("p[role='alert'].alert-error")).toContainText("تعذر الاتصال بالأرشيف التجريبي");
   await expect(page.locator("audio")).toHaveCount(0);
   await expect(page.getByText("تعذر عرض التسجيلات")).toBeVisible();
 
