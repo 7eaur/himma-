@@ -211,6 +211,7 @@ jobs:
           tests/e2e/v2-lesson-runtime.spec.ts
           tests/e2e/v2-assessment-visual-baseline.spec.ts
           tests/e2e/v2-reviewed-recordings-visual-baseline.spec.ts
+          tests/e2e/v2-student-home-isolation.spec.ts
           --reporter=list
 
       - name: Backup and restore PostgreSQL into an isolated database

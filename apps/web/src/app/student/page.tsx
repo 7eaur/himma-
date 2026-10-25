@@ -7,6 +7,7 @@ import { BookOpenCheck, Check, LogOut, Map, RotateCcw, Star } from "lucide-react
 import styles from "./home.module.css";
 import "./v2-preview-card.css";
 import StudentRetryTasks from "@/components/learning/StudentRetryTasks";
+import V2StudentDashboard, { type StudentV2Home } from "./V2StudentDashboard";
 
 interface StudentMe {
   id: number;
@@ -62,27 +63,6 @@ interface V2CurrentAction {
   state?: string;
   href: string | null;
   label: string;
-}
-
-interface V2StudentHome {
-  mode: "v2" | "legacy";
-  test_only: boolean;
-  current_action: V2CurrentAction;
-  journey: {
-    current_level: number;
-    placement_state: string;
-    current_lesson_id: string | null;
-    content_release_version: string | null;
-  } | null;
-  progress: {
-    completed_lessons: number;
-    assigned_lessons: number | null;
-    skipped_by_placement: number;
-    pending_review: number;
-    display_percent: number | null;
-  };
-  rewards: { state: "not_implemented_v2" };
-  data_status: "ready" | "partial";
 }
 
 interface JourneyLevel {
@@ -146,6 +126,19 @@ export default function StudentHomePage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // A V2-enrolled learner must never load V1 activity, level or reward
+        // endpoints on the same dashboard. Keep the old flow only for
+        // explicitly un-migrated accounts while the rollout is test-only.
+        const v2Response = await fetch("/api/v2/student/home", { cache: "no-store" }).catch(() => null);
+        if (v2Response?.ok) {
+          const payload = await v2Response.json().catch(() => null) as StudentV2Home | null;
+          if (payload?.current_action && payload?.progress && payload?.student) {
+            setV2Home(payload);
+            setV2PreviewAvailable(true);
+            setV2Action(payload.current_action);
+            if (payload.mode === "v2") return;
+          }
+        }
         const profileResponse = await fetch("/api/profile", { cache: "no-store" });
         const profileData = await profileResponse.json().catch(() => null);
         if (!profileResponse.ok) throw new Error(profileData?.detail || "تعذر تحميل مسارك");
@@ -176,22 +169,6 @@ export default function StudentHomePage() {
               setRewards(Array.isArray(rewardData) ? rewardData : null);
             })
             .catch(() => setRewards(null)),
-        );
-        requests.push(
-          fetch("/api/v2/student/home", { cache: "no-store" })
-            .then(async (response) => {
-              if (!response.ok) throw new Error("V2 read model unavailable");
-              const payload: V2StudentHome = await response.json();
-              if (!payload.current_action || !payload.progress) throw new Error("Invalid V2 read model");
-              setV2Home(payload);
-              setV2PreviewAvailable(true);
-              setV2Action(payload.current_action);
-            })
-            .catch(() => {
-              setV2Home(null);
-              setV2Action(null);
-              setV2PreviewAvailable(false);
-            }),
         );
         if (
           profile.active_session?.session_type === "pretest"
@@ -320,6 +297,10 @@ export default function StudentHomePage() {
       </div>
     );
   }
+
+  // V2 enrollment has exactly one learner journey, progress and CTA.
+  // Historic V1 screens are not composed with any live V2 evidence.
+  if (v2Home?.mode === "v2") return <V2StudentDashboard home={v2Home} />;
 
   if (!student) {
     return (
