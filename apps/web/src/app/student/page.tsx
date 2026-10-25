@@ -64,6 +64,27 @@ interface V2CurrentAction {
   label: string;
 }
 
+interface V2StudentHome {
+  mode: "v2" | "legacy";
+  test_only: boolean;
+  current_action: V2CurrentAction;
+  journey: {
+    current_level: number;
+    placement_state: string;
+    current_lesson_id: string | null;
+    content_release_version: string | null;
+  } | null;
+  progress: {
+    completed_lessons: number;
+    assigned_lessons: number | null;
+    skipped_by_placement: number;
+    pending_review: number;
+    display_percent: number | null;
+  };
+  rewards: { state: "not_implemented_v2" };
+  data_status: "ready" | "partial";
+}
+
 interface JourneyLevel {
   level_id: number;
   name: string;
@@ -114,6 +135,7 @@ export default function StudentHomePage() {
   const [rewards, setRewards] = useState<RewardEvent[] | null>(null);
   const [rerecordTasks, setRerecordTasks] = useState<RerecordTask[]>([]);
   const [v2PreviewAvailable, setV2PreviewAvailable] = useState(false);
+  const [v2Home, setV2Home] = useState<V2StudentHome | null>(null);
   const [v2Action, setV2Action] = useState<V2CurrentAction | null>(null);
   const [startingV2, setStartingV2] = useState(false);
   const [openingRerecordId, setOpeningRerecordId] = useState<number | null>(null);
@@ -156,9 +178,20 @@ export default function StudentHomePage() {
             .catch(() => setRewards(null)),
         );
         requests.push(
-          fetch("/api/v2/assessments/current-action", { cache: "no-store" })
-            .then(async (response) => { setV2PreviewAvailable(response.ok); if (response.ok) setV2Action(await response.json()); })
-            .catch(() => setV2PreviewAvailable(false)),
+          fetch("/api/v2/student/home", { cache: "no-store" })
+            .then(async (response) => {
+              if (!response.ok) throw new Error("V2 read model unavailable");
+              const payload: V2StudentHome = await response.json();
+              if (!payload.current_action || !payload.progress) throw new Error("Invalid V2 read model");
+              setV2Home(payload);
+              setV2PreviewAvailable(true);
+              setV2Action(payload.current_action);
+            })
+            .catch(() => {
+              setV2Home(null);
+              setV2Action(null);
+              setV2PreviewAvailable(false);
+            }),
         );
         if (
           profile.active_session?.session_type === "pretest"
@@ -471,6 +504,16 @@ export default function StudentHomePage() {
               <span>رحلة V2 المرشحة · TEST ONLY</span>
               <h2>{v2Action?.label || "متابعة رحلة هِمّة V2"}</h2>
               <p>{v2Action?.state === "waiting_review" ? "إجاباتك محفوظة وتنتظر مراجعة المشرف." : "القبلي والتسكين والدروس والبعدي في مسار واحد قابل للاستئناف."}</p>
+              {v2Home?.mode === "v2" && (
+                <p data-testid="student-v2-progress">
+                  {v2Home.data_status === "partial"
+                    ? "بيانات تقدم V2 غير مكتملة؛ لا نحسب نسبة تقديرية."
+                    : v2Home.progress.display_percent == null
+                      ? "التقدم في دروس V2 يظهر بعد اعتماد التسكين."
+                      : `أنجزت ${v2Home.progress.completed_lessons} من ${v2Home.progress.assigned_lessons} درسًا في مسارك · ${v2Home.progress.display_percent}%`}
+                  {v2Home.progress.pending_review > 0 ? " · يوجد درس ينتظر مراجعة المشرف." : ""}
+                </p>
+              )}
             </div>
             <button type="button" disabled={startingV2 || v2Action?.action === "waiting_posttest_enable"} onClick={() => void handleV2Action()}>{startingV2 ? "جاري الفتح..." : v2Action?.label || "فتح رحلة V2"}</button>
           </section>
