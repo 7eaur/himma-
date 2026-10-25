@@ -1,5 +1,4 @@
 import StudentExperienceEffects from "@/components/StudentExperienceEffects";
-import StudentRerecordTasks from "@/components/StudentRerecordTasks";
 import "./question-system.css";
 import "./dashboard-system.css";
 
@@ -8,7 +7,6 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   return (
     <>
       {children}
-      <StudentRerecordTasks />
       <StudentExperienceEffects />
     </>
   );

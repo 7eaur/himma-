@@ -132,7 +132,17 @@ test("P0: first real login starts V2 pretest and resumes a saved answer after re
   await page.getByTestId("student-login-submit").click();
   await expect(page.getByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
   await expect(page.getByTestId("student-primary-action")).toHaveText("ابدأ الاختبار القبلي");
+  const startReply = page.waitForResponse(reply =>
+    reply.request().method() === "POST" &&
+    new URL(reply.url()).pathname === "/api/v2/assessments/pretest/start");
   await page.getByTestId("student-primary-action").click();
+  const opened = await startReply;
+  const startBody = await opened.json().catch(() => null);
+  expect(opened.status(), JSON.stringify({
+    status: opened.status(),
+    detail: typeof startBody?.detail === "string" ? startBody.detail : null,
+    request_id: opened.headers()["x-request-id"] ?? null,
+  })).toBe(200);
   await expect(page).toHaveURL(/\/student\/assessment-v2\/\d+$/);
   const sessionId = Number(page.url().split("/").at(-1));
   const first = await page.evaluate(async id => {
