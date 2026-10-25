@@ -179,15 +179,15 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
       <section className={styles.journey} aria-label="مراحل الرحلة">
         <div className={styles.journeyHeader}><div><h3>مراحل رحلة هِمّة</h3><p>اختبار قبلي ← دروس وتمارين وتقوية ← اختبار بعدي</p></div></div>
         <div className="grid gap-3 sm:grid-cols-3" data-testid="student-journey-steps">
-          <div className="rounded-2xl border border-slate-200 p-4">
+          <div data-testid="student-journey-step" className="rounded-2xl border border-slate-200 p-4">
             <ClipboardList size={20} aria-hidden="true" /><strong className="block mt-2">الاختبار القبلي</strong>
             <span className="block text-sm text-muted mt-1">{home.assessments.pretest?.official ? "نتيجة معتمدة" : "تحديد المستوى ومراجعته"}</span>
           </div>
-          <div className="rounded-2xl border border-slate-200 p-4">
+          <div data-testid="student-journey-step" className="rounded-2xl border border-slate-200 p-4">
             <BookOpenCheck size={20} aria-hidden="true" /><strong className="block mt-2">رحلة الدروس</strong>
             <span className="block text-sm text-muted mt-1">{placed ? currentLevel : "تفتح بعد التسكين"}</span>
           </div>
-          <div className="rounded-2xl border border-slate-200 p-4">
+          <div data-testid="student-journey-step" className="rounded-2xl border border-slate-200 p-4">
             <CheckCircle2 size={20} aria-hidden="true" /><strong className="block mt-2">الاختبار البعدي</strong>
             <span className="block text-sm text-muted mt-1">{home.assessments.posttest?.official ? "نتيجة معتمدة" : "بعد إكمال الرحلة وإتاحته"}</span>
           </div>

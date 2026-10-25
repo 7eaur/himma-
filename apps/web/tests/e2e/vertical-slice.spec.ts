@@ -335,8 +335,25 @@ async function reviewPendingLearningAudio(
   await expect(page.getByTestId("student-audio-review-hold")).toHaveCount(0);
 }
 
+async function startHistoricalAssessment(page: import("@playwright/test").Page, kind: "pretest" | "posttest"): Promise<string> {
+  // Historical V1 regression only, never a primary V2 student CTA.
+  const start = await page.evaluate(async (sessionType) => {
+    const response = await fetch("/api/assessment/start", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session_type: sessionType }),
+    });
+    return { status: response.status, payload: await response.json().catch(() => null) };
+  }, kind);
+  expect(start.status, JSON.stringify(start.payload)).toBe(200);
+  expect(start.payload?.id).toBeGreaterThan(0);
+  const id = String(start.payload.id);
+  await page.goto(`/student/session/${id}`);
+  await expect(page).toHaveURL(new RegExp(`/student/session/${id}$`));
+  return id;
+}
+
 test.describe("Himma recovered vertical slice", () => {
-  test("public UX → protected supervisor → rich assessment → adaptive learning → management evidence", async ({ page, context, request }) => {
+  test("historical V1 compatibility: public UX → supervisor → recorded assessment/learning → management evidence", async ({ page, context, request }) => {
     test.setTimeout(300000);
 
     await page.goto("/");
@@ -380,10 +397,10 @@ test.describe("Himma recovered vertical slice", () => {
     await expect(page.getByRole("heading", { name: /مرحبًا يا/ })).toBeVisible({ timeout: 10000 });
     await shot(page, "05-student-journey-dashboard");
 
-    await page.getByTestId("student-primary-action").click();
-    await expect(page).toHaveURL(/\/student\/session\/\d+/, { timeout: 10000 });
-    const sessionId = page.url().match(/\/student\/session\/(\d+)/)?.[1];
-    expect(sessionId).toBeTruthy();
+    await expect(page.getByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
+    // Open V1 only for verifying the archived workflow; the child dashboard
+    // itself always starts V2 in the production learning experience.
+    const sessionId = await startHistoricalAssessment(page, "pretest");
 
     let answered = 0;
     let submittedAssessmentAudio = 0;
@@ -456,14 +473,17 @@ test.describe("Himma recovered vertical slice", () => {
     await expect(page.getByTestId("assessment-session")).toHaveAttribute("data-phase", "done", { timeout: 20000 });
     await shot(page, "10-assessment-result");
 
-    await page.goto("/student");
-    const learningButton = page.getByRole("button", { name: /ابدأ أنشطة مستواك|متابعة الأنشطة/ });
-    await expect(learningButton).toBeEnabled({ timeout: 10000 });
+    // Historical API compatibility: legacy activities are not surfaced as
+    // buttons or progress in the V2 student dashboard.
+    const legacyActivity = await page.evaluate(async () => {
+      const response = await fetch("/api/activities/start", { method: "POST" });
+      return { status: response.status, payload: await response.json().catch(() => null) };
+    });
+    expect(legacyActivity.status, JSON.stringify(legacyActivity.payload)).toBe(200);
+    const learningSessionId = String(legacyActivity.payload.session_id);
     const firstActivityResponsePromise = page.waitForResponse((response) => response.request().method() === "GET" && /\/activities\/session\/\d+\/next$/.test(response.url()), { timeout: 15000 });
-    await learningButton.click();
-    await expect(page).toHaveURL(/\/student\/activity\/\d+/, { timeout: 10000 });
-    const learningSessionId = page.url().match(/\/student\/activity\/(\d+)/)?.[1];
-    expect(learningSessionId).toBeTruthy();
+    await page.goto(`/student/activity/${learningSessionId}`);
+    await expect(page).toHaveURL(new RegExp(`/student/activity/${learningSessionId}$`));
 
     const firstActivityResponse = await firstActivityResponsePromise;
     expect(firstActivityResponse.status()).toBe(200);

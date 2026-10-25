@@ -227,7 +227,24 @@ function completeLearningHistory(studentId: number) {
   return result;
 }
 
-test("W6 keeps one student identity from live pretest through learning handoff to live posttest", async ({ page, context, request }) => {
+async function startHistoricalAssessment(page: import("@playwright/test").Page, kind: "pretest" | "posttest"): Promise<string> {
+  // Historical V1 regression only, never a primary V2 student CTA.
+  const start = await page.evaluate(async (sessionType) => {
+    const response = await fetch("/api/assessment/start", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session_type: sessionType }),
+    });
+    return { status: response.status, payload: await response.json().catch(() => null) };
+  }, kind);
+  expect(start.status, JSON.stringify(start.payload)).toBe(200);
+  expect(start.payload?.id).toBeGreaterThan(0);
+  const id = String(start.payload.id);
+  await page.goto(`/student/session/${id}`);
+  await expect(page).toHaveURL(new RegExp(`/student/session/${id}$`));
+  return id;
+}
+
+test("historical W6 compatibility preserves one identity and retained V1 pre/post evidence", async ({ page, context, request }) => {
   test.setTimeout(420000);
 
   await loginSupervisor(request, context);
@@ -250,14 +267,12 @@ test("W6 keeps one student identity from live pretest through learning handoff t
   await context.clearCookies();
   await loginStudent(request, context, accessCode);
   await page.goto("/student");
-  await page.getByTestId("student-primary-action").click();
-  await expect(page).toHaveURL(/\/student\/session\/\d+/, { timeout: 10000 });
-  const pretestId = page.url().match(/\/student\/session\/(\d+)/)?.[1];
-  expect(pretestId).toBeTruthy();
+  await expect(page.getByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
+  const pretestId = await startHistoricalAssessment(page, "pretest");
   await completeAssessment(page, request, context, accessCode, studentId, pretestId!, true);
 
   await page.goto("/student");
-  await expect(page.getByRole("button", { name: /ابدأ أنشطة مستواك|متابعة الأنشطة/ })).toBeEnabled({ timeout: 10000 });
+  await expect(page.getByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
 
   const accelerated = completeLearningHistory(studentId);
   expect(accelerated.level_states[2]).toBe("completed");
@@ -278,17 +293,14 @@ test("W6 keeps one student identity from live pretest through learning handoff t
   await context.clearCookies();
   await loginStudent(request, context, accessCode);
   await page.goto("/student");
-  const posttestButton = page.getByRole("button", { name: "ابدأ الاختبار البعدي" });
-  await expect(posttestButton).toBeEnabled({ timeout: 10000 });
-  await posttestButton.click();
-  await expect(page).toHaveURL(/\/student\/session\/\d+/, { timeout: 10000 });
-  const posttestId = page.url().match(/\/student\/session\/(\d+)/)?.[1];
-  expect(posttestId).toBeTruthy();
+  await expect(page.getByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
+  const posttestId = await startHistoricalAssessment(page, "posttest");
   expect(posttestId).not.toBe(pretestId);
   await completeAssessment(page, request, context, accessCode, studentId, posttestId!);
 
   await page.goto("/student");
-  await expect(page.getByRole("heading", { name: "أكملت رحلتك" })).toBeVisible({ timeout: 10000 });
+  await expect(page.getByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
+  await expect(page.getByRole("heading", { name: "رحلتك تحتاج مراجعة المشرف" })).toBeVisible({ timeout: 10000 });
 
   await context.clearCookies();
   await loginSupervisor(request, context);

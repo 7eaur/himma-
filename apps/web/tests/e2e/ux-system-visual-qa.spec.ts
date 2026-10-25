@@ -127,31 +127,30 @@ test.describe("Himma UX system visual QA regression", () => {
       const identity = page.getByTestId("student-identity");
       const summary = page.getByTestId("student-status-summary");
       const nextAction = page.getByTestId("student-next-action");
-      const journey = page.getByTestId("student-journey-overview");
-      const progress = page.getByTestId("student-progress-overview");
-      const levelProgress = page.getByTestId("student-level-progress-summary");
-      const badges = page.getByTestId("student-badges");
+      const journey = page.getByTestId("student-journey-steps");
+      const progress = page.getByTestId("student-v2-progress");
+      const levelProgress = page.getByTestId("student-journey-status");
 
-      for (const locator of [identity, summary, nextAction, journey, progress, levelProgress, badges]) {
+      for (const locator of [identity, summary, nextAction, progress, journey, levelProgress]) {
         await expect(locator).toBeVisible();
       }
+      // V1 achievements are never shown as V2 rewards.
+      await expect(page.getByTestId("student-badges")).toHaveCount(0);
 
       await expect(page.getByTestId("student-results")).toHaveCount(0);
       // No active retry means no empty card/extra vertical space.
       await expect(page.getByTestId("v2-active-retry-tasks")).toHaveCount(0);
       await expect(page.getByTestId("level-journey")).toHaveCount(0);
 
-      const boxes = await Promise.all([identity, nextAction, journey, progress].map((locator) => locator.boundingBox()));
+      const boxes = await Promise.all([identity, nextAction, progress, journey].map((locator) => locator.boundingBox()));
       for (let index = 1; index < boxes.length; index += 1) {
         expect(boxes[index]?.y ?? 0).toBeGreaterThan((boxes[index - 1]?.y ?? 0) + (boxes[index - 1]?.height ?? 0) - 2);
       }
 
-      await expect(page.getByTestId("student-journey-step")).toHaveCount(5);
+      await expect(page.getByTestId("student-journey-step")).toHaveCount(3);
       await expect(page.getByTestId("student-journey-step").nth(0)).toContainText("الاختبار القبلي");
-      await expect(page.getByTestId("student-journey-step").nth(1)).toContainText("مستوى التعلم");
-      await expect(page.getByTestId("student-journey-step").nth(2)).toContainText("الأنشطة الأساسية");
-      await expect(page.getByTestId("student-journey-step").nth(3)).toContainText("التقوية");
-      await expect(page.getByTestId("student-journey-step").nth(4)).toContainText("الاختبار البعدي");
+      await expect(page.getByTestId("student-journey-step").nth(1)).toContainText("رحلة الدروس");
+      await expect(page.getByTestId("student-journey-step").nth(2)).toContainText("الاختبار البعدي");
 
       if (viewport.name === "phone-390") {
         const journeyBoxes = await page.getByTestId("student-journey-step").evaluateAll((nodes) =>

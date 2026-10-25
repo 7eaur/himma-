@@ -85,12 +85,11 @@ test("W6 reward lifecycle awards once, resolves the canonical asset, and survive
   await page.goto("/student");
   await expect(page.getByTestId("student-home")).toBeVisible({ timeout: 15000 });
 
+  // Historic V1 rewards remain stored and staff-visible, not learner achievements in V2.
+  await expect(page.getByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
   const studentBadge = page.locator('[data-reward-key="level:1:core-complete"]');
-  await expect(studentBadge).toHaveCount(1);
-  await expect(studentBadge).toContainText("مستكشف الحروف");
-  const studentBadgeImage = studentBadge.getByRole("img", { name: "شارة مستكشف الحروف" });
-  await expect(studentBadgeImage).toBeVisible();
-  await expect(studentBadgeImage).toHaveAttribute("src", /hem-bdg-04-letter-explorer\.svg/);
+  await expect(studentBadge).toHaveCount(0);
+  await expect(page.getByTestId("student-badges")).toHaveCount(0);
 
   const firstRewards = await rewardsFromCurrentBrowser(page, "/api/rewards");
   const firstBadge = firstRewards.filter((reward) => reward.key === "level:1:core-complete");
@@ -113,7 +112,7 @@ test("W6 reward lifecycle awards once, resolves the canonical asset, and survive
   expect(secondBadge[0].id).toBe(firstBadge[0].id);
 
   await page.reload();
-  await expect(page.locator('[data-reward-key="level:1:core-complete"]')).toHaveCount(1);
+  await expect(page.locator('[data-reward-key="level:1:core-complete"]')).toHaveCount(0);
 
   await context.clearCookies();
   await loginAsSupervisor(request, context);
