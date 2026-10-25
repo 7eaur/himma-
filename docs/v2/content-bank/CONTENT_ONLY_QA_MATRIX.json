@@ -3764,7 +3764,8 @@
       "checks_passed": true,
       "warnings": [],
       "errors": [],
-      "conversion_audit": "owner_approved_2026_10_25"
+      "conversion_audit": "owner_approved_2026_10_25",
+      "accepted_order_variants": 2
     },
     {
       "id": "L3-07-IC-A01",
@@ -3784,7 +3785,8 @@
       "checks_passed": true,
       "warnings": [],
       "errors": [],
-      "conversion_audit": "owner_approved_2026_10_25"
+      "conversion_audit": "owner_approved_2026_10_25",
+      "accepted_order_variants": 2
     },
     {
       "id": "L3-07-IC-A02",
@@ -3822,7 +3824,8 @@
       "checks_passed": true,
       "warnings": [],
       "errors": [],
-      "conversion_audit": "owner_approved_2026_10_25"
+      "conversion_audit": "owner_approved_2026_10_25",
+      "accepted_order_variants": 2
     },
     {
       "id": "L3-07-IC-A04",
@@ -4149,7 +4152,8 @@
       "checks_passed": true,
       "warnings": [],
       "errors": [],
-      "conversion_audit": "owner_approved_2026_10_25"
+      "conversion_audit": "owner_approved_2026_10_25",
+      "accepted_order_variants": 2
     },
     {
       "id": "SUP-12-SC-01",
@@ -4858,7 +4862,8 @@
         "صورة VOC-07: الهلال يمثل القمر ويحتاج اعتمادًا بصريًا للمعنى"
       ],
       "errors": [],
-      "conversion_audit": "owner_approved_2026_10_25"
+      "conversion_audit": "owner_approved_2026_10_25",
+      "accepted_order_variants": 2
     },
     {
       "id": "V2-POST-Q01",
@@ -5390,7 +5395,8 @@
       "checks_passed": true,
       "warnings": [],
       "errors": [],
-      "conversion_audit": "owner_approved_2026_10_25"
+      "conversion_audit": "owner_approved_2026_10_25",
+      "accepted_order_variants": 2
     }
   ],
   "remaining_asset_review_warnings": [
