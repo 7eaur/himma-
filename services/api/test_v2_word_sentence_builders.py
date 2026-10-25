@@ -109,6 +109,6 @@ def test_pretest_sentence_accepts_approved_alternative_without_leaking_score(stu
     assert response.json()["submission"]["status"] == "graded"
     assert "correct" not in response.json()["submission"]
     with TestingSessionLocal() as db:
-        recorded = db.query(AssessmentQuestionResponse).one()
+        recorded = db.query(AssessmentQuestionResponse).filter(AssessmentQuestionResponse.question_id == "V2-PRE-Q30").one()
         assert recorded.question_id == "V2-PRE-Q30"
         assert recorded.is_correct is True

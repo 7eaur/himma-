@@ -45,7 +45,7 @@ export default function ReviewedRecordingsPage() {
     }
   }, [kind, offset, student]);
 
-  useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => { const timer = window.setTimeout(() => { void refresh(); }, 0); return () => window.clearTimeout(timer); }, [refresh]);
 
   return <AdminPage>
     <AdminPageHeader eyebrow="هِمّة V2 · تسجيلات خاصة" title="التسجيلات التي اكتمل تقييمها"

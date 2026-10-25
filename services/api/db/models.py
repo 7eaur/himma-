@@ -382,6 +382,8 @@ class AudioPurgeTask(Base):
     created_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
     processed_at = Column(DateTime(timezone=True), nullable=True)
 
+    __table_args__ = (Index("ix_v2_audio_purge_status_created", "status", "created_at"),)
+
 
 class AudioReview(Base):
     """Manual grading of an audio submission."""
