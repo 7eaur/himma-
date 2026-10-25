@@ -141,7 +141,8 @@ test("P09.0 V2 supervisor pages keep a desktop visual baseline", async ({ page }
   for (const route of routes) {
     await page.goto(route);
     await expect(page).not.toHaveURL(/\/admin\/login/);
-    await expect(page.locator("main")).toBeVisible();
+    // The admin shell and the page can each render a semantic <main>.
+    await expect(page.locator("main").last()).toBeVisible();
     await expectNoHorizontalOverflow(page);
     await capture(page, "desktop-1440x900", route);
   }
