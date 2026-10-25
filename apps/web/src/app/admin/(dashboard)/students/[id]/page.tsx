@@ -158,7 +158,8 @@ export default function StudentDetailPage() {
   const [editName, setEditName] = useState("");
   const [manualCode, setManualCode] = useState("");
   const [copied, setCopied] = useState(false);
-  const [codeVisible, setCodeVisible] = useState(false);
+  const [visibleCodeForId, setVisibleCodeForId] = useState<string | null>(null);
+  const codeVisible = visibleCodeForId === id;
   const [message, setMessage] = useState<{ kind: "success" | "error"; text: string }>({ kind: "success", text: "" });
 
   const loadSecondarySource = async <T,>(response: Response, setter: (value: T) => void, stateSetter: (state: SourceState) => void) => {
@@ -173,7 +174,6 @@ export default function StudentDetailPage() {
   useEffect(() => {
     let cancelled = false;
     if (!id) return;
-    setCodeVisible(false);
     void Promise.all([
       fetch(`/api/researcher/students/${id}`, { cache: "no-store" }),
       fetch(`/api/researcher/students/${id}/journey`, { cache: "no-store" }),
@@ -270,7 +270,7 @@ export default function StudentDetailPage() {
       const response = await fetch(`/api/researcher/students/${student.id}/access-code`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ access_code: manual ? manualCode : null }) });
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(apiError(data, "تعذر تحديث رمز الدخول"));
-      setStudent(data); setManualCode(""); setMessage({ kind: "success", text: "تم تحديث رمز دخول الطالب." });
+      setStudent(data); setManualCode(""); setVisibleCodeForId(null); setMessage({ kind: "success", text: "تم تحديث رمز دخول الطالب." });
     } catch (error) { setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر تحديث رمز الدخول" }); }
     finally { setBusy(""); }
   };
@@ -408,7 +408,7 @@ export default function StudentDetailPage() {
           <div className={styles.field}><label htmlFor="student-name">اسم الطالب</label><input id="student-name" className={styles.input} value={editName} onChange={(event) => setEditName(event.target.value)} minLength={2} maxLength={80} /></div>
           <button className={styles.primary} onClick={() => void saveStudentName()} disabled={busy === "name" || editName.trim() === student.full_name}><Save size={17} aria-hidden="true" />{busy === "name" ? "جاري الحفظ..." : "حفظ الاسم"}</button>
         </div>
-        <div className={styles.codeBox} style={{ marginTop: 16 }}><div><span className={styles.muted}>رمز الدخول الحالي</span><strong className={styles.code} dir="ltr">{codeVisible ? student.access_code : "••••••"}</strong></div><button type="button" className={styles.secondary} aria-pressed={codeVisible} onClick={() => setCodeVisible(visible => !visible)}>{codeVisible ? "إخفاء الرمز" : "إظهار الرمز"}</button><button className={styles.secondary} onClick={() => void copyAccessCode()}>{copied ? <Check size={17} aria-hidden="true" /> : <Copy size={17} aria-hidden="true" />}{copied ? "تم النسخ" : "نسخ الرمز"}</button></div>
+        <div className={styles.codeBox} style={{ marginTop: 16 }}><div><span className={styles.muted}>رمز الدخول الحالي</span><strong className={styles.code} dir="ltr">{codeVisible ? student.access_code : "••••••"}</strong></div><button type="button" className={styles.secondary} aria-pressed={codeVisible} onClick={() => setVisibleCodeForId(current => current === id ? null : id)}>{codeVisible ? "إخفاء الرمز" : "إظهار الرمز"}</button><button className={styles.secondary} onClick={() => void copyAccessCode()}>{copied ? <Check size={17} aria-hidden="true" /> : <Copy size={17} aria-hidden="true" />}{copied ? "تم النسخ" : "نسخ الرمز"}</button></div>
         <div className={styles.grid2}>
           <button className={styles.secondary} onClick={() => void changeAccessCode(false)} disabled={busy === "code"}><RefreshCw size={17} aria-hidden="true" /> توليد رمز جديد</button>
           <div className={styles.formGrid}><div className={styles.field}><label htmlFor="manual-code">رمز يدوي من 6 أرقام</label><input id="manual-code" className={styles.input} inputMode="numeric" maxLength={6} value={manualCode} onChange={(event) => setManualCode(event.target.value.replace(/\D/g, "").slice(0,6))} placeholder="123456" dir="ltr" /></div><button className={styles.primary} onClick={() => void changeAccessCode(true)} disabled={busy === "code" || manualCode.length !== 6}>حفظ</button></div>
