@@ -168,3 +168,34 @@ def test_v1_pretest_history_requires_supervisor_migration_without_mutation(stude
     with TestingSessionLocal() as db:
         assert db.query(StudentJourney).count() == 0
         assert db.query(AssessmentSession).count() == 1
+
+def test_supervisor_v2_cohort_paginates_without_exposing_codes_or_v1_progress(researcher_client):
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        student.name = "طالب الاختبار"
+        db.add(Student(name="طالب ثاني", access_code="STU099", current_level=3, is_active=False))
+        db.commit()
+    result = researcher_client.get("/v2/student/admin/students/overview?limit=1&offset=0")
+    assert result.status_code == 200, result.text
+    data = result.json()
+    assert data["source"] == "himma_v2_readmodel"
+    assert data["total"] == 2
+    assert len(data["items"]) == 1
+    assert data["items"][0]["full_name"] == "طالب ثاني"
+    assert data["items"][0]["journey"] is None
+    assert data["items"][0]["progress"]["display_percent"] is None
+    assert data["items"][0]["status"] == "inactive"
+    assert "access_code" not in result.text
+    assert "STU099" not in result.text
+    assert "core_completed_items" not in result.text
+    second = researcher_client.get("/v2/student/admin/students/overview?limit=1&offset=1")
+    assert second.status_code == 200
+    assert second.json()["items"][0]["full_name"] == "طالب الاختبار"
+    query = researcher_client.get("/v2/student/admin/students/overview?search=%D8%AB%D8%A7%D9%86%D9%8A&status=inactive")
+    assert query.status_code == 200
+    assert query.json()["total"] == 1
+    assert query.json()["items"][0]["full_name"] == "طالب ثاني"
+
+
+def test_student_cannot_see_staff_cohort_or_credentials(student_client):
+    assert student_client.get("/v2/student/admin/students/overview").status_code == 403

@@ -5,7 +5,7 @@ No GET creates journeys, awards stars, changes placement, or reads private answe
 """
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from db.learning_models import LessonSession, PrivateContentBankSnapshot, StudentJourney
@@ -154,3 +154,42 @@ def supervisor_student_v2_home(
         raise HTTPException(status_code=404, detail="الطالب غير موجود")
     # Staff-only projection deliberately returns no access code or audio keys.
     return build_student_v2_home(db, student)
+
+@router.get("/admin/students/overview")
+def supervisor_v2_cohort_overview(
+    limit: int = Query(default=30, ge=1, le=50),
+    offset: int = Query(default=0, ge=0),
+    search: str = Query(default="", max_length=100),
+    status: str = Query(default="all", pattern="^(all|active|inactive)$"),
+    _supervisor: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Staff-only, paginated, V2-only student list. Never returns login codes or V1 activity counts."""
+    query = db.query(Student)
+    if search.strip():
+        # Search names only, not learner credentials.
+        query = query.filter(Student.name.ilike(f"%{search.strip()}%"))
+    if status == "active":
+        query = query.filter(Student.is_active.is_(True))
+    elif status == "inactive":
+        query = query.filter(Student.is_active.is_(False))
+    total = query.count()
+    students = query.order_by(Student.id.desc()).offset(offset).limit(limit).all()
+    items = []
+    for student in students:
+        state = build_student_v2_home(db, student)
+        items.append({
+            "id": student.id,
+            "full_name": student.name,
+            "grade_level": student.grade_level,
+            "created_at": student.created_at,
+            "status": "active" if student.is_active else "inactive",
+            "current_action": state["current_action"],
+            "journey": state["journey"],
+            "progress": state["progress"],
+            "data_status": state["data_status"],
+        })
+    return {
+        "source": "himma_v2_readmodel",
+        "total": total, "offset": offset, "limit": limit, "items": items,
+    }

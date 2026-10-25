@@ -1,16 +1,143 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Eye, Search, UserPlus, Users } from "lucide-react";
-import { AdminAction, AdminEmptyState, AdminMobileCard, AdminPage, AdminPageHeader, AdminPanel, AdminResponsiveTable, AdminToolbar } from "@/components/admin/AdminUI";
+import {
+  AdminAction, AdminEmptyState, AdminMobileCard, AdminPage, AdminPageHeader,
+  AdminPanel, AdminResponsiveTable, AdminToolbar,
+} from "@/components/admin/AdminUI";
 
-interface Student { id: number; full_name: string; grade_level: number; access_code: string; created_at: string; current_level: number; status: "active" | "inactive"; core_completed_items: number; core_total_items: number; posttest_enabled: boolean; }
+type StudentListItem = {
+  id: number;
+  full_name: string;
+  grade_level: number;
+  created_at: string;
+  status: "active" | "inactive";
+  journey: { current_level: number; placement_state: string; current_lesson_id: string | null } | null;
+  current_action: { action: string; label: string; state?: string | null };
+  progress: {
+    completed_lessons: number;
+    assigned_lessons: number | null;
+    skipped_by_placement: number;
+    pending_review: number;
+    display_percent: number | null;
+  };
+  data_status: "ready" | "partial" | "unavailable";
+};
+type Cohort = {
+  source: "himma_v2_readmodel";
+  total: number;
+  offset: number;
+  limit: number;
+  items: StudentListItem[];
+};
+const PAGE_SIZE = 30;
+
+function statusLabel(student: StudentListItem) {
+  if (student.current_action.action === "migration_review") return "انتقال للمشرف";
+  if (student.current_action.action === "start_pretest") return "بانتظار القبلي";
+  if (student.current_action.state === "waiting_review" || student.current_action.state === "placement_pending_review") return "بانتظار المراجعة";
+  if (student.current_action.action === "complete") return "أكمل الرحلة";
+  return student.current_action.label;
+}
+function progressLabel(student: StudentListItem) {
+  if (student.data_status !== "ready" || student.progress.display_percent == null || student.progress.assigned_lessons == null)
+    return "لم يُعتمد تقدم الدروس بعد";
+  return `${student.progress.completed_lessons} / ${student.progress.assigned_lessons} درس (${student.progress.display_percent}%)`;
+}
 
 export default function StudentsPage() {
-  const [students, setStudents] = useState<Student[]>([]); const [loading, setLoading] = useState(true); const [error, setError] = useState(""); const [query, setQuery] = useState(""); const [status, setStatus] = useState<"all" | "active" | "inactive">("all");
-  useEffect(() => { let cancelled = false; void fetch("/api/researcher/students", { cache: "no-store" }).then(async (response) => { if (!response.ok) throw new Error("تعذر تحميل قائمة الطلاب"); const data: Student[] = await response.json(); if (!cancelled) setStudents(data); }).catch((caught: unknown) => { if (!cancelled) setError(caught instanceof Error ? caught.message : "تعذر تحميل الطلاب"); }).finally(() => { if (!cancelled) setLoading(false); }); return () => { cancelled = true; }; }, []);
-  const filtered = useMemo(() => { const needle = query.trim().toLocaleLowerCase("ar"); return students.filter((student) => (status === "all" || student.status === status) && (!needle || student.full_name.toLocaleLowerCase("ar").includes(needle) || student.access_code.includes(needle))); }, [query, status, students]);
-  const rows = filtered.map((student) => ({ student, progress: Math.round((student.core_completed_items / Math.max(1, student.core_total_items)) * 100) }));
-  return <AdminPage><AdminPageHeader eyebrow="إدارة العينة" icon={Users} title="الطلاب" description="ابحث عن الطالب، راجع مستواه وتقدمه، وافتح ملفه مباشرة بدون التنقل بين شاشات متفرقة." actions={<AdminAction href="/admin/students/new" tone="primary" icon={UserPlus}>إضافة طالب</AdminAction>} />{error && <div className="alert-error">{error}</div>}<AdminPanel><AdminToolbar><label className="relative flex-1 min-w-0"><span className="sr-only">البحث عن طالب</span><input className="input-field pr-11" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ابحث بالاسم أو رمز الدخول" /><Search size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted" aria-hidden="true" /></label><select className="input-field" style={{ maxWidth: 190 }} value={status} onChange={(event) => setStatus(event.target.value as typeof status)} aria-label="تصفية حسب حالة الحساب"><option value="all">كل الحالات</option><option value="active">نشط</option><option value="inactive">موقوف</option></select><div className="rounded-xl bg-white border border-border px-4 min-h-11 flex items-center justify-center text-sm text-muted whitespace-nowrap">{filtered.length} من {students.length}</div></AdminToolbar><div style={{ height: 14 }} />{loading ? <div className="flex flex-col items-center justify-center gap-3 py-14"><div className="spinner w-9 h-9" /><p className="text-muted">جاري تحميل الطلاب...</p></div> : students.length === 0 ? <AdminEmptyState title="لا يوجد طلاب حتى الآن" description="أضف أول طالب ليبدأ استخدام المنصة." action={<AdminAction href="/admin/students/new" tone="primary" icon={UserPlus}>إضافة طالب جديد</AdminAction>} /> : filtered.length === 0 ? <AdminEmptyState title="لا توجد نتائج مطابقة" description="جرّب اسمًا آخر أو غيّر التصفية." /> : <AdminResponsiveTable table={<table className="data-table"><thead><tr><th>الطالب</th><th>رمز الدخول</th><th>المستوى</th><th>تقدم الأنشطة</th><th>الحالة</th><th>التفاصيل</th></tr></thead><tbody>{rows.map(({ student, progress }) => <tr key={student.id}><td><div><Link href={`/admin/students/${student.id}`} className="font-semibold text-navy hover:text-primary">{student.full_name}</Link><p className="text-xs text-muted mt-1">أضيف {new Date(student.created_at).toLocaleDateString("ar-SA")}</p></div></td><td><span className="badge badge-gray border border-border tracking-widest px-3 py-1 font-mono" dir="ltr">{student.access_code}</span></td><td><span className="font-semibold text-navy">{student.current_level}</span></td><td><div className="flex items-center gap-2 min-w-[150px]"><div className="progress-track"><div className="progress-fill" style={{ width: `${progress}%` }} /></div><span className="text-xs text-muted whitespace-nowrap">{student.core_completed_items}/{student.core_total_items}</span></div></td><td><span className={`badge ${student.status === "active" ? "badge-green" : "badge-gray"}`}>{student.status === "active" ? "نشط" : "موقوف"}</span></td><td><Link href={`/admin/students/${student.id}`} className="inline-flex items-center gap-2 text-primary font-semibold text-sm p-2 rounded-md hover:bg-primary/10"><Eye size={18} /> فتح</Link></td></tr>)}</tbody></table>} cards={rows.map(({ student, progress }) => <AdminMobileCard key={student.id} title={<Link href={`/admin/students/${student.id}`}>{student.full_name}</Link>}><span><strong>رمز الدخول:</strong> <b dir="ltr">{student.access_code}</b></span><span><strong>المستوى:</strong> {student.current_level}</span><span><strong>التقدم:</strong> {student.core_completed_items}/{student.core_total_items} ({progress}%)</span><span><strong>الحالة:</strong> {student.status === "active" ? "نشط" : "موقوف"}</span><span><strong>أضيف:</strong> {new Date(student.created_at).toLocaleDateString("ar-SA")}</span><span><AdminAction href={`/admin/students/${student.id}`} icon={Eye}>فتح الملف</AdminAction></span></AdminMobileCard>)} />}</AdminPanel></AdminPage>;
+  const [data, setData] = useState<Cohort | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState<"all" | "active" | "inactive">("all");
+  const [offset, setOffset] = useState(0);
+  const [reload, setReload] = useState(0);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const params = new URLSearchParams({
+      limit: String(PAGE_SIZE), offset: String(offset), search, status,
+    });
+    const load = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const response = await fetch(`/api/v2/student/admin/students/overview?${params}`, {
+          cache: "no-store", signal: controller.signal,
+        });
+        if (!response.ok) throw new Error("تعذر تحميل تقدم طلاب V2، ولم تُستخدم أرقام V1 بديلة.");
+        const payload = await response.json() as Cohort;
+        if (payload.source !== "himma_v2_readmodel" || !Array.isArray(payload.items))
+          throw new Error("مصدر بيانات الطلاب غير متطابق مع V2.");
+        if (!controller.signal.aborted) setData(payload);
+      } catch (reason) {
+        if (!controller.signal.aborted) {
+          setData(null);
+          setError(reason instanceof Error ? reason.message : "تعذر الاتصال بالخادم.");
+        }
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    };
+    void load();
+    return () => controller.abort();
+  }, [offset, reload, search, status]);
+
+  const items = data?.items ?? [];
+  const count = data?.total ?? 0;
+
+  return <AdminPage>
+    <AdminPageHeader eyebrow="إدارة العينة · هِمّة V2" icon={Users} title="الطلاب"
+      description="حالة الاختبار والتسكين والدروس من سجل V2 المعتمد. بيانات V1 التاريخية محفوظة في ملف الطالب ولا تُحتسب تقدمًا جديدًا."
+      actions={<AdminAction href="/admin/students/new" tone="primary" icon={UserPlus}>إضافة طالب</AdminAction>} />
+    <AdminPanel>
+      <AdminToolbar>
+        <label className="relative flex-1 min-w-0">
+          <span className="sr-only">البحث عن طالب بالاسم</span>
+          <input className="input-field pr-11" value={search}
+            onChange={(event) => { setOffset(0); setSearch(event.target.value); }}
+            placeholder="ابحث باسم الطالب" />
+          <Search size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted" aria-hidden="true" />
+        </label>
+        <select className="input-field" style={{ maxWidth: 190 }} value={status}
+          onChange={(event) => { setOffset(0); setStatus(event.target.value as typeof status); }}
+          aria-label="تصفية حسب حالة الحساب">
+          <option value="all">كل الحالات</option><option value="active">نشط</option><option value="inactive">موقوف</option>
+        </select>
+        <span className="rounded-xl bg-white border border-border px-4 min-h-11 flex items-center justify-center text-sm text-muted whitespace-nowrap">{loading ? "جارٍ التحميل" : `${count} طالب`}</span>
+      </AdminToolbar>
+      {error && <div className="alert-error mt-3" role="alert">{error} <button type="button" className="underline font-semibold" onClick={() => setReload(value => value + 1)}>إعادة المحاولة</button></div>}
+      <div style={{ height: 14 }} />
+      {loading
+        ? <div className="flex flex-col items-center justify-center gap-3 py-14"><div className="spinner w-9 h-9" /><p className="text-muted">جاري تحميل بيانات V2...</p></div>
+        : !data ? null
+        : count === 0 ? <AdminEmptyState title="لا توجد نتائج" description="لا يوجد طالب مطابق لهذه التصفية، أو لم تُضف العينة بعد." action={<AdminAction href="/admin/students/new" tone="primary" icon={UserPlus}>إضافة طالب</AdminAction>} />
+        : <AdminResponsiveTable
+          table={<table className="data-table"><thead><tr>
+            <th>الطالب</th><th>الحساب</th><th>المستوى V2</th><th>التقدم V2</th><th>الخطوة التالية</th><th>الملف</th>
+          </tr></thead><tbody>{items.map(student => <tr key={student.id}>
+            <td><Link href={`/admin/students/${student.id}`} className="font-semibold text-navy hover:text-primary">{student.full_name}</Link></td>
+            <td><span className={`badge ${student.status === "active" ? "badge-green" : "badge-gray"}`}>{student.status === "active" ? "نشط" : "موقوف"}</span></td>
+            <td>{student.journey && ["placed", "posttest_ready", "completed"].includes(student.journey.placement_state) ? `المستوى ${student.journey.current_level}` : "لم يُعتمد بعد"}</td>
+            <td><span>{progressLabel(student)}</span></td>
+            <td>{statusLabel(student)}</td>
+            <td><Link href={`/admin/students/${student.id}`} className="inline-flex items-center gap-2 text-primary font-semibold text-sm p-2 rounded-md hover:bg-primary/10"><Eye size={18} /> فتح</Link></td>
+          </tr>)}</tbody></table>}
+          cards={items.map(student => <AdminMobileCard key={student.id} title={<Link href={`/admin/students/${student.id}`}>{student.full_name}</Link>}>
+            <span><strong>الحساب:</strong> {student.status === "active" ? "نشط" : "موقوف"}</span>
+            <span><strong>المستوى V2:</strong> {student.journey && ["placed", "posttest_ready", "completed"].includes(student.journey.placement_state) ? student.journey.current_level : "لم يُعتمد بعد"}</span>
+            <span><strong>التقدم V2:</strong> {progressLabel(student)}</span>
+            <span><strong>الخطوة:</strong> {statusLabel(student)}</span>
+            <span><AdminAction href={`/admin/students/${student.id}`} icon={Eye}>فتح الملف</AdminAction></span>
+          </AdminMobileCard>)} />}
+      {!loading && data && count > PAGE_SIZE && <div className="flex justify-between gap-3 pt-5">
+        <button type="button" className="btn-secondary" disabled={offset === 0} onClick={() => setOffset(v => Math.max(0, v - PAGE_SIZE))}>السابق</button>
+        <span className="text-sm text-muted self-center">{offset + 1}–{Math.min(offset + PAGE_SIZE, count)} من {count}</span>
+        <button type="button" className="btn-secondary" disabled={offset + PAGE_SIZE >= count} onClick={() => setOffset(v => v + PAGE_SIZE)}>التالي</button>
+      </div>}
+    </AdminPanel>
+  </AdminPage>;
 }
