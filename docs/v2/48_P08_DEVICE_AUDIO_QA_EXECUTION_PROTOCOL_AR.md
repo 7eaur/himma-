@@ -52,3 +52,5 @@
 | DEV-16 | NOT_RUN على هاتف حقيقي | عرض 320/390/430 وZoom 200% على الجهازين |
 
 **تغطية آلية منفصلة:** CI 40164522525 SUCCESS على `7947fc6`؛ CI/M04/M09 على `fc0750f` SUCCESS. سجل إصلاح idempotency الجديد في `services/api/test_v2_audio_idempotency.py` ولا يُعتبر ناجحًا حتى اكتمال CI على SHA الإصلاح. المحضر الشامل: `50_P08_INDEPENDENT_CONTINUATION_QA_AR.md`.
+
+**توضيح Regression:** الاختبار الجديد يغطي كذلك استجابة S3 الشرطية والتزامن الاصطناعي؛ تظل DEV-01…DEV-16 على أجهزة حقيقية NOT_RUN، ولا تُحوَّل إلى PASS بسبب الاختبار الوحدوي.

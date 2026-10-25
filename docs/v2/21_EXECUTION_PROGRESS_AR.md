@@ -370,3 +370,5 @@ next_phase:
 - Railway `intelligent-courtesy`، اتصال «وصل تك كلاود همّه»: 4 خدمات `SUCCESS`، bucket صوت خاص، لا تغييرات معلقة؛ Web على `fc0750f` وAPI على `d6d04525`؛ دفع الوثائق `7947fc6` كان `SKIPPED` بفعل watchPatterns، ولا يُعد نشر SHA الحالي.
 - حالات DEV-01…DEV-16 على أجهزة iPhone/Android **NOT_RUN**، ولا سياسة retention/export معتمدة. التفاصيل [50_P08_INDEPENDENT_CONTINUATION_QA_AR.md](50_P08_INDEPENDENT_CONTINUATION_QA_AR.md).
 - **P08=in_progress/acceptance_pending، P09=not_started**؛ يلزم «تم» منفصلة للانتقال.
+
+- **تعزيز تصحيح P08:** حماية التزامن في `storage.upload_audio` بمفتاح كائن واحد مستقل عن MIME وS3 conditional PUT (`IfNoneMatch=*`)؛ توجد معالجة `412/409` وإعادة قراءة الكائن ومطابقة SHA256 ومراعاة مفاتيح `.webm` التاريخية. اختبار الحالات المزدوجة/التزامن اصطناعي، والتكامل مع MinIO يخضع لبوابات SHA الجديدة.

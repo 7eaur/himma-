@@ -40,21 +40,26 @@ def upload_audio(
         raise ValueError("Audio file size is outside the allowed range")
 
     digest = hashlib.sha256(payload).hexdigest()
-    extension = ".webm" if "webm" in (file.content_type or "") else ".audio"
     object_id = uuid.uuid5(
         uuid.NAMESPACE_URL,
         f"himma-audio:{owner_id}:{operation_id}",
     )
-    key = f"audio/{owner_id}/{object_id}{extension}"
+    # A MIME-independent key makes uploads idempotent even if a parallel
+    # request changes WebM to MP4. Existing .webm objects are still readable
+    # and can be replayed under their original key.
+    key = f"audio/{owner_id}/{object_id}.audio"
+    legacy_webm_key = f"audio/{owner_id}/{object_id}.webm"
 
-    # Historical WebM uploads use .webm, while other MIME types use .audio.
-    # Check *both* suffixes: an idempotency key must not silently create a
-    # second object simply because a retry changed its Content-Type.
-    alternate_extension = ".audio" if extension == ".webm" else ".webm"
-    alternate_key = f"audio/{owner_id}/{object_id}{alternate_extension}"
-    for candidate_key in (key, alternate_key):
+    def _same_object(metadata: dict) -> bool:
+        return (
+            metadata.get("ContentLength") == file_size
+            and metadata.get("ContentType") == file.content_type
+            and metadata.get("Metadata", {}).get("sha256") == digest
+        )
+
+    for existing_key in (legacy_webm_key, key):
         try:
-            existing = s3_client.head_object(Bucket=S3_BUCKET_NAME, Key=candidate_key)
+            existing = s3_client.head_object(Bucket=S3_BUCKET_NAME, Key=existing_key)
         except ClientError as exc:
             error_code = exc.response.get("Error", {}).get("Code")
             if error_code not in {"404", "NoSuchKey", "NotFound"}:
@@ -62,25 +67,35 @@ def upload_audio(
         except BotoCoreError as exc:
             raise RuntimeError("Audio storage is unavailable") from exc
         else:
-            existing_digest = existing.get("Metadata", {}).get("sha256")
-            if (
-                candidate_key == key
-                and existing.get("ContentLength") == file_size
-                and existing.get("ContentType") == file.content_type
-                and existing_digest == digest
-            ):
-                return key, file_size, digest
+            if _same_object(existing):
+                return existing_key, file_size, digest
             raise ValueError("Idempotency-Key was reused with different audio")
 
     try:
+        # Only one of two simultaneous PUTs may create this object. Do not
+        # overwrite evidence that a prior request stored under this operation.
         s3_client.put_object(
             Bucket=S3_BUCKET_NAME,
             Key=key,
             Body=payload,
             ContentType=file.content_type,
             Metadata={"sha256": digest},
+            IfNoneMatch="*",
         )
-    except (BotoCoreError, ClientError) as exc:
+    except ClientError as exc:
+        error_code = str(exc.response.get("Error", {}).get("Code") or "")
+        if error_code not in {"412", "409", "PreconditionFailed", "ConditionalRequestConflict"}:
+            raise RuntimeError("Audio storage is unavailable") from exc
+        # Another request won the conditional PUT. The loser may succeed as
+        # an exact replay, but must not replace a different audio payload.
+        try:
+            winner = s3_client.head_object(Bucket=S3_BUCKET_NAME, Key=key)
+        except (BotoCoreError, ClientError) as head_exc:
+            raise RuntimeError("Audio storage is unavailable") from head_exc
+        if _same_object(winner):
+            return key, file_size, digest
+        raise ValueError("Idempotency-Key was reused with different audio") from exc
+    except BotoCoreError as exc:
         raise RuntimeError("Audio storage is unavailable") from exc
     return key, file_size, digest
 

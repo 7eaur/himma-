@@ -8,9 +8,9 @@
 
 | العنصر | نتيجة التحقق الحي |
 |---|---|
-| Branch | \`v2/01-learning-foundation-20261007\` |
-| HEAD قبل إصلاح هذه المتابعة | \`7947fc6df173f031ddab1c0df2c6ca2fcce385a3\` (أضاف وثائق 49/21/README) |
-| آخر SHA وظيفي قبل التسليم | \`fc0750f48a4e76f97856b22848b984132933b24f\` |
+| Branch | `v2/01-learning-foundation-20261007` |
+| HEAD قبل إصلاح هذه المتابعة | `7947fc6df173f031ddab1c0df2c6ca2fcce385a3` (أضاف وثائق 49/21/README) |
+| آخر SHA وظيفي قبل التسليم | `fc0750f48a4e76f97856b22848b984132933b24f` |
 | CI على HEAD قبل الإصلاح | [40164522525](https://github.com/7eaur/himma-/actions/runs/40164522525) — SUCCESS، jobs backend/frontend/security/integration |
 | CI على آخر SHA وظيفي سابق | [40141820366](https://github.com/7eaur/himma-/actions/runs/40141820366) — SUCCESS |
 | M04 على SHA وظيفي سابق | [40141820358](https://github.com/7eaur/himma-/actions/runs/40141820358) — SUCCESS |
@@ -20,32 +20,32 @@
 
 ## 2. علة جذرية تمت معالجتها في المصدر
 
-**P08-AUDIO-IDEMPOTENCY-MIME:** كانت دالة \`storage.upload_audio\` تولّد suffix \`.webm\` لصيغ WebM و\`.audio\` للأنواع الأخرى من *نفس* owner+operation. لذلك قد يؤدي إعادة إرسال مفتاح Idempotency-Key نفسه بملف MP4 بدل WebM (أو العكس) إلى إنشاء مفتاح كائن مختلف دون اكتشاف إعادة الاستخدام. هذا يضعف ضمان منع تكرار الأدلة.
+**P08-AUDIO-IDEMPOTENCY-MIME:** كانت دالة `storage.upload_audio` تولّد suffix `.webm` لصيغ WebM و`.audio` للأنواع الأخرى من *نفس* owner+operation. لذلك قد يؤدي إعادة إرسال مفتاح Idempotency-Key نفسه بملف MP4 بدل WebM (أو العكس) إلى إنشاء مفتاح كائن مختلف دون اكتشاف إعادة الاستخدام. هذا يضعف ضمان منع تكرار الأدلة.
 
-**الإصلاح:** فحص وجود الكائن ذي كلا اللاحقتين قبل قبول محتوى أو إنشاء كائن جديد. إذا وجد كائن باسم العملية الأخرى، تُرفض إعادة استخدام العملية لملف مختلف؛ يظل replay المطابق صالحًا. لا تعديل للمفاتيح الموجودة، ولا حذف، ولا تغيير عقد الاستجابة.
+**الإصلاح النهائي:** مفتاح الرفع الجديد ثابت لكل owner+operation بغض النظر عن MIME، مع `IfNoneMatch=*` في S3 لمنع استبدال تسجيل متزامن. في حال 412/409 يُعاد فحص بصمة SHA256 وحجم/MIME الكائن الفائز؛ يقبل replay المتطابق فقط ويُرفض الملف المختلف. تُفحص مفاتيح `.webm` القديمة وتبقى قابلة للاسترجاع بالمفتاح الأصلي، بلا حذف أو ترحيل أدلة.
 
-**Regression:** \`services/api/test_v2_audio_idempotency.py\` يستخدم S3 fake اصطناعيًا لا يحتاج بيانات أطفال، ويختبر WebM→MP4، MP4→WebM، replay مطابق، تغيير bytes بمفتاح نفسه، وعملية جديدة بصيغة أخرى. كما تستمر فحوص MinIO في CI/M09.
+**Regression:** `services/api/test_v2_audio_idempotency.py` يستخدم S3 fake اصطناعيًا لا يحتاج بيانات أطفال، ويختبر WebM→MP4، MP4→WebM، replay مطابق، تغيير bytes بمفتاح نفسه، التوافق مع مفتاح WebM تاريخي، عملية جديدة، وحالة سباق شرطية نتيجتها محتوى مطابق أو مختلف. كما تستمر فحوص MinIO في CI/M09.
 
-**حد الإثبات:** فحص suffix يمنع إعادة الاستخدام **المتسلسل**. يحتاج سباق طلبين متوازيين بنفس مفتاح العملية إلى فحص تكامل إضافي قبل ادعاء ضمان Atomic/Exactly-Once مطلق. لا يشكل هذا الاختبار شهادة فحص صوت Safari الفعلي.
+**حد الإثبات:** فحوص unit الاصطناعية تغطي سباق S3 الشرطي ومحاكاة 412، لكن اختبار MinIO/Railway الفعلي ونتائج CI/M09 على SHA الإصلاح إلزامية قبل قبول التغيير. لا يشكل هذا الاختبار شهادة فحص صوت Safari الفعلي.
 
 ## 3. Railway — ما ثبت حيًا
 
-- حساب Railway المحدد: «وصل تك كلاود همّه»، المشروع \`intelligent-courtesy\` (\`968ce1df-b94f-4de8-a365-88e5073d3d11\`).
-- البيئة المسماة \`production\` هي تشغيل تجريبي وفق توثيق \`ENV=trial\`؛ اسم البيئة لا يمنح إذن الإطلاق.
-- الخدمات الأربع (himma-web, himma- API, Postgres, Redis) آخر deployments = **SUCCESS**، يوجد bucket \`himma-private-audio\`، \`pendingWork=[]\`.
-- أحدث Web runtime SUCCESS على \`fc0750f\`، API runtime SUCCESS على \`d6d04525\`. Commits الوثائق \`d560940\` و\`7947fc6\` ظهرت SKIPPED في Railway بحسب watchPatterns. لا تساوِ SHA مستودع بأحدث deploy.
-- رصد تشغيل \`/health 200\` وبدء Uvicorn/Next.js في السجلات المتاحة؛ هناك SIGTERM لأجيال Web قديمة وقت تبديل deployments، ولم تثبت من السجلات المتاحة مشكلة قائمة في الجيل الحالي. لا يوجد ادعاء اختبارات ميكروفون أو أداء إنتاجي حقيقية من هذه السجلات.
+- حساب Railway المحدد: «وصل تك كلاود همّه»، المشروع `intelligent-courtesy` (`968ce1df-b94f-4de8-a365-88e5073d3d11`).
+- البيئة المسماة `production` هي تشغيل تجريبي وفق توثيق `ENV=trial`؛ اسم البيئة لا يمنح إذن الإطلاق.
+- الخدمات الأربع (himma-web, himma- API, Postgres, Redis) آخر deployments = **SUCCESS**، يوجد bucket `himma-private-audio`، `pendingWork=[]`.
+- أحدث Web runtime SUCCESS على `fc0750f`، API runtime SUCCESS على `d6d04525`. Commits الوثائق `d560940` و`7947fc6` ظهرت SKIPPED في Railway بحسب watchPatterns. لا تساوِ SHA مستودع بأحدث deploy.
+- رصد تشغيل `/health 200` وبدء Uvicorn/Next.js في السجلات المتاحة؛ هناك SIGTERM لأجيال Web قديمة وقت تبديل deployments، ولم تثبت من السجلات المتاحة مشكلة قائمة في الجيل الحالي. لا يوجد ادعاء اختبارات ميكروفون أو أداء إنتاجي حقيقية من هذه السجلات.
 
 ## 4. بوابة الخصوصية وصحة التقييم
 
-- **الافتراضي:** Human-First؛ القراءة تظل \`pending_review\` ولا تُحسب درجة أو mastery من مدة التسجيل أو نتيجة ASR. لا يفعّل ASR خارجي.
+- **الافتراضي:** Human-First؛ القراءة تظل `pending_review` ولا تُحسب درجة أو mastery من مدة التسجيل أو نتيجة ASR. لا يفعّل ASR خارجي.
 - يظل اختبار الحسابين/المشرفين/Seek-Range والتصدير من جهاز فعلي مطلوبًا، حتى إذا نجحت اختبارات API الاصطناعية.
 - لن يُحذف أي ملف أصل/بديل/unsubmitted ولا النسخ الاحتياطية قبل قرار سياسة وتعليمات نسخة احتياطية موثقة.
 - مراجعة البنك البشري (62 قراءة من أصل 300 سؤال) **غير موقّعة**؛ الاختبار الآلي يتحقق من بنية rubric وعزل private keys وليس جودة النطق أو صحة معيار كل بند.
 
 ## 5. مصفوفة DEV على الأجهزة الفعلية
 
-**DEV-01..DEV-16 = NOT_RUN** لكل حالة على iPhone Safari أو Android Chrome. لا ننسخ PASS من Playwright إلى الجهاز الفعلي. البروتوكول التفصيلي في \`48_P08_DEVICE_AUDIO_QA_EXECUTION_PROTOCOL_AR.md\`؛ عند التنفيذ يضاف جهاز/OS/Browser/دليل غير شخصي/Pass-Fail/Issue/SHA/retest.
+**DEV-01..DEV-16 = NOT_RUN** لكل حالة على iPhone Safari أو Android Chrome. لا ننسخ PASS من Playwright إلى الجهاز الفعلي. البروتوكول التفصيلي في `48_P08_DEVICE_AUDIO_QA_EXECUTION_PROTOCOL_AR.md`؛ عند التنفيذ يضاف جهاز/OS/Browser/دليل غير شخصي/Pass-Fail/Issue/SHA/retest.
 
 ## 6. قائمة قرارات المالك — مقترح غير مفعل
 
@@ -64,4 +64,4 @@
 - ثبت من GitHub نجاح CI حديث للوثائق وCI/M04/M09 لآخر SHA وظيفي سابق.
 - إصلاح idempotency الجديد يجب أن تثبت بواباته على SHA الإصلاح؛ لا تُستعمل أرقام الفحوص السابقة بديلًا.
 - الأجهزة الحقيقية والقرار القانوني/التربوي والتصدير الآمن والاختبارات المشتركة النهائية لم تنته.
-- الحالة: \`P08=in_progress/acceptance_pending\`؛ \`P09=not_started\`. لن تتغير دون اعتماد المالك بكلمة **تم** بعد التقرير النهائي.
+- الحالة: `P08=in_progress/acceptance_pending`؛ `P09=not_started`. لن تتغير دون اعتماد المالك بكلمة **تم** بعد التقرير النهائي.
