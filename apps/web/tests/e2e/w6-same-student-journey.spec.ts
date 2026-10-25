@@ -146,12 +146,12 @@ async function reviewPendingAudio(
   await loginStudent(request, context, accessCode);
 
   if (rerecordRequested) {
-    await page.goto("/student");
-    await expect(page).toHaveURL(/\/student$/);
-    await expect(page.getByTestId("assessment-rerecord-tasks")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByRole("heading", { name: "إعادة تسجيل مطلوبة" })).toBeVisible();
-    await page.getByRole("button", { name: "ابدأ إعادة التسجيل" }).click();
-    await expect(page).toHaveURL(new RegExp(`/student/session/${sessionId}`), { timeout: 10000 });
+    // V1 rerecord is preserved inside its historical session, not surfaced
+    // in the new V2 student home or its shared layout.
+    await page.goto(`/student/session/${sessionId}`);
+    await expect(page.getByTestId("assessment-session")).toHaveAttribute("data-phase", "rerecord_task", { timeout: 10000 });
+    await expect(page.getByRole("heading", { name: "لديك مهمة إعادة تسجيل جاهزة" })).toBeVisible();
+    await page.getByRole("button", { name: "فتح مهمة إعادة التسجيل" }).click();
     await expect(page.getByTestId("reading-text")).toBeVisible({ timeout: 10000 });
     await recordReading(page);
     await expect(page.getByTestId("assessment-session")).toHaveAttribute("data-phase", "waiting_audio_review", { timeout: 10000 });

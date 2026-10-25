@@ -158,6 +158,7 @@ export default function StudentDetailPage() {
   const [editName, setEditName] = useState("");
   const [manualCode, setManualCode] = useState("");
   const [copied, setCopied] = useState(false);
+  const [codeVisible, setCodeVisible] = useState(false);
   const [message, setMessage] = useState<{ kind: "success" | "error"; text: string }>({ kind: "success", text: "" });
 
   const loadSecondarySource = async <T,>(response: Response, setter: (value: T) => void, stateSetter: (state: SourceState) => void) => {
@@ -172,6 +173,7 @@ export default function StudentDetailPage() {
   useEffect(() => {
     let cancelled = false;
     if (!id) return;
+    setCodeVisible(false);
     void Promise.all([
       fetch(`/api/researcher/students/${id}`, { cache: "no-store" }),
       fetch(`/api/researcher/students/${id}/journey`, { cache: "no-store" }),
@@ -321,13 +323,13 @@ export default function StudentDetailPage() {
         <div className={styles.panelHeader}><div><h2>ملخص الطالب</h2><p>أهم المعلومات التي يحتاجها المشرف بسرعة.</p></div><User size={20} aria-hidden="true" /></div>
         <div className={styles.grid3}>
           <div className={styles.infoCard}><span>الصف</span><strong>الثالث الابتدائي</strong></div>
-          <div className={styles.infoCard}><span>المستوى الحالي</span><strong>المستوى {student.current_level}</strong></div>
+          <div className={styles.infoCard}><span>المستوى الحالي</span><strong>المستوى التاريخي V1: {student.current_level}</strong></div>
           <div className={styles.infoCard}><span>تاريخ الإضافة</span><strong>{new Date(student.created_at).toLocaleDateString("ar-SA")}</strong></div>
         </div>
         <div className={styles.rewardRow} style={{ marginTop: 14 }}>
-          <div className={styles.reward}><span className={styles.muted}>النجوم المكتسبة</span><strong>{rewardsState === "loaded" ? totalStars : "—"}</strong></div>
-          <div className={styles.reward}><span className={styles.muted}>الشارات</span><strong>{rewardsState === "loaded" ? badges.length : "—"}</strong></div>
-          <div className={styles.reward}><span className={styles.muted}>تقدم المستوى</span><strong>{journeyState === "loaded" ? `${progressPercent}%` : "—"}</strong></div>
+          <div className={styles.reward}><span className={styles.muted}>نجوم V1 التاريخية</span><strong>{rewardsState === "loaded" ? totalStars : "—"}</strong></div>
+          <div className={styles.reward}><span className={styles.muted}>شارات V1 التاريخية</span><strong>{rewardsState === "loaded" ? badges.length : "—"}</strong></div>
+          <div className={styles.reward}><span className={styles.muted}>تقدم أنشطة V1 التاريخي</span><strong>{journeyState === "loaded" ? `${progressPercent}%` : "—"}</strong></div>
         </div>
         {rewardsState === "error" && <div style={{ marginTop: 12 }}>{sourceError("المكافآت", () => void refreshAdaptiveEvidence())}</div>}
         {rewardsState === "loaded" && badges.length === 0 && <p className={styles.muted} style={{ marginTop: 12 }}>لا توجد شارات مكتسبة لهذا الطالب بعد.</p>}
@@ -343,7 +345,7 @@ export default function StudentDetailPage() {
         {journeyState === "error" && sourceError("المسار الأكاديمي", () => void refreshJourney())}
         {journeyState === "loaded" && journey && <>
           <div className={styles.progressBlock}>
-            <div className={styles.progressMeta}><span>الأنشطة الأساسية في المستوى النشط</span><strong>{progressCompleted} من {progressTotal}</strong></div>
+            <div className={styles.progressMeta}><span>الأنشطة الأساسية في مسار V1 التاريخي</span><strong>{progressCompleted} من {progressTotal}</strong></div>
             <div className={styles.track} role="progressbar" aria-label="تقدم الأنشطة الأساسية في المستوى النشط" aria-valuemin={0} aria-valuemax={progressTotal} aria-valuenow={progressCompleted} aria-valuetext={`${progressCompleted} من ${progressTotal}`}><div className={styles.fill} style={{ width: `${progressPercent}%` }} /></div>
           </div>
           <div className={styles.journey}>
@@ -406,7 +408,7 @@ export default function StudentDetailPage() {
           <div className={styles.field}><label htmlFor="student-name">اسم الطالب</label><input id="student-name" className={styles.input} value={editName} onChange={(event) => setEditName(event.target.value)} minLength={2} maxLength={80} /></div>
           <button className={styles.primary} onClick={() => void saveStudentName()} disabled={busy === "name" || editName.trim() === student.full_name}><Save size={17} aria-hidden="true" />{busy === "name" ? "جاري الحفظ..." : "حفظ الاسم"}</button>
         </div>
-        <div className={styles.codeBox} style={{ marginTop: 16 }}><div><span className={styles.muted}>رمز الدخول الحالي</span><strong className={styles.code}>{student.access_code}</strong></div><button className={styles.secondary} onClick={() => void copyAccessCode()}>{copied ? <Check size={17} aria-hidden="true" /> : <Copy size={17} aria-hidden="true" />}{copied ? "تم النسخ" : "نسخ الرمز"}</button></div>
+        <div className={styles.codeBox} style={{ marginTop: 16 }}><div><span className={styles.muted}>رمز الدخول الحالي</span><strong className={styles.code} dir="ltr">{codeVisible ? student.access_code : "••••••"}</strong></div><button type="button" className={styles.secondary} aria-pressed={codeVisible} onClick={() => setCodeVisible(visible => !visible)}>{codeVisible ? "إخفاء الرمز" : "إظهار الرمز"}</button><button className={styles.secondary} onClick={() => void copyAccessCode()}>{copied ? <Check size={17} aria-hidden="true" /> : <Copy size={17} aria-hidden="true" />}{copied ? "تم النسخ" : "نسخ الرمز"}</button></div>
         <div className={styles.grid2}>
           <button className={styles.secondary} onClick={() => void changeAccessCode(false)} disabled={busy === "code"}><RefreshCw size={17} aria-hidden="true" /> توليد رمز جديد</button>
           <div className={styles.formGrid}><div className={styles.field}><label htmlFor="manual-code">رمز يدوي من 6 أرقام</label><input id="manual-code" className={styles.input} inputMode="numeric" maxLength={6} value={manualCode} onChange={(event) => setManualCode(event.target.value.replace(/\D/g, "").slice(0,6))} placeholder="123456" dir="ltr" /></div><button className={styles.primary} onClick={() => void changeAccessCode(true)} disabled={busy === "code" || manualCode.length !== 6}>حفظ</button></div>
@@ -439,9 +441,9 @@ export default function StudentDetailPage() {
 
       <section className={styles.summary} aria-label="ملخص الطالب">
         <div className={styles.summaryCard}><span className={styles.summaryIcon}><User size={20} aria-hidden="true" /></span><div><strong>{student.status === "active" ? "حساب نشط" : "حساب موقوف"}</strong><span>حالة الطالب</span></div></div>
-        <div className={styles.summaryCard}><span className={styles.summaryIcon}><BookOpen size={20} aria-hidden="true" /></span><div><strong>المستوى {student.current_level}</strong><span>المستوى الحالي</span></div></div>
-        <div className={styles.summaryCard}><span className={styles.summaryIcon}><Star size={20} aria-hidden="true" /></span><div><strong>{rewardsState === "loaded" ? totalStars : "—"}</strong><span>النجوم</span></div></div>
-        <div className={styles.summaryCard}><span className={styles.summaryIcon}><KeyRound size={20} aria-hidden="true" /></span><div><strong className={styles.code}>{student.access_code}</strong><span>رمز الدخول</span></div></div>
+        <div className={styles.summaryCard}><span className={styles.summaryIcon}><BookOpen size={20} aria-hidden="true" /></span><div><strong>المستوى {student.current_level}</strong><span>المستوى التاريخي V1</span></div></div>
+        <div className={styles.summaryCard}><span className={styles.summaryIcon}><Star size={20} aria-hidden="true" /></span><div><strong>{rewardsState === "loaded" ? totalStars : "—"}</strong><span>نجوم V1 التاريخية</span></div></div>
+        <div className={styles.summaryCard}><span className={styles.summaryIcon}><KeyRound size={20} aria-hidden="true" /></span><div><strong className={styles.code}>••••••</strong><span>رمز الدخول مخفي · افتح تبويب الحساب</span></div></div>
       </section>
 
       <nav className={styles.tabs} aria-label="أقسام ملف الطالب">
