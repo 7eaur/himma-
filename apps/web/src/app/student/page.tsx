@@ -115,7 +115,7 @@ export default function StudentHomePage() {
   const [rewards, setRewards] = useState<RewardEvent[] | null>(null);
   const [rerecordTasks, setRerecordTasks] = useState<RerecordTask[]>([]);
   const [v2PreviewAvailable, setV2PreviewAvailable] = useState(false);
-  const [v2Home, setV2Home] = useState<V2StudentHome | null>(null);
+  const [v2Home, setV2Home] = useState<StudentV2Home | null>(null);
   const [v2Action, setV2Action] = useState<V2CurrentAction | null>(null);
   const [startingV2, setStartingV2] = useState(false);
   const [openingRerecordId, setOpeningRerecordId] = useState<number | null>(null);
