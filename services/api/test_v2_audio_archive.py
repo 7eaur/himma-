@@ -12,6 +12,7 @@ def test_reviewed_audio_archive_is_private_and_shows_latest_only(student_client)
     assert student_client.get("/v2/review/reviewed-recordings").status_code == 403
     with TestingSessionLocal() as db:
         student = db.query(Student).filter(Student.access_code == "STU001").one()
+        student_id = student.id
         release = register_candidate_release(db)
         db.add(StudentJourney(student_id=student.id, content_release_id=release.id,
                               current_level=1, current_lesson_id="L1-05"))
@@ -38,7 +39,7 @@ def test_reviewed_audio_archive_is_private_and_shows_latest_only(student_client)
     body = result.json()
     assert len(body["items"]) == 1
     item = body["items"][0]
-    assert item["student_id"] == student.id
+    assert item["student_id"] == student_id
     assert item["question_id"] == "L1-05-GP-04"
     assert item["evaluation_source"] == "supervisor"
     assert item["audio_url"].startswith("/api/v2/review/lessons/")

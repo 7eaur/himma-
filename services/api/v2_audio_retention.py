@@ -26,6 +26,7 @@ def _enqueue(db: Session, student_id: int, key: str) -> None:
     existing = db.query(AudioPurgeTask).filter(AudioPurgeTask.storage_key == key).one_or_none()
     if existing is None:
         db.add(AudioPurgeTask(student_id=student_id, storage_key=key, status="queued"))
+        db.flush()  # Deduplicate keys even when the Session disables autoflush.
 
 
 def schedule_superseded_audio(

@@ -16,13 +16,6 @@ from v2_audio_retention import (
 )
 
 
-def _record(db, student_id, question_id, state, suffix):
-    session = LessonSession(student_id=student_id, content_release_id=1, lesson_id="L1-05")
-    # The caller creates a real content release; this helper is not used
-    # directly in isolation to avoid missing foreign keys.
-    return session
-
-
 def test_graded_replacement_purges_old_binary_and_keeps_latest(monkeypatch):
     from v2_content.importer import register_candidate_release
 

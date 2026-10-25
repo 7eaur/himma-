@@ -148,7 +148,8 @@ def test_p08_learner_audio_retry_never_overwrites_original_recording(student_cli
         ).order_by(AudioSubmission.id).all()
         task = db.query(V2ReviewRetryTask).filter(V2ReviewRetryTask.id == task_id).one()
         assert len(all_audio) == 2
-        assert all_audio[0].storage_key == original_key and all_audio[0].status == "rerecord_required"
+        assert all_audio[0].status in {"retention_pending", "purged"}
+        assert all_audio[0].storage_key in {original_key, f"purged/{all_audio[0].id}"}
         assert all_audio[1].storage_key == new_key and all_audio[1].status == "graded"
         assert task.audio_submission_id == all_audio[1].id and task.status == "resolved"
 
