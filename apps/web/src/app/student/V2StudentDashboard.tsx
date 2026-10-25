@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { BookOpenCheck, CheckCircle2, ClipboardList, LogOut, Sparkles } from "lucide-react";
 import StudentRetryTasks from "@/components/learning/StudentRetryTasks";
 import styles from "./home.module.css";
-import "./v2-preview-card.css";
 
 export interface StudentV2Home {
   mode: "v2" | "legacy";
@@ -158,8 +157,8 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
           <span style={{ width: `${Math.max(0, Math.min(100, percent))}%` }} />
         </div>}
         <div className="student-progress-facts">
-          <div><span>دروس أُنجزت</span><strong>{progress.completed_lessons}</strong></div>
-          <div><span>تجاوزتها بالتسكين</span><strong>{progress.skipped_by_placement}</strong></div>
+          <div><span>دروس أُنجزت</span><strong>{home.data_status === "partial" || !placed ? "—" : progress.completed_lessons}</strong></div>
+          <div><span>تجاوزتها بالتسكين</span><strong>{home.data_status === "partial" || !placed ? "—" : progress.skipped_by_placement}</strong></div>
           <div><span>بانتظار المراجعة</span><strong>{progress.pending_review}</strong></div>
         </div>
         <p className="mt-4 text-sm text-muted">الدروس المتجاوزة بالتسكين لا تُحسب دروسًا منجزة، ولا نعرض نجومًا قبل اعتماد نظام مكافآت V2.</p>

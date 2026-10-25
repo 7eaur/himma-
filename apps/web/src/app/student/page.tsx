@@ -5,7 +5,6 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { BookOpenCheck, Check, LogOut, Map, RotateCcw, Star } from "lucide-react";
 import styles from "./home.module.css";
-import "./v2-preview-card.css";
 import StudentRetryTasks from "@/components/learning/StudentRetryTasks";
 import V2StudentDashboard, { type StudentV2Home } from "./V2StudentDashboard";
 
@@ -57,14 +56,6 @@ interface RerecordTask {
   opened?: boolean;
 }
 
-interface V2CurrentAction {
-  action: "assessment" | "start_pretest" | "lesson" | "start_posttest" | "waiting_posttest_enable" | "complete" | "lesson_catalog";
-  kind?: "pretest" | "posttest";
-  state?: string;
-  href: string | null;
-  label: string;
-}
-
 interface JourneyLevel {
   level_id: number;
   name: string;
@@ -114,10 +105,7 @@ export default function StudentHomePage() {
   const [journey, setJourney] = useState<JourneySummary | null>(null);
   const [rewards, setRewards] = useState<RewardEvent[] | null>(null);
   const [rerecordTasks, setRerecordTasks] = useState<RerecordTask[]>([]);
-  const [v2PreviewAvailable, setV2PreviewAvailable] = useState(false);
   const [v2Home, setV2Home] = useState<StudentV2Home | null>(null);
-  const [v2Action, setV2Action] = useState<V2CurrentAction | null>(null);
-  const [startingV2, setStartingV2] = useState(false);
   const [openingRerecordId, setOpeningRerecordId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
@@ -134,8 +122,6 @@ export default function StudentHomePage() {
           const payload = await v2Response.json().catch(() => null) as StudentV2Home | null;
           if (payload?.current_action && payload?.progress && payload?.student) {
             setV2Home(payload);
-            setV2PreviewAvailable(true);
-            setV2Action(payload.current_action);
             if (payload.mode === "v2") return;
           }
         }
@@ -267,20 +253,6 @@ export default function StudentHomePage() {
       router.replace("/");
       router.refresh();
     }
-  };
-
-  const handleV2Action = async () => {
-    if (!v2Action || startingV2 || v2Action.action === "waiting_posttest_enable") return;
-    if (v2Action.href) { router.push(v2Action.href); return; }
-    if (v2Action.action !== "start_pretest" && v2Action.action !== "start_posttest") return;
-    setStartingV2(true); setError("");
-    try {
-      const kind = v2Action.action === "start_pretest" ? "pretest" : "posttest";
-      const response = await fetch(`/api/v2/assessments/${kind}/start`, { method: "POST" });
-      const data = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(data?.detail || "تعذر بدء تقييم V2");
-      router.push(`/student/assessment-v2/${data.session.session_id}`);
-    } catch (reason) { setError(reason instanceof Error ? reason.message : "تعذر بدء تقييم V2"); setStartingV2(false); }
   };
 
   const totalStars = useMemo(() => rewards?.reduce((sum, reward) => sum + (Number.isFinite(Number(reward.stars)) ? Number(reward.stars) : 0), 0) ?? 0, [rewards]);
@@ -479,26 +451,6 @@ export default function StudentHomePage() {
           <div className={styles.heroVisual}><Image src={character} alt="شخصية هِمّة" width={190} height={228} priority /></div>
         </section>
 
-        {v2PreviewAvailable && (
-          <section className="v2-preview-card" data-testid="v2-learning-preview">
-            <div>
-              <span>رحلة V2 المرشحة · TEST ONLY</span>
-              <h2>{v2Action?.label || "متابعة رحلة هِمّة V2"}</h2>
-              <p>{v2Action?.state === "waiting_review" ? "إجاباتك محفوظة وتنتظر مراجعة المشرف." : "القبلي والتسكين والدروس والبعدي في مسار واحد قابل للاستئناف."}</p>
-              {v2Home?.mode === "v2" && (
-                <p data-testid="student-v2-progress">
-                  {v2Home.data_status === "partial"
-                    ? "بيانات تقدم V2 غير مكتملة؛ لا نحسب نسبة تقديرية."
-                    : v2Home.progress.display_percent == null
-                      ? "التقدم في دروس V2 يظهر بعد اعتماد التسكين."
-                      : `أنجزت ${v2Home.progress.completed_lessons} من ${v2Home.progress.assigned_lessons} درسًا في مسارك · ${v2Home.progress.display_percent}%`}
-                  {v2Home.progress.pending_review > 0 ? " · يوجد درس ينتظر مراجعة المشرف." : ""}
-                </p>
-              )}
-            </div>
-            <button type="button" disabled={startingV2 || v2Action?.action === "waiting_posttest_enable"} onClick={() => void handleV2Action()}>{startingV2 ? "جاري الفتح..." : v2Action?.label || "فتح رحلة V2"}</button>
-          </section>
-        )}
         {/* Pending human-review tasks outlive any single V2 preview/current-action fetch.
             Keep the task query independent: StudentRetryTasks hides itself when
             there are no tasks, so the ordinary dashboard remains compact. */}
