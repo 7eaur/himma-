@@ -44,7 +44,7 @@
 | /admin/audio-review | طابور تسجيلات V1 | إما سجل تاريخي مؤرشف داخل المراجعات الموحدة أو إتاحة توافق وفق سياسة بيانات V1؛ لا باب تعليمي مزدوج | عدم ضياع سجل قديم وعدم وجود عملين متضاربين |
 | /admin/v2-lesson-review | مراجعة بشرية وطلب إعادة لدرس V2 | مصدر Queue موحد مع عوامل تصفية وطلب مراجعة وأسباب ونسخة صوت/كتابة والسجل والحجز | claim collision, idempotency, privacy, replay |
 | /admin/v2-assessments | طابور قراءة/كتابة والتسكين وsummary | دمجه منطقيًا بمركز المراجعة للتقييم، مع صفحة فرعية للتسكين والتقرير لا تكرر القرار | 30/30، pending/placement، academic signoff |
-| /admin/content-preview | معاينة V1 readonly قابلة للبحث | تصبح واجهة بنك V2 read-only وفق 3+19+12+2 سياقات فعلية دون اختلاق معتمد، أو تستبدل بصفحة موحدة /admin/content مع تحويل آمن | 300 سؤال، active release، الخيارات والrubrics |
+| /admin/content-preview | معاينة V1 readonly قابلة للبحث | تصبح واجهة بنك V2 read-only وفق القبلي و19 درسًا و12 دعمًا والبعدي دون اختلاق معتمد، أو تستبدل بصفحة موحدة /admin/content مع تحويل آمن | 300 سؤال، active release، الخيارات والrubrics |
 | /admin/v2-media | inventory read-only؛ لا player/gallery | Media Browser read-only مع grid/list + Preview/Audio/Video، وربط استخداماتها وسياقها، مع الحالات والـversion | جميع الأصول، 403/404/codec/seek/mobile |
 | /admin/reports | PDF/XLSX والتقدم والنتائج البحثية | Report V2 من official attempts فقط، progress/missingness/release/skills/support/review؛ الاحتفاظ بالتصدير الآمن | تطابق summary/export وCSV/Excel injection guard |
 | /admin/skill-reports | ملخص وصفى لدرجات المهارات | فصل تدريب/تحقق/دعم/قبلي/بعدي والنسخ المعادة في التقرير مع مقامات واضحة | نوع evidence لا يختلط؛ no fake mastery |
