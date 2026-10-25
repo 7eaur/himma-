@@ -12,7 +12,7 @@ export interface StudentV2Home {
   test_only: boolean;
   student: { id: number; full_name: string; grade_level: number };
   current_action: {
-    action: "assessment" | "start_pretest" | "lesson" | "start_posttest" | "waiting_posttest_enable" | "complete" | "lesson_catalog";
+    action: "assessment" | "start_pretest" | "lesson" | "start_posttest" | "waiting_posttest_enable" | "complete" | "lesson_catalog" | "migration_review";
     kind?: "pretest" | "posttest";
     state?: string;
     href: string | null;
@@ -53,6 +53,8 @@ function stage(home: StudentV2Home) {
     return { title: "بانتظار مراجعة القراءة", detail: "تم حفظ إجاباتك، وستكمل رحلتك بعد مراجعة المشرف.", disabled: false };
   if (action.action === "lesson" && action.state === "waiting_review")
     return { title: "درسُك ينتظر المراجعة", detail: "قراءتك محفوظة، ولا تحتاج إلى إعادة الدرس من البداية.", disabled: false };
+  if (action.action === "migration_review")
+    return { title: "رحلتك تحتاج مراجعة المشرف", detail: "نحتفظ بتعلّمك السابق. سيراجع المشرف انتقالك إلى هِمّة الجديدة دون تكرار اختبارك أو فقدان سجلك.", disabled: true };
   if (action.action === "waiting_posttest_enable")
     return { title: "أنهيت الدروس المطلوبة", detail: "بانتظار إتاحة الاختبار البعدي من المشرف.", disabled: true };
   if (action.action === "complete")
@@ -86,7 +88,17 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
       const kind = action.action === "start_pretest" ? "pretest" : "posttest";
       const response = await fetch(`/api/v2/assessments/${kind}/start`, { method: "POST" });
       const result = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(typeof result?.detail === "string" ? result.detail : "تعذر فتح الاختبار");
+      if (!response.ok) {
+        const safeMessage = response.status === 401 || response.status === 403
+          ? "انتهت جلسة الدخول أو لا تملك صلاحية بدء الاختبار."
+          : response.status === 409
+            ? "لا يمكن بدء اختبار جديد الآن. راجع المشرف للتأكد من جلستك السابقة."
+            : response.status === 503
+              ? "الاختبار غير متاح حاليًا. يرجى المحاولة لاحقًا."
+              : "تعذر فتح الاختبار. تقدّمك محفوظ.";
+        throw new Error(safeMessage);
+      }
+      if (!Number.isInteger(result?.session?.session_id)) throw new Error("تعذر التحقق من جلسة الاختبار. حاول مرة أخرى.");
       router.push(`/student/assessment-v2/${result.session.session_id}`);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "تعذر الاتصال بالخادم");

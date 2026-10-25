@@ -71,7 +71,9 @@ def build_student_v2_home(db: Session, student: Student) -> dict:
         LessonSession.student_id == student.id,
         LessonSession.status.in_(("in_progress", "waiting_review")),
     ).one_or_none()
-    mode = "v2" if journey or active_assessment or active_lesson else "legacy"
+    # All student-facing accounts now use a single V2 shell. Historical V1
+    # evidence remains in its own tables; current_action blocks unsafe retakes.
+    mode = "v2"
     version = None
     lessons = None
     if journey:
@@ -111,8 +113,8 @@ def build_student_v2_home(db: Session, student: Student) -> dict:
             "display_percent": round(done / len(assigned_ids) * 100, 1) if placed and assigned_ids else None,
         }
 
-    # A legacy student can access the separate V2 candidate start route,
-    # but this GET does not automatically enroll or change their V1 progress.
+    # A first-time learner starts V2 from an explicit POST. GET never enrolls,
+    # duplicates a pretest, or changes any historical V1 records.
     action = current_action(student=student, db=db)
     return {
         "mode": mode,
@@ -129,7 +131,7 @@ def build_student_v2_home(db: Session, student: Student) -> dict:
         "progress": progress,
         "assessments": by_kind,
         "rewards": {"state": "not_implemented_v2"},
-        "data_status": "partial" if mode == "v2" and lessons is None else "ready",
+        "data_status": "partial" if (journey or active_assessment or active_lesson) and lessons is None else "ready",
     }
 
 

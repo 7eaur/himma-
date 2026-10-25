@@ -110,3 +110,62 @@ test("P09.1-C: an awaiting pretest never displays fictitious scores or stars", a
   await expect(page.locator("[data-testid='student-progress-overview']")).toHaveCount(0);
   await expect(page.getByText("0%", { exact: true })).toHaveCount(0);
 });
+
+
+test("P0: first real login starts V2 pretest and resumes a saved answer after refresh", async ({ page, request }) => {
+  test.setTimeout(150000);
+  if (!PASSWORD) throw new Error("E2E_RESEARCHER_PASSWORD required");
+  const admin = await request.post(`${API_URL}/auth/login`, { data: { username: USERNAME, password: PASSWORD } });
+  expect(admin.status()).toBe(200);
+  const created = await request.post(`${API_URL}/researcher/students`, {
+    data: { full_name: `طالب P0 تجريبي ${Date.now()}`, grade_level: 3 },
+  });
+  expect(created.status()).toBe(201);
+  const code = (await created.json()).access_code as string;
+
+  const previousApis: string[] = [];
+  page.on("request", req => {
+    if (/\\/api\\/(profile|activities\\/status|journey|rewards)(?:\\?|$)/.test(req.url())) previousApis.push(req.url());
+  });
+  await page.goto("/student/login");
+  await page.getByTestId("input-access-code").fill(code);
+  await page.getByTestId("student-login-submit").click();
+  await expect(page.getByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
+  await expect(page.getByTestId("student-primary-action")).toHaveText("ابدأ الاختبار القبلي");
+  await page.getByTestId("student-primary-action").click();
+  await expect(page).toHaveURL(/\\/student\\/assessment-v2\\/\\d+$/);
+  const sessionId = Number(page.url().split("/").at(-1));
+  const first = await page.evaluate(async id => {
+    const response = await fetch(`/api/v2/assessments/sessions/${id}`);
+    return { status: response.status, data: await response.json() };
+  }, sessionId);
+  expect(first.status).toBe(200);
+  expect(first.data.interaction.question.question_id).toBe("V2-PRE-Q01");
+  expect(first.data.session.progress.answered).toBe(0);
+  const question = first.data.interaction.question;
+  expect(["choose_one", "listen_choose_one", "choose_image"]).toContain(question.interaction);
+  expect(question.options.length).toBeGreaterThan(0);
+  const answer = await page.evaluate(async ({ id, optionId }) => {
+    const response = await fetch(`/api/v2/assessments/sessions/${id}/answers`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ submit_key: crypto.randomUUID(), selected_option_ids: [optionId] }),
+    });
+    return { status: response.status, data: await response.json() };
+  }, { id: sessionId, optionId: question.options[0].id });
+  expect(answer.status, JSON.stringify(answer.data)).toBe(200);
+  expect(answer.data.assessment.session.progress.answered).toBe(1);
+  await page.reload();
+  const resumed = await page.evaluate(async id => {
+    const response = await fetch(`/api/v2/assessments/sessions/${id}`);
+    return { status: response.status, data: await response.json() };
+  }, sessionId);
+  expect(resumed.status).toBe(200);
+  expect(resumed.data.session.session_id).toBe(sessionId);
+  expect(resumed.data.session.progress.answered).toBe(1);
+  expect(resumed.data.interaction.question.question_id).not.toBe(question.question_id);
+  await page.goto("/student");
+  await expect(page.getByTestId("student-primary-action")).toHaveText("متابعة الاختبار");
+  await page.getByTestId("student-primary-action").click();
+  await expect(page).toHaveURL(new RegExp(`/student/assessment-v2/${sessionId}$`));
+  expect(previousApis).toEqual([]);
+});

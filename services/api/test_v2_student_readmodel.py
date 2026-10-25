@@ -9,7 +9,7 @@ def test_legacy_student_v2_home_is_non_mutating_and_never_claims_v1_rewards(stud
     result = student_client.get("/v2/student/home")
     assert result.status_code == 200, result.text
     data = result.json()
-    assert data["mode"] == "legacy"
+    assert data["mode"] == "v2"
     assert data["journey"] is None
     assert data["progress"]["assigned_lessons"] is None
     assert data["progress"]["display_percent"] is None
@@ -144,3 +144,27 @@ def test_v2_home_fails_closed_when_frozen_bank_checksum_mismatches(student_clien
     assert data["progress"]["assigned_lessons"] is None
     assert data["progress"]["display_percent"] is None
     assert data["rewards"] == {"state": "not_implemented_v2"}
+
+
+
+def test_v1_pretest_history_requires_supervisor_migration_without_mutation(student_client):
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        db.add(AssessmentSession(
+            student_id=student.id, session_type="pretest", status="completed",
+            assessment_attempt_no=1, v2_state=None, official_for_reporting=False,
+        ))
+        db.commit()
+    result = student_client.get("/v2/student/home")
+    assert result.status_code == 200, result.text
+    data = result.json()
+    assert data["mode"] == "v2"
+    assert data["journey"] is None
+    assert data["current_action"]["action"] == "migration_review"
+    assert data["progress"]["display_percent"] is None
+    assert data["assessments"]["pretest"] is None
+    assert "access_code" not in result.text and "private_answer" not in result.text
+    assert student_client.post("/v2/assessments/pretest/start").status_code == 409
+    with TestingSessionLocal() as db:
+        assert db.query(StudentJourney).count() == 0
+        assert db.query(AssessmentSession).count() == 1

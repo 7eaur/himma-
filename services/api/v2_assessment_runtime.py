@@ -87,6 +87,28 @@ def current_action(student: Student = Depends(_require_preview_student), db: Ses
     if lesson:
         return {"action": "lesson", "state": lesson.stage, "href": f"/student/learning-v2/{lesson.id}", "label": "متابعة الدرس"}
     journey = db.query(StudentJourney).filter(StudentJourney.student_id == student.id).one_or_none()
+    if not journey:
+        # An account without a V2 journey is not necessarily a first-time
+        # student. Never turn completed V1 evidence into a fresh V2 attempt.
+        prior = db.query(AssessmentSession).filter(
+            AssessmentSession.student_id == student.id,
+        ).order_by(AssessmentSession.id.desc()).first()
+        if prior:
+            previous_pretest = db.query(AssessmentSession).filter(
+                AssessmentSession.student_id == student.id,
+                AssessmentSession.session_type == "pretest",
+            ).order_by(AssessmentSession.assessment_attempt_no.desc(), AssessmentSession.id.desc()).first()
+            allowed_retake = previous_pretest and db.query(AssessmentRetakeAuthorization.id).filter(
+                AssessmentRetakeAuthorization.student_id == student.id,
+                AssessmentRetakeAuthorization.session_type == "pretest",
+                AssessmentRetakeAuthorization.previous_session_id == previous_pretest.id,
+                AssessmentRetakeAuthorization.status == "pending",
+            ).first()
+            if prior.status == "in_progress" or not allowed_retake:
+                return {
+                    "action": "migration_review", "href": None,
+                    "label": "بانتظار مراجعة المشرف",
+                }
     if not journey or journey.placement_state in {"not_started", "in_progress"}:
         return {"action": "start_pretest", "href": None, "label": "ابدأ الاختبار القبلي"}
     if journey.placement_state == "posttest_ready":

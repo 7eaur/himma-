@@ -39,6 +39,9 @@ def test_pretest_starts_resumes_and_never_leaks_private_answer(student_client):
     resumed = student_client.post("/v2/assessments/pretest/start")
     assert resumed.status_code == 200
     assert resumed.json()["session"]["session_id"] == payload["session"]["session_id"]
+    restored = student_client.get(f'/v2/assessments/sessions/{payload["session"]["session_id"]}')
+    assert restored.status_code == 200
+    assert restored.json()["interaction"]["question"]["question_id"] == payload["interaction"]["question"]["question_id"]
 
 
 def test_objective_answer_is_private_idempotent_and_advances(student_client):

@@ -117,63 +117,21 @@ export default function StudentHomePage() {
         // A V2-enrolled learner must never load V1 activity, level or reward
         // endpoints on the same dashboard. Keep the old flow only for
         // explicitly un-migrated accounts while the rollout is test-only.
-        const v2Response = await fetch("/api/v2/student/home", { cache: "no-store" }).catch(() => null);
-        if (v2Response?.ok) {
-          const payload = await v2Response.json().catch(() => null) as StudentV2Home | null;
-          if (payload?.current_action && payload?.progress && payload?.student) {
-            setV2Home(payload);
-            if (payload.mode === "v2") return;
-          }
+        const v2Response = await fetch("/api/v2/student/home", { cache: "no-store" });
+        if (v2Response.status === 401 || v2Response.status === 403) {
+          router.replace("/student/login");
+          return;
         }
-        const profileResponse = await fetch("/api/profile", { cache: "no-store" });
-        const profileData = await profileResponse.json().catch(() => null);
-        if (!profileResponse.ok) throw new Error(profileData?.detail || "تعذر تحميل مسارك");
-        const profile: StudentMe = profileData;
-        setStudent(profile);
+        if (!v2Response.ok) {
+          throw new Error("رحلة هِمّة غير متاحة الآن. تقدّمك محفوظ، حاول مرة أخرى لاحقًا.");
+        }
+        const payload = await v2Response.json().catch(() => null) as StudentV2Home | null;
+        if (!payload?.current_action || !payload?.progress || !payload?.student || payload.mode !== "v2") {
+          throw new Error("تعذر التحقق من رحلة هِمّة. تواصل مع المشرف، ولا تبدأ اختبارًا جديدًا.");
+        }
+        setV2Home(payload);
+        return;
 
-        const requests: Promise<void>[] = [];
-        if (profile.next_action === "learning" || profile.active_session?.session_type === "core") {
-          requests.push(
-            fetch("/api/activities/status", { cache: "no-store" }).then(async (response) => {
-              if (response.ok) setLearning(await response.json());
-            }),
-          );
-        }
-        requests.push(
-          fetch("/api/journey", { cache: "no-store" }).then(async (response) => {
-            if (response.ok) setJourney(await response.json());
-          }),
-        );
-        requests.push(
-          fetch("/api/rewards", { cache: "no-store" })
-            .then(async (response) => {
-              if (!response.ok) {
-                setRewards(null);
-                return;
-              }
-              const rewardData = await response.json().catch(() => null);
-              setRewards(Array.isArray(rewardData) ? rewardData : null);
-            })
-            .catch(() => setRewards(null)),
-        );
-        if (
-          profile.active_session?.session_type === "pretest"
-          || profile.active_session?.session_type === "posttest"
-        ) {
-          requests.push(
-            fetch(`/api/assessment/session/${profile.active_session.id}/rerecord-tasks`, { cache: "no-store" })
-              .then(async (response) => {
-                if (!response.ok) {
-                  setRerecordTasks([]);
-                  return;
-                }
-                const taskData = await response.json().catch(() => []);
-                setRerecordTasks(Array.isArray(taskData) ? taskData : []);
-              })
-              .catch(() => setRerecordTasks([])),
-          );
-        }
-        await Promise.all(requests);
       } catch (err) {
         setError(err instanceof Error ? err.message : "تعذر تحميل بياناتك. حدّث الصفحة وحاول مرة أخرى.");
       } finally {
