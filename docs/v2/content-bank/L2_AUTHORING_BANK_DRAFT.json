@@ -467,8 +467,8 @@
       "owner_id": "L2-01",
       "mode": "GP",
       "role": "guided_practice",
-      "interaction": "write_text",
-      "prompt": "اكتب كلمة تدل على الصورة.",
+      "interaction": "build_word",
+      "prompt": "انظر إلى الصورة، ثم رتّب الحروف لتكوّن اسمها.",
       "stimulus": {
         "text": null,
         "media": [
@@ -478,57 +478,57 @@
           }
         ]
       },
-      "options": [],
-      "private_answer": {
-        "correct_option_ids": [],
-        "rubric": {
-          "authority": "human_supervisor",
-          "target_or_reference": "بَاب",
-          "criteria": [
-            "مطابقة اسم الشيء المقصود",
-            "صحة حروف الكلمة وترتيبها",
-            "وضوح الكتابة"
-          ],
-          "needs_human_review": true
+      "options": [
+        {
+          "id": "tile_01",
+          "text": "ب",
+          "media": []
+        },
+        {
+          "id": "tile_02",
+          "text": "ب",
+          "media": []
+        },
+        {
+          "id": "tile_03",
+          "text": "ا",
+          "media": []
         }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "tile_02",
+          "tile_03",
+          "tile_01"
+        ],
+        "rubric": null,
+        "target_text": "باب",
+        "scoring": "ordered_option_ids_exact"
       },
-      "evidence_type": "word_writing",
+      "evidence_type": "word_construction",
       "error_focus": "spelling",
       "skill_group": "S5",
       "origin_v1": null,
-      "notes": "تتطلب تفاعل كتابة جديدة ومراجعة بشرية",
+      "notes": "سؤال بناء مقيد مصحح آليًا، وفق 53_V2_WORD_SENTENCE_BANK_CONVERSION_AR.md.",
       "reading_reference": null,
-      "technical_gaps": [
-        "free_writing_input_and_scoring_unconfirmed_v1"
-      ],
+      "technical_gaps": [],
       "status": "draft",
-      "hint": "انطق اسم الصورة ببطء ثم اكتب حروفه.",
+      "hint": "انطق اسم الشيء ببطء، ثم رتّب الحروف كما تسمعها.",
       "retry": "hint_on_error_then_one_more_try_no_test_evidence",
-      "writing_scoring_policy": {
-        "task_type": "single_word_spelling",
-        "reviewer": "human_supervisor",
-        "accept_equivalent_grammatical_answers": false,
-        "do_not_require_student_to_enter_diacritics": true,
-        "grade_dimensions": [
-          "مطابقة اسم الشيء المقصود",
-          "صحة حروف الكلمة وترتيبها",
-          "وضوح الكتابة"
-        ],
-        "no_single_exact_answer": false
-      },
       "version": "0.3-draft",
       "authoring_state": "draft",
       "student_presentation": {
         "stimulus_mode": "question_image",
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "choice_count": 0,
+        "option_mode": "ordered_letters",
+        "layout": "ordered_letter_tray",
+        "choice_count": 3,
         "stimulus_audio_transcript_public": false,
         "image_answer_caption_public": false,
         "hint_initially_visible": false,
         "answer_initially_visible": false,
-        "student_input": "arabic_written_response"
-      }
+        "student_input": "tap_order"
+      },
+      "ordering_scoring_policy": "server_exact_order_without_human_review"
     },
     {
       "id": "L2-01-IC-A01",
@@ -599,8 +599,8 @@
       "owner_id": "L2-01",
       "mode": "IC",
       "role": "independent_check",
-      "interaction": "write_text",
-      "prompt": "اكتب اسم الشيء في الصورة.",
+      "interaction": "build_word",
+      "prompt": "انظر إلى الصورة، ثم رتّب الحروف لتكوّن اسمها.",
       "stimulus": {
         "text": null,
         "media": [
@@ -610,57 +610,56 @@
           }
         ]
       },
-      "options": [],
-      "private_answer": {
-        "correct_option_ids": [],
-        "rubric": {
-          "authority": "human_supervisor",
-          "target_or_reference": "كُرَة",
-          "criteria": [
-            "مطابقة اسم الشيء المقصود",
-            "صحة حروف الكلمة وترتيبها",
-            "وضوح الكتابة"
-          ],
-          "needs_human_review": true,
-          "reference": "كُرَة"
+      "options": [
+        {
+          "id": "tile_01",
+          "text": "ة",
+          "media": []
+        },
+        {
+          "id": "tile_02",
+          "text": "ك",
+          "media": []
+        },
+        {
+          "id": "tile_03",
+          "text": "ر",
+          "media": []
         }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "tile_02",
+          "tile_03",
+          "tile_01"
+        ],
+        "rubric": null,
+        "target_text": "كرة",
+        "scoring": "ordered_option_ids_exact"
       },
-      "evidence_type": "word_writing",
+      "evidence_type": "word_construction",
       "error_focus": "spelling",
       "skill_group": "S5",
       "origin_v1": null,
-      "notes": "صورة الكرة؛ المرجع الخاص للمشرف كُرَة.",
+      "notes": "سؤال بناء مقيد مصحح آليًا، وفق 53_V2_WORD_SENTENCE_BANK_CONVERSION_AR.md.",
       "reading_reference": null,
-      "technical_gaps": [
-        "free_writing_input_and_scoring_unconfirmed_v1"
-      ],
+      "technical_gaps": [],
       "status": "draft",
       "hint": null,
-      "writing_scoring_policy": {
-        "task_type": "single_word_spelling",
-        "reviewer": "human_supervisor",
-        "accept_equivalent_grammatical_answers": false,
-        "do_not_require_student_to_enter_diacritics": true,
-        "grade_dimensions": [
-          "مطابقة اسم الشيء المقصود",
-          "صحة حروف الكلمة وترتيبها",
-          "وضوح الكتابة"
-        ],
-        "no_single_exact_answer": false
-      },
       "version": "0.3-draft",
       "authoring_state": "draft",
       "student_presentation": {
         "stimulus_mode": "question_image",
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "choice_count": 0,
+        "option_mode": "ordered_letters",
+        "layout": "ordered_letter_tray",
+        "choice_count": 3,
         "stimulus_audio_transcript_public": false,
         "image_answer_caption_public": false,
         "hint_initially_visible": false,
         "answer_initially_visible": false,
-        "student_input": "arabic_written_response"
-      }
+        "student_input": "tap_order"
+      },
+      "ordering_scoring_policy": "server_exact_order_without_human_review"
     },
     {
       "id": "L2-01-IC-A03",
@@ -730,8 +729,8 @@
       "owner_id": "L2-01",
       "mode": "IC",
       "role": "independent_check",
-      "interaction": "write_text",
-      "prompt": "اكتب اسم الشيء في الصورة.",
+      "interaction": "build_word",
+      "prompt": "انظر إلى الصورة، ثم رتّب الحروف لتكوّن اسمها.",
       "stimulus": {
         "text": null,
         "media": [
@@ -741,57 +740,56 @@
           }
         ]
       },
-      "options": [],
-      "private_answer": {
-        "correct_option_ids": [],
-        "rubric": {
-          "authority": "human_supervisor",
-          "target_or_reference": "شَمْس",
-          "criteria": [
-            "مطابقة اسم الشيء المقصود",
-            "صحة حروف الكلمة وترتيبها",
-            "وضوح الكتابة"
-          ],
-          "needs_human_review": true,
-          "reference": "شَمْس"
+      "options": [
+        {
+          "id": "tile_01",
+          "text": "س",
+          "media": []
+        },
+        {
+          "id": "tile_02",
+          "text": "ش",
+          "media": []
+        },
+        {
+          "id": "tile_03",
+          "text": "م",
+          "media": []
         }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "tile_02",
+          "tile_03",
+          "tile_01"
+        ],
+        "rubric": null,
+        "target_text": "شمس",
+        "scoring": "ordered_option_ids_exact"
       },
-      "evidence_type": "word_writing",
+      "evidence_type": "word_construction",
       "error_focus": "spelling",
       "skill_group": "S5",
       "origin_v1": null,
-      "notes": "صورة الشمس؛ الجواب المرجعي الخاص للمشرف شَمْس.",
+      "notes": "سؤال بناء مقيد مصحح آليًا، وفق 53_V2_WORD_SENTENCE_BANK_CONVERSION_AR.md.",
       "reading_reference": null,
-      "technical_gaps": [
-        "free_writing_input_and_scoring_unconfirmed_v1"
-      ],
+      "technical_gaps": [],
       "status": "draft",
       "hint": null,
-      "writing_scoring_policy": {
-        "task_type": "single_word_spelling",
-        "reviewer": "human_supervisor",
-        "accept_equivalent_grammatical_answers": false,
-        "do_not_require_student_to_enter_diacritics": true,
-        "grade_dimensions": [
-          "مطابقة اسم الشيء المقصود",
-          "صحة حروف الكلمة وترتيبها",
-          "وضوح الكتابة"
-        ],
-        "no_single_exact_answer": false
-      },
       "version": "0.3-draft",
       "authoring_state": "draft",
       "student_presentation": {
         "stimulus_mode": "question_image",
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "choice_count": 0,
+        "option_mode": "ordered_letters",
+        "layout": "ordered_letter_tray",
+        "choice_count": 3,
         "stimulus_audio_transcript_public": false,
         "image_answer_caption_public": false,
         "hint_initially_visible": false,
         "answer_initially_visible": false,
-        "student_input": "arabic_written_response"
-      }
+        "student_input": "tap_order"
+      },
+      "ordering_scoring_policy": "server_exact_order_without_human_review"
     },
     {
       "id": "L2-02-GP-01",
@@ -3199,8 +3197,8 @@
       "owner_id": "SUP-05",
       "mode": "GP",
       "role": "guided_practice",
-      "interaction": "write_text",
-      "prompt": "اكتب اسم الصورة.",
+      "interaction": "build_word",
+      "prompt": "انظر إلى الصورة، ثم رتّب الحروف لتكوّن اسمها.",
       "stimulus": {
         "text": null,
         "media": [
@@ -3210,57 +3208,57 @@
           }
         ]
       },
-      "options": [],
-      "private_answer": {
-        "correct_option_ids": [],
-        "rubric": {
-          "authority": "human_supervisor",
-          "target_or_reference": "نَجْم",
-          "criteria": [
-            "مطابقة اسم الشيء المقصود",
-            "صحة حروف الكلمة وترتيبها",
-            "وضوح الكتابة"
-          ],
-          "needs_human_review": true
+      "options": [
+        {
+          "id": "tile_01",
+          "text": "م",
+          "media": []
+        },
+        {
+          "id": "tile_02",
+          "text": "ن",
+          "media": []
+        },
+        {
+          "id": "tile_03",
+          "text": "ج",
+          "media": []
         }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "tile_02",
+          "tile_03",
+          "tile_01"
+        ],
+        "rubric": null,
+        "target_text": "نجم",
+        "scoring": "ordered_option_ids_exact"
       },
-      "evidence_type": "word_writing",
+      "evidence_type": "word_construction",
       "error_focus": "spelling",
       "skill_group": "S5",
       "origin_v1": null,
-      "notes": null,
+      "notes": "سؤال بناء مقيد مصحح آليًا، وفق 53_V2_WORD_SENTENCE_BANK_CONVERSION_AR.md.",
       "reading_reference": null,
-      "technical_gaps": [
-        "free_writing_input_and_scoring_unconfirmed_v1"
-      ],
+      "technical_gaps": [],
       "status": "draft",
-      "hint": "انطق اسم الصورة ببطء، ثم اكتب الحرف الأول.",
+      "hint": "انطق اسم الشيء ببطء، ثم رتّب الحروف كما تسمعها.",
       "retry": "hint_on_error_then_one_more_try_no_test_evidence",
-      "writing_scoring_policy": {
-        "task_type": "single_word_spelling",
-        "reviewer": "human_supervisor",
-        "accept_equivalent_grammatical_answers": false,
-        "do_not_require_student_to_enter_diacritics": true,
-        "grade_dimensions": [
-          "مطابقة اسم الشيء المقصود",
-          "صحة حروف الكلمة وترتيبها",
-          "وضوح الكتابة"
-        ],
-        "no_single_exact_answer": false
-      },
       "version": "0.3-draft",
       "authoring_state": "draft",
       "student_presentation": {
         "stimulus_mode": "question_image",
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "choice_count": 0,
+        "option_mode": "ordered_letters",
+        "layout": "ordered_letter_tray",
+        "choice_count": 3,
         "stimulus_audio_transcript_public": false,
         "image_answer_caption_public": false,
         "hint_initially_visible": false,
         "answer_initially_visible": false,
-        "student_input": "arabic_written_response"
-      }
+        "student_input": "tap_order"
+      },
+      "ordering_scoring_policy": "server_exact_order_without_human_review"
     },
     {
       "id": "SUP-05-SC-01",
@@ -3326,8 +3324,8 @@
       "owner_id": "SUP-05",
       "mode": "IC",
       "role": "support_check",
-      "interaction": "write_text",
-      "prompt": "اكتب اسم الشيء في الصورة.",
+      "interaction": "build_word",
+      "prompt": "انظر إلى الصورة، ثم رتّب الحروف لتكوّن اسمها.",
       "stimulus": {
         "text": null,
         "media": [
@@ -3337,56 +3335,62 @@
           }
         ]
       },
-      "options": [],
-      "private_answer": {
-        "correct_option_ids": [],
-        "rubric": {
-          "authority": "human_supervisor",
-          "target_or_reference": "نَخْلَة",
-          "criteria": [
-            "مطابقة اسم الشيء المقصود",
-            "صحة حروف الكلمة وترتيبها",
-            "وضوح الكتابة"
-          ],
-          "needs_human_review": true
+      "options": [
+        {
+          "id": "tile_01",
+          "text": "ة",
+          "media": []
+        },
+        {
+          "id": "tile_02",
+          "text": "ن",
+          "media": []
+        },
+        {
+          "id": "tile_03",
+          "text": "خ",
+          "media": []
+        },
+        {
+          "id": "tile_04",
+          "text": "ل",
+          "media": []
         }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "tile_02",
+          "tile_03",
+          "tile_04",
+          "tile_01"
+        ],
+        "rubric": null,
+        "target_text": "نخلة",
+        "scoring": "ordered_option_ids_exact"
       },
-      "evidence_type": "word_writing",
+      "evidence_type": "word_construction",
       "error_focus": "spelling",
       "skill_group": "S5",
       "origin_v1": null,
-      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
+      "notes": "سؤال بناء مقيد مصحح آليًا، وفق 53_V2_WORD_SENTENCE_BANK_CONVERSION_AR.md.",
       "reading_reference": null,
-      "technical_gaps": [
-        "free_writing_input_and_scoring_unconfirmed_v1"
-      ],
+      "technical_gaps": [],
       "status": "draft",
       "hint": null,
-      "writing_scoring_policy": {
-        "task_type": "single_word_spelling",
-        "reviewer": "human_supervisor",
-        "accept_equivalent_grammatical_answers": false,
-        "do_not_require_student_to_enter_diacritics": true,
-        "grade_dimensions": [
-          "مطابقة اسم الشيء المقصود",
-          "صحة حروف الكلمة وترتيبها",
-          "وضوح الكتابة"
-        ],
-        "no_single_exact_answer": false
-      },
       "version": "0.3-draft",
       "authoring_state": "draft",
       "student_presentation": {
         "stimulus_mode": "question_image",
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "choice_count": 0,
+        "option_mode": "ordered_letters",
+        "layout": "ordered_letter_tray",
+        "choice_count": 4,
         "stimulus_audio_transcript_public": false,
         "image_answer_caption_public": false,
         "hint_initially_visible": false,
         "answer_initially_visible": false,
-        "student_input": "arabic_written_response"
-      }
+        "student_input": "tap_order"
+      },
+      "ordering_scoring_policy": "server_exact_order_without_human_review"
     },
     {
       "id": "SUP-06-GP-01",
@@ -3896,8 +3900,8 @@
       "owner_id": "SUP-05",
       "role": "guided_practice",
       "mode": "GP",
-      "interaction": "write_text",
-      "prompt": "اكتب اسم الطائر في الصورة.",
+      "interaction": "build_word",
+      "prompt": "انظر إلى الصورة، ثم رتّب الحروف لتكوّن اسمها.",
       "stimulus": {
         "text": null,
         "media": [
@@ -3907,58 +3911,57 @@
           }
         ]
       },
-      "options": [],
-      "private_answer": {
-        "correct_option_ids": [],
-        "rubric": {
-          "authority": "human_supervisor",
-          "reference": "بَطَّة",
-          "criteria": [
-            "مطابقة اسم الشيء المقصود",
-            "صحة حروف الكلمة وترتيبها",
-            "وضوح الكتابة"
-          ],
-          "no_auto_grade": true,
-          "target_or_reference": "بَطَّة"
+      "options": [
+        {
+          "id": "tile_01",
+          "text": "ة",
+          "media": []
+        },
+        {
+          "id": "tile_02",
+          "text": "ب",
+          "media": []
+        },
+        {
+          "id": "tile_03",
+          "text": "ط",
+          "media": []
         }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "tile_02",
+          "tile_03",
+          "tile_01"
+        ],
+        "rubric": null,
+        "target_text": "بطة",
+        "scoring": "ordered_option_ids_exact"
       },
-      "evidence_type": "word_writing",
+      "evidence_type": "word_construction",
       "error_focus": "spelling",
       "reading_reference": null,
-      "technical_gaps": [
-        "writing_input_not_confirmed_v1"
-      ],
+      "technical_gaps": [],
       "origin_v1": null,
       "status": "draft_pending_qa",
-      "hint": "انطق اسم الطائر ثم اكتب حروفه بالترتيب.",
+      "hint": "انطق اسم الشيء ببطء، ثم رتّب الحروف كما تسمعها.",
       "retry": "hint_then_one_more_guided_attempt",
-      "notes": "المرجع الخاص بالمشرف بَطَّة؛ لا يُعرض للطالب.",
-      "writing_scoring_policy": {
-        "task_type": "single_word_spelling",
-        "reviewer": "human_supervisor",
-        "accept_equivalent_grammatical_answers": false,
-        "do_not_require_student_to_enter_diacritics": true,
-        "grade_dimensions": [
-          "مطابقة اسم الشيء المقصود",
-          "صحة حروف الكلمة وترتيبها",
-          "وضوح الكتابة"
-        ],
-        "no_single_exact_answer": false
-      },
+      "notes": "سؤال بناء مقيد مصحح آليًا، وفق 53_V2_WORD_SENTENCE_BANK_CONVERSION_AR.md.",
       "skill_group": "S5",
       "version": "0.3-draft",
       "authoring_state": "draft",
       "student_presentation": {
         "stimulus_mode": "question_image",
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "choice_count": 0,
+        "option_mode": "ordered_letters",
+        "layout": "ordered_letter_tray",
+        "choice_count": 3,
         "stimulus_audio_transcript_public": false,
         "image_answer_caption_public": false,
         "hint_initially_visible": false,
         "answer_initially_visible": false,
-        "student_input": "arabic_written_response"
-      }
+        "student_input": "tap_order"
+      },
+      "ordering_scoring_policy": "server_exact_order_without_human_review"
     },
     {
       "id": "SUP-05-SC-03",
@@ -4023,61 +4026,61 @@
       "owner_id": "SUP-05",
       "role": "support_check",
       "mode": "IC",
-      "interaction": "write_text",
-      "prompt": "اكتب اسم الأداة التي نكتب بها.",
+      "interaction": "build_word",
+      "prompt": "رتّب الحروف لتكوّن اسم الأداة التي نكتب بها.",
       "stimulus": {
         "text": "أداة للكتابة",
         "media": []
       },
-      "options": [],
-      "private_answer": {
-        "correct_option_ids": [],
-        "rubric": {
-          "authority": "human_supervisor",
-          "reference": "قَلَم",
-          "criteria": [
-            "مطابقة اسم الشيء المقصود",
-            "صحة حروف الكلمة وترتيبها",
-            "وضوح الكتابة"
-          ],
-          "no_auto_grade": true
+      "options": [
+        {
+          "id": "tile_01",
+          "text": "م",
+          "media": []
+        },
+        {
+          "id": "tile_02",
+          "text": "ق",
+          "media": []
+        },
+        {
+          "id": "tile_03",
+          "text": "ل",
+          "media": []
         }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "tile_02",
+          "tile_03",
+          "tile_01"
+        ],
+        "rubric": null,
+        "target_text": "قلم",
+        "scoring": "ordered_option_ids_exact"
       },
-      "evidence_type": "word_writing",
+      "evidence_type": "word_construction",
       "error_focus": "spelling",
       "reading_reference": null,
-      "technical_gaps": [
-        "writing_input_not_confirmed_v1"
-      ],
+      "technical_gaps": [],
       "origin_v1": null,
       "status": "draft_pending_qa",
       "hint": null,
-      "writing_scoring_policy": {
-        "task_type": "single_word_spelling",
-        "reviewer": "human_supervisor",
-        "accept_equivalent_grammatical_answers": false,
-        "do_not_require_student_to_enter_diacritics": true,
-        "grade_dimensions": [
-          "مطابقة اسم الشيء المقصود",
-          "صحة حروف الكلمة وترتيبها",
-          "وضوح الكتابة"
-        ],
-        "no_single_exact_answer": false
-      },
       "skill_group": "S5",
       "version": "0.3-draft",
       "authoring_state": "draft",
       "student_presentation": {
         "stimulus_mode": "text_block",
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "choice_count": 0,
+        "option_mode": "ordered_letters",
+        "layout": "ordered_letter_tray",
+        "choice_count": 3,
         "stimulus_audio_transcript_public": false,
         "image_answer_caption_public": false,
         "hint_initially_visible": false,
         "answer_initially_visible": false,
-        "student_input": "arabic_written_response"
-      }
+        "student_input": "tap_order"
+      },
+      "ordering_scoring_policy": "server_exact_order_without_human_review"
     },
     {
       "id": "SUP-06-GP-03",

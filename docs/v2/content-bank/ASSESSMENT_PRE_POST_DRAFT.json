@@ -732,10 +732,10 @@
         "decision": "replace_with_new"
       },
       "skill_group": "S5",
-      "evidence_type": "word_writing",
+      "evidence_type": "word_construction",
       "role": "pretest",
-      "interaction": "write_text",
-      "prompt": "اكتب اسم الشيء في الصورة.",
+      "interaction": "build_word",
+      "prompt": "انظر إلى الصورة، ثم رتّب الحروف لتكوّن اسمها.",
       "stimulus": {
         "text": null,
         "media": [
@@ -745,20 +745,32 @@
           }
         ]
       },
-      "options": [],
-      "private_answer": {
-        "correct_option_ids": [],
-        "rubric": {
-          "authority": "human_supervisor",
-          "reference_text": "قَلَم",
-          "accept_equivalent": true,
-          "criteria": [
-            "مطابقة اسم الشيء المقصود",
-            "صحة حروف الكلمة وترتيبها",
-            "وضوح الكتابة"
-          ],
-          "academic_auto_grade": false
+      "options": [
+        {
+          "id": "tile_01",
+          "text": "م",
+          "media": []
+        },
+        {
+          "id": "tile_02",
+          "text": "ق",
+          "media": []
+        },
+        {
+          "id": "tile_03",
+          "text": "ل",
+          "media": []
         }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "tile_02",
+          "tile_03",
+          "tile_01"
+        ],
+        "rubric": null,
+        "target_text": "قلم",
+        "scoring": "ordered_option_ids_exact"
       },
       "reading_reference": null,
       "role_specific_hints_allowed": false,
@@ -766,33 +778,20 @@
         "VOC-04"
       ],
       "media_status": "pending_owner_review",
-      "technical_gaps": [
-        "free_writing_not_confirmed_in_v1"
-      ],
+      "technical_gaps": [],
       "status": "draft_pending_assessment_equivalence_review",
-      "writing_scoring_policy": {
-        "task_type": "single_word_spelling",
-        "reviewer": "human_supervisor",
-        "accept_equivalent_grammatical_answers": false,
-        "do_not_require_student_to_enter_diacritics": true,
-        "grade_dimensions": [
-          "مطابقة اسم الشيء المقصود",
-          "صحة حروف الكلمة وترتيبها",
-          "وضوح الكتابة"
-        ],
-        "no_single_exact_answer": false
-      },
       "student_presentation": {
         "stimulus_mode": "question_image",
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "choice_count": 0,
+        "option_mode": "ordered_letters",
+        "layout": "ordered_letter_tray",
+        "choice_count": 3,
         "stimulus_audio_transcript_public": false,
         "image_answer_caption_public": false,
         "hint_initially_visible": false,
         "answer_initially_visible": false,
-        "student_input": "arabic_written_response"
-      }
+        "student_input": "tap_order"
+      },
+      "ordering_scoring_policy": "server_exact_order_without_human_review"
     },
     {
       "id": "V2-PRE-Q13",
@@ -1841,10 +1840,10 @@
         "decision": "replace_with_new"
       },
       "skill_group": "S13",
-      "evidence_type": "sentence_writing",
+      "evidence_type": "sentence_construction",
       "role": "pretest",
-      "interaction": "write_text",
-      "prompt": "اكتب جملة قصيرة عن القمر في الصورة.",
+      "interaction": "sequence",
+      "prompt": "رتّب الكلمات لتكوّن جملة صحيحة عن الصورة، وتبدأ بكلمة «القمر».",
       "stimulus": {
         "text": null,
         "media": [
@@ -1854,21 +1853,38 @@
           }
         ]
       },
-      "options": [],
-      "private_answer": {
-        "correct_option_ids": [],
-        "rubric": {
-          "authority": "human_supervisor",
-          "reference_text": "جملة مفيدة تصف القمر",
-          "accept_equivalent": true,
-          "criteria": [
-            "معنى واضح مرتبط بالمطلوب",
-            "جملة مفيدة ولو اختلفت عن المثال",
-            "ترتيب الكلمات",
-            "إملاء مناسب للمستوى"
-          ],
-          "academic_auto_grade": false
+      "options": [
+        {
+          "id": "tile_01",
+          "text": "الليل",
+          "media": []
+        },
+        {
+          "id": "tile_02",
+          "text": "القمر",
+          "media": []
+        },
+        {
+          "id": "tile_03",
+          "text": "يضيء",
+          "media": []
+        },
+        {
+          "id": "tile_04",
+          "text": "في",
+          "media": []
         }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "tile_02",
+          "tile_03",
+          "tile_04",
+          "tile_01"
+        ],
+        "rubric": null,
+        "target_text": "القمر يضيء في الليل",
+        "scoring": "ordered_option_ids_exact"
       },
       "reading_reference": null,
       "role_specific_hints_allowed": false,
@@ -1876,34 +1892,21 @@
         "VOC-07"
       ],
       "media_status": "pending_owner_review",
-      "technical_gaps": [
-        "free_writing_not_confirmed_in_v1"
-      ],
+      "technical_gaps": [],
       "status": "draft_pending_assessment_equivalence_review",
-      "writing_scoring_policy": {
-        "task_type": "short_open_sentence",
-        "reviewer": "human_supervisor",
-        "accept_equivalent_grammatical_answers": true,
-        "do_not_require_student_to_enter_diacritics": true,
-        "grade_dimensions": [
-          "معنى واضح مرتبط بالمطلوب",
-          "جملة مفيدة ولو اختلفت عن المثال",
-          "ترتيب الكلمات",
-          "إملاء مناسب للمستوى"
-        ],
-        "no_single_exact_answer": true
-      },
       "student_presentation": {
         "stimulus_mode": "question_image",
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "choice_count": 0,
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 4,
         "stimulus_audio_transcript_public": false,
         "image_answer_caption_public": false,
         "hint_initially_visible": false,
         "answer_initially_visible": false,
-        "student_input": "arabic_written_response"
-      }
+        "student_input": "tap_order",
+        "variant": "sentence_builder"
+      },
+      "ordering_scoring_policy": "server_exact_order_without_human_review"
     }
   ],
   "posttest": [
@@ -2632,10 +2635,10 @@
         "decision": "replace_with_new"
       },
       "skill_group": "S5",
-      "evidence_type": "word_writing",
+      "evidence_type": "word_construction",
       "role": "posttest",
-      "interaction": "write_text",
-      "prompt": "اكتب اسم الشيء في الصورة.",
+      "interaction": "build_word",
+      "prompt": "انظر إلى الصورة، ثم رتّب الحروف لتكوّن اسمها.",
       "stimulus": {
         "text": null,
         "media": [
@@ -2645,20 +2648,32 @@
           }
         ]
       },
-      "options": [],
-      "private_answer": {
-        "correct_option_ids": [],
-        "rubric": {
-          "authority": "human_supervisor",
-          "reference_text": "قِطَّة",
-          "accept_equivalent": true,
-          "criteria": [
-            "مطابقة اسم الشيء المقصود",
-            "صحة حروف الكلمة وترتيبها",
-            "وضوح الكتابة"
-          ],
-          "academic_auto_grade": false
+      "options": [
+        {
+          "id": "tile_01",
+          "text": "ة",
+          "media": []
+        },
+        {
+          "id": "tile_02",
+          "text": "ق",
+          "media": []
+        },
+        {
+          "id": "tile_03",
+          "text": "ط",
+          "media": []
         }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "tile_02",
+          "tile_03",
+          "tile_01"
+        ],
+        "rubric": null,
+        "target_text": "قطة",
+        "scoring": "ordered_option_ids_exact"
       },
       "reading_reference": null,
       "role_specific_hints_allowed": false,
@@ -2666,34 +2681,21 @@
         "VOC-16"
       ],
       "media_status": "pending_owner_review",
-      "technical_gaps": [
-        "free_writing_not_confirmed_in_v1"
-      ],
+      "technical_gaps": [],
       "status": "draft_pending_assessment_equivalence_review",
-      "writing_scoring_policy": {
-        "task_type": "single_word_spelling",
-        "reviewer": "human_supervisor",
-        "accept_equivalent_grammatical_answers": false,
-        "do_not_require_student_to_enter_diacritics": true,
-        "grade_dimensions": [
-          "مطابقة اسم الصورة",
-          "صحة الحروف بالترتيب",
-          "وضوح كتابة الكلمة دون اشتراط التشكيل"
-        ],
-        "no_single_exact_answer": false
-      },
       "content_qa_note": "صورة قطة جديدة من V1 لا تظهر خلال تدريبات كتابة الدروس.",
       "student_presentation": {
         "stimulus_mode": "question_image",
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "choice_count": 0,
+        "option_mode": "ordered_letters",
+        "layout": "ordered_letter_tray",
+        "choice_count": 3,
         "stimulus_audio_transcript_public": false,
         "image_answer_caption_public": false,
         "hint_initially_visible": false,
         "answer_initially_visible": false,
-        "student_input": "arabic_written_response"
-      }
+        "student_input": "tap_order"
+      },
+      "ordering_scoring_policy": "server_exact_order_without_human_review"
     },
     {
       "id": "V2-POST-Q13",
@@ -3742,10 +3744,10 @@
         "decision": "replace_with_new"
       },
       "skill_group": "S13",
-      "evidence_type": "sentence_writing",
+      "evidence_type": "sentence_construction",
       "role": "posttest",
-      "interaction": "write_text",
-      "prompt": "اكتب جملة قصيرة عن الشمس في الصورة.",
+      "interaction": "sequence",
+      "prompt": "رتّب الكلمات لتكوّن جملة صحيحة عن الصورة، وتبدأ بكلمة «الشمس».",
       "stimulus": {
         "text": null,
         "media": [
@@ -3755,21 +3757,38 @@
           }
         ]
       },
-      "options": [],
-      "private_answer": {
-        "correct_option_ids": [],
-        "rubric": {
-          "authority": "human_supervisor",
-          "reference_text": "جملة مفيدة تصف الشمس",
-          "accept_equivalent": true,
-          "criteria": [
-            "معنى واضح مرتبط بالمطلوب",
-            "جملة مفيدة ولو اختلفت عن المثال",
-            "ترتيب الكلمات",
-            "إملاء مناسب للمستوى"
-          ],
-          "academic_auto_grade": false
+      "options": [
+        {
+          "id": "tile_01",
+          "text": "النهار",
+          "media": []
+        },
+        {
+          "id": "tile_02",
+          "text": "الشمس",
+          "media": []
+        },
+        {
+          "id": "tile_03",
+          "text": "تشرق",
+          "media": []
+        },
+        {
+          "id": "tile_04",
+          "text": "في",
+          "media": []
         }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "tile_02",
+          "tile_03",
+          "tile_04",
+          "tile_01"
+        ],
+        "rubric": null,
+        "target_text": "الشمس تشرق في النهار",
+        "scoring": "ordered_option_ids_exact"
       },
       "reading_reference": null,
       "role_specific_hints_allowed": false,
@@ -3777,34 +3796,21 @@
         "VOC-06"
       ],
       "media_status": "pending_owner_review",
-      "technical_gaps": [
-        "free_writing_not_confirmed_in_v1"
-      ],
+      "technical_gaps": [],
       "status": "draft_pending_assessment_equivalence_review",
-      "writing_scoring_policy": {
-        "task_type": "short_open_sentence",
-        "reviewer": "human_supervisor",
-        "accept_equivalent_grammatical_answers": true,
-        "do_not_require_student_to_enter_diacritics": true,
-        "grade_dimensions": [
-          "معنى واضح مرتبط بالمطلوب",
-          "جملة مفيدة ولو اختلفت عن المثال",
-          "ترتيب الكلمات",
-          "إملاء مناسب للمستوى"
-        ],
-        "no_single_exact_answer": true
-      },
       "student_presentation": {
         "stimulus_mode": "question_image",
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "choice_count": 0,
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 4,
         "stimulus_audio_transcript_public": false,
         "image_answer_caption_public": false,
         "hint_initially_visible": false,
         "answer_initially_visible": false,
-        "student_input": "arabic_written_response"
-      }
+        "student_input": "tap_order",
+        "variant": "sentence_builder"
+      },
+      "ordering_scoring_policy": "server_exact_order_without_human_review"
     }
   ],
   "media": [

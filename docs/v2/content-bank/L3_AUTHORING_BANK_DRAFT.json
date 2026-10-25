@@ -3392,8 +3392,8 @@
       "owner_id": "L3-07",
       "mode": "GP",
       "role": "guided_practice",
-      "interaction": "write_text",
-      "prompt": "اكتب جملة قصيرة تصف الصورة.",
+      "interaction": "sequence",
+      "prompt": "رتّب الكلمات لتكوّن جملة صحيحة عن الصورة، وتبدأ بكلمة «هذه».",
       "stimulus": {
         "text": null,
         "media": [
@@ -3403,65 +3403,58 @@
           }
         ]
       },
-      "options": [],
-      "private_answer": {
-        "correct_option_ids": [],
-        "rubric": {
-          "authority": "human_supervisor",
-          "reference": null,
-          "dimensions": [
-            "سلامة المعنى",
-            "تكوين جملة مفيدة",
-            "كتابة الكلمات",
-            "مسافة وفصل الكلمات"
-          ],
-          "no_auto_grade": true,
-          "criteria": [
-            "معنى واضح مرتبط بالمطلوب",
-            "جملة مفيدة ولو اختلفت عن المثال",
-            "ترتيب الكلمات",
-            "إملاء مناسب للمستوى"
-          ]
+      "options": [
+        {
+          "id": "tile_01",
+          "text": "جميلة",
+          "media": []
+        },
+        {
+          "id": "tile_02",
+          "text": "هذه",
+          "media": []
+        },
+        {
+          "id": "tile_03",
+          "text": "زهرة",
+          "media": []
         }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "tile_02",
+          "tile_03",
+          "tile_01"
+        ],
+        "rubric": null,
+        "target_text": "هذه زهرة جميلة",
+        "scoring": "ordered_option_ids_exact"
       },
-      "evidence_type": "sentence_writing",
+      "evidence_type": "sentence_construction",
       "error_focus": "incomplete_sentence",
       "origin_v1": null,
       "reading_reference": null,
-      "technical_gaps": [
-        "writing_input_and_rubric_not_confirmed_in_v1"
-      ],
-      "notes": "إجابة مفتوحة: مثال تقريبي «الزهرة جميلة.» لا يفرض على الطالب حرفيًا.",
+      "technical_gaps": [],
+      "notes": "سؤال بناء مقيد مصحح آليًا، وفق 53_V2_WORD_SENTENCE_BANK_CONVERSION_AR.md.",
       "status": "draft",
-      "hint": "اكتب من أو ما الذي تراه، ثم ماذا يحدث له.",
+      "hint": "ابدأ بالكلمة المحددة، ثم تأكد أن ترتيب الكلمات يعطي معنى واضحًا.",
       "retry": "hint_then_fresh_guided_retry_not_scored",
-      "writing_scoring_policy": {
-        "task_type": "short_open_sentence",
-        "reviewer": "human_supervisor",
-        "accept_equivalent_grammatical_answers": true,
-        "do_not_require_student_to_enter_diacritics": true,
-        "grade_dimensions": [
-          "معنى واضح مرتبط بالمطلوب",
-          "جملة مفيدة ولو اختلفت عن المثال",
-          "ترتيب الكلمات",
-          "إملاء مناسب للمستوى"
-        ],
-        "no_single_exact_answer": true
-      },
       "skill_group": "S13",
       "version": "0.3-draft",
       "authoring_state": "draft",
       "student_presentation": {
         "stimulus_mode": "question_image",
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "choice_count": 0,
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 3,
         "stimulus_audio_transcript_public": false,
         "image_answer_caption_public": false,
         "hint_initially_visible": false,
         "answer_initially_visible": false,
-        "student_input": "arabic_written_response"
-      }
+        "student_input": "tap_order",
+        "variant": "sentence_builder"
+      },
+      "ordering_scoring_policy": "server_exact_order_without_human_review"
     },
     {
       "id": "L3-07-GP-03",
@@ -3526,8 +3519,8 @@
       "owner_id": "L3-07",
       "mode": "GP",
       "role": "guided_practice",
-      "interaction": "write_text",
-      "prompt": "اكتب جملة قصيرة عن الطفل في الصورة.",
+      "interaction": "sequence",
+      "prompt": "رتّب الكلمات لتكوّن جملة صحيحة عن الصورة، وتبدأ بكلمة «هذا».",
       "stimulus": {
         "text": null,
         "media": [
@@ -3537,73 +3530,72 @@
           }
         ]
       },
-      "options": [],
-      "private_answer": {
-        "correct_option_ids": [],
-        "rubric": {
-          "authority": "human_supervisor",
-          "reference": null,
-          "dimensions": [
-            "سلامة المعنى",
-            "تكوين جملة مفيدة",
-            "كتابة الكلمات",
-            "مسافة وفصل الكلمات"
-          ],
-          "no_auto_grade": true,
-          "criteria": [
-            "معنى واضح مرتبط بالمطلوب",
-            "جملة مفيدة ولو اختلفت عن المثال",
-            "ترتيب الكلمات",
-            "إملاء مناسب للمستوى"
-          ]
+      "options": [
+        {
+          "id": "tile_01",
+          "text": "الصورة",
+          "media": []
+        },
+        {
+          "id": "tile_02",
+          "text": "هذا",
+          "media": []
+        },
+        {
+          "id": "tile_03",
+          "text": "طفل",
+          "media": []
+        },
+        {
+          "id": "tile_04",
+          "text": "في",
+          "media": []
         }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "tile_02",
+          "tile_03",
+          "tile_04",
+          "tile_01"
+        ],
+        "rubric": null,
+        "target_text": "هذا طفل في الصورة",
+        "scoring": "ordered_option_ids_exact"
       },
-      "evidence_type": "sentence_writing",
+      "evidence_type": "sentence_construction",
       "error_focus": "incomplete_sentence",
       "origin_v1": null,
       "reading_reference": null,
-      "technical_gaps": [
-        "writing_input_and_rubric_not_confirmed_in_v1"
-      ],
-      "notes": "الصورة VOC-34 لطفل عامة ولا نفترض أنها تعرض القراءة.",
+      "technical_gaps": [],
+      "notes": "سؤال بناء مقيد مصحح آليًا، وفق 53_V2_WORD_SENTENCE_BANK_CONVERSION_AR.md.",
       "status": "draft",
-      "hint": "ابدأ باسم الطفل، ثم اكتب فعلًا مناسبًا.",
+      "hint": "ابدأ بالكلمة المحددة، ثم تأكد أن ترتيب الكلمات يعطي معنى واضحًا.",
       "retry": "hint_then_fresh_guided_retry_not_scored",
-      "writing_scoring_policy": {
-        "task_type": "short_open_sentence",
-        "reviewer": "human_supervisor",
-        "accept_equivalent_grammatical_answers": true,
-        "do_not_require_student_to_enter_diacritics": true,
-        "grade_dimensions": [
-          "معنى واضح مرتبط بالمطلوب",
-          "جملة مفيدة ولو اختلفت عن المثال",
-          "ترتيب الكلمات",
-          "إملاء مناسب للمستوى"
-        ],
-        "no_single_exact_answer": true
-      },
       "skill_group": "S13",
       "version": "0.3-draft",
       "authoring_state": "draft",
       "student_presentation": {
         "stimulus_mode": "question_image",
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "choice_count": 0,
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 4,
         "stimulus_audio_transcript_public": false,
         "image_answer_caption_public": false,
         "hint_initially_visible": false,
         "answer_initially_visible": false,
-        "student_input": "arabic_written_response"
-      }
+        "student_input": "tap_order",
+        "variant": "sentence_builder"
+      },
+      "ordering_scoring_policy": "server_exact_order_without_human_review"
     },
     {
       "id": "L3-07-IC-A01",
       "owner_id": "L3-07",
       "mode": "IC",
       "role": "independent_check",
-      "interaction": "write_text",
-      "prompt": "اكتب جملة قصيرة عن صورة العصفور.",
+      "interaction": "sequence",
+      "prompt": "رتّب الكلمات لتكوّن جملة صحيحة عن الصورة، وتبدأ بكلمة «هذا».",
       "stimulus": {
         "text": null,
         "media": [
@@ -3613,72 +3605,71 @@
           }
         ]
       },
-      "options": [],
-      "private_answer": {
-        "correct_option_ids": [],
-        "rubric": {
-          "authority": "human_supervisor",
-          "reference": "إجابة مفتوحة؛ مثال لمرجع المعلم: العصفور يطير.",
-          "dimensions": [
-            "سلامة المعنى",
-            "تكوين جملة مفيدة",
-            "كتابة الكلمات",
-            "مسافة وفصل الكلمات"
-          ],
-          "no_auto_grade": true,
-          "criteria": [
-            "معنى واضح مرتبط بالمطلوب",
-            "جملة مفيدة ولو اختلفت عن المثال",
-            "ترتيب الكلمات",
-            "إملاء مناسب للمستوى"
-          ]
+      "options": [
+        {
+          "id": "tile_01",
+          "text": "الصورة",
+          "media": []
+        },
+        {
+          "id": "tile_02",
+          "text": "هذا",
+          "media": []
+        },
+        {
+          "id": "tile_03",
+          "text": "عصفور",
+          "media": []
+        },
+        {
+          "id": "tile_04",
+          "text": "في",
+          "media": []
         }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "tile_02",
+          "tile_03",
+          "tile_04",
+          "tile_01"
+        ],
+        "rubric": null,
+        "target_text": "هذا عصفور في الصورة",
+        "scoring": "ordered_option_ids_exact"
       },
-      "evidence_type": "sentence_writing",
+      "evidence_type": "sentence_construction",
       "error_focus": "incomplete_sentence",
       "origin_v1": null,
       "reading_reference": null,
-      "technical_gaps": [
-        "writing_input_and_rubric_not_confirmed_in_v1"
-      ],
-      "notes": null,
+      "technical_gaps": [],
+      "notes": "سؤال بناء مقيد مصحح آليًا، وفق 53_V2_WORD_SENTENCE_BANK_CONVERSION_AR.md.",
       "status": "draft",
       "hint": null,
-      "writing_scoring_policy": {
-        "task_type": "short_open_sentence",
-        "reviewer": "human_supervisor",
-        "accept_equivalent_grammatical_answers": true,
-        "do_not_require_student_to_enter_diacritics": true,
-        "grade_dimensions": [
-          "معنى واضح مرتبط بالمطلوب",
-          "جملة مفيدة ولو اختلفت عن المثال",
-          "ترتيب الكلمات",
-          "إملاء مناسب للمستوى"
-        ],
-        "no_single_exact_answer": true
-      },
       "skill_group": "S13",
       "version": "0.3-draft",
       "authoring_state": "draft",
       "student_presentation": {
         "stimulus_mode": "question_image",
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "choice_count": 0,
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 4,
         "stimulus_audio_transcript_public": false,
         "image_answer_caption_public": false,
         "hint_initially_visible": false,
         "answer_initially_visible": false,
-        "student_input": "arabic_written_response"
-      }
+        "student_input": "tap_order",
+        "variant": "sentence_builder"
+      },
+      "ordering_scoring_policy": "server_exact_order_without_human_review"
     },
     {
       "id": "L3-07-IC-A02",
       "owner_id": "L3-07",
       "mode": "IC",
       "role": "independent_check",
-      "interaction": "write_text",
-      "prompt": "اكتب جملة قصيرة عن المكتبة.",
+      "interaction": "sequence",
+      "prompt": "رتّب الكلمات لتكوّن جملة صحيحة عن الصورة، وتبدأ بكلمة «المكتبة».",
       "stimulus": {
         "text": null,
         "media": [
@@ -3688,204 +3679,195 @@
           }
         ]
       },
-      "options": [],
-      "private_answer": {
-        "correct_option_ids": [],
-        "rubric": {
-          "authority": "human_supervisor",
-          "reference": "مثال لا يُعرض: أحب القراءة في المكتبة.",
-          "dimensions": [
-            "سلامة المعنى",
-            "تكوين جملة مفيدة",
-            "كتابة الكلمات",
-            "مسافة وفصل الكلمات"
-          ],
-          "no_auto_grade": true,
-          "criteria": [
-            "معنى واضح مرتبط بالمطلوب",
-            "جملة مفيدة ولو اختلفت عن المثال",
-            "ترتيب الكلمات",
-            "إملاء مناسب للمستوى"
-          ]
+      "options": [
+        {
+          "id": "tile_01",
+          "text": "للقراءة",
+          "media": []
+        },
+        {
+          "id": "tile_02",
+          "text": "المكتبة",
+          "media": []
+        },
+        {
+          "id": "tile_03",
+          "text": "مكان",
+          "media": []
         }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "tile_02",
+          "tile_03",
+          "tile_01"
+        ],
+        "rubric": null,
+        "target_text": "المكتبة مكان للقراءة",
+        "scoring": "ordered_option_ids_exact"
       },
-      "evidence_type": "sentence_writing",
+      "evidence_type": "sentence_construction",
       "error_focus": "incomplete_sentence",
       "origin_v1": null,
       "reading_reference": null,
-      "technical_gaps": [
-        "writing_input_and_rubric_not_confirmed_in_v1"
-      ],
-      "notes": null,
+      "technical_gaps": [],
+      "notes": "سؤال بناء مقيد مصحح آليًا، وفق 53_V2_WORD_SENTENCE_BANK_CONVERSION_AR.md.",
       "status": "draft",
       "hint": null,
-      "writing_scoring_policy": {
-        "task_type": "short_open_sentence",
-        "reviewer": "human_supervisor",
-        "accept_equivalent_grammatical_answers": true,
-        "do_not_require_student_to_enter_diacritics": true,
-        "grade_dimensions": [
-          "معنى واضح مرتبط بالمطلوب",
-          "جملة مفيدة ولو اختلفت عن المثال",
-          "ترتيب الكلمات",
-          "إملاء مناسب للمستوى"
-        ],
-        "no_single_exact_answer": true
-      },
       "skill_group": "S13",
       "version": "0.3-draft",
       "authoring_state": "draft",
       "student_presentation": {
         "stimulus_mode": "question_image",
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "choice_count": 0,
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 3,
         "stimulus_audio_transcript_public": false,
         "image_answer_caption_public": false,
         "hint_initially_visible": false,
         "answer_initially_visible": false,
-        "student_input": "arabic_written_response"
-      }
+        "student_input": "tap_order",
+        "variant": "sentence_builder"
+      },
+      "ordering_scoring_policy": "server_exact_order_without_human_review"
     },
     {
       "id": "L3-07-IC-A03",
       "owner_id": "L3-07",
       "mode": "IC",
       "role": "independent_check",
-      "interaction": "write_text",
-      "prompt": "اكتب جملة تتحدث فيها عما تفعله في الصباح.",
+      "interaction": "sequence",
+      "prompt": "رتّب الكلمات لتكوّن جملة مفيدة عن الموضوع، وتبدأ بكلمة «أقرأ».",
       "stimulus": {
         "text": "في الصباح",
         "media": []
       },
-      "options": [],
-      "private_answer": {
-        "correct_option_ids": [],
-        "rubric": {
-          "authority": "human_supervisor",
-          "reference": "يقبل أي فعل مناسب ويحتوي جملة مفيدة.",
-          "dimensions": [
-            "سلامة المعنى",
-            "تكوين جملة مفيدة",
-            "كتابة الكلمات",
-            "مسافة وفصل الكلمات"
-          ],
-          "no_auto_grade": true,
-          "criteria": [
-            "معنى واضح مرتبط بالمطلوب",
-            "جملة مفيدة ولو اختلفت عن المثال",
-            "ترتيب الكلمات",
-            "إملاء مناسب للمستوى"
-          ]
+      "options": [
+        {
+          "id": "tile_01",
+          "text": "الصباح",
+          "media": []
+        },
+        {
+          "id": "tile_02",
+          "text": "أقرأ",
+          "media": []
+        },
+        {
+          "id": "tile_03",
+          "text": "كتابا",
+          "media": []
+        },
+        {
+          "id": "tile_04",
+          "text": "في",
+          "media": []
         }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "tile_02",
+          "tile_03",
+          "tile_04",
+          "tile_01"
+        ],
+        "rubric": null,
+        "target_text": "أقرأ كتابا في الصباح",
+        "scoring": "ordered_option_ids_exact"
       },
-      "evidence_type": "sentence_writing",
+      "evidence_type": "sentence_construction",
       "error_focus": "incomplete_sentence",
       "origin_v1": null,
       "reading_reference": null,
-      "technical_gaps": [
-        "writing_input_and_rubric_not_confirmed_in_v1"
-      ],
-      "notes": null,
+      "technical_gaps": [],
+      "notes": "سؤال بناء مقيد مصحح آليًا، وفق 53_V2_WORD_SENTENCE_BANK_CONVERSION_AR.md.",
       "status": "draft",
       "hint": null,
-      "writing_scoring_policy": {
-        "task_type": "short_open_sentence",
-        "reviewer": "human_supervisor",
-        "accept_equivalent_grammatical_answers": true,
-        "do_not_require_student_to_enter_diacritics": true,
-        "grade_dimensions": [
-          "معنى واضح مرتبط بالمطلوب",
-          "جملة مفيدة ولو اختلفت عن المثال",
-          "ترتيب الكلمات",
-          "إملاء مناسب للمستوى"
-        ],
-        "no_single_exact_answer": true
-      },
       "skill_group": "S13",
       "version": "0.3-draft",
       "authoring_state": "draft",
       "student_presentation": {
         "stimulus_mode": "text_block",
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "choice_count": 0,
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 4,
         "stimulus_audio_transcript_public": false,
         "image_answer_caption_public": false,
         "hint_initially_visible": false,
         "answer_initially_visible": false,
-        "student_input": "arabic_written_response"
-      }
+        "student_input": "tap_order",
+        "variant": "sentence_builder"
+      },
+      "ordering_scoring_policy": "server_exact_order_without_human_review"
     },
     {
       "id": "L3-07-IC-A04",
       "owner_id": "L3-07",
       "mode": "IC",
       "role": "independent_check",
-      "interaction": "write_text",
-      "prompt": "اكتب جملة قصيرة تستعمل فيها كلمة «حديقة».",
+      "interaction": "sequence",
+      "prompt": "رتّب الكلمات لتكوّن جملة مفيدة عن الموضوع، وتبدأ بكلمة «هذه».",
       "stimulus": {
         "text": "حديقة",
         "media": []
       },
-      "options": [],
-      "private_answer": {
-        "correct_option_ids": [],
-        "rubric": {
-          "authority": "human_supervisor",
-          "reference": "جملة مفيدة تتضمن كلمة حديقة؛ لا نموذج إجابة واحد.",
-          "dimensions": [
-            "سلامة المعنى",
-            "تكوين جملة مفيدة",
-            "كتابة الكلمات",
-            "مسافة وفصل الكلمات"
-          ],
-          "no_auto_grade": true,
-          "criteria": [
-            "معنى واضح مرتبط بالمطلوب",
-            "جملة مفيدة ولو اختلفت عن المثال",
-            "ترتيب الكلمات",
-            "إملاء مناسب للمستوى"
-          ]
+      "options": [
+        {
+          "id": "tile_01",
+          "text": "أشجار",
+          "media": []
+        },
+        {
+          "id": "tile_02",
+          "text": "هذه",
+          "media": []
+        },
+        {
+          "id": "tile_03",
+          "text": "حديقة",
+          "media": []
+        },
+        {
+          "id": "tile_04",
+          "text": "فيها",
+          "media": []
         }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "tile_02",
+          "tile_03",
+          "tile_04",
+          "tile_01"
+        ],
+        "rubric": null,
+        "target_text": "هذه حديقة فيها أشجار",
+        "scoring": "ordered_option_ids_exact"
       },
-      "evidence_type": "sentence_writing",
+      "evidence_type": "sentence_construction",
       "error_focus": "incomplete_sentence",
       "origin_v1": null,
       "reading_reference": null,
-      "technical_gaps": [
-        "writing_input_and_rubric_not_confirmed_in_v1"
-      ],
-      "notes": null,
+      "technical_gaps": [],
+      "notes": "سؤال بناء مقيد مصحح آليًا، وفق 53_V2_WORD_SENTENCE_BANK_CONVERSION_AR.md.",
       "status": "draft",
       "hint": null,
-      "writing_scoring_policy": {
-        "task_type": "short_open_sentence",
-        "reviewer": "human_supervisor",
-        "accept_equivalent_grammatical_answers": true,
-        "do_not_require_student_to_enter_diacritics": true,
-        "grade_dimensions": [
-          "معنى واضح مرتبط بالمطلوب",
-          "جملة مفيدة ولو اختلفت عن المثال",
-          "ترتيب الكلمات",
-          "إملاء مناسب للمستوى"
-        ],
-        "no_single_exact_answer": true
-      },
       "skill_group": "S13",
       "version": "0.3-draft",
       "authoring_state": "draft",
       "student_presentation": {
         "stimulus_mode": "text_block",
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "choice_count": 0,
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 4,
         "stimulus_audio_transcript_public": false,
         "image_answer_caption_public": false,
         "hint_initially_visible": false,
         "answer_initially_visible": false,
-        "student_input": "arabic_written_response"
-      }
+        "student_input": "tap_order",
+        "variant": "sentence_builder"
+      },
+      "ordering_scoring_policy": "server_exact_order_without_human_review"
     },
     {
       "id": "SUP-08-GP-01",
@@ -4844,8 +4826,8 @@
       "owner_id": "SUP-12",
       "mode": "GP",
       "role": "guided_practice",
-      "interaction": "write_text",
-      "prompt": "اكتب جملة بسيطة تصف الصورة.",
+      "interaction": "sequence",
+      "prompt": "رتّب الكلمات لتكوّن جملة صحيحة عن الصورة، وتبدأ بكلمة «هذه».",
       "stimulus": {
         "text": null,
         "media": [
@@ -4855,65 +4837,64 @@
           }
         ]
       },
-      "options": [],
-      "private_answer": {
-        "correct_option_ids": [],
-        "rubric": {
-          "authority": "human_supervisor",
-          "reference": null,
-          "dimensions": [
-            "سلامة المعنى",
-            "تكوين جملة مفيدة",
-            "كتابة الكلمات",
-            "مسافة وفصل الكلمات"
-          ],
-          "no_auto_grade": true,
-          "criteria": [
-            "معنى واضح مرتبط بالمطلوب",
-            "جملة مفيدة ولو اختلفت عن المثال",
-            "ترتيب الكلمات",
-            "إملاء مناسب للمستوى"
-          ]
+      "options": [
+        {
+          "id": "tile_01",
+          "text": "الصورة",
+          "media": []
+        },
+        {
+          "id": "tile_02",
+          "text": "هذه",
+          "media": []
+        },
+        {
+          "id": "tile_03",
+          "text": "طفلة",
+          "media": []
+        },
+        {
+          "id": "tile_04",
+          "text": "في",
+          "media": []
         }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "tile_02",
+          "tile_03",
+          "tile_04",
+          "tile_01"
+        ],
+        "rubric": null,
+        "target_text": "هذه طفلة في الصورة",
+        "scoring": "ordered_option_ids_exact"
       },
-      "evidence_type": "sentence_writing",
+      "evidence_type": "sentence_construction",
       "error_focus": "incomplete_sentence",
       "origin_v1": null,
       "reading_reference": null,
-      "technical_gaps": [
-        "writing_input_and_rubric_not_confirmed_in_v1"
-      ],
-      "notes": "مثال معلم فقط: الطفلة تبتسم.",
+      "technical_gaps": [],
+      "notes": "سؤال بناء مقيد مصحح آليًا، وفق 53_V2_WORD_SENTENCE_BANK_CONVERSION_AR.md.",
       "status": "draft",
-      "hint": "اختر فعلًا مناسبًا للطفلة ثم اكتب جملة.",
+      "hint": "ابدأ بالكلمة المحددة، ثم تأكد أن ترتيب الكلمات يعطي معنى واضحًا.",
       "retry": "hint_then_fresh_guided_retry_not_scored",
-      "writing_scoring_policy": {
-        "task_type": "short_open_sentence",
-        "reviewer": "human_supervisor",
-        "accept_equivalent_grammatical_answers": true,
-        "do_not_require_student_to_enter_diacritics": true,
-        "grade_dimensions": [
-          "معنى واضح مرتبط بالمطلوب",
-          "جملة مفيدة ولو اختلفت عن المثال",
-          "ترتيب الكلمات",
-          "إملاء مناسب للمستوى"
-        ],
-        "no_single_exact_answer": true
-      },
       "skill_group": "S13",
       "version": "0.3-draft",
       "authoring_state": "draft",
       "student_presentation": {
         "stimulus_mode": "question_image",
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "choice_count": 0,
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 4,
         "stimulus_audio_transcript_public": false,
         "image_answer_caption_public": false,
         "hint_initially_visible": false,
         "answer_initially_visible": false,
-        "student_input": "arabic_written_response"
-      }
+        "student_input": "tap_order",
+        "variant": "sentence_builder"
+      },
+      "ordering_scoring_policy": "server_exact_order_without_human_review"
     },
     {
       "id": "SUP-12-SC-01",
@@ -4979,8 +4960,8 @@
       "owner_id": "SUP-12",
       "mode": "IC",
       "role": "support_check",
-      "interaction": "write_text",
-      "prompt": "اكتب جملة قصيرة عن المدرسة.",
+      "interaction": "sequence",
+      "prompt": "رتّب الكلمات لتكوّن جملة صحيحة عن الصورة، وتبدأ بكلمة «المدرسة».",
       "stimulus": {
         "text": null,
         "media": [
@@ -4990,64 +4971,57 @@
           }
         ]
       },
-      "options": [],
-      "private_answer": {
-        "correct_option_ids": [],
-        "rubric": {
-          "authority": "human_supervisor",
-          "reference": "جملة صحيحة ذات معنى؛ لا تحكم بالنموذج النصي وحده.",
-          "dimensions": [
-            "سلامة المعنى",
-            "تكوين جملة مفيدة",
-            "كتابة الكلمات",
-            "مسافة وفصل الكلمات"
-          ],
-          "no_auto_grade": true,
-          "criteria": [
-            "معنى واضح مرتبط بالمطلوب",
-            "جملة مفيدة ولو اختلفت عن المثال",
-            "ترتيب الكلمات",
-            "إملاء مناسب للمستوى"
-          ]
+      "options": [
+        {
+          "id": "tile_01",
+          "text": "للتعلم",
+          "media": []
+        },
+        {
+          "id": "tile_02",
+          "text": "المدرسة",
+          "media": []
+        },
+        {
+          "id": "tile_03",
+          "text": "مكان",
+          "media": []
         }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "tile_02",
+          "tile_03",
+          "tile_01"
+        ],
+        "rubric": null,
+        "target_text": "المدرسة مكان للتعلم",
+        "scoring": "ordered_option_ids_exact"
       },
-      "evidence_type": "sentence_writing",
+      "evidence_type": "sentence_construction",
       "error_focus": "incomplete_sentence",
       "origin_v1": null,
       "reading_reference": null,
-      "technical_gaps": [
-        "writing_input_and_rubric_not_confirmed_in_v1"
-      ],
-      "notes": null,
+      "technical_gaps": [],
+      "notes": "سؤال بناء مقيد مصحح آليًا، وفق 53_V2_WORD_SENTENCE_BANK_CONVERSION_AR.md.",
       "status": "draft",
       "hint": null,
-      "writing_scoring_policy": {
-        "task_type": "short_open_sentence",
-        "reviewer": "human_supervisor",
-        "accept_equivalent_grammatical_answers": true,
-        "do_not_require_student_to_enter_diacritics": true,
-        "grade_dimensions": [
-          "معنى واضح مرتبط بالمطلوب",
-          "جملة مفيدة ولو اختلفت عن المثال",
-          "ترتيب الكلمات",
-          "إملاء مناسب للمستوى"
-        ],
-        "no_single_exact_answer": true
-      },
       "skill_group": "S13",
       "version": "0.3-draft",
       "authoring_state": "draft",
       "student_presentation": {
         "stimulus_mode": "question_image",
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "choice_count": 0,
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 3,
         "stimulus_audio_transcript_public": false,
         "image_answer_caption_public": false,
         "hint_initially_visible": false,
         "answer_initially_visible": false,
-        "student_input": "arabic_written_response"
-      }
+        "student_input": "tap_order",
+        "variant": "sentence_builder"
+      },
+      "ordering_scoring_policy": "server_exact_order_without_human_review"
     },
     {
       "id": "SUP-08-GP-03",
@@ -5322,64 +5296,63 @@
       "owner_id": "SUP-12",
       "mode": "GP",
       "role": "guided_practice",
-      "interaction": "write_text",
-      "prompt": "اكتب جملة مفيدة تتضمن كلمة مدرسة.",
+      "interaction": "sequence",
+      "prompt": "رتّب الكلمات لتكوّن جملة مفيدة عن الموضوع، وتبدأ بكلمة «هذه».",
       "stimulus": {
         "text": "مدرسة",
         "media": []
       },
-      "options": [],
-      "private_answer": {
-        "correct_option_ids": [],
-        "rubric": {
-          "authority": "human_supervisor",
-          "reference": "جملة مفيدة تتضمن كلمة مدرسة",
-          "criteria": [
-            "معنى واضح مرتبط بالمطلوب",
-            "جملة مفيدة ولو اختلفت عن المثال",
-            "ترتيب الكلمات",
-            "إملاء مناسب للمستوى"
-          ],
-          "no_auto_grade": true
+      "options": [
+        {
+          "id": "tile_01",
+          "text": "جميلة",
+          "media": []
+        },
+        {
+          "id": "tile_02",
+          "text": "هذه",
+          "media": []
+        },
+        {
+          "id": "tile_03",
+          "text": "مدرسة",
+          "media": []
         }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "tile_02",
+          "tile_03",
+          "tile_01"
+        ],
+        "rubric": null,
+        "target_text": "هذه مدرسة جميلة",
+        "scoring": "ordered_option_ids_exact"
       },
       "error_focus": "sentence_writing",
-      "evidence_type": "sentence_writing",
+      "evidence_type": "sentence_construction",
       "reading_reference": null,
-      "hint": "اكتب اسمًا وفعلًا مناسبًا.",
-      "technical_gaps": [
-        "writing_input_not_confirmed_in_v1"
-      ],
+      "hint": "ابدأ بالكلمة المحددة، ثم تأكد أن ترتيب الكلمات يعطي معنى واضحًا.",
+      "technical_gaps": [],
       "status": "draft",
       "retry": "hint_and_guided_retry",
-      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
-      "writing_scoring_policy": {
-        "task_type": "short_open_sentence",
-        "reviewer": "human_supervisor",
-        "accept_equivalent_grammatical_answers": true,
-        "do_not_require_student_to_enter_diacritics": true,
-        "grade_dimensions": [
-          "معنى واضح مرتبط بالمطلوب",
-          "جملة مفيدة ولو اختلفت عن المثال",
-          "ترتيب الكلمات",
-          "إملاء مناسب للمستوى"
-        ],
-        "no_single_exact_answer": true
-      },
+      "notes": "سؤال بناء مقيد مصحح آليًا، وفق 53_V2_WORD_SENTENCE_BANK_CONVERSION_AR.md.",
       "skill_group": "S13",
       "version": "0.3-draft",
       "authoring_state": "draft",
       "student_presentation": {
         "stimulus_mode": "text_block",
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "choice_count": 0,
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 3,
         "stimulus_audio_transcript_public": false,
         "image_answer_caption_public": false,
         "hint_initially_visible": false,
         "answer_initially_visible": false,
-        "student_input": "arabic_written_response"
-      }
+        "student_input": "tap_order",
+        "variant": "sentence_builder"
+      },
+      "ordering_scoring_policy": "server_exact_order_without_human_review"
     },
     {
       "id": "SUP-12-SC-03",
@@ -5443,62 +5416,61 @@
       "owner_id": "SUP-12",
       "mode": "IC",
       "role": "support_check",
-      "interaction": "write_text",
-      "prompt": "اكتب جملة قصيرة عن الكتاب.",
+      "interaction": "sequence",
+      "prompt": "رتّب الكلمات لتكوّن جملة مفيدة عن الموضوع، وتبدأ بكلمة «هذا».",
       "stimulus": {
         "text": "كتاب",
         "media": []
       },
-      "options": [],
-      "private_answer": {
-        "correct_option_ids": [],
-        "rubric": {
-          "authority": "human_supervisor",
-          "reference": "جملة مفيدة تتحدث عن الكتاب",
-          "criteria": [
-            "معنى واضح مرتبط بالمطلوب",
-            "جملة مفيدة ولو اختلفت عن المثال",
-            "ترتيب الكلمات",
-            "إملاء مناسب للمستوى"
-          ],
-          "no_auto_grade": true
+      "options": [
+        {
+          "id": "tile_01",
+          "text": "مفيد",
+          "media": []
+        },
+        {
+          "id": "tile_02",
+          "text": "هذا",
+          "media": []
+        },
+        {
+          "id": "tile_03",
+          "text": "كتاب",
+          "media": []
         }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "tile_02",
+          "tile_03",
+          "tile_01"
+        ],
+        "rubric": null,
+        "target_text": "هذا كتاب مفيد",
+        "scoring": "ordered_option_ids_exact"
       },
       "error_focus": "sentence_writing",
-      "evidence_type": "sentence_writing",
+      "evidence_type": "sentence_construction",
       "reading_reference": null,
       "hint": null,
-      "technical_gaps": [
-        "writing_input_not_confirmed_in_v1"
-      ],
+      "technical_gaps": [],
       "status": "draft",
-      "writing_scoring_policy": {
-        "task_type": "short_open_sentence",
-        "reviewer": "human_supervisor",
-        "accept_equivalent_grammatical_answers": true,
-        "do_not_require_student_to_enter_diacritics": true,
-        "grade_dimensions": [
-          "معنى واضح مرتبط بالمطلوب",
-          "جملة مفيدة ولو اختلفت عن المثال",
-          "ترتيب الكلمات",
-          "إملاء مناسب للمستوى"
-        ],
-        "no_single_exact_answer": true
-      },
       "skill_group": "S13",
       "version": "0.3-draft",
       "authoring_state": "draft",
       "student_presentation": {
         "stimulus_mode": "text_block",
-        "option_mode": "no_choices",
-        "layout": "adaptive_cards",
-        "choice_count": 0,
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 3,
         "stimulus_audio_transcript_public": false,
         "image_answer_caption_public": false,
         "hint_initially_visible": false,
         "answer_initially_visible": false,
-        "student_input": "arabic_written_response"
-      }
+        "student_input": "tap_order",
+        "variant": "sentence_builder"
+      },
+      "ordering_scoring_policy": "server_exact_order_without_human_review"
     }
   ],
   "media": [

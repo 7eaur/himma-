@@ -29,11 +29,10 @@ RELEASE_SCHEMA = "himma-v2-private-release/1"
 EXPECTED_INTERACTIONS = {
     "choose_one": 107,
     "listen_choose_one": 52,
-    "sequence": 45,
-    "build_word": 9,
+    "sequence": 57,
+    "build_word": 18,
     "choose_image": 4,
     "read_aloud": 62,
-    "write_text": 21,
 }
 EXPECTED_ROLES = {
     "guided_practice": 119,
