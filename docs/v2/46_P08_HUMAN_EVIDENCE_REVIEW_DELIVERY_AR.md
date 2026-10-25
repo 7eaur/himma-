@@ -150,3 +150,9 @@
 - Playwright يختبر مسار `MediaRecorder` بخصائص `audio/mp4` كما تعرضه متصفحات Safari الداعمة، ورفع `v2-retry.m4a` ثم إرسال metadata إلى مراجعة بشرية، مع عدم الادعاء أنه اختبار على iPhone حقيقي.
 
 - بروتوكول خطوات الاختبار الفعلي على الهاتف وسجل الإخفاقات والأدلة `48_P08_DEVICE_AUDIO_QA_EXECUTION_PROTOCOL_AR.md`.
+
+## تدقيق متابعة بعد التسليم 49 — 2026-10-25
+
+- نتيجة CI الحية على HEAD التوثيقي `7947fc6`: [40164522525](https://github.com/7eaur/himma-/actions/runs/40164522525) **SUCCESS**. نسخة `fc0750f` الوظيفية اجتازت CI/M04/M09؛ يظل اختبار الهاتف الفعلي غير منفذ.
+- مراجعة `storage.upload_audio` كشفت أن نفس Operation/Idempotency-Key قد ينتج `.webm` و`.audio` إذا تغيّر Content-Type، خلافًا لوعد منع استخدام نفس المفتاح لدليل مختلف؛ أُضيف فحص عبر كلا المفتاحين واختبار Regression اصطناعي. النتيجة النهائية لبوابات الإصلاح تؤخذ من GitHub Actions بعد Push.
+- لم يتم حذف أي دليل قديم، ولم تُفعل درجة آلية أو سياسة احتفاظ؛ انظر `50_P08_INDEPENDENT_CONTINUATION_QA_AR.md` للمحضر والقيود.

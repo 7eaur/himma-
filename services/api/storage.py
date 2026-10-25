@@ -47,23 +47,30 @@ def upload_audio(
     )
     key = f"audio/{owner_id}/{object_id}{extension}"
 
-    try:
-        existing = s3_client.head_object(Bucket=S3_BUCKET_NAME, Key=key)
-    except ClientError as exc:
-        error_code = exc.response.get("Error", {}).get("Code")
-        if error_code not in {"404", "NoSuchKey", "NotFound"}:
+    # Historical WebM uploads use .webm, while other MIME types use .audio.
+    # Check *both* suffixes: an idempotency key must not silently create a
+    # second object simply because a retry changed its Content-Type.
+    alternate_extension = ".audio" if extension == ".webm" else ".webm"
+    alternate_key = f"audio/{owner_id}/{object_id}{alternate_extension}"
+    for candidate_key in (key, alternate_key):
+        try:
+            existing = s3_client.head_object(Bucket=S3_BUCKET_NAME, Key=candidate_key)
+        except ClientError as exc:
+            error_code = exc.response.get("Error", {}).get("Code")
+            if error_code not in {"404", "NoSuchKey", "NotFound"}:
+                raise RuntimeError("Audio storage is unavailable") from exc
+        except BotoCoreError as exc:
             raise RuntimeError("Audio storage is unavailable") from exc
-    except BotoCoreError as exc:
-        raise RuntimeError("Audio storage is unavailable") from exc
-    else:
-        existing_digest = existing.get("Metadata", {}).get("sha256")
-        if (
-            existing.get("ContentLength") == file_size
-            and existing.get("ContentType") == file.content_type
-            and existing_digest == digest
-        ):
-            return key, file_size, digest
-        raise ValueError("Idempotency-Key was reused with different audio")
+        else:
+            existing_digest = existing.get("Metadata", {}).get("sha256")
+            if (
+                candidate_key == key
+                and existing.get("ContentLength") == file_size
+                and existing.get("ContentType") == file.content_type
+                and existing_digest == digest
+            ):
+                return key, file_size, digest
+            raise ValueError("Idempotency-Key was reused with different audio")
 
     try:
         s3_client.put_object(

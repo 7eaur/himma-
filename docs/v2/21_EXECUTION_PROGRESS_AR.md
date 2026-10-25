@@ -361,3 +361,12 @@ next_phase:
 - Railway: Web/API/Postgres/Redis جميعها online وبدون تحذيرات أو critical، معاينة `ENV=trial` رغم اسم environment `production`؛ لا ترقية إنتاجية.
 - P08 = `in_progress/acceptance_pending`؛ أهم ما بقي هو محضر اختبارات `DEV-01–DEV-16` على أجهزة حقيقية والموافقة على سياسة الصوت والاحتفاظ/التصدير والاختبار العملي النهائي. P09 = `not_started` حتى موافقة «تم» منفصلة.
 - هذا تحديث للتسليم وليس تصريحًا باعتماد P08 أو بإنهاء QA الصوتية على الأجهزة.
+
+## متابعة الاستلام التقني P08 — 2026-10-25
+
+- تمت قراءة handoff 49 ومقارنة HEAD الحي: `7947fc6df173f031ddab1c0df2c6ca2fcce385a3` كان أحدث من `d560940` ومخصصًا للتوثيق.
+- على ذلك SHA: [CI 40164522525](https://github.com/7eaur/himma-/actions/runs/40164522525) **SUCCESS** (backend, frontend, security, integration/Playwright). آخر SHA وظيفي قبل الاستلام `fc0750f` اجتاز [CI 40141820366](https://github.com/7eaur/himma-/actions/runs/40141820366)، [M04 40141820358](https://github.com/7eaur/himma-/actions/runs/40141820358)، [M09 40141820354](https://github.com/7eaur/himma-/actions/runs/40141820354).
+- اكتُشفت فجوة فعلية في إعادة استخدام Idempotency-Key بصيغتي WebM وMP4 لاختلاف لاحقة S3 بين `.webm` و`.audio`. أُضيف فحص عبر اللاحقتين واختبار اصطناعي لكل اتجاه دون حذف الأصول القديمة أو تغيير واجهة API. **نتيجة بوابات Commit الإصلاح تُتحقق بعد Push**.
+- Railway `intelligent-courtesy`، اتصال «وصل تك كلاود همّه»: 4 خدمات `SUCCESS`، bucket صوت خاص، لا تغييرات معلقة؛ Web على `fc0750f` وAPI على `d6d04525`؛ دفع الوثائق `7947fc6` كان `SKIPPED` بفعل watchPatterns، ولا يُعد نشر SHA الحالي.
+- حالات DEV-01…DEV-16 على أجهزة iPhone/Android **NOT_RUN**، ولا سياسة retention/export معتمدة. التفاصيل [50_P08_INDEPENDENT_CONTINUATION_QA_AR.md](50_P08_INDEPENDENT_CONTINUATION_QA_AR.md).
+- **P08=in_progress/acceptance_pending، P09=not_started**؛ يلزم «تم» منفصلة للانتقال.
