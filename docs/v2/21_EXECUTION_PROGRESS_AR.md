@@ -352,3 +352,12 @@ next_phase:
 - آخر SHA وظيفي عند التوثيق `fc0750f48a4e76f97856b22848b984132933b24f`. بوابات CI/M04/M09 على هذا الإصدار كانت قيد التنفيذ ولم تُعتبر ناجحة دون سجلها النهائي.
 - بروتوكول الاختبار اليدوي للأجهزة الواقعية: `docs/v2/48_P08_DEVICE_AUDIO_QA_EXECUTION_PROTOCOL_AR.md`، ويعكس صراحة أن تجربة أجهزة حقيقية وسياسة الاحتفاظ بالميديا لا تزال تحتاج قرارًا/اختبارًا.
 - **الحالة:** `P08=in_progress/acceptance_pending`، `P09=not_started`، لا دمج أو إطلاق تعليم نهائي.
+
+## آخر تسليم محادثة P08 — 2026-10-25
+
+- تقرير الاستلام التنفيذي الأحدث: `docs/v2/49_P08_FULL_WORK_CONTINUATION_HANDOFF_AR.md`. أدرج آخر حالة GitHub/Railway وفهرس التنفيذ وQA والموافقات والنواقص.
+- Latest implementation SHA `fc0750f48a4e76f97856b22848b984132933b24f`: `CI=40141820366 success`، `M04=40141820358 success`، `M09=40141820354 success`.
+- Latest documentation-only SHA عند الاستلام `d560940b3bb47558e7d7b1aa0801d2117decc4fc`: `CI=40141971301 success` (4/4 jobs).
+- Railway: Web/API/Postgres/Redis جميعها online وبدون تحذيرات أو critical، معاينة `ENV=trial` رغم اسم environment `production`؛ لا ترقية إنتاجية.
+- P08 = `in_progress/acceptance_pending`؛ أهم ما بقي هو محضر اختبارات `DEV-01–DEV-16` على أجهزة حقيقية والموافقة على سياسة الصوت والاحتفاظ/التصدير والاختبار العملي النهائي. P09 = `not_started` حتى موافقة «تم» منفصلة.
+- هذا تحديث للتسليم وليس تصريحًا باعتماد P08 أو بإنهاء QA الصوتية على الأجهزة.
