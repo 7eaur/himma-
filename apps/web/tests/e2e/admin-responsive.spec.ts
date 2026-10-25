@@ -81,7 +81,7 @@ for (const viewport of [
         await expect(page.getByText("جاري تحميل بيانات V2...")).toHaveCount(0, { timeout: 20000 });
         await expect(page.getByText("تعذر تحميل تقدم طلاب V2، ولم تُستخدم أرقام V1 بديلة.")).toHaveCount(0);
         await expect(page.getByText("رمز الدخول", { exact: false })).toHaveCount(0);
-        await expect(page.getByText("التقدم V2")).toHaveCount(1); // Desktop table header is intentionally hidden on phones
+        await expect(page.locator("table.data-table th").filter({ hasText: "التقدم V2" })).toHaveCount(1); // The mobile card also has its own V2 progress label
       }
       if (route === "/admin/v2-media") {
         await expect(page.getByText(/الملفات المرشحة الموجودة/)).toBeVisible({ timeout: 15000 });

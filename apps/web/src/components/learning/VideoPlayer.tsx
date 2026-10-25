@@ -41,7 +41,7 @@ export default function VideoPlayer({ src, captionsSrc, startAt = 0, testOnly = 
   const resume = () => {
     const video = videoRef.current;
     if (video && startAt > 0 && startAt <= video.duration - 1) video.currentTime = startAt;
-    setState("ready");
+    setState((current) => current === "error" ? current : "ready");
   };
 
   useEffect(() => {
@@ -49,12 +49,21 @@ export default function VideoPlayer({ src, captionsSrc, startAt = 0, testOnly = 
     if (!video) return;
     const restoreSavedPosition = () => {
       if (startAt > 0 && Number.isFinite(video.duration) && startAt <= video.duration - 1) video.currentTime = startAt;
-      setState("ready");
+      setState((current) => current === "error" ? current : "ready");
     };
     video.addEventListener("loadedmetadata", restoreSavedPosition);
     if (video.readyState >= HTMLMediaElement.HAVE_METADATA) restoreSavedPosition();
     return () => video.removeEventListener("loadedmetadata", restoreSavedPosition);
   }, [src, startAt]);
+
+  const retry = () => {
+    // Hold a visible error until the learner explicitly asks to reload media.
+    // Native canplay/waiting events may race with an error and must not
+    // silently dismiss the retry action.
+    if (!videoRef.current) return;
+    setState("loading");
+    videoRef.current.load();
+  };
 
   const replay = () => {
     const video = videoRef.current;
@@ -73,10 +82,10 @@ export default function VideoPlayer({ src, captionsSrc, startAt = 0, testOnly = 
         playsInline
         preload="metadata"
         onLoadedMetadata={resume}
-        onCanPlay={() => setState((current) => current === "ended" ? current : "ready")}
-        onWaiting={() => setState("buffering")}
-        onStalled={() => setState("buffering")}
-        onPlaying={() => setState("ready")}
+        onCanPlay={() => setState((current) => current === "ended" || current === "error" ? current : "ready")}
+        onWaiting={() => setState((current) => current === "ended" || current === "error" ? current : "buffering")}
+        onStalled={() => setState((current) => current === "ended" || current === "error" ? current : "buffering")}
+        onPlaying={() => setState((current) => current === "error" ? current : "ready")}
         onTimeUpdate={checkpoint}
         onPause={checkpoint}
         onError={() => setState("error")}
@@ -99,7 +108,7 @@ export default function VideoPlayer({ src, captionsSrc, startAt = 0, testOnly = 
         <div className={styles.status} role="status"><div className={styles.statusCard}><Play size={32} aria-hidden="true" /><strong>اضغط لبدء الفيديو</strong><span>منع المتصفح التشغيل التلقائي، وتقدّمك ما زال محفوظًا.</span><button type="button" className={styles.action} onClick={() => void play()}><Play size={18} /> تشغيل</button></div></div>
       )}
       {state === "error" && (
-        <div className={styles.status} role="alert"><div className={styles.statusCard}><AlertTriangle size={32} aria-hidden="true" /><strong>تعذر تشغيل الفيديو</strong><span>تحقق من الاتصال ثم أعد المحاولة. لن نتجاوز هذه الخطوة تلقائيًا.</span><button type="button" className={styles.action} onClick={() => videoRef.current?.load()}><RotateCcw size={18} /> إعادة المحاولة</button></div></div>
+        <div className={styles.status} role="alert"><div className={styles.statusCard}><AlertTriangle size={32} aria-hidden="true" /><strong>تعذر تشغيل الفيديو</strong><span>تحقق من الاتصال ثم أعد المحاولة. لن نتجاوز هذه الخطوة تلقائيًا.</span><button type="button" className={styles.action} onClick={retry}><RotateCcw size={18} /> إعادة المحاولة</button></div></div>
       )}
       {state === "ended" && (
         <div className={styles.status} role="status"><div className={styles.statusCard}><strong>أكملت الشرح</strong><span>تم حفظ المشاهدة، ويمكنك الانتقال إلى التدريب الموجّه.</span><button type="button" className={styles.action} onClick={replay}><RotateCcw size={18} /> شاهد مرة أخرى</button></div></div>

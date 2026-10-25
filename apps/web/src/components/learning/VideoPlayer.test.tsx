@@ -54,7 +54,17 @@ describe("VideoPlayer", () => {
     expect(screen.getByText("الاتصال بطيء قليلًا")).toBeInTheDocument();
     fireEvent.error(video);
     expect(screen.getByRole("alert")).toHaveTextContent("تعذر تشغيل الفيديو");
+    fireEvent.canPlay(video);
+    fireEvent.waiting(video);
+    fireEvent.stalled(video);
+    fireEvent.playing(video);
+    fireEvent.loadedMetadata(video);
+    // A spurious native event cannot dismiss the explicit recovery affordance.
+    expect(screen.getByRole("alert")).toHaveTextContent("تعذر تشغيل الفيديو");
     fireEvent.click(screen.getByRole("button", { name: "إعادة المحاولة" }));
-    await waitFor(() => expect(HTMLMediaElement.prototype.load).toHaveBeenCalled());
+    await waitFor(() => expect(HTMLMediaElement.prototype.load).toHaveBeenCalledTimes(1));
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    fireEvent.canPlay(video);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 });
