@@ -30,6 +30,7 @@ from v2_interaction_runtime import router as v2_interaction_router
 from v2_adaptation_runtime import router as v2_adaptation_router
 from v2_assessment_runtime import router as v2_assessment_router
 from v2_lesson_review import router as v2_lesson_review_router
+from v2_audio_archive import router as v2_audio_archive_router
 from v2_retry_runtime import router as v2_retry_router
 from v2_review_claims import router as v2_review_claims_router
 from v2_review_history import router as v2_review_history_router
@@ -105,6 +106,7 @@ app.include_router(v2_interaction_router)
 app.include_router(v2_adaptation_router)
 app.include_router(v2_assessment_router)
 app.include_router(v2_lesson_review_router)
+app.include_router(v2_audio_archive_router)
 app.include_router(v2_retry_router)
 app.include_router(v2_review_claims_router)
 app.include_router(v2_review_history_router)
