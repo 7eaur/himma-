@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CheckCircle2, Headphones, RefreshCcw } from "lucide-react";
 import { AdminAction, AdminEmptyState, AdminPage, AdminPageHeader, AdminPanel } from "@/components/admin/AdminUI";
 
@@ -27,8 +27,10 @@ export default function ReviewedRecordingsPage() {
   const [student, setStudent] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const requestSequence = useRef(0);
 
   const refresh = useCallback(async () => {
+    const requestId = ++requestSequence.current;
     setError("");
     setLoading(true);
     try {
@@ -36,6 +38,8 @@ export default function ReviewedRecordingsPage() {
       if (student && Number(student) > 0) params.set("student_id", String(Number(student)));
       const response = await fetch(`/api/v2/review/reviewed-recordings?${params.toString()}`, { cache: "no-store" });
       const body = await response.json().catch(() => null);
+      // Ignore late responses from an older student or activity filter.
+      if (requestId !== requestSequence.current) return;
       if (!response.ok) throw new Error(body?.detail || "تعذر تحميل التسجيلات المنتهية");
       if (!body || !Array.isArray(body.items) ||
           (body.next_offset !== null && (!Number.isSafeInteger(body.next_offset) || body.next_offset < 0))) {
@@ -43,15 +47,22 @@ export default function ReviewedRecordingsPage() {
       }
       setArchive(body as Archive);
     } catch (cause) {
+      if (requestId !== requestSequence.current) return;
       // Never display an old child's voice after a failed filter or refresh.
       setArchive({ items: [], next_offset: null });
       setError(cause instanceof Error ? cause.message : "تعذر تحميل التسجيلات");
     } finally {
-      setLoading(false);
+      if (requestId === requestSequence.current) setLoading(false);
     }
   }, [kind, offset, student]);
 
-  useEffect(() => { const timer = window.setTimeout(() => { void refresh(); }, 0); return () => window.clearTimeout(timer); }, [refresh]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void refresh(); }, 0);
+    return () => {
+      window.clearTimeout(timer);
+      requestSequence.current += 1;
+    };
+  }, [refresh]);
 
   return <AdminPage>
     <AdminPageHeader eyebrow="هِمّة V2 · تسجيلات خاصة" title="التسجيلات التي اكتمل تقييمها"

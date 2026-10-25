@@ -119,4 +119,33 @@ test("P09.0 reviewed audio archive visual states have private players and no ove
   await expect(page.getByRole("alert")).toContainText("تعذر الاتصال بالأرشيف التجريبي");
   await expect(page.locator("audio")).toHaveCount(0);
   await expect(page.getByText("تعذر عرض التسجيلات")).toBeVisible();
+
+  // Out-of-order filter responses must not reintroduce an older student's audio.
+  // Route handlers deliberately finish in reverse order.
+  let openOld!: () => void;
+  let sawOld!: () => void;
+  let oldCompleted!: () => void;
+  const holdOld = new Promise<void>(resolve => { openOld = resolve; });
+  const oldStarted = new Promise<void>(resolve => { sawOld = resolve; });
+  const oldFinished = new Promise<void>(resolve => { oldCompleted = resolve; });
+  await page.route("**/api/v2/review/reviewed-recordings?*", async route => {
+    const kind = new URL(route.request().url()).searchParams.get("kind");
+    if (kind === "lesson") {
+      sawOld();
+      await holdOld;
+      await route.fulfill({ json: { items: [syntheticResults.items[0]], next_offset: null } });
+      oldCompleted();
+      return;
+    }
+    await route.fulfill({ json: { items: [syntheticResults.items[1]], next_offset: null } });
+  });
+  await page.getByLabel("نوع النشاط").selectOption("lesson");
+  await oldStarted;
+  await page.getByLabel("نوع النشاط").selectOption("pretest");
+  await expect(page.getByText("طالب تجريبي آخر · V2-PRE-Q11")).toBeVisible();
+  openOld();
+  await oldFinished;
+  await expect(page.getByText("طالب تجريبي آخر · V2-PRE-Q11")).toBeVisible();
+  await expect(page.getByText("طالب تجريبي · L1-01-IC-A03")).toHaveCount(0);
+  await expect(page.locator("audio")).toHaveCount(1);
 });
