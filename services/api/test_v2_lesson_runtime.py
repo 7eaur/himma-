@@ -2,7 +2,7 @@ from uuid import uuid4
 
 from conftest import TestingSessionLocal
 from db.learning_models import LessonProgressEvent, LessonSession, StudentJourney
-from db.models import Student
+from db.models import AssessmentSession, Student
 from v2_content.importer import register_candidate_release
 
 
@@ -277,3 +277,43 @@ def test_current_action_resumes_active_lesson_before_suggesting_pretest(student_
         journey = db.query(StudentJourney).one()
         assert journey.placement_state == "not_started"
         assert db.query(LessonSession).filter(LessonSession.id == session_id).one().status == "in_progress"
+
+
+def test_current_action_prioritizes_pending_assessment_before_active_lesson(student_client):
+    # An already submitted pretest can legitimately be waiting for placement.
+    # A saved lesson must not override that decision until a supervisor acts.
+    _start(student_client)
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        journey = db.query(StudentJourney).filter(StudentJourney.student_id == student.id).one()
+        row = AssessmentSession(
+            student_id=student.id, content_release_id=journey.content_release_id,
+            session_type="pretest", status="in_progress", v2_state="placement_pending_review",
+            v2_question_index=30, v2_policy_version="test", assessment_attempt_no=1,
+        )
+        db.add(row)
+        db.commit()
+        assessment_id = row.id
+    result = student_client.get("/v2/assessments/current-action")
+    assert result.status_code == 200, result.text
+    payload = result.json()
+    assert payload["action"] == "assessment"
+    assert payload["state"] == "placement_pending_review"
+    assert payload["href"] == f"/student/assessment-v2/{assessment_id}"
+    with TestingSessionLocal() as db:
+        assert db.query(StudentJourney).one().placement_state == "not_started"
+
+
+def test_current_action_keeps_supervisor_waiting_lesson_resumable(student_client):
+    session_id = _start(student_client)["session"]["session_id"]
+    with TestingSessionLocal() as db:
+        session = db.query(LessonSession).filter(LessonSession.id == session_id).one()
+        session.status = "waiting_review"
+        session.stage = "waiting_review"
+        db.commit()
+    response = student_client.get("/v2/assessments/current-action")
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload["action"] == "lesson"
+    assert payload["state"] == "waiting_review"
+    assert payload["href"] == f"/student/learning-v2/{session_id}"
