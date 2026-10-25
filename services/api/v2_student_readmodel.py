@@ -135,6 +135,53 @@ def build_student_v2_home(db: Session, student: Student) -> dict:
     }
 
 
+def _supervisor_lesson_overview(db: Session, student: Student) -> dict:
+    """Staff-only timeline from the student's pinned release; never include answer keys."""
+    journey = db.query(StudentJourney).filter(StudentJourney.student_id == student.id).one_or_none()
+    if journey is None:
+        return {"state": "awaiting_journey", "items": [], "content_release_version": None}
+    lessons, version = _release_lessons(db, journey.content_release_id)
+    if lessons is None:
+        return {"state": "unavailable", "items": [], "content_release_version": version}
+
+    sessions = db.query(LessonSession).filter(
+        LessonSession.student_id == student.id,
+        LessonSession.content_release_id == journey.content_release_id,
+    ).order_by(LessonSession.id).all()
+    by_lesson: dict[str, list[LessonSession]] = {}
+    for row in sessions:
+        by_lesson.setdefault(row.lesson_id, []).append(row)
+    placed = journey.placement_state in {"placed", "posttest_ready", "completed"}
+    items = []
+    for lesson in lessons:
+        lesson_id = lesson["id"]
+        attempts = by_lesson.get(lesson_id, [])
+        current = attempts[-1] if attempts else None
+        skipped = placed and int(lesson["level"][1]) < journey.current_level
+        # Match the aggregate official count: completed attempts win over
+        # unfinished retries, and placement skips never count as completion.
+        if skipped:
+            state = "skipped"
+        elif any(a.status == "completed" for a in attempts):
+            state = "completed"
+        elif current and current.status == "waiting_review":
+            state = "waiting_review"
+        elif current and current.status == "in_progress":
+            state = "in_progress"
+        elif lesson_id == journey.current_lesson_id and placed:
+            state = "current"
+        else:
+            state = "not_started"
+        items.append({
+            "lesson_id": lesson_id,
+            "title": lesson["title"],
+            "level": lesson["level"],
+            "state": state,
+            "session_id": current.id if current and state in {"waiting_review", "in_progress"} else None,
+        })
+    return {"state": "ready", "content_release_version": version, "items": items}
+
+
 @router.get("/home")
 def student_v2_home(
     student: Student = Depends(_require_preview_student),
@@ -152,8 +199,9 @@ def supervisor_student_v2_home(
     student = db.query(Student).filter(Student.id == student_id).one_or_none()
     if student is None:
         raise HTTPException(status_code=404, detail="الطالب غير موجود")
-    # Staff-only projection deliberately returns no access code or audio keys.
-    return build_student_v2_home(db, student)
+    # Staff-only projection deliberately returns no access code, audio keys or answer keys.
+    home = build_student_v2_home(db, student)
+    return {**home, "lesson_overview": _supervisor_lesson_overview(db, student)}
 
 @router.get("/admin/students/overview")
 def supervisor_v2_cohort_overview(

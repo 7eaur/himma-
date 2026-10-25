@@ -24,6 +24,18 @@ import {
 } from "lucide-react";
 import CanonicalRewardBadge from "@/components/rewards/CanonicalRewardBadge";
 import type { StudentV2Home } from "@/app/student/V2StudentDashboard";
+
+type V2LessonItem = { lesson_id: string; title: string; level: string;
+  state: "skipped" | "completed" | "waiting_review" | "in_progress" | "current" | "not_started"; session_id: number | null };
+type SupervisorV2Home = StudentV2Home & {
+  lesson_overview?: { state: "ready" | "unavailable" | "awaiting_journey"; content_release_version: string | null; items: V2LessonItem[] };
+};
+
+const lessonStateLabels: Record<V2LessonItem["state"], string> = {
+  skipped: "متجاوز بالتسكين", completed: "مكتمل", waiting_review: "بانتظار المراجعة",
+  in_progress: "قيد الدرس", current: "التالي في المسار", not_started: "لم يبدأ",
+};
+
 import styles from "./student-detail.module.css";
 
 interface Student {
@@ -156,7 +168,7 @@ export default function StudentDetailPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState("");
   // Scope both data and errors to the URL student ID; never show a previous child's projection.
-  const [v2Result, setV2Result] = useState<{ studentId: string; home: StudentV2Home | null; error: string } | null>(null);
+  const [v2Result, setV2Result] = useState<{ studentId: string; home: SupervisorV2Home | null; error: string } | null>(null);
   const [v2Reload, setV2Reload] = useState(0);
   const [overrideLevel, setOverrideLevel] = useState("1");
   const [overrideReason, setOverrideReason] = useState("");
@@ -217,7 +229,7 @@ export default function StudentDetailPage() {
           cache: "no-store", signal: controller.signal,
         });
         if (!reply.ok) throw new Error("تعذر تحميل سجل هِمّة V2 لهذا الطالب. لا يمكن عرض أرقام V1 بدلًا عنه.");
-        const data = await reply.json() as StudentV2Home;
+        const data = await reply.json() as SupervisorV2Home;
         if (data.mode !== "v2" || !data.current_action || !data.progress ||
             String(data.student?.id) !== id)
           throw new Error("ملف هِمّة V2 غير متطابق مع حساب الطالب المطلوب.");
@@ -408,6 +420,24 @@ export default function StudentDetailPage() {
           <div className={styles.grid2} style={{ marginTop: 14 }}>
             <div className={styles.infoCard}><span>الاختبار القبلي V2</span><strong>{v2Score("pretest")}</strong></div>
             <div className={styles.infoCard}><span>الاختبار البعدي V2</span><strong>{v2Score("posttest")}</strong></div>
+          </div>
+          <div style={{ marginTop: 20 }}>
+            <h3 className="font-bold text-navy mb-2">دروس V2 المعتمدة (19 درسًا)</h3>
+            {v2Home.lesson_overview?.state === "unavailable" && <p className={styles.notice}>إصدار بنك المحتوى المثبت غير متاح؛ لم تُستخدم دروس إصدار آخر بديلًا.</p>}
+            {(!v2Home.lesson_overview || v2Home.lesson_overview.state === "awaiting_journey") &&
+              <p className={styles.muted}>تظهر حالة الدروس بعد بدء الرحلة واعتماد التسكين.</p>}
+            {v2Home.lesson_overview?.state === "ready" &&
+              <div className={styles.journey} data-testid="supervisor-v2-lessons">
+                {v2Home.lesson_overview.items.map(lesson => (
+                  <div key={lesson.lesson_id}
+                    className={`${styles.level} ${lesson.state === "completed" ? styles.levelDone : ["in_progress", "waiting_review", "current"].includes(lesson.state) ? styles.levelCurrent : styles.levelLocked}`}
+                    data-testid="supervisor-v2-lesson" data-level-state={lesson.state}>
+                    <small>{lesson.level} · {lesson.lesson_id}</small>
+                    <strong>{lesson.title}</strong>
+                    <span className={styles.muted}>{lessonStateLabels[lesson.state]}</span>
+                  </div>
+                ))}
+              </div>}
           </div>
           <div className={styles.actions} style={{ marginTop: 16 }}>
             <Link className={styles.primary} href="/admin/v2-assessments">تقييمات ومراجعات V2</Link>

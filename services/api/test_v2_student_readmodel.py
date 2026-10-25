@@ -199,3 +199,35 @@ def test_supervisor_v2_cohort_paginates_without_exposing_codes_or_v1_progress(re
 
 def test_student_cannot_see_staff_cohort_or_credentials(student_client):
     assert student_client.get("/v2/student/admin/students/overview").status_code == 403
+
+def test_supervisor_v2_lesson_timeline_obeys_pinned_placement_and_review(researcher_client):
+    from db.learning_models import LessonSession
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        release = register_candidate_release(db)
+        db.add(StudentJourney(
+            student_id=student.id, content_release_id=release.id, current_level=2,
+            current_lesson_id="L2-02", placement_state="placed",
+        ))
+        db.flush()
+        db.add(LessonSession(student_id=student.id, content_release_id=release.id, lesson_id="L2-01",
+                             status="completed", stage="complete"))
+        db.add(LessonSession(student_id=student.id, content_release_id=release.id, lesson_id="L2-02",
+                             status="waiting_review", stage="waiting_review"))
+        db.commit()
+        student_id = student.id
+    response = researcher_client.get(f"/v2/student/admin/students/{student_id}/home")
+    assert response.status_code == 200, response.text
+    data = response.json()
+    detail = data["lesson_overview"]
+    assert detail["state"] == "ready"
+    assert len(detail["items"]) == 19
+    assert all(set(row) == {"lesson_id", "title", "level", "state", "session_id"} for row in detail["items"])
+    states = {row["lesson_id"]: row["state"] for row in detail["items"]}
+    assert states["L1-01"] == "skipped"
+    assert states["L2-01"] == "completed"
+    assert states["L2-02"] == "waiting_review"
+    assert data["progress"]["completed_lessons"] == sum(row["state"] == "completed" for row in detail["items"])
+    assert data["progress"]["skipped_by_placement"] == sum(row["state"] == "skipped" for row in detail["items"])
+    assert "private_answer" not in response.text and "access_code" not in response.text
+
