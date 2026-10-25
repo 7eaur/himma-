@@ -18,7 +18,10 @@ from v2_interaction_runtime import AnswerRequest, _canonical_answer
 from v2_lesson_runtime import _require_preview_student
 from v2_retry_state import active_retry
 from v2_review_claims import enforce_review_claim, clear_review_claim
-from v2_audio_retention import schedule_superseded_staged_audio, run_retention_after_commit
+from v2_audio_retention import (
+    schedule_superseded_staged_audio, run_retention_after_commit,
+    track_new_audio_upload, mark_audio_submitted,
+)
 
 router = APIRouter(prefix="/v2/retries", tags=["v2-retries"])
 
@@ -216,6 +219,7 @@ def student_retry_recording(
         raise HTTPException(status_code=409, detail="مفتاح الرفع استُخدم بمدة أو بيانات مختلفة")
     if old_staged and old_staged != metadata:
         superseded.append(old_staged)
+    track_new_audio_upload(db, student_id=student.id, storage_key=key)
     current.replacement_json = {
         "staged_audio": metadata,
         "superseded_staged_audio": superseded,
@@ -276,6 +280,10 @@ def student_retry_submit(
     task.submitted_at = datetime.now(timezone.utc)
     task.status = "submitted"
     if task.request_kind == "rerecord":
+        try:
+            mark_audio_submitted(db, student_id=student.id, storage_key=canonical["audio_storage_key"])
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail="ملف إعادة التسجيل المؤقت لم يعد صالحًا") from exc
         audio = AudioSubmission(
             response_id=None,
             lesson_response_id=row.id if kind == "lesson" else None,

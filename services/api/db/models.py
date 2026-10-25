@@ -370,6 +370,20 @@ class AudioSubmission(Base):
     )
 
 
+class AudioUploadLease(Base):
+    """V2 audio uploaded but not yet attached to a finalized student response."""
+    __tablename__ = "v2_audio_upload_leases"
+
+    id = Column(Integer, primary_key=True)
+    student_id = Column(Integer, ForeignKey("students.id", ondelete="RESTRICT"), nullable=False)
+    storage_key = Column(String(255), nullable=True, unique=True)
+    state = Column(String(20), nullable=False, default="temporary", server_default="temporary")
+    created_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+    submitted_at = Column(DateTime(timezone=True), nullable=True)
+
+    __table_args__ = (Index("ix_v2_audio_upload_state_created", "state", "created_at"),)
+
+
 class AudioPurgeTask(Base):
     """Durable cleanup of superseded V2 sound. The winning audio is never queued."""
     __tablename__ = "v2_audio_purge_tasks"

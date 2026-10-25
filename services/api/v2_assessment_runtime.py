@@ -37,7 +37,10 @@ from v2_interaction_runtime import AnswerRequest, CHOICE_INTERACTIONS, OPEN_INTE
 from v2_lesson_runtime import _require_preview_student
 from v2_retry_state import active_retry
 from v2_review_claims import enforce_review_claim, clear_review_claim
-from v2_audio_retention import schedule_superseded_audio, run_retention_after_commit
+from v2_audio_retention import (
+    schedule_superseded_audio, run_retention_after_commit,
+    track_new_audio_upload, mark_audio_submitted,
+)
 
 
 router = APIRouter(prefix="/v2/assessments", tags=["v2-assessments"])
@@ -347,6 +350,8 @@ def upload_recording(
         raise HTTPException(status_code=400, detail="ملف التسجيل غير صالح") from exc
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail="خدمة حفظ التسجيلات غير متاحة الآن") from exc
+    track_new_audio_upload(db, student_id=student.id, storage_key=key)
+    db.commit()
     return {"audio_storage_key": key, "audio_file_size": size, "audio_mime_type": file.content_type}
 
 
@@ -388,6 +393,10 @@ def answer(session_id: int, body: AnswerRequest, student: Student = Depends(_req
     )
     db.add(response); db.flush()
     if question["interaction"] == "read_aloud":
+        try:
+            mark_audio_submitted(db, student_id=student.id, storage_key=canonical["audio_storage_key"])
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail="ملف التسجيل المؤقت لم يعد صالحًا للإرسال") from exc
         db.add(AudioSubmission(
             response_id=None, lesson_response_id=None, assessment_response_id=response.id,
             storage_key=canonical["audio_storage_key"], file_size=canonical["audio_file_size"],

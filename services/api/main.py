@@ -1,4 +1,7 @@
 import os
+import asyncio
+import logging
+from contextlib import suppress
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -134,3 +137,33 @@ def readiness_check(response: Response):
     if report["status"] != "ready":
         response.status_code = 503
     return report
+
+# A lightweight interval worker clears abandoned V2 uploads and retries
+# interrupted deletion tasks. It starts only for a persistent PostgreSQL API,
+# not the ephemeral SQLite testing runtime, and NEVER deletes graded audio.
+async def _audio_retention_sweeper() -> None:
+    from v2_audio_retention import run_audio_maintenance
+    logger = logging.getLogger("himma.audio_retention")
+    while True:
+        await asyncio.sleep(15 * 60)
+        try:
+            await asyncio.to_thread(run_audio_maintenance)
+        except Exception:
+            logger.exception("V2 audio retention maintenance deferred")
+
+
+@app.on_event("startup")
+async def start_audio_retention_sweeper() -> None:
+    if (os.getenv("HIMMA_AUDIO_RETENTION_ENABLED", "1") == "1"
+            and os.getenv("DATABASE_URL", "").startswith(("postgresql:", "postgresql+"))):
+        app.state.audio_retention_task = asyncio.create_task(_audio_retention_sweeper())
+
+
+@app.on_event("shutdown")
+async def stop_audio_retention_sweeper() -> None:
+    task = getattr(app.state, "audio_retention_task", None)
+    if task:
+        task.cancel()
+        with suppress(asyncio.CancelledError):
+            await task
+

@@ -2,17 +2,18 @@
 
 No child recording is deleted while it is still the active/pending evidence.
 """
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
 import pytest
 
 from conftest import TestingSessionLocal
 from db.learning_models import LessonQuestionResponse, LessonSession
-from db.models import AudioPurgeTask, AudioSubmission, Student
+from db.models import AudioPurgeTask, AudioSubmission, AudioUploadLease, Student
 from v2_audio_retention import (
-    process_queued_audio_purges, schedule_superseded_audio,
-    schedule_superseded_staged_audio,
+    process_queued_audio_purges, process_abandoned_uploads,
+    schedule_superseded_audio, schedule_superseded_staged_audio,
+    track_new_audio_upload, mark_audio_submitted,
 )
 
 
@@ -103,3 +104,63 @@ def test_staged_cleanup_rejects_foreign_student_and_preserves_evidence(monkeypat
     assert process_queued_audio_purges()["deferred"] == 1
     with TestingSessionLocal() as db:
         assert db.query(AudioPurgeTask).filter(AudioPurgeTask.status == "queued").count() == 1
+
+
+def test_expired_unsubmitted_lease_is_deleted_but_submitted_voice_is_kept(monkeypatch):
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        sid = student.id
+        pending = f"audio/{sid}/expired-staged.audio"
+        accepted = f"audio/{sid}/accepted.audio"
+        track_new_audio_upload(db, student_id=sid, storage_key=pending)
+        track_new_audio_upload(db, student_id=sid, storage_key=accepted)
+        mark_audio_submitted(db, student_id=sid, storage_key=accepted)
+        db.commit()
+        old = datetime.now(timezone.utc) - timedelta(hours=25)
+        for lease in db.query(AudioUploadLease).all():
+            lease.created_at = old
+        db.commit()
+
+    removed = []
+    monkeypatch.setattr("v2_audio_retention.SessionLocal", TestingSessionLocal)
+    monkeypatch.setattr("v2_audio_retention.storage.delete_superseded_audio",
+                        lambda key, owner: removed.append((key, owner)))
+    result = process_abandoned_uploads(age_hours=24)
+    assert result == {"deleted_abandoned": 1, "deferred_abandoned": 0}
+    assert removed == [(pending, sid)]
+    with TestingSessionLocal() as db:
+        states = {lease.state for lease in db.query(AudioUploadLease).all()}
+        assert states == {"purged", "submitted"}
+        current = db.query(AudioUploadLease).filter(AudioUploadLease.storage_key == accepted).one()
+        assert current.state == "submitted"
+    assert process_abandoned_uploads(age_hours=24)["deleted_abandoned"] == 0
+
+
+def test_unsubmitted_lease_cannot_be_removed_while_audio_evidence_exists(monkeypatch):
+    from v2_content.importer import register_candidate_release
+
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        sid = student.id
+        key = f"audio/{sid}/linked-evidence.webm"
+        track_new_audio_upload(db, student_id=sid, storage_key=key)
+        lease = db.query(AudioUploadLease).filter(AudioUploadLease.storage_key == key).one()
+        lease.created_at = datetime.now(timezone.utc) - timedelta(hours=25)
+        release = register_candidate_release(db)
+        session = LessonSession(student_id=sid, content_release_id=release.id, lesson_id="L1-05")
+        db.add(session); db.flush()
+        response = LessonQuestionResponse(lesson_session_id=session.id, question_id="L1-05-GP-04",
+                                          role="guided_practice", answer_json={"answer": {"audio_storage_key": key}},
+                                          submit_key=str(uuid4()), status="pending_review")
+        db.add(response); db.flush()
+        db.add(AudioSubmission(lesson_response_id=response.id, storage_key=key,
+                               file_size=2500, mime_type="audio/webm", status="pending_review"))
+        db.commit()
+
+    monkeypatch.setattr("v2_audio_retention.SessionLocal", TestingSessionLocal)
+    deleted = []
+    monkeypatch.setattr("v2_audio_retention.storage.delete_superseded_audio",
+                        lambda key, owner: deleted.append(key))
+    report = process_abandoned_uploads(age_hours=24)
+    assert report["deleted_abandoned"] == 0
+    assert deleted == []

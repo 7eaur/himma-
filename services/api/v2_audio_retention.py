@@ -6,7 +6,7 @@ transactional; S3 deletion occurs AFTER commit and is retryable.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session
 
@@ -15,7 +15,7 @@ from db.database import SessionLocal
 from db.learning_models import (
     AssessmentQuestionResponse, LessonQuestionResponse, LessonSession,
 )
-from db.models import AudioPurgeTask, AudioSubmission, AssessmentSession
+from db.models import AudioPurgeTask, AudioSubmission, AudioUploadLease, AssessmentSession
 
 logger = logging.getLogger(__name__)
 
@@ -116,6 +116,9 @@ def process_queued_audio_purges(limit: int = 30) -> dict[str, int]:
             for row in linked:
                 row.storage_key = f"purged/{row.id}"
                 row.status = "purged"
+            for lease in db.query(AudioUploadLease).filter(AudioUploadLease.storage_key == key).all():
+                lease.storage_key = None
+                lease.state = "purged"
             task.storage_key = None
             task.status = "deleted"
             task.attempts += 1
@@ -125,9 +128,80 @@ def process_queued_audio_purges(limit: int = 30) -> dict[str, int]:
     return {"deleted": processed, "deferred": failed}
 
 
+def track_new_audio_upload(db: Session, *, student_id: int, storage_key: str) -> None:
+    """Register S3 content as unsubmitted until an answer transaction accepts it."""
+    if not storage_key.startswith(f"audio/{student_id}/"):
+        raise ValueError("Audio upload student mismatch")
+    lease = db.query(AudioUploadLease).filter(AudioUploadLease.storage_key == storage_key).one_or_none()
+    if lease is not None:
+        if lease.student_id != student_id or lease.state not in ("temporary", "submitted"):
+            raise ValueError("Audio upload no longer available or owned by another student")
+        return
+    db.add(AudioUploadLease(student_id=student_id, storage_key=storage_key, state="temporary"))
+    db.flush()
+
+
+def mark_audio_submitted(db: Session, *, student_id: int, storage_key: str) -> None:
+    """Serialize submission with the orphan sweeper on the same upload lease.
+
+    Legacy pre-lease uploads still work with owner validation in _canonical_answer.
+    """
+    lease = db.query(AudioUploadLease).filter(AudioUploadLease.storage_key == storage_key).with_for_update().one_or_none()
+    if lease is None:
+        return
+    if lease.student_id != student_id or lease.state not in ("temporary", "submitted"):
+        raise ValueError("This audio upload is no longer available")
+    lease.state = "submitted"
+    lease.submitted_at = datetime.now(timezone.utc)
+
+
+def process_abandoned_uploads(*, age_hours: int = 24, limit: int = 30) -> dict[str, int]:
+    """Delete only unsubmitted leases older than a recovery grace period."""
+    if age_hours < 24:
+        raise ValueError("The abandoned upload grace period must be at least 24 hours")
+    removed = 0
+    deferred = 0
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=age_hours)
+    with SessionLocal() as db:
+        leases = db.query(AudioUploadLease).filter(
+            AudioUploadLease.state == "temporary",
+            AudioUploadLease.created_at < cutoff,
+        ).order_by(AudioUploadLease.id).limit(limit).all()
+        for candidate in leases:
+            lease = db.query(AudioUploadLease).filter(
+                AudioUploadLease.id == candidate.id,
+                AudioUploadLease.state == "temporary",
+            ).with_for_update().one_or_none()
+            if lease is None or not lease.storage_key:
+                continue
+            key = lease.storage_key
+            if (not key.startswith(f"audio/{lease.student_id}/") or
+                    db.query(AudioSubmission).filter(AudioSubmission.storage_key == key).first() is not None or
+                    db.query(AudioPurgeTask).filter(AudioPurgeTask.storage_key == key).first() is not None):
+                deferred += 1
+                db.rollback()
+                continue
+            try:
+                storage.delete_superseded_audio(key, lease.student_id)
+            except (RuntimeError, ValueError):
+                db.rollback()
+                deferred += 1
+                continue
+            lease.storage_key = None
+            lease.state = "purged"
+            db.commit()
+            removed += 1
+    return {"deleted_abandoned": removed, "deferred_abandoned": deferred}
+
+
+def run_audio_maintenance() -> dict[str, int]:
+    """Both queues are bounded, safe to retry, and independent of grading."""
+    return {**process_queued_audio_purges(), **process_abandoned_uploads()}
+
+
 def run_retention_after_commit() -> None:
     """Best-effort immediate cleanup; durable tasks survive process failures."""
     try:
-        process_queued_audio_purges()
+        run_audio_maintenance()
     except Exception:
         logger.exception("Deferred P08 retention worker, tasks stay in database")
