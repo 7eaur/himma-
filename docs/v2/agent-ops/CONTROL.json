@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0",
+  "project": "Himma V2",
+  "repository": "7eaur/himma-",
+  "branch": "v2/01-learning-foundation-20261007",
+  "timezone": "Asia/Aden",
+  "mode": "ACTIVE",
+  "stop_reason": null,
+  "lease": null,
+  "scheduler": {
+    "worker_a": "00 * * * *",
+    "worker_b": "30 * * * *",
+    "supervisor_c": "50 * * * *",
+    "automation_ids": {
+      "worker_a": null,
+      "worker_b": null,
+      "supervisor_c": null
+    }
+  },
+  "last_handoff_run": null,
+  "last_reviewed_run": null,
+  "instructions": "Read README_AR.md and SUPERVISOR_DIRECTIVES.md. No merge, no V1 data deletion, no release claims before same-SHA gates.",
+  "last_protocol_update_utc": "2026-10-25T23:38:00Z"
+}
