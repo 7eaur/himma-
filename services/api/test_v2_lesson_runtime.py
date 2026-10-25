@@ -1,7 +1,9 @@
 from uuid import uuid4
 
 from conftest import TestingSessionLocal
-from db.learning_models import LessonProgressEvent, LessonSession
+from db.learning_models import LessonProgressEvent, LessonSession, StudentJourney
+from db.models import Student
+from v2_content.importer import register_candidate_release
 
 
 def _start(student_client, lesson_id="L1-01"):
@@ -232,3 +234,46 @@ def test_p07_unapproved_preview_cannot_read_other_repository_files(student_clien
         return dict(asset, source_path="assets/brand/ASSET_MANIFEST.json", v1_path=None, path=None)
     monkeypatch.setattr(v2_lesson_runtime, "get_media", wrong_extension)
     assert student_client.get("/v2/lessons/test-fixtures/audio/LET-01").status_code == 503
+
+
+def test_catalog_uses_v2_placement_level_not_stale_legacy_student_level(student_client):
+    # The supervisor's pinned V2 placement must govern which lesson is open
+    # even while the legacy Student.current_level field is one level behind.
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        assert student.current_level == 1
+        release = register_candidate_release(db)
+        journey = StudentJourney(
+            student_id=student.id, content_release_id=release.id,
+            current_level=2, current_lesson_id=None, placement_state="placed",
+        )
+        db.add(journey)
+        db.commit()
+    result = student_client.get("/v2/lessons/catalog")
+    assert result.status_code == 200, result.text
+    rows = result.json()["lessons"]
+    assert {r["lesson_id"] for r in rows if r["state"] == "current"} == {"L2-01"}
+    assert {r["lesson_id"] for r in rows if r["state"] == "skipped"} == {
+        r["lesson_id"] for r in rows if r["level"] == "L1"
+    }
+    assert next(r for r in rows if r["lesson_id"] == "L1-01")["preview_enabled"] is False
+    assert next(r for r in rows if r["lesson_id"] == "L2-02")["state"] == "locked"
+    with TestingSessionLocal() as db:
+        assert db.query(Student).filter(Student.access_code == "STU001").one().current_level == 1
+        assert db.query(StudentJourney).one().current_lesson_id is None
+
+
+def test_current_action_resumes_active_lesson_before_suggesting_pretest(student_client):
+    # Earlier P03 students have a V2 lesson already in progress even when
+    # journey.placement_state is not_started. Never strand their saved work.
+    started = _start(student_client)
+    session_id = started["session"]["session_id"]
+    current = student_client.get("/v2/assessments/current-action")
+    assert current.status_code == 200, current.text
+    assert current.json()["action"] == "lesson"
+    assert current.json()["href"] == f"/student/learning-v2/{session_id}"
+    assert current.json()["state"] == "intro"
+    with TestingSessionLocal() as db:
+        journey = db.query(StudentJourney).one()
+        assert journey.placement_state == "not_started"
+        assert db.query(LessonSession).filter(LessonSession.id == session_id).one().status == "in_progress"

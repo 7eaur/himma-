@@ -77,15 +77,18 @@ def current_action(student: Student = Depends(_require_preview_student), db: Ses
             "href": f"/student/assessment-v2/{assessment.id}",
             "label": "متابعة الاختبار" if assessment.v2_state == "answering" else "عرض حالة المراجعة",
         }
-    journey = db.query(StudentJourney).filter(StudentJourney.student_id == student.id).one_or_none()
-    if not journey or journey.placement_state in {"not_started", "in_progress"}:
-        return {"action": "start_pretest", "href": None, "label": "ابدأ الاختبار القبلي"}
+    # Active lessons already carry an immutable, resumable learner state.
+    # Preserve that state even for historical P03 sessions whose journey
+    # still says not_started. An active V2 assessment above takes priority.
     lesson = db.query(LessonSession).filter(
         LessonSession.student_id == student.id,
         LessonSession.status.in_(("in_progress", "waiting_review")),
     ).one_or_none()
     if lesson:
         return {"action": "lesson", "state": lesson.stage, "href": f"/student/learning-v2/{lesson.id}", "label": "متابعة الدرس"}
+    journey = db.query(StudentJourney).filter(StudentJourney.student_id == student.id).one_or_none()
+    if not journey or journey.placement_state in {"not_started", "in_progress"}:
+        return {"action": "start_pretest", "href": None, "label": "ابدأ الاختبار القبلي"}
     if journey.placement_state == "posttest_ready":
         return {"action": "start_posttest" if student.posttest_enabled else "waiting_posttest_enable", "href": None, "label": "ابدأ الاختبار البعدي" if student.posttest_enabled else "بانتظار إتاحة الاختبار البعدي"}
     if journey.placement_state == "completed":

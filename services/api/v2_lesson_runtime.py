@@ -105,11 +105,15 @@ def lesson_catalog(
         )
     }
     journey = db.query(StudentJourney).filter(StudentJourney.student_id == student.id).one_or_none()
-    first_for_level = next(
-        row["id"] for row in release["lessons"] if int(row["level"][1]) == student.current_level
-    )
-    current_lesson_id = active.lesson_id if active else (journey.current_lesson_id if journey else first_for_level)
+    # The V2 placement is authoritative. The legacy Student.current_level
+    # may lag behind a pinned journey and must never unlock an older level.
     current_level = journey.current_level if journey else student.current_level
+    first_for_level = next(
+        row["id"] for row in release["lessons"] if int(row["level"][1]) == current_level
+    )
+    current_lesson_id = active.lesson_id if active else (
+        (journey.current_lesson_id or first_for_level) if journey else first_for_level
+    )
     rows = []
     for lesson in release["lessons"]:
         if lesson["id"] in completed:
