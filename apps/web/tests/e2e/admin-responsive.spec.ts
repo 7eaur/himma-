@@ -30,7 +30,10 @@ async function capture(page: Page, viewport: string, route: string) {
   const routeName = route === "/admin" ? "dashboard" : route.replace(/^\/admin\/?/, "").replaceAll("/", "-");
   await page.screenshot({
     path: path.join(SCREENSHOT_DIR, `${viewport}-${routeName}.png`),
-    fullPage: true,
+    // The 89-asset inventory can exceed 12,000px on mobile. A giant
+    // full-page screenshot obscures the real responsive layout; record its
+    // initial viewport while route/data assertions guard correctness.
+    fullPage: route !== "/admin/v2-media",
   });
 }
 
@@ -70,6 +73,13 @@ for (const viewport of [
       await expect(page.getByRole("button", { name: "الإشعارات" })).toHaveCount(1);
       await page.getByRole("dialog", { name: "قائمة لوحة المشرف" }).getByRole("button", { name: "إغلاق القائمة" }).click();
       await page.waitForTimeout(250);
+      if (route === "/admin/content-preview") {
+        // Do not record the initial spinner as evidence of loaded V2/V1 UI.
+        await expect(page.getByTestId("content-index-item").first()).toBeAttached({ timeout: 25000 });
+      }
+      if (route === "/admin/v2-media") {
+        await expect(page.getByText(/الملفات المرشحة الموجودة/)).toBeVisible({ timeout: 15000 });
+      }
       await expectNoHorizontalOverflow(page);
       await capture(page, viewport.name, route);
 
@@ -146,6 +156,12 @@ test("P09.0 V2 supervisor pages keep a desktop visual baseline", async ({ page }
       await expect(page).toHaveURL(/\/admin\/settings$/);
     }
     await expect(page.getByRole("heading", { level: 1, name: heading, exact: true })).toBeVisible();
+    if (route === "/admin/content-preview") {
+      await expect(page.getByTestId("content-index-item").first()).toBeAttached({ timeout: 25000 });
+    }
+    if (route === "/admin/v2-media") {
+      await expect(page.getByText(/الملفات المرشحة الموجودة/)).toBeVisible({ timeout: 15000 });
+    }
     await expectNoHorizontalOverflow(page);
     await capture(page, "desktop-1440x900", route);
   }
