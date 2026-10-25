@@ -199,7 +199,11 @@ test("P09.1-D: supervisor sees official V2 first without V1 stars, and access co
   await expect(projection.getByTestId("supervisor-v2-progress")).toContainText("بانتظار الاعتماد");
   await expect(projection.getByTestId("supervisor-v2-action")).toBeVisible();
   await expect(projection.getByText("لم تُعتمد نتيجة")).toHaveCount(2);
+  await expect(projection.getByTestId("supervisor-v2-lessons")).toHaveCount(0);
   await expect(projection.getByText("تعذر تحميل سجل هِمّة V2")).toHaveCount(0);
+  await mkdir(SCREENSHOT_DIR, { recursive: true });
+  await expectNoHorizontalOverflow(page);
+  await page.screenshot({ path: path.join(SCREENSHOT_DIR, "phone-390x844-student360-v2.png"), fullPage: true });
   await expect(page.getByText(code, { exact: true })).toHaveCount(0);
 
   await page.getByRole("button", { name: "الحساب", exact: true }).click();
