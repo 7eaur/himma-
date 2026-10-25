@@ -94,7 +94,8 @@ def review_history(
             "file_size": audio.file_size,
             "duration_seconds": float(audio.duration_seconds) if audio.duration_seconds is not None else None,
             "submitted_at": _timestamp(audio.submitted_at),
-            "url": f"/api/v2/review-history/admin/{kind}/{response_id}/recordings/{audio.id}",
+            "url": (f"/api/v2/review-history/admin/{kind}/{response_id}/recordings/{audio.id}"
+                    if audio.status not in {"purged", "retention_pending"} else None),
         } for audio in audios],
         "decisions": decisions,
     }

@@ -13,7 +13,7 @@ interface Retry {
 }
 interface Audio {
   id: number; status: string; file_size: number;
-  duration_seconds: number | null; submitted_at: string | null; url: string;
+  duration_seconds: number | null; submitted_at: string | null; url: string | null;
 }
 interface History {
   original: { text_response: string | null; submitted_at: string | null };
@@ -71,7 +71,9 @@ export default function V2EvidenceHistory({ kind, responseId }: { kind: Kind; re
         </div>)}
         {history.recordings.map((item) => <div key={item.id} className="space-y-2 rounded-lg border border-blue-100 p-3">
           <p className="font-semibold">ملف صوتي #{item.id} · {item.status} · {dateText(item.submitted_at)}</p>
-          <audio controls preload="none" src={item.url} className="w-full" aria-label={`تسجيل المراجعة ${item.id}`} />
+          {item.url
+            ? <audio controls preload="none" src={item.url} className="w-full" aria-label={`تسجيل المراجعة ${item.id}`} />
+            : <p className="text-sm text-slate-600">أُزيل الملف الصوتي المستبدل وفق سياسة الخصوصية؛ بقي سجل التقييم فقط.</p>}
         </div>)}
         {history.decisions.map((item, index) => <div key={index} className="rounded-lg border border-emerald-200 p-3">
           <p className="font-semibold">قرار المشرف: {item.is_correct ? "مستوفٍ" : "غير مستوفٍ"} · {dateText(item.at)}</p>
