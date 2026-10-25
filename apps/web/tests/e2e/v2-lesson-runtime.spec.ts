@@ -114,6 +114,21 @@ test("P03/P04 runtime and P05 targeted support remain responsive", async ({ page
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.screenshot({ path: path.join(SCREENSHOT_DIR, "mobile-390-catalog.png"), fullPage: true });
 
+  // P09.0 coverage expansion: same student, same pinned lesson state, varying
+  // viewport without manufacturing success or a new completed lesson.
+  for (const viewport of [
+    { name: "phone-360", width: 360, height: 800 },
+    { name: "phone-430", width: 430, height: 932 },
+    { name: "tablet-768", width: 768, height: 1024 },
+    { name: "desktop-1440", width: 1440, height: 900 },
+  ]) {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    await expect(page.getByRole("button", { name: "ابدأ الدرس" })).toBeVisible();
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await page.screenshot({ path: path.join(SCREENSHOT_DIR, `${viewport.name}-catalog.png`), fullPage: true });
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+
   await page.getByRole("button", { name: "ابدأ الدرس" }).click();
   await expect(page).toHaveURL(/\/student\/learning-v2\/44$/);
   await expect(page.getByRole("heading", { name: "الحرف وصوته", level: 1 })).toBeVisible();
@@ -175,4 +190,14 @@ test("P03/P04 runtime and P05 targeted support remain responsive", async ({ page
   await expect(page.getByText("لديك مساعدة قصيرة ثم تعود إلى مسارك.")).toBeVisible();
   await expect(page.getByText(/فشل|رسوب|نزول مستوى/)).toHaveCount(0);
   await page.screenshot({ path: path.join(SCREENSHOT_DIR, "desktop-1440-targeted-support.png"), fullPage: true });
+  for (const viewport of [
+    { name: "phone-360", width: 360, height: 800 },
+    { name: "phone-390", width: 390, height: 844 },
+    { name: "tablet-768", width: 768, height: 1024 },
+  ]) {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    await expect(page.getByText("مساعدة قصيرة وليست خفضًا للمستوى")).toBeVisible();
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await page.screenshot({ path: path.join(SCREENSHOT_DIR, `${viewport.name}-targeted-support.png`), fullPage: true });
+  }
 });
