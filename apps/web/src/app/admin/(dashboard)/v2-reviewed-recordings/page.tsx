@@ -37,8 +37,14 @@ export default function ReviewedRecordingsPage() {
       const response = await fetch(`/api/v2/review/reviewed-recordings?${params.toString()}`, { cache: "no-store" });
       const body = await response.json().catch(() => null);
       if (!response.ok) throw new Error(body?.detail || "تعذر تحميل التسجيلات المنتهية");
+      if (!body || !Array.isArray(body.items) ||
+          (body.next_offset !== null && (!Number.isSafeInteger(body.next_offset) || body.next_offset < 0))) {
+        throw new Error("استجابة أرشيف التسجيلات غير صالحة");
+      }
       setArchive(body as Archive);
     } catch (cause) {
+      // Never display an old child's voice after a failed filter or refresh.
+      setArchive({ items: [], next_offset: null });
       setError(cause instanceof Error ? cause.message : "تعذر تحميل التسجيلات");
     } finally {
       setLoading(false);
@@ -69,6 +75,7 @@ export default function ReviewedRecordingsPage() {
     <AdminPanel title="أرشيف الصوت المقيّم" description="التسجيلات محفوظة بخصوصية ولا تعرض رابط تخزين مباشر.">
       {error && <p role="alert" className="alert-error">{error}</p>}
       {loading ? <p role="status">جاري جلب التسجيلات...</p>
+        : error ? <AdminEmptyState title="تعذر عرض التسجيلات" description="لم نعرض بيانات مخزنة قديمة. اختر تحديث لإعادة المحاولة." />
         : archive.items.length === 0 ? <AdminEmptyState title="لا توجد تسجيلات مقيّمة لهذه التصفية" description="ستظهر هنا بعد اعتماد تقييم المشرف للصوت." />
         : <div className="space-y-3">{archive.items.map(item => <article key={item.audio_id} className="space-y-3 rounded-2xl border border-slate-200 p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">

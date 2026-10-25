@@ -94,6 +94,8 @@ test("P09.0 reviewed audio archive visual states have private players and no ove
       }
       if (state === "failed") {
         await expect(page.getByRole("alert")).toContainText("تعذر الاتصال بالأرشيف التجريبي");
+        await expect(page.locator("audio")).toHaveCount(0);
+        await expect(page.getByText("تعذر عرض التسجيلات")).toBeVisible();
       }
       const bounds = await page.evaluate(() => ({
         pageWidth: document.documentElement.scrollWidth,
@@ -106,4 +108,15 @@ test("P09.0 reviewed audio archive visual states have private players and no ove
       });
     }
   }
+
+  // Regression: a populated archive must not remain visible if a new
+  // refresh fails. The previous student's player and pagination disappear.
+  mode = "reviewed";
+  await page.goto("/admin/v2-reviewed-recordings");
+  await expect(page.locator("audio")).toHaveCount(2);
+  mode = "failed";
+  await page.getByRole("button", { name: "تحديث" }).click();
+  await expect(page.getByRole("alert")).toContainText("تعذر الاتصال بالأرشيف التجريبي");
+  await expect(page.locator("audio")).toHaveCount(0);
+  await expect(page.getByText("تعذر عرض التسجيلات")).toBeVisible();
 });
