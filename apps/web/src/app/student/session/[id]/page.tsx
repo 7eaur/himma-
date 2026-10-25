@@ -193,7 +193,7 @@ export default function SessionPage() {
         setPhase("waiting");
         return;
       }
-      if (response.status === 409 && detail.includes("إعادة التسجيل")) {
+      if (response.status === 409 && (detail.includes("إعادة التسجيل") || detail.includes("يحتاج إلى إعادة"))) {
         if (await fetchRerecordTask()) return;
       }
       if (!response.ok) throw new Error(detail || "تعذر إنهاء الاختبار");
@@ -218,7 +218,7 @@ export default function SessionPage() {
         setPhase("waiting");
         return;
       }
-      if (response.status === 409 && detail.includes("إعادة التسجيل")) {
+      if (response.status === 409 && (detail.includes("إعادة التسجيل") || detail.includes("يحتاج إلى إعادة"))) {
         if (await fetchRerecordTask()) return;
       }
       if (!response.ok) throw new Error(detail || "تعذر تحميل السؤال");
