@@ -370,6 +370,19 @@ class AudioSubmission(Base):
     )
 
 
+class AudioPurgeTask(Base):
+    """Durable cleanup of superseded V2 sound. The winning audio is never queued."""
+    __tablename__ = "v2_audio_purge_tasks"
+
+    id = Column(Integer, primary_key=True)
+    student_id = Column(Integer, ForeignKey("students.id", ondelete="RESTRICT"), nullable=False)
+    storage_key = Column(String(255), nullable=True, unique=True)
+    status = Column(String(20), nullable=False, default="queued", server_default="queued")
+    attempts = Column(Integer, nullable=False, default=0, server_default="0")
+    created_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+    processed_at = Column(DateTime(timezone=True), nullable=True)
+
+
 class AudioReview(Base):
     """Manual grading of an audio submission."""
     __tablename__ = "audio_reviews"

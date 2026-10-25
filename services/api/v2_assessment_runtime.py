@@ -11,7 +11,7 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from typing import Any, Literal
 
-from fastapi import APIRouter, Depends, File, Header, HTTPException, Query, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Header, HTTPException, Query, UploadFile
 from pydantic import BaseModel, Field
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -37,6 +37,7 @@ from v2_interaction_runtime import AnswerRequest, CHOICE_INTERACTIONS, OPEN_INTE
 from v2_lesson_runtime import _require_preview_student
 from v2_retry_state import active_retry
 from v2_review_claims import enforce_review_claim, clear_review_claim
+from v2_audio_retention import schedule_superseded_audio, run_retention_after_commit
 
 
 router = APIRouter(prefix="/v2/assessments", tags=["v2-assessments"])
@@ -541,7 +542,7 @@ def placement_queue(
 
 
 @router.post("/admin/responses/{response_id}/review")
-def review_response(response_id: int, body: ReviewRequest, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def review_response(response_id: int, body: ReviewRequest, background_tasks: BackgroundTasks, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     row = db.query(AssessmentQuestionResponse).filter(AssessmentQuestionResponse.id == response_id).with_for_update().one_or_none()
     if not row:
         raise HTTPException(status_code=404, detail="الإجابة غير موجودة")
@@ -580,6 +581,16 @@ def review_response(response_id: int, body: ReviewRequest, user: User = Depends(
              if task and task.audio_submission_id else
              db.query(AudioSubmission).filter(AudioSubmission.assessment_response_id == row.id).order_by(AudioSubmission.id.desc()).first())
     if audio: audio.status = "graded"
+    if evidence["interaction"] == "read_aloud" and audio:
+        extra = tuple(
+            item.get("audio_storage_key") for item in ((task.replacement_json or {}).get("superseded_staged_audio") or [])
+            if item.get("audio_storage_key")
+        ) if task and isinstance(task.replacement_json, dict) else ()
+        schedule_superseded_audio(
+            db, student_id=student.id, question_id=row.question_id,
+            winning_audio_id=audio.id, kind=session.session_type,
+            extra_staged_keys=extra,
+        )
     if task and task.status == "submitted":
         task.status = "resolved"
         task.resolved_at = datetime.now(timezone.utc)
@@ -587,6 +598,8 @@ def review_response(response_id: int, body: ReviewRequest, user: User = Depends(
     _finish_if_ready(db, session)
     db.add(AuditLog(actor_role="researcher", actor_id=user.id, action="v2_assessment_response_reviewed", entity_type="assessment_question_response", entity_id=str(row.id), details=f"is_correct={body.is_correct}; note_location=assessment_question_responses.review_note"))
     db.commit()
+    if evidence["interaction"] == "read_aloud" and audio:
+        background_tasks.add_task(run_retention_after_commit)
     return {"status": "graded", "session_state": session.v2_state}
 
 

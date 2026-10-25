@@ -130,3 +130,17 @@ def verify_audio(
         raise ValueError("Audio file size does not match the stored object")
     if response.get("ContentType") != content_type:
         raise ValueError("Audio MIME type does not match the stored object")
+
+
+def delete_superseded_audio(storage_key: str, student_id: int) -> None:
+    """Delete a single superseded private object, never a prefix or bucket.
+
+    The database retention policy calls this only after the new reviewed
+    recording and an outbox task were atomically committed.
+    """
+    if not storage_key.startswith(f"audio/{student_id}/"):
+        raise ValueError("Audio storage key does not belong to the expected student")
+    try:
+        s3_client.delete_object(Bucket=S3_BUCKET_NAME, Key=storage_key)
+    except (ClientError, BotoCoreError) as exc:
+        raise RuntimeError("Audio storage deletion is temporarily unavailable") from exc

@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Literal
 
-from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, Query, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, Header, HTTPException, Query, UploadFile
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
@@ -18,6 +18,7 @@ from v2_interaction_runtime import AnswerRequest, _canonical_answer
 from v2_lesson_runtime import _require_preview_student
 from v2_retry_state import active_retry
 from v2_review_claims import enforce_review_claim, clear_review_claim
+from v2_audio_retention import schedule_superseded_staged_audio, run_retention_after_commit
 
 router = APIRouter(prefix="/v2/retries", tags=["v2-retries"])
 
@@ -176,7 +177,7 @@ def student_retry_draft(
 
 @router.post("/student/tasks/{task_id}/recording")
 def student_retry_recording(
-    task_id: int, file: UploadFile = File(...),
+    task_id: int, background_tasks: BackgroundTasks, file: UploadFile = File(...),
     duration_seconds: int | None = Form(default=None, ge=1, le=600),
     idempotency_key: str = Header(..., alias="Idempotency-Key", min_length=8, max_length=100),
     student: Student = Depends(_require_preview_student), db: Session = Depends(get_db),
@@ -219,7 +220,13 @@ def student_retry_recording(
         "staged_audio": metadata,
         "superseded_staged_audio": superseded,
     }
+    if old_staged and old_staged != metadata:
+        schedule_superseded_staged_audio(
+            db, student_id=student.id, keys=(old_staged["audio_storage_key"],),
+        )
     db.commit()
+    if old_staged and old_staged != metadata:
+        background_tasks.add_task(run_retention_after_commit)
     return metadata
 
 

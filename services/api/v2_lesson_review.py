@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
@@ -28,6 +28,7 @@ from v2_content.repository import get_release
 from v2_assessment_runtime import _session_release
 from v2_retry_state import active_retry
 from v2_review_claims import enforce_review_claim, clear_review_claim
+from v2_audio_retention import schedule_superseded_audio, run_retention_after_commit
 
 router = APIRouter(prefix="/v2/review", tags=["v2-review"])
 
@@ -129,6 +130,7 @@ def lesson_audio(
 def decide_lesson(
     response_id: int,
     body: LessonDecision,
+    background_tasks: BackgroundTasks,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -208,6 +210,17 @@ def decide_lesson(
             if not assignment or assignment.id != decision.support_assignment_id:
                 raise HTTPException(status_code=409, detail="إسناد الدعم المعلق لا يطابق الأدلة")
             finish_support_check(db, session, assignment, decision_key=f"support:{assignment.id}:reviewed:{row.id}")
+    if audio:
+        extra = tuple(
+            item.get("audio_storage_key") for item in ((task.replacement_json or {}).get("superseded_staged_audio") or [])
+            if item.get("audio_storage_key")
+        ) if task and isinstance(task.replacement_json, dict) else ()
+        schedule_superseded_audio(
+            db, student_id=student.id, question_id=row.question_id,
+            winning_audio_id=audio.id, kind="lesson", extra_staged_keys=extra,
+        )
     db.commit()
+    if audio:
+        background_tasks.add_task(run_retention_after_commit)
     return {"status": "graded", "lesson_stage": session.stage, "session_status": session.status,
             "pending_review": remaining}
