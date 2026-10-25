@@ -125,7 +125,7 @@ test("P0: first real login starts V2 pretest and resumes a saved answer after re
 
   const previousApis: string[] = [];
   page.on("request", req => {
-    if (/\\/api\\/(profile|activities\\/status|journey|rewards)(?:\\?|$)/.test(req.url())) previousApis.push(req.url());
+    if (/\/api\/(profile|activities\/status|journey|rewards)(?:\?|$)/.test(req.url())) previousApis.push(req.url());
   });
   await page.goto("/student/login");
   await page.getByTestId("input-access-code").fill(code);
@@ -133,7 +133,7 @@ test("P0: first real login starts V2 pretest and resumes a saved answer after re
   await expect(page.getByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
   await expect(page.getByTestId("student-primary-action")).toHaveText("ابدأ الاختبار القبلي");
   await page.getByTestId("student-primary-action").click();
-  await expect(page).toHaveURL(/\\/student\\/assessment-v2\\/\\d+$/);
+  await expect(page).toHaveURL(/\/student\/assessment-v2\/\d+$/);
   const sessionId = Number(page.url().split("/").at(-1));
   const first = await page.evaluate(async id => {
     const response = await fetch(`/api/v2/assessments/sessions/${id}`);
