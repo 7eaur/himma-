@@ -90,6 +90,15 @@ def test_pretest_sentence_accepts_approved_alternative_without_leaking_score(stu
     with TestingSessionLocal() as db:
         session = db.query(AssessmentSession).filter(AssessmentSession.id == session_id).one()
         session.v2_question_index = 29
+        # A final question cannot complete an assessment missing 29 answers.
+        for earlier in (q for q in compile_release()["questions"]
+                        if q["role"] == "pretest" and q["id"] != "V2-PRE-Q30"):
+            db.add(AssessmentQuestionResponse(
+                assessment_session_id=session.id, question_id=earlier["id"],
+                role="pretest", answer_json={"test": True},
+                submit_key=str(uuid4()), status="graded", is_correct=True,
+                skill_group=earlier["skill_group"], evidence_type=earlier["evidence_type"],
+            ))
         db.commit()
     question = next(q for q in compile_release()["questions"] if q["id"] == "V2-PRE-Q30")
     alternative = question["private_answer"]["accepted_option_orders"][0]
