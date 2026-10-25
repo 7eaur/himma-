@@ -129,4 +129,25 @@ describe("Student page V2-only learner boundary", () => {
     expect(fetcher).toHaveBeenCalledWith("/api/v2/assessments/pretest/start", { method: "POST" });
     expect(fetcher.mock.calls.some(([url]) => url === "/api/assessment/start")).toBe(false);
   });
+
+  it("rejects an unexpected legacy mode instead of showing historical learner UI", async () => {
+    const fetcher = mockV2({ ...firstTime, mode: "legacy" });
+    render(<StudentPage />);
+    expect(await screen.findByText(/تعذر التحقق من رحلة هِمّة/)).toBeInTheDocument();
+    expect(screen.queryByTestId("student-home")).not.toBeInTheDocument();
+    expect(fetcher.mock.calls.some(([url]) => url === "/api/profile")).toBe(false);
+  });
+
+  it("can retry a temporarily unavailable V2 source without fetching any V1 endpoint", async () => {
+    const fetcher = jest.fn()
+      .mockResolvedValueOnce(response({ detail: "temporary failure" }, 503))
+      .mockResolvedValueOnce(response(firstTime))
+      .mockResolvedValue(response({ items: [], next_offset: null }));
+    global.fetch = fetcher;
+    render(<StudentPage />);
+    fireEvent.click(await screen.findByRole("button", { name: "إعادة المحاولة" }));
+    expect(await screen.findByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
+    expect(fetcher.mock.calls.some(([url]) => url === "/api/profile")).toBe(false);
+  });
+
 });
