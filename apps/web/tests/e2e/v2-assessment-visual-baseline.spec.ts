@@ -55,6 +55,12 @@ test("P09.0 V2 pretest states are readable without answer leakage at mobile, tab
 
   let state: AssessmentState = "answering";
   await page.route("**/api/v2/assessments/sessions/777", route => route.fulfill({ json: assessment(state) }));
+  // The pending-review child view also requests the global retry inbox.
+  // Fixture this read-only API too; a fake assessment ID must not turn the
+  // screenshot into a 404/error-state by accident.
+  await page.route(/\/api\/v2\/retries\/student\/tasks\?/, route =>
+    route.fulfill({ json: { items: [], next_offset: null } })
+  );
   const sizes = [
     { width: 360, height: 800 },
     { width: 390, height: 844 },

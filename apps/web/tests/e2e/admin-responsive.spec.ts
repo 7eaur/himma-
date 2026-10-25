@@ -130,19 +130,22 @@ test("P09.0 V2 supervisor pages keep a desktop visual baseline", async ({ page }
   await page.setViewportSize({ width: 1440, height: 900 });
   await login(page);
   const routes = [
-    "/admin/v2-assessments",
-    "/admin/v2-lesson-review",
-    "/admin/v2-media",
-    "/admin/v2-reviewed-recordings",
-    "/admin/students",
-    "/admin/content-preview",
-    "/admin/account",
+    { route: "/admin/v2-assessments", heading: "تقييمات V2 والمراجعة" },
+    { route: "/admin/v2-lesson-review", heading: "مراجعة قراءة وكتابة الدروس" },
+    { route: "/admin/v2-media", heading: "سجل وسائط V2" },
+    { route: "/admin/v2-reviewed-recordings", heading: "التسجيلات التي اكتمل تقييمها" },
+    { route: "/admin/students", heading: "الطلاب" },
+    { route: "/admin/content-preview", heading: "المحتوى المعتمد" },
+    { route: "/admin/account", heading: "إعدادات المشرف" },
   ];
-  for (const route of routes) {
+  for (const { route, heading } of routes) {
     await page.goto(route);
     await expect(page).not.toHaveURL(/\/admin\/login/);
-    // The admin shell and the page can each render a semantic <main>.
-    await expect(page.locator("main").last()).toBeVisible();
+    if (route === "/admin/account") {
+      // Intentional legacy redirect; never mistake it for a distinct account UI.
+      await expect(page).toHaveURL(/\/admin\/settings$/);
+    }
+    await expect(page.getByRole("heading", { level: 1, name: heading, exact: true })).toBeVisible();
     await expectNoHorizontalOverflow(page);
     await capture(page, "desktop-1440x900", route);
   }
