@@ -180,6 +180,20 @@ def start_lesson(
         db.add(journey)
     elif journey.content_release_id != release_row.id:
         raise HTTPException(status_code=409, detail="رحلة الطالب مثبتة على إصدار محتوى مختلف")
+    elif journey.current_lesson_id is None and journey.placement_state == "placed":
+        # An earlier, already-approved placement can have a missing cursor.
+        # GET /catalog only *projects* the fallback; the authorized POST
+        # persists it atomically, and never unlocks any other lesson.
+        first_placed_lesson = next(
+            row["id"] for row in get_release()["lessons"]
+            if int(row["level"][1]) == journey.current_level
+        )
+        if lesson_id != first_placed_lesson:
+            raise HTTPException(
+                status_code=409,
+                detail={"message": "هذا الدرس ما يزال مغلقًا", "current_lesson_id": first_placed_lesson},
+            )
+        journey.current_lesson_id = first_placed_lesson
     elif journey.current_lesson_id != lesson_id:
         raise HTTPException(
             status_code=409,

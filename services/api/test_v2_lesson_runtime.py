@@ -262,6 +262,33 @@ def test_catalog_uses_v2_placement_level_not_stale_legacy_student_level(student_
         assert db.query(Student).filter(Student.access_code == "STU001").one().current_level == 1
         assert db.query(StudentJourney).one().current_lesson_id is None
 
+    # The projected fallback must also be actionable, but only by the
+    # approved placed-level entry; persist the missing cursor on POST only.
+    blocked = student_client.post("/v2/lessons/L2-02/start")
+    assert blocked.status_code == 409, blocked.text
+    assert blocked.json()["detail"]["current_lesson_id"] == "L2-01"
+    started = student_client.post("/v2/lessons/L2-01/start")
+    assert started.status_code == 200, started.text
+    with TestingSessionLocal() as db:
+        assert db.query(StudentJourney).one().current_lesson_id == "L2-01"
+        assert db.query(Student).filter(Student.access_code == "STU001").one().current_level == 1
+
+
+def test_missing_cursor_does_not_bypass_unfinished_pretest(student_client):
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        release = register_candidate_release(db)
+        db.add(StudentJourney(
+            student_id=student.id, content_release_id=release.id,
+            current_level=2, current_lesson_id=None, placement_state="in_progress",
+        ))
+        db.commit()
+    response = student_client.post("/v2/lessons/L2-01/start")
+    assert response.status_code == 409, response.text
+    with TestingSessionLocal() as db:
+        assert db.query(StudentJourney).one().current_lesson_id is None
+        assert db.query(LessonSession).count() == 0
+
 
 def test_current_action_resumes_active_lesson_before_suggesting_pretest(student_client):
     # Earlier P03 students have a V2 lesson already in progress even when
