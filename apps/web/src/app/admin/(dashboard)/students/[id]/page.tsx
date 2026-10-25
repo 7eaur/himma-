@@ -23,6 +23,7 @@ import {
   User,
 } from "lucide-react";
 import CanonicalRewardBadge from "@/components/rewards/CanonicalRewardBadge";
+import type { StudentV2Home } from "@/app/student/V2StudentDashboard";
 import styles from "./student-detail.module.css";
 
 interface Student {
@@ -91,9 +92,10 @@ interface JourneySummary {
 }
 
 type SourceState = "loading" | "loaded" | "error";
-type TabKey = "overview" | "journey" | "tests" | "recordings" | "adaptation" | "account" | "history";
+type TabKey = "v2" | "overview" | "journey" | "tests" | "recordings" | "adaptation" | "account" | "history";
 
 const TABS: Array<{ key: TabKey; label: string; icon: typeof User }> = [
+  { key: "v2", label: "مسار هِمّة V2", icon: BookOpen },
   { key: "overview", label: "نظرة عامة", icon: User },
   { key: "journey", label: "المسار والتقدم", icon: BookOpen },
   { key: "tests", label: "الاختبارات", icon: ClipboardList },
@@ -143,7 +145,7 @@ function apiError(data: unknown, fallback: string) {
 export default function StudentDetailPage() {
   const params = useParams();
   const id = params.id as string;
-  const [activeTab, setActiveTab] = useState<TabKey>("overview");
+  const [activeTab, setActiveTab] = useState<TabKey>("v2");
   const [student, setStudent] = useState<Student | null>(null);
   const [journey, setJourney] = useState<JourneySummary | null>(null);
   const [history, setHistory] = useState<AdaptationDecision[]>([]);
@@ -153,6 +155,9 @@ export default function StudentDetailPage() {
   const [journeyState, setJourneyState] = useState<SourceState>("loading");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState("");
+  // Scope both data and errors to the URL student ID; never show a previous child's projection.
+  const [v2Result, setV2Result] = useState<{ studentId: string; home: StudentV2Home | null; error: string } | null>(null);
+  const [v2Reload, setV2Reload] = useState(0);
   const [overrideLevel, setOverrideLevel] = useState("1");
   const [overrideReason, setOverrideReason] = useState("");
   const [editName, setEditName] = useState("");
@@ -202,6 +207,47 @@ export default function StudentDetailPage() {
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    const controller = new AbortController();
+    const getStudentV2 = async () => {
+      try {
+        const reply = await fetch(`/api/v2/student/admin/students/${id}/home`, {
+          cache: "no-store", signal: controller.signal,
+        });
+        if (!reply.ok) throw new Error("تعذر تحميل سجل هِمّة V2 لهذا الطالب. لا يمكن عرض أرقام V1 بدلًا عنه.");
+        const data = await reply.json() as StudentV2Home;
+        if (data.mode !== "v2" || !data.current_action || !data.progress ||
+            String(data.student?.id) !== id)
+          throw new Error("ملف هِمّة V2 غير متطابق مع حساب الطالب المطلوب.");
+        if (!controller.signal.aborted) setV2Result({ studentId: id, home: data, error: "" });
+      } catch (reason) {
+        if (!controller.signal.aborted) {
+          setV2Result({
+            studentId: id, home: null,
+            error: reason instanceof Error ? reason.message : "تعذر الاتصال بمصدر V2.",
+          });
+        }
+      }
+    };
+    void getStudentV2();
+    return () => controller.abort();
+  }, [id, v2Reload]);
+
+  const currentV2 = v2Result?.studentId === id ? v2Result : null;
+  const v2Home = currentV2?.home ?? null;
+  const placedV2 = v2Home?.journey && ["placed", "posttest_ready", "completed"].includes(v2Home.journey.placement_state);
+  const currentV2Level = placedV2 ? v2Home?.journey?.current_level : null;
+  const lessonCount = v2Home?.data_status === "ready" ? v2Home.progress.assigned_lessons : null;
+  const officialPercent = v2Home?.data_status === "ready" ? v2Home.progress.display_percent : null;
+  const officialCount = lessonCount == null || officialPercent == null ? null : v2Home?.progress.completed_lessons ?? null;
+  const v2Score = (kind: "pretest" | "posttest") => {
+    const assessment = v2Home?.assessments[kind];
+    return assessment?.official && assessment.score_percent != null
+      ? `${Math.round(assessment.score_percent * 10) / 10}%`
+      : "لم تُعتمد نتيجة";
+  };
 
   const latestDecision = useMemo(() => history.at(-1) ?? null, [history]);
   const totalStars = rewards.reduce((sum, reward) => sum + (reward.stars ?? 0), 0);
@@ -318,9 +364,62 @@ export default function StudentDetailPage() {
   const sourceError = (label: string, retry: () => void) => <div className="alert-error" role="status">تعذر تحميل {label}. <button type="button" className={styles.secondary} onClick={retry}>إعادة المحاولة</button></div>;
 
   const tabContent = (() => {
+    if (activeTab === "v2") return (
+      <section className={styles.panel} data-testid="supervisor-v2-overview">
+        <div className={styles.panelHeader}>
+          <div><h2>ملف الطالب الأكاديمي · هِمّة V2</h2>
+            <p>تسكين ودروس واختبارات من المصدر الحالي فقط. أرشيف V1 محفوظ في الأقسام الأخرى ولا يختلط بهذه الأرقام.</p>
+          </div><BookOpen size={20} aria-hidden="true" />
+        </div>
+        {!currentV2 && <p role="status" className={styles.muted}>جاري تحميل التقدم المعتمد من V2...</p>}
+        {currentV2?.error && <div className="alert-error" role="alert">
+          {currentV2.error}
+          <button className={styles.secondary} type="button" onClick={() => setV2Reload(value => value + 1)}>إعادة المحاولة</button>
+        </div>}
+        {v2Home && <>
+          {v2Home.data_status !== "ready" && <p className={styles.notice}>بيانات إصدار المحتوى غير مكتملة؛ التقدم معلق ولا يمكن تقديره من النسخة القديمة.</p>}
+          <div className={styles.grid3}>
+            <div className={styles.infoCard}><span>التسكين المعتمد V2</span>
+              <strong data-testid="supervisor-v2-level">{currentV2Level == null ? "لم يُعتمد بعد" : `المستوى ${currentV2Level}`}</strong>
+            </div>
+            <div className={styles.infoCard}><span>تقدم الدروس المعيّنة</span>
+              <strong data-testid="supervisor-v2-progress">{officialCount == null || lessonCount == null ? "بانتظار الاعتماد" : `${officialCount} من ${lessonCount} درس`}</strong>
+            </div>
+            <div className={styles.infoCard}><span>دروس تجاوزها التسكين</span>
+              <strong>{currentV2Level == null ? "—" : v2Home.progress.skipped_by_placement}</strong>
+            </div>
+          </div>
+          <div className={styles.progressBlock} style={{ marginTop: 14 }}>
+            <div className={styles.progressMeta}><span>الإنجاز الرسمي من دروس V2 فقط</span>
+              <strong>{officialPercent == null ? "غير متاح" : `${officialPercent}%`}</strong>
+            </div>
+            {officialPercent != null && <div className={styles.track} role="progressbar"
+              aria-label="تقدم دروس همة V2" aria-valuemin={0} aria-valuemax={100}
+              aria-valuenow={officialPercent}>
+              <div className={styles.fill} style={{ width: `${Math.min(100, Math.max(0, officialPercent))}%` }} />
+            </div>}
+            <p className={styles.muted} style={{ marginTop: 8 }}>القراءات التي تنتظر مراجعة المشرف لا تُحسب دروسًا مكتملة.</p>
+          </div>
+          <div className={styles.notice} data-testid="supervisor-v2-action" style={{ marginTop: 14 }}>
+            <strong>الخطوة الحالية:</strong> {v2Home.current_action.label}
+            {v2Home.current_action.action === "migration_review" && <p>يلزم قرار مشرف بشأن الانتقال من البيانات التاريخية قبل السماح بإعادة الاختبار القبلي.</p>}
+            {v2Home.progress.pending_review > 0 && <p>توجد مراجعة قراءة معلّقة؛ لا تُحوَّل إلى نجاح تلقائي.</p>}
+          </div>
+          <div className={styles.grid2} style={{ marginTop: 14 }}>
+            <div className={styles.infoCard}><span>الاختبار القبلي V2</span><strong>{v2Score("pretest")}</strong></div>
+            <div className={styles.infoCard}><span>الاختبار البعدي V2</span><strong>{v2Score("posttest")}</strong></div>
+          </div>
+          <div className={styles.actions} style={{ marginTop: 16 }}>
+            <Link className={styles.primary} href="/admin/v2-assessments">تقييمات ومراجعات V2</Link>
+            <Link className={styles.secondary} href="/admin/v2-lesson-review">مراجعة الدروس</Link>
+            <Link className={styles.secondary} href="/admin/v2-reviewed-recordings">التسجيلات المُقيَّمة</Link>
+          </div>
+        </>}
+      </section>
+    );
     if (activeTab === "overview") return (
       <section className={styles.panel}>
-        <div className={styles.panelHeader}><div><h2>ملخص الطالب</h2><p>أهم المعلومات التي يحتاجها المشرف بسرعة.</p></div><User size={20} aria-hidden="true" /></div>
+        <div className={styles.panelHeader}><div><h2>أرشيف الطالب التاريخي V1</h2><p>معلومات محفوظة للتوثيق والمقارنة، وليست تقدم V2.</p></div><User size={20} aria-hidden="true" /></div>
         <div className={styles.grid3}>
           <div className={styles.infoCard}><span>الصف</span><strong>الثالث الابتدائي</strong></div>
           <div className={styles.infoCard}><span>المستوى الحالي</span><strong>المستوى التاريخي V1: {student.current_level}</strong></div>
@@ -340,7 +439,7 @@ export default function StudentDetailPage() {
 
     if (activeTab === "journey") return (
       <section className={styles.panel}>
-        <div className={styles.panelHeader}><div><h2>المسار والتقدم</h2><p>الحالة الأكاديمية الفعلية لكل مستوى وفق سجل الطالب.</p></div><BookOpen size={20} aria-hidden="true" /></div>
+        <div className={styles.panelHeader}><div><h2>المسار التاريخي V1</h2><p>سجل مستويات النسخة القديمة فقط، وليس مسار دروس V2.</p></div><BookOpen size={20} aria-hidden="true" /></div>
         {journeyState === "loading" && <p className={styles.muted}>جاري تحميل المسار الأكاديمي...</p>}
         {journeyState === "error" && sourceError("المسار الأكاديمي", () => void refreshJourney())}
         {journeyState === "loaded" && journey && <>
@@ -361,7 +460,7 @@ export default function StudentDetailPage() {
 
     if (activeTab === "tests") return (
       <section className={styles.panel}>
-        <div className={styles.panelHeader}><div><h2>الاختبارات</h2><p>إتاحة الاختبار البعدي وحالة الجاهزية.</p></div><ClipboardList size={20} aria-hidden="true" /></div>
+        <div className={styles.panelHeader}><div><h2>الاختبارات التاريخية V1</h2><p>معلومات النسخة القديمة؛ لا تتحكم في بوابة الاختبار البعدي V2.</p></div><ClipboardList size={20} aria-hidden="true" /></div>
         <div className={styles.grid2}>
           <div className={styles.infoCard}><span>الاختبار القبلي</span><strong>جزء من مسار الطالب وتحديد نقطة البداية</strong></div>
           <div className={styles.infoCard}><span>الاختبار البعدي</span><strong>{student.posttest_enabled ? "مفتوح الآن" : student.posttest_eligible ? "جاهز للفتح" : "غير جاهز بعد"}</strong></div>
@@ -381,7 +480,7 @@ export default function StudentDetailPage() {
 
     if (activeTab === "adaptation") return (
       <section className={styles.panel} data-testid="adaptation-panel">
-        <div className={styles.panelHeader}><div><h2>التقوية والتكيف</h2><p>آخر قرار محفوظ والتدخل اليدوي عند الحاجة.</p></div><Activity size={20} aria-hidden="true" /></div>
+        <div className={styles.panelHeader}><div><h2>سجل التكيف التاريخي V1</h2><p>آخر قرار محفوظ ضمن نسخة V1 فقط؛ لا يُستعمل لتسكين V2.</p></div><Activity size={20} aria-hidden="true" /></div>
         {historyState === "loading" && <p className={styles.muted}>جاري تحميل قرارات التكيف...</p>}
         {historyState === "error" && sourceError("سجل التكيف", () => void refreshAdaptiveEvidence())}
         {historyState === "loaded" && !latestDecision ? <p className={styles.muted}>لا يوجد قرار تكيف محفوظ بعد.</p> : historyState === "loaded" && latestDecision ? (
@@ -441,9 +540,9 @@ export default function StudentDetailPage() {
 
       <section className={styles.summary} aria-label="ملخص الطالب">
         <div className={styles.summaryCard}><span className={styles.summaryIcon}><User size={20} aria-hidden="true" /></span><div><strong>{student.status === "active" ? "حساب نشط" : "حساب موقوف"}</strong><span>حالة الطالب</span></div></div>
-        <div className={styles.summaryCard}><span className={styles.summaryIcon}><BookOpen size={20} aria-hidden="true" /></span><div><strong>المستوى {student.current_level}</strong><span>المستوى التاريخي V1</span></div></div>
-        <div className={styles.summaryCard}><span className={styles.summaryIcon}><Star size={20} aria-hidden="true" /></span><div><strong>{rewardsState === "loaded" ? totalStars : "—"}</strong><span>نجوم V1 التاريخية</span></div></div>
-        <div className={styles.summaryCard}><span className={styles.summaryIcon}><KeyRound size={20} aria-hidden="true" /></span><div><strong className={styles.code}>••••••</strong><span>رمز الدخول مخفي · افتح تبويب الحساب</span></div></div>
+        <div className={styles.summaryCard}><span className={styles.summaryIcon}><BookOpen size={20} aria-hidden="true" /></span><div><strong>{currentV2Level == null ? "غير معتمد" : `المستوى ${currentV2Level}`}</strong><span>المستوى الحالي V2</span></div></div>
+        <div className={styles.summaryCard}><span className={styles.summaryIcon}><Star size={20} aria-hidden="true" /></span><div><strong>{officialPercent == null ? "—" : `${officialPercent}%`}</strong><span>تقدم دروس V2</span></div></div>
+        <div className={styles.summaryCard}><span className={styles.summaryIcon}><ClipboardList size={20} aria-hidden="true" /></span><div><strong>{v2Home?.progress.pending_review ?? "—"}</strong><span>مراجعات V2 المعلّقة</span></div></div>
       </section>
 
       <nav className={styles.tabs} aria-label="أقسام ملف الطالب">
