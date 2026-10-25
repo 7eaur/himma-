@@ -12,13 +12,18 @@
     "worker_b": "30 * * * *",
     "supervisor_c": "50 * * * *",
     "automation_ids": {
-      "worker_a": null,
-      "worker_b": null,
-      "supervisor_c": null
+      "worker_a": "6ade9385f5588191b361bbd61483efdb",
+      "worker_b": "6ade938a93b8819199bd28d806543dac",
+      "supervisor_c": "6ade938f2c4c8191b5b3623d6ee1a527"
+    },
+    "activation_status": "confirmed_enabled",
+    "starts_local": {
+      "worker_a": "2026-10-26 03:00",
+      "worker_b": "2026-10-26 03:30",
+      "supervisor_c": "2026-10-26 03:50"
     }
   },
   "last_handoff_run": null,
   "last_reviewed_run": null,
-  "instructions": "Read README_AR.md and SUPERVISOR_DIRECTIVES.md. No merge, no V1 data deletion, no release claims before same-SHA gates.",
-  "last_protocol_update_utc": "2026-10-25T23:38:00Z"
+  "instructions": "Read README_AR.md and SUPERVISOR_DIRECTIVES.md. No merge, no V1 data deletion, no release claims before same-SHA gates."
 }
