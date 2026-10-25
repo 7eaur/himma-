@@ -45,6 +45,7 @@ describe("Student page", () => {
   it("renders the student's first name and explicit empty reward state before placement", async () => {
     global.fetch = jest
       .fn()
+      .mockResolvedValueOnce(response({ detail: "V2 preview unavailable" }, false))
       .mockResolvedValueOnce(response(profile))
       .mockResolvedValueOnce(response(journey))
       .mockResolvedValueOnce(response([]));
@@ -62,6 +63,7 @@ describe("Student page", () => {
   it("renders reward API failure as unavailable instead of a false zero or empty badge state", async () => {
     global.fetch = jest
       .fn()
+      .mockResolvedValueOnce(response({ detail: "V2 preview unavailable" }, false))
       .mockResolvedValueOnce(response(profile))
       .mockResolvedValueOnce(response(journey))
       .mockResolvedValueOnce(response({ detail: "temporary failure" }, false));
@@ -80,6 +82,7 @@ describe("Student page", () => {
   it("renders canonical star total and badge asset from the reward catalog API contract", async () => {
     global.fetch = jest
       .fn()
+      .mockResolvedValueOnce(response({ detail: "V2 preview unavailable" }, false))
       .mockResolvedValueOnce(response(profile))
       .mockResolvedValueOnce(response(journey))
       .mockResolvedValueOnce(response([
@@ -119,6 +122,7 @@ describe("Student page", () => {
   it("shows skipped, completed and active levels without claiming skipped work was completed", async () => {
     global.fetch = jest
       .fn()
+      .mockResolvedValueOnce(response({ detail: "V2 preview unavailable" }, false))
       .mockResolvedValueOnce(response({
         id: 1,
         full_name: "طالب تجريبي",
@@ -164,6 +168,7 @@ describe("Student page", () => {
   it("shows pending audio review and never resumes the assessment", async () => {
     global.fetch = jest
       .fn()
+      .mockResolvedValueOnce(response({ detail: "V2 preview unavailable" }, false))
       .mockResolvedValueOnce(response({
         id: 1,
         full_name: "طالب تجريبي",
@@ -204,6 +209,7 @@ describe("Student page", () => {
   it("surfaces rerecord work as a separate dashboard task and opens it only on learner action", async () => {
     global.fetch = jest
       .fn()
+      .mockResolvedValueOnce(response({ detail: "V2 preview unavailable" }, false))
       .mockResolvedValueOnce(response({
         id: 1,
         full_name: "طالب تجريبي",
@@ -215,7 +221,6 @@ describe("Student page", () => {
       }))
       .mockResolvedValueOnce(response(journey))
       .mockResolvedValueOnce(response([]))
-      .mockResolvedValueOnce(response({ detail: "preview disabled" }, false))
       .mockResolvedValueOnce(response([
         {
           submission_id: 501,
@@ -248,4 +253,28 @@ describe("Student page", () => {
       expect(push).toHaveBeenCalledWith("/student/session/77?task=rerecord");
     });
   });
+  it("shows only the V2 home for an enrolled learner and skips V1 progress and rewards", async () => {
+    const v2 = {
+      mode: "v2",
+      test_only: true,
+      student: { id: 1, full_name: "طالب تجريبي", grade_level: 3 },
+      current_action: { action: "lesson_catalog", href: "/student/learning-v2", label: "متابعة الرحلة التعليمية" },
+      journey: { current_level: 2, placement_state: "placed", current_lesson_id: "L2-01", content_release_version: "candidate" },
+      progress: { completed_lessons: 3, assigned_lessons: 14, skipped_by_placement: 5, pending_review: 0, display_percent: 21.4 },
+      assessments: { pretest: { state: "completed", session_id: 9, score_percent: 90, official: true }, posttest: null },
+      rewards: { state: "not_implemented_v2" }, data_status: "ready",
+    };
+    global.fetch = jest.fn().mockResolvedValueOnce(response(v2)).mockResolvedValue(response({ items: [] }));
+
+    render(<StudentPage />);
+
+    expect(await screen.findByRole("heading", { name: "مرحبًا يا طالب" })).toBeInTheDocument();
+    expect(screen.getByText("أنجزت 3 من 14 درسًا مخصصًا لك.")).toBeInTheDocument();
+    expect(screen.getByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
+    expect(screen.getByRole("button", { name: "متابعة الرحلة التعليمية" })).toBeEnabled();
+    expect(screen.queryByText("لم تحصل على شارة بعد")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("v2-learning-preview")).not.toBeInTheDocument();
+    expect((global.fetch as jest.Mock).mock.calls.some(([url]) => ["/api/profile", "/api/journey", "/api/rewards", "/api/activities/status"].includes(url))).toBe(false);
+  });
+
 });
