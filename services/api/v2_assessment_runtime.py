@@ -33,7 +33,7 @@ from v2_content.importer import register_candidate_release
 from v2_content.media import MediaProvider
 from v2_content.projection import student_question
 from v2_content.repository import get_release
-from v2_interaction_runtime import AnswerRequest, CHOICE_INTERACTIONS, OPEN_INTERACTIONS, ORDER_INTERACTIONS, _canonical_answer
+from v2_interaction_runtime import AnswerRequest, CHOICE_INTERACTIONS, OPEN_INTERACTIONS, ORDER_INTERACTIONS, _canonical_answer, _ordered_answer_is_correct
 from v2_lesson_runtime import _require_preview_student
 from v2_retry_state import active_retry
 from v2_review_claims import enforce_review_claim, clear_review_claim
@@ -377,7 +377,7 @@ def answer(session_id: int, body: AnswerRequest, student: Student = Depends(_req
     if is_open:
         correct = None
     elif question["interaction"] in ORDER_INTERACTIONS:
-        correct = canonical["selected_option_ids"] == expected
+        correct = _ordered_answer_is_correct(question, canonical["selected_option_ids"])
     else:
         correct = set(canonical["selected_option_ids"]) == set(expected)
     response = AssessmentQuestionResponse(

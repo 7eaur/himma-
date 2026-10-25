@@ -163,6 +163,14 @@ def _interaction_payload(db: Session, session: LessonSession) -> dict[str, Any]:
     return base
 
 
+def _ordered_answer_is_correct(question: dict[str, Any], submitted: list[str]) -> bool:
+    """Accept only explicit, privately approved grammatically valid tile orders."""
+    answer = question["private_answer"]
+    return any(submitted == order for order in [
+        answer["correct_option_ids"], *(answer.get("accepted_option_orders") or []),
+    ])
+
+
 def _canonical_answer(question: dict[str, Any], body: AnswerRequest, student_id: int) -> dict[str, Any]:
     interaction = question["interaction"]
     option_ids = [option["id"] for option in question["options"]]
@@ -351,7 +359,7 @@ def submit_answer(
     if is_open:
         is_correct = None
     elif question["interaction"] in ORDER_INTERACTIONS:
-        is_correct = canonical["selected_option_ids"] == expected
+        is_correct = _ordered_answer_is_correct(question, canonical["selected_option_ids"])
     else:
         is_correct = set(canonical["selected_option_ids"]) == set(expected)
 

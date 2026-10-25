@@ -1884,7 +1884,15 @@
         ],
         "rubric": null,
         "target_text": "القمر يضيء في الليل",
-        "scoring": "ordered_option_ids_exact"
+        "scoring": "ordered_option_ids_exact",
+        "accepted_option_orders": [
+          [
+            "tile_02",
+            "tile_04",
+            "tile_01",
+            "tile_03"
+          ]
+        ]
       },
       "reading_reference": null,
       "role_specific_hints_allowed": false,
@@ -3788,7 +3796,15 @@
         ],
         "rubric": null,
         "target_text": "الشمس تشرق في النهار",
-        "scoring": "ordered_option_ids_exact"
+        "scoring": "ordered_option_ids_exact",
+        "accepted_option_orders": [
+          [
+            "tile_02",
+            "tile_04",
+            "tile_01",
+            "tile_03"
+          ]
+        ]
       },
       "reading_reference": null,
       "role_specific_hints_allowed": false,

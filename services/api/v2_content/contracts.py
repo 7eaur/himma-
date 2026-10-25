@@ -50,6 +50,7 @@ class QuestionOption(AuthoringModel):
 
 class PrivateAnswer(AuthoringModel):
     correct_option_ids: list[str] = Field(default_factory=list)
+    accepted_option_orders: list[list[str]] = Field(default_factory=list)
     rubric: dict[str, Any] | None = None
 
 
@@ -85,6 +86,12 @@ class AuthoringQuestion(AuthoringModel):
             answer_ids = self.private_answer.correct_option_ids
             if not answer_ids or any(value not in option_ids for value in answer_ids):
                 raise ValueError("private answer must reference existing options")
+            if self.interaction in {"sequence", "build_word"}:
+                expected = set(option_ids)
+                for ordering in [answer_ids, *self.private_answer.accepted_option_orders]:
+                    if (len(ordering) != len(option_ids) or len(set(ordering)) != len(ordering)
+                            or set(ordering) != expected):
+                        raise ValueError("ordered answer must use every tile exactly once")
         else:
             if self.options or self.private_answer.correct_option_ids:
                 raise ValueError("read/write interactions cannot expose choice answers")

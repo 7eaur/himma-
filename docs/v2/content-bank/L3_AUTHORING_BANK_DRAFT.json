@@ -3561,7 +3561,15 @@
         ],
         "rubric": null,
         "target_text": "هذا طفل في الصورة",
-        "scoring": "ordered_option_ids_exact"
+        "scoring": "ordered_option_ids_exact",
+        "accepted_option_orders": [
+          [
+            "tile_02",
+            "tile_04",
+            "tile_01",
+            "tile_03"
+          ]
+        ]
       },
       "evidence_type": "sentence_construction",
       "error_focus": "incomplete_sentence",
@@ -3636,7 +3644,15 @@
         ],
         "rubric": null,
         "target_text": "هذا عصفور في الصورة",
-        "scoring": "ordered_option_ids_exact"
+        "scoring": "ordered_option_ids_exact",
+        "accepted_option_orders": [
+          [
+            "tile_02",
+            "tile_04",
+            "tile_01",
+            "tile_03"
+          ]
+        ]
       },
       "evidence_type": "sentence_construction",
       "error_focus": "incomplete_sentence",
@@ -3773,7 +3789,15 @@
         ],
         "rubric": null,
         "target_text": "أقرأ كتابا في الصباح",
-        "scoring": "ordered_option_ids_exact"
+        "scoring": "ordered_option_ids_exact",
+        "accepted_option_orders": [
+          [
+            "tile_02",
+            "tile_04",
+            "tile_01",
+            "tile_03"
+          ]
+        ]
       },
       "evidence_type": "sentence_construction",
       "error_focus": "incomplete_sentence",
@@ -4868,7 +4892,15 @@
         ],
         "rubric": null,
         "target_text": "هذه طفلة في الصورة",
-        "scoring": "ordered_option_ids_exact"
+        "scoring": "ordered_option_ids_exact",
+        "accepted_option_orders": [
+          [
+            "tile_02",
+            "tile_04",
+            "tile_01",
+            "tile_03"
+          ]
+        ]
       },
       "evidence_type": "sentence_construction",
       "error_focus": "incomplete_sentence",
