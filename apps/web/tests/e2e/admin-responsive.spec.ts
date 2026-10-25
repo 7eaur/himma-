@@ -43,6 +43,11 @@ const ROUTES = [
   "/admin/reports",
   "/admin/skill-reports",
   "/admin/settings",
+  "/admin/account",
+  "/admin/v2-assessments",
+  "/admin/v2-lesson-review",
+  "/admin/v2-media",
+  "/admin/v2-reviewed-recordings",
 ];
 
 for (const viewport of [
@@ -117,3 +122,27 @@ for (const viewport of [
     }
   });
 }
+
+// P09.0 screenshot baseline: authenticated V2 supervisor routes, including
+// the reviewed-recording archive created in P08. These are fixture screenshots
+// captured by the existing real Playwright backend + database CI job.
+test("P09.0 V2 supervisor pages keep a desktop visual baseline", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await login(page);
+  const routes = [
+    "/admin/v2-assessments",
+    "/admin/v2-lesson-review",
+    "/admin/v2-media",
+    "/admin/v2-reviewed-recordings",
+    "/admin/students",
+    "/admin/content-preview",
+    "/admin/account",
+  ];
+  for (const route of routes) {
+    await page.goto(route);
+    await expect(page).not.toHaveURL(/\/admin\/login/);
+    await expect(page.locator("main")).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+    await capture(page, "desktop-1440x900", route);
+  }
+});
