@@ -7,6 +7,7 @@ from db.models import AssessmentSession, AudioSubmission, Student
 from test_v2_interaction_runtime import _start_at_questions
 from v2_content.importer import register_candidate_release
 from v2_content.repository import get_release
+from test_v2_legacy_writing_fixture import legacy_writing_release
 
 
 def _researcher(client):
@@ -22,7 +23,7 @@ def _student(client):
 def test_p08_pretest_rewrite_resumes_original_30_questions_and_keeps_history(student_client):
     with TestingSessionLocal() as db:
         student = db.query(Student).filter(Student.access_code == "STU001").one()
-        release = register_candidate_release(db)
+        release = register_candidate_release(db, legacy_writing_release("V2-PRE-Q12"))
         db.add(StudentJourney(student_id=student.id, content_release_id=release.id, placement_state="in_progress"))
         session = AssessmentSession(
             student_id=student.id, content_release_id=release.id, session_type="pretest",

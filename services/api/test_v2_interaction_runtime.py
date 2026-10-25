@@ -68,10 +68,10 @@ def _all_keys(value):
         ("L2-01", 0, "build_word"),
         ("L1-06", 3, "choose_image"),
         ("L1-05", 3, "read_aloud"),
-        ("L2-01", 3, "write_text"),
+        ("L2-01", 3, "build_word"),
     ],
 )
-def test_all_seven_bank_interactions_share_one_safe_runtime(student_client, lesson_id, step_index, interaction):
+def test_current_bank_interactions_share_one_safe_runtime(student_client, lesson_id, step_index, interaction):
     session_id = _start_at_questions(student_client, lesson_id, step_index)
     response = student_client.get(f"/v2/lessons/sessions/{session_id}/interaction")
     assert response.status_code == 200
@@ -129,29 +129,28 @@ def test_independent_check_never_returns_correctness_or_hint(student_client):
     assert response.json()["lesson"]["interaction"]["progress"]["index"] == 2
 
 
-def test_writing_draft_is_not_evidence_and_submission_waits_for_review(student_client):
-    session_id = _start_at_questions(student_client, "L2-01", 3)
-    saved = student_client.put(
-        f"/v2/lessons/sessions/{session_id}/draft",
-        json={"text": "باب"},
-    )
-    assert saved.status_code == 200
-    restored = student_client.get(f"/v2/lessons/sessions/{session_id}/interaction").json()
-    assert restored["interaction"]["draft"] == "باب"
-    with TestingSessionLocal() as db:
-        assert db.query(LessonQuestionResponse).count() == 0
+def test_word_builder_auto_grades_without_human_review(student_client):
+    from v2_content.repository import get_question
 
+    session_id = _start_at_questions(student_client, "L2-01", 3)
+    item = student_client.get(f"/v2/lessons/sessions/{session_id}/interaction").json()["interaction"]
+    assert item["question"]["interaction"] == "build_word"
+    assert "correct_option_ids" not in set(_all_keys(item))
+    assert student_client.put(
+        f"/v2/lessons/sessions/{session_id}/draft", json={"text": "باب"}
+    ).status_code == 409
+
+    question = get_question("L2-01-GP-04")
     submitted = student_client.post(
         f"/v2/lessons/sessions/{session_id}/answers",
-        json={"submit_key": str(uuid4()), "text_response": "باب"},
+        json={"submit_key": str(uuid4()), "selected_option_ids": question["private_answer"]["correct_option_ids"]},
     )
-    assert submitted.status_code == 200
-    assert submitted.json()["submission"]["status"] == "pending_review"
-    assert "correct" not in submitted.json()["submission"]
+    assert submitted.status_code == 200, submitted.text
+    assert submitted.json()["submission"]["status"] == "graded"
+    assert submitted.json()["submission"]["correct"] is True
     with TestingSessionLocal() as db:
         response = db.query(LessonQuestionResponse).one()
-        assert response.is_correct is None
-        assert response.status == "pending_review"
+        assert response.is_correct is True and response.status == "graded"
         assert db.query(LessonQuestionDraft).count() == 0
 
 

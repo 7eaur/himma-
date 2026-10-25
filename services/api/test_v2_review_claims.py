@@ -8,6 +8,7 @@ from conftest import TestingSessionLocal
 from db.learning_models import AssessmentQuestionResponse, StudentJourney, V2ReviewClaim
 from db.models import AssessmentSession, Student, User
 from test_v2_lesson_review import _writing_response
+from test_v2_legacy_writing_fixture import legacy_writing_release
 from v2_content.importer import register_candidate_release
 from v2_content.repository import get_question
 
@@ -129,7 +130,7 @@ def test_expired_claim_can_be_reassigned_to_new_researcher(student_client):
 def test_assessment_claim_prevents_second_supervisor_request(student_client):
     with TestingSessionLocal() as db:
         student = db.query(Student).filter(Student.access_code == "STU001").one()
-        release = register_candidate_release(db)
+        release = register_candidate_release(db, legacy_writing_release("V2-PRE-Q12"))
         db.add(StudentJourney(
             student_id=student.id, content_release_id=release.id,
             placement_state="in_progress",

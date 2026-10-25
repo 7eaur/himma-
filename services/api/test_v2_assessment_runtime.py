@@ -7,6 +7,7 @@ from assessment_retake import mark_official_completed_attempt
 from v2_content.contracts import PRIVATE_KEYS
 from v2_content.repository import get_question, get_release
 from v2_content.importer import register_candidate_release
+from test_v2_legacy_writing_fixture import legacy_writing_release
 
 
 def _all_keys(value):
@@ -68,9 +69,9 @@ def test_open_responses_keep_placement_pending_until_human_review_and_manual_dec
         questions = [q for q in get_release()["questions"] if q["role"] == "pretest"]
         for q in questions:
             response = AssessmentQuestionResponse(
-                assessment_session_id=session.id, question_id=q["id"], role="pretest", answer_json={"text_response": "نص مُقدّم"} if q["interaction"] == "write_text" else {"audio_storage_key": f"audio/{student.id}/test.webm"} if q["interaction"] == "read_aloud" else {"test": True},
-                submit_key=str(uuid4()), status="pending_review" if q["interaction"] in {"read_aloud", "write_text"} else "graded",
-                is_correct=None if q["interaction"] in {"read_aloud", "write_text"} else True,
+                assessment_session_id=session.id, question_id=q["id"], role="pretest", answer_json={"audio_storage_key": f"audio/{student.id}/test.webm"} if q["interaction"] == "read_aloud" else {"test": True},
+                submit_key=str(uuid4()), status="pending_review" if q["interaction"] == "read_aloud" else "graded",
+                is_correct=None if q["interaction"] == "read_aloud" else True,
                 skill_group=q["skill_group"], evidence_type=q["evidence_type"],
             )
             db.add(response)
@@ -113,15 +114,21 @@ def test_v2_admin_queues_reject_student(student_client):
     assert student_client.get("/v2/assessments/admin/placement-queue").status_code == 403
 
 
-def test_review_queue_includes_evidence_and_blocks_student_access(researcher_client):
+def test_archived_writing_queue_is_pinned_and_private(researcher_client):
     with TestingSessionLocal() as db:
         student = db.query(Student).filter(Student.access_code == "STU001").one()
-        release = register_candidate_release(db)
-        session = AssessmentSession(student_id=student.id, content_release_id=release.id, session_type="pretest", status="in_progress", v2_state="waiting_review", v2_question_index=30)
+        old_release = legacy_writing_release("V2-PRE-Q12")
+        release = register_candidate_release(db, old_release)
+        session = AssessmentSession(student_id=student.id, content_release_id=release.id,
+            session_type="pretest", status="in_progress", v2_state="waiting_review", v2_question_index=30)
         db.add(session); db.flush()
-        q = next(q for q in get_release()["questions"] if q["role"] == "pretest" and q["interaction"] == "write_text")
-        response = AssessmentQuestionResponse(assessment_session_id=session.id, question_id=q["id"], role="pretest", answer_json={"text_response": "كتابة الطالب"},
-            submit_key=str(uuid4()), status="pending_review", is_correct=None, skill_group=q["skill_group"], evidence_type=q["evidence_type"])
+        q = next(q for q in old_release["questions"] if q["id"] == "V2-PRE-Q12")
+        response = AssessmentQuestionResponse(
+            assessment_session_id=session.id, question_id=q["id"], role="pretest",
+            answer_json={"text_response": "كتابة الطالب"},
+            submit_key=str(uuid4()), status="pending_review", is_correct=None,
+            skill_group=q["skill_group"], evidence_type=q["evidence_type"],
+        )
         db.add(response); db.commit()
         response_id = response.id
     queue = researcher_client.get("/v2/assessments/admin/review-queue").json()
