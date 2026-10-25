@@ -269,7 +269,7 @@ describe("Student page", () => {
     render(<StudentPage />);
 
     expect(await screen.findByRole("heading", { name: "مرحبًا يا طالب" })).toBeInTheDocument();
-    expect(screen.getByText("أنجزت 3 من 14 درسًا مخصصًا لك.")).toBeInTheDocument();
+    expect(screen.getByText("أكملت 3 من 14 درسًا مخصصًا لك.")).toBeInTheDocument();
     expect(screen.getByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
     expect(screen.getByRole("button", { name: "متابعة الرحلة التعليمية" })).toBeEnabled();
     expect(screen.queryByText("لم تحصل على شارة بعد")).not.toBeInTheDocument();
