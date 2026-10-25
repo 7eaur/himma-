@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import StudentPage from "./page";
+import type { StudentV2Home } from "./V2StudentDashboard";
 
 const push = jest.fn();
 const replace = jest.fn();
@@ -12,7 +13,7 @@ function response(body: unknown, status = 200) {
   return { status, ok: status >= 200 && status < 300, json: async () => body };
 }
 
-const firstTime = {
+const firstTime: StudentV2Home = {
   mode: "v2", test_only: true,
   student: { id: 1, full_name: "طالب تجريبي", grade_level: 3 },
   current_action: { action: "start_pretest", href: null, label: "ابدأ الاختبار القبلي" },
@@ -23,7 +24,7 @@ const firstTime = {
   data_status: "ready",
 };
 
-function mockV2(home = firstTime) {
+function mockV2(home: StudentV2Home = firstTime) {
   const fetcher = jest.fn(async (url: string) => {
     if (url === "/api/v2/student/home") return response(home);
     if (url.startsWith("/api/v2/retries/student/tasks")) return response({ items: [], next_offset: null });
@@ -90,7 +91,7 @@ describe("Student page V2-only learner boundary", () => {
     expect(await screen.findByText("أكملت 3 من 14 درسًا مخصصًا لك.")).toBeInTheDocument();
     expect(screen.getByTestId("student-journey-status")).toHaveTextContent("الحركات والكلمات");
     expect(screen.getByTestId("student-v2-progress")).toHaveTextContent("21.4%");
-    expect(screen.getByText("لا نعرض نجومًا قبل اعتماد نظام مكافآت V2.")).toBeInTheDocument();
+    expect(screen.getByText(/لا نعرض نجومًا قبل اعتماد نظام مكافآت V2/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "متابعة الرحلة التعليمية" }));
     expect(push).toHaveBeenCalledWith("/student/learning-v2");
     expect(fetcher.mock.calls.some(([url]) => url === "/api/rewards")).toBe(false);
@@ -107,7 +108,7 @@ describe("Student page V2-only learner boundary", () => {
     });
     render(<StudentPage />);
     expect(await screen.findByRole("heading", { name: "بانتظار مراجعة القراءة" })).toBeInTheDocument();
-    expect(screen.getByText("حُفظت إجابتك وتنتظر مراجعة المشرف.", { exact: false })).toBeInTheDocument();
+    expect(screen.getByText(/تم حفظ إجاباتك، وستكمل رحلتك بعد مراجعة المشرف/)).toBeInTheDocument();
     expect(screen.queryByText("0%", { exact: true })).not.toBeInTheDocument();
     expect(screen.queryByTestId("student-badges")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "عرض حالة المراجعة" }));
