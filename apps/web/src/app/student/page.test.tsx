@@ -4,277 +4,128 @@ import StudentPage from "./page";
 const push = jest.fn();
 const replace = jest.fn();
 const refresh = jest.fn();
-
 jest.mock("next/navigation", () => ({
   useRouter: () => ({ push, replace, refresh }),
 }));
 
-function response(body: unknown, ok = true) {
-  return {
-    ok,
-    json: async () => body,
-  };
+function response(body: unknown, status = 200) {
+  return { status, ok: status >= 200 && status < 300, json: async () => body };
 }
 
-const profile = {
-  id: 1,
-  full_name: "طالب تجريبي",
-  grade_level: 3,
-  current_level: 1,
-  posttest_enabled: false,
-  next_action: "pretest" as const,
-  active_session: null,
+const firstTime = {
+  mode: "v2", test_only: true,
+  student: { id: 1, full_name: "طالب تجريبي", grade_level: 3 },
+  current_action: { action: "start_pretest", href: null, label: "ابدأ الاختبار القبلي" },
+  journey: null,
+  progress: { completed_lessons: 0, assigned_lessons: null, skipped_by_placement: 0, pending_review: 0, display_percent: null },
+  assessments: { pretest: null, posttest: null },
+  rewards: { state: "not_implemented_v2" },
+  data_status: "ready",
 };
 
-const journey = {
-  pretest_completed: false,
-  starting_level: null,
-  current_level: 1,
-  levels: [],
-  learning_journey_completed: false,
-  posttest_enabled: false,
-  posttest_completed: false,
-  posttest_ready: false,
-};
+function mockV2(home = firstTime) {
+  const fetcher = jest.fn(async (url: string) => {
+    if (url === "/api/v2/student/home") return response(home);
+    if (url.startsWith("/api/v2/retries/student/tasks")) return response({ items: [], next_offset: null });
+    return response({ detail: "Unexpected legacy API call" }, 503);
+  });
+  global.fetch = fetcher as unknown as typeof fetch;
+  return fetcher;
+}
 
 beforeEach(() => {
   jest.clearAllMocks();
 });
 
-describe("Student page", () => {
-  it("renders the student's first name and explicit empty reward state before placement", async () => {
-    global.fetch = jest
-      .fn()
-      .mockResolvedValueOnce(response({ detail: "V2 preview unavailable" }, false))
-      .mockResolvedValueOnce(response(profile))
-      .mockResolvedValueOnce(response(journey))
-      .mockResolvedValueOnce(response([]));
-
+describe("Student page V2-only learner boundary", () => {
+  it("shows first-time V2 pretest without inventing historical rewards or a score", async () => {
+    const fetcher = mockV2();
     render(<StudentPage />);
     expect(await screen.findByRole("heading", { name: "مرحبًا يا طالب" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "ابدأ الاختبار" })).toBeEnabled();
-    expect(screen.getByRole("heading", { name: "الاختبار القبلي" })).toBeInTheDocument();
-    expect(screen.getByLabelText("لديك 0 نجمة")).toBeInTheDocument();
-    expect(screen.getByLabelText("لا توجد شارات مكتسبة")).toBeInTheDocument();
-    expect(screen.getByText("لم تحصل على شارة بعد")).toBeInTheDocument();
-    expect(screen.queryByTestId("level-journey")).not.toBeInTheDocument();
-  });
-
-  it("renders reward API failure as unavailable instead of a false zero or empty badge state", async () => {
-    global.fetch = jest
-      .fn()
-      .mockResolvedValueOnce(response({ detail: "V2 preview unavailable" }, false))
-      .mockResolvedValueOnce(response(profile))
-      .mockResolvedValueOnce(response(journey))
-      .mockResolvedValueOnce(response({ detail: "temporary failure" }, false));
-
-    render(<StudentPage />);
-
-    expect(await screen.findByRole("heading", { name: "مرحبًا يا طالب" })).toBeInTheDocument();
-    expect(screen.getByRole("status", { name: "تعذر تحميل النجوم" })).toHaveTextContent("—");
-    expect(screen.getByRole("status", { name: "تعذر تحميل النجوم" })).toHaveTextContent("نجمة");
-    expect(screen.getByRole("status", { name: "تعذر تحميل الشارات" })).toHaveTextContent("الشارات غير متاحة الآن");
-    expect(screen.getByText("تقدمك محفوظ. حاول تحديث الصفحة لاحقًا لعرض شاراتك.")).toBeInTheDocument();
-    expect(screen.queryByLabelText("لديك 0 نجمة")).not.toBeInTheDocument();
-    expect(screen.queryByLabelText("لا توجد شارات مكتسبة")).not.toBeInTheDocument();
-  });
-
-  it("renders canonical star total and badge asset from the reward catalog API contract", async () => {
-    global.fetch = jest
-      .fn()
-      .mockResolvedValueOnce(response({ detail: "V2 preview unavailable" }, false))
-      .mockResolvedValueOnce(response(profile))
-      .mockResolvedValueOnce(response(journey))
-      .mockResolvedValueOnce(response([
-        {
-          id: 1,
-          type: "stars",
-          key: "activity:11:stars",
-          stars: 2,
-          label: "نجمتان",
-          catalog_version: "HIMMA_REWARD_CATALOG_1.0.0",
-          asset_id: "BDG-02",
-          asset_path: "/assets/rewards/svg/hem-bdg-02-stars-two.svg",
-        },
-        {
-          id: 2,
-          type: "badge",
-          key: "level:1:core-complete",
-          stars: null,
-          label: "مستكشف الحروف",
-          catalog_version: "HIMMA_REWARD_CATALOG_1.0.0",
-          asset_id: "BDG-04",
-          asset_path: "/assets/rewards/svg/hem-bdg-04-letter-explorer.svg",
-        },
-      ]));
-
-    render(<StudentPage />);
-
-    expect(await screen.findByRole("heading", { name: "مرحبًا يا طالب" })).toBeInTheDocument();
-    expect(screen.getByLabelText("لديك 2 نجمة")).toHaveTextContent("2");
-    expect(screen.getByLabelText("لديك 2 نجمة")).toHaveTextContent("نجمة");
-    expect(screen.getByLabelText("لديك 1 شارة")).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "شارة مستكشف الحروف" })).toBeInTheDocument();
-    expect(screen.getByText("مستكشف الحروف")).toBeInTheDocument();
-    expect(screen.queryByRole("status", { name: "تعذر تحميل النجوم" })).not.toBeInTheDocument();
-  });
-
-  it("shows skipped, completed and active levels without claiming skipped work was completed", async () => {
-    global.fetch = jest
-      .fn()
-      .mockResolvedValueOnce(response({ detail: "V2 preview unavailable" }, false))
-      .mockResolvedValueOnce(response({
-        id: 1,
-        full_name: "طالب تجريبي",
-        grade_level: 3,
-        current_level: 3,
-        posttest_enabled: false,
-        next_action: "learning",
-        active_session: { id: 33, session_type: "core", status: "in_progress" },
-      }))
-      .mockResolvedValueOnce(response({
-        available: true,
-        level_id: 3,
-        completed_items: 4,
-        total_items: 10,
-        completed: false,
-        session_id: 33,
-      }))
-      .mockResolvedValueOnce(response({
-        pretest_completed: true,
-        starting_level: 2,
-        current_level: 3,
-        levels: [
-          { level_id: 1, name: "الاستعداد للقراءة", state: "skipped", completed_items: 0, total_items: 10, session_id: null },
-          { level_id: 2, name: "بناء الكلمة", state: "completed", completed_items: 10, total_items: 10, session_id: 22 },
-          { level_id: 3, name: "الطلاقة والفهم", state: "active", completed_items: 4, total_items: 10, session_id: 33 },
-        ],
-        learning_journey_completed: false,
-        posttest_enabled: false,
-        posttest_completed: false,
-        posttest_ready: false,
-      }))
-      .mockResolvedValueOnce(response([]));
-
-    render(<StudentPage />);
-    expect(await screen.findByTestId("level-journey")).toBeInTheDocument();
-    expect(screen.getByText("بدأت من المستوى 2")).toBeInTheDocument();
-    expect(screen.getByText("تجاوزته في الاختبار القبلي")).toBeInTheDocument();
-    expect(screen.getByText("أنت هنا")).toBeInTheDocument();
-    expect(screen.getByText("10 من 10 أنشطة أساسية")).toBeInTheDocument();
-    expect(screen.getByText("4 من 10 أنشطة أساسية")).toBeInTheDocument();
-  });
-
-  it("shows pending audio review and never resumes the assessment", async () => {
-    global.fetch = jest
-      .fn()
-      .mockResolvedValueOnce(response({ detail: "V2 preview unavailable" }, false))
-      .mockResolvedValueOnce(response({
-        id: 1,
-        full_name: "طالب تجريبي",
-        grade_level: 3,
-        current_level: 1,
-        posttest_enabled: false,
-        next_action: "resume",
-        active_session: { id: 77, session_type: "pretest", status: "waiting_audio_review" },
-      }))
-      .mockResolvedValueOnce(response({
-        pretest_completed: false,
-        starting_level: null,
-        current_level: 1,
-        levels: [],
-        learning_journey_completed: false,
-        posttest_enabled: false,
-        posttest_completed: false,
-        posttest_ready: false,
-      }))
-      .mockResolvedValueOnce(response([]))
-      .mockResolvedValueOnce(response([]));
-
-    render(<StudentPage />);
-
-    expect(await screen.findByRole("heading", { name: "بانتظار مراجعة التسجيلات" })).toBeInTheDocument();
-    expect(screen.getByText("أنهيت أسئلة الاختبار. نتيجتك محفوظة جزئيًا ولن تعتمد أكاديميًا حتى ينتهي المشرف من مراجعة التسجيلات.")).toBeInTheDocument();
-    expect(screen.getByText("بانتظار المراجعة البشرية")).toBeInTheDocument();
-    expect(screen.getByText("إجاباتك محفوظة، واعتماد النتيجة ينتظر مراجعة التسجيلات فقط.")).toBeInTheDocument();
-    expect(screen.getByText("تم حفظ إجاباتك")).toBeInTheDocument();
-    expect(screen.getByText("المراجعة جارية")).toBeInTheDocument();
-    const action = screen.getByRole("button", { name: "بانتظار المراجعة" });
-    expect(action).toBeDisabled();
-    fireEvent.click(action);
-    expect(push).not.toHaveBeenCalled();
-    expect(global.fetch).toHaveBeenCalledTimes(5);
-  });
-
-  it("surfaces rerecord work as a separate dashboard task and opens it only on learner action", async () => {
-    global.fetch = jest
-      .fn()
-      .mockResolvedValueOnce(response({ detail: "V2 preview unavailable" }, false))
-      .mockResolvedValueOnce(response({
-        id: 1,
-        full_name: "طالب تجريبي",
-        grade_level: 3,
-        current_level: 1,
-        posttest_enabled: false,
-        next_action: "resume",
-        active_session: { id: 77, session_type: "pretest", status: "answering" },
-      }))
-      .mockResolvedValueOnce(response(journey))
-      .mockResolvedValueOnce(response([]))
-      .mockResolvedValueOnce(response([
-        {
-          submission_id: 501,
-          session_id: 77,
-          attempt_id: 88,
-          item_id: 9,
-          step_id: 19,
-          stable_key: "PRE-Q09",
-          title: "قراءة كلمة",
-          expected_reading_text: "موز",
-          opened: false,
-        },
-      ]))
-      .mockResolvedValueOnce(response({ opened: true, submission_id: 501 }));
-
-    render(<StudentPage />);
-
-    expect(await screen.findByTestId("assessment-rerecord-tasks")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "إعادة تسجيل مطلوبة" })).toBeInTheDocument();
-    expect(screen.getByText("موز")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "متابعة الاختبار" })).toBeEnabled();
-
-    fireEvent.click(screen.getByRole("button", { name: "ابدأ إعادة التسجيل" }));
-
-    await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
-        "/api/assessment/session/77/attempt/9/step/19/rerecord/start",
-        { method: "POST" },
-      );
-      expect(push).toHaveBeenCalledWith("/student/session/77?task=rerecord");
-    });
-  });
-  it("shows only the V2 home for an enrolled learner and skips V1 progress and rewards", async () => {
-    const v2 = {
-      mode: "v2",
-      test_only: true,
-      student: { id: 1, full_name: "طالب تجريبي", grade_level: 3 },
-      current_action: { action: "lesson_catalog", href: "/student/learning-v2", label: "متابعة الرحلة التعليمية" },
-      journey: { current_level: 2, placement_state: "placed", current_lesson_id: "L2-01", content_release_version: "candidate" },
-      progress: { completed_lessons: 3, assigned_lessons: 14, skipped_by_placement: 5, pending_review: 0, display_percent: 21.4 },
-      assessments: { pretest: { state: "completed", session_id: 9, score_percent: 90, official: true }, posttest: null },
-      rewards: { state: "not_implemented_v2" }, data_status: "ready",
-    };
-    global.fetch = jest.fn().mockResolvedValueOnce(response(v2)).mockResolvedValue(response({ items: [] }));
-
-    render(<StudentPage />);
-
-    expect(await screen.findByRole("heading", { name: "مرحبًا يا طالب" })).toBeInTheDocument();
-    expect(screen.getByText("أكملت 3 من 14 درسًا مخصصًا لك.")).toBeInTheDocument();
     expect(screen.getByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
-    expect(screen.getByRole("button", { name: "متابعة الرحلة التعليمية" })).toBeEnabled();
-    expect(screen.queryByText("لم تحصل على شارة بعد")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("v2-learning-preview")).not.toBeInTheDocument();
-    expect((global.fetch as jest.Mock).mock.calls.some(([url]) => ["/api/profile", "/api/journey", "/api/rewards", "/api/activities/status"].includes(url))).toBe(false);
+    expect(screen.getByRole("button", { name: "ابدأ الاختبار القبلي" })).toBeEnabled();
+    expect(screen.getByText("يظهر تقدم الدروس بعد اعتماد التسكين.")).toBeInTheDocument();
+    expect(screen.queryByTestId("student-badges")).not.toBeInTheDocument();
+    expect(fetcher.mock.calls.some(([url]) => ["/api/profile", "/api/journey", "/api/rewards"].includes(url))).toBe(false);
   });
 
+  it("fails closed when V2 is unavailable and never falls back to /api/profile", async () => {
+    const fetcher = jest.fn().mockResolvedValue(response({ detail: "service unavailable" }, 503));
+    global.fetch = fetcher;
+    render(<StudentPage />);
+    expect(await screen.findByText(/رحلة هِمّة غير متاحة الآن/)).toBeInTheDocument();
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(fetcher).toHaveBeenCalledWith("/api/v2/student/home", { cache: "no-store" });
+    expect(screen.queryByTestId("student-home")).not.toBeInTheDocument();
+  });
+
+  it("redirects expired student session instead of loading any V1 endpoint", async () => {
+    const fetcher = jest.fn().mockResolvedValue(response({ detail: "unauthorized" }, 401));
+    global.fetch = fetcher;
+    render(<StudentPage />);
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/student/login"));
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it("blocks a historical account until the supervisor reviews its migration", async () => {
+    const fetcher = mockV2({
+      ...firstTime,
+      current_action: { action: "migration_review", href: null, label: "بانتظار مراجعة المشرف" },
+    });
+    render(<StudentPage />);
+    expect(await screen.findByRole("heading", { name: "رحلتك تحتاج مراجعة المشرف" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "بانتظار مراجعة المشرف" })).toBeDisabled();
+    expect(screen.queryByText("ابدأ الاختبار القبلي")).not.toBeInTheDocument();
+    expect(fetcher.mock.calls.some(([url]) => url === "/api/profile")).toBe(false);
+  });
+
+  it("shows assigned V2 lesson progress separately from placement skips, not V1 stars", async () => {
+    const fetcher = mockV2({
+      ...firstTime,
+      journey: { current_level: 2, placement_state: "placed", current_lesson_id: "L2-01", content_release_version: "candidate" },
+      current_action: { action: "lesson_catalog", href: "/student/learning-v2", label: "متابعة الرحلة التعليمية" },
+      progress: { completed_lessons: 3, assigned_lessons: 14, skipped_by_placement: 5, pending_review: 0, display_percent: 21.4 },
+    });
+    render(<StudentPage />);
+    expect(await screen.findByText("أكملت 3 من 14 درسًا مخصصًا لك.")).toBeInTheDocument();
+    expect(screen.getByTestId("student-journey-status")).toHaveTextContent("الحركات والكلمات");
+    expect(screen.getByTestId("student-v2-progress")).toHaveTextContent("21.4%");
+    expect(screen.getByText("لا نعرض نجومًا قبل اعتماد نظام مكافآت V2.")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "متابعة الرحلة التعليمية" }));
+    expect(push).toHaveBeenCalledWith("/student/learning-v2");
+    expect(fetcher.mock.calls.some(([url]) => url === "/api/rewards")).toBe(false);
+  });
+
+  it("keeps pending human reading review free of fictitious official grades", async () => {
+    mockV2({
+      ...firstTime,
+      current_action: {
+        action: "assessment", kind: "pretest", state: "waiting_review",
+        href: "/student/assessment-v2/77", label: "عرض حالة المراجعة",
+      },
+      assessments: { pretest: { state: "waiting_review", session_id: 77, official: false, score_percent: null }, posttest: null },
+    });
+    render(<StudentPage />);
+    expect(await screen.findByRole("heading", { name: "بانتظار مراجعة القراءة" })).toBeInTheDocument();
+    expect(screen.getByText("حُفظت إجابتك وتنتظر مراجعة المشرف.", { exact: false })).toBeInTheDocument();
+    expect(screen.queryByText("0%", { exact: true })).not.toBeInTheDocument();
+    expect(screen.queryByTestId("student-badges")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "عرض حالة المراجعة" }));
+    expect(push).toHaveBeenCalledWith("/student/assessment-v2/77");
+  });
+
+  it("uses the real V2 pretest start endpoint for new students", async () => {
+    const fetcher = jest.fn(async (url: string) => {
+      if (url === "/api/v2/student/home") return response(firstTime);
+      if (url.startsWith("/api/v2/retries/student/tasks")) return response({ items: [] });
+      if (url === "/api/v2/assessments/pretest/start") return response({ session: { session_id: 101 } });
+      return response({ detail: "Unexpected legacy API call" }, 503);
+    });
+    global.fetch = fetcher as unknown as typeof fetch;
+    render(<StudentPage />);
+    fireEvent.click(await screen.findByRole("button", { name: "ابدأ الاختبار القبلي" }));
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/student/assessment-v2/101"));
+    expect(fetcher).toHaveBeenCalledWith("/api/v2/assessments/pretest/start", { method: "POST" });
+    expect(fetcher.mock.calls.some(([url]) => url === "/api/assessment/start")).toBe(false);
+  });
 });
