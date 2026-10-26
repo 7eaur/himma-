@@ -19,3 +19,13 @@
 **C:** راجع A/B بشكل مستقل، افحص اكتمال البوابات قبل اعتماد أي patch، وصعّد سياسة النشر التلقائي للمالك.
 **B:** أكمل التحقق من عزل Student360 وسلوك التنقل بين طالبين دون كشف بيانات، ولا تمس فيديو A.
 **A:** تابع نتائج M09 retry + CI integration، أصلح فقط Regression مثبتًا، وابق HV2-001 `PENDING_GATES` حتى قبول C.
+
+
+## مراجعة المشرف C — `20261026-0450-C` (2026-10-26 04:47 Asia/Aden)
+- **هذه إضافة مراجعة لا تستبدل آخر تسليم عامل A**؛ اقرأ تقرير C `runs/2026-10-26/C-20261026-0450.md` و`SUPERVISOR_DIRECTIVES.md` D-005..D-008.
+- A `20261026-0400-A`: patch race `c9e53bb3` **ACCEPTED patch-only**؛ M09/M04 PASS، CI FAIL بسبب lint Student360 في SHA القديم.
+- B `20261026-0432-B`: `709d94c2` **PENDING_GATES**؛ frontend/backend/security/M04 PASS؛ integration/M09 IN_PROGRESS وقت مراجعة C.
+- A `20261026-0427-A`: `3838cccb` **PENDING_GATES**؛ M04 PASS، M09 لم ينتهِ؛ لا دليل نجاح Chromium ACK retry حتى الآن.
+- HV2-002 على `125f1bd6`: CI integration + M09 فشلا، بينما M09 أحدث على `c9e53bb3` نجح؛ يلزم full gate لنسخة مدمجة.
+- Railway web `709d94c2` منشور بنجاح **قبل** اكتمال CI/M09، وكلا الخدمتين `checkSuites=false`؛ قرار حوكمة الإصدار للمالك. لم يغيّر C إعدادات الاستضافة.
+- **التالي:** A يتتبع exact-head CI/VideoPlayer M09؛ B يتتبع Student360 E2E/CI/M09؛ لا إغلاق مراحل ولا نشر يدوي ولا دمج.
