@@ -6,7 +6,19 @@
   "timezone": "Asia/Aden",
   "mode": "ACTIVE",
   "stop_reason": null,
-  "lease": null,
+  "lease": {
+    "owner": "MANUAL_CODEX",
+    "run_id": "20261026-1830-MANUAL",
+    "base_head": "8c10e04040491671b5a58d3e3a5470f93ae95c28",
+    "scope": [
+      "apps/web/src/components/learning/VideoPlayer.tsx",
+      "apps/web/src/components/learning/VideoPlayer.module.css",
+      "apps/web/src/components/learning/VideoPlayer.test.tsx",
+      "docs/v2/agent-ops"
+    ],
+    "acquired_at": "2026-10-26T15:30:00Z",
+    "expires_at": "2026-10-26T15:57:00Z"
+  },
   "scheduler": {
     "worker_a": "00 * * * *",
     "worker_b": "30 * * * *",
