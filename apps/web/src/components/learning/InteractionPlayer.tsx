@@ -200,6 +200,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
     return <div className={styles.mediaMissing} role="alert">الوسيط غير جاهز</div>;
   };
 
+  const isAssessment = interaction.progress.stage === "pretest" || interaction.progress.stage === "posttest";
   const stageLabel = interaction.progress.stage === "guided_practice" ? "تدريب موجّه"
     : interaction.progress.stage === "support_practice" ? "مساعدة مركزة"
     : interaction.progress.stage === "additional_check" ? "تحقق قصير"
@@ -236,7 +237,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
 
     {feedback && <div className={`${styles.feedback} ${feedback.correct === false ? styles.retry : styles.accepted}`} role="status"><strong>{feedback.correct === true ? "أحسنت!" : feedback.correct === false ? "حاول مرة أخرى" : "تم الحفظ"}</strong><span>{feedback.message}</span>{feedback.retry_required && feedback.hint && <span className={styles.hint}>تلميح: {feedback.hint}</span>}</div>}
     {error && <div className={styles.error} role="alert">{error}</div>}
-    <button type="button" className={styles.submit} disabled={!ready || saving || recording} onClick={() => void submit()}>{saving ? "جاري الحفظ..." : question.interaction === "read_aloud" ? "إرسال التسجيل للمراجعة" : question.interaction === "write_text" ? "إرسال الكتابة للمراجعة" : "تحقق من الإجابة"}</button>
+    <button type="button" className={styles.submit} disabled={!ready || saving || recording} onClick={() => void submit()}>{saving ? "جاري الحفظ..." : question.interaction === "read_aloud" ? "إرسال التسجيل للمراجعة" : question.interaction === "write_text" ? "إرسال الكتابة للمراجعة" : isAssessment ? "حفظ الإجابة والمتابعة" : "تحقق من الإجابة"}</button>
   </section>;
 }
 

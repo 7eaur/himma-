@@ -30,7 +30,9 @@ export default function AssessmentV2Page() {
     const response = await fetch(`/api/v2/assessments/sessions/${sessionId}`, { cache: "no-store" });
     const data = await response.json().catch(() => null);
     if (response.status === 401 || response.status === 403) { router.replace("/student/login"); return; }
-    if (!response.ok) throw new Error(data?.detail || "تعذر استعادة التقييم");
+    if (!response.ok) throw new Error(response.status === 404
+      ? "جلسة التقييم غير متاحة لهذا الحساب."
+      : "تعذر استعادة التقييم. تقدّمك محفوظ، حاول مرة أخرى.");
     setAssessment(data);
   }, [invalid, router, sessionId]);
 
@@ -38,11 +40,14 @@ export default function AssessmentV2Page() {
 
   if (invalid) return <main className={styles.page} dir="rtl"><div className={styles.container}><div className={styles.error}>رابط جلسة التقييم غير صالح</div></div></main>;
   if (loading) return <main className={styles.page} dir="rtl"><div className={styles.loading}><div><div className={styles.spinner}/><p>نستعيد إجاباتك المحفوظة...</p></div></div></main>;
-  if (!assessment) return <main className={styles.page} dir="rtl"><div className={styles.container}><div className={styles.error}>{error || "تعذر فتح التقييم"}</div></div></main>;
+  if (!assessment) return <main className={styles.page} dir="rtl"><div className={styles.container}><div className={styles.error} role="alert">{error || "تعذر فتح التقييم"}</div><button type="button" className={styles.primary} onClick={() => {
+    setError(""); setLoading(true);
+    void load().catch((reason) => setError(reason instanceof Error ? reason.message : "تعذر استعادة التقييم")).finally(() => setLoading(false));
+  }}>إعادة المحاولة</button><Link href="/student" className={styles.back}>لوحة الطالب</Link></div></main>;
   const title = assessment.session.kind === "pretest" ? "الاختبار القبلي" : "الاختبار البعدي";
 
   return <main className={styles.page} dir="rtl"><div className={styles.container}>
-    <header className={styles.header}><Image src="/brand/logo-gradient.svg" alt="هِمّة" width={126} height={42} priority/><Link href="/student/dashboard" className={styles.back}>لوحة الطالب</Link></header>
+    <header className={styles.header}><Image src="/brand/logo-gradient.svg" alt="هِمّة" width={126} height={42} priority/><Link href="/student" className={styles.back}>لوحة الطالب</Link></header>
     <section className={styles.lessonCard}><span className={styles.eyebrow}>{title} · 30 سؤالًا</span><h1>{title}</h1>
       <p>تقدمك محفوظ تلقائيًا. لا تظهر تلميحات أو صحة الإجابة أثناء التقييم.</p>
       {error && <div className={styles.error} role="alert">{error}</div>}
