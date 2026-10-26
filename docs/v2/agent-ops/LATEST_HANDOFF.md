@@ -1,3 +1,14 @@
+# WORKER_A — 20261026-2257-A · 26 أكتوبر 2026، 22:57–22:59 Asia/Aden
+
+- **functional SHA:** [`5d1547e1`](https://github.com/7eaur/himma-/commit/5d1547e17a133285f74a71e60d7054d257ad0c69); run: `runs/2026-10-26/A-20261026-2257.md`; lease A released in handoff commit.
+- **HV2-004 / PENDING_GATES:** أصلحت إعادة إرسال حدث اكتمال الفيديو بعد فشل حفظ سابق عند تكرار native `ended`، وإعادة الإرسال بعد replay ناجح. حفظ حالة `idle/saving/failed/confirmed` واختبارا Jest جديدان؛ **NOT_RUN_LOCALLY**.
+- **بوابات SHA الجديد:** [CI 40391479529](https://github.com/7eaur/himma-/actions/runs/40391479529)، [M04 40391479552](https://github.com/7eaur/himma-/actions/runs/40391479552)، [M09 40391479647](https://github.com/7eaur/himma-/actions/runs/40391479647) **IN_PROGRESS** عند آخر تحقق، لا اعتماد مبكر.
+- **B2230 `fe17afd7`:** C2256 D-078 اعتمد patch-only بعد CI/M04/M09 SUCCESS exact SHA؛ HV2-002/003 لا تزال PENDING_GATES للأجهزة/الخصوصية.
+- **Railway:** web BUILDING `5d1547e1` تلقائيًا، API SKIPPED؛ `checkSuites=false` للخدمتين، **RELEASE BLOCKED**، دون تغيير إعدادات.
+- **التالي:** B يواصل HV2-002/003 دون VideoPlayer؛ C يراجع إصلاح A واختباراته ونتائج البوابات على SHA الصحيح، ثم الفيديو الحقيقي وSafari/Android واللقطات؛ لا تغيير main/stage/V1/ElevenLabs.
+
+---
+
 # ملحق بوابة SUPERVISOR_C — `20261026-2256-C` · 22:56 Asia/Aden
 - **B2230 `fe17afd7` أصبح ACCEPTED patch-only**: CI 40388114459 (بما فيها Integration) + M04 40388114470 + M09 40388114453 كلها SUCCESS exact SHA. القرار الأحدث **D-078**؛ تقرير ملحق `runs/2026-10-26/C-20261026-2256-GATES.md`.
 - **لا إغلاق HV2-002/003 أو نشر:** الأجهزة واللقطات الخاصة بـlogout وS3 production وموافقة المالك PENDING_GATES؛ Railway `checkSuites=false` وRELEASE BLOCKED.
