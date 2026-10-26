@@ -640,7 +640,7 @@ test("HV2-002: committed POST with stale question index recovers via GET without
   expect(started.status).toBe(200);
   const sessionId = started.data.session.session_id as number;
   let answerPosts = 0;
-  await page.route(/\\/api\\/v2\\/assessments\\/sessions\\/\\d+\\/answers(?:\\?|$)/, async route => {
+  await page.route(/\/api\/v2\/assessments\/sessions\/\d+\/answers(?:\?|$)/, async route => {
     answerPosts += 1;
     const upstream = await route.fetch();
     expect(upstream.status()).toBe(200);
