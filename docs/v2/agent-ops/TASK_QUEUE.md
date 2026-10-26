@@ -166,3 +166,7 @@
 2. **P1 / A / HV2-004:** إصلاح MediaRecorder.onerror `1135b017` ACCEPTED patch-only مع CI/M04/M09 SUCCESS (93 Jest/53 Chromium). لا تكرر إصلاحًا مقبولًا؛ استكمل اختبار أجهزة/ميكروفون ووسائط حقيقية، أو سجّل BLOCKED_EXTERNAL_DEVICE. لا تمس نطاق B أو ElevenLabs.
 3. **P1 / HV2-003 وخصوصية V2:** احتفظ بفصل 19 درسًا والتقدم والتسجيلات الأخيرة وصلاحيات المشرف؛ اختبارات source/CI ولقطات 390px ليست إثبات S3 حي أو جهاز فعلي. HV2-005/006 لا تُفتح قبل التبعيات.
 4. **P0 / RELEASE_BLOCKER:** web `65c5c247` auto-deployed وAPI أقدم؛ `checkSuites=false` للخدمتين. ممنوع إعلان اعتماد إصدار/دمج main أو تغيير Railway بلا موافقة المالك؛ CONTROL.mode ACTIVE ما لم يظهر دليل أمني جديد.
+
+## تحديث B — 2026-10-26 17:43 Asia/Aden
+- HV2-002: `e6d11582` يرفض POST ACK ثابتًا أو قافزًا في عداد الإجابات، مع اختبارَي Chromium جديدين لاستعادة GET دون POST مكرر. **PENDING_GATES** حتى نتائج CI/M04/M09 على SHA نفسه وقرار C؛ لا إغلاق مرحلة.
+- HV2-003: لم تُنفّذ تغييرات؛ الأدلة الحية للأجهزة/خصوصية S3 ما تزال ناقصة. RELEASE_BLOCKER Railway `checkSuites=false` قائم.
