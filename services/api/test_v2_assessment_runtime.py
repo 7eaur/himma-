@@ -61,31 +61,85 @@ def test_objective_answer_is_private_idempotent_and_advances(student_client):
 
 
 def test_student_cannot_open_or_answer_another_students_v2_session(student_client):
+    """Ownership is checked before reading an answer or replaying an accepted key."""
     first = student_client.post("/v2/assessments/pretest/start")
     assert first.status_code == 200
     first_id = first.json()["session"]["session_id"]
+    question = get_question(first.json()["interaction"]["question"]["question_id"])
+    answer = {
+        "submit_key": str(uuid4()),
+        "selected_option_ids": [question["options"][0]["id"]],
+    }
+    first_url = f"/v2/assessments/sessions/{first_id}"
+    saved = student_client.post(f"{first_url}/answers", json=answer)
+    assert saved.status_code == 200
+    assert saved.json()["assessment"]["session"]["progress"]["answered"] == 1
+
     with TestingSessionLocal() as db:
         db.add(Student(access_code="STU002", name="طالب تجريبي آخر", current_level=1))
         db.commit()
 
     second_login = student_client.post("/auth/student-login", json={"access_code": "STU002"})
     assert second_login.status_code == 200
-    hidden = student_client.get(f"/v2/assessments/sessions/{first_id}")
-    assert hidden.status_code == 404
+    hidden = student_client.get(first_url)
+    missing = student_client.get("/v2/assessments/sessions/999999999")
+    assert hidden.status_code == missing.status_code == 404
+    assert hidden.json() == missing.json()
     assert "private_answer" not in hidden.text
-    rejected = student_client.post(
-        f"/v2/assessments/sessions/{first_id}/answers",
-        json={"submit_key": str(uuid4()), "selected_option_ids": ["not-owned"]},
+    # Even a valid answer and the owner's already-accepted idempotency key
+    # must not reveal a replay, response state or private assessment data.
+    rejected = student_client.post(f"{first_url}/answers", json=answer)
+    unknown = student_client.post(
+        "/v2/assessments/sessions/999999999/answers", json=answer,
     )
-    assert rejected.status_code == 404
+    assert rejected.status_code == unknown.status_code == 404
+    assert rejected.json() == unknown.json()
     second = student_client.post("/v2/assessments/pretest/start")
     assert second.status_code == 200
     assert second.json()["session"]["session_id"] != first_id
 
     assert student_client.post("/auth/student-login", json={"access_code": "STU001"}).status_code == 200
-    restored = student_client.get(f"/v2/assessments/sessions/{first_id}")
+    restored = student_client.get(first_url)
     assert restored.status_code == 200
-    assert restored.json()["session"]["progress"]["answered"] == 0
+    assert restored.json()["session"]["progress"]["answered"] == 1
+    replay = student_client.post(f"{first_url}/answers", json=answer)
+    assert replay.status_code == 200
+    assert replay.json()["status"] == "replayed"
+    with TestingSessionLocal() as db:
+        assert db.query(AssessmentQuestionResponse).filter(
+            AssessmentQuestionResponse.assessment_session_id == first_id,
+        ).count() == 1
+        assert db.query(AssessmentQuestionResponse).count() == 1
+
+
+def test_v2_session_endpoints_hide_legacy_v1_attempts(student_client):
+    """A known V1 session id must be indistinguishable from a missing V2 id."""
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        legacy = AssessmentSession(
+            student_id=student.id, session_type="pretest", status="in_progress",
+            assessment_attempt_no=1,
+        )
+        db.add(legacy)
+        db.commit()
+        legacy_id = legacy.id
+
+    legacy_url = f"/v2/assessments/sessions/{legacy_id}"
+    missing_url = "/v2/assessments/sessions/999999999"
+    for suffix, method, payload in (
+        ("", "get", None),
+        ("/answers", "post", {"submit_key": str(uuid4()), "selected_option_ids": ["synthetic"]}),
+    ):
+        response = getattr(student_client, method)(
+            f"{legacy_url}{suffix}", **({"json": payload} if payload else {}),
+        )
+        missing = getattr(student_client, method)(
+            f"{missing_url}{suffix}", **({"json": payload} if payload else {}),
+        )
+        assert response.status_code == missing.status_code == 404
+        assert response.json() == missing.json()
+    with TestingSessionLocal() as db:
+        assert db.query(AssessmentQuestionResponse).count() == 0
 
 
 def test_open_responses_keep_placement_pending_until_human_review_and_manual_decision(researcher_client, monkeypatch):
