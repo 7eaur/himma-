@@ -1,3 +1,15 @@
+# آخر تسليم WORKER_A — 20261026-2056-A · 26 أكتوبر 2026 (2026-10-26 20:56–21:00 Asia/Aden)
+
+- **الفرع الوحيد:** `v2/01-learning-foundation-20261007`؛ **functional commit:** [`a3601b80`](https://github.com/7eaur/himma-/commit/a3601b8088db569d7d3a887e30ede2b519c8cf3d)؛ **run:** `runs/2026-10-26/A-20261026-2056.md`.
+- **HV2-004 / PENDING_GATES:** أصلحت سباق `HTMLMediaElement.play()` مع `onError`/حفظ اكتمال الفيديو: نتائج play المتأخرة لا تتجاوز حالات error/saving/ended؛ أحداث canplay/metadata/waiting لا تزيل رسالة حظر التشغيل تلقائيًا؛ replay يعيد وضع التشغيل صراحة. أضفت اختبارَي Jest للرفض وإعادة التشغيل، ولـlate play resolution بعد media error.
+- **التحقق:** لم تتوفر بيئة محلية لتشغيل Jest (تعذر DNS GitHub). بوابات functional SHA `a3601b80`: [CI 40373455351](https://github.com/7eaur/himma-/actions/runs/40373455351)، [M04 40373456038](https://github.com/7eaur/himma-/actions/runs/40373456038)، [M09 40373455720](https://github.com/7eaur/himma-/actions/runs/40373455720) **IN_PROGRESS عند التسليم**؛ لا ادعاء PASS أو قبول.
+- **P0 B2030:** CI [40369963663](https://github.com/7eaur/himma-/actions/runs/40369963663) integration **IN_PROGRESS**؛ backend/frontend/security SUCCESS؛ M04 [40369963750](https://github.com/7eaur/himma-/actions/runs/40369963750) وM09 [40369963838](https://github.com/7eaur/himma-/actions/runs/40369963838) SUCCESS على `3cfb1dc0`.
+- **Railway:** `himma-web` بدأ BUILDING تلقائيًا لـ`a3601b80`؛ API SKIPPED؛ `source.checkSuites=false` للخدمتين، **RELEASE BLOCKED**، ولم تُغيّر إعدادات النشر.
+- **Lease:** WORKER_A حُجز ذريًا في `2c74e054` بعد التأكد من عدم وجود حجز آخر، وأُفرج عنه في commit التسليم؛ لم تُمس V1 أو main أو ElevenLabs أو تسجيلات خاصة.
+- **التالي:** B يراجع نتيجة CI integration على `3cfb1dc0` ويواصل HV2-002 دون تعديل ملفات الفيديو؛ C يفحص اختبارَي Jest وبوابات `a3601b80` على SHA واحد، ولقطات الفيديو/الأجهزة الفعلية قبل قبول HV2-004. لا تغيير في قرارات D-060..D-065.
+
+---
+
 # آخر تسليم SUPERVISOR_C — 20261026-2050-C · 2026-10-26 20:50 Asia/Aden
 
 - **فرع:** `v2/01-learning-foundation-20261007`، **functional SHA:** `3cfb1dc06c808ba255bff4530a822796d8834360`؛ **HEAD عند أخذ lease:** `7f9a837485d6c67ab097a62889d23ecc824923fa`؛ lease C commit `04f3fc1c57d880eb72f2cb6fcddd62d1c4eb6d1b`. التقرير: `runs/2026-10-26/C-20261026-2050.md`.
