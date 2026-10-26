@@ -67,16 +67,22 @@ test.describe("Student Detail partial-source truth states", () => {
     await page.goto(`/admin/students/${student.id}`);
     await expect(page.getByRole("heading", { name: student.full_name })).toBeVisible({ timeout: 10000 });
 
+    // V2 summary deliberately contains no historical V1 stars. Inspect
+    // the separate V1 archive, where an unavailable source must stay "—"
+    // and a successfully loaded empty rewards list must become actual 0.
     const summary = page.getByRole("region", { name: "ملخص الطالب" });
-    await expect(summary.getByText("النجوم")).toBeVisible();
-    await expect(summary.getByText("—", { exact: true })).toBeVisible();
+    await expect(summary.getByText("نجوم V1 التاريخية")).toHaveCount(0);
+    await page.getByRole("button", { name: "نظرة عامة" }).click();
+    const historicalStars = page.getByText("نجوم V1 التاريخية", { exact: true }).locator("..").locator("strong");
+    await expect(historicalStars).toHaveText("—");
 
     const error = page.getByRole("status").filter({ hasText: "تعذر تحميل المكافآت" });
     await expect(error).toBeVisible();
     await error.getByRole("button", { name: "إعادة المحاولة" }).click();
     await expect(error).toBeHidden({ timeout: 10000 });
     expect(calls()).toBeGreaterThanOrEqual(2);
-    await expect(summary.getByText("0", { exact: true })).toBeVisible();
+    await expect(historicalStars).toHaveText("0");
+    await expect(summary.getByText("نجوم V1 التاريخية")).toHaveCount(0);
   });
 
   test("journey failure does not fabricate progress and its retry restores canonical journey", async ({ page, request }) => {
