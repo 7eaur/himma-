@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CheckCircle2, Clock3 } from "lucide-react";
 import InteractionPlayer, { type InteractionPayload } from "@/components/learning/InteractionPlayer";
 import StudentRetryTasks from "@/components/learning/StudentRetryTasks";
@@ -61,24 +61,52 @@ function AssessmentV2Session({ sessionId }: { sessionId: number }) {
   const [assessment, setAssessment] = useState<AssessmentPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const loadControllerRef = useRef<AbortController | null>(null);
 
   const load = useCallback(async () => {
     if (invalid) return;
-    const response = await fetch(`/api/v2/assessments/sessions/${sessionId}`, { cache: "no-store" });
-    const data = await response.json().catch(() => null);
-    if (response.status === 401 || response.status === 403) { router.replace("/student/login"); return; }
-    if (!response.ok) throw new Error(response.status === 404
-      ? "جلسة التقييم غير متاحة لهذا الحساب."
-      : "تعذر استعادة التقييم. تقدّمك محفوظ، حاول مرة أخرى.");
-    // Fail closed if a delayed/cached/misrouted response belongs to another
-    // assessment. Never render another session's question or progress.
-    if (!isAssessmentPayload(data, sessionId)) {
-      throw new Error("تعذر استعادة التقييم. تحقق من الرابط وحاول مرة أخرى.");
+    // Only the latest mounted assessment may handle GET, including 401/403.
+    // A stale unauthorized response must never redirect a newer route.
+    loadControllerRef.current?.abort();
+    const controller = new AbortController();
+    loadControllerRef.current = controller;
+    try {
+      const response = await fetch(`/api/v2/assessments/sessions/${sessionId}`, {
+        cache: "no-store", signal: controller.signal,
+      });
+      const data = await response.json().catch(() => null);
+      if (controller.signal.aborted || loadControllerRef.current !== controller) return;
+      if (response.status === 401 || response.status === 403) { router.replace("/student/login"); return; }
+      if (!response.ok) throw new Error(response.status === 404
+        ? "جلسة التقييم غير متاحة لهذا الحساب."
+        : "تعذر استعادة التقييم. تقدّمك محفوظ، حاول مرة أخرى.");
+      // Fail closed if a delayed/cached/misrouted response belongs to another
+      // assessment. Never render another session's question or progress.
+      if (!isAssessmentPayload(data, sessionId)) {
+        throw new Error("تعذر استعادة التقييم. تحقق من الرابط وحاول مرة أخرى.");
+      }
+      setAssessment(data);
+    } catch (reason) {
+      if (!controller.signal.aborted) throw reason;
+    } finally {
+      if (loadControllerRef.current === controller) loadControllerRef.current = null;
     }
-    setAssessment(data);
   }, [invalid, router, sessionId]);
 
-  useEffect(() => { const timer = window.setTimeout(() => { void load().catch((reason) => setError(reason instanceof Error ? reason.message : "تعذر استعادة التقييم")).finally(() => setLoading(false)); }, 0); return () => window.clearTimeout(timer); }, [load]);
+  useEffect(() => {
+    let mounted = true;
+    const timer = window.setTimeout(() => {
+      void load()
+        .catch(reason => { if (mounted) setError(reason instanceof Error ? reason.message : "تعذر استعادة التقييم"); })
+        .finally(() => { if (mounted) setLoading(false); });
+    }, 0);
+    return () => {
+      mounted = false;
+      window.clearTimeout(timer);
+      loadControllerRef.current?.abort();
+      loadControllerRef.current = null;
+    };
+  }, [load]);
 
   // The POST /answers response is a second source of session state, not a
   // trusted replacement for the GET response. A stale/misrouted acknowledgement

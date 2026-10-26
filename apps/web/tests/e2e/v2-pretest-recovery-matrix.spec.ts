@@ -678,3 +678,66 @@ test("HV2-002: committed POST with stale question index recovers via GET without
   }, sessionId);
   expect(recovered).toEqual({ status: 200, answered: 1 });
 });
+
+
+test("HV2-002: delayed unauthorized assessment GET cannot redirect after leaving the route", async ({ page, request }) => {
+  test.setTimeout(150000);
+  if (!PASSWORD) throw new Error("E2E_RESEARCHER_PASSWORD required");
+  const admin = await request.post(API_URL + "/auth/login", {
+    data: { username: USERNAME, password: PASSWORD },
+  });
+  expect(admin.status()).toBe(200);
+  const created = await request.post(API_URL + "/researcher/students", {
+    data: { full_name: "طالب عزل استجابة متأخرة اصطناعي " + Date.now(), grade_level: 3 },
+  });
+  expect(created.status()).toBe(201);
+  const code = (await created.json()).access_code as string;
+  await page.goto("/student/login");
+  await page.getByTestId("input-access-code").fill(code);
+  await page.getByTestId("student-login-submit").click();
+  await expect(page.getByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
+  const started = await page.evaluate(async () => {
+    const response = await fetch("/api/v2/assessments/pretest/start", { method: "POST" });
+    return { status: response.status, data: await response.json() };
+  });
+  expect(started.status).toBe(200);
+  const sessionId = started.data.session.session_id as number;
+
+  let reads = 0;
+  let releaseUnauthorized!: () => void;
+  const held = new Promise<void>(resolve => { releaseUnauthorized = resolve; });
+  let lateRequestSeen = false;
+  let lateRequestSettled = false;
+  await page.route("**/api/v2/assessments/sessions/" + sessionId, async route => {
+    if (route.request().method() !== "GET") return route.continue();
+    reads += 1;
+    if (reads === 1) {
+      // First response is malformed, leaving a retry screen with a Next Link.
+      return route.fulfill({ status: 200, json: {} });
+    }
+    lateRequestSeen = true;
+    await held;
+    try {
+      await route.fulfill({ status: 401, json: { detail: "expired test session" } });
+    } catch {
+      // Correct cancellation may close the intercepted request on unmount.
+    } finally {
+      lateRequestSettled = true;
+    }
+  });
+  await page.goto("/student/assessment-v2/" + sessionId);
+  await expect(page.locator("main [role='alert']")).toContainText("تعذر استعادة التقييم");
+  await page.getByRole("button", { name: "إعادة المحاولة" }).click();
+  await expect.poll(() => lateRequestSeen).toBe(true);
+
+  // Client-side Next Link transition unmounts the assessment while GET is held.
+  await page.getByRole("link", { name: "لوحة الطالب" }).click();
+  await expect(page).toHaveURL(/\\/student$/);
+  await expect(page.getByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
+  releaseUnauthorized();
+  await expect.poll(() => lateRequestSettled).toBe(true);
+  // A stale 401 must not push the new student page back to /student/login.
+  await expect(page).toHaveURL(/\\/student$/);
+  await expect(page.getByTestId("student-home")).toBeVisible();
+  expect(reads).toBe(2);
+});
