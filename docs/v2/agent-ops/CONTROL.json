@@ -7,25 +7,19 @@
   "mode": "ACTIVE",
   "stop_reason": null,
   "lease": {
-    "owner": "MANUAL_CODEX",
-    "run_id": "20261026-1900-MANUAL",
-    "base_head": "6de74b424fe35bf85175f20248c8bdd2e5c35e26",
+    "owner": "SUPERVISOR_C",
+    "run_id": "20261026-2050-C",
+    "base_head": "7f9a837485d6c67ab097a62889d23ecc824923fa",
     "scope": [
-      "services/api/v2_lesson_review.py",
-      "services/api/v2_assessment_runtime.py",
-      "services/api/v2_retry_runtime.py",
-      "services/api/v2_audio_review_evidence.py",
-      "services/api/test_v2_lesson_review.py",
-      "services/api/test_v2_assessment_runtime.py",
-      "services/api/test_v2_retry_runtime.py",
-      "apps/web/src/app/admin/(dashboard)/v2-assessments/page.tsx",
-      "apps/web/src/app/admin/(dashboard)/v2-lesson-review/page.tsx",
-      "apps/web/src/components/admin/V2ReviewedAudioPlayer.tsx",
-      "apps/web/src/components/admin/V2ReviewedAudioPlayer.test.tsx",
-      "docs/v2/agent-ops"
+      "docs/v2/agent-ops/CONTROL.json",
+      "docs/v2/agent-ops/SUPERVISOR_DIRECTIVES.md",
+      "docs/v2/agent-ops/TASK_QUEUE.md",
+      "docs/v2/agent-ops/LATEST_HANDOFF.md",
+      "docs/v2/agent-ops/RUN_LOG.md",
+      "docs/v2/agent-ops/runs/2026-10-26/C-20261026-2050.md"
     ],
-    "acquired_at": "2026-10-26T16:00:00Z",
-    "expires_at": "2026-10-26T16:40:00Z"
+    "acquired_at": "2026-10-26T17:52:59.337Z",
+    "expires_at": "2026-10-26T18:10:59.337Z"
   },
   "scheduler": {
     "worker_a": "00 * * * *",
