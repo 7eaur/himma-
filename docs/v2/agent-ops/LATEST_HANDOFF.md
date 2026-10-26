@@ -1,3 +1,16 @@
+# آخر تسليم WORKER_A — 20261026-0802-A · 2026-10-26T08:06:16 Asia/Aden
+
+**HV2-004 / PENDING_GATES** · functional SHA `898971deb0a09d44c86ad0c07a5f0b3afa509e06` · run `runs/2026-10-26/A-20261026-0802.md` · **Lease A محرر**.
+
+- تحسين وصول خيارات العربية لقارئ الشاشة دون تغيير الأسماء الظاهرة؛ وصف المقاطع المحددة في `build_word/sequence`، `dir=rtl`، هدف لمس 44px، واختبارا Jest.
+- CI [40272294398](https://github.com/7eaur/himma-/actions/runs/40272294398) `in_progress`، M04 [40272294294](https://github.com/7eaur/himma-/actions/runs/40272294294) `completed/success`، M09 [40272294356](https://github.com/7eaur/himma-/actions/runs/40272294356) `in_progress` عند التسليم. لا إعلان PASS قبل النتيجة النهائية على SHA نفسه.
+- `f9c250e7` (B0730) CI/M04/M09 **SUCCESS** الآن، لكن B يحتاج 404/cross-student ومراجعة C.
+- Railway web BUILDING على `898971de` قبل CI، API على SHA سابق؛ `checkSuites=false` في الخدمتين، RELEASE_BLOCKER مستمر.
+- **B:** تابع HV2-002 دون تداخل. **C:** راجع patch وgates وأدلة accessibility/visual. **A التالي:** استكمل فحص RTL الفعلي على 360/390/430/768/1440 أو أصلح gate مثبت الفشل.
+- لم تُفحص صور Playwright ZIP أو هاتف حقيقي أو S3؛ لا `VISUAL_VERIFIED` أو اعتماد نهائي.
+
+---
+
 # ملحق مراجعة SUPERVISOR_C — `20261026-0745-C` · 2026-10-26, 07:47 Asia/Aden
 
 **هذا ملحق مراجعة فقط؛ آخر تسليم عامل يبقى B `20261026-0730-B`، ولا تستبدله به.** تقرير المشرف: `runs/2026-10-26/C-20261026-0745.md`؛ توجيهات D-016..D-019 نافذة.

@@ -6,21 +6,7 @@
   "timezone": "Asia/Aden",
   "mode": "ACTIVE",
   "stop_reason": null,
-  "lease": {
-    "role": "WORKER_A",
-    "run_id": "20261026-0802-A",
-    "task_id": "HV2-004",
-    "scope": [
-      "apps/web/src/components/learning/InteractionPlayer.tsx",
-      "apps/web/src/components/learning/InteractionPlayer.module.css",
-      "apps/web/src/components/learning/InteractionPlayer.test.tsx",
-      "apps/web/src/app/student/question-system.css",
-      "apps/web/tests/e2e/question-experience.spec.ts"
-    ],
-    "base_head": "0fa85fa53954d9f2a73bc35d883f496a60316483",
-    "acquired_at": "2026-10-26T05:03:04.433Z",
-    "expires_at": "2026-10-26T05:28:04.433Z"
-  },
+  "lease": null,
   "scheduler": {
     "worker_a": "00 * * * *",
     "worker_b": "30 * * * *",
@@ -37,7 +23,7 @@
       "supervisor_c": "2026-10-26 03:50"
     }
   },
-  "last_handoff_run": "20261026-0730-B",
+  "last_handoff_run": "20261026-0802-A",
   "last_reviewed_run": "20261026-0745-C",
   "instructions": "Read README_AR.md and SUPERVISOR_DIRECTIVES.md. No merge, no V1 data deletion, no release claims before same-SHA gates.",
   "parallel_leases": {}

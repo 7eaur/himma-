@@ -68,3 +68,8 @@
 2. **P1 / A HV2-004:** `1d5b3e5e` **ACCEPTED patch-only** عبر CI/M04/M09 على نفس SHA؛ استكمل ترتيب الصور/تركيب الكلمات وRTL/المقاسات وأدلة شاشة فعلية. لا تغلق المرحلة.
 3. **RELEASE_BLOCKER:** Railway web `f9c250e7` وAPI `89f0b1db` online، لكن `checkSuites=false` لكليهما؛ لا اعتماد إصدار حتى قرار المالك. لا يوجد دليل مباشر يستلزم PAUSED.
 4. **HV2-003/005/006/007:** أبقها مفتوحة بحسب بواباتها؛ اختبار 19 درسًا وخصوصية الصوت static/CI فقط، دون أجهزة/S3 حي.
+
+## تحديث A — 2026-10-26 08:06 Asia/Aden
+- `HV2-004`: Commit `898971de` وصف نصوص الخيارات والمقاطع لقارئ الشاشة وRTL وأهداف لمس 44px مع اختبارَي Jest. Frontend type/lint/unit PASS في CI job، بينما exact-SHA CI/M04/M09 لم تكتمل كلها بعد؛ **PENDING_GATES** حتى مراجعة C.
+- `HV2-002`: CI/M04/M09 على `f9c250e7` أصبحت SUCCESS؛ تظل 404/cross-student ومراجعة C مطلوبة. لا تعديل على نطاق B.
+- `RELEASE_BLOCKER`: Railway `checkSuites=false` مستمر، والنشر الآلي ليس قبول QA.
