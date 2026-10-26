@@ -84,6 +84,41 @@ describe("InteractionPlayer", () => {
     expect(JSON.parse(request.body).selected_option_ids).toEqual(["b", "a"]);
   });
 
+  it("keeps an empty ordered question fail-closed instead of submitting an empty answer", () => {
+    render(<InteractionPlayer sessionId={7} interaction={payload({
+      interaction: "sequence", options: [],
+    })} onLessonChange={jest.fn()}/>);
+    expect(screen.getByRole("alert")).toHaveTextContent("خيارات هذا السؤال غير مكتملة");
+    expect(screen.getByRole("button", { name: "تحقق من الإجابة" })).toBeDisabled();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it("shows the selected image tokens in the ordered tray and lets the learner correct their order", () => {
+    const question = payload({
+      interaction: "sequence",
+      options: [
+        { id: "a", text: null, media: [{ media_id: "IMG-A", kind: "image" }] },
+        { id: "b", text: null, media: [{ media_id: "IMG-B", kind: "image" }] },
+      ],
+    });
+    question.media = {
+      ...question.media,
+      "IMG-A": { asset_id: "IMG-A", kind: "image", state: "ready", url: "/a.png", test_only: true },
+      "IMG-B": { asset_id: "IMG-B", kind: "image", state: "ready", url: "/b.png", test_only: true },
+    };
+    render(<InteractionPlayer sessionId={7} interaction={question} onLessonChange={jest.fn()}/>);
+    fireEvent.click(screen.getByRole("button", { name: "اختيار الخيار 2" }));
+    fireEvent.click(screen.getByRole("button", { name: "اختيار الخيار 1" }));
+    const tray = screen.getByLabelText("الترتيب المختار");
+    expect(tray.querySelectorAll("img")).toHaveLength(2);
+    expect(tray.querySelectorAll("img")[0]).toHaveAttribute("src", "/b.png");
+    expect(tray.querySelectorAll("img")[1]).toHaveAttribute("src", "/a.png");
+    fireEvent.click(screen.getByRole("button", { name: "إزالة العنصر 1 من الترتيب" }));
+    expect(tray.querySelectorAll("img")).toHaveLength(1);
+    expect(screen.getByRole("button", { name: "اختيار الخيار 2" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "تحقق من الإجابة" })).toBeDisabled();
+  });
+
   it("replays the identical answer after a lost acknowledgment and locks editing until confirmation", async () => {
     const fetchMock = global.fetch as jest.Mock;
     fetchMock

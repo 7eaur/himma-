@@ -86,6 +86,10 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   }, [endpointBase, interaction.draft, question.interaction, sessionId, text]);
 
   const ordered = question.interaction === "sequence" || question.interaction === "build_word";
+  const missingRequiredOptions = !OPEN_INTERACTIONS.has(question.interaction) && question.options.length === 0;
+  // An empty ordered question previously satisfied 0 === 0 and enabled
+  // submission of an empty answer. Never grade an incomplete question.
+  const invalidQuestion = missingRequiredOptions;
   // A missing referenced asset must not turn an audio/image question into a
   // guessable text-only answer. This also covers absent image choices even
   // when a malformed payload forgot to declare their media references.
@@ -100,12 +104,12 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   }) || (question.interaction === "choose_image" &&
     question.options.some((option) => !option.media.some((item) => item.kind === "image")));
   const ready = useMemo(() => {
-    if (missingRequiredMedia) return false;
+    if (missingRequiredMedia || invalidQuestion) return false;
     if (question.interaction === "write_text") return Boolean(text.trim());
     if (question.interaction === "read_aloud") return Boolean(audioBlob);
     if (ordered) return selected.length === question.options.length;
     return selected.length === 1;
-  }, [audioBlob, missingRequiredMedia, ordered, question.interaction, question.options.length, selected.length, text]);
+  }, [audioBlob, invalidQuestion, missingRequiredMedia, ordered, question.interaction, question.options.length, selected.length, text]);
 
   const playMedia = async (assetId: string) => {
     const asset = media[assetId];
@@ -129,7 +133,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   };
 
   const choose = (id: string) => {
-    if (saving || awaitingConfirmation || missingRequiredMedia) return;
+    if (saving || awaitingConfirmation || missingRequiredMedia || invalidQuestion) return;
     setFeedback(null);
     if (ordered) { if (!selected.includes(id)) setSelected((current) => [...current, id]); return; }
     setSelected([id]);
@@ -181,7 +185,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   };
 
   const submit = async () => {
-    if (!ready || saving || missingRequiredMedia) return;
+    if (!ready || saving || missingRequiredMedia || invalidQuestion) return;
     setSaving(true); setError("");
     try {
       let pending = pendingAnswerRef.current;
@@ -259,14 +263,27 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
     <div className={styles.topline}><span>{stageLabel}</span><span>{interaction.progress.index} من {interaction.progress.total}</span></div>
     <h2>{question.prompt}</h2>
     {missingRequiredMedia && <div className={styles.mediaMissing} role="alert">هذا السؤال يحتاج صورة أو صوتًا غير جاهز الآن. لن تُرسل الإجابة حتى يتوفر الوسيط.</div>}
+    {missingRequiredOptions && <div className={styles.mediaMissing} role="alert">خيارات هذا السؤال غير مكتملة. لن تُرسل الإجابة حتى تصبح جاهزة.</div>}
     {question.stimulus.text && <div className={styles.stimulusText}>{question.stimulus.text}</div>}
     {question.stimulus.media.length > 0 && <div className={styles.stimulusMedia}>{question.stimulus.media.map((item) => <div key={item.media_id}>{renderMedia(item)}</div>)}</div>}
 
-    {ordered && <div className={styles.orderTray} aria-label="الترتيب المختار">{selected.length ? selected.map((id, index) => <button key={id} type="button" disabled={saving || awaitingConfirmation} onClick={() => setSelected((current) => current.filter((value) => value !== id))}><b>{index + 1}</b>{question.options.find((option) => option.id === id)?.text}<X size={14}/></button>) : <span>اضغط العناصر بالترتيب الصحيح</span>}</div>}
+    {ordered && <div className={styles.orderTray} aria-label="الترتيب المختار">{selected.length ? selected.map((id, index) => {
+      const option = question.options.find((item) => item.id === id);
+      const imageRef = option?.media.find((item) => item.kind === "image");
+      const imageAsset = imageRef ? media[imageRef.media_id] : null;
+      const imageReady = imageAsset?.kind === "image" && imageAsset.state === "ready" && Boolean(imageAsset.url);
+      return <button key={id} type="button" disabled={saving || awaitingConfirmation} aria-label={`إزالة العنصر ${index + 1} من الترتيب`} onClick={() => setSelected((current) => current.filter((value) => value !== id))}>
+        <b>{index + 1}</b>
+        {imageReady && <Image className={styles.orderPreview} src={imageAsset.url!} width={68} height={52} unoptimized alt={`صورة العنصر ${index + 1}`}/>}
+        {option?.text && <span className={styles.orderText}>{option.text}</span>}
+        {!option?.text && !imageReady && <span className={styles.orderText}>عنصر {index + 1}</span>}
+        <X size={14} aria-hidden="true"/>
+      </button>;
+    }) : <span>اضغط العناصر بالترتيب الصحيح</span>}</div>}
 
     {!OPEN_INTERACTIONS.has(question.interaction) && <div className={`${styles.options} ${question.interaction === "choose_image" ? styles.imageOptions : ""}`}>{question.options.map((option, optionIndex) => {
       const chosen = selected.includes(option.id);
-      const disabled = saving || awaitingConfirmation || missingRequiredMedia || (ordered && chosen);
+      const disabled = saving || awaitingConfirmation || missingRequiredMedia || invalidQuestion || (ordered && chosen);
       const audioMedia = option.media.filter((item) => item.kind === "audio");
       const visualMedia = option.media.filter((item) => item.kind !== "audio");
       return <div key={option.id} className={`${styles.option} ${chosen ? styles.selected : ""}`}>
