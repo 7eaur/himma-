@@ -6,20 +6,7 @@
   "timezone": "Asia/Aden",
   "mode": "ACTIVE",
   "stop_reason": null,
-  "lease": {
-    "owner": "WORKER_B",
-    "run_id": "20261026-0832-B",
-    "base_head": "9da1d4cfa58a144932d0c20fd5316ae22bf28b75",
-    "started_at_utc": "2026-10-26T05:32:48.930Z",
-    "expires_at_utc": "2026-10-26T05:58:48.930Z",
-    "scope": [
-      "services/api/test_v2_assessment_runtime.py",
-      "apps/web/tests/e2e/v2-pretest-recovery-matrix.spec.ts",
-      "docs/v2/agent-ops/"
-    ],
-    "task_id": "HV2-002",
-    "purpose": "Cross-student session GET/answer 404 ownership and idempotency regressions"
-  },
+  "lease": null,
   "scheduler": {
     "worker_a": "00 * * * *",
     "worker_b": "30 * * * *",
@@ -36,7 +23,7 @@
       "supervisor_c": "2026-10-26 03:50"
     }
   },
-  "last_handoff_run": "20261026-0802-A",
+  "last_handoff_run": "20261026-0832-B",
   "last_reviewed_run": "20261026-0745-C",
   "instructions": "Read README_AR.md and SUPERVISOR_DIRECTIVES.md. No merge, no V1 data deletion, no release claims before same-SHA gates.",
   "parallel_leases": {}
