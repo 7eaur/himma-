@@ -239,6 +239,20 @@ def record_lesson_event(
     ).one_or_none()
     if existing:
         return _session_payload(session)
+    # A checkpoint sent while the video was still playing may arrive after
+    # video_ended. It is obsolete, not a new stage transition or a reason to
+    # show an error to the learner. Return the already-advanced session
+    # without rewriting the saved final position, version, or event history.
+    # This exception applies only to an authorized, well-formed checkpoint;
+    # premature or repeated video_ended events still fail closed.
+    if (
+        event.event_type == "video_progress"
+        and session.video_seen
+        and session.stage != "video"
+        and event.position_seconds is not None
+        and event.duration_seconds is not None
+    ):
+        return _session_payload(session)
     if session.status != "in_progress":
         raise HTTPException(status_code=409, detail="جلسة الدرس ليست قيد التنفيذ")
 

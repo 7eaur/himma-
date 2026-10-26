@@ -84,6 +84,15 @@ def test_intro_video_progress_and_ended_are_persistent_and_idempotent(student_cl
     resumed = student_client.get(f"/v2/lessons/sessions/{session_id}").json()
     assert resumed["session"]["video_position_seconds"] == 6
 
+    # A slow checkpoint response can arrive after the completion event.
+    # Accept the obsolete checkpoint without moving the child backwards,
+    # rewinding the saved position, or writing another progress event.
+    late_checkpoint = _event(student_client, session_id, "video_progress", position_seconds=2.5, duration_seconds=6)
+    assert late_checkpoint.status_code == 200
+    assert late_checkpoint.json()["session"]["stage"] == "guided_practice"
+    assert late_checkpoint.json()["session"]["video_position_seconds"] == 6
+    assert _event(student_client, session_id, "video_ended", position_seconds=6, duration_seconds=6).status_code == 409
+
     with TestingSessionLocal() as db:
         assert db.query(LessonProgressEvent).filter(LessonProgressEvent.lesson_session_id == session_id).count() == 3
 
