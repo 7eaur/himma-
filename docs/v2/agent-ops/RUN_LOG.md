@@ -102,3 +102,4 @@
 | 2026-10-27 00:04–00:08 Asia/Aden | MANUAL | 20261027-0004-MANUAL | HV2-010 bounded V2 queries / N+1 removal | `8e1fc13e` → `50b0148077` functional | RESOLVED_SOURCE / PENDING_GATES; 26 targeted PASS; compileall/diff-check PASS | `runs/2026-10-27/MANUAL-20261027-0004.md`; PostgreSQL CI review pending |
 
 | 2026-10-27 01:30–01:32 Asia/Aden | B | 20261027-0130-B | HV2-002/003 denied start privacy | `fab49d6f` → `4e55bb0f` functional; handoff descendant | PENDING_GATES; frontend 114 PASS; CI/M04/M09 see run | `runs/2026-10-27/B-20261027-0130.md`; CI 40412929436, M04 40412929491, M09 40412929485 |
+| 2026-10-27 02:25–02:28 Asia/Aden | B | 20261027-0225-B | HV2-003/002 logout double-tap serialization | `8cb791b6` → `ecb87d1b` functional; docs descendant | PENDING_GATES; one Jest regression added, NOT_RUN_LOCALLY; CI/M04/M09 running | `runs/2026-10-27/B-20261027-0225.md`; CI 40419891624, M04 40419891750, M09 40419891535 |
