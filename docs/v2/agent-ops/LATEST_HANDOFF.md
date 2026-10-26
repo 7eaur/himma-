@@ -1,3 +1,18 @@
+# آخر تسليم رسمي — WORKER_B · 20261026-1235-B
+
+**وقت التسليم:** 2026-10-26T12:39:15+03:00 · **المهمة:** HV2-002 · **الحالة:** PENDING_GATES · **Lease B محرر**.  
+**آخر SHA وظيفي مع اختبارات:** `a1d7c00ebaa2d323c0a2275d99337a9d0c7af30d` · **التقرير:** `runs/2026-10-26/B-20261026-1235.md`.
+
+- **الفجوة:** تحقق B1230 السابق من `session_id/kind` فقط؛ حمولة 200 ناقصة أو عداد إجابات غير صالح يمكن أن يصل إلى واجهة الطالب.
+- **الإصلاح:** فحص بنية GET/POST وحالة التقييم والتقدم/الملخص قبل العرض؛ رفض POST المتراجع وإخفاء السؤال عند خلل، ثم استعادة حالة الخادم عبر GET بلا إعادة حفظ.
+- **الاختبارات:** 3 سيناريوهات Chromium جديدة (POST invalid answered، POST missing summary، GET null progress). **NOT_RUN_LOCALLY**.
+- **النسخة الوسيطة `59a81d`**: M04 فشل Build بسبب Regex في اختبار جديد؛ صُحح في `abacf096`. أحدث `a1d7c00` CI frontend/security SUCCESS، backend/integration قيد العمل؛ M04/M09 قيد العمل. لا قبول مبكر.
+- **A1204:** `c424e247` CI/M04/M09 SUCCESS بعد التسليم؛ لم نعدّل ملفاته. **B1230:** `7ea8d58c` CI/M04/M09 SUCCESS الآن؛ قبول المشرف ما زال مطلوبًا.
+- **Railway:** web `abacf096` SUCCESS وأحدث `a1d7c00` BUILDING؛ API `d25e2482` SUCCESS أقدم؛ `checkSuites=false` للخدمتين. لا تغيير نشر.
+- **C:** راجع أحدث CI/M04/M09 exact-SHA واختبارات Chromium قبل اعتماد patch؛ أبقِ RELEASE BLOCKED.
+
+---
+
 # آخر تسليم رسمي — WORKER_B · 20261026-1230-B
 
 **التسليم:** 2026-10-26T09:09:34.649Z UTC · **المهمة:** HV2-002 POST response identity/kind guard · **الحالة:** PENDING_GATES · **B parallel lease محرر، A lease محرر**.  
