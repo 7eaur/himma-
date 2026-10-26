@@ -24,7 +24,9 @@ export default function VideoPlayer(props: VideoPlayerProps) {
 function VideoPlayerInstance({ src, captionsSrc, startAt = 0, testOnly = false, onCheckpoint, onEnded }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const lastCheckpoint = useRef(startAt);
-  const completing = useRef(false);
+  // Completion is an idempotent learner action: native duplicate ended events
+  // must not silently retry a failed save or re-submit after replay.
+  const completionStatus = useRef<"idle" | "saving" | "failed" | "confirmed">("idle");
   // Only the newest explicit play request may change the playback state.
   const playAttempt = useRef(0);
   const [state, setState] = useState<PlayerState>("loading");
@@ -81,20 +83,26 @@ function VideoPlayerInstance({ src, captionsSrc, startAt = 0, testOnly = false, 
     videoRef.current.load();
   };
 
-  const confirmCompletion = async () => {
+  const confirmCompletion = async (manualRetry = false) => {
     const video = videoRef.current;
-    if (!video || completing.current || !Number.isFinite(video.duration) || video.duration <= 0) return;
-    completing.current = true;
+    if (!video || !Number.isFinite(video.duration) || video.duration <= 0) return;
+    if (completionStatus.current === "confirmed") {
+      setState("ended");
+      return;
+    }
+    if (completionStatus.current === "saving" || (completionStatus.current === "failed" && !manualRetry)) return;
+    completionStatus.current = "saving";
     setState("saving");
     try {
       // The learner sees success only after the server acknowledges completion.
       await onEnded(video.currentTime, video.duration);
+      completionStatus.current = "confirmed";
       setState("ended");
     } catch {
-      // The page reuses its idempotency key if the acknowledgment was lost.
+      // A lost acknowledgment is retried only by the explicit learner action.
+      // The parent reuses the same idempotency key for that retry.
+      completionStatus.current = "failed";
       setState("save_error");
-    } finally {
-      completing.current = false;
     }
   };
 
@@ -149,7 +157,7 @@ function VideoPlayerInstance({ src, captionsSrc, startAt = 0, testOnly = false, 
         <div className={styles.status} role="status"><div className={styles.statusCard}><span className={styles.spinner} aria-hidden="true" /><strong>جاري حفظ اكتمال الشرح</strong><span>انتظر قليلًا حتى نتأكد من حفظ تقدمك.</span></div></div>
       )}
       {state === "save_error" && (
-        <div className={styles.status} role="alert"><div className={styles.statusCard}><AlertTriangle size={32} aria-hidden="true" /><strong>تعذر تأكيد حفظ المشاهدة</strong><span>مشاهدتك لم تُفقد. أعد محاولة الحفظ دون إعادة الفيديو.</span><button type="button" className={styles.action} onClick={() => void confirmCompletion()}><RotateCcw size={18} /> إعادة حفظ المشاهدة</button></div></div>
+        <div className={styles.status} role="alert"><div className={styles.statusCard}><AlertTriangle size={32} aria-hidden="true" /><strong>تعذر تأكيد حفظ المشاهدة</strong><span>مشاهدتك لم تُفقد. أعد محاولة الحفظ دون إعادة الفيديو.</span><button type="button" className={styles.action} onClick={() => void confirmCompletion(true)}><RotateCcw size={18} /> إعادة حفظ المشاهدة</button></div></div>
       )}
       {state === "ended" && (
         <div className={styles.status} role="status"><div className={styles.statusCard}><strong>أكملت الشرح</strong><span>تم حفظ المشاهدة، ويمكنك الانتقال إلى التدريب الموجّه.</span><button type="button" className={styles.action} onClick={replay}><RotateCcw size={18} /> شاهد مرة أخرى</button></div></div>

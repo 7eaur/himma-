@@ -238,4 +238,32 @@ describe("VideoPlayer", () => {
     expect(onCheckpoint).toHaveBeenCalledWith(5.1, 10);
     expect(onCheckpoint).toHaveBeenCalledTimes(2);
   });
+
+  it("does not silently retry a failed save on a duplicate native ended event", async () => {
+    const onEnded = jest.fn().mockRejectedValueOnce(new Error("lost acknowledgment")).mockResolvedValueOnce(undefined);
+    render(<VideoPlayer src="/fixture.mp4" onCheckpoint={jest.fn()} onEnded={onEnded} />);
+    const video = screen.getByText("متصفحك لا يدعم تشغيل الفيديو.").closest("video") as HTMLVideoElement;
+    setMediaTime(video, 6);
+    fireEvent.ended(video);
+    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("تعذر تأكيد حفظ المشاهدة"));
+    fireEvent.ended(video);
+    expect(onEnded).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("button", { name: "إعادة حفظ المشاهدة" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "إعادة حفظ المشاهدة" }));
+    await waitFor(() => expect(screen.getByText("أكملت الشرح")).toBeInTheDocument());
+    expect(onEnded).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not submit completion again after replaying an already confirmed lesson", async () => {
+    const onEnded = jest.fn().mockResolvedValue(undefined);
+    render(<VideoPlayer src="/fixture.mp4" onCheckpoint={jest.fn()} onEnded={onEnded} />);
+    const video = screen.getByText("متصفحك لا يدعم تشغيل الفيديو.").closest("video") as HTMLVideoElement;
+    setMediaTime(video, 6);
+    fireEvent.ended(video);
+    await waitFor(() => expect(screen.getByText("أكملت الشرح")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "شاهد مرة أخرى" }));
+    fireEvent.ended(video);
+    expect(screen.getByText("أكملت الشرح")).toBeInTheDocument();
+    expect(onEnded).toHaveBeenCalledTimes(1);
+  });
 });
