@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
@@ -157,6 +157,8 @@ function apiError(data: unknown, fallback: string) {
 export default function StudentDetailPage() {
   const params = useParams();
   const id = params.id as string;
+  const activeIdRef = useRef(id);
+  activeIdRef.current = id;
   const [activeTab, setActiveTab] = useState<TabKey>("v2");
   const [student, setStudent] = useState<Student | null>(null);
   const [loadedStudentId, setLoadedStudentId] = useState<string | null>(null);
@@ -230,9 +232,9 @@ export default function StudentDetailPage() {
         setEditName(studentData.full_name);
         setOverrideLevel(String(studentData.current_level));
         await Promise.all([
-          loadSecondarySource<JourneySummary>(journeyResponse, setJourney, setJourneyState, () => !cancelled),
-          loadSecondarySource<AdaptationDecision[]>(historyResponse, setHistory, setHistoryState, () => !cancelled),
-          loadSecondarySource<RewardEvent[]>(rewardsResponse, setRewards, setRewardsState, () => !cancelled),
+          loadSecondarySource<JourneySummary>(journeyResponse, setJourney, setJourneyState, () => !cancelled && activeIdRef.current === id),
+          loadSecondarySource<AdaptationDecision[]>(historyResponse, setHistory, setHistoryState, () => !cancelled && activeIdRef.current === id),
+          loadSecondarySource<RewardEvent[]>(rewardsResponse, setRewards, setRewardsState, () => !cancelled && activeIdRef.current === id),
         ]);
       })
       .catch((error: unknown) => {
@@ -297,9 +299,9 @@ export default function StudentDetailPage() {
     setJourneyState("loading");
     try {
       const response = await fetch(`/api/researcher/students/${student.id}/journey`, { cache: "no-store" });
-      await loadSecondarySource<JourneySummary>(response, setJourney, setJourneyState);
+      await loadSecondarySource<JourneySummary>(response, setJourney, setJourneyState, () => activeIdRef.current === id);
     } catch {
-      setJourneyState("error");
+      if (activeIdRef.current === id) setJourneyState("error");
     }
   };
 
@@ -313,12 +315,14 @@ export default function StudentDetailPage() {
         fetch(`/api/researcher/students/${student.id}/rewards`, { cache: "no-store" }),
       ]);
       await Promise.all([
-        loadSecondarySource<AdaptationDecision[]>(historyResponse, setHistory, setHistoryState),
-        loadSecondarySource<RewardEvent[]>(rewardsResponse, setRewards, setRewardsState),
+        loadSecondarySource<AdaptationDecision[]>(historyResponse, setHistory, setHistoryState, () => activeIdRef.current === id),
+        loadSecondarySource<RewardEvent[]>(rewardsResponse, setRewards, setRewardsState, () => activeIdRef.current === id),
       ]);
     } catch {
-      setHistoryState("error");
-      setRewardsState("error");
+      if (activeIdRef.current === id) {
+        setHistoryState("error");
+        setRewardsState("error");
+      }
     }
   };
 
