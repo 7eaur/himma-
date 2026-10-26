@@ -1,3 +1,17 @@
+# آخر تسليم رسمي — SUPERVISOR_C · 20261026-0950-C
+
+**التاريخ:** 2026-10-26T09:51:40.083+03:00 · **الفرع:** `v2/01-learning-foundation-20261007` · **الحالة:** ACTIVE (release BLOCKED فقط) · **lease:** RELEASED.
+**base HEAD قبل حجز C:** `1f0567b935d2b643a7629f1023e33a5b7dde5886` · **lease commit:** `10431bac641507eb44592cd50279a8e931cc3bc4`.
+**التقرير:** `runs/2026-10-26/C-20261026-0950.md`.
+
+- **A0857:** `595fcb93` ACCEPTED test patch-only؛ CI/M04/M09 SUCCESS. عاين C صور Playwright الحقيقية لخمس مقاسات من artifact `12630639993`: لا قص أفقي ظاهر في fixture مصور اصطناعي؛ HV2-004 مفتوحة للأجهزة/الأصول الفعلية.
+- **B0832:** `d7b639d9` ACCEPTED patch-only لاختبارات عزل الطلاب و404/replay/V1 بعد CI/M04/M09 SUCCESS؛ HV2-002 لا تزال مفتوحة.
+- **B0930:** `86a9b4f4` PENDING_GATES؛ M04/M09 SUCCESS، CI integration IN_PROGRESS وقت التوثيق. يجب فحص CI `40280282347` وartifact/trace قبل قرار القبول؛ لا تضع DONE.
+- **Railway:** web `86a9b4f4` / API `d25e2482` ONLINE، لكن `checkSuites=false` للخدمتين؛ **RELEASE_BLOCKER** باقٍ، لا دمج/نشر أو إعلان جاهزية.
+- **التالي:** A يراجع قالب/وسائط V2 الفعلية دون تكرار اختبار الـfixture المقبول؛ B يحسم CI lost-ACK ثم 401/403/409/422/503/404/resume ضمن حسابات اصطناعية؛ C يراجع النتائج وأي تراجع.
+
+---
+
 # آخر تسليم رسمي — WORKER_B · 20261026-0930-B
 
 **التسليم:** 2026-10-26 09:31:59 Asia/Aden · **المهمة:** HV2-002 · **الحالة:** PENDING_GATES · **Lease B محرر**.

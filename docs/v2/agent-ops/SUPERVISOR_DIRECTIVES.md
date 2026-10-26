@@ -96,3 +96,19 @@
 - `D-021 | P0`: B `d7b639d9` **PENDING_GATES** حتى انتهاء CI integration وM09؛ حافظ على 404 المتماثل وowner replay والخصوصية، وأصلح الفشل الحقيقي فقط إن ظهر؛ نتائج `f9c250e7` الأقدم لا تكفي لقبول الاختبارات الجديدة.
 - `D-022 | RELEASE_BLOCKER`: Railway web `d7b639d9` وAPI `d25e2482` ONLINE لكن `checkSuites=false` للخدمتين، والنشر يسبق QA؛ يمنع إعلان الإصدار أو الدمج، ولا تغيّر إعدادات Railway دون موافقة المالك. لا دليل فساد بيانات يستلزم `PAUSED`.
 - `D-023 | REVIEW_LIMIT`: اختبارات 19 درسًا/403/audio archive static+backend فقط؛ لم تُشاهد ZIP أو لقطات Playwright فعليًا، ولم تُختبر أجهزة Safari/Android أو S3 production. لا تُمنح حالات تحقق حي دون أدلة.
+
+## مراجعة مستقلة C — 2026-10-26 2026-10-26T09:51:40.083+03:00 · `20261026-0950-C`
+
+| run_id / SHA | النطاق | القرار | دليل مستقل | المطلوب |
+|---|---|---|---|---|
+| `20261026-0857-A` / `595fcb934d4e` | HV2-004 خمسة مقاسات/شريط ترتيب صورة اصطناعية | **ACCEPTED (test patch only)** | فحص diff لملف `v2-assessment-visual-baseline.spec.ts`؛ CI [40277135230](https://github.com/7eaur/himma-/actions/runs/40277135230)، M04 [40277135087](https://github.com/7eaur/himma-/actions/runs/40277135087)، M09 [40277135173](https://github.com/7eaur/himma-/actions/runs/40277135173) كلها SUCCESS على SHA نفسه. **فُتح Playwright artifact `12630639993` بصريًا**: لقطات 360/390/430/768/1440 تظهر الشريط المصور، الالتفاف RTL وعدم قص أفقي ظاهر. | لا إغلاق HV2-004؛ أصل هندسي TEST_ONLY وليس وسيطًا تربويًا، ولا Safari/Android أو قارئ شاشة حقيقي. |
+| `20261026-0832-B` / `d7b639d929e4` | HV2-002 منع وصول طالب B إلى جلسة A وإعادة submit_key وعزل V1 | **ACCEPTED (test patch only)** | فحص source backend/BFF tests؛ CI [40275015229](https://github.com/7eaur/himma-/actions/runs/40275015229)، M04 [40275015096](https://github.com/7eaur/himma-/actions/runs/40275015096)، M09 [40275015023](https://github.com/7eaur/himma-/actions/runs/40275015023) SUCCESS على SHA نفسه. | متابعة فقد ACK/التعافي/أجهزة فعلية، لا قبول HV2-002 كاملًا. |
+| `20261026-0930-B` / `86a9b4f41d1f` | HV2-002 فقد ACK بعد نجاح كتابة start وanswer | **PENDING_GATES** | فحص diff لنسخة `8e4d64d` ثم إصلاح Regex `86a9b4f`؛ [M04 40280282439](https://github.com/7eaur/himma-/actions/runs/40280282439) SUCCESS و[M09 40280282476](https://github.com/7eaur/himma-/actions/runs/40280282476) SUCCESS؛ [CI 40280282347](https://github.com/7eaur/himma-/actions/runs/40280282347) integration IN_PROGRESS. | C/B يفحصان النتيجة النهائية وtrace دون إسقاط شرط same session/key/answered=1. |
+| Railway production web `86a9b4f` / API `d25e2482` | release gate | **BLOCKED (release only)** | web/API ONLINE؛ source.checkSuites=false للخدمتين؛ web `8e4d64d` FAILED قبل نشر `86a9b4f` SUCCESS؛ آخر API functional أقدم. | لا إعلان release-ready/دمج main/تعديل Railway دون موافقة المالك؛ `CONTROL.mode=ACTIVE` بلا دليل تلف بيانات. |
+| V2 19 lessons / audio privacy | source + automated tests | **PENDING_GATES (live/device)** | اختبارات source للـ19 درسًا، 403، إخفاء access_code/private_answer/storage_key وأحدث تسجيل مراجَع؛ لا اختبار production S3/أجهزة فعلية. | لا `PRIVACY_LIVE_VERIFIED` أو `DEVICE_VERIFIED`. |
+
+### توجيهات D-024..D-027
+- `D-024 | P0 B`: لا تُغلق `HV2-002` حتى انتهاء CI `40280282347` وفحص lost-ACK browser scenario على `86a9b4f`. M09 ناجحة وحدها لا تعادل CI مكتملة. حافظ على نفس session_id وsubmit_key وعدم مضاعفة answered بعد reload.
+- `D-025 | P1 A`: `595fcb93` مقبول كتوسيع Playwright مع مشاهدة صور artifact `12630639993` على خمسة مقاسات. اختبر لاحقًا الوسائط الحقيقية/القوالب الأخرى والتفاعل على الأجهزة؛ لا تكرر ما ثبت ولا تعتبر fixture الاصطناعية اعتماد محتوى.
+- `D-026 | SECURITY`: لا تغيّر صلاحيات Student360/التسجيلات أو بيانات V1 دون إثبات انحدار؛ اختبارات 19 درسًا/403/storage_key موجودة لكن التحقق الحي وسلامة S3 لم يتمّا.
+- `D-027 | RELEASE_BLOCKER`: Railway `checkSuites=false` لخدمتي web/API؛ نشر web قبل CI، وAPI على SHA أقدم. لا دمج/نشر يدوي/إعلان اعتماد حتى قرار المالك. لا `PAUSED` بلا دليل فساد/تسرب حقيقي.
