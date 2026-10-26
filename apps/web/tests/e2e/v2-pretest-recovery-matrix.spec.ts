@@ -824,3 +824,64 @@ for (const reportedAnswered of [0, 2] as const) {
     expect(answerPosts).toBe(1);
   });
 }
+
+
+test("HV2-002: terminal state with incomplete progress fails closed and recovers the real question", async ({ page, request }) => {
+  test.setTimeout(150000);
+  if (!PASSWORD) throw new Error("E2E_RESEARCHER_PASSWORD required");
+
+  const supervisor = await request.post(API_URL + "/auth/login", {
+    data: { username: USERNAME, password: PASSWORD },
+  });
+  expect(supervisor.status()).toBe(200);
+  const created = await request.post(API_URL + "/researcher/students", {
+    data: { full_name: "طالب اختبار حالة نهائية اصطناعي " + Date.now(), grade_level: 3 },
+  });
+  expect(created.status()).toBe(201);
+  const code = (await created.json()).access_code as string;
+
+  await page.goto("/student/login");
+  await page.getByTestId("input-access-code").fill(code);
+  await page.getByTestId("student-login-submit").click();
+  await expect(page.getByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
+
+  const started = await page.evaluate(async () => {
+    const response = await fetch("/api/v2/assessments/pretest/start", { method: "POST" });
+    return { status: response.status, data: await response.json() };
+  });
+  expect(started.status).toBe(200);
+  const sessionId = started.data.session.session_id as number;
+  let reads = 0;
+  await page.route("**/api/v2/assessments/sessions/" + sessionId, async route => {
+    if (route.request().method() !== "GET") return route.continue();
+    reads += 1;
+    if (reads !== 1) return route.continue();
+    const upstream = await route.fetch();
+    expect(upstream.status()).toBe(200);
+    const original = await upstream.json() as {
+      session: { state: string; progress: { answered: number; total: number } };
+      interaction: unknown;
+    };
+    expect(original.session.progress.answered).toBe(0);
+    // The backend keeps its genuine answering state. Only this browser-facing
+    // GET is altered to reproduce an inconsistent terminal acknowledgement.
+    return route.fulfill({
+      response: upstream,
+      json: {
+        ...original,
+        session: { ...original.session, state: "completed" },
+        interaction: null,
+      },
+    });
+  });
+
+  await page.goto("/student/assessment-v2/" + sessionId);
+  await expect(page.locator("main [role='alert']")).toContainText("تعذر استعادة التقييم");
+  await expect(page.getByTestId("v2-interaction-player")).toHaveCount(0);
+  await expect(page.getByText("اكتمل الاختبار القبلي")).toHaveCount(0);
+
+  await page.getByRole("button", { name: "إعادة المحاولة" }).click();
+  await expect(page.getByTestId("v2-interaction-player")).toContainText("1 من 30");
+  await expect(page.locator("main [role='alert']")).toHaveCount(0);
+  expect(reads).toBe(2);
+});

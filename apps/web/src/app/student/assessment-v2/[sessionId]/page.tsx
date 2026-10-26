@@ -33,7 +33,9 @@ function isAssessmentPayload(value: unknown, sessionId: number, expectedKind?: A
       !summary || !Number.isInteger(summary.pending_review) ||
       summary.pending_review < 0 || summary.pending_review > progress.answered) return false;
 
-  if (session.state !== "answering") return data.interaction === null;
+  // A terminal state is only possible after all thirty questions were submitted.
+  // Never show a completed/review screen from a malformed or stale partial payload.
+  if (session.state !== "answering") return progress.answered === progress.total && data.interaction === null;
   const interaction = data.interaction;
   return !!interaction && typeof interaction === "object" &&
     typeof interaction.question?.question_id === "string" &&
