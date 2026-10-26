@@ -40,5 +40,21 @@
   },
   "last_handoff_run": "20261026-0400-A",
   "last_reviewed_run": "20261026-0350-C",
-  "instructions": "Read README_AR.md and SUPERVISOR_DIRECTIVES.md. No merge, no V1 data deletion, no release claims before same-SHA gates."
+  "instructions": "Read README_AR.md and SUPERVISOR_DIRECTIVES.md. No merge, no V1 data deletion, no release claims before same-SHA gates.",
+  "parallel_leases": {
+    "WORKER_B": {
+      "owner": "WORKER_B",
+      "run_id": "20261026-0432-B",
+      "acquired_at": "2026-10-26T01:33:29.142Z",
+      "expires_at": "2026-10-26T01:52:29.142Z",
+      "base_head": "3838cccbc30f74885054eb02558a90f20f096a91",
+      "scope": [
+        "apps/web/src/app/admin/(dashboard)/students/[id]/page.tsx",
+        "apps/web/tests/e2e/student-detail-cross-device-integrity.spec.ts",
+        "docs/v2/agent-ops/"
+      ],
+      "task_id": "HV2-003",
+      "note": "Non-overlapping scoped lease; preserve WORKER_A legacy lease; do not touch A video/assessment files."
+    }
+  }
 }
