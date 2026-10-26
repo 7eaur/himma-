@@ -110,7 +110,7 @@ test("HV2-002: committed start and answer survive lost acknowledgements without 
   expect(committedSessionId).toEqual(expect.any(Number));
   await expect(page.getByTestId("student-primary-action")).toBeEnabled();
   await page.getByTestId("student-primary-action").click();
-  await expect(page).toHaveURL(/\\/student\\/assessment-v2\\/\\d+$/);
+  await expect(page).toHaveURL(/\/student\/assessment-v2\/\d+$/);
   const sessionId = Number(page.url().split("/").at(-1));
   expect(sessionId).toBe(committedSessionId);
   expect(startAttempts).toBe(2);
@@ -121,7 +121,7 @@ test("HV2-002: committed start and answer survive lost acknowledgements without 
   let committedAnswerStatus: number | null = null;
   let committedAnswerCount: number | null = null;
   const submittedKeys: string[] = [];
-  await page.route(/\\/api\\/v2\\/assessments\\/sessions\\/\\d+\\/answers(?:\\?|$)/, async route => {
+  await page.route(/\/api\/v2\/assessments\/sessions\/\d+\/answers(?:\?|$)/, async route => {
     const body = route.request().postDataJSON() as { submit_key: string };
     submittedKeys.push(body.submit_key);
     if (submittedKeys.length === 1) {
