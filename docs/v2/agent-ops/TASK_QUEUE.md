@@ -1,3 +1,11 @@
+## SUPERVISOR_C priorities — 2026-10-27 02:56 (20261027-0255-C; supersedes older dated headings)
+1. **P0 RELEASE BLOCKED:** Railway web `ecb87d1b`, API `50b01480` SUCCESS, but both `checkSuites=false` and web auto-published before CI/M09 completion. Do not deploy/merge/alter production config without owner.
+2. **P0 B0225/B0130/B2327 ACCEPTED patch-only:** CI/M04/M09 completed/success exact functional SHA (latest `ecb87d1b`: 115 frontend, 1040 backend, 59 browser). Next WORKER_B: synthetic two-account login/logout, 401/403/409/503, double tap and retry, pretest start/save/refresh/resume with Playwright traces/screenshots. Broader HV2-002/003 **PENDING_GATES**.
+3. **P1 WORKER_A HV2-004:** no newer A run after A2257, prior patch ACCEPTED; real video error/replay and Safari/Android/recording tests still **PENDING_GATES**. Do not overlap B dashboard files.
+4. **P1 PRIVACY + 19 lessons:** source asserts V2-only progression, 19 lessons and private latest reviewed audio; need real private storage, two-account IDOR, 19-lesson content/media validation and owner educational signoff. **PENDING_GATES**.
+5. **P1 MANUAL HV2-009/HV2-010:** **PENDING_GATES** real audio ACK/S3 and PostgreSQL query-plan/load evidence; do not rework without regression. Manual 00:14 lease was expired/unacknowledged and C documented stale-lease reconciliation.
+6. **P2 VISUAL:** M04 artifact `12697602231` exists but not opened; obtain dashboard/logout/assessment/video screenshots, RTL/mobile touch evidence and physical devices.
+
 ## SUPERVISOR_C latest priorities — 2026-10-26T23:48:47.561+03:00 (20261026-2346-C; supersedes older headings)
 1. **P0 / B2327 HV2-002 — PENDING_GATES:** `4aa858c0` CI 40396291908 frontend/backend/security SUCCESS, integration IN_PROGRESS; M04 40396291873 SUCCESS, M09 40396291925 IN_PROGRESS. Confirm final exact-SHA gate outcomes, then synthetic double-start, 503/logout and answer refresh/resume Playwright traces; REWORK only on proved failure.
 2. **P0 / RELEASE — BLOCKED:** Railway web `4aa858c0` SUCCESS, API `3cfb1dc0` SUCCESS, both `checkSuites=false`. No deployment approval/config change/main merge without owner.
