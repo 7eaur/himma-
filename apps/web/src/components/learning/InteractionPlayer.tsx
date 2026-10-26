@@ -86,12 +86,24 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   }, [endpointBase, interaction.draft, question.interaction, sessionId, text]);
 
   const ordered = question.interaction === "sequence" || question.interaction === "build_word";
+  // A missing referenced asset must not turn an audio/image question into a
+  // guessable text-only answer. This also covers absent image choices even
+  // when a malformed payload forgot to declare their media references.
+  const missingRequiredMedia = [
+    ...question.stimulus.media,
+    ...question.options.flatMap((option) => option.media),
+  ].some((reference) => {
+    const asset = media[reference.media_id];
+    return !asset || asset.kind !== reference.kind || asset.state !== "ready" || !asset.url;
+  }) || (question.interaction === "choose_image" &&
+    question.options.some((option) => !option.media.some((item) => item.kind === "image")));
   const ready = useMemo(() => {
+    if (missingRequiredMedia) return false;
     if (question.interaction === "write_text") return Boolean(text.trim());
     if (question.interaction === "read_aloud") return Boolean(audioBlob);
     if (ordered) return selected.length === question.options.length;
     return selected.length === 1;
-  }, [audioBlob, ordered, question.interaction, question.options.length, selected.length, text]);
+  }, [audioBlob, missingRequiredMedia, ordered, question.interaction, question.options.length, selected.length, text]);
 
   const playMedia = async (assetId: string) => {
     const asset = media[assetId];
@@ -115,7 +127,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   };
 
   const choose = (id: string) => {
-    if (saving || awaitingConfirmation) return;
+    if (saving || awaitingConfirmation || missingRequiredMedia) return;
     setFeedback(null);
     if (ordered) { if (!selected.includes(id)) setSelected((current) => [...current, id]); return; }
     setSelected([id]);
@@ -167,7 +179,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   };
 
   const submit = async () => {
-    if (!ready || saving) return;
+    if (!ready || saving || missingRequiredMedia) return;
     setSaving(true); setError("");
     try {
       let pending = pendingAnswerRef.current;
@@ -220,12 +232,15 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
 
   const renderMedia = (reference: MediaRef, option = false) => {
     const asset = media[reference.media_id];
+    if (!asset || asset.kind !== reference.kind || asset.state !== "ready" || !asset.url) {
+      return <div className={styles.mediaMissing} role="status">الوسيط غير جاهز</div>;
+    }
     if (reference.kind === "audio") {
       const active = playingId === reference.media_id;
       const label = active ? "إيقاف الصوت" : option ? "تشغيل صوت هذا الخيار" : "تشغيل صوت السؤال";
       return <button type="button" className={styles.audioButton} onClick={(event) => { event.stopPropagation(); void playMedia(reference.media_id); }} aria-label={label}>{active ? <Pause size={25}/> : <Volume2 size={25}/>}<span>{active && audioState === "loading" ? "جاري التحميل" : active ? "إيقاف" : "استمع"}</span></button>;
     }
-    if (reference.kind === "image" && asset?.url) return <Image className={styles.educationImage} src={asset.url} width={300} height={220} unoptimized alt={option ? "صورة خيار" : "صورة السؤال"}/>;
+    if (reference.kind === "image") return <Image className={styles.educationImage} src={asset.url} width={300} height={220} unoptimized alt={option ? "صورة خيار" : "صورة السؤال"}/>;
     return <div className={styles.mediaMissing} role="alert">الوسيط غير جاهز</div>;
   };
 
@@ -241,6 +256,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   return <section className={styles.shell} data-testid="v2-interaction-player" data-interaction={question.interaction}>
     <div className={styles.topline}><span>{stageLabel}</span><span>{interaction.progress.index} من {interaction.progress.total}</span></div>
     <h2>{question.prompt}</h2>
+    {missingRequiredMedia && <div className={styles.mediaMissing} role="alert">هذا السؤال يحتاج صورة أو صوتًا غير جاهز الآن. لن تُرسل الإجابة حتى يتوفر الوسيط.</div>}
     {question.stimulus.text && <div className={styles.stimulusText}>{question.stimulus.text}</div>}
     {question.stimulus.media.length > 0 && <div className={styles.stimulusMedia}>{question.stimulus.media.map((item) => <div key={item.media_id}>{renderMedia(item)}</div>)}</div>}
 
@@ -248,13 +264,14 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
 
     {!OPEN_INTERACTIONS.has(question.interaction) && <div className={`${styles.options} ${question.interaction === "choose_image" ? styles.imageOptions : ""}`}>{question.options.map((option, optionIndex) => {
       const chosen = selected.includes(option.id);
-      const disabled = saving || awaitingConfirmation || (ordered && chosen);
+      const disabled = saving || awaitingConfirmation || missingRequiredMedia || (ordered && chosen);
       const audioMedia = option.media.filter((item) => item.kind === "audio");
       const visualMedia = option.media.filter((item) => item.kind !== "audio");
       return <div key={option.id} className={`${styles.option} ${chosen ? styles.selected : ""}`}>
         {audioMedia.map((item) => <span key={item.media_id}>{renderMedia(item, true)}</span>)}
         <button type="button" disabled={disabled} className={styles.optionChoice} onClick={() => choose(option.id)} aria-pressed={chosen} aria-label={`اختيار الخيار ${optionIndex + 1}`}>
           {visualMedia.map((item) => <span key={item.media_id}>{renderMedia(item, true)}</span>)}
+          {question.interaction === "choose_image" && !visualMedia.some((item) => item.kind === "image") && <span className={styles.mediaMissing}>الصورة غير جاهزة</span>}
           {option.text && <strong>{option.text}</strong>}{chosen && !ordered && <Check className={styles.check} size={19}/>}
         </button>
       </div>;
@@ -264,7 +281,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
 
     {question.interaction === "read_aloud" && <div className={styles.recorder}>{!audioBlob ? <><button type="button" className={`${styles.recordButton} ${recording ? styles.recording : ""}`} onClick={recording ? stopRecording : () => void startRecording()} disabled={saving || awaitingConfirmation} aria-label={recording ? "إيقاف التسجيل" : "بدء التسجيل"}>{recording ? <MicOff size={28}/> : <Mic size={28}/>}</button><p>{recording ? `جاري التسجيل… ${recordingSeconds} ث` : "اضغط ثم اقرأ بصوت واضح"}</p></> : <>{audioUrl && <audio controls src={audioUrl}/>}<button type="button" className={styles.secondary} disabled={saving || awaitingConfirmation} onClick={resetRecording}><RotateCcw size={16}/> إعادة التسجيل</button><p>سيبقى التقييم معلقًا حتى يراجعه المشرف.</p></>}</div>}
 
-    {feedback && <div className={`${styles.feedback} ${feedback.correct === false ? styles.retry : styles.accepted}`} role="status"><strong>{feedback.correct === true ? "أحسنت!" : feedback.correct === false ? "حاول مرة أخرى" : "تم الحفظ"}</strong><span>{feedback.message}</span>{feedback.retry_required && feedback.hint && <span className={styles.hint}>تلميح: {feedback.hint}</span>}</div>}
+    {!isAssessment && feedback && <div className={`${styles.feedback} ${feedback.correct === false ? styles.retry : styles.accepted}`} role="status"><strong>{feedback.correct === true ? "أحسنت!" : feedback.correct === false ? "حاول مرة أخرى" : "تم الحفظ"}</strong><span>{feedback.message}</span>{feedback.retry_required && feedback.hint && <span className={styles.hint}>تلميح: {feedback.hint}</span>}</div>}
     {error && <div className={styles.error} role="alert">{error}</div>}
     <button type="button" className={styles.submit} disabled={!ready || saving || recording} onClick={() => void submit()}>{saving ? "جاري الحفظ..." : awaitingConfirmation ? "إعادة محاولة حفظ الإجابة" : question.interaction === "read_aloud" ? "إرسال التسجيل للمراجعة" : question.interaction === "write_text" ? "إرسال الكتابة للمراجعة" : isAssessment ? "حفظ الإجابة والمتابعة" : "تحقق من الإجابة"}</button>
   </section>;

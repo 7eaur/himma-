@@ -131,6 +131,54 @@ describe("InteractionPlayer", () => {
     expect(second.selected_option_ids).toEqual(["b"]);
   });
 
+
+  it("blocks submission when a referenced stimulus audio is missing", () => {
+    render(<InteractionPlayer sessionId={7} interaction={payload({
+      interaction: "listen_choose_one",
+      stimulus: { text: null, media: [{ media_id: "AUD-NOT-READY", kind: "audio" }] },
+    })} onLessonChange={jest.fn()}/>);
+    expect(screen.getByRole("alert")).toHaveTextContent("لن تُرسل الإجابة");
+    expect(screen.getByRole("button", { name: "اختيار الخيار 1" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "تحقق من الإجابة" })).toBeDisabled();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it("blocks incomplete image-choice questions rather than grading a guess", () => {
+    const question = payload({
+      interaction: "choose_image",
+      options: [
+        { id: "a", text: null, media: [{ media_id: "IMG-READY", kind: "image" }] },
+        { id: "b", text: null, media: [{ media_id: "IMG-MISSING", kind: "image" }] },
+      ],
+    });
+    question.media["IMG-READY"] = {
+      asset_id: "IMG-READY", kind: "image", state: "ready", url: "/test-image.png", test_only: true,
+    };
+    render(<InteractionPlayer sessionId={7} interaction={question} onLessonChange={jest.fn()}/>);
+    expect(screen.getByRole("button", { name: "اختيار الخيار 1" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "اختيار الخيار 2" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "تحقق من الإجابة" })).toBeDisabled();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it("does not reveal correctness or hints in pretest even if an API response includes them", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true, status: 200,
+      json: async () => ({
+        submission: { retry_required: true, status: "graded", correct: false, hint: "لا تكشف هذه المعلومة", message: "حاول مرة أخرى" },
+        assessment: { session: { state: "answering" } },
+      }),
+    });
+    const pretest = payload({ role: "pretest" });
+    pretest.progress = { index: 1, total: 30, stage: "pretest" };
+    render(<InteractionPlayer sessionId={17} interaction={pretest} endpointBase="/api/v2/assessments" onLessonChange={jest.fn()}/>);
+    fireEvent.click(screen.getByRole("button", { name: "اختيار الخيار 1" }));
+    fireEvent.click(screen.getByRole("button", { name: "حفظ الإجابة والمتابعة" }));
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
+    expect(screen.queryByText(/تلميح:/)).not.toBeInTheDocument();
+    expect(screen.queryByText("حاول مرة أخرى")).not.toBeInTheDocument();
+  });
+
   it("autosaves writing as a draft before it becomes review evidence", async () => {
     jest.useFakeTimers();
     (global.fetch as jest.Mock).mockResolvedValue({ ok: true, json: async () => ({ status: "saved" }) });
