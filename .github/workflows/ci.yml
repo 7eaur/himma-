@@ -320,6 +320,8 @@ jobs:
           tests/e2e/accessibility-integration.spec.ts
           tests/e2e/w6-axe.spec.ts
           tests/e2e/student-detail-responsive-matrix.spec.ts
+          tests/e2e/student-detail-cross-device-integrity.spec.ts
+          tests/e2e/student-detail-partial-source-errors.spec.ts
           tests/e2e/w6-responsive.spec.ts
           tests/e2e/admin-dialog-keyboard.spec.ts
           tests/e2e/media-fidelity.spec.ts
