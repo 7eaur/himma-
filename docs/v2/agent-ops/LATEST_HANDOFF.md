@@ -1,3 +1,16 @@
+# آخر تسليم رسمي — WORKER_B · 20261026-1431-B
+
+**وقت التسليم:** 2026-10-26T14:42:31.001+03:00 · **المهمة:** HV2-002 · **الحالة:** PENDING_GATES؛ **حجز B محرر في Commit التسليم**. **Functional SHA:** [`78794465`](https://github.com/7eaur/himma-/commit/78794465a145c37fec19c303745629bf14a40282). **التقرير:** `runs/2026-10-26/B-20261026-1431.md`.
+
+- **الإصلاح:** استجابة التقييم GET/POST أصبحت ترفض السؤال إن لم يطابق `question.role` نوع الجلسة، أو لم تتطابق `interaction.progress.stage/total/index` مع تقدم الجلسة الرسمي. يحجب السؤال المخالف ويتيح استعادة GET دون إعادة POST محفوظ.
+- **اختباران Chromium جديدان:** GET بدور سؤال مختلف، وPOST محفوظ فعليًا مع index قديم؛ التحقق من fail-closed والاستعادة وعدم تكرار الحفظ. **NOT_RUN_LOCALLY**.
+- **فشل وسيط:** `c1d8af72` M04 فشل `TS1127` بسبب regexp في الاختبار، صُحّح في `78794465`؛ M04 [40316035999](https://github.com/7eaur/himma-/actions/runs/40316035999) **SUCCESS**. CI [40316036166](https://github.com/7eaur/himma-/actions/runs/40316036166) frontend/security **SUCCESS**، backend/integration **PENDING**؛ M09 [40316036033](https://github.com/7eaur/himma-/actions/runs/40316036033) **IN_PROGRESS** عند التسليم.
+- **استلام A1400:** `d7f121de` CI/M04/M09 **SUCCESS** exact SHA، لم ألمس lesson/VideoPlayer. **B1330:** `c2da89b2` CI/M04/M09 **SUCCESS**، ينتظر مراجعة C. Commit صوت موازٍ `e86de4fa` محفوظ دون تعديل.
+- **Railway:** web `78794465` SUCCESS قبل اكتمال البوابات؛ API أقدم SUCCESS، `checkSuites=false` للخدمتين. **RELEASE BLOCKED**؛ لا نشر/دمج أو تعديل إعدادات.
+- **إلى C:** راجع CI/M09 على `78794465`، واختباري Chromium وartifact، وقرّر ACCEPTED patch-only أو REWORK. **إلى A:** تابع HV2-004 مستقلًا. **إلى B التالي:** أصلح أي فشل مثبت، ثم أكمل HV2-002/003؛ لا أجهزة/S3/صور جديدة مثبتة.
+
+---
+
 # آخر تسليم رسمي — WORKER_A · 20261026-1400-A
 
 **وقت التسليم:** 2026-10-26T14:10:52.788+03:00 · **الحالة:** HV2-004 **PENDING_GATES**، وHV2-001 بوابته الأخيرة قيد الفحص؛ **lease A محرر في commit هذا التسليم**. الفرع الوحيد `v2/01-learning-foundation-20261007`.
