@@ -60,6 +60,34 @@ def test_objective_answer_is_private_idempotent_and_advances(student_client):
         assert db.query(AssessmentQuestionResponse).one().is_correct is True
 
 
+def test_student_cannot_open_or_answer_another_students_v2_session(student_client):
+    first = student_client.post("/v2/assessments/pretest/start")
+    assert first.status_code == 200
+    first_id = first.json()["session"]["session_id"]
+    with TestingSessionLocal() as db:
+        db.add(Student(access_code="STU002", name="طالب تجريبي آخر", current_level=1))
+        db.commit()
+
+    second_login = student_client.post("/auth/student-login", json={"access_code": "STU002"})
+    assert second_login.status_code == 200
+    hidden = student_client.get(f"/v2/assessments/sessions/{first_id}")
+    assert hidden.status_code == 404
+    assert "private_answer" not in hidden.text
+    rejected = student_client.post(
+        f"/v2/assessments/sessions/{first_id}/answers",
+        json={"submit_key": str(uuid4()), "selected_option_ids": ["not-owned"]},
+    )
+    assert rejected.status_code == 404
+    second = student_client.post("/v2/assessments/pretest/start")
+    assert second.status_code == 200
+    assert second.json()["session"]["session_id"] != first_id
+
+    assert student_client.post("/auth/student-login", json={"access_code": "STU001"}).status_code == 200
+    restored = student_client.get(f"/v2/assessments/sessions/{first_id}")
+    assert restored.status_code == 200
+    assert restored.json()["session"]["progress"]["answered"] == 0
+
+
 def test_open_responses_keep_placement_pending_until_human_review_and_manual_decision(researcher_client, monkeypatch):
     import storage
     monkeypatch.setattr(storage, "verify_audio", lambda *args, **kwargs: None)
