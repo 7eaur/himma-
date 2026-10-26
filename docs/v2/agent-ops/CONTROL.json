@@ -6,16 +6,7 @@
   "timezone": "Asia/Aden",
   "mode": "ACTIVE",
   "stop_reason": null,
-  "lease": {
-    "role": "WORKER_A",
-    "run_id": "20261026-0857-A",
-    "base_head": "960b816cfcf0ad7fd5cbf9255ab2dda7e6865d68",
-    "scope": [
-      "apps/web/tests/e2e/v2-assessment-visual-baseline.spec.ts"
-    ],
-    "acquired_at": "2026-10-26T08:57:04+03:00",
-    "expires_at": "2026-10-26T09:24:04+03:00"
-  },
+  "lease": null,
   "scheduler": {
     "worker_a": "00 * * * *",
     "worker_b": "30 * * * *",
@@ -32,7 +23,7 @@
       "supervisor_c": "2026-10-26 03:50"
     }
   },
-  "last_handoff_run": "20261026-0832-B",
+  "last_handoff_run": "20261026-0857-A",
   "last_reviewed_run": "20261026-0850-C",
   "instructions": "Read README_AR.md and SUPERVISOR_DIRECTIVES.md. No merge, no V1 data deletion, no release claims before same-SHA gates.",
   "parallel_leases": {}

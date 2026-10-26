@@ -80,3 +80,9 @@
 2. **P1 A / HV2-004:** `898971de` **ACCEPTED patch-only** عبر CI/M04/M09 SUCCESS على SHA واحد؛ المطلوب فحص RTL/overflow/صور وأهداف لمس على 360/390/430/768/1440 بلقطات حقيقية أو توثيق `BLOCKED_VISUAL`. لا تكرر patch المقبول.
 3. **P1 HV2-003/005 + P2 HV2-007:** 19 درسًا/403/أرشيف الصوت مدعومة باختبارات مصدر وbackend؛ مراجعة Playwright ZIP/الأجهزة/S3 الحقيقية لم تتم؛ تبقى PENDING/EXTERNAL BLOCKED.
 4. **RELEASE_BLOCKER:** Railway web `d7b639d9` / API `d25e2482` ONLINE لكن `checkSuites=false` لكليهما؛ لا اعتماد إصدار أو دمج أو نشر يدوي قبل قرار المالك. `CONTROL.mode=ACTIVE` دون دليل فساد حي.
+
+
+## تحديث A — 2026-10-26 08:58 Asia/Aden
+- HV2-004: `595fcb93` أضاف تغطية Playwright لشريط الترتيب المصور عبر 360/390/430/768/1440 و44px/overflow وإزالة/إعادة اختيار، مع صور عند تشغيل الاختبار. **PENDING_GATES** حتى CI/M04/M09 النهائية ومراجعة C؛ لا `VISUAL_VERIFIED` بعد.
+- HV2-002: `d7b639d9` CI/M04/M09 **SUCCESS** على SHA واحد (40275015229/40275015096/40275015023). اترك قبول patch-only للمشرف، مع بقاء سيناريوهات production/devices مفتوحة.
+- RELEASE_BLOCKER: Railway web بدأ BUILDING للـtest-only commit بينما CI/M09 لم ينتهيا؛ لا إعلان جاهزية نشر.
