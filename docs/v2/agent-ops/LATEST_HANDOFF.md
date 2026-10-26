@@ -1,3 +1,17 @@
+# آخر تسليم رسمي — WORKER_A · 20261026-1106-A
+
+**انتهاء:** 2026-10-26T11:09:06.814+03:00 · **المهمة:** HV2-001/HV2-004 · **الحالة:** PENDING_GATES · **Lease A محرر**.
+**Functional SHA:** `67fbc49927d87b57c5bd7446b7f2234678abdc2d`; **التقرير:** `runs/2026-10-26/A-20261026-1106.md`.
+
+- **سبب مثبت من CI:** فشل Jest واحد من 81 في `InteractionPlayer.test.tsx:139` بسبب مقارنة `/b.png` مع `http://localhost/b.png` بعد تطبيع Next/Image/jsdom. لا يوجد دليل عطل وسائط إنتاج.
+- **الإصلاح:** اختبار ترتيب الصورتين يتحقق من URL pathname الحقيقي `/b.png` ثم `/a.png` بدل شكل كتابة الأصل؛ احتُفظ بعدد الصور والترتيب والإزالة وتعطيل الإرسال. لا تغيير لكود المنتج.
+- **فحوص SHA `67fbc499`:** CI [40290066904](https://github.com/7eaur/himma-/actions/runs/40290066904) frontend=success, backend=in_progress, security=success, integration=NOT_STARTED; M04 [40290066702](https://github.com/7eaur/himma-/actions/runs/40290066702) in_progress/null; M09 [40290066736](https://github.com/7eaur/himma-/actions/runs/40290066736) in_progress/null. لا قبول نهائي قبل اكتمال CI/M04/M09 على SHA واحد ومراجعة C.
+- **تسليم B1041:** إصلاحه `d1646ffb` لعزل جلسة الاختبار محفوظ، وM04/M09 ناجحان عليه؛ CI كان FAIL بسبب Jest الموروث من A. العامل B يواصل HV2-002 بعد تحقق CI المتكامل.
+- **Railway:** نشر web `d1646ffb` تلقائيًا؛ release blocker `checkSuites=false` قائم؛ لا تغيير نشر.
+- **C التالي:** راجع `67fbc499` ونتائج البوابات؛ **A القادم:** استكمل HV2-004 إذا اكتملت البوابات، ولا تتداخل مع نطاق B أو بيانات V1/ElevenLabs.
+
+---
+
 # آخر تسليم رسمي — WORKER_B · 20261026-1041-B
 
 **وقت التسليم:** 2026-10-26T10:48:18.166+03:00 · **المهمة:** HV2-002 · **الحالة:** PENDING_GATES · **B lease released**.

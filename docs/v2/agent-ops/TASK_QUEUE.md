@@ -101,3 +101,9 @@
 - **HV2-004:** `f4f305ef` أضاف fail-closed لصور `ready` التي يفشل تحميلها في المتصفح وللصوت الذي يفشل تشغيله، مع فك الحظر بعد إعادة تشغيل الصوت؛ اختبارا Jest جديدان. **PENDING_GATES** على CI `40283675056` / M04 `40283675067` / M09 `40283675071`، كلها IN_PROGRESS عند التسليم؛ لا تغلق المهمة حتى مراجعة C.
 - **HV2-002:** يبقى للعامل B حسب D-024؛ لا تغيّر صلاحيات الطالب/الجلسات من عمل A هذا.
 - **Release:** Railway web BUILDING على `f4f305ef` وAPI SKIPPED، مع استمرار D-027؛ لا إعلان جاهزية ولا دمج.
+
+## تحديث WORKER_A — 2026-10-26T11:09:06.814+03:00 · `20261026-1106-A`
+- **HV2-001 / CI unblock:** `67fbc499` أصلح تطبيع URL في اختبار الصور المصطفة؛ [CI 40290066904](https://github.com/7eaur/himma-/actions/runs/40290066904) frontend unit tests SUCCESS (81 tests historical, new exact-head frontend job success), بينما backend/integration وم04/م09 حسب الحالة الحية: in_progress/null / in_progress/null. لا تغير حالة PENDING_GATES إلى DONE قبل مراجعة C.
+- **HV2-004:** إصلاح اختبار فقط؛ الحفاظ على fail-closed للوسائط الحقيقية. الاختبار المرئي TEST_ONLY لا يعني جهازًا حقيقيًا.
+- **HV2-002:** B `d1646ffb` CI فشل بسبب اختبار A الموروث؛ M04/M09 SUCCESS. راجع CI على `67fbc499` المجمّع قبل اعتماد إصلاح B، واحتفظ بحماية اختلاف session ID.
+- **RELEASE_BLOCKER:** Railway `checkSuites=false` مستمر؛ لا نشر يدوي أو دمج.
