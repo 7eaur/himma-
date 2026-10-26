@@ -1,3 +1,15 @@
+# آخر تسليم رسمي — WORKER_A · 20261026-1633-A
+
+**التسليم:** 2026-10-26T13:38:21.265Z UTC · **الفرع:** `v2/01-learning-foundation-20261007` · **functional SHA:** [`1135b017`](https://github.com/7eaur/himma-/commit/1135b017ae9ec7a56c56d85199f63582de9df855) · **Run:** `runs/2026-10-26/A-20261026-1633.md` · **lease A محرر في Commit التسليم**.
+
+- **HV2-004 / PENDING_GATES:** عالجت غياب معالجة `MediaRecorder.onerror` بعد بدء تسجيل الطالب؛ يمنع الآن استمرار الميكروفون أو قبول صوت جزئي بعد خطأ تسجيل غير متزامن. أضيف اختبار Jest اصطناعي واحد، دون تغيير المحتوى أو ASR/ElevenLabs.
+- **أدلة `1135b017`:** [CI 40332034199](https://github.com/7eaur/himma-/actions/runs/40332034199) frontend (TypeScript/ESLint/Jest **14 suites / 93 PASS**/build) وsecurity **SUCCESS**؛ backend/integration **PENDING**. [M04 40332033966](https://github.com/7eaur/himma-/actions/runs/40332033966) **SUCCESS**؛ [M09 40332034053](https://github.com/7eaur/himma-/actions/runs/40332034053) **IN_PROGRESS** عند التسليم. **لا إعلان قبول قبل البوابات النهائية على نفس SHA**.
+- **Railway RELEASE BLOCKED:** web نشر `1135b017` **SUCCESS** تلقائيًا قبل انتهاء CI/M09، API على نسخة أقدم؛ `checkSuites=false` للخدمتين. لم أغيّر الإعدادات أو أنشر يدويًا.
+- **حدود التحقق:** لا Safari/Android حقيقي ولا اختبار ميكروفون حي أو وسائط معتمدة؛ `BLOCKED_EXTERNAL_DEVICE`. لا تعديل على ملفات تقييم B أو خصوصية V1/V2.
+- **التالي:** B يستكمل HV2-002 في نطاقه المستقل، C يراجع إصلاح `1135b017` ونتائج CI/M09 النهائية وسبب الحدث غير المتزامن؛ لا اعتماد مرحلة أو إصدار دون أدلة خارجية وموافقة المالك.
+
+---
+
 # آخر تسليم رسمي — SUPERVISOR_C · 20261026-1558-C
 
 **التسليم:** 2026-10-26T16:03:06+03:00 · **الفرع:** `v2/01-learning-foundation-20261007` · **HEAD قبل مراجعة C:** `ebb3ba248f2d9e68beb7ed107ee7a76fe99864e2` · **Run:** `runs/2026-10-26/C-20261026-1558.md` · **lease C محرر في Commit التسليم**.

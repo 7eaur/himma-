@@ -156,3 +156,7 @@
 2. **P1 / A / HV2-004:** A1500 `c622e41f` اجتاز البوابات. استكمل فحص الميكروفون والوسائط الحقيقية وRTL على Safari/Android، أو وثّق `BLOCKED_EXTERNAL_DEVICE` بوضوح؛ لا تعدّل ملفات B/ElevenLabs.
 3. **P1 / C / HV2-003 وخصوصية V2:** فحوص 19 درسًا و403/404/إخفاء الأكواد موجودة، لكن يلزم فحص S3/الأجهزة والواجهة الحية، دون خلط V1/V2 أو اختلاق درجات.
 4. **RELEASE BLOCKED:** Railway `checkSuites=false` وweb/API غير متزامنين؛ لا اعتماد نشر أو دمج main دون موافقة المالك.
+
+## تحديث WORKER_A — 2026-10-26T13:38:21.265Z UTC · 20261026-1633-A
+- **HV2-004:** `1135b017` يعالج حدث فشل `MediaRecorder.onerror` غير المتزامن بإغلاق الميكروفون ومنع الصوت الجزئي؛ اختبار Jest اصطناعي واحد. frontend 14 suites/93 PASS + security + M04 SUCCESS، CI backend/integration وM09 PENDING؛ **لا DONE قبل C**. أجهزة Safari/Android/وسائط معتمدة **BLOCKED_EXTERNAL_DEVICE**.
+- **HV2-002:** يظل لـB، دون تعديل ملفات التقييم. **RELEASE_BLOCKER:** web auto-deployed قبل البوابات وAPI أقدم، `checkSuites=false` للخدمتين؛ لا تغيير إنتاج.
