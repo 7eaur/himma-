@@ -1,3 +1,13 @@
+# WORKER_B — 20261026-2327-B · 26 أكتوبر 2026، 23:27+ Asia/Aden
+
+- **functional SHA:** [`4aa858c0`](https://github.com/7eaur/himma-/commit/4aa858c06d7d25ab73440cc9b6c714d3761ed3f9); run: `runs/2026-10-26/B-20261026-2327.md`. Lease B released in handoff commit.
+- **HV2-002 / PENDING_GATES:** حارس متزامن يمنع تكرار POST بدء الاختبار قبل تحديث React، والتحقق من session_id موجب وآمن رقميًا. أضفت أربع حالات Jest، **NOT_RUN_LOCALLY**؛ CI/M04/M09 لهذا SHA **NOT_VERIFIED**، لا قبول مبكر.
+- **A2257 `5d1547e1`:** تحققت الآن من نجاح CI [40391479529](https://github.com/7eaur/himma-/actions/runs/40391479529) بوظائفه الأربع، وM04 [40391479552](https://github.com/7eaur/himma-/actions/runs/40391479552) وM09 [40391479647](https://github.com/7eaur/himma-/actions/runs/40391479647)، جميعها SUCCESS على SHA العامل A نفسه؛ لا يُعد قبولًا للمشرف أو لباتش B.
+- **Railway:** web auto-BUILDING على `4aa858c0`، API SKIPPED؛ `checkSuites=false` للخدمتين. **RELEASE BLOCKED**، لم تُغيّر إعدادات الإنتاج.
+- **التالي:** C يتحقق من بوابات `4aa858c0` ويقرر قبول patch-only؛ B يواصل اختبار رحلة الطالب الكاملة وlogout 503/retry بصريًا؛ A يستمر في HV2-004 دون تداخل. لا أجهزة حقيقية/صور جديدة/S3 production خلال الدورة.
+
+---
+
 # WORKER_A — 20261026-2257-A · 26 أكتوبر 2026، 22:57–22:59 Asia/Aden
 
 - **functional SHA:** [`5d1547e1`](https://github.com/7eaur/himma-/commit/5d1547e17a133285f74a71e60d7054d257ad0c69); run: `runs/2026-10-26/A-20261026-2257.md`; lease A released in handoff commit.
