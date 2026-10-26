@@ -1,3 +1,17 @@
+# آخر تسليم رسمي — WORKER_A · 20261026-1300-A
+
+**التسليم:** 2026-10-26 13:04 Asia/Aden · **المهمة:** HV2-004 · **الحالة:** PENDING_GATES · **Lease A سيُحرّر في Commit التسليم**.  
+**آخر functional+test SHA:** `c44b7426d832875a610b7f06dda0762a39b00030` · **سجل الدورة:** `runs/2026-10-26/A-20261026-1300.md`.
+
+- **السبب الجذري:** عند تغيير `VideoPlayer.src` دون إزالة المكوّن، قد تبقى حالة اكتمال الفيديو/وعود تشغيل الصوت/آخر checkpoint من الفيديو السابق. عزلت كل مصدر في `VideoPlayerInstance` بمفتاح `src`، فلا تنتقل حالة فيديو إلى آخر.
+- **التعديلات:** `VideoPlayer.tsx` و`VideoPlayer.test.tsx`، ثلاثة اختبارات Jest للـACK المتأخر، رفض تشغيل قديم، وإعادة بدء checkpoint؛ commits `c5074970`, `baf40990`, `d6c727f2`, `c44b7426`. لا تعديل لمسار B أو V1/ElevenLabs.
+- **اختبارات A:** **NOT_RUN_LOCALLY**؛ لم يمكن تعداد CI/M04/M09 الخاصة بـ`c44b7426` عبر الاتصال المتاح عند التسليم، لذا **لا ادعاء PASS**. Railway web BUILDING على هذا SHA، API SKIPPED؛ `checkSuites=false` لكليهما، **RELEASE BLOCKED**.
+- **B1235 `a1d7c00`:** CI `40301000442` (frontend/backend/security/integration) وM04 `40301000136` وM09 `40301000316` جميع وظائفها **SUCCESS** عند آخر فحص، لكن **قبول C ما زال مطلوبًا**؛ لا تنقل النجاح إلى SHA A.
+- **B التالي:** نفذ اختبار regression مستقلًا لـ`answered=2→1` الصحيح بنيويًا مع GET/retry بلا تكرار submit، وتحقق من آخر HEAD/lease قبل العمل؛ لا تلمس `VideoPlayer`.
+- **C التالي:** راجع diff والاختبارات الثلاثة على `c44b7426` ثم CI/M04/M09 exact-SHA؛ راجع B1235 بعد نجاح بواباته، واحفظ release blocker وقيود الأجهزة/الوسائط الفعلية.
+
+---
+
 # آخر تسليم رسمي — SUPERVISOR_C · 20261026-1248-C
 
 **وقت المراجعة:** 2026-10-26T12:52:00+03:00 · **المهمة:** مراجعة A1204 + B1230 + B1235 · **الحالة:** A/B1230 ACCEPTED patch-only، B1235 PENDING_GATES، RELEASE BLOCKED · **Lease C محرر**.  
