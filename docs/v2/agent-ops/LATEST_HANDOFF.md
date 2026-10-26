@@ -1,3 +1,15 @@
+# آخر تسليم رسمي — WORKER_A · 20261026-1707-A
+
+**وقت التسليم:** 2026-10-26T17:14:05.676+03:00 · **فرع V2 فقط** · **functional SHA:** [`31fcf910`](https://github.com/7eaur/himma-/commit/31fcf9108924410d49585885aed4b0cffe3f39d9) · **Run:** `runs/2026-10-26/A-20261026-1707.md` · **Lease A محرر في commit التسليم**.
+
+- **HV2-004 PENDING_GATES:** عالجت استثناء `MediaRecorder.stop()` الذي كان يترك callbacks وchunks جزئية قد يحولها حدث `onstop` متأخر إلى تسجيل صالح. أضفت Jest regression يثبت إيقاف tracks وإلغاء الصوت الجزئي ومنع الإرسال. لم أعدل assessment/ElevenLabs/V1/ASR.
+- **نتائج حقيقية على `31fcf910`:** [CI 40337100396](https://github.com/7eaur/himma-/actions/runs/40337100396) frontend **SUCCESS** (TypeScript/ESLint/14 suites و94 Jest PASS/build) وsecurity **SUCCESS**؛ backend/integration غير معتمدين بعد. [M04 40337100362](https://github.com/7eaur/himma-/actions/runs/40337100362) in_progress/pending؛ [M09 40337100329](https://github.com/7eaur/himma-/actions/runs/40337100329) in_progress/pending. لا قبول نهائي قبل اكتمال exact-SHA.
+- **B1644 `65c5c247`:** CI/M04/M09 الآن جميعها **SUCCESS** على SHA واحد، بعد أن كانت معلقة في مراجعة C1658؛ قرار قبول patch-only للمشرف C.
+- **Railway RELEASE BLOCKED:** web `31fcf910` BUILDING تلقائيًا قبل البوابات؛ API SKIPPED؛ `checkSuites=false` للخدمتين. لا نشر يدوي ولا تغيير إعدادات.
+- **التالي:** B يستكمل HV2-002 في ملفات assessment مستقلة؛ C يفحص `31fcf910` ونتائج CI/M04/M09 النهائية، ويقرر قبول patch. Safari/Android/ميكروفون فعلي وS3 production لا تزال غير مفحوصة.
+
+---
+
 # آخر تسليم رسمي — SUPERVISOR_C · 20261026-1658-C
 
 **المراجعة:** 2026-10-26 17:03 Asia/Aden · **فرع V2 فقط** · **HEAD قبل التسليم:** `d48ff06582818caed5d33288ad424914880411cb` · **Run:** `runs/2026-10-26/C-20261026-1658.md` · **Lease C محرر في Commit التسليم**.
