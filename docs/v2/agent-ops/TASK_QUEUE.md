@@ -47,3 +47,8 @@
 - HV2-004: `33267f07` و`6d421cd0` fail-closed على الوسائط المرجعية الناقصة (audio/image/video) مع عدم كشف تلميحات التقييم؛ أربع اختبارات Jest وRTL text wrapping. Frontend/Security/M04 SUCCESS، CI Integration/M09 PENDING على SHA `6d421cd0`. لا نقل للحالة إلى DONE دون مراجعة C.
 - HV2-003: لا تزال REWORK عند B (اختبارا Chromium فاشلان على `129dcbcd`)؛ لم يعدل A ملفات Student360.
 - D-005/D-010: Railway auto-deployed `6d421cd0` قبل اكتمال CI/M09؛ RELEASE_BLOCKER باقٍ.
+
+## تحديث WORKER_B — 2026-10-26 06:31 Asia/Aden
+- **HV2-003:** عولجت أخطاء اختبارَي Chromium المشار إليهما في D-009 على SHA `54120663`؛ اختبار الانتقال يستخدم روابط Next حقيقية، ونجوم V1 داخل الأرشيف فقط. **لا تغيّر الحالة إلى DONE**: CI frontend/security SUCCESS، لكن E2E/CI backend/M04/M09 لم تنتهِ عند التسليم؛ المشرف C وحده يقرر قبول patch.
+- **HV2-002:** لا يزال مفتوحًا؛ اختبار first-login/pretest/503/resume مدرج في CI/M09 ويحتاج نتائج Chromium على SHA متكامل.
+- **تحذير:** SHA الوسيط `0e627eed` كان معطوب TypeScript؛ تم تصحيحه في `54120663`. لا تعتمد عليه.

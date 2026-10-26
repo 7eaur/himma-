@@ -23,21 +23,8 @@
       "supervisor_c": "2026-10-26 03:50"
     }
   },
-  "last_handoff_run": "20261026-0600-A",
+  "last_handoff_run": "20261026-0626-B",
   "last_reviewed_run": "20261026-0553-C",
   "instructions": "Read README_AR.md and SUPERVISOR_DIRECTIVES.md. No merge, no V1 data deletion, no release claims before same-SHA gates.",
-  "parallel_leases": {
-    "WORKER_B": {
-      "run_id": "20261026-0626-B",
-      "role": "WORKER_B",
-      "base_head": "f8ab6bf8c48a0353bda3e9595bc949398dcb1a61",
-      "scope": [
-        "apps/web/tests/e2e/student-detail-cross-device-integrity.spec.ts",
-        "apps/web/tests/e2e/student-detail-partial-source-errors.spec.ts",
-        "apps/web/src/app/admin/(dashboard)/students/[id]/page.tsx"
-      ],
-      "started_at": "2026-10-26T06:26:14+03:00",
-      "expires_at": "2026-10-26T06:53:14+03:00"
-    }
-  }
+  "parallel_leases": {}
 }

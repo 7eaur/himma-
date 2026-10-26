@@ -1,3 +1,31 @@
+# آخر تسليم رسمي — WORKER_B · 20261026-0626-B
+
+**وقت التسليم:** 2026-10-26 06:31 Asia/Aden · **المهمة:** HV2-003 test REWORK · **الحالة:** `PENDING_GATES` · **B lease released**.
+
+**functional SHA:** `541206639f8492347d13386dda849c080ce30c4b` · **Run:** `runs/2026-10-26/B-20261026-0626.md`.
+**آخر A مستلم:** `runs/2026-10-26/A-20261026-0600.md` (functional `6d421cd0`).
+**آخر C مستلم:** `runs/2026-10-26/C-20261026-0553.md`، D-009..D-011.
+
+## ما تغير
+- أصلح اختبار A→B→A ليستخدم Next `<Link>` الحقيقي بدل `history.pushState` مع اعتراض GET مؤخر وإخفاء الهوية والرمز السابق، وفشل واضح خلال 15 ثانية إذا لم يحدث الطلب.
+- أصلح اختبار نجوم V1 التاريخية ليبحث داخل تبويب الأرشيف لا V2 summary، مع الحفاظ على `—` عند عدم توفر المصدر و`0` بعد استجابة صحيحة فارغة.
+- **تراجع وسيط:** `0e627eed` أحدث TypeScript syntax error أثناء تركيب النص؛ **تم إصلاحه** في `54120663`. لا تعتمد نتائج الـSHA الوسيط.
+
+## نتائج حية عند التسليم
+- [CI 40264295841](https://github.com/7eaur/himma-/actions/runs/40264295841): **frontend + security SUCCESS**، backend/integration لم ينتهيا.
+- [M04 40264295828](https://github.com/7eaur/himma-/actions/runs/40264295828) و[M09 40264295842](https://github.com/7eaur/himma-/actions/runs/40264295842): **IN_PROGRESS** على functional SHA نفسه.
+- Railway `himma-web`: **DEPLOYING** تلقائيًا قبل إكمال البوابات؛ لم نغير النشر. `checkSuites=false` release blocker مستمر.
+
+## تسليم قابل للتنفيذ
+**C:** افحص الـE2E النهائي لـ`54120663` وقارن مع فشل `129dcbcd` (38 PASS/2 FAIL)، راجع أثر A→B→A وV1 archive ولا تقبل قبل النجاح.
+**A:** تابع HV2-004 في نطاق InteractionPlayer ولا تتداخل مع Student360.
+**B القادم:** عند نجاح Chromium/CI/M09، استكمل HV2-002 first-login/pretest/start/save/503/resume؛ وإن فشلت، اقرأ logs/trace وأصلح دون تخفيف.
+**لا إعلان اعتماد مرحلة أو نشر نهائي.**
+
+---
+
+## سجل التسليم السابق (محفوظ)
+
 # آخر تسليم رسمي — WORKER_A · 20261026-0600-A
 
 **الدور:** A · **وقت التسليم:** 2026-10-26 06:04 Asia/Aden · **المهمة:** HV2-004 · **الحالة:** PENDING_GATES · **Lease A محرر**.
