@@ -69,6 +69,90 @@ test("HV2-002: pretest start and answer recover from 503 without a duplicate sub
 });
 
 
+test("HV2-002: committed start and answer survive lost acknowledgements without duplicate progress", async ({ page, request }) => {
+  test.setTimeout(150000);
+  if (!PASSWORD) throw new Error("E2E_RESEARCHER_PASSWORD required");
+
+  const admin = await request.post(`${API_URL}/auth/login`, {
+    data: { username: USERNAME, password: PASSWORD },
+  });
+  expect(admin.status()).toBe(200);
+  const created = await request.post(`${API_URL}/researcher/students`, {
+    data: { full_name: `طالب فقد تأكيد اصطناعي ${Date.now()}`, grade_level: 3 },
+  });
+  expect(created.status()).toBe(201);
+  const code = (await created.json()).access_code as string;
+
+  await page.goto("/student/login");
+  await page.getByTestId("input-access-code").fill(code);
+  await page.getByTestId("student-login-submit").click();
+  await expect(page.getByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
+
+  // The upstream response is 200 and commits the session. Only the browser
+  // receives 503: this is not a mocked failure before the server-side write.
+  let startAttempts = 0;
+  let committedSessionId: number | null = null;
+  let committedStartStatus: number | null = null;
+  await page.route("**/api/v2/assessments/pretest/start", async route => {
+    startAttempts += 1;
+    if (startAttempts === 1) {
+      const upstream = await route.fetch();
+      committedStartStatus = upstream.status();
+      const body = await upstream.json() as { session?: { session_id?: number } };
+      committedSessionId = body.session?.session_id ?? null;
+      return route.fulfill({ status: 503, json: { detail: "ack lost after server commit" } });
+    }
+    return route.continue();
+  });
+  await page.getByTestId("student-primary-action").click();
+  await expect(page.locator("[data-testid='student-home'] [role='alert']")).toContainText("الاختبار غير متاح حاليًا");
+  expect(committedStartStatus).toBe(200);
+  expect(committedSessionId).toEqual(expect.any(Number));
+  await expect(page.getByTestId("student-primary-action")).toBeEnabled();
+  await page.getByTestId("student-primary-action").click();
+  await expect(page).toHaveURL(/\\/student\\/assessment-v2\\/\\d+$/);
+  const sessionId = Number(page.url().split("/").at(-1));
+  expect(sessionId).toBe(committedSessionId);
+  expect(startAttempts).toBe(2);
+  await expect(page.getByTestId("v2-interaction-player")).toContainText("1 من 30");
+
+  // Repeat the same failure *after* an answer has been persisted. The
+  // subsequent retry must replay the original submit_key, not grade Q2.
+  let committedAnswerStatus: number | null = null;
+  let committedAnswerCount: number | null = null;
+  const submittedKeys: string[] = [];
+  await page.route(/\\/api\\/v2\\/assessments\\/sessions\\/\\d+\\/answers(?:\\?|$)/, async route => {
+    const body = route.request().postDataJSON() as { submit_key: string };
+    submittedKeys.push(body.submit_key);
+    if (submittedKeys.length === 1) {
+      const upstream = await route.fetch();
+      committedAnswerStatus = upstream.status();
+      const saved = await upstream.json() as { assessment?: { session?: { progress?: { answered?: number } } } };
+      committedAnswerCount = saved.assessment?.session?.progress?.answered ?? null;
+      return route.fulfill({ status: 503, json: { detail: "answer acknowledgement lost" } });
+    }
+    return route.continue();
+  });
+  await page.getByRole("button", { name: "اختيار الخيار 1" }).click();
+  await page.getByRole("button", { name: "حفظ الإجابة والمتابعة" }).click();
+  await expect(page.getByRole("button", { name: "إعادة محاولة حفظ الإجابة" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "اختيار الخيار 1" })).toBeDisabled();
+  expect(committedAnswerStatus).toBe(200);
+  expect(committedAnswerCount).toBe(1);
+  await page.getByRole("button", { name: "إعادة محاولة حفظ الإجابة" }).click();
+  await expect(page.getByTestId("v2-interaction-player")).toContainText("2 من 30");
+  expect(submittedKeys).toHaveLength(2);
+  expect(submittedKeys[0]).toBe(submittedKeys[1]);
+
+  await page.reload();
+  const resumed = await page.evaluate(async id => {
+    const response = await fetch(`/api/v2/assessments/sessions/${id}`);
+    return { status: response.status, progress: (await response.json()).session.progress.answered };
+  }, sessionId);
+  expect(resumed).toEqual({ status: 200, progress: 1 });
+});
+
+
 test("HV2-002: cross-student session ownership through the browser BFF stays private", async ({ page, request, context }) => {
   test.setTimeout(150000);
   if (!PASSWORD) throw new Error("E2E_RESEARCHER_PASSWORD required");
