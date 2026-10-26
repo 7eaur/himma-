@@ -66,3 +66,96 @@ test("HV2-002: pretest start and answer recover from 503 without a duplicate sub
   expect(resumed.data.session.progress.answered).toBe(1);
   await page.unroute("**/api/v2/assessments/pretest/start");
 });
+
+
+test("HV2-002: cross-student session ownership through the browser BFF stays private", async ({ page, request, context }) => {
+  test.setTimeout(150000);
+  if (!PASSWORD) throw new Error("E2E_RESEARCHER_PASSWORD required");
+
+  const supervisor = await request.post(`${API_URL}/auth/login`, {
+    data: { username: USERNAME, password: PASSWORD },
+  });
+  expect(supervisor.status()).toBe(200);
+  const created = await Promise.all(["A", "B"].map(label =>
+    request.post(`${API_URL}/researcher/students`, {
+      data: { full_name: `طالب اختبار صلاحيات ${label} ${Date.now()}`, grade_level: 3 },
+    }),
+  ));
+  for (const response of created) expect(response.status()).toBe(201);
+  const codes = await Promise.all(created.map(async response =>
+    (await response.json()).access_code as string,
+  ));
+  const tokens: string[] = [];
+  for (const code of codes) {
+    const signedIn = await request.post(`${API_URL}/auth/student-login`, {
+      data: { access_code: code },
+    });
+    expect(signedIn.status()).toBe(200);
+    const token = signedIn.headers()["set-cookie"]?.match(/access_token=([^;]+)/)?.[1];
+    expect(token).toBeTruthy();
+    tokens.push(token!);
+  }
+
+  const switchStudent = async (token: string) => {
+    await context.addCookies([{
+      name: "access_token", value: token, domain: "localhost", path: "/",
+      httpOnly: true, secure: false, sameSite: "Lax",
+    }]);
+    await page.goto("/student");
+    await expect(page.getByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
+  };
+
+  await switchStudent(tokens[0]);
+  const first = await page.evaluate(async () => {
+    const response = await fetch("/api/v2/assessments/pretest/start", { method: "POST" });
+    return { status: response.status, data: await response.json() };
+  });
+  expect(first.status).toBe(200);
+  const sessionId = first.data.session.session_id as number;
+  const optionId = first.data.interaction.question.options[0].id as string;
+  const submitKey = crypto.randomUUID();
+  const answer = { submit_key: submitKey, selected_option_ids: [optionId] };
+  const saved = await page.evaluate(async ({ id, body }) => {
+    const response = await fetch(`/api/v2/assessments/sessions/${id}/answers`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    return { status: response.status, data: await response.json() };
+  }, { id: sessionId, body: answer });
+  expect(saved.status).toBe(200);
+  expect(saved.data.assessment.session.progress.answered).toBe(1);
+
+  await switchStudent(tokens[1]);
+  const denied = await page.evaluate(async ({ id, body }) => {
+    const get = await fetch(`/api/v2/assessments/sessions/${id}`);
+    const post = await fetch(`/api/v2/assessments/sessions/${id}/answers`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const missing = await fetch("/api/v2/assessments/sessions/999999999");
+    return {
+      getStatus: get.status, getBody: await get.json(),
+      postStatus: post.status, postBody: await post.json(),
+      missingStatus: missing.status, missingBody: await missing.json(),
+    };
+  }, { id: sessionId, body: answer });
+  expect(denied.getStatus).toBe(404);
+  expect(denied.postStatus).toBe(404);
+  expect(denied.missingStatus).toBe(404);
+  expect(denied.getBody).toEqual(denied.missingBody);
+  expect(denied.postBody).toEqual(denied.missingBody);
+
+  await switchStudent(tokens[0]);
+  const restored = await page.evaluate(async ({ id, body }) => {
+    const get = await fetch(`/api/v2/assessments/sessions/${id}`);
+    const post = await fetch(`/api/v2/assessments/sessions/${id}/answers`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    return {
+      getStatus: get.status, progress: (await get.json()).session.progress.answered,
+      replayStatus: post.status, replay: (await post.json()).status,
+    };
+  }, { id: sessionId, body: answer });
+  expect(restored).toEqual({ getStatus: 200, progress: 1, replayStatus: 200, replay: "replayed" });
+});
