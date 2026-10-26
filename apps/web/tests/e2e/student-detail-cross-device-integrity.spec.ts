@@ -136,4 +136,13 @@ test("Student360 never displays the previous student's identity or code during a
   await page.getByRole("button", { name: "إظهار الرمز" }).click();
   await expect(page.getByText(second.access_code, { exact: true })).toBeVisible();
   await expect(page.getByText(first.access_code, { exact: true })).toHaveCount(0);
+
+  // Reuse the same Next.js route segment in the opposite direction as well.
+  // The second learner's visible credentials must disappear before A's GET completes.
+  await page.evaluate(id => window.history.pushState(null, "", `/admin/students/${id}`), first.id);
+  await expect(page.getByRole("heading", { name: second.full_name })).toHaveCount(0);
+  await expect(page.getByText(second.access_code, { exact: true })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: first.full_name })).toBeVisible();
+  await page.getByRole("button", { name: "الحساب", exact: true }).click();
+  await expect(page.getByText(first.access_code, { exact: true })).toHaveCount(0);
 });

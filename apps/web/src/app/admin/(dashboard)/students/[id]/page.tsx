@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
@@ -157,8 +157,12 @@ function apiError(data: unknown, fallback: string) {
 export default function StudentDetailPage() {
   const params = useParams();
   const id = params.id as string;
-  const activeIdRef = useRef(id);
-  useEffect(() => { activeIdRef.current = id; }, [id]);
+  // Next.js may preserve a dynamic route component across client-side URL changes.
+  // Remounting by identity discards every previous student's local state and async setters.
+  return <StudentDetailView key={id} id={id} />;
+}
+
+function StudentDetailView({ id }: { id: string }) {
   const [activeTab, setActiveTab] = useState<TabKey>("v2");
   const [student, setStudent] = useState<Student | null>(null);
   const [loadedStudentId, setLoadedStudentId] = useState<string | null>(null);
@@ -199,21 +203,8 @@ export default function StudentDetailPage() {
   useEffect(() => {
     let cancelled = false;
     if (!id) return;
-    // A dynamic [id] route may reuse this component. Hide the previous
-    // learner immediately and reset all V1/staff-only source state.
-    setLoading(true);
-    setStudent(null);
-    setJourney(null);
-    setHistory([]);
-    setRewards([]);
-    setJourneyState("loading");
-    setHistoryState("loading");
-    setRewardsState("loading");
-    setActiveTab("v2");
-    setVisibleCodeForId(null);
-    setCopied(false);
-    setManualCode("");
-    setMessage({ kind: "success", text: "" });
+    // A keyed child starts with empty state on each student identity change.
+    // Do not synchronously reset state in an effect or render a previous student.
     void Promise.all([
       fetch(`/api/researcher/students/${id}`, { cache: "no-store" }),
       fetch(`/api/researcher/students/${id}/journey`, { cache: "no-store" }),
@@ -232,9 +223,9 @@ export default function StudentDetailPage() {
         setEditName(studentData.full_name);
         setOverrideLevel(String(studentData.current_level));
         await Promise.all([
-          loadSecondarySource<JourneySummary>(journeyResponse, setJourney, setJourneyState, () => !cancelled && activeIdRef.current === id),
-          loadSecondarySource<AdaptationDecision[]>(historyResponse, setHistory, setHistoryState, () => !cancelled && activeIdRef.current === id),
-          loadSecondarySource<RewardEvent[]>(rewardsResponse, setRewards, setRewardsState, () => !cancelled && activeIdRef.current === id),
+          loadSecondarySource<JourneySummary>(journeyResponse, setJourney, setJourneyState, () => !cancelled),
+          loadSecondarySource<AdaptationDecision[]>(historyResponse, setHistory, setHistoryState, () => !cancelled),
+          loadSecondarySource<RewardEvent[]>(rewardsResponse, setRewards, setRewardsState, () => !cancelled),
         ]);
       })
       .catch((error: unknown) => {
@@ -299,9 +290,9 @@ export default function StudentDetailPage() {
     setJourneyState("loading");
     try {
       const response = await fetch(`/api/researcher/students/${student.id}/journey`, { cache: "no-store" });
-      await loadSecondarySource<JourneySummary>(response, setJourney, setJourneyState, () => activeIdRef.current === id);
+      await loadSecondarySource<JourneySummary>(response, setJourney, setJourneyState, () => true);
     } catch {
-      if (activeIdRef.current === id) setJourneyState("error");
+      setJourneyState("error");
     }
   };
 
@@ -315,14 +306,12 @@ export default function StudentDetailPage() {
         fetch(`/api/researcher/students/${student.id}/rewards`, { cache: "no-store" }),
       ]);
       await Promise.all([
-        loadSecondarySource<AdaptationDecision[]>(historyResponse, setHistory, setHistoryState, () => activeIdRef.current === id),
-        loadSecondarySource<RewardEvent[]>(rewardsResponse, setRewards, setRewardsState, () => activeIdRef.current === id),
+        loadSecondarySource<AdaptationDecision[]>(historyResponse, setHistory, setHistoryState, () => true),
+        loadSecondarySource<RewardEvent[]>(rewardsResponse, setRewards, setRewardsState, () => true),
       ]);
     } catch {
-      if (activeIdRef.current === id) {
-        setHistoryState("error");
-        setRewardsState("error");
-      }
+      setHistoryState("error");
+      setRewardsState("error");
     }
   };
 
