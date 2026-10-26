@@ -37,3 +37,8 @@
 - تابع آخر CI/M09 وتحقق من إصلاح فشل `reward-lifecycle` و`vertical-slice`؛ لا تعاود التعديل دون دليل جديد.
 - عند ظهور فشل في E2E القبلي أو اختبار عزل الطالبين، افتح job logs واصلح السبب الحقيقي لا تستبدل الاختبار بتوقع أضعف.
 - احترم إنتاج الصوت الموازي، ولا تمس `main` أو `stage/02-content`.
+
+## ملحق لاحق بعد التسليم — إصلاح Unit Test
+- ظهرت نتيجة فشل `frontend unit tests` في [CI 40249976430](https://github.com/7eaur/himma-/actions/runs/40249976430) على SHA `6f860762`: اختبار `InteractionPlayer.test.tsx` كان ما يزال يبحث عن تسمية الزر القديمة «تحقق من الإجابة» في وضع القبلي. فشل **1 من 68** اختبارًا، بينما اجتاز M04 [40249976441](https://github.com/7eaur/himma-/actions/runs/40249976441).
+- [Commit 125f1bd6](https://github.com/7eaur/himma-/commit/125f1bd6896fbefdec9ca5e5722cea3e267a2d49) صحح توقع Unit Test للقبلي إلى «حفظ الإجابة والمتابعة» وأكد غياب التسمية القديمة؛ أبقى اختبار الدرس الذي يتوقع «تحقق من الإجابة» كما هو.
+- **آخر functional SHA بعد هذا الملحق:** `125f1bd6896fbefdec9ca5e5722cea3e267a2d49`؛ [CI 40250140780](https://github.com/7eaur/himma-/actions/runs/40250140780) و[M04 40250140772](https://github.com/7eaur/himma-/actions/runs/40250140772) **لم تنتهيا وقت الملحق**. تحقق من M09 على هذا الـSHA أو شغّل بوابة مناسبة؛ لا تكتفِ بنتيجة `6f860762` لقرار قبول نهائي.
