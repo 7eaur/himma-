@@ -128,3 +128,20 @@
 - `D-029 | QA`: قبول A1003+B1041+A1106 **كإصلاحات محددة فقط** بعد نجاح بوابات `67fbc499` الثلاث؛ لا تغلق HV2-002/HV2-004 ولا تعتمد المحتوى/الوسائط والأجهزة.
 - `D-030 | RELEASE_BLOCKER`: Railway `checkSuites=false` لكلا الخدمتين ونسختا web/API مختلفتان؛ لا تغيير إعدادات ولا نشر/دمج حتى قرار المالك. `CONTROL.mode=ACTIVE` دون دليل تلف بيانات حي.
 - `D-031 | EVIDENCE`: CI `40290066904` artifact `12636574280`، M04 `40290066702` artifact `12636572943` موجودان، **لم تتم مشاهدة الصور** في هذه الدورة؛ اختبارات 19 درسًا/خصوصية الصوت static/CI، وليست أجهزة/S3 production.
+
+## مراجعة SUPERVISOR_C — 2026-10-26 12:52 Asia/Aden · `20261026-1248-C`
+
+| run_id / functional SHA | المهمة | القرار | دليل مستقل | التوجيه |
+|---|---|---|---|---|
+| `20261026-1204-A` / `c424e247` | HV2-004 late audio race | **ACCEPTED (patch only)** | diff + اختباران Jest؛ [CI 40297044225](https://github.com/7eaur/himma-/actions/runs/40297044225)، [M04 40297044246](https://github.com/7eaur/himma-/actions/runs/40297044246)، [M09 40297044354](https://github.com/7eaur/himma-/actions/runs/40297044354) جميعها SUCCESS على SHA نفسه | A يواصل وسائط حقيقية/RTL دون إعادة patch المقبول |
+| `20261026-1230-B` / `7ea8d58c` | HV2-002 POST session/kind guard | **ACCEPTED (patch only)** | diff + Chromium 2؛ [CI 40297215729](https://github.com/7eaur/himma-/actions/runs/40297215729)، [M04 40297215649](https://github.com/7eaur/himma-/actions/runs/40297215649)، [M09 40297215668](https://github.com/7eaur/himma-/actions/runs/40297215668) SUCCESS | B يواصل payload integrity دون تكرار جواب محفوظ |
+| `20261026-1235-B` / `a1d7c00` | HV2-002 payload validation | **PENDING_GATES** | CI 40301000442 frontend/backend/security PASS، integration IN_PROGRESS؛ M04 40301000136 PASS؛ M09 40301000316 IN_PROGRESS؛ diff 59a81d→abacf096→a1d7c00 | راجع Playwright والـM09 قبل قبول؛ اختبار valid regressed answered=2→1 مفقود |
+| Railway web/API | release governance | **BLOCKED (release only)** | web SUCCESS a1d7c00 وAPI SUCCESS أقدم؛ checkSuites=false لكليهما؛ web 59a81d FAILED قبل نجاح النسخة التالية | لا نشر يدوي/دمج/إعلان release-ready قبل قرار المالك |
+| V2 lessons/audio/privacy | source + screenshots | **PENDING_GATES (live/device)** | 19 درسًا و403/storage_key مدعومة باختبارات المصدر؛ فُتحت صور M04 login وPlaywright V2 القديمة، لا صور B1235 الجديدة أو أجهزة/S3 فعلية | لا `PRIVACY_LIVE_VERIFIED` ولا `DEVICE_VERIFIED` |
+
+### توجيهات D-032..D-036
+- `D-032 | QA A`: اعتماد `c424e247` **patch-only** بعد CI/M04/M09 SUCCESS على SHA واحد؛ لا إعادة تغيير InteractionPlayer بلا دليل regression؛ فحص Safari/Android والوسائط التعليمية الفعلية ما زال مفتوحًا.
+- `D-033 | P0 B`: اعتماد `7ea8d58c` **patch-only** بعد CI/M04/M09 SUCCESS. تحقق session_id/kind في POST، واعرض retry/GET بعد ACK مخادع دون تكرار submit.
+- `D-034 | P0 B PENDING_GATES`: `a1d7c00` frontend/backend/security/M04 PASS، لكن CI integration وم09 قيد التشغيل. لا ACCEPTED قبل النتائج الدقيقة. فشل `59a81d` الوسيط معروف ومصحح؛ لا تختبر `answered=-1` على أنه تراجع صالح 2→1؛ أضف Browser regression مستقلًا عند استقرار البوابات.
+- `D-035 | RELEASE_BLOCKER`: Railway `checkSuites=false` في web/API، web نشر `a1d7c00` قبل CI/M09؛ API أقدم. حافظ على `CONTROL.mode=ACTIVE` للتطوير فقط و**BLOCKED** لاعتماد الإصدار، دون نشر/دمج أو تعديل إعدادات بلا إذن المالك.
+- `D-036 | EVIDENCE`: تمت مشاهدة artifact M04 `12640785533` (صور دخول/landing) وPlaywright `12638904084` (Student360 وV2 assessment من B1230) بعينات 360/390؛ **لا توجد مراجعة بصرية لـB1235** أو أجهزة فعلية أو S3 production. لا تتجاوز هذه الحدود.

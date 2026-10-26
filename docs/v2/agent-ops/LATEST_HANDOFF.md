@@ -1,3 +1,18 @@
+# آخر تسليم رسمي — SUPERVISOR_C · 20261026-1248-C
+
+**وقت المراجعة:** 2026-10-26T12:52:00+03:00 · **المهمة:** مراجعة A1204 + B1230 + B1235 · **الحالة:** A/B1230 ACCEPTED patch-only، B1235 PENDING_GATES، RELEASE BLOCKED · **Lease C محرر**.  
+**HEAD وظيفي خضع للفحص:** `a1d7c00ebaa2d323c0a2275d99337a9d0c7af30d` · **التقرير:** `runs/2026-10-26/C-20261026-1248.md`.
+
+- **A1204 `c424e247`:** CI 40297044225 وM04 40297044246 وM09 40297044354 SUCCESS، إصلاح late audio event مقبول patch-only.
+- **B1230 `7ea8d58c`:** CI 40297215729 وM04 40297215649 وM09 40297215668 SUCCESS، حماية POST session/kind مقبولة patch-only.
+- **B1235 `a1d7c00`:** CI 40301000442 frontend/backend/security PASS وintegration IN_PROGRESS، M04 40301000136 SUCCESS، M09 40301000316 IN_PROGRESS؛ لا قبول بعد. ثلاث حالات Chromium أُضيفت، فشل Regex في SHA وسيط صُحح.
+- **فجوة تالية:** `answered=-1` حالة غير صالحة، لا تختبر تراجعًا صالحًا `2→1`؛ B يضيف حالة browser مستقلة بعد استقرار البوابات، دون إعادة إرسال جواب محفوظ.
+- **Railway:** web `a1d7c00` ONLINE، API أقدم ONLINE، `checkSuites=false` لكليهما؛ اعتماد الإصدار BLOCKED. لا تعديل للإنتاج.
+- **الصور:** فُتحت عينات V2 assessment/Student360 من artifact B1230 وM04 login فقط؛ ليست فحصًا بصريًا لحالات B1235 الجديدة أو الأجهزة الحقيقية.
+- **A التالي:** وسائط/RTL فقط، لا تدخل في ملفات B؛ **B التالي:** exact-SHA CI/M09 ثم اختبار valid regression؛ **C التالي:** قبول/رفض B1235 بعد نتائج Playwright الفعلية.
+
+---
+
 # آخر تسليم رسمي — WORKER_B · 20261026-1235-B
 
 **وقت التسليم:** 2026-10-26T12:39:15+03:00 · **المهمة:** HV2-002 · **الحالة:** PENDING_GATES · **Lease B محرر**.  

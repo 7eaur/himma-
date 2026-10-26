@@ -5,9 +5,9 @@
 | الأولوية | الرمز | المهمة | القبول المطلوب | التعيين الابتدائي | الحالة |
 |---|---|---|---|---|---|
 | P0 | HV2-001 | إغلاق نتائج CI Integration وM09 المعلقة على آخر functional SHA وتحديد الأعطال الحقيقية | نجاح backend/frontend/security/integration وM04/M09 على نفس SHA أو تسجيل blocked واضح، وتثبيت سلوك القبلي/الاستئناف | A | PENDING_GATES — A dca18efe ACK retry patch ACCEPTED (CI/M04/M09 same SHA SUCCESS); HV2-002 pretest end-to-end and B latest browser gates still OPEN |
-| P0 | HV2-002 | رحلة طالب جديد من التسجيل إلى أول سؤال، حفظ إجابة ثم refresh/resume، وعزل V1 تمامًا | E2E مثبت بحساب اصطناعي؛ لا استدعاء V1 /api/profile؛ تفويض/401/403/409/503 | B | PENDING_GATES — B d7b639d9 cross-student/404/replay ACCEPTED patch-only (CI/M04/M09 same-SHA SUCCESS). New B 86a9b4f lost-ACK-after-commit browser test ACCEPTED patch-only: CI/M04/M09 SUCCESS on same SHA (CI 40280282347 all four jobs green). HV2-002 full live/device/edge acceptance OPEN |
+| P0 | HV2-002 | رحلة طالب جديد من التسجيل إلى أول سؤال، حفظ إجابة ثم refresh/resume، وعزل V1 تمامًا | E2E مثبت بحساب اصطناعي؛ لا استدعاء V1 /api/profile؛ تفويض/401/403/409/503 | B | PENDING_GATES — C1248: B1230 POST identity/kind ACCEPTED patch-only (CI/M04/M09 green on 7ea8d58c); B1235 payload guard a1d7c00 integration/M09 pending; full live/device acceptance OPEN |
 | P1 | HV2-003 | Student360 V2 و19 درسًا ومراجعة خصوصية رمز الدخول عند التبديل بين ملفات الطلاب | لقطة شاشة فعلية وتحليل فشل المصدر والتعافي وعدم تسرب اسم/رمز طالب سابق | B | PENDING_GATES — B 54120663 Chromium test REWORK ACCEPTED patch-only (CI/M04/M09 same SHA SUCCESS); live device/visual/privacy evidence OPEN |
-| P1 | HV2-004 | معالجة المشغّل الصوتي/الفيديو وأشكال أسئلة البناء/الترتيب على الهاتف | اختبارات targeted + فيديو timeout/error/retry وCSS RTL على 360/390/430/768/1440 | A | PENDING_GATES — A 595fcb93 five-viewport selected-image Playwright patch ACCEPTED (CI/M04/M09 same-SHA SUCCESS). C0950 VIEWED five actual synthetic screenshots, no visible horizontal clipping; real content/device/accessibility validation OPEN |
+| P1 | HV2-004 | معالجة المشغّل الصوتي/الفيديو وأشكال أسئلة البناء/الترتيب على الهاتف | اختبارات targeted + فيديو timeout/error/retry وCSS RTL على 360/390/430/768/1440 | A | PENDING_GATES — C1248: A1204 stale audio race ACCEPTED patch-only (CI/M04/M09 green on c424e247); real media/device validation OPEN |
 | P1 | HV2-005 | تقارير المشرف V2 منفصلة عن V1 ومنع التقدم/الدرجات غير الرسمية | API + UI + تحكم auth/null policy، مراجعة visual وE2E؛ لا تصدير بيانات طفل خاصة | A/B بعد HV2-001 | BLOCKED_BY_HV2-001 |
 | P2 | HV2-006 | جرد وسائط/بنك P09.2 وتجربة سؤال/خيار بكل نوع دون اختلاق أصول | جرد delta موثق، حالات missing/fail-closed، وأصول TEST_ONLY مميزة | وفق توجيه المشرف | BLOCKED_BY_P09_1 |
 | P2 | HV2-007 | بوابة الأجهزة الحقيقية Safari/Android وخصوصية S3 | دليل أجهزة حقيقية أو `BLOCKED_EXTERNAL_DEVICE` وتقرير متطلبات اختبار يدوي | إشراف/مالك | BLOCKED_EXTERNAL_DEVICE |
@@ -128,3 +128,10 @@
 ## تحديث B — 2026-10-26T12:39:15+03:00
 - HV2-002: `a1d7c00ebaa2` أضاف fail-closed لحمولات GET/POST الناقصة أو progress غير صالح، و3 اختبارات Chromium داخل البوابة الحالية. **PENDING_GATES** حتى CI 40301000442 / M04 40301000136 / M09 40301000316 على SHA نفسه؛ frontend/security SUCCESS وقت التسليم. لا تنقل HV2-002 إلى DONE قبل مراجعة C والتحقق الحي.
 - `7ea8d58c` CI/M04/M09 SUCCESS الآن (تصحيح حقيقة تاريخية عند B1230)، لكن هذا لا يعتمد التعديل الأحدث. `checkSuites=false` خطر نشر مفتوح.
+
+## توجيه أولوية المشرف C — 2026-10-26 12:52 Asia/Aden · 20261026-1248-C
+1. **P0 / B HV2-002:** نتيجة CI integration `40301000442` وM09 `40301000316` على `a1d7c00` قبل أي قبول. إن فشل الاختبار الجديد افحص trace/سبب المصدر ولا تُضعف assertions. عند النجاح ارفع حالة patch للمشرف.
+2. **P0 / B HV2-002 بعد البوابة:** حالة Browser `answered=2 → answered=1` مع نفس session/kind، ACK متراجع صالح بنيويًا، ثم recovery GET دون duplicate POST. لا تعتبر اختبار `answered=-1` إثباتًا لهذه الحالة.
+3. **P1 / A HV2-004:** `c424e247` ACCEPTED patch-only؛ تابع الوسائط الفعلية وRTL دون تعديل ملفات B أو اختلاق أصول.
+4. **P1 / C HV2-003 وخصوصية الصوت:** فحص مصدر 19 درسًا/403/audio archive قائم، وتمت مشاهدة عينات Playwright سابقة، لكن الأجهزة الحقيقية/S3/الخصوصية الحية لا تزال PENDING/EXTERNAL.
+5. **حاجز إصدار:** Railway `checkSuites=false` للخدمتين وAPI/Web SHA مختلفان، دون دليل توافق حي. لا دمج main أو تغيير النشر أو اعتماد إصدار.

@@ -59,3 +59,5 @@
 
 | 2026-10-26 12:09 Asia/Aden | B | 20261026-1230-B | HV2-002 POST response session/kind isolation | `c424e2476030` → `7ea8d58c32bd` | PENDING_GATES (CI/M04/M09 running; no local test) | `runs/2026-10-26/B-20261026-1230.md`; CI 40297215729 / M04 40297215649 / M09 40297215668 |
 | 2026-10-26T12:39:15+03:00 | B | 20261026-1235-B | HV2-002 payload integrity | `9087d122a141` → `a1d7c00ebaa2` | PENDING_GATES; frontend/security SUCCESS; CI/M04/M09 in progress | `runs/2026-10-26/B-20261026-1235.md`; CI 40301000442, M04 40301000136, M09 40301000316 |
+
+| 2026-10-26 12:48–12:52 Asia/Aden | C | 20261026-1248-C | HV2-002/004 + privacy + Railway | `50276872f451` → review-docs commit (see Git history) | A1204/B1230 ACCEPTED patch-only; B1235 PENDING_GATES; release BLOCKED | `runs/2026-10-26/C-20261026-1248.md`; CI 40301000442 integration IN_PROGRESS; M04 40301000136 SUCCESS; M09 40301000316 IN_PROGRESS; Playwright artifact 12638904084 inspected |
