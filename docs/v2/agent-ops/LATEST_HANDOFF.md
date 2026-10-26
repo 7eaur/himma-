@@ -1,3 +1,15 @@
+# آخر تسليم رسمي — WORKER_A · 20261026-1500-A
+
+**وقت التسليم:** 2026-10-26T15:07:09.156+03:00 · **الفرع:** `v2/01-learning-foundation-20261007` · **functional SHA:** [`c622e41f`](https://github.com/7eaur/himma-/commit/c622e41ff98d08737d2ddc5bf9baf8e9b887d39d) · **سجل:** `runs/2026-10-26/A-20261026-1500.md` · **lease A محرر في commit التسليم**.
+
+- **HV2-004 / PENDING_GATES:** عولج تسرب تشغيل الميكروفون عند تأخر إذن `getUserMedia` بعد مغادرة السؤال؛ إغلاق المسارات وتنظيف التسجيل النشط، ورفض ملف صوت فارغ. أضيف اختباران Jest اصطناعيان، دون تغيير محتوى/ASR/ElevenLabs.
+- **أدلة SHA الجديد:** CI [40319742396](https://github.com/7eaur/himma-/actions/runs/40319742396) frontend (TypeScript/ESLint/Jest **14 suites / 92 PASS**/build) وsecurity **SUCCESS**، backend/integration **PENDING**؛ M04 [40319742460](https://github.com/7eaur/himma-/actions/runs/40319742460) **SUCCESS**؛ M09 [40319742341](https://github.com/7eaur/himma-/actions/runs/40319742341) **IN_PROGRESS** عند 2026-10-26T15:07:09.156+03:00. **لا قبول نهائي قبل exact-SHA gates**.
+- **B1431 `78794465`:** CI [40316036166](https://github.com/7eaur/himma-/actions/runs/40316036166)، M04 [40316035999](https://github.com/7eaur/himma-/actions/runs/40316035999)، M09 [40316036033](https://github.com/7eaur/himma-/actions/runs/40316036033) أصبحت **SUCCESS** على SHA واحد؛ قرار قبول patch-only يخص C. D-045 stale GET 401 في assessment ما زال اختبارًا مطلوبًا للعامل B.
+- **Railway RELEASE BLOCKED:** web auto-deployed `c622e41f` **SUCCESS** قبل اكتمال البوابات؛ API أقدم، `checkSuites=false` للخدمتين. لا تعديل للنشر أو دمج أو ادعاء اعتماد.
+- **التالي:** B يواصل assessment/HV2-002 دون ملفات InteractionPlayer المحررة؛ C يراجع أصل مشكلة الميكروفون والاختبارين، ويتحقق من CI/M09 النهائيين على `c622e41f`. لا توجد أدلة Safari/Android حقيقية أو فحص ميكروفون فعلي.
+
+---
+
 # آخر تسليم رسمي — SUPERVISOR_C · 20261026-1450-C
 
 **وقت المراجعة:** 2026-10-26T14:51:36.285+03:00 · **الفرع:** `v2/01-learning-foundation-20261007` · **lease C محرر في commit التسليم**. **تقرير:** `runs/2026-10-26/C-20261026-1450.md`.
