@@ -1,22 +1,23 @@
-# آخر تسليم رسمي — WORKER_A · 20261026-0400-A
+# آخر تسليم رسمي — WORKER_B · 20261026-0432-B
 
-**آخر دور:** A (2026-10-26 04:00–04:24 Asia/Aden). **الحالة:** `HV2-001 PENDING_GATES`، إصلاح الفيديو `PENDING_SUPERVISOR_REVIEW`. **Lease:** محرر في commit هذا التسليم.
+**الدور:** B · **البدء:** 2026-10-26T01:33:29.142Z · **التسليم:** 2026-10-26T01:37:16.925Z (UTC).  
+**المهمة:** `HV2-003 REWORK → PENDING_GATES`؛ **functional SHA:** `709d94c245e3436310b38b6f80bf3666c4b108f2`.  
+**التقرير التفصيلي:** `docs/v2/agent-ops/runs/2026-10-26/B-20261026-0432.md`.  
+**آخر تسليم A قرأه B:** `20261026-0400-A` عند `c9e53bb35e0d`؛ تلاه عمل A متوازٍ على VideoPlayer (lease `20261026-0427-A`). **لا تمس ملفات A**.
 
-**functional SHA:** `c9e53bb35e0db6b4a8ed6e903d83626ec4ec27c2` (أعد قراءة HEAD الحي؛ قد يتبعه Commit توثيق فقط).  
-**تقرير مفصل:** `runs/2026-10-26/A-20261026-0400.md`.  
-**التسليم السابق:** `20261026-0350-C`، والعمال B `20261026-0330-B` و`20261026-0335-B`.
+## إصلاحات B المثبتة من المصدر
+- `apps/web/src/app/admin/(dashboard)/students/[id]/page.tsx`: تقسيم route wrapper و`StudentDetailView key={id}`، بحيث يتم التخلص من حالة هوية الطالب ورمزه وبيانات V1/V2 عند انتقال Next.js client-side. أزيلت استدعاءات `setState` المتزامنة داخل `useEffect` وقراءات `activeIdRef.current` أثناء render التي عطّلت ESLint؛ بقي منع الاستجابة المتأخرة `cancelled` في effect.
+- `apps/web/tests/e2e/student-detail-cross-device-integrity.spec.ts`: إضافة رحلة عكسية B→A بنفس `pushState`، والتحقق من إخفاء هوية/رمز B، وإعادة إخفاء رمز A عند العودة.
+- Commit: [709d94c2](https://github.com/7eaur/himma-/commit/709d94c245e3436310b38b6f80bf3666c4b108f2). لا تغيير في API أو V1 أو إنتاج ElevenLabs أو main.
 
-## أدلة مؤكدة
-- M09 [40252485283](https://github.com/7eaur/himma-/actions/runs/40252485283) **SUCCESS** على `c9e53bb3`: 1032 backend passed + 34 Chromium passed؛ اختبارات القبلي/الاستئناف والفيديو اجتازت.
-- M04 [40252485252](https://github.com/7eaur/himma-/actions/runs/40252485252) **SUCCESS** على نفس SHA.
-- CI [40252522540](https://github.com/7eaur/himma-/actions/runs/40252522540) **FAILURE**: backend/security SUCCESS، frontend ESLint FAIL من Student360 B، integration SKIPPED. **لا إغلاق لـHV2-001** حتى يعالج B الخطأ وتنجح CI الكاملة.
-- Railway `checkSuites=false` لكل من web/API؛ حدث auto-deploy ناجح على commits لم تجتز CI. **خطر إصدار يحتاج قرار المالك**؛ لم نغير إعدادات Railway.
+## أدلة البوابات عند التسليم
+- [CI 40254864101](https://github.com/7eaur/himma-/actions/runs/40254864101) على `709d94c2`: **frontend SUCCESS** (ESLint + unit + Next build)، **security SUCCESS**؛ backend لا يزال in_progress، integration لم يصدر حكم نهائي. لا تدّع CI كاملة.
+- [M04 40254864104](https://github.com/7eaur/himma-/actions/runs/40254864104) على SHA نفسه: **SUCCESS**.
+- [M09 40254864109](https://github.com/7eaur/himma-/actions/runs/40254864109): **in_progress**؛ لم يثبت بعد نجاح browser E2E بعد الإصلاح.
+- `NOT_RUN_LOCAL`: لا توجد بيئة محلية مكتملة؛ مصدر نتائج البوابات GitHub Actions. لا دليل جديد من جهاز حقيقي.
 
-## العامل التالي B
-أصلح `HV2-003 REWORK` في Student360 (React hooks 5 errors) دون المساس باختبارات A؛ أثبت client-side two-student delayed GET and private credential hiding؛ أعد lint/typecheck/CI+M09 على functional SHA جديد، وسجّل نتيجة integration الفعلية. اقرأ `SUPERVISOR_DIRECTIVES.md` قبل أي كتابة.
-
-## المشرف C
-افحص `c9e53bb3` وتقرير A، واعتمد أو ارفض الإصلاح الفني وفق الأدلة؛ لا تعتبر M09 نجاحًا لبوابة CI التي بقيت حمراء. صعّد موضوع Railway checkSuites=false وauto-deploy إلى المالك دون تعديل إعدادات دون تكليف.
-
-## العامل A في الدورة التالية
-اقرأ HEAD وتسليم B/C؛ تحقق من CI integration بعد lint fix؛ لا تكرر الإصلاحات التي اجتازت M09 إلا عند ظهور Regression مثبت.
+## الاستلام التالي
+- **SUPERVISOR_C:** افحص Commit `709d94c2` والاختبار العكسي ونتائج CI Integration/M09 النهائية على SHA نفسه؛ اعتمد patch فقط إذا اجتازت الفحوص الفعلية. افحص أيضًا أعمال A اللاحقة ومخاطر auto-deploy مع checkSuites=false.
+- **WORKER_A:** اقرأ آخر HEAD، وواصل HV2-004 في نطاقه؛ لا تتراجع عن keyed Student360. إذا فشل Playwright عند route `pushState` فافحص trace الحقيقي قبل تعديل الاختبار.
+- **WORKER_B التالي:** أكمل أي Regression مثبت من CI/M09، ثم تابع `HV2-002` و`HV2-003` دون فتح مرحلة جديدة قبل قرار C. 
+- **الحجز:** تم تحرير `parallel_leases.WORKER_B` في Commit هذا التسليم مع إبقاء حجز A بلا تعديل. لا دمج أو نشر يدوي.
