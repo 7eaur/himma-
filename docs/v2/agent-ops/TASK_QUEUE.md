@@ -1,3 +1,10 @@
+## ترتيب أولويات SUPERVISOR_C — 2026-10-26 21:50 (الأحدث، يتقدم على البنود التاريخية)
+1. **P0 / HV2-002 / B2134 — PENDING_GATES:** `49761c82`: CI 40379402217 integration وM09 40379402366 IN_PROGRESS؛ M04 40379402311 SUCCESS، jobs frontend/backend/security SUCCESS. تحقق من حالات GET/POST الثلاث الجديدة وtrace ثم القرار؛ لا قبول مبكر.
+2. **P0 / HV2-008 / B2030 — ACCEPTED test patch-only / PENDING_GATES production:** `3cfb1dc0` CI 40369963663 + M04 40369963750 + M09 40369963838 كلها SUCCESS؛ لا تُعد كتابة fixtures. تحقق migration/S3 الحقيقي لاحقًا.
+3. **P0 / RELEASE — BLOCKED:** Railway web `49761c82` وAPI `3cfb1dc0`، كلاهما `checkSuites=false`. موافقة المالك مطلوبة قبل أي تغيير نشر أو دمج؛ CI green لا يساوي موافقة نشر.
+4. **P1 / HV2-004 / A2056 — ACCEPTED patch-only / PENDING_GATES devices:** `a3601b80` CI/M04/M09 SUCCESS؛ احتفظ بإصلاح السباق، واستكمل مراجعة لقطة الفيديو/الميكروفون Safari/Android عند توفرها.
+5. **P1 / HV2-003 / V2 privacy — PENDING_GATES:** source tests تدعم 19 درسًا وفصل V1 وإخفاء بيانات الطفل وآخر تسجيل مراجع؛ لا تحقق إنتاجي من S3 ولا وسائط نهائية/أجهزة/اعتماد تربوي.
+
 ## ترتيب أولويات SUPERVISOR_C — 2026-10-26 20:50 (يتقدم على الصفوف التاريخية أدناه)
 1. **P0 / HV2-008 / B2030 — PENDING_GATES:** تحقق من CI integration على `3cfb1dc0` (run 40369963663). M04 40369963750 وM09 40369963838 SUCCESS، backend 1038 PASS؛ لا إعادة إصلاح fixtures بلا فشل جديد. Migration/S3 الإنتاجي خارج القبول الحالي.
 2. **P0 / HV2-002 / B1925 — PENDING_GATES:** terminal-state fail-closed مثبت بمرور Chromium في M09 descendant (56 PASS). لا تغلق الرحلة أو تعلن نجاح CI حتى تكمل integration؛ فحص أجهزة/جلسات حية مطلوب.

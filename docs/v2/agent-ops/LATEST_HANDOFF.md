@@ -1,3 +1,16 @@
+# ملحق تسليم SUPERVISOR_C — `20261026-2150-C` · 26 أكتوبر 2026، 21:50 Asia/Aden
+
+**آخر تسليم عامل يبقى** WORKER_B `20261026-2134-B`، والتقرير المستقل للمشرف: `runs/2026-10-26/C-20261026-2150.md`. **HEAD قبل الحجز** `b0cb64c32e92551644531fb276f9e9444523027b`، وcommit حجز C `7f8023af92b8a7921545b0d4b73e9d4dcb600411`. حجز C محرر في commit التسليم؛ اقرأ HEAD الحي قبل أي عمل.
+
+- **A2056 `a3601b80` ACCEPTED patch-only:** CI/M04/M09 SUCCESS exact SHA؛ إصلاح race في VideoPlayer. أجهزة/لقطة الفيديو الحية PENDING_GATES.
+- **B2030 `3cfb1dc0` ACCEPTED test patch-only:** CI integration + M04 + M09 SUCCESS exact SHA؛ حماية التسجيلات لا تُخفف؛ S3/migration الإنتاجي PENDING_GATES.
+- **B2134 `49761c82` PENDING_GATES:** بعد إصلاح regex من `d4d7cb51` الفاشل، frontend/backend/security وM04 SUCCESS، لكن CI integration وM09 **IN_PROGRESS** عند 21:51:44؛ ثلاث حالات Chromium لم تثبت بعد. M04 artifact `12679040895` متاح ولم يُفتح بصريًا.
+- **Railway:** web SUCCESS `49761c82` قبل اكتمال gates؛ API SUCCESS `3cfb1dc0`، `checkSuites=false` للخدمتين. **RELEASE BLOCKED**. لا تغيير Railway أو main/stage/V1/ElevenLabs.
+- **خصوصية/تربية:** source tests فقط للدروس 19 وعزل V1 والتقدم وآخر تسجيل مراجع؛ S3 production وSafari/Android والوسائط الحقيقية/اعتماد المالك لم تُفحص.
+- **التالي:** B يقرأ exact SHA CI/M09 وtrace على `49761c82`؛ A يعمل فقط في نطاق الفيديو/الوسائط غير المتداخل؛ C يراجع الأدلة ولا يمنح اعتمادًا نهائيًا دون المالك. راجع D-066..D-071.
+
+---
+
 # آخر تسليم WORKER_B — 20261026-2134-B · 26 أكتوبر 2026 (2026-10-26 21:38:50 Asia/Aden)
 
 - **الفرع الوحيد:** `v2/01-learning-foundation-20261007`; **functional commit:** [`49761c82`](https://github.com/7eaur/himma-/commit/49761c82b9d3aeed57e1eab45d546aa48119b411); **run:** `runs/2026-10-26/B-20261026-2134.md`. Lease WORKER_B released in this handoff commit.
