@@ -381,7 +381,7 @@ for (const mismatch of ["session_id", "kind"] as const) {
 }
 
 
-for (const corruption of ["stale_progress", "missing_summary"] as const) {
+for (const corruption of ["invalid_progress", "missing_summary"] as const) {
   test("HV2-002: malformed or stale committed answer acknowledgement (" + corruption + ") fails closed", async ({ page, request }) => {
     test.setTimeout(150000);
     if (!PASSWORD) throw new Error("E2E_RESEARCHER_PASSWORD required");
@@ -415,7 +415,7 @@ for (const corruption of ["stale_progress", "missing_summary"] as const) {
       expect(original.assessment.session.session_id).toBe(sessionId);
       expect(original.assessment.session.progress.answered).toBe(1);
       altered += 1;
-      const assessment = corruption === "stale_progress"
+      const assessment = corruption === "invalid_progress"
         ? { ...original.assessment, session: { ...original.assessment.session, progress: { ...original.assessment.session.progress, answered: -1 } } }
         : { ...original.assessment, summary: undefined };
       await route.fulfill({ response: upstream, json: { ...original, assessment } });
