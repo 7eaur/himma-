@@ -6,6 +6,7 @@ No GET creates journeys, awards stars, changes placement, or reads private answe
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from db.learning_models import LessonSession, PrivateContentBankSnapshot, StudentJourney
@@ -50,22 +51,42 @@ def _assessment_summary(session: AssessmentSession | None) -> dict | None:
     }
 
 
+def _preferred_assessment(
+    db: Session, student_id: int, kind: str,
+) -> AssessmentSession | None:
+    """Select one active attempt, otherwise one official attempt, without loading history."""
+    base = db.query(AssessmentSession).filter(
+        AssessmentSession.student_id == student_id,
+        AssessmentSession.v2_state.is_not(None),
+        AssessmentSession.session_type == kind,
+    )
+    active = base.filter(AssessmentSession.status == "in_progress").order_by(
+        AssessmentSession.started_at.desc(), AssessmentSession.id.desc(),
+    ).first()
+    if active is not None:
+        return active
+    return base.filter(AssessmentSession.official_for_reporting.is_(True)).order_by(
+        AssessmentSession.started_at.desc(), AssessmentSession.id.desc(),
+    ).first()
+
+
 def build_student_v2_home(db: Session, student: Student) -> dict:
     """One authorized student projection; safe for learner use and reuse by staff."""
     journey = db.query(StudentJourney).filter(StudentJourney.student_id == student.id).one_or_none()
-    assessments = db.query(AssessmentSession).filter(
-        AssessmentSession.student_id == student.id,
-        AssessmentSession.v2_state.is_not(None),
-        AssessmentSession.session_type.in_(("pretest", "posttest")),
-    ).order_by(AssessmentSession.started_at.desc(), AssessmentSession.id.desc()).all()
-    active_assessment = next((x for x in assessments if x.status == "in_progress"), None)
-    # The latest active attempt is shown, otherwise only official attempts.
-    by_kind = {}
-    for kind in ("pretest", "posttest"):
-        best = next((x for x in assessments if x.session_type == kind and x.status == "in_progress"), None)
-        if best is None:
-            best = next((x for x in assessments if x.session_type == kind and x.official_for_reporting), None)
-        by_kind[kind] = _assessment_summary(best)
+    # The latest active attempt is shown, otherwise only the latest official
+    # attempt. Each query returns at most one row, regardless of history size.
+    selected_assessments = {
+        kind: _preferred_assessment(db, student.id, kind)
+        for kind in ("pretest", "posttest")
+    }
+    active_assessment = next(
+        (row for row in selected_assessments.values() if row and row.status == "in_progress"),
+        None,
+    )
+    by_kind = {
+        kind: _assessment_summary(row)
+        for kind, row in selected_assessments.items()
+    }
 
     active_lesson = db.query(LessonSession).filter(
         LessonSession.student_id == student.id,
@@ -144,25 +165,35 @@ def _supervisor_lesson_overview(db: Session, student: Student) -> dict:
     if lessons is None:
         return {"state": "unavailable", "items": [], "content_release_version": version}
 
-    sessions = db.query(LessonSession).filter(
+    session_filter = (
         LessonSession.student_id == student.id,
         LessonSession.content_release_id == journey.content_release_id,
-    ).order_by(LessonSession.id).all()
-    by_lesson: dict[str, list[LessonSession]] = {}
-    for row in sessions:
-        by_lesson.setdefault(row.lesson_id, []).append(row)
+    )
+    latest_ids = db.query(
+        LessonSession.lesson_id,
+        func.max(LessonSession.id).label("latest_id"),
+    ).filter(*session_filter).group_by(LessonSession.lesson_id).subquery()
+    latest_by_lesson = {
+        row.lesson_id: row for row in db.query(LessonSession).join(
+            latest_ids, LessonSession.id == latest_ids.c.latest_id,
+        ).all()
+    }
+    completed_ids = {
+        lesson_id for lesson_id, in db.query(LessonSession.lesson_id).filter(
+            *session_filter, LessonSession.status == "completed",
+        ).distinct().all()
+    }
     placed = journey.placement_state in {"placed", "posttest_ready", "completed"}
     items = []
     for lesson in lessons:
         lesson_id = lesson["id"]
-        attempts = by_lesson.get(lesson_id, [])
-        current = attempts[-1] if attempts else None
+        current = latest_by_lesson.get(lesson_id)
         skipped = placed and int(lesson["level"][1]) < journey.current_level
         # Match the aggregate official count: completed attempts win over
         # unfinished retries, and placement skips never count as completion.
         if skipped:
             state = "skipped"
-        elif any(a.status == "completed" for a in attempts):
+        elif lesson_id in completed_ids:
             state = "completed"
         elif current and current.status == "waiting_review":
             state = "waiting_review"

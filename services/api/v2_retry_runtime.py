@@ -116,10 +116,51 @@ def student_tasks(
         V2ReviewRetryTask.student_id == student.id,
         V2ReviewRetryTask.status.in_(("requested", "submitted")),
     ).order_by(V2ReviewRetryTask.id.desc()).offset(offset).limit(limit + 1).all()
+    page = rows[:limit]
+    lesson_ids = [task.lesson_response_id for task in page if task.lesson_response_id is not None]
+    assessment_ids = [task.assessment_response_id for task in page if task.assessment_response_id is not None]
+    lesson_rows = {
+        row.id: row for row in db.query(LessonQuestionResponse).filter(
+            LessonQuestionResponse.id.in_(lesson_ids),
+        ).all()
+    } if lesson_ids else {}
+    assessment_rows = {
+        row.id: row for row in db.query(AssessmentQuestionResponse).filter(
+            AssessmentQuestionResponse.id.in_(assessment_ids),
+        ).all()
+    } if assessment_ids else {}
+    lesson_session_ids = {row.lesson_session_id for row in lesson_rows.values()}
+    assessment_session_ids = {row.assessment_session_id for row in assessment_rows.values()}
+    lesson_sessions = {
+        row.id: row for row in db.query(LessonSession).filter(
+            LessonSession.id.in_(lesson_session_ids),
+        ).all()
+    } if lesson_session_ids else {}
+    assessment_sessions = {
+        row.id: row for row in db.query(AssessmentSession).filter(
+            AssessmentSession.id.in_(assessment_session_ids),
+        ).all()
+    } if assessment_session_ids else {}
+    release_cache: dict[int, dict] = {}
     items = []
-    for task in rows[:limit]:
+    for task in page:
         kind = "lesson" if task.lesson_response_id is not None else "assessment"
-        row, session, question = _owner(db, kind, task.lesson_response_id or task.assessment_response_id)
+        if kind == "lesson":
+            row = lesson_rows.get(task.lesson_response_id)
+            session = lesson_sessions.get(row.lesson_session_id) if row else None
+        else:
+            row = assessment_rows.get(task.assessment_response_id)
+            session = assessment_sessions.get(row.assessment_session_id) if row else None
+        if row is None or session is None:
+            raise HTTPException(status_code=409, detail="مهمة الإعادة لا تطابق دليلًا موجودًا")
+        if session.content_release_id not in release_cache:
+            release_cache[session.content_release_id] = _session_release(db, session)
+        question = next((
+            question for question in release_cache[session.content_release_id]["questions"]
+            if question["id"] == row.question_id
+        ), None)
+        if not question or question["interaction"] not in ("read_aloud", "write_text"):
+            raise HTTPException(status_code=409, detail="السؤال لا يقبل إعادة تسجيل أو كتابة")
         staged = task.replacement_json if task.status == "requested" else None
         items.append({
             "staged_audio": staged.get("staged_audio") if isinstance(staged, dict) else None,

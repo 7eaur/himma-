@@ -275,6 +275,8 @@ def test_p08_students_cannot_read_or_submit_other_student_retry_task(student_cli
 
 
 def test_p08_student_retry_inbox_paginates_two_distinct_pending_answers(student_client):
+    from sqlalchemy import event
+    from conftest import engine
     from db.learning_models import LessonSession, V2ReviewRetryTask
     from db.models import User
 
@@ -318,6 +320,27 @@ def test_p08_student_retry_inbox_paginates_two_distinct_pending_answers(student_
     assert {page1.json()["items"][0]["question_id"], page2.json()["items"][0]["question_id"]} == {
         first_question_id, "L2-01-IC-A02",
     }
+
+    def counted_get(url: str):
+        statements = 0
+        def count_statement(*_args):
+            nonlocal statements
+            statements += 1
+        event.listen(engine, "before_cursor_execute", count_statement)
+        try:
+            response = student_client.get(url)
+        finally:
+            event.remove(engine, "before_cursor_execute", count_statement)
+        assert response.status_code == 200
+        return statements
+
+    one_item_queries = counted_get("/v2/retries/student/tasks?limit=1")
+    two_item_queries = counted_get("/v2/retries/student/tasks?limit=2")
+    assert two_item_queries <= one_item_queries + 1
+    _login_researcher(student_client)
+    one_review_queries = counted_get("/v2/review/lesson-queue?limit=1")
+    two_review_queries = counted_get("/v2/review/lesson-queue?limit=2")
+    assert two_review_queries <= one_review_queries + 1
 
 
 def test_p08_rewrite_draft_recovers_after_reload_without_grading(student_client):

@@ -17,7 +17,7 @@ import recordings
 import storage
 from db.learning_models import (
     AdaptationDecision, LessonQuestionResponse, LessonSession,
-    SkillEvidence, V2LessonReviewAction,
+    SkillEvidence, V2LessonReviewAction, V2ReviewRetryTask,
 )
 from db.models import AudioSubmission, AuditLog, Student, User
 from dependencies import get_current_user, get_db
@@ -57,20 +57,28 @@ def _lesson_audio(db: Session, response_id: int) -> AudioSubmission | None:
     ).order_by(AudioSubmission.id.desc()).first()
 
 
-def _question(db: Session, row: LessonQuestionResponse, session: LessonSession) -> dict:
+def _question(
+    db: Session, row: LessonQuestionResponse, session: LessonSession,
+    release: dict | None = None,
+) -> dict:
     # An older learner's human reading rubric must never be silently replaced by
     # a newer release's rubric. The shared assessment resolver is checksum-pinned.
-    release = _session_release(db, session)
+    release = release if release is not None else _session_release(db, session)
     question = next((q for q in release["questions"] if q["id"] == row.question_id), None)
     if not question or question["role"] != row.role or question["interaction"] not in {"read_aloud", "write_text"}:
         raise HTTPException(status_code=409, detail="دليل الدرس لا يطابق نسخته الأصلية")
     return question
 
 
-def _item(db: Session, row: LessonQuestionResponse, session: LessonSession, student: Student) -> dict:
-    question = _question(db, row, session)
-    task = active_retry(db, lesson_response_id=row.id)
-    audio = _lesson_audio(db, row.id) if question["interaction"] == "read_aloud" else None
+def _item(
+    db: Session, row: LessonQuestionResponse, session: LessonSession, student: Student,
+    *, release: dict | None = None, task=None, audio: AudioSubmission | None = None,
+    preloaded: bool = False,
+) -> dict:
+    question = _question(db, row, session, release)
+    if not preloaded:
+        task = active_retry(db, lesson_response_id=row.id)
+        audio = _lesson_audio(db, row.id) if question["interaction"] == "read_aloud" else None
     answer = (task.replacement_json if task and task.status == "submitted" else
               (row.answer_json or {}).get("answer")) or {}
     ready = (
@@ -110,7 +118,35 @@ def lesson_queue(
     ).join(Student, Student.id == LessonSession.student_id).filter(
         LessonQuestionResponse.status == "pending_review",
     ).order_by(LessonQuestionResponse.created_at, LessonQuestionResponse.id).offset(offset).limit(limit + 1).all()
-    items = [_item(db, row, session, student) for row, session, student in rows[:limit]]
+    page = rows[:limit]
+    response_ids = [row.id for row, _, _ in page]
+    retry_by_response = {
+        task.lesson_response_id: task for task in db.query(V2ReviewRetryTask).filter(
+            V2ReviewRetryTask.lesson_response_id.in_(response_ids),
+            V2ReviewRetryTask.status.in_(("requested", "submitted")),
+        ).all()
+    } if response_ids else {}
+    audios = db.query(AudioSubmission).filter(
+        AudioSubmission.lesson_response_id.in_(response_ids),
+    ).order_by(AudioSubmission.id).all() if response_ids else []
+    audio_by_id = {audio.id: audio for audio in audios}
+    latest_audio = {audio.lesson_response_id: audio for audio in audios}
+    release_cache: dict[int, dict] = {}
+    items = []
+    for row, session, student in page:
+        if session.content_release_id not in release_cache:
+            release_cache[session.content_release_id] = _session_release(db, session)
+        task = retry_by_response.get(row.id)
+        audio = (
+            audio_by_id.get(task.audio_submission_id)
+            if task and task.status == "submitted" and task.audio_submission_id else
+            None if task else latest_audio.get(row.id)
+        )
+        items.append(_item(
+            db, row, session, student,
+            release=release_cache[session.content_release_id],
+            task=task, audio=audio, preloaded=True,
+        ))
     response_audio_ids = {
         item["response_id"]: item["audio_submission_id"]
         for item in items if item["audio_submission_id"] is not None

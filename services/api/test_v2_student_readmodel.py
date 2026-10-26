@@ -126,6 +126,30 @@ def test_unapproved_old_score_not_returned_in_v2_home(student_client):
     assert "99.0" not in result.text
 
 
+def test_large_assessment_history_selects_old_official_attempt_without_loading_fallbacks(student_client):
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        release = register_candidate_release(db)
+        db.add(AssessmentSession(
+            student_id=student.id, content_release_id=release.id,
+            session_type="pretest", status="completed", v2_state="completed",
+            final_score=77, official_for_reporting=True, assessment_attempt_no=1,
+        ))
+        db.add_all([
+            AssessmentSession(
+                student_id=student.id, content_release_id=release.id,
+                session_type="pretest", status="completed", v2_state="completed",
+                final_score=99, official_for_reporting=False, assessment_attempt_no=attempt,
+            )
+            for attempt in range(2, 122)
+        ])
+        db.commit()
+    result = student_client.get("/v2/student/home")
+    assert result.status_code == 200, result.text
+    assert result.json()["assessments"]["pretest"]["score_percent"] == 77.0
+    assert "99.0" not in result.text
+
+
 def test_v2_home_fails_closed_when_frozen_bank_checksum_mismatches(student_client):
     with TestingSessionLocal() as db:
         student = db.query(Student).filter(Student.access_code == "STU001").one()
