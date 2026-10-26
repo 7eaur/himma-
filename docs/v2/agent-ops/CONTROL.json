@@ -6,7 +6,17 @@
   "timezone": "Asia/Aden",
   "mode": "ACTIVE",
   "stop_reason": null,
-  "lease": null,
+  "lease": {
+    "role": "WORKER_A",
+    "run_id": "20261026-1106-A",
+    "base_head": "6ae900cd639676000c7fd655f7625c6a0dc15733",
+    "scope": [
+      "apps/web/src/components/learning/InteractionPlayer.test.tsx"
+    ],
+    "acquired_at": "2026-10-26T08:06:39.681Z",
+    "expires_at": "2026-10-26T08:32:39.681Z",
+    "task_id": "HV2-001/HV2-004"
+  },
   "scheduler": {
     "worker_a": "00 * * * *",
     "worker_b": "30 * * * *",
