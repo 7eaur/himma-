@@ -377,11 +377,16 @@ class AudioUploadLease(Base):
     id = Column(Integer, primary_key=True)
     student_id = Column(Integer, ForeignKey("students.id", ondelete="RESTRICT"), nullable=False)
     storage_key = Column(String(255), nullable=True, unique=True)
+    binding_key = Column(String(255), nullable=True)
     state = Column(String(20), nullable=False, default="temporary", server_default="temporary")
     created_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
     submitted_at = Column(DateTime(timezone=True), nullable=True)
 
-    __table_args__ = (Index("ix_v2_audio_upload_state_created", "state", "created_at"),)
+    __table_args__ = (
+        CheckConstraint("binding_key IS NULL OR binding_key <> ''", name="ck_v2_audio_upload_binding"),
+        Index("ix_v2_audio_upload_state_created", "state", "created_at"),
+        Index("ix_v2_audio_upload_student_binding", "student_id", "binding_key"),
+    )
 
 
 class AudioPurgeTask(Base):

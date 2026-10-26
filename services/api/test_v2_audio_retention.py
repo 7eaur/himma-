@@ -11,6 +11,7 @@ from conftest import TestingSessionLocal
 from db.learning_models import LessonQuestionResponse, LessonSession
 from db.models import AudioPurgeTask, AudioSubmission, AudioUploadLease, Student
 from v2_audio_retention import (
+    audio_upload_binding,
     process_queued_audio_purges, process_abandoned_uploads,
     schedule_superseded_audio, schedule_superseded_staged_audio,
     track_new_audio_upload, mark_audio_submitted,
@@ -112,9 +113,17 @@ def test_expired_unsubmitted_lease_is_deleted_but_submitted_voice_is_kept(monkey
         sid = student.id
         pending = f"audio/{sid}/expired-staged.audio"
         accepted = f"audio/{sid}/accepted.audio"
-        track_new_audio_upload(db, student_id=sid, storage_key=pending)
-        track_new_audio_upload(db, student_id=sid, storage_key=accepted)
-        mark_audio_submitted(db, student_id=sid, storage_key=accepted)
+        pending_binding = audio_upload_binding("lesson", 10, "L1-05-GP-04")
+        accepted_binding = audio_upload_binding("lesson", 11, "L1-05-GP-04")
+        track_new_audio_upload(
+            db, student_id=sid, storage_key=pending, binding_key=pending_binding,
+        )
+        track_new_audio_upload(
+            db, student_id=sid, storage_key=accepted, binding_key=accepted_binding,
+        )
+        mark_audio_submitted(
+            db, student_id=sid, storage_key=accepted, binding_key=accepted_binding,
+        )
         db.commit()
         old = datetime.now(timezone.utc) - timedelta(hours=25)
         for lease in db.query(AudioUploadLease).all():
@@ -143,7 +152,12 @@ def test_unsubmitted_lease_cannot_be_removed_while_audio_evidence_exists(monkeyp
         student = db.query(Student).filter(Student.access_code == "STU001").one()
         sid = student.id
         key = f"audio/{sid}/linked-evidence.webm"
-        track_new_audio_upload(db, student_id=sid, storage_key=key)
+        track_new_audio_upload(
+            db,
+            student_id=sid,
+            storage_key=key,
+            binding_key=audio_upload_binding("lesson", 12, "L1-05-GP-04"),
+        )
         lease = db.query(AudioUploadLease).filter(AudioUploadLease.storage_key == key).one()
         lease.created_at = datetime.now(timezone.utc) - timedelta(hours=25)
         release = register_candidate_release(db)
@@ -164,3 +178,31 @@ def test_unsubmitted_lease_cannot_be_removed_while_audio_evidence_exists(monkeyp
     report = process_abandoned_uploads(age_hours=24)
     assert report["deleted_abandoned"] == 0
     assert deleted == []
+
+
+def test_upload_lease_is_required_and_cannot_cross_questions():
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        key = f"audio/{student.id}/bound-reading.webm"
+        first = audio_upload_binding("lesson", 21, "L1-05-GP-04")
+        second = audio_upload_binding("lesson", 21, "L1-05-IC-04")
+        track_new_audio_upload(
+            db, student_id=student.id, storage_key=key, binding_key=first,
+        )
+        with pytest.raises(ValueError, match="different question"):
+            mark_audio_submitted(
+                db, student_id=student.id, storage_key=key, binding_key=second,
+            )
+        with pytest.raises(ValueError, match="missing"):
+            mark_audio_submitted(
+                db,
+                student_id=student.id,
+                storage_key=f"audio/{student.id}/untracked.webm",
+                binding_key=first,
+            )
+        mark_audio_submitted(
+            db, student_id=student.id, storage_key=key, binding_key=first,
+        )
+        assert db.query(AudioUploadLease).filter(
+            AudioUploadLease.storage_key == key,
+        ).one().state == "submitted"

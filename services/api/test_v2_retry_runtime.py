@@ -8,6 +8,7 @@ from test_v2_interaction_runtime import _start_at_questions
 from v2_content.importer import register_candidate_release
 from v2_content.repository import get_release
 from test_v2_legacy_writing_fixture import legacy_writing_release
+from v2_audio_retention import audio_upload_binding, track_new_audio_upload
 
 
 def _researcher(client):
@@ -18,6 +19,17 @@ def _researcher(client):
 
 def _student(client):
     assert client.post("/auth/student-login", json={"access_code": "STU001"}).status_code == 200
+
+
+def _stage_lesson_audio(session_id: int, student_id: int, storage_key: str) -> None:
+    with TestingSessionLocal() as db:
+        track_new_audio_upload(
+            db,
+            student_id=student_id,
+            storage_key=storage_key,
+            binding_key=audio_upload_binding("lesson", session_id, "L1-05-GP-04"),
+        )
+        db.commit()
 
 
 def test_p08_pretest_rewrite_resumes_original_30_questions_and_keeps_history(student_client):
@@ -98,6 +110,7 @@ def test_p08_learner_audio_retry_never_overwrites_original_recording(student_cli
     with TestingSessionLocal() as db:
         student_id = db.query(Student).filter(Student.access_code == "STU001").one().id
     original_key = f"audio/{student_id}/original.webm"
+    _stage_lesson_audio(sid, student_id, original_key)
     sent = student_client.post(f"/v2/lessons/sessions/{sid}/answers", json={
         "submit_key": str(uuid4()), "audio_storage_key": original_key,
         "audio_file_size": 132, "audio_mime_type": "audio/webm", "audio_duration_seconds": 3,
@@ -162,8 +175,10 @@ def test_p08_rerecord_stage_survives_reload_and_rejects_wrong_file(student_clien
     sid = _start_at_questions(student_client, "L1-05", 3)
     with TestingSessionLocal() as db:
         student_id = db.query(Student).filter(Student.access_code == "STU001").one().id
+    original_key = f"audio/{student_id}/original.webm"
+    _stage_lesson_audio(sid, student_id, original_key)
     sent = student_client.post(f"/v2/lessons/sessions/{sid}/answers", json={
-        "submit_key": str(uuid4()), "audio_storage_key": f"audio/{student_id}/original.webm",
+        "submit_key": str(uuid4()), "audio_storage_key": original_key,
         "audio_file_size": 110, "audio_mime_type": "audio/webm", "audio_duration_seconds": 3,
     })
     assert sent.status_code == 200, sent.text
@@ -232,8 +247,10 @@ def test_p08_invalid_audio_type_rejected_before_upload(student_client, monkeypat
     with TestingSessionLocal() as db:
         student_id = db.query(Student).filter(Student.access_code == "STU001").one().id
     monkeypatch.setattr(storage, "verify_audio", lambda *args, **kwargs: None)
+    initial_key = f"audio/{student_id}/initial.webm"
+    _stage_lesson_audio(sid, student_id, initial_key)
     assert student_client.post(f"/v2/lessons/sessions/{sid}/answers", json={
-        "submit_key": str(uuid4()), "audio_storage_key": f"audio/{student_id}/initial.webm",
+        "submit_key": str(uuid4()), "audio_storage_key": initial_key,
         "audio_file_size": 120, "audio_mime_type": "audio/webm", "audio_duration_seconds": 3,
     }).status_code == 200
     with TestingSessionLocal() as db:

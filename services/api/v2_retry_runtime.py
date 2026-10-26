@@ -20,7 +20,7 @@ from v2_retry_state import active_retry
 from v2_review_claims import enforce_review_claim, clear_review_claim
 from v2_audio_retention import (
     schedule_superseded_staged_audio, run_retention_after_commit,
-    track_new_audio_upload, mark_audio_submitted,
+    audio_upload_binding, track_new_audio_upload, mark_audio_submitted,
 )
 
 router = APIRouter(prefix="/v2/retries", tags=["v2-retries"])
@@ -205,6 +205,14 @@ def student_retry_recording(
         "audio_mime_type": file.content_type,
         "audio_duration_seconds": duration_seconds,
     }
+    binding_key = audio_upload_binding("retry", task.id, question["id"])
+    # Persist the temporary lease immediately after S3 accepts the object. If
+    # the task closes during upload, the abandoned-upload worker can still
+    # remove this object after the recovery grace period.
+    track_new_audio_upload(
+        db, student_id=student.id, storage_key=key, binding_key=binding_key,
+    )
+    db.commit()
     # The request may have been finalized during an S3 upload. Recheck the
     # locked response before recording resumable upload metadata.
     current, _, _, _ = _student_task(db, task_id, student, lock=True)
@@ -219,7 +227,6 @@ def student_retry_recording(
         raise HTTPException(status_code=409, detail="مفتاح الرفع استُخدم بمدة أو بيانات مختلفة")
     if old_staged and old_staged != metadata:
         superseded.append(old_staged)
-    track_new_audio_upload(db, student_id=student.id, storage_key=key)
     current.replacement_json = {
         "staged_audio": metadata,
         "superseded_staged_audio": superseded,
@@ -281,7 +288,12 @@ def student_retry_submit(
     task.status = "submitted"
     if task.request_kind == "rerecord":
         try:
-            mark_audio_submitted(db, student_id=student.id, storage_key=canonical["audio_storage_key"])
+            mark_audio_submitted(
+                db,
+                student_id=student.id,
+                storage_key=canonical["audio_storage_key"],
+                binding_key=audio_upload_binding("retry", task.id, question["id"]),
+            )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail="ملف إعادة التسجيل المؤقت لم يعد صالحًا") from exc
         audio = AudioSubmission(

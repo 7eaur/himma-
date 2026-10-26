@@ -22,7 +22,7 @@ from dependencies import get_db
 from v2_content.media import MediaProvider
 from v2_content.projection import student_question
 from v2_content.repository import get_lesson, get_media, get_question
-from v2_audio_retention import track_new_audio_upload, mark_audio_submitted
+from v2_audio_retention import audio_upload_binding, track_new_audio_upload, mark_audio_submitted
 from v2_lesson_runtime import _require_preview_student, _session_or_404, _session_payload
 from v2_adaptation_runtime import (
     active_support_assignment,
@@ -306,7 +306,10 @@ def upload_reading(
         raise HTTPException(status_code=400, detail="ملف التسجيل غير صالح") from exc
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail="خدمة حفظ التسجيلات غير متاحة الآن") from exc
-    track_new_audio_upload(db, student_id=student.id, storage_key=storage_key)
+    binding_key = audio_upload_binding("lesson", session.id, question["id"])
+    track_new_audio_upload(
+        db, student_id=student.id, storage_key=storage_key, binding_key=binding_key,
+    )
     db.commit()
     return {
         "audio_storage_key": storage_key,
@@ -401,7 +404,12 @@ def submit_answer(
     record_response_evidence(db, session, response, question, assignment)
     if question["interaction"] == "read_aloud":
         try:
-            mark_audio_submitted(db, student_id=student.id, storage_key=canonical["audio_storage_key"])
+            mark_audio_submitted(
+                db,
+                student_id=student.id,
+                storage_key=canonical["audio_storage_key"],
+                binding_key=audio_upload_binding("lesson", session.id, question["id"]),
+            )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail="ملف التسجيل المؤقت لم يعد صالحًا للإرسال") from exc
         db.add(AudioSubmission(

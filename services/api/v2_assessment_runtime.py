@@ -39,7 +39,7 @@ from v2_retry_state import active_retry
 from v2_review_claims import enforce_review_claim, clear_review_claim
 from v2_audio_retention import (
     schedule_superseded_audio, run_retention_after_commit,
-    track_new_audio_upload, mark_audio_submitted,
+    audio_upload_binding, track_new_audio_upload, mark_audio_submitted,
 )
 
 
@@ -375,7 +375,10 @@ def upload_recording(
         raise HTTPException(status_code=400, detail="ملف التسجيل غير صالح") from exc
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail="خدمة حفظ التسجيلات غير متاحة الآن") from exc
-    track_new_audio_upload(db, student_id=student.id, storage_key=key)
+    binding_key = audio_upload_binding("assessment", session.id, question["id"])
+    track_new_audio_upload(
+        db, student_id=student.id, storage_key=key, binding_key=binding_key,
+    )
     db.commit()
     return {"audio_storage_key": key, "audio_file_size": size, "audio_mime_type": file.content_type}
 
@@ -419,7 +422,12 @@ def answer(session_id: int, body: AnswerRequest, student: Student = Depends(_req
     db.add(response); db.flush()
     if question["interaction"] == "read_aloud":
         try:
-            mark_audio_submitted(db, student_id=student.id, storage_key=canonical["audio_storage_key"])
+            mark_audio_submitted(
+                db,
+                student_id=student.id,
+                storage_key=canonical["audio_storage_key"],
+                binding_key=audio_upload_binding("assessment", session.id, question["id"]),
+            )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail="ملف التسجيل المؤقت لم يعد صالحًا للإرسال") from exc
         db.add(AudioSubmission(
