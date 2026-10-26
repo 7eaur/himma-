@@ -42,13 +42,22 @@ function V2LessonSessionPage({ routeSessionId }: { routeSessionId: string }) {
   const [error, setError] = useState("");
   const completionKey = useRef<string | null>(null);
   const completionConfirmed = useRef(false);
+  const active = useRef(false);
   const sessionId = Number(routeSessionId);
   const invalidSessionId = !Number.isInteger(sessionId) || sessionId < 1;
 
+  useEffect(() => {
+    active.current = true;
+    return () => { active.current = false; };
+  }, []);
+
   const loadLesson = useCallback(async () => {
-    if (invalidSessionId) return;
+    if (invalidSessionId || !active.current) return;
     return fetch(`/api/v2/lessons/sessions/${sessionId}/interaction`, { cache: "no-store" }).then(async (response) => {
       const data = await response.json().catch(() => null);
+      // A response from a route that has already unmounted must not redirect
+      // the new lesson to login or overwrite its error/loading state.
+      if (!active.current) return;
       if (response.status === 401 || response.status === 403) { router.replace("/student/login"); return; }
       if (!response.ok) throw new Error(data?.detail || "تعذر استعادة الدرس");
       if (Number(data?.session?.session_id) !== sessionId) throw new Error("استجابة جلسة الدرس غير متطابقة");
@@ -63,6 +72,7 @@ function V2LessonSessionPage({ routeSessionId }: { routeSessionId: string }) {
   const sendEvent = useCallback(async (event_type: "intro_complete" | "video_progress" | "video_ended", position_seconds?: number, duration_seconds?: number, stableEventKey?: string) => {
     const response = await fetch(`/api/v2/lessons/sessions/${sessionId}/events`, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ event_key:stableEventKey ?? eventKey(event_type), event_type, position_seconds, duration_seconds }), keepalive:event_type === "video_progress" });
     const data = await response.json().catch(() => null);
+    if (!active.current) return;
     if (!response.ok) throw new Error(data?.detail || "تعذر حفظ تقدم الدرس");
     // Checkpoints persist the playback position, but must not replace the
     // rendered lesson. An older checkpoint response can arrive after
@@ -78,10 +88,10 @@ function V2LessonSessionPage({ routeSessionId }: { routeSessionId: string }) {
     else setLesson(data);
   }, [loadLesson, sessionId]);
 
-  const completeIntro = async () => { setSaving(true); setError(""); try { await sendEvent("intro_complete"); } catch (reason) { setError(reason instanceof Error ? reason.message : "تعذر فتح الفيديو"); } finally { setSaving(false); } };
+  const completeIntro = async () => { setSaving(true); setError(""); try { await sendEvent("intro_complete"); } catch (reason) { if (active.current) setError(reason instanceof Error ? reason.message : "تعذر فتح الفيديو"); } finally { if (active.current) setSaving(false); } };
   const checkpoint = useCallback((position: number, duration: number) => { void sendEvent("video_progress", position, duration).catch(() => {
     // A delayed failed checkpoint must not put an error on the next stage.
-    if (!completionConfirmed.current) setError("تعذر حفظ موضع الفيديو مؤقتًا. حاول الإيقاف ثم التشغيل.");
+    if (active.current && !completionConfirmed.current) setError("تعذر حفظ موضع الفيديو مؤقتًا. حاول الإيقاف ثم التشغيل.");
   }); }, [sendEvent]);
   const ended = useCallback(async (position: number, duration: number) => {
     // A lost HTTP response after a committed event must be safe to retry.
