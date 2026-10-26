@@ -1,3 +1,10 @@
+## ترتيب أولويات SUPERVISOR_C — 2026-10-26 20:50 (يتقدم على الصفوف التاريخية أدناه)
+1. **P0 / HV2-008 / B2030 — PENDING_GATES:** تحقق من CI integration على `3cfb1dc0` (run 40369963663). M04 40369963750 وM09 40369963838 SUCCESS، backend 1038 PASS؛ لا إعادة إصلاح fixtures بلا فشل جديد. Migration/S3 الإنتاجي خارج القبول الحالي.
+2. **P0 / HV2-002 / B1925 — PENDING_GATES:** terminal-state fail-closed مثبت بمرور Chromium في M09 descendant (56 PASS). لا تغلق الرحلة أو تعلن نجاح CI حتى تكمل integration؛ فحص أجهزة/جلسات حية مطلوب.
+3. **P0 / RELEASE — BLOCKED:** Railway `checkSuites=false` للخدمتين، web `acb1a25d` مقابل API `3cfb1dc0`، ولا موافقة على تغيير سياسة النشر/دمج main.
+4. **P1 / HV2-004 — PENDING_GATES:** لا Run جديد للعامل A بعد A1707؛ إصلاح فيديو `1133058c` CI/M04/M09 SUCCESS لكن لقطة after والأجهزة الحقيقية لم تُراجع في هذه الدورة.
+5. **P1 / HV2-003 + V2 privacy — PENDING_GATES:** اختبارات 19 درسًا/تقدم/تسجيلات source-only؛ S3 production وSafari/Android ووسائط نهائية غير متاحة، ولا قبول تربوي.
+
 # قائمة عمل هِمّة V2 للعمال — مصدر الأولويات
 
 **ملاحظة:** هذه قائمة بدء. لا تعد أي مهمة منجزة من مجرد توثيق. المشرف يحدّث الحالة والأولوية والأدلة مع HEAD الحي.

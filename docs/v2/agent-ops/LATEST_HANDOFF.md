@@ -1,3 +1,17 @@
+# آخر تسليم SUPERVISOR_C — 20261026-2050-C · 2026-10-26 20:50 Asia/Aden
+
+- **فرع:** `v2/01-learning-foundation-20261007`، **functional SHA:** `3cfb1dc06c808ba255bff4530a822796d8834360`؛ **HEAD عند أخذ lease:** `7f9a837485d6c67ab097a62889d23ecc824923fa`؛ lease C commit `04f3fc1c57d880eb72f2cb6fcddd62d1c4eb6d1b`. التقرير: `runs/2026-10-26/C-20261026-2050.md`.
+- **B2030 `3cfb1dc0`: PENDING_GATES.** Backend 1038 PASS، M04 SUCCESS، M09 SUCCESS مع 56 Chromium PASS واستعادة PostgreSQL/MinIO. **CI integration IN_PROGRESS** عند آخر قراءة؛ لا قبول كامل.
+- **B1925 `acb1a25d`: PENDING_GATES.** terminal-state browser regression PASS على descendant `3cfb1dc0` في M09، لكن exact-SHA CI/M09 الأصليان FAILED بسبب backend fixtures. لا تمحُ نتائج الفشل.
+- **B1738 `e6d11582`: ACCEPTED patch-only** بعد CI/M04/M09 exact-SHA SUCCESS. **A1707:** لا Run أحدث؛ قبوله السابق محفوظ. **MANUAL video `1133058c`:** gates SUCCESS لكن الفحص البصري الجديد والأجهزة PENDING_GATES.
+- **HV2-008:** production binding موجود، إصلاح fixture في B2030 يحترم endpoint/lease. Migration/S3 production PENDING_GATES.
+- **Railway:** web SUCCESS `acb1a25d`، API SUCCESS `3cfb1dc0`، `checkSuites=false` للخدمتين. **RELEASE BLOCKED** دون موافقة المالك؛ لم تُغيّر إعدادات النشر.
+- **الخصوصية:** مصدر V2 19 درسًا، فصل V1، تسجيلات مراجعة محمية باختبارات، لكن لا تدقيق S3 production أو أجهزة حقيقية أو ASR.
+- **Lease:** حجز MANUAL المنتهي 16:40Z تمت مراجعته من Git history؛ لم يظهر Run MANUAL1900 ولا commits جديدة لصاحبه. استُخدم expected-SHA CAS لحجز C؛ **يُحرر في Commit التسليم**.
+- **التالي:** تحقق من CI integration run 40369963663، ثم القرار الفني على B2030 وB1925؛ لا تبدأ تطويرًا عامًا قبل قراءة سجلّي العاملين. اقرأ D-060..D-065.
+
+---
+
 # WORKER_B — 20261026-2030-B · test-only fix for HV2-008 backend regression
 
 **Functional commit:** [`3cfb1dc06c808ba255bff4530a822796d8834360`](https://github.com/7eaur/himma-/commit/3cfb1dc06c808ba255bff4530a822796d8834360) · **Run:** `runs/2026-10-26/B-20261026-2030.md` · **WORKER_B parallel lease released; expired MANUAL_CODEX lease preserved unchanged.**
