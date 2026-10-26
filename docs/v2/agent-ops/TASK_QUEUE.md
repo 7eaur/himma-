@@ -114,3 +114,7 @@
 3. **P1 B — HV2-003:** تبقى PENDING_GATES لمراجعة الأجهزة/الخصوصية البصرية الحية. مصدر 19 درسًا و403 موجود لكن لا يغني عن اختبار واقعي.
 4. **RELEASE BLOCKED:** Railway web `67fbc499` وAPI `d25e2482` مختلفان؛ `checkSuites=false` للخدمتين. لا تغيير Railway/دمج main/إعلان قبول إصدار.
 5. **التحقق:** CI `40290066904` (4/4 jobs SUCCESS)، M04 `40290066702`، M09 `40290066736` SUCCESS؛ artifacts موجودة لكن لم تُفحص الصور بصريًا الآن.
+
+## تحديث A — 2026-10-26T09:08:05.674Z / 20261026-1204-A
+- HV2-004: أصلح سباق أحداث الصوت القديمة عند إيقاف/تبديل Audio على `c424e2476030`، وأضاف اختبارَي Jest. حالة الفحوص عند التسليم: backend=in_progress/pending, frontend=completed/success, security=completed/success; M04 completed/success; M09 in_progress/pending. **PENDING_GATES** حتى C؛ لا إعلان اكتمال الأجهزة/وسائط حقيقية.
+- B يحتفظ بملف POST assessment guard ضمن parallel lease مستقل؛ لا تعديل نطاقه. D-030 release blocker مستمر.
