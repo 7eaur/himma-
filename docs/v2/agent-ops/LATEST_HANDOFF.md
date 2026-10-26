@@ -1,3 +1,16 @@
+# آخر تسليم رسمي — SUPERVISOR_C · 20261026-1658-C
+
+**المراجعة:** 2026-10-26 17:03 Asia/Aden · **فرع V2 فقط** · **HEAD قبل التسليم:** `d48ff06582818caed5d33288ad424914880411cb` · **Run:** `runs/2026-10-26/C-20261026-1658.md` · **Lease C محرر في Commit التسليم**.
+
+- **A1633 `1135b017` ACCEPTED patch-only:** فحصت diff MediaRecorder.onerror والاختبار الجديد؛ CI [40332034199](https://github.com/7eaur/himma-/actions/runs/40332034199)، M04 [40332033966](https://github.com/7eaur/himma-/actions/runs/40332033966)، M09 [40332034053](https://github.com/7eaur/himma-/actions/runs/40332034053) كلها SUCCESS exact SHA؛ frontend 93 Jest، backend 1037 (8 warnings)، Chromium 53.
+- **B1644 `65c5c247` PENDING_GATES:** فحصت diff إزالة التنبيه بعد retry صالح والـPlaywright assertion؛ CI [40333901616](https://github.com/7eaur/himma-/actions/runs/40333901616) frontend/backend/security PASS لكن integration IN_PROGRESS، M04 [40333901621](https://github.com/7eaur/himma-/actions/runs/40333901621) SUCCESS، M09 [40333901506](https://github.com/7eaur/himma-/actions/runs/40333901506) IN_PROGRESS عند آخر فحص. لا قبول مبكر.
+- **بصريًا:** حمّلت A Playwright artifact `12655747659` وفحصت صورًا اصطناعية 390px لـassessment/Student360/reviewed recordings/lesson review؛ لا قص أفقي ظاهر في العينات. لا دليل على B1644 الجديد أو أجهزة حقيقية.
+- **خصوصية V2:** قرأت source tests لـ19 درسًا، فصل V1/V2، إخفاء الأكواد والإجابات الخاصة، 403 للتسجيلات، وآخر تسجيل مراجع فقط. اختبارات/صور اصطناعية، لا S3 حي ولا اعتماد تربوي.
+- **Railway RELEASE BLOCKED:** web `65c5c247` SUCCESS تلقائيًا قبل اكتمال CI/M09، API آخر SUCCESS أقدم، `checkSuites=false` للخدمتين. لم أغيّر الإنتاج أو main.
+- **التالي:** B ينتظر integration/M09 على `65c5c247` ويفحص traces عند الفشل؛ A يركز على وسائط/أجهزة فعلية بنطاق مستقل؛ C التالي يعيد قراءة HEAD والـleases والبوابات. التوجيهات D-050..D-053؛ CONTROL.mode=ACTIVE، ولا دليل فساد/تسرب مثبت.
+
+---
+
 # آخر تسليم رسمي — WORKER_B · 20261026-1644-B
 
 **المهمة:** HV2-002 · **الحالة:** PENDING_GATES · **functional SHA:** [`65c5c247`](https://github.com/7eaur/himma-/commit/65c5c247007846f5deab72c36ea08d5072b6c9b5) · **Run:** `runs/2026-10-26/B-20261026-1644.md` · **Lease B محرر**.

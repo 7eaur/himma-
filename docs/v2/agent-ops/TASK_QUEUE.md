@@ -160,3 +160,9 @@
 ## تحديث WORKER_A — 2026-10-26T13:38:21.265Z UTC · 20261026-1633-A
 - **HV2-004:** `1135b017` يعالج حدث فشل `MediaRecorder.onerror` غير المتزامن بإغلاق الميكروفون ومنع الصوت الجزئي؛ اختبار Jest اصطناعي واحد. frontend 14 suites/93 PASS + security + M04 SUCCESS، CI backend/integration وM09 PENDING؛ **لا DONE قبل C**. أجهزة Safari/Android/وسائط معتمدة **BLOCKED_EXTERNAL_DEVICE**.
 - **HV2-002:** يظل لـB، دون تعديل ملفات التقييم. **RELEASE_BLOCKER:** web auto-deployed قبل البوابات وAPI أقدم، `checkSuites=false` للخدمتين؛ لا تغيير إنتاج.
+
+## توجيه C — 2026-10-26 17:03 Asia/Aden · `20261026-1658-C`
+1. **P0 / B / HV2-002:** [CI 40333901616](https://github.com/7eaur/himma-/actions/runs/40333901616) integration و[M09 40333901506](https://github.com/7eaur/himma-/actions/runs/40333901506) على `65c5c247` لا يزالان IN_PROGRESS؛ [M04 40333901621](https://github.com/7eaur/himma-/actions/runs/40333901621) SUCCESS. عند الاكتمال: تحقق من assertion اختفاء stale alert بعد GET صالح، وأبقِ حماية session/payload. القرار الحالي PENDING_GATES، لا REWORK بلا FAIL.
+2. **P1 / A / HV2-004:** إصلاح MediaRecorder.onerror `1135b017` ACCEPTED patch-only مع CI/M04/M09 SUCCESS (93 Jest/53 Chromium). لا تكرر إصلاحًا مقبولًا؛ استكمل اختبار أجهزة/ميكروفون ووسائط حقيقية، أو سجّل BLOCKED_EXTERNAL_DEVICE. لا تمس نطاق B أو ElevenLabs.
+3. **P1 / HV2-003 وخصوصية V2:** احتفظ بفصل 19 درسًا والتقدم والتسجيلات الأخيرة وصلاحيات المشرف؛ اختبارات source/CI ولقطات 390px ليست إثبات S3 حي أو جهاز فعلي. HV2-005/006 لا تُفتح قبل التبعيات.
+4. **P0 / RELEASE_BLOCKER:** web `65c5c247` auto-deployed وAPI أقدم؛ `checkSuites=false` للخدمتين. ممنوع إعلان اعتماد إصدار/دمج main أو تغيير Railway بلا موافقة المالك؛ CONTROL.mode ACTIVE ما لم يظهر دليل أمني جديد.

@@ -196,3 +196,17 @@
 - **D-048 | QA/PRIVACY PENDING_GATES:** التحقق الحالي backend+Chromium+عينات صور، وليس تدقيق S3/أجهزة/اعتماد 19 درسًا. راقب فصل V1/V2 والدرجات غير المعتمدة وخصوصية آخر تسجيل للمشرف، ولا تخترع ASR.
 - **D-049 | RELEASE BLOCKED:** Railway `checkSuites=false` للويب/API وweb/API غير متزامنين؛ لا موافقة على نشر/دمج/تغيير إعدادات من المشرف. `CONTROL.mode=ACTIVE` لأن لا دليل حاليًا على تسرب أو فساد بيانات يستوجب PAUSED. إذا ثبت خطر أمني/تلف بيانات فعلي غيّر mode إلى PAUSED مع الشاهد فورًا.
 
+## مراجعة SUPERVISOR_C — 2026-10-26 17:03 Asia/Aden · `20261026-1658-C`
+
+| Run / SHA | القرار | الشاهد والملفات الفعلية | المطلوب |
+|---|---|---|---|
+| `20261026-1633-A` / `1135b017` | **ACCEPTED (patch only)** | `InteractionPlayer.tsx` و`InteractionPlayer.test.tsx`: معالجة MediaRecorder.onerror وإيقاف tracks ومنع إرسال صوت جزئي. [CI 40332034199](https://github.com/7eaur/himma-/actions/runs/40332034199) frontend 93 Jest/backend 1037 + security + 53 Chromium SUCCESS؛ [M04 40332033966](https://github.com/7eaur/himma-/actions/runs/40332033966) و[M09 40332034053](https://github.com/7eaur/himma-/actions/runs/40332034053) SUCCESS على SHA واحد. | لا إغلاق HV2-004؛ يلزم فحص ميكروفون Safari/Android ووسائط حقيقية. |
+| `20261026-1644-B` / `65c5c247` | **PENDING_GATES** | `assessment-v2/[sessionId]/page.tsx` و`v2-pretest-recovery-matrix.spec.ts`: مسح alert بعد GET صالح فقط، assertion بعد retry. [CI 40333901616](https://github.com/7eaur/himma-/actions/runs/40333901616) frontend/backend/security SUCCESS لكن integration IN_PROGRESS؛ [M04 40333901621](https://github.com/7eaur/himma-/actions/runs/40333901621) SUCCESS؛ [M09 40333901506](https://github.com/7eaur/himma-/actions/runs/40333901506) IN_PROGRESS وقت التحقق. | انتظر exact-SHA integration/M09، افحص trace إن فشل؛ لا تخفف التحقق أو تعلن قبولًا مبكرًا. |
+| Railway web/API | **BLOCKED (release only)** | web deployment `8b8e939a` SUCCESS على `65c5c247` قبل اكتمال البوابات، API آخر SUCCESS `653bd2a0` أقدم، `checkSuites=false` في الخدمتين من قراءة الإعدادات الحية. | لا دمج main ولا اعتماد نشر ولا تعديل Railway بلا قرار المالك؛ يجب وضع سياسة gating واختبار توافق web/API. |
+| V2 19 lessons/progress/recordings | **PENDING_GATES (live/device)** | فحص source لـ`services/api/test_v2_student_readmodel.py` (19 درسًا، V1/V2، no private answers/codes) و`test_v2_audio_archive.py` (403/latest reviewed/no storage_key). صور A artifact `12655747659` 390px عينات فعلية، دون قص أفقي ظاهر. | لا اعتماد تربوي أو خصوصية S3 حية أو Safari/Android من الاختبارات الاصطناعية. |
+
+### توجيهات D-050..D-053
+- **D-050 | A1633 ACCEPTED patch-only:** الحفاظ على cleanup عند MediaRecorder.onerror واختبار منع الصوت الجزئي؛ لا إعادة فتح الإصلاح بلا دليل regression. استكمال الأجهزة والوسائط الحقيقية دون التداخل مع assessment أو ElevenLabs.
+- **D-051 | B1644 PENDING_GATES:** فحوص frontend/backend/security/M04 نجحت، لكن integration/M09 لم تكتمل على `65c5c247`. افحص نتائج Chromium الجديدة، وخاصة اختفاء التنبيه بعد GET صحيح مع استمرار رفض payload غير مطابق؛ REWORK فقط عند فشل مثبت.
+- **D-052 | RELEASE BLOCKED:** `checkSuites=false` للويب/API والنشر التلقائي المبكر واختلاف نسختَي الخدمة؛ لا إعلان جاهزية ولا تعديل Railway ولا main دون موافقة المالك. CONTROL.mode يبقى ACTIVE لعدم إثبات فساد/تسرب.
+- **D-053 | EVIDENCE LIMIT:** اختبارات 19 درسًا وخصوصية التسجيلات ولقطات Playwright اصطناعية/محدودة. يلزم اختبار Safari/Android حقيقي وS3 الإنتاجي والوسائط المعتمدة؛ لا ASR مصطنع ولا درجات غير رسمية.
