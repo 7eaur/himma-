@@ -19,14 +19,29 @@ export default function VideoPlayer({ src, captionsSrc, startAt = 0, testOnly = 
   const videoRef = useRef<HTMLVideoElement>(null);
   const lastCheckpoint = useRef(startAt);
   const completing = useRef(false);
+  const completionAttempt = useRef(0);
+  const activeSource = useRef(src);
   const [state, setState] = useState<PlayerState>("loading");
 
+  useEffect(() => {
+    if (activeSource.current === src) return;
+    // A pending save/play promise belongs to the previous video, not this one.
+    activeSource.current = src;
+    completionAttempt.current += 1;
+    completing.current = false;
+    lastCheckpoint.current = startAt;
+    setState("loading");
+  }, [src, startAt]);
+
   const play = async () => {
+    const video = videoRef.current;
+    if (!video) return;
+    const source = src;
     try {
-      await videoRef.current?.play();
-      setState("ready");
+      await video.play();
+      if (activeSource.current === source && videoRef.current === video) setState("ready");
     } catch {
-      setState("blocked");
+      if (activeSource.current === source && videoRef.current === video) setState("blocked");
     }
   };
 
@@ -70,16 +85,18 @@ export default function VideoPlayer({ src, captionsSrc, startAt = 0, testOnly = 
     const video = videoRef.current;
     if (!video || completing.current || !Number.isFinite(video.duration) || video.duration <= 0) return;
     completing.current = true;
+    const source = src;
+    const attempt = ++completionAttempt.current;
     setState("saving");
     try {
       // The learner sees success only after the server acknowledges completion.
       await onEnded(video.currentTime, video.duration);
-      setState("ended");
+      if (activeSource.current === source && completionAttempt.current === attempt) setState("ended");
     } catch {
       // The page reuses its idempotency key if the acknowledgment was lost.
-      setState("save_error");
+      if (activeSource.current === source && completionAttempt.current === attempt) setState("save_error");
     } finally {
-      completing.current = false;
+      if (activeSource.current === source && completionAttempt.current === attempt) completing.current = false;
     }
   };
 
