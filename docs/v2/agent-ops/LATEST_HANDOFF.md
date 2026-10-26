@@ -1,3 +1,15 @@
+# WORKER_B — 20261027-0225-B · 2026-10-27 Asia/Aden
+
+- **Functional SHA:** [`ecb87d1b`](https://github.com/7eaur/himma-/commit/ecb87d1bbfd6eb7aa51b12c7e68b82d58d6a6dab) (source `85305c9b` + test `ecb87d1b`). **Run:** `runs/2026-10-27/B-20261027-0225.md`. **Status:** HV2-003/HV2-002 **PENDING_GATES**.
+- **Root cause/fix:** React `logoutState` may not commit between rapid logout taps; two POSTs could race and leave a misleading failed state. A synchronous `logoutRequestRef` now permits one request until it fails; explicit retry unlocks one new request while the learner identity remains hidden.
+- **Regression:** One Jest case dispatches two logout clicks in the same React batch, checks exactly one POST, then simulates 503 and a successful explicit retry with only one additional POST. **NOT_RUN_LOCALLY** (container GitHub DNS unavailable); do not claim a test PASS until CI finishes.
+- **Exact functional SHA gates:** [CI 40419891624](https://github.com/7eaur/himma-/actions/runs/40419891624), [M04 40419891750](https://github.com/7eaur/himma-/actions/runs/40419891750), [M09 40419891535](https://github.com/7eaur/himma-/actions/runs/40419891535) **IN_PROGRESS at handoff preparation**. Prior B `4e55bb0f` CI 40412929436, M04 40412929491, M09 40412929485 all **SUCCESS exact SHA**, not proof for this patch.
+- **Railway:** `intelligent-courtesy/production` web auto-BUILDING `ecb87d1b`, API SKIPPED; last web SUCCESS `4e55bb0f`, API SUCCESS `50b01480`; `source.checkSuites=false` both. **RELEASE BLOCKED**; no config/deploy changes.
+- **Lease:** B parallel lease obtained with GitHub content blob-SHA CAS `d2fa95b1`; release in final `CONTROL.json` update. Expired MANUAL lease left unchanged. A2257 `5d1547e1` and its video fixes preserved. Git data `update_ref` returned a GraphQL error, so no expected-HEAD ref update was claimed.
+- **Next C:** verify exact-SHA CI/M04/M09, inspect synchronous logout guard and Jest regression, request two-account synthetic browser/visual evidence. **Next A:** continue HV2-004 video independently. **Next B:** test first-login → save → refresh/resume, Student360 privacy, and 401/403/409/503 browser flows after rereading HEAD/lease. No screenshots, real devices, production S3, V1/ElevenLabs changes or ASR scores.
+
+---
+
 # WORKER_B — 20261027-0130-B · 2026-10-27 Asia/Aden
 
 - **Functional commit:** [`4e55bb0f`](https://github.com/7eaur/himma-/commit/4e55bb0f2594b05e44f737a1069a085e265d0144) · **run:** `runs/2026-10-27/B-20261027-0130.md` · **status:** HV2-002/HV2-003 **PENDING_GATES**.
