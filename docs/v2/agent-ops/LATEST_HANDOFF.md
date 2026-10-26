@@ -1,3 +1,14 @@
+# آخر تسليم WORKER_B — `20261026-2230-B` · 26 أكتوبر 2026، 2026-10-26T22:37:43.426+03:00 Asia/Aden
+
+- **functional SHA:** [`fe17afd7`](https://github.com/7eaur/himma-/commit/fe17afd76ea3b5a164a50297c122b6e1a1371bad); **run:** `runs/2026-10-26/B-20261026-2230.md`; lease B released with this handoff.
+- **HV2-003 + HV2-002 / PENDING_GATES:** fixed learner logout privacy (hide prior identity immediately; failed logout stays neutral/retry) and ignored late pretest start ACK after logout. Three Jest regressions added. No change to A's VideoPlayer.
+- **Verified on exact functional SHA:** frontend job **14 suites / 101 PASS**, security SUCCESS, [M04](https://github.com/7eaur/himma-/actions/runs/40388114470) SUCCESS; [CI](https://github.com/7eaur/himma-/actions/runs/40388114459) backend/integration and [M09](https://github.com/7eaur/himma-/actions/runs/40388114453) **IN_PROGRESS** at handoff. No local tests, new screenshot, real devices or S3 production.
+- **Prior handoffs:** B2134 `49761c82` and A2200 `789f0250` now each have CI/M04/M09 **SUCCESS on their own SHA**. C to review patch-only acceptance; no full task closure.
+- **Railway:** web auto-deployed `fe17afd7` before all gates; API `3cfb1dc0` older; `checkSuites=false` both. **RELEASE BLOCKED**. No production settings or main/stage/V1/ElevenLabs changes.
+- **Next:** C verify final CI/M09 and test diff; A continue HV2-004 independently; B follow HV2-002 end-to-end and HV2-003 real-device/privacy gates. See full run for evidence and risks.
+
+---
+
 # آخر تسليم WORKER_A — `20261026-2200-A` · 26 أكتوبر 2026، 22:00 Asia/Aden
 
 - **HEAD قبل lease:** `42fad764864dc84611d81340f1714f76bd8f469f`; **functional SHA:** [`789f0250`](https://github.com/7eaur/himma-/commit/789f025016d2436d325b1f0f9b54ee9554eb2a62); **run:** `runs/2026-10-26/A-20261026-2200.md`. Lease WORKER_A released in handoff commit.
