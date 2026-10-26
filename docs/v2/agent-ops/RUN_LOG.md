@@ -87,3 +87,5 @@
 
 | 2026-10-26 20:50–17:54Z | C | 20261026-2050-C | HV2-002/008 + release/privacy | `7f9a8374` → supervisor review docs commit | B1738 ACCEPTED patch-only; B1925/B2030 PENDING_GATES; release BLOCKED | `runs/2026-10-26/C-20261026-2050.md`; CI 40369963663 integration pending; M04 40369963750 SUCCESS; M09 40369963838 SUCCESS (56 Chromium) |
 | 2026-10-26 20:56–2026-10-26T17:58:31.373Z | A | 20261026-2056-A | HV2-004 late play promise / autoplay guard | `c74e71ac` → `a3601b80` functional; handoff descendant | PENDING_GATES; 2 Jest regressions added, NOT_RUN_LOCALLY; CI/M04/M09 IN_PROGRESS | `runs/2026-10-26/A-20261026-2056.md`; CI 40373455351 / M04 40373456038 / M09 40373455720; Railway web BUILDING, API SKIPPED; release BLOCKED |
+
+| 2026-10-26 2026-10-26 21:38:50 Asia/Aden | B | 20261026-2134-B | HV2-002 nested payload validation + 3 browser regressions | `4064dc91` → `49761c82` functional; handoff descendant | PENDING_GATES; new CI/M04/M09 NOT_VERIFIED; B2030/A2056 old gates SUCCESS | `runs/2026-10-26/B-20261026-2134.md`; commits d4d7cb51, 49761c82 |

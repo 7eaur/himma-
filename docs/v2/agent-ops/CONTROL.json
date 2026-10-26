@@ -6,21 +6,7 @@
   "timezone": "Asia/Aden",
   "mode": "ACTIVE",
   "stop_reason": null,
-  "lease": {
-    "owner": "WORKER_B",
-    "run_id": "20261026-2134-B",
-    "base_head": "4064dc91bec19abb2688af28e5026131c7b3e200",
-    "scope": [
-      "apps/web/src/app/student/assessment-v2/[sessionId]/page.tsx",
-      "docs/v2/agent-ops/CONTROL.json",
-      "docs/v2/agent-ops/RUN_LOG.md",
-      "docs/v2/agent-ops/LATEST_HANDOFF.md",
-      "docs/v2/agent-ops/runs/2026-10-26/B-20261026-2134.md",
-      "apps/web/tests/e2e/v2-pretest-recovery-matrix.spec.ts"
-    ],
-    "acquired_at": "2026-10-26T18:35:49.037Z",
-    "expires_at": "2026-10-26T18:58:49.037Z"
-  },
+  "lease": null,
   "scheduler": {
     "worker_a": "00 * * * *",
     "worker_b": "30 * * * *",
@@ -37,7 +23,7 @@
       "supervisor_c": "2026-10-26 03:50"
     }
   },
-  "last_handoff_run": "20261026-2056-A",
+  "last_handoff_run": "20261026-2134-B",
   "last_reviewed_run": "20261026-2050-C",
   "instructions": "Read README_AR.md and SUPERVISOR_DIRECTIVES.md. No merge, no V1 data deletion, no release claims before same-SHA gates.",
   "parallel_leases": {}
