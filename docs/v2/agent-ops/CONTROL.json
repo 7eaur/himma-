@@ -6,7 +6,20 @@
   "timezone": "Asia/Aden",
   "mode": "ACTIVE",
   "stop_reason": null,
-  "lease": null,
+  "lease": {
+    "role": "WORKER_A",
+    "run_id": "20261026-1003-A",
+    "acquired_at": "2026-10-26T10:03:13+03:00",
+    "expires_at": "2026-10-26T10:27:00+03:00",
+    "base_head": "705639747cd529ddadd20f490d960b22a473c4c0",
+    "scope": [
+      "apps/web/src/components/v2/",
+      "apps/web/src/app/student/",
+      "apps/web/tests/e2e/v2-assessment-visual-baseline.spec.ts"
+    ],
+    "task": "HV2-004",
+    "status": "IN_PROGRESS"
+  },
   "scheduler": {
     "worker_a": "00 * * * *",
     "worker_b": "30 * * * *",
