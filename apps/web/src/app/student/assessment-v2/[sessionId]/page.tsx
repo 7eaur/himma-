@@ -16,6 +16,33 @@ interface AssessmentPayload {
   outcome?: { score_percent: number | null; skills: Record<string, unknown> };
 }
 
+// Validate both GET and POST payloads at the UI boundary. A 200 response
+// with an incomplete or stale body must not render a wrong question/progress.
+function isAssessmentPayload(value: unknown, sessionId: number, expectedKind?: AssessmentPayload["session"]["kind"]): value is AssessmentPayload {
+  if (!value || typeof value !== "object") return false;
+  const data = value as Partial<AssessmentPayload>;
+  const session = data.session;
+  const progress = session?.progress;
+  const summary = data.summary;
+  if (!session || session.session_id !== sessionId ||
+      (session.kind !== "pretest" && session.kind !== "posttest") ||
+      (expectedKind !== undefined && session.kind !== expectedKind) ||
+      !["answering", "waiting_review", "placement_pending_review", "completed"].includes(session.state) ||
+      !progress || !Number.isInteger(progress.answered) || !Number.isInteger(progress.total) ||
+      progress.total !== 30 || progress.answered < 0 || progress.answered > progress.total ||
+      !summary || !Number.isInteger(summary.pending_review) ||
+      summary.pending_review < 0 || summary.pending_review > progress.answered) return false;
+
+  if (session.state !== "answering") return data.interaction === null;
+  const interaction = data.interaction;
+  return !!interaction && typeof interaction === "object" &&
+    typeof interaction.question?.question_id === "string" &&
+    typeof interaction.question?.interaction === "string" &&
+    Array.isArray(interaction.question?.options) &&
+    !!interaction.media && typeof interaction.media === "object" && !Array.isArray(interaction.media) &&
+    !!interaction.progress && Number.isInteger(interaction.progress.index);
+}
+
 export default function AssessmentV2Page() {
   const params = useParams<{ sessionId: string }>();
   // Next may reuse the page component across dynamic-route transitions.
@@ -40,8 +67,7 @@ function AssessmentV2Session({ sessionId }: { sessionId: number }) {
       : "تعذر استعادة التقييم. تقدّمك محفوظ، حاول مرة أخرى.");
     // Fail closed if a delayed/cached/misrouted response belongs to another
     // assessment. Never render another session's question or progress.
-    if (!data?.session || data.session.session_id !== sessionId ||
-        !["pretest", "posttest"].includes(data.session.kind)) {
+    if (!isAssessmentPayload(data, sessionId)) {
       throw new Error("تعذر استعادة التقييم. تحقق من الرابط وحاول مرة أخرى.");
     }
     setAssessment(data);
@@ -53,9 +79,10 @@ function AssessmentV2Session({ sessionId }: { sessionId: number }) {
   // trusted replacement for the GET response. A stale/misrouted acknowledgement
   // must never render another session or switch pretest to posttest.
   const handleAssessmentChange = (value: unknown) => {
-    const next = value as Partial<AssessmentPayload> | null;
-    if (!next?.session || next.session.session_id !== sessionId ||
-        next.session.kind !== assessment?.session.kind) {
+    if (!isAssessmentPayload(value, sessionId, assessment?.session.kind) ||
+        !assessment ||
+        value.session.progress.total !== assessment.session.progress.total ||
+        value.session.progress.answered < assessment.session.progress.answered) {
       // The answer may already be committed: do not replay it from this
       // component. Unmount the question and recover authoritative state via GET.
       setAssessment(null);
@@ -63,7 +90,7 @@ function AssessmentV2Session({ sessionId }: { sessionId: number }) {
       return;
     }
     setError("");
-    setAssessment(next as AssessmentPayload);
+    setAssessment(value);
   };
 
   if (invalid) return <main className={styles.page} dir="rtl"><div className={styles.container}><div className={styles.error}>رابط جلسة التقييم غير صالح</div></div></main>;

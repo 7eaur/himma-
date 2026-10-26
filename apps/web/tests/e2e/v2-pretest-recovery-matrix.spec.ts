@@ -379,3 +379,104 @@ for (const mismatch of ["session_id", "kind"] as const) {
     });
   });
 }
+
+
+for (const corruption of ["stale_progress", "missing_summary"] as const) {
+  test("HV2-002: malformed or stale committed answer acknowledgement (" + corruption + ") fails closed", async ({ page, request }) => {
+    test.setTimeout(150000);
+    if (!PASSWORD) throw new Error("E2E_RESEARCHER_PASSWORD required");
+    const admin = await request.post(API_URL + "/auth/login", {
+      data: { username: USERNAME, password: PASSWORD },
+    });
+    expect(admin.status()).toBe(200);
+    const created = await request.post(API_URL + "/researcher/students", {
+      data: { full_name: "طالب فحص سلامة استجابة اصطناعي " + Date.now(), grade_level: 3 },
+    });
+    expect(created.status()).toBe(201);
+    const code = (await created.json()).access_code as string;
+
+    await page.goto("/student/login");
+    await page.getByTestId("input-access-code").fill(code);
+    await page.getByTestId("student-login-submit").click();
+    await expect(page.getByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
+    const started = await page.evaluate(async () => {
+      const response = await fetch("/api/v2/assessments/pretest/start", { method: "POST" });
+      return { status: response.status, data: await response.json() };
+    });
+    expect(started.status).toBe(200);
+    const sessionId = started.data.session.session_id as number;
+    let altered = 0;
+    await page.route(/\\/api\\/v2\\/assessments\\/sessions\\/\\d+\\/answers(?:\\?|$)/, async route => {
+      const upstream = await route.fetch();
+      expect(upstream.status()).toBe(200);
+      const original = await upstream.json() as {
+        assessment: { session: { session_id: number; progress: { answered: number; total: number } }; summary: { pending_review: number } };
+      };
+      expect(original.assessment.session.session_id).toBe(sessionId);
+      expect(original.assessment.session.progress.answered).toBe(1);
+      altered += 1;
+      const assessment = corruption === "stale_progress"
+        ? { ...original.assessment, session: { ...original.assessment.session, progress: { ...original.assessment.session.progress, answered: -1 } } }
+        : { ...original.assessment, summary: undefined };
+      await route.fulfill({ response: upstream, json: { ...original, assessment } });
+    });
+
+    await page.goto("/student/assessment-v2/" + sessionId);
+    await expect(page.getByTestId("v2-interaction-player")).toContainText("1 من 30");
+    await page.getByRole("button", { name: "اختيار الخيار 1" }).click();
+    await page.getByRole("button", { name: "حفظ الإجابة والمتابعة" }).click();
+    await expect(page.locator("main [role='alert']")).toContainText("تعذر تأكيد حفظ الإجابة");
+    await expect(page.getByTestId("v2-interaction-player")).toHaveCount(0);
+    expect(altered).toBe(1);
+    await page.getByRole("button", { name: "إعادة المحاولة" }).click();
+    await expect(page.getByTestId("v2-interaction-player")).toContainText("2 من 30");
+    const restored = await page.evaluate(async id => {
+      const response = await fetch("/api/v2/assessments/sessions/" + id);
+      const body = await response.json();
+      return { status: response.status, id: body.session.session_id, answered: body.session.progress.answered };
+    }, sessionId);
+    expect(restored).toEqual({ status: 200, id: sessionId, answered: 1 });
+  });
+}
+
+test("HV2-002: malformed GET assessment state fails closed and retry restores the session", async ({ page, request }) => {
+  test.setTimeout(150000);
+  if (!PASSWORD) throw new Error("E2E_RESEARCHER_PASSWORD required");
+  const admin = await request.post(API_URL + "/auth/login", {
+    data: { username: USERNAME, password: PASSWORD },
+  });
+  expect(admin.status()).toBe(200);
+  const created = await request.post(API_URL + "/researcher/students", {
+    data: { full_name: "طالب استعادة حمولة اصطناعي " + Date.now(), grade_level: 3 },
+  });
+  expect(created.status()).toBe(201);
+  const code = (await created.json()).access_code as string;
+  await page.goto("/student/login");
+  await page.getByTestId("input-access-code").fill(code);
+  await page.getByTestId("student-login-submit").click();
+  await expect(page.getByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
+  const started = await page.evaluate(async () => {
+    const response = await fetch("/api/v2/assessments/pretest/start", { method: "POST" });
+    return { status: response.status, data: await response.json() };
+  });
+  expect(started.status).toBe(200);
+  const sessionId = started.data.session.session_id as number;
+  let reads = 0;
+  await page.route("**/api/v2/assessments/sessions/" + sessionId, async route => {
+    if (route.request().method() !== "GET") return route.continue();
+    reads += 1;
+    if (reads !== 1) return route.continue();
+    const upstream = await route.fetch();
+    expect(upstream.status()).toBe(200);
+    const original = await upstream.json() as { session: { session_id: number; progress: { answered: number; total: number } } };
+    return route.fulfill({ response: upstream, json: {
+      ...original, session: { ...original.session, progress: null },
+    } });
+  });
+  await page.goto("/student/assessment-v2/" + sessionId);
+  await expect(page.locator("main [role='alert']")).toContainText("تعذر استعادة التقييم");
+  await expect(page.getByTestId("v2-interaction-player")).toHaveCount(0);
+  await page.getByRole("button", { name: "إعادة المحاولة" }).click();
+  await expect(page.getByTestId("v2-interaction-player")).toContainText("1 من 30");
+  expect(reads).toBe(2);
+});
