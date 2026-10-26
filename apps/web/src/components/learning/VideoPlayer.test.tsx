@@ -106,8 +106,10 @@ describe("VideoPlayer", () => {
     await act(async () => { resolvePrevious(); });
     expect(screen.queryByText("أكملت الشرح")).not.toBeInTheDocument();
 
-    setMediaTime(video, 6);
-    fireEvent.ended(video);
+    const nextVideo = screen.getByText("متصفحك لا يدعم تشغيل الفيديو.").closest("video") as HTMLVideoElement;
+    expect(nextVideo).not.toBe(video);
+    setMediaTime(nextVideo, 6);
+    fireEvent.ended(nextVideo);
     await waitFor(() => expect(screen.getByText("أكملت الشرح")).toBeInTheDocument());
     expect(onEnded).toHaveBeenCalledTimes(2);
   });
@@ -142,8 +144,10 @@ describe("VideoPlayer", () => {
     expect(onCheckpoint).toHaveBeenCalledWith(5.5, 10);
 
     rerender(<VideoPlayer src="/second.mp4" {...props} />);
-    setMediaTime(video, 5.1, 10);
-    fireEvent.timeUpdate(video);
+    const nextVideo = screen.getByText("متصفحك لا يدعم تشغيل الفيديو.").closest("video") as HTMLVideoElement;
+    expect(nextVideo).not.toBe(video);
+    setMediaTime(nextVideo, 5.1, 10);
+    fireEvent.timeUpdate(nextVideo);
     expect(onCheckpoint).toHaveBeenCalledWith(5.1, 10);
     expect(onCheckpoint).toHaveBeenCalledTimes(2);
   });
