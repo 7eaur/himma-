@@ -159,6 +159,7 @@ export default function StudentDetailPage() {
   const id = params.id as string;
   const [activeTab, setActiveTab] = useState<TabKey>("v2");
   const [student, setStudent] = useState<Student | null>(null);
+  const [loadedStudentId, setLoadedStudentId] = useState<string | null>(null);
   const [journey, setJourney] = useState<JourneySummary | null>(null);
   const [history, setHistory] = useState<AdaptationDecision[]>([]);
   const [rewards, setRewards] = useState<RewardEvent[]>([]);
@@ -179,18 +180,38 @@ export default function StudentDetailPage() {
   const codeVisible = visibleCodeForId === id;
   const [message, setMessage] = useState<{ kind: "success" | "error"; text: string }>({ kind: "success", text: "" });
 
-  const loadSecondarySource = async <T,>(response: Response, setter: (value: T) => void, stateSetter: (state: SourceState) => void) => {
+  const loadSecondarySource = async <T,>(
+    response: Response, setter: (value: T) => void, stateSetter: (state: SourceState) => void,
+    isCurrent: () => boolean,
+  ) => {
     if (!response.ok) {
-      stateSetter("error");
+      if (isCurrent()) stateSetter("error");
       return;
     }
-    setter(await response.json() as T);
+    const data = await response.json() as T;
+    if (!isCurrent()) return;
+    setter(data);
     stateSetter("loaded");
   };
 
   useEffect(() => {
     let cancelled = false;
     if (!id) return;
+    // A dynamic [id] route may reuse this component. Hide the previous
+    // learner immediately and reset all V1/staff-only source state.
+    setLoading(true);
+    setStudent(null);
+    setJourney(null);
+    setHistory([]);
+    setRewards([]);
+    setJourneyState("loading");
+    setHistoryState("loading");
+    setRewardsState("loading");
+    setActiveTab("v2");
+    setVisibleCodeForId(null);
+    setCopied(false);
+    setManualCode("");
+    setMessage({ kind: "success", text: "" });
     void Promise.all([
       fetch(`/api/researcher/students/${id}`, { cache: "no-store" }),
       fetch(`/api/researcher/students/${id}/journey`, { cache: "no-store" }),
@@ -205,16 +226,21 @@ export default function StudentDetailPage() {
         const studentData: Student = await studentResponse.json();
         if (cancelled) return;
         setStudent(studentData);
+        setLoadedStudentId(id);
         setEditName(studentData.full_name);
         setOverrideLevel(String(studentData.current_level));
         await Promise.all([
-          loadSecondarySource<JourneySummary>(journeyResponse, setJourney, setJourneyState),
-          loadSecondarySource<AdaptationDecision[]>(historyResponse, setHistory, setHistoryState),
-          loadSecondarySource<RewardEvent[]>(rewardsResponse, setRewards, setRewardsState),
+          loadSecondarySource<JourneySummary>(journeyResponse, setJourney, setJourneyState, () => !cancelled),
+          loadSecondarySource<AdaptationDecision[]>(historyResponse, setHistory, setHistoryState, () => !cancelled),
+          loadSecondarySource<RewardEvent[]>(rewardsResponse, setRewards, setRewardsState, () => !cancelled),
         ]);
       })
       .catch((error: unknown) => {
-        if (!cancelled) setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر تحميل بيانات الطالب" });
+        if (!cancelled) {
+          setStudent(null);
+          setLoadedStudentId(id);
+          setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر تحميل بيانات الطالب" });
+        }
       })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
@@ -364,7 +390,7 @@ export default function StudentDetailPage() {
     finally { setBusy(""); }
   };
 
-  if (loading) return <div className={styles.loading}><span /><span /><span /></div>;
+  if (loading || loadedStudentId !== id) return <div className={styles.loading}><span /><span /><span /></div>;
   if (!student) return <div className={styles.page}><div className="alert-error">{message.text || "لم يتم العثور على الطالب"}</div><Link href="/admin/students" className="btn-primary mt-4">العودة إلى الطلاب</Link></div>;
 
   const activeJourneyLevel = journey?.levels.find((level) => level.state === "active" || level.state === "ready") ?? journey?.levels.find((level) => level.level_id === student.current_level);
