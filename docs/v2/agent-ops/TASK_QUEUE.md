@@ -5,9 +5,9 @@
 | الأولوية | الرمز | المهمة | القبول المطلوب | التعيين الابتدائي | الحالة |
 |---|---|---|---|---|---|
 | P0 | HV2-001 | إغلاق نتائج CI Integration وM09 المعلقة على آخر functional SHA وتحديد الأعطال الحقيقية | نجاح backend/frontend/security/integration وM04/M09 على نفس SHA أو تسجيل blocked واضح، وتثبيت سلوك القبلي/الاستئناف | A | PENDING_GATES — A dca18efe ACK retry patch ACCEPTED (CI/M04/M09 same SHA SUCCESS); HV2-002 pretest end-to-end and B latest browser gates still OPEN |
-| P0 | HV2-002 | رحلة طالب جديد من التسجيل إلى أول سؤال، حفظ إجابة ثم refresh/resume، وعزل V1 تمامًا | E2E مثبت بحساب اصطناعي؛ لا استدعاء V1 /api/profile؛ تفويض/401/403/409/503 | B | PENDING_GATES — C1248: B1230 POST identity/kind ACCEPTED patch-only (CI/M04/M09 green on 7ea8d58c); B1235 payload guard a1d7c00 integration/M09 pending; full live/device acceptance OPEN |
+| P0 | HV2-002 | رحلة طالب جديد من التسجيل إلى أول سؤال، حفظ إجابة ثم refresh/resume، وعزل V1 تمامًا | E2E مثبت بحساب اصطناعي؛ لا استدعاء V1 /api/profile؛ تفويض/401/403/409/503 | B | PENDING_GATES — C1351: B1235 a1d7c00 ACCEPTED patch-only (CI/M04/M09 SUCCESS); B1330 c2da89b2 CI integration 50 PASS incl. valid 2→1 + M04 SUCCESS, M09 40307801856 IN_PROGRESS; full live/device acceptance OPEN |
 | P1 | HV2-003 | Student360 V2 و19 درسًا ومراجعة خصوصية رمز الدخول عند التبديل بين ملفات الطلاب | لقطة شاشة فعلية وتحليل فشل المصدر والتعافي وعدم تسرب اسم/رمز طالب سابق | B | PENDING_GATES — B 54120663 Chromium test REWORK ACCEPTED patch-only (CI/M04/M09 same SHA SUCCESS); live device/visual/privacy evidence OPEN |
-| P1 | HV2-004 | معالجة المشغّل الصوتي/الفيديو وأشكال أسئلة البناء/الترتيب على الهاتف | اختبارات targeted + فيديو timeout/error/retry وCSS RTL على 360/390/430/768/1440 | A | PENDING_GATES — C1248: A1204 stale audio race ACCEPTED patch-only (CI/M04/M09 green on c424e247); real media/device validation OPEN |
+| P1 | HV2-004 | معالجة المشغّل الصوتي/الفيديو وأشكال أسئلة البناء/الترتيب على الهاتف | اختبارات targeted + فيديو timeout/error/retry وCSS RTL على 360/390/430/768/1440 | A | PENDING_GATES — C1351: A1300 VideoPlayer source isolation c44b7426 ACCEPTED patch-only (CI/M04/M09 SUCCESS, Jest 86 PASS); real media/Safari/Android and same-src context verification OPEN |
 | P1 | HV2-005 | تقارير المشرف V2 منفصلة عن V1 ومنع التقدم/الدرجات غير الرسمية | API + UI + تحكم auth/null policy، مراجعة visual وE2E؛ لا تصدير بيانات طفل خاصة | A/B بعد HV2-001 | BLOCKED_BY_HV2-001 |
 | P2 | HV2-006 | جرد وسائط/بنك P09.2 وتجربة سؤال/خيار بكل نوع دون اختلاق أصول | جرد delta موثق، حالات missing/fail-closed، وأصول TEST_ONLY مميزة | وفق توجيه المشرف | BLOCKED_BY_P09_1 |
 | P2 | HV2-007 | بوابة الأجهزة الحقيقية Safari/Android وخصوصية S3 | دليل أجهزة حقيقية أو `BLOCKED_EXTERNAL_DEVICE` وتقرير متطلبات اختبار يدوي | إشراف/مالك | BLOCKED_EXTERNAL_DEVICE |
@@ -135,3 +135,10 @@
 3. **P1 / A HV2-004:** `c424e247` ACCEPTED patch-only؛ تابع الوسائط الفعلية وRTL دون تعديل ملفات B أو اختلاق أصول.
 4. **P1 / C HV2-003 وخصوصية الصوت:** فحص مصدر 19 درسًا/403/audio archive قائم، وتمت مشاهدة عينات Playwright سابقة، لكن الأجهزة الحقيقية/S3/الخصوصية الحية لا تزال PENDING/EXTERNAL.
 5. **حاجز إصدار:** Railway `checkSuites=false` للخدمتين وAPI/Web SHA مختلفان، دون دليل توافق حي. لا دمج main أو تغيير النشر أو اعتماد إصدار.
+
+## توجيه المشرف C — 2026-10-26 13:54:04 Asia/Aden (`20261026-1351-C`)
+1. **B / P0 HV2-002:** اختبار valid 2→1 نجح في CI Chromium ضمن 50 اختبارًا على `c2da89b2`، لكن M09 `40307801856` لم ينتهِ؛ لا تعِد اختباره دون فشل مثبت، وانتظر مراجعة C بعد نتيجة M09.
+2. **A / P1 HV2-004:** VideoPlayer keyed by src على `c44b7426` مقبول patch-only بعد CI/M04/M09 SUCCESS و86 Jest PASS؛ استكمل وسائط حقيقية وRTL/أجهزة، ولا تكرر إصلاحًا مقبولًا.
+3. **B1235:** `a1d7c00` مقبول patch-only بعد CI/M04/M09 SUCCESS؛ حماية GET/POST ما زالت مطلوبة.
+4. **RELEASE BLOCKED:** `checkSuites=false` للويب/API، web `c2da89b2` online وAPI نشر أقدم، 4 web failed deployments آخر 8 ساعات؛ لا دمج أو نشر يدوي أو تعديل Railway دون إذن المالك.
+5. **حدود الأدلة:** لا صور Playwright جديدة مفتوحة ولا Safari/Android أو S3 حي؛ اختبارات 19 درسًا/403/404 هي source/CI وليست اعتمادًا كاملًا.

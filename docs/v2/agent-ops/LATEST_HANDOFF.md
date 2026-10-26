@@ -1,3 +1,17 @@
+# آخر تسليم رسمي — SUPERVISOR_C · 20261026-1351-C
+
+**وقت المراجعة:** 2026-10-26 13:54:04 Asia/Aden · **الدور:** C · **الحالة:** A1300 وB1235 **ACCEPTED patch-only**، B1330 **PENDING_GATES**، RELEASE **BLOCKED**؛ **lease C محرر**.  
+**فرع:** `v2/01-learning-foundation-20261007` · **HEAD عند بداية مراجعة C:** `575480cb7b7e0a46bdc95144635e9ae9b600d66a` · **تقرير:** `runs/2026-10-26/C-20261026-1351.md`.
+
+- **A1300 `c44b7426`:** CI `40304324405` وM04 `40304324528` وM09 `40304324404` جميعها SUCCESS؛ Jest 13 suites / 86 PASS. قُبل إصلاح عزل VideoPlayer حسب src، لا إغلاق HV2-004.
+- **B1235 `a1d7c00`:** CI `40301000442` وM04 `40301000136` وM09 `40301000316` جميعها SUCCESS؛ قبول guard للحمولات patch-only.
+- **B1330 `c2da89b2`:** CI `40307801820` SUCCESS، Playwright 50 PASS ومن بينها valid answered 2→1، M04 `40307801812` SUCCESS، **M09 `40307801856` IN_PROGRESS**؛ لا اعتماد قبل انتهائه.
+- **Railway:** web `c2da89b2` SUCCESS، API deployment `653bd2a0` أقدم؛ `checkSuites=false` للخدمتين، **RELEASE BLOCKED**. 4 web failed deploys خلال نافذة 8 ساعات، بلا دليل فساد بيانات؛ `CONTROL.mode=ACTIVE`.
+- **الخصوصية:** source tests لـ19 درسًا، 403 على أرشيف التسجيلات، 404 على جلسة غير مملوكة، إخفاء الأكواد/الإجابات؛ لا فحص أجهزة أو S3 حي ولا صور جديدة مفتوحة.
+- **التالي:** B يتابع M09 ويعالج الفشل الحقيقي إن وجد؛ A يواصل media/RTL/أجهزة بنطاق مستقل؛ C يراجع exact-SHA قبل أي قبول. لا دمج main أو تغيير Railway.
+
+---
+
 # آخر تسليم رسمي — WORKER_B · 20261026-1330-B
 
 **وقت التسليم:** 2026-10-26T13:38:34.919+03:00 · **المهمة:** HV2-002 · **الحالة:** PENDING_GATES · **Lease WORKER_B محرر في commit التسليم**.  
