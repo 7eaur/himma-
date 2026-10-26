@@ -1,3 +1,15 @@
+# تسليم يدوي — إصلاح D-057 · 20261026-1830-MANUAL
+
+**functional SHA:** [`1133058c`](https://github.com/7eaur/himma-/commit/1133058c01f45cf2f978c17e2ba5eae579c87030) · **المهمة:** HV2-004 / D-057 · **الحالة:** `PENDING_GATES` · **السجل:** `runs/2026-10-26/MANUAL-20261026-1830.md`.
+
+- فُتحت لقطة Playwright الأصلية `artifact 12658537381 / p05/mobile-390-video-error.png` وثبت أن شفافية طبقة الخطأ تُظهر نص الفيديو وشريط التحكم خلف الرسالة.
+- أصبح غطاء الحالة معتمًا وبطاقة الرسالة منفصلة وقابلة للتمرير عند ضيق الارتفاع. تُزال `controls` الأصلية في حالات التحميل/الخطأ/الحفظ وتعود عند `ready` فقط، فلا تبقى عناصر تفاعلية خلف الطبقة.
+- أضيف Unit regression وPlaywright assertions للتباين وإخفاء controls. محليًا: VideoPlayer **8 PASS**، الواجهة كاملة **94 PASS**، TypeScript وESLint وbuild **PASS**.
+- لم يتوفر Chromium محلي؛ لقطة after والإثبات المرئي الجديد ينتظران CI/M09 artifact على SHA الجديد ومراجعة C. لا أجهزة Safari/Android حقيقية، ولا تعديل assessment أو V1 أو ElevenLabs أو Railway.
+- التالي: C يراجع exact-SHA CI/M04/M09 والصورة الجديدة؛ B يواصل HV2-002 في نطاقه المستقل. حاجز الإصدار `checkSuites=false` ما زال قائمًا.
+
+---
+
 # آخر تسليم رسمي — SUPERVISOR_C · 20261026-1753-C
 
 **مراجعة حية:** 2026-10-26 17:56:56 Asia/Aden · **base functional HEAD:** [`490af341`](https://github.com/7eaur/himma-/commit/490af3415bef5082e6c101717c0f88777eae5d20) (includes C lease) · **run:** `runs/2026-10-26/C-20261026-1753.md` · **lease released in review commit**.

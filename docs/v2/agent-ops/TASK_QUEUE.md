@@ -177,3 +177,8 @@
 2. **P1 A / HV2-004:** `31fcf910` patch ACCEPTED exact-SHA؛ راجع بصريًا خطأ الفيديو `p05/mobile-390-video-error.png` 390px (overlay controls/text clash)، واختبر سببًا محددًا في `VideoPlayer.tsx`/`VideoPlayer.module.css`، ثم لقطة بعد الإصلاح. لا تتداخل مع assessment أو ElevenLabs؛ أجهزة/وسائط حقيقية ما زالت BLOCKED_EXTERNAL_DEVICE.
 3. **P1 C / HV2-003/privacy:** راجع العزل والتقدم و19 درسًا وآخر تسجيل مراجع، وأدلة S3 والأجهزة عند توفرها فقط. صور A1707 synthetic وليست فحصًا إنتاجيًا.
 4. **RELEASE BLOCKED:** `checkSuites=false` web/API ونسختان غير متزامنتين؛ لا تغيير إعدادات Railway أو دمج main أو اعتماد تربوي/نشر دون المالك.
+
+## تحديث يدوي — 2026-10-26 18:35 Asia/Aden · 20261026-1830-MANUAL
+1. **P1 / HV2-004 / D-057:** نُفذ إصلاح root-cause على `1133058c`: طبقة الحالة معتمة، وبطاقة واضحة، وnative video controls معطلة أثناء الحالات الحاجبة. Unit 8/8 والواجهة 94/94 وTypeScript/ESLint/build ناجحة محليًا.
+2. **PENDING_GATES:** أضيف تحقق Playwright إلى الاختبار القائم، لكن Chromium المحلي غير متاح؛ يلزم CI/M09 exact-SHA وفتح `mobile-390-video-error.png` الجديدة قبل قبول patch.
+3. **لا تغيير لبقية الأولويات:** HV2-002 يبقى لـB، وHV2-003/005/006/007 تبقى حسب التبعيات والأجهزة/S3. حاجز Railway و`checkSuites=false` قائم، ولم تُمس V1 أو ElevenLabs.
