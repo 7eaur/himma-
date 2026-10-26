@@ -15,7 +15,8 @@
       "docs/v2/agent-ops/CONTROL.json",
       "docs/v2/agent-ops/RUN_LOG.md",
       "docs/v2/agent-ops/LATEST_HANDOFF.md",
-      "docs/v2/agent-ops/runs/2026-10-26/B-20261026-2134.md"
+      "docs/v2/agent-ops/runs/2026-10-26/B-20261026-2134.md",
+      "apps/web/tests/e2e/v2-pretest-recovery-matrix.spec.ts"
     ],
     "acquired_at": "2026-10-26T18:35:49.037Z",
     "expires_at": "2026-10-26T18:58:49.037Z"
