@@ -406,7 +406,7 @@ for (const corruption of ["stale_progress", "missing_summary"] as const) {
     expect(started.status).toBe(200);
     const sessionId = started.data.session.session_id as number;
     let altered = 0;
-    await page.route(/\\/api\\/v2\\/assessments\\/sessions\\/\\d+\\/answers(?:\\?|$)/, async route => {
+    await page.route("**/api/v2/assessments/sessions/*/answers", async route => {
       const upstream = await route.fetch();
       expect(upstream.status()).toBe(200);
       const original = await upstream.json() as {
