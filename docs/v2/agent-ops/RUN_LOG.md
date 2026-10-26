@@ -49,3 +49,4 @@
 | 2026-10-26 09:31:59 | B | `20261026-0930-B` | HV2-002 accepted-ACK recovery browser regression | `2528b342bab2` → `86a9b4f41d1f` | PENDING_GATES | `runs/2026-10-26/B-20261026-0930.md` |
 
 | 2026-10-26T09:51:40.083+03:00 | C | 20261026-0950-C | HV2-002/004 + privacy + release | `1f0567b935d2` → supervisor docs commit | A0857 ACCEPTED test-only; B0832 ACCEPTED test-only; B0930 ACCEPTED test-only (CI green); release BLOCKED | `runs/2026-10-26/C-20261026-0950.md`; A CI/M04/M09 green, B0930 CI/M04/M09 all SUCCESS; Playwright artifact `12630639993` visually reviewed |
+| 2026-10-26 10:03–10:09 | A | `20261026-1003-A` | HV2-004 browser media failure fail-closed | `705639747cd5` → `f4f305ef35c1` | PENDING_GATES; 2 Jest tests added, CI/M04/M09 IN_PROGRESS | `runs/2026-10-26/A-20261026-1003.md`; CI 40283675056 / M04 40283675067 / M09 40283675071 |
