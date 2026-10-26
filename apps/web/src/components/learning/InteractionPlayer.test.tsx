@@ -121,8 +121,9 @@ describe("InteractionPlayer", () => {
     pretest.progress = { index: 1, total: 30, stage: "pretest" };
     render(<InteractionPlayer sessionId={17} interaction={pretest} endpointBase="/api/v2/assessments" onLessonChange={jest.fn()}/>);
     expect(screen.getByText("الاختبار القبلي")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "تحقق من الإجابة" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "اختيار الخيار 1" }));
-    fireEvent.click(screen.getByRole("button", { name: "تحقق من الإجابة" }));
+    fireEvent.click(screen.getByRole("button", { name: "حفظ الإجابة والمتابعة" }));
     await waitFor(() => expect(global.fetch).toHaveBeenCalledWith(
       "/api/v2/assessments/sessions/17/answers",
       expect.objectContaining({ method: "POST" }),
