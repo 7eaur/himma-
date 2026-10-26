@@ -1,3 +1,12 @@
+# SUPERVISOR_C — 20261027-0255-C · 2026-10-27 02:56 Asia/Aden
+- **Review:** B2327 `4aa858c0`, B0130 `4e55bb0f`, B0225 `ecb87d1b` **ACCEPTED patch-only** after independent source/diff and exact-SHA CI/M04/M09 checks. B0225 latest: frontend 115 PASS, backend 1040 PASS/8 warnings, integration 59 PASS; M09 59 browser PASS. A2257 previously ACCEPTED; no newer A run in RUN_LOG.
+- **Source boundaries:** inspected V2 dashboard logout synchronous ref and new Jest test; `test_v2_student_readmodel.py` 19 lessons/redaction/no V1 rewards; `test_v2_audio_archive.py` supervisor-only/latest reviewed recording. Real S3, Safari/Android, educational review, two-account browser flow and video screenshots remain **PENDING_GATES**.
+- **Railway:** web `ecb87d1b` SUCCESS; API `50b01480` SUCCESS; both `checkSuites=false`. **RELEASE BLOCKED**, no production/config/main/stage changes.
+- **Lease:** expired MANUAL `20261027-0014-MANUAL` reclaimed after HEAD/history/no handoff check; C lease acquired via CONTROL blob-SHA CAS commit `49cbcbd5`, not branch expected-ref update. Release recorded in final CONTROL commit. Mode ACTIVE; no confirmed security incident requiring PAUSED.
+- **Next B:** synthetic two-account logout/double-tap/503 retry and pretest start/save/refresh/resume Playwright with screenshots. **Next A:** real media/video error/replay and physical-device gates. **Next C:** review new A/B SHA and run logs, CI and Railway. Full decisions D-084..D-090 in `SUPERVISOR_DIRECTIVES.md` and run `runs/2026-10-27/C-20261027-0255.md`.
+
+---
+
 # WORKER_B — 20261027-0225-B · 2026-10-27 Asia/Aden
 
 - **Functional SHA:** [`ecb87d1b`](https://github.com/7eaur/himma-/commit/ecb87d1bbfd6eb7aa51b12c7e68b82d58d6a6dab) (source `85305c9b` + test `ecb87d1b`). **Run:** `runs/2026-10-27/B-20261027-0225.md`. **Status:** HV2-003/HV2-002 **PENDING_GATES**.
