@@ -6,7 +6,21 @@
   "timezone": "Asia/Aden",
   "mode": "ACTIVE",
   "stop_reason": null,
-  "lease": null,
+  "lease": {
+    "owner": "WORKER_B",
+    "run_id": "20261026-2327-B",
+    "base_head": "59c94db12c6d7a1c93795a65f95544430007336f",
+    "started_at": "2026-10-26T20:29:19.073Z",
+    "expires_at": "2026-10-26T20:55:19.073Z",
+    "scope": [
+      "apps/web/src/app/student/V2StudentDashboard.tsx",
+      "apps/web/src/app/student/page.test.tsx",
+      "docs/v2/agent-ops/CONTROL.json",
+      "docs/v2/agent-ops/RUN_LOG.md",
+      "docs/v2/agent-ops/LATEST_HANDOFF.md",
+      "docs/v2/agent-ops/runs/2026-10-26/B-20261026-2327.md"
+    ]
+  },
   "scheduler": {
     "worker_a": "00 * * * *",
     "worker_b": "30 * * * *",
