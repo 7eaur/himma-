@@ -65,3 +65,18 @@
 - `D-013 | P0`: الأولوية لـB في HV2-002: توسيع الاختبارات لمصفوفة 401/403/409/422/503 وبدء/حفظ/استئناف القبلي بعد حالات التداخل، مع عدم استخدام طفل حقيقي أو كشف access code؛ السيناريو الأساسي موجود ونجح ضمن CI/M09 على `54120663`.
 - `D-014 | RELEASE_BLOCKER`: `checkSuites=false` لكلا خدمتي Railway مع نشر ويب `54120663`؛ امنع أي ادعاء release-ready حتى قرار المالك وآلية بوابة نشر معتمدة. فشل build الوسيط `0e627eed` ثم نجاح `54120663` لا يلغي الخطر البنيوي.
 - `D-015 | REVIEW LIMIT`: لم يُحمّل المشرف Playwright ZIP artifact (متاح على CI)، ولم يُجرِ اختبار هاتف حقيقي/S3 أو تفاعل production. صِف المراجعة بأنها GitHub source+jobs+Railway config، ولا تكتب `VISUAL_VERIFIED` دون مشاهدة لقطات حقيقية.
+
+## مراجعة مستقلة C — 2026-10-26 07:47 Asia/Aden · `20261026-0745-C`
+
+| run_id / SHA | المهمة | القرار | الدليل | المطلوب |
+|---|---|---|---|---|
+| `20261026-0701-A` / `1d5b3e5e` | HV2-004 ترتيب الصور/منع سؤال بلا خيارات | **ACCEPTED (patch only)** | CI [40267045694](https://github.com/7eaur/himma-/actions/runs/40267045694)، M04 [40267045663](https://github.com/7eaur/himma-/actions/runs/40267045663)، M09 [40267045676](https://github.com/7eaur/himma-/actions/runs/40267045676) SUCCESS على نفس SHA؛ راجعت diff والاختبارين | A يكمل RTL/أنواع الأسئلة والأجهزة؛ لا تغلق HV2-004 كاملًا |
+| `20261026-0730-B` / `f9c250e7` | HV2-002 مصفوفة 401/403/409/422/503 + Chromium | **PENDING_GATES** | [CI 40269530363](https://github.com/7eaur/himma-/actions/runs/40269530363): frontend/backend/security PASS، integration IN_PROGRESS؛ [M04 40269530396](https://github.com/7eaur/himma-/actions/runs/40269530396) PASS؛ [M09 40269530381](https://github.com/7eaur/himma-/actions/runs/40269530381) IN_PROGRESS | B يقرأ نتائج/trace، ثم يكمل 404 وcross-student authorization؛ لا قبول E2E مبكر |
+| Railway web `f9c250e7` / API `89f0b1db` | release policy | **BLOCKED (release only)** | الويب/API ONLINE، لكن `checkSuites=false` لكليهما ونشر الويب قبل انتهاء CI/M09؛ أحدث SHAs مختلفة | لا اعتماد إصدار/دمج أو نشر يدوي؛ قرار المالك بشأن gating مطلوب |
+| current tests | V2 19 درسًا/الخصوصية/الصوت | **PENDING_GATES** | static tests + backend SUCCESS؛ Playwright ZIP والأجهزة وS3 لم تُراجع فعليًا | لا تزعم اختبار خصوصية حي أو تحقق بصري |
+
+### تعليمات D-016..D-019
+- `D-016 | QA`: قبول `1d5b3e5e` patch-only بعد exact-SHA CI/M04/M09 SUCCESS؛ احتفظ بنطاق HV2-004 المفتوح لقوالب RTL والأجهزة والصور.
+- `D-017 | P0`: `f9c250e7` لا يعتمد قبل انتهاء integration وM09؛ اختبار 503 في Chromium محاكاة HTTP وليس فقد ACK بعد وصول الطلب إلى الخادم. بعد نجاحه غطِّ 404 وcross-student GET/answer والخصوصية؛ لا تخفف الاختبارات.
+- `D-018 | RELEASE_BLOCKER`: Railway web `f9c250e7` / API `89f0b1db`، و`checkSuites=false` لكليهما؛ يمنع إعلان جاهزية الإصدار أو الدمج، ولا تعديل إعدادات النشر دون قرار المالك.
+- `D-019 | REVIEW_LIMIT`: GitHub Playwright artifact `12626798162` موجود لكن **لم يُفتح بصريًا**؛ لا دليل أجهزة Safari/Android حقيقية أو S3 production؛ لا `VISUAL_VERIFIED` ولا `PRIVACY_LIVE_VERIFIED`.

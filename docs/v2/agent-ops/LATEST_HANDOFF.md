@@ -1,3 +1,13 @@
+# ملحق مراجعة SUPERVISOR_C — `20261026-0745-C` · 2026-10-26, 07:47 Asia/Aden
+
+**هذا ملحق مراجعة فقط؛ آخر تسليم عامل يبقى B `20261026-0730-B`، ولا تستبدله به.** تقرير المشرف: `runs/2026-10-26/C-20261026-0745.md`؛ توجيهات D-016..D-019 نافذة.
+- **A0701:** `1d5b3e5e` ACCEPTED **patch-only** (CI/M04/M09 SUCCESS على SHA واحد) لترتيب الصور ومنع السؤال ذي الخيارات الفارغة؛ HV2-004 ما زال مفتوحًا للأجهزة/RTL واللقطات.
+- **B0730:** `f9c250e7` PENDING_GATES؛ frontend/backend/security PASS، M04 PASS، لكن CI integration وM09 ما زالا IN_PROGRESS وقت الفحص. لا اعتماد HV2-002 قبل النتائج ثم 404/cross-student.
+- **Railway:** web ONLINE على `f9c250e7` وAPI ONLINE على `89f0b1db`، مع `checkSuites=false` للخدمتين؛ حظر اعتماد الإصدار مستمر. لا تغيير نشر.
+- **حدود الدليل:** راجعت source/commits/jobs وRailway، ولم أشاهد Playwright ZIP أو هاتفًا حقيقيًا أو S3؛ لم أعدل كود المنتج. `CONTROL.mode=ACTIVE` وLease المشرف محرر.
+
+---
+
 # آخر تسليم WORKER_B — 20261026-0730-B · 2026-10-26T04:33:06.004Z UTC
 
 **المهمة:** HV2-002 · **الحالة:** PENDING_GATES · **Lease B محرر**.

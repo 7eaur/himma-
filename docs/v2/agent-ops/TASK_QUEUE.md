@@ -5,9 +5,9 @@
 | الأولوية | الرمز | المهمة | القبول المطلوب | التعيين الابتدائي | الحالة |
 |---|---|---|---|---|---|
 | P0 | HV2-001 | إغلاق نتائج CI Integration وM09 المعلقة على آخر functional SHA وتحديد الأعطال الحقيقية | نجاح backend/frontend/security/integration وM04/M09 على نفس SHA أو تسجيل blocked واضح، وتثبيت سلوك القبلي/الاستئناف | A | PENDING_GATES — A dca18efe ACK retry patch ACCEPTED (CI/M04/M09 same SHA SUCCESS); HV2-002 pretest end-to-end and B latest browser gates still OPEN |
-| P0 | HV2-002 | رحلة طالب جديد من التسجيل إلى أول سؤال، حفظ إجابة ثم refresh/resume، وعزل V1 تمامًا | E2E مثبت بحساب اصطناعي؛ لا استدعاء V1 /api/profile؛ تفويض/401/403/409/503 | B | PENDING_GATES — B f9c250e7 added 401/403/409/422/503 backend matrix and Chromium 503 start/save/retry idempotency; CI/M04/M09 running, live permissions/device still OPEN |
+| P0 | HV2-002 | رحلة طالب جديد من التسجيل إلى أول سؤال، حفظ إجابة ثم refresh/resume، وعزل V1 تمامًا | E2E مثبت بحساب اصطناعي؛ لا استدعاء V1 /api/profile؛ تفويض/401/403/409/503 | B | PENDING_GATES — B f9c250e7: backend/frontend/security PASS, M04 PASS; integration CI 40269530363 + M09 40269530381 IN_PROGRESS; 404/cross-student still OPEN |
 | P1 | HV2-003 | Student360 V2 و19 درسًا ومراجعة خصوصية رمز الدخول عند التبديل بين ملفات الطلاب | لقطة شاشة فعلية وتحليل فشل المصدر والتعافي وعدم تسرب اسم/رمز طالب سابق | B | PENDING_GATES — B 54120663 Chromium test REWORK ACCEPTED patch-only (CI/M04/M09 same SHA SUCCESS); live device/visual/privacy evidence OPEN |
-| P1 | HV2-004 | معالجة المشغّل الصوتي/الفيديو وأشكال أسئلة البناء/الترتيب على الهاتف | اختبارات targeted + فيديو timeout/error/retry وCSS RTL على 360/390/430/768/1440 | A | PENDING_GATES — A 33267f07/6d421cd0 media fail-closed ACCEPTED patch-only via combined 54120663 CI/M04/M09 SUCCESS; question types/RTL/device evidence OPEN |
+| P1 | HV2-004 | معالجة المشغّل الصوتي/الفيديو وأشكال أسئلة البناء/الترتيب على الهاتف | اختبارات targeted + فيديو timeout/error/retry وCSS RTL على 360/390/430/768/1440 | A | PENDING_GATES — A 1d5b3e5e ordered-image/empty-options patch ACCEPTED (same-SHA CI/M04/M09 SUCCESS); real RTL/visual/device checks OPEN |
 | P1 | HV2-005 | تقارير المشرف V2 منفصلة عن V1 ومنع التقدم/الدرجات غير الرسمية | API + UI + تحكم auth/null policy، مراجعة visual وE2E؛ لا تصدير بيانات طفل خاصة | A/B بعد HV2-001 | BLOCKED_BY_HV2-001 |
 | P2 | HV2-006 | جرد وسائط/بنك P09.2 وتجربة سؤال/خيار بكل نوع دون اختلاق أصول | جرد delta موثق، حالات missing/fail-closed، وأصول TEST_ONLY مميزة | وفق توجيه المشرف | BLOCKED_BY_P09_1 |
 | P2 | HV2-007 | بوابة الأجهزة الحقيقية Safari/Android وخصوصية S3 | دليل أجهزة حقيقية أو `BLOCKED_EXTERNAL_DEVICE` وتقرير متطلبات اختبار يدوي | إشراف/مالك | BLOCKED_EXTERNAL_DEVICE |
@@ -62,3 +62,9 @@
 
 ## تحديث A — 2026-10-26 07:04 Asia/Aden
 - HV2-004: `1d5b3e5e` أضاف عرض صور عناصر `sequence/build_word` داخل شريط الترتيب ومنع الإرسال عند `options=[]`، مع اختبارَي Jest. **PENDING_GATES** حتى نتائج [CI 40267045694](https://github.com/7eaur/himma-/actions/runs/40267045694) / [M04 40267045663](https://github.com/7eaur/himma-/actions/runs/40267045663) / [M09 40267045676](https://github.com/7eaur/himma-/actions/runs/40267045676) ومراجعة C. لا تعديل على مهمة B أو حالة RELEASE_BLOCKER.
+
+## توجيه C — 20261026-0745-C
+1. **P0 / B HV2-002:** لا تعلن نجاح E2E الجديد قبل انتهاء CI `40269530363` وM09 `40269530381` على `f9c250e7`. backend/frontend/security وM04 نجحت؛ integration وM09 قيد التنفيذ. بعدها 404/cross-student وprivacy/ownership.
+2. **P1 / A HV2-004:** `1d5b3e5e` **ACCEPTED patch-only** عبر CI/M04/M09 على نفس SHA؛ استكمل ترتيب الصور/تركيب الكلمات وRTL/المقاسات وأدلة شاشة فعلية. لا تغلق المرحلة.
+3. **RELEASE_BLOCKER:** Railway web `f9c250e7` وAPI `89f0b1db` online، لكن `checkSuites=false` لكليهما؛ لا اعتماد إصدار حتى قرار المالك. لا يوجد دليل مباشر يستلزم PAUSED.
+4. **HV2-003/005/006/007:** أبقها مفتوحة بحسب بواباتها؛ اختبار 19 درسًا وخصوصية الصوت static/CI فقط، دون أجهزة/S3 حي.
