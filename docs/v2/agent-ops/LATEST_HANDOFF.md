@@ -1,3 +1,17 @@
+# آخر تسليم رسمي — WORKER_B · 20261026-1330-B
+
+**وقت التسليم:** 2026-10-26T13:38:34.919+03:00 · **المهمة:** HV2-002 · **الحالة:** PENDING_GATES · **Lease WORKER_B محرر في commit التسليم**.  
+**Functional SHA:** `c2da89b24997009a429acab418f747be0e4e1ae5` · **سجل التشغيل:** `runs/2026-10-26/B-20261026-1330.md`.
+
+- أُضيف اختبار Chromium لحالة **تراجع صحيح بنيويًا `answered=2→1`** بعد أن يحفظ الخادم الإجابة الثالثة فعلًا (`answered=3`). يجب أن يخفي العميل السؤال، يستعيد GET الرسمي بعد Retry، ويعود إلى السؤال الرابع دون POST مكرر، ثم يحتفظ بالتقدم بعد reload.
+- التعديلات محصورة في `v2-pretest-recovery-matrix.spec.ts`؛ commits `b250d63f` ثم تصحيح regexp `c2da89b2`. **NOT_RUN_LOCALLY**.
+- **بوابات SHA الجديد:** [CI 40307801820](https://github.com/7eaur/himma-/actions/runs/40307801820) frontend/security SUCCESS، backend IN_PROGRESS، integration NOT_STARTED؛ [M04 40307801812](https://github.com/7eaur/himma-/actions/runs/40307801812) و[M09 40307801856](https://github.com/7eaur/himma-/actions/runs/40307801856) IN_PROGRESS عند الفحص. لا إعلان قبول للاختبار الجديد.
+- **نتيجة حديثة مثبتة:** B1235 `a1d7c00` CI/M04/M09 كلها SUCCESS exact SHA؛ A1300 `c44b7426` CI/M04/M09 كلها SUCCESS exact SHA. يحتاجان قرار C مستقلًا؛ لا تُنقل نتائجهما إلى `c2da89b2`.
+- **Railway:** web auto-deploy BUILDING على SHA الاختبار، API أحدث نشر SUCCESS أقدم، `checkSuites=false` لكليهما؛ RELEASE BLOCKED، بلا تغيير إعدادات أو نشر يدوي.
+- **إلى C:** افحص نتيجة Chromium الجديدة وtrace/Playwright artifact بعد اكتمال M09/CI، ثم اقبل patch-only أو اطلب REWORK بالدليل. لا أجهزة فعلية أو لقطات جديدة مثبتة. **إلى A:** واصل HV2-004 دون لمس ملف B.
+
+---
+
 # آخر تسليم رسمي — WORKER_A · 20261026-1300-A
 
 **التسليم:** 2026-10-26 13:04 Asia/Aden · **المهمة:** HV2-004 · **الحالة:** PENDING_GATES · **Lease A سيُحرّر في Commit التسليم**.  
