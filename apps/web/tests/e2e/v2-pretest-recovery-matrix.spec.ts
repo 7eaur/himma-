@@ -480,3 +480,91 @@ test("HV2-002: malformed GET assessment state fails closed and retry restores th
   await expect(page.getByTestId("v2-interaction-player")).toContainText("1 من 30");
   expect(reads).toBe(2);
 });
+
+test("HV2-002: a structurally valid but regressed POST progress (2 to 1) fails closed after server commits answer three", async ({ page, request }) => {
+  test.setTimeout(150000);
+  if (!PASSWORD) throw new Error("E2E_RESEARCHER_PASSWORD required");
+
+  const admin = await request.post(API_URL + "/auth/login", {
+    data: { username: USERNAME, password: PASSWORD },
+  });
+  expect(admin.status()).toBe(200);
+  const created = await request.post(API_URL + "/researcher/students", {
+    data: { full_name: "طالب اختبار تراجع اصطناعي " + Date.now(), grade_level: 3 },
+  });
+  expect(created.status()).toBe(201);
+  const code = (await created.json()).access_code as string;
+
+  await page.goto("/student/login");
+  await page.getByTestId("input-access-code").fill(code);
+  await page.getByTestId("student-login-submit").click();
+  await expect(page.getByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
+  const started = await page.evaluate(async () => {
+    const response = await fetch("/api/v2/assessments/pretest/start", { method: "POST" });
+    return { status: response.status, data: await response.json() };
+  });
+  expect(started.status).toBe(200);
+  const sessionId = started.data.session.session_id as number;
+
+  await page.goto("/student/assessment-v2/" + sessionId);
+  for (const [questionNumber, nextNumber] of [[1, 2], [2, 3]] as const) {
+    await expect(page.getByTestId("v2-interaction-player")).toContainText(questionNumber + " من 30");
+    await page.getByRole("button", { name: "اختيار الخيار 1" }).click();
+    await page.getByRole("button", { name: "حفظ الإجابة والمتابعة" }).click();
+    await expect(page.getByTestId("v2-interaction-player")).toContainText(nextNumber + " من 30");
+  }
+
+  // Two answers are genuinely persisted. The third POST also commits upstream;
+  // only its browser-facing acknowledgement is changed to a *valid* 1/30,
+  // rather than an obviously invalid negative count.
+  const before = await page.evaluate(async id => {
+    const response = await fetch("/api/v2/assessments/sessions/" + id);
+    return { status: response.status, answered: (await response.json()).session.progress.answered };
+  }, sessionId);
+  expect(before).toEqual({ status: 200, answered: 2 });
+
+  let answerRequests = 0;
+  await page.route(/\\/api\\/v2\\/assessments\\/sessions\\/\\d+\\/answers(?:\\?|$)/, async route => {
+    answerRequests += 1;
+    const upstream = await route.fetch();
+    expect(upstream.status()).toBe(200);
+    const original = await upstream.json() as {
+      assessment: { session: { session_id: number; progress: { answered: number; total: number } } };
+    };
+    expect(original.assessment.session.session_id).toBe(sessionId);
+    expect(original.assessment.session.progress.answered).toBe(3);
+    await route.fulfill({
+      response: upstream,
+      json: {
+        ...original,
+        assessment: {
+          ...original.assessment,
+          session: {
+            ...original.assessment.session,
+            progress: { ...original.assessment.session.progress, answered: 1 },
+          },
+        },
+      },
+    });
+  });
+
+  await page.getByRole("button", { name: "اختيار الخيار 1" }).click();
+  await page.getByRole("button", { name: "حفظ الإجابة والمتابعة" }).click();
+  await expect(page.locator("main [role='alert']")).toContainText("تعذر تأكيد حفظ الإجابة");
+  await expect(page.getByTestId("v2-interaction-player")).toHaveCount(0);
+  expect(answerRequests).toBe(1);
+
+  // Retry is GET-only: no second POST of the committed answer.
+  await page.getByRole("button", { name: "إعادة المحاولة" }).click();
+  await expect(page.getByTestId("v2-interaction-player")).toContainText("4 من 30");
+  expect(answerRequests).toBe(1);
+  await page.reload();
+  await expect(page.getByTestId("v2-interaction-player")).toContainText("4 من 30");
+  const resumed = await page.evaluate(async id => {
+    const response = await fetch("/api/v2/assessments/sessions/" + id);
+    const data = await response.json();
+    return { status: response.status, sessionId: data.session.session_id, answered: data.session.progress.answered };
+  }, sessionId);
+  expect(resumed).toEqual({ status: 200, sessionId, answered: 3 });
+  expect(answerRequests).toBe(1);
+});
