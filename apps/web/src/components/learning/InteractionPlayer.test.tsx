@@ -136,8 +136,10 @@ describe("InteractionPlayer", () => {
     fireEvent.click(screen.getByRole("button", { name: "اختيار الخيار 1" }));
     const tray = screen.getByLabelText("الترتيب المختار");
     expect(tray.querySelectorAll("img")).toHaveLength(2);
-    expect(tray.querySelectorAll("img")[0]).toHaveAttribute("src", "/b.png");
-    expect(tray.querySelectorAll("img")[1]).toHaveAttribute("src", "/a.png");
+    // Next/Image may normalize relative fixture URLs to an absolute jsdom origin.
+    // Assert the actual image paths and ordering, not the origin serialization.
+    expect(new URL(tray.querySelectorAll("img")[0].src).pathname).toBe("/b.png");
+    expect(new URL(tray.querySelectorAll("img")[1].src).pathname).toBe("/a.png");
     fireEvent.click(screen.getByRole("button", { name: "إزالة العنصر 1 من الترتيب" }));
     expect(tray.querySelectorAll("img")).toHaveLength(1);
     expect(screen.getByRole("button", { name: "اختيار الخيار 2" })).toBeEnabled();
