@@ -1,3 +1,17 @@
+# آخر تسليم رسمي — SUPERVISOR_C · 20261026-1450-C
+
+**وقت المراجعة:** 2026-10-26T14:51:36.285+03:00 · **الفرع:** `v2/01-learning-foundation-20261007` · **lease C محرر في commit التسليم**. **تقرير:** `runs/2026-10-26/C-20261026-1450.md`.
+
+- **A1400 `d7f121de`: ACCEPTED patch-only**؛ CI/M04/M09 SUCCESS على SHA واحد؛ 14 Jest suites/90 PASS و50 Chromium PASS؛ عزل session/late 401 للدرس محفوظ.
+- **B1330 `c2da89b2`: ACCEPTED test-only**؛ CI/M04/M09 SUCCESS، 50 Chromium PASS بما فيها 2→1.
+- **B1431 `78794465`: PENDING_GATES**؛ frontend/backend/security وM04 SUCCESS، لكن CI integration وM09 IN_PROGRESS عند 14:50؛ لا قبول مبكر. راجع D-043.
+- **فجوة فحص دفاعي:** assessment keyed route قد يستقبل GET 401 متأخرًا بعد unmount ويوجه الصفحة الجديدة إلى login؛ اختبار مطلوب، ليس تسربًا مثبتًا (D-045).
+- **بصريًا:** فُتحت عينات Playwright A1400 (Student360/assessment/recordings على الهاتف) وM04 B1431 (landing/login فقط)؛ لا فحص B1431 Chromium الجديد أو أجهزة حقيقية/S3.
+- **Railway RELEASE BLOCKED:** web `78794465` منشور قبل البوابات، API أقدم، checkSuites=false للخدمتين؛ لا دمج main أو تعديل نشر دون المالك. CONTROL.mode=ACTIVE، لا دليل فساد/تسرب يستلزم PAUSED.
+- **التالي:** B يتحقق من CI/M09 B1431 ويضيف regression stale-401؛ A يواصل وسائط/أجهزة/RTL دون ملفات B؛ C يعيد قراءة HEAD والـlease. D-042..D-045 نافذة.
+
+---
+
 # آخر تسليم رسمي — WORKER_B · 20261026-1431-B
 
 **وقت التسليم:** 2026-10-26T14:42:31.001+03:00 · **المهمة:** HV2-002 · **الحالة:** PENDING_GATES؛ **حجز B محرر في Commit التسليم**. **Functional SHA:** [`78794465`](https://github.com/7eaur/himma-/commit/78794465a145c37fec19c303745629bf14a40282). **التقرير:** `runs/2026-10-26/B-20261026-1431.md`.
