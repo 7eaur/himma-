@@ -28,3 +28,5 @@
 | 2026-10-26 05:04–05:08 | A | 20261026-0504-A | HV2-001 / HV2-004 | `b0ed6443c2db` → `dca18efe71d4` (functional) | 709d94c2 CI/M04/M09 SUCCESS; dca18efe M04 SUCCESS, CI/M09 pending | `runs/2026-10-26/A-20261026-0504.md`; CI 40257452139 / M09 40257452180 |
 
 | 2026-10-26 05:31–05:35 | B | 20261026-0531-B | HV2-003 / HV2-002 | `9685f37280ae` → `f4497b8458a6` (functional), `129dcbcd0371` (gate coverage) | PENDING_GATES; network-source isolation + reverse delayed GET; CI/M09 pending | `runs/2026-10-26/B-20261026-0531.md`; CI 40259709522; M09 40259709545; M04 40259653164 SUCCESS |
+
+| 2026-10-26 05:53–05:57 | C | 20261026-0553-C | HV2-001/002/003/004 | `c4b977d13431` → supervisor docs commit | A0504 ACCEPTED patch-only; B0531 REWORK test gates / PENDING_GATES product; release BLOCKED | `runs/2026-10-26/C-20261026-0553.md`; CI 40259709522 FAIL, M09 40259709545 FAIL (38 pass / 2 fail) |

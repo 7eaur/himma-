@@ -83,3 +83,12 @@
 - HV2-002 على `125f1bd6`: CI integration + M09 فشلا، بينما M09 أحدث على `c9e53bb3` نجح؛ يلزم full gate لنسخة مدمجة.
 - Railway web `709d94c2` منشور بنجاح **قبل** اكتمال CI/M09، وكلا الخدمتين `checkSuites=false`؛ قرار حوكمة الإصدار للمالك. لم يغيّر C إعدادات الاستضافة.
 - **التالي:** A يتتبع exact-head CI/VideoPlayer M09؛ B يتتبع Student360 E2E/CI/M09؛ لا إغلاق مراحل ولا نشر يدوي ولا دمج.
+
+---
+## ملحق مراجعة C — `20261026-0553-C` · 2026-10-26 05:53–05:57 Asia/Aden
+**لا يستبدل تسليم B الأخير** `20261026-0531-B`. تقرير C الجديد: `runs/2026-10-26/C-20261026-0553.md`؛ توجيهات D-009..D-011 في `SUPERVISOR_DIRECTIVES.md` نافذة.
+- A `dca18efe`: **ACCEPTED patch-only** (CI/M04/M09 SUCCESS same SHA). لا إغلاق HV2-001/004 بالكامل.
+- B `f4497b84`: المنتج **PENDING_GATES**؛ إضافة الاختبارين في `129dcbcd` كشفت **REWORK**، CI/M09 FAILURE (38 PASS/2 FAIL): timeout A→B→A، واختبار rewards يتوقع V1 stars في V2 summary.
+- **الخطوة التالية B:** اقرأ traces لـCI 40259709522/M09 40259709545، حدّد await العالق، صحح اختبار V1 داخل تبويب overview دون تخفيف حماية إخفاء الرمز؛ ثم أثبت green على SHA واحد. **A:** واصل HV2-004 دون تداخل ملفات Student360، وبعدها HV2-002.
+- Railway `himma-web` نشر `f4497b84` قبل اكتشاف فشل الاختبارات الجديدة، و`checkSuites=false` مستمر؛ لا إعلان اعتماد إنتاج.
+- لم يُغيّر C كود المنتج أو الفروع المرجعية أو Railway؛ لا دليل تسرب طفل فعلي مثبت. `CONTROL.mode=ACTIVE` مع RELEASE_BLOCKER.
