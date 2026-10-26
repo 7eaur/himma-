@@ -49,6 +49,23 @@ function AssessmentV2Session({ sessionId }: { sessionId: number }) {
 
   useEffect(() => { const timer = window.setTimeout(() => { void load().catch((reason) => setError(reason instanceof Error ? reason.message : "تعذر استعادة التقييم")).finally(() => setLoading(false)); }, 0); return () => window.clearTimeout(timer); }, [load]);
 
+  // The POST /answers response is a second source of session state, not a
+  // trusted replacement for the GET response. A stale/misrouted acknowledgement
+  // must never render another session or switch pretest to posttest.
+  const handleAssessmentChange = (value: unknown) => {
+    const next = value as Partial<AssessmentPayload> | null;
+    if (!next?.session || next.session.session_id !== sessionId ||
+        next.session.kind !== assessment?.session.kind) {
+      // The answer may already be committed: do not replay it from this
+      // component. Unmount the question and recover authoritative state via GET.
+      setAssessment(null);
+      setError("تعذر تأكيد حفظ الإجابة. تقدّمك محفوظ، حاول استعادة التقييم.");
+      return;
+    }
+    setError("");
+    setAssessment(next as AssessmentPayload);
+  };
+
   if (invalid) return <main className={styles.page} dir="rtl"><div className={styles.container}><div className={styles.error}>رابط جلسة التقييم غير صالح</div></div></main>;
   if (loading) return <main className={styles.page} dir="rtl"><div className={styles.loading}><div><div className={styles.spinner}/><p>نستعيد إجاباتك المحفوظة...</p></div></div></main>;
   if (!assessment) return <main className={styles.page} dir="rtl"><div className={styles.container}><div className={styles.error} role="alert">{error || "تعذر فتح التقييم"}</div><button type="button" className={styles.primary} onClick={() => {
@@ -62,7 +79,7 @@ function AssessmentV2Session({ sessionId }: { sessionId: number }) {
     <section className={styles.lessonCard}><span className={styles.eyebrow}>{title} · 30 سؤالًا</span><h1>{title}</h1>
       <p>تقدمك محفوظ تلقائيًا. لا تظهر تلميحات أو صحة الإجابة أثناء التقييم.</p>
       {error && <div className={styles.error} role="alert">{error}</div>}
-      {assessment.session.state === "answering" && assessment.interaction && <InteractionPlayer key={assessment.interaction.question.question_id} sessionId={sessionId} interaction={assessment.interaction} endpointBase="/api/v2/assessments" onLessonChange={(value) => setAssessment(value as AssessmentPayload)}/>} 
+      {assessment.session.state === "answering" && assessment.interaction && <InteractionPlayer key={assessment.interaction.question.question_id} sessionId={sessionId} interaction={assessment.interaction} endpointBase="/api/v2/assessments" onLessonChange={handleAssessmentChange}/>} 
       {assessment.session.state === "waiting_review" && <section className={styles.practiceBoundary}><Clock3 size={32}/><h2>إجاباتك محفوظة وتنتظر المراجعة</h2><p>لديك {assessment.summary.pending_review} إجابة قراءة أو كتابة. لن تُحسب صحيحة أو خاطئة قبل مراجعة المشرف.</p><StudentRetryTasks kind="assessment" sessionId={sessionId}/></section>}
       {assessment.session.state === "placement_pending_review" && <section className={styles.practiceBoundary}><Clock3 size={32}/><h2>اكتمل الاختبار وينتظر التسكين</h2><p>سيعتمد المشرف المستوى المناسب بسبب موثق. لا تستخدم هِمّة حدودًا رقمية غير معتمدة.</p></section>}
       {assessment.session.state === "completed" && <section className={styles.practiceBoundary}><CheckCircle2 size={32}/><h2>اكتمل {title}</h2><p>{assessment.session.kind === "posttest" ? "أصبحت نتيجتك النهائية محفوظة في التقرير." : "تم اعتماد مستواك وأصبحت رحلتك التعليمية جاهزة."}</p><Link href="/student/learning-v2" className={styles.back}>متابعة الرحلة</Link></section>}

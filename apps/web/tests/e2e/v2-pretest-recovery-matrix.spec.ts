@@ -305,3 +305,77 @@ test("HV2-002: mismatched assessment GET never renders another session and retry
   expect(recovered.data.session.session_id).toBe(sessionId);
   expect(recovered.data.session.progress.answered).toBe(0);
 });
+
+
+for (const mismatch of ["session_id", "kind"] as const) {
+  test("HV2-002: committed POST answer with wrong " + mismatch + " fails closed and resumes from GET", async ({ page, request }) => {
+    test.setTimeout(150000);
+    if (!PASSWORD) throw new Error("E2E_RESEARCHER_PASSWORD required");
+
+    const admin = await request.post(API_URL + "/auth/login", {
+      data: { username: USERNAME, password: PASSWORD },
+    });
+    expect(admin.status()).toBe(200);
+    const created = await request.post(API_URL + "/researcher/students", {
+      data: { full_name: "طالب اختبار تأكيد اصطناعي " + Date.now(), grade_level: 3 },
+    });
+    expect(created.status()).toBe(201);
+    const code = (await created.json()).access_code as string;
+
+    await page.goto("/student/login");
+    await page.getByTestId("input-access-code").fill(code);
+    await page.getByTestId("student-login-submit").click();
+    await expect(page.getByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
+
+    const started = await page.evaluate(async () => {
+      const response = await fetch("/api/v2/assessments/pretest/start", { method: "POST" });
+      return { status: response.status, data: await response.json() };
+    });
+    expect(started.status).toBe(200);
+    const sessionId = started.data.session.session_id as number;
+    let tamperedResponses = 0;
+    await page.route(/\/api\/v2\/assessments\/sessions\/\d+\/answers(?:\?|$)/, async route => {
+      const upstream = await route.fetch();
+      expect(upstream.status()).toBe(200);
+      const original = await upstream.json() as {
+        assessment: { session: { session_id: number; kind: string } };
+      };
+      expect(original.assessment.session.session_id).toBe(sessionId);
+      expect(original.assessment.session.kind).toBe("pretest");
+      tamperedResponses += 1;
+      const wrongSession = mismatch === "session_id"
+        ? { ...original.assessment.session, session_id: sessionId + 1 }
+        : { ...original.assessment.session, kind: "posttest" };
+      // Persist the real answer upstream, but replace only the browser-facing
+      // acknowledgement. No cross-student data or fake backend state is stored.
+      await route.fulfill({
+        response: upstream,
+        json: { ...original, assessment: { ...original.assessment, session: wrongSession } },
+      });
+    });
+
+    await page.goto("/student/assessment-v2/" + sessionId);
+    await expect(page.getByTestId("v2-interaction-player")).toContainText("1 من 30");
+    await page.getByRole("button", { name: "اختيار الخيار 1" }).click();
+    await page.getByRole("button", { name: "حفظ الإجابة والمتابعة" }).click();
+
+    await expect(page.locator("main [role='alert']")).toContainText("تعذر تأكيد حفظ الإجابة");
+    await expect(page.getByTestId("v2-interaction-player")).toHaveCount(0);
+    expect(tamperedResponses).toBe(1);
+    await page.getByRole("button", { name: "إعادة المحاولة" }).click();
+    await expect(page.getByTestId("v2-interaction-player")).toContainText("2 من 30");
+    const restored = await page.evaluate(async id => {
+      const response = await fetch("/api/v2/assessments/sessions/" + id);
+      const body = await response.json();
+      return {
+        status: response.status,
+        sessionId: body.session.session_id,
+        kind: body.session.kind,
+        answered: body.session.progress.answered,
+      };
+    }, sessionId);
+    expect(restored).toEqual({
+      status: 200, sessionId, kind: "pretest", answered: 1,
+    });
+  });
+}
