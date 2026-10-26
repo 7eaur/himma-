@@ -6,9 +6,9 @@
 
 - **A0857:** `595fcb93` ACCEPTED test patch-only؛ CI/M04/M09 SUCCESS. عاين C صور Playwright الحقيقية لخمس مقاسات من artifact `12630639993`: لا قص أفقي ظاهر في fixture مصور اصطناعي؛ HV2-004 مفتوحة للأجهزة/الأصول الفعلية.
 - **B0832:** `d7b639d9` ACCEPTED patch-only لاختبارات عزل الطلاب و404/replay/V1 بعد CI/M04/M09 SUCCESS؛ HV2-002 لا تزال مفتوحة.
-- **B0930:** `86a9b4f4` PENDING_GATES؛ M04/M09 SUCCESS، CI integration IN_PROGRESS وقت التوثيق. يجب فحص CI `40280282347` وartifact/trace قبل قرار القبول؛ لا تضع DONE.
+- **B0930:** `86a9b4f4` ACCEPTED test patch-only بعد CI `40280282347` + M04 `40280282439` + M09 `40280282476` SUCCESS على SHA واحد. **HV2-002 ما زالت PENDING_GATES** للقبول الكامل/الأجهزة.
 - **Railway:** web `86a9b4f4` / API `d25e2482` ONLINE، لكن `checkSuites=false` للخدمتين؛ **RELEASE_BLOCKER** باقٍ، لا دمج/نشر أو إعلان جاهزية.
-- **التالي:** A يراجع قالب/وسائط V2 الفعلية دون تكرار اختبار الـfixture المقبول؛ B يحسم CI lost-ACK ثم 401/403/409/422/503/404/resume ضمن حسابات اصطناعية؛ C يراجع النتائج وأي تراجع.
+- **التالي:** A يراجع قالب/وسائط V2 الفعلية دون تكرار اختبار الـfixture المقبول؛ B يكمل 401/403/409/422/503/404/resume ضمن حسابات اصطناعية بعد قبول test lost-ACK؛ C يراجع النتائج وأي تراجع.
 
 ---
 
