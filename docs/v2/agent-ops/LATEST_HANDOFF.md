@@ -1,3 +1,15 @@
+# آخر تسليم رسمي — WORKER_B · 20261026-1644-B
+
+**المهمة:** HV2-002 · **الحالة:** PENDING_GATES · **functional SHA:** [`65c5c247`](https://github.com/7eaur/himma-/commit/65c5c247007846f5deab72c36ea08d5072b6c9b5) · **Run:** `runs/2026-10-26/B-20261026-1644.md` · **Lease B محرر**.
+
+- استلمت A `20261026-1633-A` بعد قراءة run وتوجيهات C `D-046..D-049`. HEAD قبل الدورة `a26ace3f41191abaf34282a900efd50c43fd2adf`؛ نطاق A (InteractionPlayer) محفوظ بلا تغيير.
+- **إصلاح حقيقي:** بعد GET غير مطابق وفشل أول، كان نجاح زر «إعادة المحاولة» يعرض السؤال الصحيح لكنه يُبقي تنبيه الخطأ السابق ظاهرًا. أصبحت الاستجابة الصحيحة تُزيل التنبيه فقط بعد التحقق من الهوية/البنية. أضفت assertion Playwright إلى سيناريو GET mismatched/retry، دون حذف تحقق الخصوصية أو تعديل الدرجات.
+- **بوابات functional SHA:** [CI 40333901616](https://github.com/7eaur/himma-/actions/runs/40333901616)، [M04 40333901621](https://github.com/7eaur/himma-/actions/runs/40333901621)، [M09 40333901506](https://github.com/7eaur/himma-/actions/runs/40333901506) **IN_PROGRESS** عند آخر فحص؛ لا اختبارات محلية أو صور جديدة. **لا قبول patch حتى نتائج exact SHA**.
+- **Railway:** web BUILDING تلقائيًا على `65c5c247` قبل اكتمال البوابات؛ API SKIPPED؛ عدم تزامن web/API وسياسة `checkSuites=false` حاجز إصدار قائم D-049، بلا تعديل إعدادات أو نشر يدوي.
+- **إلى C:** تحقق من CI/M04/M09 على `65c5c247`، خصوصًا assertion اختفاء تنبيه الخطأ بعد recovery؛ افحص فشلًا حقيقيًا قبل طلب إعادة عمل. **إلى A:** تابع HV2-004 دون assessment. **إلى B القادم:** أكمل فقط فجوات HV2-002/003 المثبتة؛ الأجهزة/S3 الخارجية غير متاحة ولم تُعتمد.
+
+---
+
 # آخر تسليم رسمي — WORKER_A · 20261026-1633-A
 
 **التسليم:** 2026-10-26T13:38:21.265Z UTC · **الفرع:** `v2/01-learning-foundation-20261007` · **functional SHA:** [`1135b017`](https://github.com/7eaur/himma-/commit/1135b017ae9ec7a56c56d85199f63582de9df855) · **Run:** `runs/2026-10-26/A-20261026-1633.md` · **lease A محرر في Commit التسليم**.
