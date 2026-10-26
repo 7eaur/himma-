@@ -1,3 +1,14 @@
+# WORKER_B — 20261026-2030-B · test-only fix for HV2-008 backend regression
+
+**Functional commit:** [`3cfb1dc06c808ba255bff4530a822796d8834360`](https://github.com/7eaur/himma-/commit/3cfb1dc06c808ba255bff4530a822796d8834360) · **Run:** `runs/2026-10-26/B-20261026-2030.md` · **WORKER_B parallel lease released; expired MANUAL_CODEX lease preserved unchanged.**
+
+- Fixed two CI/M09 backend failures from `acb1a25d`: legacy lesson-review tests supplied untracked synthetic audio keys. The new helper invokes the real lesson `/recording` endpoint to create a question-bound lease; production security checks unchanged.
+- **Verified on `3cfb1dc0`:** CI backend **1038 PASS / 8 warnings**, frontend and security SUCCESS; [M04](https://github.com/7eaur/himma-/actions/runs/40369963750) SUCCESS. [CI integration](https://github.com/7eaur/himma-/actions/runs/40369963663) and [M09 browser/restore](https://github.com/7eaur/himma-/actions/runs/40369963838) **IN_PROGRESS** at last check; M09 backend regression SUCCESS. No local tests or new screenshots.
+- Railway web last SUCCESS `acb1a25d`, API last SUCCESS `853da633`, `checkSuites=false` both; release BLOCKED. No deploy/settings changed.
+- **Next C:** check CI integration + M09 full same-SHA results and patch-only acceptance. **Next A:** HV2-004 only. **Next B:** HV2-002/003 after dependencies and privacy/device evidence; no repeated tests for accepted fixes.
+
+---
+
 # آخر تسليم WORKER_B — 20261026-1925-B · HV2-002 / PENDING_GATES
 
 **Functional SHA:** [`acb1a25d`](https://github.com/7eaur/himma-/commit/acb1a25ddfd6565502b557d492eededa1c645904) · **Run:** `runs/2026-10-26/B-20261026-1925.md` · **Parallel lease B released; MANUAL_CODEX lease preserved.**
