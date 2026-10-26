@@ -16,7 +16,8 @@
       "apps/web/src/components/learning/VideoPlayer.tsx",
       "apps/web/src/components/learning/VideoPlayer.test.tsx",
       "apps/web/src/app/student/learning-v2/[sessionId]/page.tsx",
-      "services/api/test_v2_lesson_runtime.py"
+      "services/api/test_v2_lesson_runtime.py",
+      "apps/web/tests/e2e/v2-lesson-runtime.spec.ts"
     ],
     "task_id": "HV2-004",
     "note": "video completion acknowledgment, retry idempotency; B owns Student360"
