@@ -72,6 +72,7 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
   const [error, setError] = useState("");
   const [logoutState, setLogoutState] = useState<"idle" | "pending" | "failed">("idle");
   const leavingRef = useRef(false);
+  const startingRef = useRef(false);
   const name = home.student.full_name.split(" ")[0] || "بطل هِمّة";
   const action = home.current_action;
   const info = stage(home);
@@ -81,10 +82,11 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
   const currentLevel = placed && home.journey ? levelNames[home.journey.current_level] || `المستوى ${home.journey.current_level}` : null;
 
   const start = async () => {
-    if (starting || info.disabled || leavingRef.current) return;
+    if (starting || startingRef.current || info.disabled || leavingRef.current) return;
     setError("");
     if (action.href) { router.push(action.href); return; }
     if (action.action !== "start_pretest" && action.action !== "start_posttest") return;
+    startingRef.current = true;
     setStarting(true);
     try {
       const kind = action.action === "start_pretest" ? "pretest" : "posttest";
@@ -102,10 +104,12 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
               : "تعذر فتح الاختبار. تقدّمك محفوظ.";
         throw new Error(safeMessage);
       }
-      if (!Number.isInteger(result?.session?.session_id)) throw new Error("تعذر التحقق من جلسة الاختبار. حاول مرة أخرى.");
+      if (!Number.isSafeInteger(result?.session?.session_id) || result.session.session_id <= 0)
+        throw new Error("تعذر التحقق من جلسة الاختبار. حاول مرة أخرى.");
       router.push(`/student/assessment-v2/${result.session.session_id}`);
     } catch (cause) {
       if (leavingRef.current) return;
+      startingRef.current = false;
       setError(cause instanceof Error ? cause.message : "تعذر الاتصال بالخادم");
       setStarting(false);
     }

@@ -211,4 +211,41 @@ describe("Student page V2-only learner boundary", () => {
     expect(push).not.toHaveBeenCalledWith("/student/assessment-v2/101");
   });
 
+  it.each([0, -1, Number.MAX_SAFE_INTEGER + 1])(
+    "rejects an invalid pretest session id (%s) instead of navigating", async sessionId => {
+      const fetcher = jest.fn(async (url: string) => {
+        if (url === "/api/v2/student/home") return response(firstTime);
+        if (url.startsWith("/api/v2/retries/student/tasks")) return response({ items: [] });
+        if (url === "/api/v2/assessments/pretest/start") return response({ session: { session_id: sessionId } });
+        return response({}, 503);
+      });
+      global.fetch = fetcher as unknown as typeof fetch;
+      render(<StudentPage />);
+      fireEvent.click(await screen.findByRole("button", { name: "ابدأ الاختبار القبلي" }));
+      expect(await screen.findByRole("alert")).toHaveTextContent("تعذر التحقق من جلسة الاختبار");
+      expect(push).not.toHaveBeenCalled();
+      expect(screen.getByRole("button", { name: "ابدأ الاختبار القبلي" })).toBeEnabled();
+      expect(fetcher.mock.calls.filter(([url]) => url === "/api/v2/assessments/pretest/start")).toHaveLength(1);
+    },
+  );
+
+  it("does not send a second pretest start while the first acknowledgement is pending", async () => {
+    let finishStart!: (value: ReturnType<typeof response>) => void;
+    const pendingStart = new Promise<ReturnType<typeof response>>(resolve => { finishStart = resolve; });
+    const fetcher = jest.fn(async (url: string) => {
+      if (url === "/api/v2/student/home") return response(firstTime);
+      if (url.startsWith("/api/v2/retries/student/tasks")) return response({ items: [] });
+      if (url === "/api/v2/assessments/pretest/start") return pendingStart;
+      return response({}, 503);
+    });
+    global.fetch = fetcher as unknown as typeof fetch;
+    render(<StudentPage />);
+    const button = await screen.findByRole("button", { name: "ابدأ الاختبار القبلي" });
+    fireEvent.click(button);
+    fireEvent.click(button);
+    expect(fetcher.mock.calls.filter(([url]) => url === "/api/v2/assessments/pretest/start")).toHaveLength(1);
+    finishStart(response({ session: { session_id: 101 } }));
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/student/assessment-v2/101"));
+  });
+
 });
