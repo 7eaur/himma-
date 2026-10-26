@@ -6,7 +6,20 @@
   "timezone": "Asia/Aden",
   "mode": "ACTIVE",
   "stop_reason": null,
-  "lease": null,
+  "lease": {
+    "owner": "WORKER_B",
+    "run_id": "20261026-1330-B",
+    "scope": [
+      "apps/web/tests/e2e/v2-pretest-recovery-matrix.spec.ts",
+      "docs/v2/agent-ops/CONTROL.json",
+      "docs/v2/agent-ops/LATEST_HANDOFF.md",
+      "docs/v2/agent-ops/RUN_LOG.md",
+      "docs/v2/agent-ops/runs/2026-10-26/B-20261026-1330.md"
+    ],
+    "base_head": "883443df0a77fca7405c3d46186a35e4123a7713",
+    "acquired_at": "2026-10-26T10:28:36.348Z",
+    "expires_at": "2026-10-26T10:50:36.348Z"
+  },
   "scheduler": {
     "worker_a": "00 * * * *",
     "worker_b": "30 * * * *",
