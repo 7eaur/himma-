@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import StudentPage from "./page";
 import type { StudentV2Home } from "./V2StudentDashboard";
 
@@ -188,6 +188,35 @@ describe("Student page V2-only learner boundary", () => {
     fireEvent.click(screen.getByRole("button", { name: "إعادة محاولة تسجيل الخروج" }));
     await waitFor(() => expect(replace).toHaveBeenCalledWith("/"));
     expect(logoutCalls).toBe(2);
+  });
+
+  it("coalesces rapid logout taps and allows one explicit retry after a failed response", async () => {
+    let finishLogout!: (value: ReturnType<typeof response>) => void;
+    const pendingLogout = new Promise<ReturnType<typeof response>>(resolve => { finishLogout = resolve; });
+    let logoutCalls = 0;
+    const fetcher = jest.fn(async (url: string) => {
+      if (url === "/api/v2/student/home") return response(firstTime);
+      if (url.startsWith("/api/v2/retries/student/tasks")) return response({ items: [] });
+      if (url === "/api/auth/logout") return ++logoutCalls === 1 ? pendingLogout : response({});
+      return response({}, 503);
+    });
+    global.fetch = fetcher as unknown as typeof fetch;
+    render(<StudentPage />);
+    const button = await screen.findByRole("button", { name: /خروج/ });
+    // Both events run before React commits the pending state.
+    act(() => {
+      fireEvent.click(button);
+      fireEvent.click(button);
+    });
+    expect(logoutCalls).toBe(1);
+    expect(screen.queryByTestId("student-identity")).not.toBeInTheDocument();
+    expect(replace).not.toHaveBeenCalledWith("/");
+    finishLogout(response({}, 503));
+    expect(await screen.findByRole("alert")).toHaveTextContent("تعذر تأكيد تسجيل الخروج");
+    fireEvent.click(screen.getByRole("button", { name: "إعادة محاولة تسجيل الخروج" }));
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/"));
+    expect(logoutCalls).toBe(2);
+    expect(screen.queryByTestId("student-identity")).not.toBeInTheDocument();
   });
 
   it("ignores a late pretest start acknowledgement after logout", async () => {
