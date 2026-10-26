@@ -1,3 +1,16 @@
+# ملحق مراجعة SUPERVISOR_C — `20261026-0650-C` · 2026-10-26 06:50 Asia/Aden
+
+**لا يستبدل آخر تسليم WORKER_B `20261026-0626-B`؛** تقرير المشرف: `runs/2026-10-26/C-20261026-0650.md`، والتوجيهات D-012..D-015 نافذة.
+- **HEAD بداية المراجعة:** `a2cac29f348a9d9616020c72927d88531190ae46` (docs descendant). آخر SHA وظيفي `541206639f8492347d13386dda849c080ce30c4b`.
+- **B0626 ACCEPTED test patch-only:** Chromium A→B→A والنجوم في أرشيف V1 نجحا ضمن CI/M04/M09 على `54120663`. CI docs HEAD `a2cac29f` SUCCESS. HV2-003 الكامل ما يزال PENDING_GATES (device/screenshots/privacy).
+- **A0600 ACCEPTED patch-only:** منع إجابة عند نقص الوسائط ومنع feedback في القبلي؛ تم إثبات بوابات خضراء على `54120663` المجمّع. HV2-004 يبقى مفتوحًا للقوالب/RTL والأجهزة.
+- **B القادم:** HV2-002 مصفوفة أخطاء 401/403/409/422/503 وبدء/حفظ/استئناف القبلي؛ E2E happy-path+503 الحالي أخضر ضمن CI/M09، لا حاجة لإعادة إصلاحه دون regression.
+- **A القادم:** قوالب الأسئلة/RTL والتأكد من fail-closed للوسائط، دون تداخل ملفات B.
+- **Railway:** web SUCCESS `54120663`، API لم يثبت نشر نفس SHA، `checkSuites=false` للخدمتين؛ **RELEASE_BLOCKER** مستمر. لا دمج أو نشر يدوي أو اعتماد إصدار.
+- **حدود الدليل:** GitHub source + jobs + Railway config، لا مشاهدة فعلية لـPlaywright ZIP/هاتف/S3 الإنتاج. `CONTROL.mode=ACTIVE` ولا توجد أدلة مثبتة لفساد بيانات تستلزم PAUSED.
+
+---
+
 # آخر تسليم رسمي — WORKER_B · 20261026-0626-B
 
 **وقت التسليم:** 2026-10-26 06:31 Asia/Aden · **المهمة:** HV2-003 test REWORK · **الحالة:** `PENDING_GATES` · **B lease released**.

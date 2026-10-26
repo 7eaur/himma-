@@ -5,9 +5,9 @@
 | الأولوية | الرمز | المهمة | القبول المطلوب | التعيين الابتدائي | الحالة |
 |---|---|---|---|---|---|
 | P0 | HV2-001 | إغلاق نتائج CI Integration وM09 المعلقة على آخر functional SHA وتحديد الأعطال الحقيقية | نجاح backend/frontend/security/integration وM04/M09 على نفس SHA أو تسجيل blocked واضح، وتثبيت سلوك القبلي/الاستئناف | A | PENDING_GATES — A dca18efe ACK retry patch ACCEPTED (CI/M04/M09 same SHA SUCCESS); HV2-002 pretest end-to-end and B latest browser gates still OPEN |
-| P0 | HV2-002 | رحلة طالب جديد من التسجيل إلى أول سؤال، حفظ إجابة ثم refresh/resume، وعزل V1 تمامًا | E2E مثبت بحساب اصطناعي؛ لا استدعاء V1 /api/profile؛ تفويض/401/403/409/503 | B | REWORK on historical 125f1bd6 (CI integration + M09 FAIL); newer c9e53bb3 M09 SUCCESS but combined HEAD full CI/M09 not proven |
-| P1 | HV2-003 | Student360 V2 و19 درسًا ومراجعة خصوصية رمز الدخول عند التبديل بين ملفات الطلاب | لقطة شاشة فعلية وتحليل فشل المصدر والتعافي وعدم تسرب اسم/رمز طالب سابق | B | REWORK — B f4497b84 patch remains unaccepted: newly enabled CI 40259709522 and M09 40259709545 FAIL (2 Chromium tests); diagnose cross-profile timeout and stale V1 rewards assertion; 38 PASS/2 FAIL |
-| P1 | HV2-004 | معالجة المشغّل الصوتي/الفيديو وأشكال أسئلة البناء/الترتيب على الهاتف | اختبارات targeted + فيديو timeout/error/retry وCSS RTL على 360/390/430/768/1440 | A | PENDING_GATES — dca18efe lost-ACK answer patch ACCEPTED patch-only (CI 40257452139, M04 40257452187, M09 40257452180 SUCCESS); question templates/RTL still OPEN |
+| P0 | HV2-002 | رحلة طالب جديد من التسجيل إلى أول سؤال، حفظ إجابة ثم refresh/resume، وعزل V1 تمامًا | E2E مثبت بحساب اصطناعي؛ لا استدعاء V1 /api/profile؛ تفويض/401/403/409/503 | B | PENDING_GATES — first-login/pretest/start/save/refresh/503/retry E2E included and green on 54120663; remaining 401/403/409/422 and live permissions matrix OPEN |
+| P1 | HV2-003 | Student360 V2 و19 درسًا ومراجعة خصوصية رمز الدخول عند التبديل بين ملفات الطلاب | لقطة شاشة فعلية وتحليل فشل المصدر والتعافي وعدم تسرب اسم/رمز طالب سابق | B | PENDING_GATES — B 54120663 Chromium test REWORK ACCEPTED patch-only (CI/M04/M09 same SHA SUCCESS); live device/visual/privacy evidence OPEN |
+| P1 | HV2-004 | معالجة المشغّل الصوتي/الفيديو وأشكال أسئلة البناء/الترتيب على الهاتف | اختبارات targeted + فيديو timeout/error/retry وCSS RTL على 360/390/430/768/1440 | A | PENDING_GATES — A 33267f07/6d421cd0 media fail-closed ACCEPTED patch-only via combined 54120663 CI/M04/M09 SUCCESS; question types/RTL/device evidence OPEN |
 | P1 | HV2-005 | تقارير المشرف V2 منفصلة عن V1 ومنع التقدم/الدرجات غير الرسمية | API + UI + تحكم auth/null policy، مراجعة visual وE2E؛ لا تصدير بيانات طفل خاصة | A/B بعد HV2-001 | BLOCKED_BY_HV2-001 |
 | P2 | HV2-006 | جرد وسائط/بنك P09.2 وتجربة سؤال/خيار بكل نوع دون اختلاق أصول | جرد delta موثق، حالات missing/fail-closed، وأصول TEST_ONLY مميزة | وفق توجيه المشرف | BLOCKED_BY_P09_1 |
 | P2 | HV2-007 | بوابة الأجهزة الحقيقية Safari/Android وخصوصية S3 | دليل أجهزة حقيقية أو `BLOCKED_EXTERNAL_DEVICE` وتقرير متطلبات اختبار يدوي | إشراف/مالك | BLOCKED_EXTERNAL_DEVICE |
@@ -52,3 +52,10 @@
 - **HV2-003:** عولجت أخطاء اختبارَي Chromium المشار إليهما في D-009 على SHA `54120663`؛ اختبار الانتقال يستخدم روابط Next حقيقية، ونجوم V1 داخل الأرشيف فقط. **لا تغيّر الحالة إلى DONE**: CI frontend/security SUCCESS، لكن E2E/CI backend/M04/M09 لم تنتهِ عند التسليم؛ المشرف C وحده يقرر قبول patch.
 - **HV2-002:** لا يزال مفتوحًا؛ اختبار first-login/pretest/503/resume مدرج في CI/M09 ويحتاج نتائج Chromium على SHA متكامل.
 - **تحذير:** SHA الوسيط `0e627eed` كان معطوب TypeScript؛ تم تصحيحه في `54120663`. لا تعتمد عليه.
+
+## توجيه C — 2026-10-26 06:50 Asia/Aden (`20261026-0650-C`)
+1. **B / HV2-002 P0:** E2E أول دخول/بدء/حفظ/refresh/503/retry أصبح ناجحًا ضمن CI/M09 على `54120663`؛ انتقل إلى مصفوفة التفويض وحالات 401/403/409/422 وعودة 503 في start/save/resume، مع اختبار عدم تكرار الإجابة. لا تغلق المهمة حتى التحقق.
+2. **A / HV2-004 P1:** إصلاح منع إرسال السؤال عند غياب الوسائط/الفيديو غير المدعوم وعدم كشف correctness/hint في القبلي مقبول كـpatch. أكمل التغطية المرئية/RTL لقوالب الاختيار والترتيب/التركيب، ولا تفتح أسئلة تفتقر إلى أصولها.
+3. **B / HV2-003 P1:** إصلاح الاختبارين مقبول على `54120663` بعد CI/M04/M09 SUCCESS؛ حافظ على العزل واطلب مراجعة صور Playwright/الأجهزة قبل قبول كامل.
+4. **Release BLOCKED:** Railway web نشر `54120663` وAPI لم ينشر SHA مطابقًا؛ `checkSuites=false` للخدمتين. لا نشر أو دمج أو إعلان قبول مرحلة.
+5. **C next:** راجع نتائج A/B الجديدة على exact SHA والـdiff، واحفظ حدود التدقيق الفعلي، واطلب Playwright artifacts فقط إذا كانت قابلة للقراءة بدون كشف بيانات خاصة.
