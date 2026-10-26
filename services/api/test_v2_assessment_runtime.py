@@ -292,3 +292,117 @@ def test_reading_review_requires_unchanged_private_object(researcher_client, mon
     with TestingSessionLocal() as db:
         row = db.query(AssessmentQuestionResponse).filter(AssessmentQuestionResponse.id == response_id).one()
         assert row.status == "pending_review" and row.is_correct is None
+
+
+def test_pretest_access_matrix_requires_student_authentication(client):
+    """401 without a session, 403 for a supervisor, then 200 for the student."""
+    assert client.post("/v2/assessments/pretest/start").status_code == 401
+    assert client.get("/v2/assessments/sessions/1").status_code == 401
+    assert client.post(
+        "/v2/assessments/sessions/1/answers",
+        json={"submit_key": str(uuid4()), "selected_option_ids": ["synthetic"]},
+    ).status_code == 401
+
+    researcher = client.post("/auth/login", json={
+        "username": "researcher1", "password": "test-only-researcher-password",
+    })
+    assert researcher.status_code == 200
+    assert client.post("/v2/assessments/pretest/start").status_code == 403
+    assert client.get("/v2/assessments/sessions/1").status_code == 403
+    assert client.post(
+        "/v2/assessments/sessions/1/answers",
+        json={"submit_key": str(uuid4()), "selected_option_ids": ["synthetic"]},
+    ).status_code == 403
+
+    assert client.post("/auth/student-login", json={"access_code": "STU001"}).status_code == 200
+    started = client.post("/v2/assessments/pretest/start")
+    assert started.status_code == 200
+    assert started.json()["session"]["progress"]["answered"] == 0
+
+
+def test_pretest_invalid_answer_and_reused_key_conflict_do_not_advance(student_client):
+    """422 validation and 409 key conflict cannot consume a second question."""
+    started = student_client.post("/v2/assessments/pretest/start")
+    assert started.status_code == 200
+    session_id = started.json()["session"]["session_id"]
+    question = get_question(started.json()["interaction"]["question"]["question_id"])
+    assert len(question["options"]) >= 2
+    options = [item["id"] for item in question["options"]]
+    url = f"/v2/assessments/sessions/{session_id}/answers"
+    key = str(uuid4())
+
+    assert student_client.post(url, json={
+        "submit_key": "bad", "selected_option_ids": [options[0]],
+    }).status_code == 422
+    assert student_client.post(url, json={
+        "submit_key": str(uuid4()), "selected_option_ids": ["unknown-option"],
+    }).status_code == 422
+    assert student_client.get(f"/v2/assessments/sessions/{session_id}").json()["session"]["progress"]["answered"] == 0
+
+    accepted = student_client.post(url, json={
+        "submit_key": key, "selected_option_ids": [options[0]],
+    })
+    assert accepted.status_code == 200
+    assert accepted.json()["assessment"]["session"]["progress"]["answered"] == 1
+    replay = student_client.post(url, json={
+        "submit_key": key, "selected_option_ids": [options[0]],
+    })
+    assert replay.status_code == 200 and replay.json()["status"] == "replayed"
+    conflict = student_client.post(url, json={
+        "submit_key": key, "selected_option_ids": [options[1]],
+    })
+    assert conflict.status_code == 409
+    assert student_client.get(f"/v2/assessments/sessions/{session_id}").json()["session"]["progress"]["answered"] == 1
+    with TestingSessionLocal() as db:
+        assert db.query(AssessmentQuestionResponse).filter(
+            AssessmentQuestionResponse.assessment_session_id == session_id,
+        ).count() == 1
+
+
+def test_pretest_start_refuses_existing_v1_active_session(student_client):
+    """Do not create a parallel V2 session over a historical V1 attempt."""
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        db.add(AssessmentSession(
+            student_id=student.id, session_type="pretest", status="in_progress",
+            assessment_attempt_no=1,
+        ))
+        db.commit()
+    blocked = student_client.post("/v2/assessments/pretest/start")
+    assert blocked.status_code == 409
+    assert student_client.get("/v2/assessments/current-action").json()["action"] == "migration_review"
+    with TestingSessionLocal() as db:
+        assert db.query(AssessmentSession).count() == 1
+
+
+def test_pretest_503_preview_gate_keeps_answer_and_session_resumable(student_client, monkeypatch):
+    """Temporary preview denial must not consume a question or duplicate an answer."""
+    import v2_lesson_runtime as lesson_runtime
+
+    started = student_client.post("/v2/assessments/pretest/start")
+    assert started.status_code == 200
+    session_id = started.json()["session"]["session_id"]
+    question = get_question(started.json()["interaction"]["question"]["question_id"])
+    assert question["options"]
+    url = f"/v2/assessments/sessions/{session_id}/answers"
+    answer = {"submit_key": str(uuid4()), "selected_option_ids": [question["options"][0]["id"]]}
+
+    monkeypatch.setattr(lesson_runtime, "protected_runtime", lambda: True)
+    monkeypatch.setattr(lesson_runtime, "trial_v2_preview_allowed", lambda: False)
+    assert student_client.post("/v2/assessments/pretest/start").status_code == 503
+    assert student_client.get(f"/v2/assessments/sessions/{session_id}").status_code == 503
+    assert student_client.post(url, json=answer).status_code == 503
+
+    monkeypatch.setattr(lesson_runtime, "protected_runtime", lambda: False)
+    resumed = student_client.get(f"/v2/assessments/sessions/{session_id}")
+    assert resumed.status_code == 200
+    assert resumed.json()["session"]["progress"]["answered"] == 0
+    assert student_client.post("/v2/assessments/pretest/start").json()["session"]["session_id"] == session_id
+    saved = student_client.post(url, json=answer)
+    assert saved.status_code == 200
+    assert saved.json()["assessment"]["session"]["progress"]["answered"] == 1
+    assert student_client.post(url, json=answer).json()["status"] == "replayed"
+    with TestingSessionLocal() as db:
+        assert db.query(AssessmentQuestionResponse).filter(
+            AssessmentQuestionResponse.assessment_session_id == session_id,
+        ).count() == 1
