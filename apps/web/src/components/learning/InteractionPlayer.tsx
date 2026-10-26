@@ -94,7 +94,9 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
     ...question.options.flatMap((option) => option.media),
   ].some((reference) => {
     const asset = media[reference.media_id];
-    return !asset || asset.kind !== reference.kind || asset.state !== "ready" || !asset.url;
+    // InteractionPlayer renders only images and audio; a declared video
+    // cannot be used as a substitute for a supported question stimulus.
+    return reference.kind === "video" || !asset || asset.kind !== reference.kind || asset.state !== "ready" || !asset.url;
   }) || (question.interaction === "choose_image" &&
     question.options.some((option) => !option.media.some((item) => item.kind === "image")));
   const ready = useMemo(() => {

@@ -151,12 +151,26 @@ describe("InteractionPlayer", () => {
         { id: "b", text: null, media: [{ media_id: "IMG-MISSING", kind: "image" }] },
       ],
     });
-    question.media["IMG-READY"] = {
-      asset_id: "IMG-READY", kind: "image", state: "ready", url: "/test-image.png", test_only: true,
+    question.media = {
+      ...question.media,
+      "IMG-READY": { asset_id: "IMG-READY", kind: "image", state: "ready", url: "/test-image.png", test_only: true },
     };
     render(<InteractionPlayer sessionId={7} interaction={question} onLessonChange={jest.fn()}/>);
     expect(screen.getByRole("button", { name: "اختيار الخيار 1" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "اختيار الخيار 2" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "تحقق من الإجابة" })).toBeDisabled();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it("does not allow answering a question with an unsupported video stimulus", () => {
+    const question = payload({
+      stimulus: { text: null, media: [{ media_id: "VID-QUESTION", kind: "video" }] },
+    });
+    question.media = {
+      ...question.media,
+      "VID-QUESTION": { asset_id: "VID-QUESTION", kind: "video", state: "ready", url: "/test-video.mp4", test_only: true },
+    };
+    render(<InteractionPlayer sessionId={7} interaction={question} onLessonChange={jest.fn()}/>);
     expect(screen.getByRole("button", { name: "تحقق من الإجابة" })).toBeDisabled();
     expect(global.fetch).not.toHaveBeenCalled();
   });
