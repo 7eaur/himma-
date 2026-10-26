@@ -487,6 +487,55 @@ describe("InteractionPlayer", () => {
     }
   });
 
+  it("discards partial recording if MediaRecorder.stop throws and ignores a late stop event", async () => {
+    const previousDevices = navigator.mediaDevices;
+    const previousRecorder = global.MediaRecorder;
+    const stopTrack = jest.fn();
+    const stream = { getTracks: () => [{ stop: stopTrack }] } as unknown as MediaStream;
+    Object.defineProperty(navigator, "mediaDevices", {
+      configurable: true, value: { getUserMedia: jest.fn().mockResolvedValue(stream) },
+    });
+    const recorder = {
+      state: "inactive",
+      stream,
+      mimeType: "audio/webm",
+      onstop: null as null | (() => void),
+      ondataavailable: null as null | ((event: BlobEvent) => void),
+      onerror: null as null | ((event: Event) => void),
+      start: jest.fn(),
+      stop: jest.fn(() => { throw new Error("device disconnected"); }),
+    };
+    recorder.start.mockImplementation(() => { recorder.state = "recording"; });
+    global.MediaRecorder = Object.assign(jest.fn().mockImplementation(() => recorder), {
+      isTypeSupported: jest.fn().mockReturnValue(false),
+    }) as unknown as typeof MediaRecorder;
+    try {
+      render(<InteractionPlayer sessionId={7} interaction={payload({
+        interaction: "read_aloud", options: [],
+      })} onLessonChange={jest.fn()}/>);
+      await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: "بدء التسجيل" }));
+        await Promise.resolve();
+      });
+      const lateStop = recorder.onstop;
+      await act(async () => {
+        recorder.ondataavailable?.({ data: new Blob(["partial"]) } as BlobEvent);
+        fireEvent.click(screen.getByRole("button", { name: "إيقاف التسجيل" }));
+      });
+      expect(stopTrack).toHaveBeenCalled();
+      expect(recorder.onstop).toBeNull();
+      expect(recorder.ondataavailable).toBeNull();
+      await act(async () => { lateStop?.(); });
+      expect(screen.getByRole("alert")).toHaveTextContent("تعذر إنهاء التسجيل");
+      expect(screen.getByRole("button", { name: "إرسال التسجيل للمراجعة" })).toBeDisabled();
+      expect(screen.getByRole("button", { name: "بدء التسجيل" })).toBeEnabled();
+      expect(global.fetch).not.toHaveBeenCalled();
+    } finally {
+      Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: previousDevices });
+      global.MediaRecorder = previousRecorder;
+    }
+  });
+
   it("autosaves writing as a draft before it becomes review evidence", async () => {
     jest.useFakeTimers();
     (global.fetch as jest.Mock).mockResolvedValue({ ok: true, json: async () => ({ status: "saved" }) });

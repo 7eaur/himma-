@@ -283,10 +283,20 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   }, [recording]);
 
   const stopRecording = () => {
-    if (recorderRef.current?.state === "recording") {
-      try { recorderRef.current.stop(); }
+    const recorder = recorderRef.current;
+    if (recorder?.state === "recording") {
+      try { recorder.stop(); }
       catch {
-        recorderRef.current.stream.getTracks().forEach((track) => track.stop());
+        // stop() can throw after data chunks have arrived. A late onstop
+        // must not promote that partial capture into a valid submission.
+        recorder.ondataavailable = null;
+        recorder.onstop = null;
+        recorder.onerror = null;
+        recorderRef.current = null;
+        chunksRef.current = [];
+        recorder.stream.getTracks().forEach((track) => track.stop());
+        setAudioBlob(null);
+        setAudioUrl((current) => { if (current) URL.revokeObjectURL(current); return null; });
         setError("تعذر إنهاء التسجيل. حاول مرة أخرى.");
       }
     }
