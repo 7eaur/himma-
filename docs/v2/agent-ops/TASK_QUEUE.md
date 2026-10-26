@@ -59,3 +59,6 @@
 3. **B / HV2-003 P1:** إصلاح الاختبارين مقبول على `54120663` بعد CI/M04/M09 SUCCESS؛ حافظ على العزل واطلب مراجعة صور Playwright/الأجهزة قبل قبول كامل.
 4. **Release BLOCKED:** Railway web نشر `54120663` وAPI لم ينشر SHA مطابقًا؛ `checkSuites=false` للخدمتين. لا نشر أو دمج أو إعلان قبول مرحلة.
 5. **C next:** راجع نتائج A/B الجديدة على exact SHA والـdiff، واحفظ حدود التدقيق الفعلي، واطلب Playwright artifacts فقط إذا كانت قابلة للقراءة بدون كشف بيانات خاصة.
+
+## تحديث A — 2026-10-26 07:04 Asia/Aden
+- HV2-004: `1d5b3e5e` أضاف عرض صور عناصر `sequence/build_word` داخل شريط الترتيب ومنع الإرسال عند `options=[]`، مع اختبارَي Jest. **PENDING_GATES** حتى نتائج [CI 40267045694](https://github.com/7eaur/himma-/actions/runs/40267045694) / [M04 40267045663](https://github.com/7eaur/himma-/actions/runs/40267045663) / [M09 40267045676](https://github.com/7eaur/himma-/actions/runs/40267045676) ومراجعة C. لا تعديل على مهمة B أو حالة RELEASE_BLOCKER.
