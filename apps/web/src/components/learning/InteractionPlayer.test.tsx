@@ -222,6 +222,47 @@ describe("InteractionPlayer", () => {
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
+  it("blocks submission if a nominally ready image fails to load in the browser", () => {
+    const question = payload({
+      interaction: "choose_image",
+      options: [
+        { id: "a", text: null, media: [{ media_id: "IMG-ONE", kind: "image" }] },
+        { id: "b", text: null, media: [{ media_id: "IMG-TWO", kind: "image" }] },
+      ],
+    });
+    question.media = {
+      ...question.media,
+      "IMG-ONE": { asset_id: "IMG-ONE", kind: "image", state: "ready", url: "/broken-image.png", test_only: true },
+      "IMG-TWO": { asset_id: "IMG-TWO", kind: "image", state: "ready", url: "/working-image.png", test_only: true },
+    };
+    render(<InteractionPlayer sessionId={7} interaction={question} onLessonChange={jest.fn()}/>);
+    fireEvent.click(screen.getByRole("button", { name: "اختيار الخيار 1" }));
+    expect(screen.getByRole("button", { name: "تحقق من الإجابة" })).toBeEnabled();
+    fireEvent.error(screen.getAllByAltText("صورة خيار")[0]);
+    expect(screen.getByRole("alert")).toHaveTextContent("لن تُرسل الإجابة");
+    expect(screen.getByRole("button", { name: "تحقق من الإجابة" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "اختيار الخيار 2" })).toBeDisabled();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it("fails closed on an audio playback error and permits retry after playback succeeds", async () => {
+    const play = jest.fn().mockRejectedValueOnce(new Error("media decode failed")).mockResolvedValueOnce(undefined);
+    global.Audio = jest.fn().mockImplementation(() => ({ play, pause: jest.fn(), onended: null, onerror: null })) as unknown as typeof Audio;
+    render(<InteractionPlayer sessionId={7} interaction={payload({
+      interaction: "listen_choose_one",
+      stimulus: { text: null, media: [{ media_id: "LET-01", kind: "audio" }] },
+    })} onLessonChange={jest.fn()}/>);
+    fireEvent.click(screen.getByRole("button", { name: "اختيار الخيار 1" }));
+    expect(screen.getByRole("button", { name: "تحقق من الإجابة" })).toBeEnabled();
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "تشغيل صوت السؤال" })); });
+    expect(screen.getByRole("button", { name: "تحقق من الإجابة" })).toBeDisabled();
+    expect(screen.getByRole("alert")).toHaveTextContent("لن تُرسل الإجابة");
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "تشغيل صوت السؤال" })); });
+    expect(play).toHaveBeenCalledTimes(2);
+    expect(screen.getByRole("button", { name: "تحقق من الإجابة" })).toBeEnabled();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
   it("does not allow answering a question with an unsupported video stimulus", () => {
     const question = payload({
       stimulus: { text: null, media: [{ media_id: "VID-QUESTION", kind: "video" }] },

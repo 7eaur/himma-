@@ -50,6 +50,12 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   const [error, setError] = useState("");
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [audioState, setAudioState] = useState<"idle" | "loading" | "playing">("idle");
+  // A catalog entry marked "ready" can still fail at the browser (404,
+  // expired signed URL, unsupported audio or a broken image). Never grade
+  // a response when its required media cannot actually be used.
+  const [failedMediaIds, setFailedMediaIds] = useState<string[]>([]);
+  const markMediaFailure = (id: string) => setFailedMediaIds((current) => current.includes(id) ? current : [...current, id]);
+  const clearMediaFailure = (id: string) => setFailedMediaIds((current) => current.filter((item) => item !== id));
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const answerKeyRef = useRef(requestKey("answer"));
   const uploadKeyRef = useRef(requestKey("upload"));
@@ -101,7 +107,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
     const asset = media[reference.media_id];
     // InteractionPlayer renders only images and audio; a declared video
     // cannot be used as a substitute for a supported question stimulus.
-    return reference.kind === "video" || !asset || asset.kind !== reference.kind || asset.state !== "ready" || !asset.url;
+    return reference.kind === "video" || !asset || asset.kind !== reference.kind || asset.state !== "ready" || !asset.url || failedMediaIds.includes(reference.media_id);
   }) || (question.interaction === "choose_image" &&
     question.options.some((option) => !option.media.some((item) => item.kind === "image")));
   const ready = useMemo(() => {
@@ -127,10 +133,20 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
     setPlayingId(assetId);
     setAudioState("loading");
     audio.onwaiting = () => setAudioState("loading");
-    audio.onplaying = () => setAudioState("playing");
+    audio.onplaying = () => { clearMediaFailure(assetId); setAudioState("playing"); };
     audio.onended = () => { setPlayingId(null); setAudioState("idle"); };
-    audio.onerror = () => { setPlayingId(null); setAudioState("idle"); setError("تعذر تشغيل الصوت. حاول مرة أخرى."); };
-    try { await audio.play(); setAudioState("playing"); } catch { setPlayingId(null); setAudioState("idle"); setError("اضغط زر الصوت مرة أخرى للسماح بالتشغيل."); }
+    audio.onerror = () => { markMediaFailure(assetId); setPlayingId(null); setAudioState("idle"); setError("تعذر تشغيل الصوت. حاول مرة أخرى."); };
+    try {
+      await audio.play();
+      clearMediaFailure(assetId);
+      setError("");
+      setAudioState("playing");
+    } catch {
+      markMediaFailure(assetId);
+      setPlayingId(null);
+      setAudioState("idle");
+      setError("تعذر تشغيل الصوت. حاول الضغط على زر الصوت مرة أخرى.");
+    }
   };
 
   const choose = (id: string) => {
@@ -239,7 +255,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
 
   const renderMedia = (reference: MediaRef, option = false) => {
     const asset = media[reference.media_id];
-    if (!asset || asset.kind !== reference.kind || asset.state !== "ready" || !asset.url) {
+    if (!asset || asset.kind !== reference.kind || asset.state !== "ready" || !asset.url || (reference.kind === "image" && failedMediaIds.includes(reference.media_id))) {
       return <div className={styles.mediaMissing} role="status">الوسيط غير جاهز</div>;
     }
     if (reference.kind === "audio") {
@@ -247,7 +263,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
       const label = active ? "إيقاف الصوت" : option ? "تشغيل صوت هذا الخيار" : "تشغيل صوت السؤال";
       return <button type="button" className={styles.audioButton} onClick={(event) => { event.stopPropagation(); void playMedia(reference.media_id); }} aria-label={label}>{active ? <Pause size={25}/> : <Volume2 size={25}/>}<span>{active && audioState === "loading" ? "جاري التحميل" : active ? "إيقاف" : "استمع"}</span></button>;
     }
-    if (reference.kind === "image") return <Image className={styles.educationImage} src={asset.url} width={300} height={220} unoptimized alt={option ? "صورة خيار" : "صورة السؤال"}/>;
+    if (reference.kind === "image") return <Image className={styles.educationImage} src={asset.url} width={300} height={220} unoptimized alt={option ? "صورة خيار" : "صورة السؤال"} onError={() => markMediaFailure(reference.media_id)}/>;
     return <div className={styles.mediaMissing} role="alert">الوسيط غير جاهز</div>;
   };
 
@@ -263,7 +279,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   return <section className={styles.shell} dir="rtl" data-testid="v2-interaction-player" data-interaction={question.interaction}>
     <div className={styles.topline}><span>{stageLabel}</span><span>{interaction.progress.index} من {interaction.progress.total}</span></div>
     <h2>{question.prompt}</h2>
-    {missingRequiredMedia && <div className={styles.mediaMissing} role="alert">هذا السؤال يحتاج صورة أو صوتًا غير جاهز الآن. لن تُرسل الإجابة حتى يتوفر الوسيط.</div>}
+    {missingRequiredMedia && <div className={styles.mediaMissing} role="alert">هذا السؤال يحتاج صورة أو صوتًا غير جاهز الآن. لن تُرسل الإجابة حتى يتوفر الوسيط. إذا تعذر تحميل الصورة فحدّث الصفحة، وللصوت أعد تشغيله.</div>}
     {missingRequiredOptions && <div className={styles.mediaMissing} role="alert">خيارات هذا السؤال غير مكتملة. لن تُرسل الإجابة حتى تصبح جاهزة.</div>}
     {question.stimulus.text && <div className={styles.stimulusText}>{question.stimulus.text}</div>}
     {question.stimulus.media.length > 0 && <div className={styles.stimulusMedia}>{question.stimulus.media.map((item) => <div key={item.media_id}>{renderMedia(item)}</div>)}</div>}
@@ -272,10 +288,10 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
       const option = question.options.find((item) => item.id === id);
       const imageRef = option?.media.find((item) => item.kind === "image");
       const imageAsset = imageRef ? media[imageRef.media_id] : null;
-      const imageReady = imageAsset?.kind === "image" && imageAsset.state === "ready" && Boolean(imageAsset.url);
+      const imageReady = imageAsset?.kind === "image" && imageAsset.state === "ready" && Boolean(imageAsset.url) && !failedMediaIds.includes(imageRef!.media_id);
       return <button key={id} type="button" disabled={saving || awaitingConfirmation} aria-label={`إزالة العنصر ${index + 1} من الترتيب`} aria-describedby={option?.text ? `${descriptionIdPrefix}-selected-${index}` : undefined} onClick={() => setSelected((current) => current.filter((value) => value !== id))}>
         <b>{index + 1}</b>
-        {imageReady && <Image className={styles.orderPreview} src={imageAsset.url!} width={68} height={52} unoptimized alt={`صورة العنصر ${index + 1}`}/>}
+        {imageReady && <Image className={styles.orderPreview} src={imageAsset.url!} width={68} height={52} unoptimized alt={`صورة العنصر ${index + 1}`} onError={() => markMediaFailure(imageRef!.media_id)}/>}
         {option?.text && <span id={`${descriptionIdPrefix}-selected-${index}`} className={styles.orderText}>{option.text}</span>}
         {!option?.text && !imageReady && <span className={styles.orderText}>عنصر {index + 1}</span>}
         <X size={14} aria-hidden="true"/>
