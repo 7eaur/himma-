@@ -137,12 +137,59 @@ test("Student360 never displays the previous student's identity or code during a
   await expect(page.getByText(second.access_code, { exact: true })).toBeVisible();
   await expect(page.getByText(first.access_code, { exact: true })).toHaveCount(0);
 
-  // Reuse the same Next.js route segment in the opposite direction as well.
-  // The second learner's visible credentials must disappear before A's GET completes.
-  await page.evaluate(id => window.history.pushState(null, "", `/admin/students/${id}`), first.id);
-  await expect(page.getByRole("heading", { name: second.full_name })).toHaveCount(0);
-  await expect(page.getByText(second.access_code, { exact: true })).toHaveCount(0);
+  // Delay the reverse GET as well: B's visible credentials must disappear
+  // before A's response, and A's credential stays hidden after remount.
+  let unblockFirst!: () => void;
+  let enteredFirst!: () => void;
+  const firstRequested = new Promise<void>(resolve => { enteredFirst = resolve; });
+  const firstGate = new Promise<void>(resolve => { unblockFirst = resolve; });
+  await page.route(`**/api/researcher/students/${first.id}`, async route => {
+    enteredFirst();
+    await firstGate;
+    await route.continue();
+  });
+  try {
+    await page.evaluate(id => window.history.pushState(null, "", `/admin/students/${id}`), first.id);
+    await firstRequested;
+    await expect(page.getByRole("heading", { name: second.full_name })).toHaveCount(0);
+    await expect(page.getByText(second.access_code, { exact: true })).toHaveCount(0);
+  } finally {
+    unblockFirst();
+  }
   await expect(page.getByRole("heading", { name: first.full_name })).toBeVisible();
   await page.getByRole("button", { name: "الحساب", exact: true }).click();
   await expect(page.getByText(first.access_code, { exact: true })).toHaveCount(0);
+
+});
+
+test("Student360 keeps the selected profile visible when an optional V1 source fails at network level", async ({ page, request, context }) => {
+  await loginAsSupervisor(request, context);
+  const reply = await request.post(`${API_URL}/researcher/students`, {
+    data: { full_name: `طالب مصدر مستقل ${Date.now()}`, grade_level: 3 },
+  });
+  expect(reply.status()).toBe(201);
+  const student = await reply.json() as { id: number; full_name: string };
+  let journeyRequests = 0;
+  await page.route(`**/api/researcher/students/${student.id}/journey`, async route => {
+    journeyRequests += 1;
+    if (journeyRequests === 1) {
+      await route.abort("failed");
+      return;
+    }
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(canonicalJourney) });
+  });
+
+  await page.goto(`/admin/students/${student.id}`);
+  // Before the fix Promise.all rejected the whole profile when any
+  // optional legacy source had a network error.
+  await expect(page.getByRole("heading", { name: student.full_name })).toBeVisible();
+  await expect(page.getByTestId("supervisor-v2-overview")).toBeVisible();
+  await page.getByRole("button", { name: "المسار والتقدم" }).click();
+  const failure = page.getByRole("status").filter({ hasText: "تعذر تحميل المسار الأكاديمي" });
+  await expect(failure).toBeVisible();
+  await expect(page.getByRole("progressbar", { name: "تقدم الأنشطة الأساسية في المستوى النشط" })).toHaveCount(0);
+  await failure.getByRole("button", { name: "إعادة المحاولة" }).click();
+  await expect(page.getByRole("progressbar", { name: "تقدم الأنشطة الأساسية في المستوى النشط" })).toBeVisible();
+  expect(journeyRequests).toBeGreaterThanOrEqual(2);
+  await expect(page.getByRole("heading", { name: student.full_name })).toBeVisible();
 });

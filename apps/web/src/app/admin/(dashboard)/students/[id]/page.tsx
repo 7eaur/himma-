@@ -205,28 +205,33 @@ function StudentDetailView({ id }: { id: string }) {
     if (!id) return;
     // A keyed child starts with empty state on each student identity change.
     // Do not synchronously reset state in an effect or render a previous student.
-    void Promise.all([
-      fetch(`/api/researcher/students/${id}`, { cache: "no-store" }),
-      fetch(`/api/researcher/students/${id}/journey`, { cache: "no-store" }),
-      fetch(`/api/researcher/students/${id}/adaptation/history`, { cache: "no-store" }),
-      fetch(`/api/researcher/students/${id}/rewards`, { cache: "no-store" }),
-    ])
-      .then(async ([studentResponse, journeyResponse, historyResponse, rewardsResponse]) => {
+    // A failed legacy archive request must never hide a successfully loaded
+    // student identity (or make V2 appear missing). Each source fails closed
+    // independently and can be retried from its own tab.
+    const fetchSecondary = async <T,>(
+      url: string, setter: (value: T) => void, stateSetter: (state: SourceState) => void,
+    ) => {
+      try {
+        const response = await fetch(url, { cache: "no-store" });
+        await loadSecondarySource<T>(response, setter, stateSetter, () => !cancelled);
+      } catch {
+        if (!cancelled) stateSetter("error");
+      }
+    };
+
+    void fetch(`/api/researcher/students/${id}`, { cache: "no-store" })
+      .then(async studentResponse => {
         if (!studentResponse.ok) {
           const body = await studentResponse.json().catch(() => null);
           throw new Error(apiError(body, studentResponse.status === 404 ? "لم يتم العثور على الطالب" : "تعذر تحميل بيانات الطالب"));
         }
         const studentData: Student = await studentResponse.json();
+        if (String(studentData.id) !== id) throw new Error("ملف الطالب لا يطابق الحساب المطلوب.");
         if (cancelled) return;
         setStudent(studentData);
         setLoadedStudentId(id);
         setEditName(studentData.full_name);
         setOverrideLevel(String(studentData.current_level));
-        await Promise.all([
-          loadSecondarySource<JourneySummary>(journeyResponse, setJourney, setJourneyState, () => !cancelled),
-          loadSecondarySource<AdaptationDecision[]>(historyResponse, setHistory, setHistoryState, () => !cancelled),
-          loadSecondarySource<RewardEvent[]>(rewardsResponse, setRewards, setRewardsState, () => !cancelled),
-        ]);
       })
       .catch((error: unknown) => {
         if (!cancelled) {
@@ -236,6 +241,16 @@ function StudentDetailView({ id }: { id: string }) {
         }
       })
       .finally(() => { if (!cancelled) setLoading(false); });
+
+    void fetchSecondary<JourneySummary>(
+      `/api/researcher/students/${id}/journey`, setJourney, setJourneyState,
+    );
+    void fetchSecondary<AdaptationDecision[]>(
+      `/api/researcher/students/${id}/adaptation/history`, setHistory, setHistoryState,
+    );
+    void fetchSecondary<RewardEvent[]>(
+      `/api/researcher/students/${id}/rewards`, setRewards, setRewardsState,
+    );
     return () => { cancelled = true; };
   }, [id]);
 
