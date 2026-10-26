@@ -28,6 +28,13 @@ function eventKey(type: string) { return `${type}:${Date.now()}:${crypto.randomU
 
 export default function V2LessonPage() {
   const params = useParams<{ sessionId: string }>();
+  // A client-side route transition must remount all lesson state, even when
+  // both sessions reuse the same media URL. Old network callbacks then belong
+  // only to the unmounted session and cannot render in the new one.
+  return <V2LessonSessionPage key={params.sessionId} routeSessionId={params.sessionId} />;
+}
+
+function V2LessonSessionPage({ routeSessionId }: { routeSessionId: string }) {
   const router = useRouter();
   const [lesson, setLesson] = useState<LessonPayload | null>(null);
   const [loading, setLoading] = useState(true);
@@ -35,19 +42,14 @@ export default function V2LessonPage() {
   const [error, setError] = useState("");
   const completionKey = useRef<string | null>(null);
   const completionConfirmed = useRef(false);
-  const sessionId = Number(params.sessionId);
+  const sessionId = Number(routeSessionId);
   const invalidSessionId = !Number.isInteger(sessionId) || sessionId < 1;
-  // Route parameters can change without remounting this page. A response from
-  // the previous session must never replace the current learner view.
-  const activeSessionId = useRef(sessionId);
-  activeSessionId.current = sessionId;
 
   const loadLesson = useCallback(async () => {
     if (invalidSessionId) return;
     return fetch(`/api/v2/lessons/sessions/${sessionId}/interaction`, { cache: "no-store" }).then(async (response) => {
       const data = await response.json().catch(() => null);
       if (response.status === 401 || response.status === 403) { router.replace("/student/login"); return; }
-      if (activeSessionId.current !== sessionId) return;
       if (!response.ok) throw new Error(data?.detail || "تعذر استعادة الدرس");
       if (Number(data?.session?.session_id) !== sessionId) throw new Error("استجابة جلسة الدرس غير متطابقة");
       setLesson(data as LessonPayload);
@@ -55,25 +57,12 @@ export default function V2LessonPage() {
   }, [invalidSessionId, router, sessionId]);
 
   useEffect(() => {
-    completionKey.current = null;
-    completionConfirmed.current = false;
-    setLesson(null);
-    setLoading(true);
-    setError("");
-  }, [sessionId]);
-
-  useEffect(() => {
-    void loadLesson().catch((reason) => {
-      if (activeSessionId.current === sessionId) setError(reason instanceof Error ? reason.message : "تعذر استعادة الدرس");
-    }).finally(() => {
-      if (activeSessionId.current === sessionId) setLoading(false);
-    });
+    void loadLesson().catch((reason) => setError(reason instanceof Error ? reason.message : "تعذر استعادة الدرس")).finally(() => setLoading(false));
   }, [loadLesson]);
 
   const sendEvent = useCallback(async (event_type: "intro_complete" | "video_progress" | "video_ended", position_seconds?: number, duration_seconds?: number, stableEventKey?: string) => {
     const response = await fetch(`/api/v2/lessons/sessions/${sessionId}/events`, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ event_key:stableEventKey ?? eventKey(event_type), event_type, position_seconds, duration_seconds }), keepalive:event_type === "video_progress" });
     const data = await response.json().catch(() => null);
-    if (activeSessionId.current !== sessionId) return;
     if (!response.ok) throw new Error(data?.detail || "تعذر حفظ تقدم الدرس");
     // Checkpoints persist the playback position, but must not replace the
     // rendered lesson. An older checkpoint response can arrive after
@@ -89,10 +78,10 @@ export default function V2LessonPage() {
     else setLesson(data);
   }, [loadLesson, sessionId]);
 
-  const completeIntro = async () => { const requestedSessionId = sessionId; setSaving(true); setError(""); try { await sendEvent("intro_complete"); } catch (reason) { if (activeSessionId.current === requestedSessionId) setError(reason instanceof Error ? reason.message : "تعذر فتح الفيديو"); } finally { if (activeSessionId.current === requestedSessionId) setSaving(false); } };
+  const completeIntro = async () => { setSaving(true); setError(""); try { await sendEvent("intro_complete"); } catch (reason) { setError(reason instanceof Error ? reason.message : "تعذر فتح الفيديو"); } finally { setSaving(false); } };
   const checkpoint = useCallback((position: number, duration: number) => { void sendEvent("video_progress", position, duration).catch(() => {
     // A delayed failed checkpoint must not put an error on the next stage.
-    if (activeSessionId.current === sessionId && !completionConfirmed.current) setError("تعذر حفظ موضع الفيديو مؤقتًا. حاول الإيقاف ثم التشغيل.");
+    if (!completionConfirmed.current) setError("تعذر حفظ موضع الفيديو مؤقتًا. حاول الإيقاف ثم التشغيل.");
   }); }, [sendEvent]);
   const ended = useCallback(async (position: number, duration: number) => {
     // A lost HTTP response after a committed event must be safe to retry.
@@ -101,7 +90,7 @@ export default function V2LessonPage() {
   }, [sendEvent]);
 
   if (invalidSessionId) return <div className={styles.page} dir="rtl"><div className={styles.container}><div className={styles.error} role="alert">رابط جلسة الدرس غير صالح</div><Link href="/student/learning-v2" className={styles.back}><ArrowRight size={17}/> العودة إلى الدروس</Link></div></div>;
-  if (loading || (lesson !== null && lesson.session.session_id !== sessionId)) return <div className={styles.page} dir="rtl"><div className={styles.loading}><div><div className={styles.spinner} /><p>نستعيد موضعك المحفوظ...</p></div></div></div>;
+  if (loading) return <div className={styles.page} dir="rtl"><div className={styles.loading}><div><div className={styles.spinner} /><p>نستعيد موضعك المحفوظ...</p></div></div></div>;
   if (!lesson) return <div className={styles.page} dir="rtl"><div className={styles.container}><div className={styles.error} role="alert">{error || "تعذر فتح الدرس"}</div><Link href="/student/learning-v2" className={styles.back}><ArrowRight size={17}/> العودة إلى الدروس</Link></div></div>;
   const stageIndex = STAGES.findIndex((stage) => stage.key === lesson.session.stage);
   const activeIndex = stageIndex >= 0 ? stageIndex : STAGES.length - 1;
