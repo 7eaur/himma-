@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, Play, RotateCcw } from "lucide-react";
 import styles from "./VideoPlayer.module.css";
 
-type PlayerState = "loading" | "ready" | "buffering" | "blocked" | "error" | "ended";
+type PlayerState = "loading" | "ready" | "buffering" | "blocked" | "error" | "saving" | "save_error" | "ended";
 
 interface VideoPlayerProps {
   src: string;
@@ -12,12 +12,13 @@ interface VideoPlayerProps {
   startAt?: number;
   testOnly?: boolean;
   onCheckpoint: (position: number, duration: number) => void;
-  onEnded: (position: number, duration: number) => void;
+  onEnded: (position: number, duration: number) => Promise<void>;
 }
 
 export default function VideoPlayer({ src, captionsSrc, startAt = 0, testOnly = false, onCheckpoint, onEnded }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const lastCheckpoint = useRef(startAt);
+  const completing = useRef(false);
   const [state, setState] = useState<PlayerState>("loading");
 
   const play = async () => {
@@ -41,7 +42,7 @@ export default function VideoPlayer({ src, captionsSrc, startAt = 0, testOnly = 
   const resume = () => {
     const video = videoRef.current;
     if (video && startAt > 0 && startAt <= video.duration - 1) video.currentTime = startAt;
-    setState((current) => current === "error" ? current : "ready");
+    setState((current) => ["error", "saving", "save_error", "ended"].includes(current) ? current : "ready");
   };
 
   useEffect(() => {
@@ -49,7 +50,7 @@ export default function VideoPlayer({ src, captionsSrc, startAt = 0, testOnly = 
     if (!video) return;
     const restoreSavedPosition = () => {
       if (startAt > 0 && Number.isFinite(video.duration) && startAt <= video.duration - 1) video.currentTime = startAt;
-      setState((current) => current === "error" ? current : "ready");
+      setState((current) => ["error", "saving", "save_error", "ended"].includes(current) ? current : "ready");
     };
     video.addEventListener("loadedmetadata", restoreSavedPosition);
     if (video.readyState >= HTMLMediaElement.HAVE_METADATA) restoreSavedPosition();
@@ -63,6 +64,23 @@ export default function VideoPlayer({ src, captionsSrc, startAt = 0, testOnly = 
     if (!videoRef.current) return;
     setState("loading");
     videoRef.current.load();
+  };
+
+  const confirmCompletion = async () => {
+    const video = videoRef.current;
+    if (!video || completing.current || !Number.isFinite(video.duration) || video.duration <= 0) return;
+    completing.current = true;
+    setState("saving");
+    try {
+      // The learner sees success only after the server acknowledges completion.
+      await onEnded(video.currentTime, video.duration);
+      setState("ended");
+    } catch {
+      // The page reuses its idempotency key if the acknowledgment was lost.
+      setState("save_error");
+    } finally {
+      completing.current = false;
+    }
   };
 
   const replay = () => {
@@ -82,18 +100,14 @@ export default function VideoPlayer({ src, captionsSrc, startAt = 0, testOnly = 
         playsInline
         preload="metadata"
         onLoadedMetadata={resume}
-        onCanPlay={() => setState((current) => current === "ended" || current === "error" ? current : "ready")}
-        onWaiting={() => setState((current) => current === "ended" || current === "error" ? current : "buffering")}
-        onStalled={() => setState((current) => current === "ended" || current === "error" ? current : "buffering")}
-        onPlaying={() => setState((current) => current === "error" ? current : "ready")}
+        onCanPlay={() => setState((current) => ["ended", "error", "saving", "save_error"].includes(current) ? current : "ready")}
+        onWaiting={() => setState((current) => ["ended", "error", "saving", "save_error"].includes(current) ? current : "buffering")}
+        onStalled={() => setState((current) => ["ended", "error", "saving", "save_error"].includes(current) ? current : "buffering")}
+        onPlaying={() => setState((current) => ["error", "saving", "save_error", "ended"].includes(current) ? current : "ready")}
         onTimeUpdate={checkpoint}
         onPause={checkpoint}
-        onError={() => setState("error")}
-        onEnded={() => {
-          const video = videoRef.current;
-          setState("ended");
-          if (video && Number.isFinite(video.duration)) onEnded(video.currentTime, video.duration);
-        }}
+        onError={() => setState((current) => ["saving", "save_error", "ended"].includes(current) ? current : "error")}
+        onEnded={() => void confirmCompletion()}
       >
         {captionsSrc && <track kind="captions" src={captionsSrc} srcLang="ar" label="العربية" default />}
         متصفحك لا يدعم تشغيل الفيديو.
@@ -109,6 +123,12 @@ export default function VideoPlayer({ src, captionsSrc, startAt = 0, testOnly = 
       )}
       {state === "error" && (
         <div className={styles.status} role="alert"><div className={styles.statusCard}><AlertTriangle size={32} aria-hidden="true" /><strong>تعذر تشغيل الفيديو</strong><span>تحقق من الاتصال ثم أعد المحاولة. لن نتجاوز هذه الخطوة تلقائيًا.</span><button type="button" className={styles.action} onClick={retry}><RotateCcw size={18} /> إعادة المحاولة</button></div></div>
+      )}
+      {state === "saving" && (
+        <div className={styles.status} role="status"><div className={styles.statusCard}><span className={styles.spinner} aria-hidden="true" /><strong>جاري حفظ اكتمال الشرح</strong><span>انتظر قليلًا حتى نتأكد من حفظ تقدمك.</span></div></div>
+      )}
+      {state === "save_error" && (
+        <div className={styles.status} role="alert"><div className={styles.statusCard}><AlertTriangle size={32} aria-hidden="true" /><strong>تعذر تأكيد حفظ المشاهدة</strong><span>مشاهدتك لم تُفقد. أعد محاولة الحفظ دون إعادة الفيديو.</span><button type="button" className={styles.action} onClick={() => void confirmCompletion()}><RotateCcw size={18} /> إعادة حفظ المشاهدة</button></div></div>
       )}
       {state === "ended" && (
         <div className={styles.status} role="status"><div className={styles.statusCard}><strong>أكملت الشرح</strong><span>تم حفظ المشاهدة، ويمكنك الانتقال إلى التدريب الموجّه.</span><button type="button" className={styles.action} onClick={replay}><RotateCcw size={18} /> شاهد مرة أخرى</button></div></div>

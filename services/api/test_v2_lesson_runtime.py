@@ -77,8 +77,20 @@ def test_intro_video_progress_and_ended_are_persistent_and_idempotent(student_cl
     assert progress.json()["session"]["video_position_seconds"] == 2.5
     too_early = _event(student_client, session_id, "video_ended", position_seconds=4, duration_seconds=6)
     assert too_early.status_code == 409
-    ended = _event(student_client, session_id, "video_ended", position_seconds=6, duration_seconds=6)
+    ended_key = str(uuid4())
+    ended = student_client.post(
+        f"/v2/lessons/sessions/{session_id}/events",
+        json={"event_key": ended_key, "event_type": "video_ended", "position_seconds": 6, "duration_seconds": 6},
+    )
     assert ended.status_code == 200
+    # A successful commit followed by a lost HTTP response must be safely
+    # acknowledged when the browser retries the same idempotency key.
+    retry = student_client.post(
+        f"/v2/lessons/sessions/{session_id}/events",
+        json={"event_key": ended_key, "event_type": "video_ended", "position_seconds": 6, "duration_seconds": 6},
+    )
+    assert retry.status_code == 200
+    assert retry.json()["session"]["stage"] == "guided_practice"
     assert ended.json()["session"]["stage"] == "guided_practice"
     assert ended.json()["session"]["video_seen"] is True
     resumed = student_client.get(f"/v2/lessons/sessions/{session_id}").json()

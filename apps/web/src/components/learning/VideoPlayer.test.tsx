@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import VideoPlayer from "./VideoPlayer";
 
 function setMediaTime(video: HTMLVideoElement, currentTime: number, duration = 6) {
@@ -44,7 +44,30 @@ describe("VideoPlayer", () => {
     setMediaTime(video, 6);
     fireEvent.ended(video);
     expect(onEnded).toHaveBeenCalledWith(6, 6);
-    expect(screen.getByText("أكملت الشرح")).toBeInTheDocument();
+    return waitFor(() => expect(screen.getByText("أكملت الشرح")).toBeInTheDocument());
+  });
+
+  it("waits for server confirmation and retries a failed completion without replaying", async () => {
+    let rejectFirst: (reason: Error) => void = () => undefined;
+    const first = new Promise<void>((_, reject) => { rejectFirst = reject; });
+    const onEnded = jest.fn().mockImplementationOnce(() => first).mockResolvedValueOnce(undefined);
+    render(<VideoPlayer src="/fixture.mp4" onCheckpoint={jest.fn()} onEnded={onEnded} />);
+    const video = screen.getByText("متصفحك لا يدعم تشغيل الفيديو.").closest("video") as HTMLVideoElement;
+    setMediaTime(video, 6, 6);
+    fireEvent.ended(video);
+    fireEvent.ended(video);
+    expect(onEnded).toHaveBeenCalledTimes(1);
+    expect(screen.getByText("جاري حفظ اكتمال الشرح")).toBeInTheDocument();
+    expect(screen.queryByText("أكملت الشرح")).not.toBeInTheDocument();
+    await act(async () => { rejectFirst(new Error("temporary network failure")); });
+    expect(screen.getByRole("alert")).toHaveTextContent("تعذر تأكيد حفظ المشاهدة");
+    fireEvent.canPlay(video);
+    fireEvent.waiting(video);
+    expect(screen.getByRole("alert")).toHaveTextContent("تعذر تأكيد حفظ المشاهدة");
+    fireEvent.click(screen.getByRole("button", { name: "إعادة حفظ المشاهدة" }));
+    await waitFor(() => expect(screen.getByText("أكملت الشرح")).toBeInTheDocument());
+    expect(onEnded).toHaveBeenCalledTimes(2);
+    expect(onEnded).toHaveBeenNthCalledWith(2, 6, 6);
   });
 
   it("shows recoverable buffering and media error states", async () => {

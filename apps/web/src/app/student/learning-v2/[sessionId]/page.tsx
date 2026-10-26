@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -33,6 +33,8 @@ export default function V2LessonPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const completionKey = useRef<string | null>(null);
+  const completionConfirmed = useRef(false);
   const sessionId = Number(params.sessionId);
   const invalidSessionId = !Number.isInteger(sessionId) || sessionId < 1;
 
@@ -47,11 +49,16 @@ export default function V2LessonPage() {
   }, [invalidSessionId, router, sessionId]);
 
   useEffect(() => {
+    completionKey.current = null;
+    completionConfirmed.current = false;
+  }, [sessionId]);
+
+  useEffect(() => {
     void loadLesson().catch((reason) => setError(reason instanceof Error ? reason.message : "تعذر استعادة الدرس")).finally(() => setLoading(false));
   }, [loadLesson]);
 
-  const sendEvent = useCallback(async (event_type: "intro_complete" | "video_progress" | "video_ended", position_seconds?: number, duration_seconds?: number) => {
-    const response = await fetch(`/api/v2/lessons/sessions/${sessionId}/events`, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ event_key:eventKey(event_type), event_type, position_seconds, duration_seconds }), keepalive:event_type === "video_progress" });
+  const sendEvent = useCallback(async (event_type: "intro_complete" | "video_progress" | "video_ended", position_seconds?: number, duration_seconds?: number, stableEventKey?: string) => {
+    const response = await fetch(`/api/v2/lessons/sessions/${sessionId}/events`, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ event_key:stableEventKey ?? eventKey(event_type), event_type, position_seconds, duration_seconds }), keepalive:event_type === "video_progress" });
     const data = await response.json().catch(() => null);
     if (!response.ok) throw new Error(data?.detail || "تعذر حفظ تقدم الدرس");
     // Checkpoints persist the playback position, but must not replace the
@@ -59,13 +66,24 @@ export default function V2LessonPage() {
     // video_ended and otherwise regress the child from practice to video.
     // Re-rendering on each checkpoint can also seek the player backwards.
     if (event_type === "video_progress") return;
+    if (event_type === "video_ended") {
+      completionConfirmed.current = true;
+      setError("");
+    }
     if (["guided_practice", "independent_check", "waiting_review", "outcome"].includes(data?.session?.stage)) await loadLesson();
     else setLesson(data);
   }, [loadLesson, sessionId]);
 
   const completeIntro = async () => { setSaving(true); setError(""); try { await sendEvent("intro_complete"); } catch (reason) { setError(reason instanceof Error ? reason.message : "تعذر فتح الفيديو"); } finally { setSaving(false); } };
-  const checkpoint = useCallback((position: number, duration: number) => { void sendEvent("video_progress", position, duration).catch(() => setError("تعذر حفظ موضع الفيديو مؤقتًا. حاول الإيقاف ثم التشغيل.")); }, [sendEvent]);
-  const ended = useCallback((position: number, duration: number) => { void sendEvent("video_ended", position, duration).catch((reason) => setError(reason instanceof Error ? reason.message : "تعذر حفظ اكتمال الفيديو")); }, [sendEvent]);
+  const checkpoint = useCallback((position: number, duration: number) => { void sendEvent("video_progress", position, duration).catch(() => {
+    // A delayed failed checkpoint must not put an error on the next stage.
+    if (!completionConfirmed.current) setError("تعذر حفظ موضع الفيديو مؤقتًا. حاول الإيقاف ثم التشغيل.");
+  }); }, [sendEvent]);
+  const ended = useCallback(async (position: number, duration: number) => {
+    // A lost HTTP response after a committed event must be safe to retry.
+    const key = completionKey.current ?? (completionKey.current = eventKey("video_ended"));
+    await sendEvent("video_ended", position, duration, key);
+  }, [sendEvent]);
 
   if (invalidSessionId) return <div className={styles.page} dir="rtl"><div className={styles.container}><div className={styles.error} role="alert">رابط جلسة الدرس غير صالح</div><Link href="/student/learning-v2" className={styles.back}><ArrowRight size={17}/> العودة إلى الدروس</Link></div></div>;
   if (loading) return <div className={styles.page} dir="rtl"><div className={styles.loading}><div><div className={styles.spinner} /><p>نستعيد موضعك المحفوظ...</p></div></div></div>;
