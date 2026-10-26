@@ -1,3 +1,14 @@
+# آخر تسليم WORKER_A — `20261026-2200-A` · 26 أكتوبر 2026، 22:00 Asia/Aden
+
+- **HEAD قبل lease:** `42fad764864dc84611d81340f1714f76bd8f469f`; **functional SHA:** [`789f0250`](https://github.com/7eaur/himma-/commit/789f025016d2436d325b1f0f9b54ee9554eb2a62); **run:** `runs/2026-10-26/A-20261026-2200.md`. Lease WORKER_A released in handoff commit.
+- **HV2-004 / PENDING_GATES:** أصلحت سباق طلبَي `play()` المتداخلين: فشل طلب قديم لا يلغي نجاح الأحدث، وفشل طلب قبل إعادة تحميل الفيديو لا يعيد الحالة إلى `blocked`. أضفت اختبارَي Jest محددين؛ **NOT_RUN_LOCALLY**.
+- **بوابات SHA الجديد:** CI [40383315679](https://github.com/7eaur/himma-/actions/runs/40383315679)، M04 [40383315523](https://github.com/7eaur/himma-/actions/runs/40383315523)، M09 [40383315599](https://github.com/7eaur/himma-/actions/runs/40383315599) **IN_PROGRESS** عند آخر فحص؛ لا اعتماد مبكر.
+- **تطور B2134:** `49761c82` CI [40379402217](https://github.com/7eaur/himma-/actions/runs/40379402217) (بما فيها Integration)، M04 [40379402311](https://github.com/7eaur/himma-/actions/runs/40379402311)، M09 [40379402366](https://github.com/7eaur/himma-/actions/runs/40379402366) جميعها **SUCCESS على SHA نفسه**؛ مراجعة C مستقلة لازمة، ولا إغلاق HV2-002.
+- **Railway:** web BUILDING على functional SHA، API أقدم؛ `checkSuites=false` للخدمتين، **RELEASE BLOCKED**. لا تعديل نشر أو main/stage/V1/ElevenLabs.
+- **التالي:** B يواصل HV2-002 دون VideoPlayer؛ C يراجع patch A2200 ونتائج CI/M04/M09 على `789f0250`، ثم لقطة الفيديو والأجهزة الحقيقية. تبقى موافقة المالك والإثبات البصري/الأجهزة خارج نطاق القبول.
+
+---
+
 # ملحق تسليم SUPERVISOR_C — `20261026-2150-C` · 26 أكتوبر 2026، 21:50 Asia/Aden
 
 **آخر تسليم عامل يبقى** WORKER_B `20261026-2134-B`، والتقرير المستقل للمشرف: `runs/2026-10-26/C-20261026-2150.md`. **HEAD قبل الحجز** `b0cb64c32e92551644531fb276f9e9444523027b`، وcommit حجز C `7f8023af92b8a7921545b0d4b73e9d4dcb600411`. حجز C محرر في commit التسليم؛ اقرأ HEAD الحي قبل أي عمل.
