@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { randomUUID } from "node:crypto";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const USERNAME = process.env.E2E_RESEARCHER_USERNAME ?? "admin";
@@ -76,11 +77,13 @@ test("HV2-002: cross-student session ownership through the browser BFF stays pri
     data: { username: USERNAME, password: PASSWORD },
   });
   expect(supervisor.status()).toBe(200);
-  const created = await Promise.all(["A", "B"].map(label =>
-    request.post(`${API_URL}/researcher/students`, {
+  const created = [];
+  // Create sequentially to avoid racing the server-side access-code allocator.
+  for (const label of ["A", "B"]) {
+    created.push(await request.post(`${API_URL}/researcher/students`, {
       data: { full_name: `طالب اختبار صلاحيات ${label} ${Date.now()}`, grade_level: 3 },
-    }),
-  ));
+    }));
+  }
   for (const response of created) expect(response.status()).toBe(201);
   const codes = await Promise.all(created.map(async response =>
     (await response.json()).access_code as string,
@@ -113,7 +116,7 @@ test("HV2-002: cross-student session ownership through the browser BFF stays pri
   expect(first.status).toBe(200);
   const sessionId = first.data.session.session_id as number;
   const optionId = first.data.interaction.question.options[0].id as string;
-  const submitKey = crypto.randomUUID();
+  const submitKey = randomUUID();
   const answer = { submit_key: submitKey, selected_option_ids: [optionId] };
   const saved = await page.evaluate(async ({ id, body }) => {
     const response = await fetch(`/api/v2/assessments/sessions/${id}/answers`, {
