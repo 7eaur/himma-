@@ -127,7 +127,7 @@ function AssessmentV2Session({ sessionId }: { sessionId: number }) {
   };
 
   if (invalid) return <main className={styles.page} dir="rtl"><div className={styles.container}><div className={styles.error}>رابط جلسة التقييم غير صالح</div></div></main>;
-  if (loading) return <main className={styles.page} dir="rtl"><div className={styles.loading}><div><div className={styles.spinner}/><p>نستعيد إجاباتك المحفوظة...</p></div></div></main>;
+  if (loading) return <main className={styles.page} dir="rtl"><div className={styles.loading}><div><div className={styles.spinner}/><p>نستعيد إجاباتك المحفوظة...</p><Link href="/student" className={styles.back}>لوحة الطالب</Link></div></div></main>
   if (!assessment) return <main className={styles.page} dir="rtl"><div className={styles.container}><div className={styles.error} role="alert">{error || "تعذر فتح التقييم"}</div><button type="button" className={styles.primary} onClick={() => {
     setError(""); setLoading(true);
     void load().catch((reason) => setError(reason instanceof Error ? reason.message : "تعذر استعادة التقييم")).finally(() => setLoading(false));
