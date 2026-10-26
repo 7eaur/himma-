@@ -90,7 +90,7 @@ test("P09.0 V2 pretest states are readable without answer leakage at mobile, tab
         // removing it must restore the original choice.
         await page.getByRole("button", { name: "اختيار الخيار 1" }).click();
         await page.getByRole("button", { name: "اختيار الخيار 2" }).click();
-        const tray = page.getByLabel("الترتيب المختار");
+        const tray = page.locator('[aria-label="الترتيب المختار"]');
         await expect(tray.getByRole("button")).toHaveCount(2);
         await expect(tray.getByRole("img", { name: "صورة العنصر 1" })).toBeVisible();
         const selectedBoxes = await tray.getByRole("button").evaluateAll((nodes) =>
