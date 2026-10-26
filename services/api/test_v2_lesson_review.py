@@ -42,6 +42,26 @@ def _login_researcher(client):
     assert response.status_code == 200
 
 
+def _uploaded_lesson_audio(student_client, monkeypatch, session_id: int, filename: str):
+    """Use the real recording endpoint so the test owns a question-bound lease."""
+    import v2_interaction_runtime
+
+    monkeypatch.setattr(
+        v2_interaction_runtime.storage,
+        "upload_audio",
+        lambda _file, student_id, _key: (
+            f"audio/{student_id}/{filename}.webm", 100, "test-only-digest"
+        ),
+    )
+    uploaded = student_client.post(
+        f"/v2/lessons/sessions/{session_id}/recording",
+        headers={"Idempotency-Key": str(uuid4())},
+        files={"file": ("synthetic.webm", b"synthetic-audio-only", "audio/webm")},
+    )
+    assert uploaded.status_code == 200, uploaded.text
+    return uploaded.json()
+
+
 def test_p08_lesson_queue_is_private_and_grade_updates_skill_evidence(student_client):
     sid, qid = _writing_response(student_client)
     assert student_client.get("/v2/review/lesson-queue").status_code in (401, 403)
@@ -81,12 +101,10 @@ def test_p08_lesson_decision_rejects_evidence_without_audio(student_client, monk
     import v2_interaction_runtime
     monkeypatch.setattr(v2_interaction_runtime.storage, "verify_audio", lambda *a, **kw: None)
     sid = _start_at_questions(student_client, "L1-05", 3)
-    with TestingSessionLocal() as db:
-        student_id = db.query(Student).filter(Student.access_code == "STU001").one().id
+    audio = _uploaded_lesson_audio(student_client, monkeypatch, sid, "test-p08")
     sent = student_client.post(
         f"/v2/lessons/sessions/{sid}/answers",
-        json={"submit_key": str(uuid4()), "audio_storage_key": f"audio/{student_id}/test-p08.webm",
-              "audio_file_size": 100, "audio_mime_type": "audio/webm", "audio_duration_seconds": 3},
+        json={"submit_key": str(uuid4()), **audio, "audio_duration_seconds": 3},
     )
     assert sent.status_code == 200, sent.text
     _login_researcher(student_client)
@@ -355,12 +373,9 @@ def test_p08_audio_retry_cannot_save_a_writing_draft(student_client, monkeypatch
 
     monkeypatch.setattr(storage, "verify_audio", lambda *args, **kwargs: None)
     sid = _start_at_questions(student_client, "L1-05", 3)
-    with TestingSessionLocal() as db:
-        student_id = db.query(Student).filter(Student.access_code == "STU001").one().id
+    audio = _uploaded_lesson_audio(student_client, monkeypatch, sid, "first")
     response = student_client.post(f"/v2/lessons/sessions/{sid}/answers", json={
-        "submit_key": str(uuid4()), "audio_storage_key": f"audio/{student_id}/first.webm",
-        "audio_file_size": 100, "audio_mime_type": "audio/webm",
-        "audio_duration_seconds": 3,
+        "submit_key": str(uuid4()), **audio, "audio_duration_seconds": 3,
     })
     assert response.status_code == 200, response.text
     with TestingSessionLocal() as db:
