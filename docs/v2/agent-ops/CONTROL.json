@@ -6,7 +6,17 @@
   "timezone": "Asia/Aden",
   "mode": "ACTIVE",
   "stop_reason": null,
-  "lease": null,
+  "lease": {
+    "holder": "WORKER_B",
+    "run_id": "20261026-1738-B",
+    "base_head": "59bbbcf230b893b779e8da29294c1e60ca2aef37",
+    "scope": [
+      "apps/web/src/app/student/assessment-v2/[sessionId]/page.tsx",
+      "apps/web/tests/e2e/v2-pretest-recovery-matrix.spec.ts"
+    ],
+    "acquired_at": "2026-10-26T14:40:29.945Z",
+    "expires_at": "2026-10-26T15:00:29.945Z"
+  },
   "scheduler": {
     "worker_a": "00 * * * *",
     "worker_b": "30 * * * *",
