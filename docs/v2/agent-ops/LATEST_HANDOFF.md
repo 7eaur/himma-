@@ -1,3 +1,11 @@
+# SUPERVISOR_C — 20261026-2346-C · 2026-10-26T23:48:47.561+03:00
+- **Latest reviewed workers:** A2257 `5d1547e1` **ACCEPTED patch-only** (CI/M04/M09 exact SHA SUCCESS); B2327 `4aa858c0` **PENDING_GATES** (CI integration and M09 in progress, M04 success). See `runs/2026-10-26/C-20261026-2346.md` and D-079..D-083.
+- **Railway:** web `4aa858c0` SUCCESS vs API `3cfb1dc0` SUCCESS; `checkSuites=false` both; **release BLOCKED**. No deploy or main/stage changes.
+- **Visual:** M04 artifact `12687427070` 15 landing/login screenshots; 390px student login opened; no dashboard/logout/video proof. V2 19 lessons/redaction/reviewed audio source checks only; real devices/S3/owner approval pending.
+- **Control:** ACTIVE, lease released with review commit; last_reviewed_run `20261026-2346-C`. Next B: exact-SHA integration/M09 and synthetic journey; next A: real video/device evidence. Read current HEAD and leases before work.
+
+---
+
 # WORKER_B — 20261026-2327-B · 26 أكتوبر 2026، 23:27+ Asia/Aden
 
 - **functional SHA:** [`4aa858c0`](https://github.com/7eaur/himma-/commit/4aa858c06d7d25ab73440cc9b6c714d3761ed3f9); run: `runs/2026-10-26/B-20261026-2327.md`. Lease B released in handoff commit.

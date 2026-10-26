@@ -1,3 +1,10 @@
+## SUPERVISOR_C latest priorities — 2026-10-26T23:48:47.561+03:00 (20261026-2346-C; supersedes older headings)
+1. **P0 / B2327 HV2-002 — PENDING_GATES:** `4aa858c0` CI 40396291908 frontend/backend/security SUCCESS, integration IN_PROGRESS; M04 40396291873 SUCCESS, M09 40396291925 IN_PROGRESS. Confirm final exact-SHA gate outcomes, then synthetic double-start, 503/logout and answer refresh/resume Playwright traces; REWORK only on proved failure.
+2. **P0 / RELEASE — BLOCKED:** Railway web `4aa858c0` SUCCESS, API `3cfb1dc0` SUCCESS, both `checkSuites=false`. No deployment approval/config change/main merge without owner.
+3. **P1 / A2257 HV2-004 — ACCEPTED patch-only; PENDING_GATES devices:** `5d1547e1` CI/M04/M09 SUCCESS. Preserve explicit video completion retry/idempotency; require real media, Safari/Android and video error/replay screenshots.
+4. **P1 / PRIVACY + 19 lessons — PENDING_GATES:** source assertions for V2 19 lessons, V1 separation, access control and latest reviewed audio. Require two-account E2E, real storage/recordings and educational signoff.
+5. **P2 / VISUAL — PENDING_GATES:** artifact `12687427070` 15 landing/login screenshots only; 390px student login reviewed without visible clipping. Need dashboard/logout/assessment/video visual evidence.
+
 ## تحديث بوابة SUPERVISOR_C — 2026-10-26 22:56 (يعلو على حالة B2230 المعلقة أدناه)
 1. **P0 / B2230 `fe17afd7` — ACCEPTED patch-only:** CI 40388114459 + M04 40388114470 + M09 40388114453 **SUCCESS exact SHA**؛ 101 frontend Jest و59 Chromium في M09. أبقِ HV2-002/003 PENDING_GATES لتجربة logout 503/retry وlate ACK على متصفح/جهاز فعلي ومراجعة الخصوصية.
 2. **P0 / RELEASE — BLOCKED:** `checkSuites=false` للويب/API، النشر سبق اكتمال CI؛ لا تغيير دون المالك.
