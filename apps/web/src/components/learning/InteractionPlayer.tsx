@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Check, Mic, MicOff, Pause, RotateCcw, Volume2, X } from "lucide-react";
 import styles from "./InteractionPlayer.module.css";
 
@@ -41,6 +41,7 @@ function requestKey(prefix: string) {
 
 export default function InteractionPlayer({ sessionId, interaction, onLessonChange, endpointBase = "/api/v2/lessons" }: Props) {
   const { question, media } = interaction;
+  const descriptionIdPrefix = useId();
   const [selected, setSelected] = useState<string[]>([]);
   const [text, setText] = useState(interaction.draft ?? "");
   const [saving, setSaving] = useState(false);
@@ -259,7 +260,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
     : interaction.progress.stage === "posttest" ? "الاختبار البعدي"
     : "اختبار مستقل";
 
-  return <section className={styles.shell} data-testid="v2-interaction-player" data-interaction={question.interaction}>
+  return <section className={styles.shell} dir="rtl" data-testid="v2-interaction-player" data-interaction={question.interaction}>
     <div className={styles.topline}><span>{stageLabel}</span><span>{interaction.progress.index} من {interaction.progress.total}</span></div>
     <h2>{question.prompt}</h2>
     {missingRequiredMedia && <div className={styles.mediaMissing} role="alert">هذا السؤال يحتاج صورة أو صوتًا غير جاهز الآن. لن تُرسل الإجابة حتى يتوفر الوسيط.</div>}
@@ -272,10 +273,10 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
       const imageRef = option?.media.find((item) => item.kind === "image");
       const imageAsset = imageRef ? media[imageRef.media_id] : null;
       const imageReady = imageAsset?.kind === "image" && imageAsset.state === "ready" && Boolean(imageAsset.url);
-      return <button key={id} type="button" disabled={saving || awaitingConfirmation} aria-label={`إزالة العنصر ${index + 1} من الترتيب`} onClick={() => setSelected((current) => current.filter((value) => value !== id))}>
+      return <button key={id} type="button" disabled={saving || awaitingConfirmation} aria-label={`إزالة العنصر ${index + 1} من الترتيب`} aria-describedby={option?.text ? `${descriptionIdPrefix}-selected-${index}` : undefined} onClick={() => setSelected((current) => current.filter((value) => value !== id))}>
         <b>{index + 1}</b>
         {imageReady && <Image className={styles.orderPreview} src={imageAsset.url!} width={68} height={52} unoptimized alt={`صورة العنصر ${index + 1}`}/>}
-        {option?.text && <span className={styles.orderText}>{option.text}</span>}
+        {option?.text && <span id={`${descriptionIdPrefix}-selected-${index}`} className={styles.orderText}>{option.text}</span>}
         {!option?.text && !imageReady && <span className={styles.orderText}>عنصر {index + 1}</span>}
         <X size={14} aria-hidden="true"/>
       </button>;
@@ -283,15 +284,16 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
 
     {!OPEN_INTERACTIONS.has(question.interaction) && <div className={`${styles.options} ${question.interaction === "choose_image" ? styles.imageOptions : ""}`}>{question.options.map((option, optionIndex) => {
       const chosen = selected.includes(option.id);
+      const optionDescriptionId = `${descriptionIdPrefix}-option-${optionIndex}`;
       const disabled = saving || awaitingConfirmation || missingRequiredMedia || invalidQuestion || (ordered && chosen);
       const audioMedia = option.media.filter((item) => item.kind === "audio");
       const visualMedia = option.media.filter((item) => item.kind !== "audio");
       return <div key={option.id} className={`${styles.option} ${chosen ? styles.selected : ""}`}>
         {audioMedia.map((item) => <span key={item.media_id}>{renderMedia(item, true)}</span>)}
-        <button type="button" disabled={disabled} className={styles.optionChoice} onClick={() => choose(option.id)} aria-pressed={chosen} aria-label={`اختيار الخيار ${optionIndex + 1}`}>
+        <button type="button" disabled={disabled} className={styles.optionChoice} onClick={() => choose(option.id)} aria-pressed={chosen} aria-label={`اختيار الخيار ${optionIndex + 1}`} aria-describedby={option.text ? optionDescriptionId : undefined}>
           {visualMedia.map((item) => <span key={item.media_id}>{renderMedia(item, true)}</span>)}
           {question.interaction === "choose_image" && !visualMedia.some((item) => item.kind === "image") && <span className={styles.mediaMissing}>الصورة غير جاهزة</span>}
-          {option.text && <strong>{option.text}</strong>}{chosen && !ordered && <Check className={styles.check} size={19}/>}
+          {option.text && <strong id={optionDescriptionId}>{option.text}</strong>}{chosen && !ordered && <Check className={styles.check} size={19}/>}
         </button>
       </div>;
     })}</div>}

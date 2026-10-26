@@ -67,6 +67,31 @@ describe("InteractionPlayer", () => {
     expect(option).toHaveAttribute("aria-pressed", "true");
   });
 
+
+  it("keeps Arabic direction and exposes the actual choice text to assistive technology", () => {
+    render(<InteractionPlayer sessionId={7} interaction={payload({
+      options: [
+        { id: "a", text: "بَابٌ", media: [] },
+        { id: "b", text: "بَيْتٌ", media: [] },
+      ],
+    })} onLessonChange={jest.fn()}/>);
+    expect(screen.getByTestId("v2-interaction-player")).toHaveAttribute("dir", "rtl");
+    expect(screen.getByRole("button", { name: "اختيار الخيار 1" })).toHaveAccessibleDescription("بَابٌ");
+    expect(screen.getByRole("button", { name: "اختيار الخيار 2" })).toHaveAccessibleDescription("بَيْتٌ");
+  });
+
+  it("describes ordered word tokens when removing them with keyboard or assistive technology", () => {
+    render(<InteractionPlayer sessionId={7} interaction={payload({
+      interaction: "build_word",
+      options: [{ id: "a", text: "مَ", media: [] }, { id: "b", text: "دْ", media: [] }],
+    })} onLessonChange={jest.fn()}/>);
+    fireEvent.click(screen.getByRole("button", { name: "اختيار الخيار 2" }));
+    const remove = screen.getByRole("button", { name: "إزالة العنصر 1 من الترتيب" });
+    expect(remove).toHaveAccessibleDescription("دْ");
+    fireEvent.click(remove);
+    expect(screen.getByRole("button", { name: "اختيار الخيار 2" })).toBeEnabled();
+  });
+
   it("builds an ordered response without duplicating tokens", async () => {
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
