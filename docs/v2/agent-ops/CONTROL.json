@@ -6,7 +6,21 @@
   "timezone": "Asia/Aden",
   "mode": "ACTIVE",
   "stop_reason": null,
-  "lease": null,
+  "lease": {
+    "owner": "SUPERVISOR_C",
+    "run_id": "20261026-0745-C",
+    "scope": [
+      "docs/v2/agent-ops/CONTROL.json",
+      "docs/v2/agent-ops/TASK_QUEUE.md",
+      "docs/v2/agent-ops/SUPERVISOR_DIRECTIVES.md",
+      "docs/v2/agent-ops/LATEST_HANDOFF.md",
+      "docs/v2/agent-ops/RUN_LOG.md",
+      "docs/v2/agent-ops/runs/2026-10-26/C-20261026-0745.md"
+    ],
+    "base_head": "461f93a553a3512ff583fcbd96e6eeead0d57d4f",
+    "acquired_at": "2026-10-26T04:46:31.249Z",
+    "expires_at": "2026-10-26T04:54:31.249Z"
+  },
   "scheduler": {
     "worker_a": "00 * * * *",
     "worker_b": "30 * * * *",
