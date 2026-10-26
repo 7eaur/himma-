@@ -95,6 +95,46 @@ describe("VideoPlayer", () => {
     expect(video).toHaveAttribute("controls");
   });
 
+  it("keeps autoplay denial visible until the learner explicitly retries", async () => {
+    const play = jest.fn().mockRejectedValueOnce(new Error("autoplay denied")).mockResolvedValueOnce(undefined);
+    Object.defineProperty(HTMLMediaElement.prototype, "play", { configurable: true, value: play });
+    render(<VideoPlayer src="/fixture.mp4" onCheckpoint={jest.fn()} onEnded={jest.fn().mockResolvedValue(undefined)} />);
+    const video = screen.getByText("متصفحك لا يدعم تشغيل الفيديو.").closest("video") as HTMLVideoElement;
+    setMediaTime(video, 6);
+    fireEvent.ended(video);
+    await waitFor(() => expect(screen.getByText("أكملت الشرح")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "شاهد مرة أخرى" }));
+    await waitFor(() => expect(screen.getByText("اضغط لبدء الفيديو")).toBeInTheDocument());
+    fireEvent.canPlay(video);
+    fireEvent.waiting(video);
+    fireEvent.playing(video);
+    fireEvent.loadedMetadata(video);
+    expect(screen.getByText("اضغط لبدء الفيديو")).toBeInTheDocument();
+    expect(video).not.toHaveAttribute("controls");
+    fireEvent.click(screen.getByRole("button", { name: "تشغيل" }));
+    await waitFor(() => expect(video).toHaveAttribute("controls"));
+    expect(play).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not dismiss a media error when an earlier play promise resolves late", async () => {
+    let resolvePlay: () => void = () => undefined;
+    const pendingPlay = new Promise<void>((resolve) => { resolvePlay = resolve; });
+    const play = jest.fn().mockImplementationOnce(() => pendingPlay);
+    Object.defineProperty(HTMLMediaElement.prototype, "play", { configurable: true, value: play });
+    render(<VideoPlayer src="/fixture.mp4" onCheckpoint={jest.fn()} onEnded={jest.fn().mockResolvedValue(undefined)} />);
+    const video = screen.getByText("متصفحك لا يدعم تشغيل الفيديو.").closest("video") as HTMLVideoElement;
+    setMediaTime(video, 6);
+    fireEvent.ended(video);
+    await waitFor(() => expect(screen.getByText("أكملت الشرح")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "شاهد مرة أخرى" }));
+    expect(play).toHaveBeenCalledTimes(1);
+    fireEvent.error(video);
+    expect(screen.getByRole("alert")).toHaveTextContent("تعذر تشغيل الفيديو");
+    await act(async () => { resolvePlay(); });
+    expect(screen.getByRole("alert")).toHaveTextContent("تعذر تشغيل الفيديو");
+    expect(video).not.toHaveAttribute("controls");
+  });
+
   it("ignores a late completion acknowledgment from the previous video", async () => {
     let resolvePrevious: () => void = () => undefined;
     const pending = new Promise<void>((resolve) => { resolvePrevious = resolve; });

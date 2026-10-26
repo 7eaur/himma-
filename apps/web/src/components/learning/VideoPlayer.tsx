@@ -30,9 +30,11 @@ function VideoPlayerInstance({ src, captionsSrc, startAt = 0, testOnly = false, 
   const play = async () => {
     try {
       await videoRef.current?.play();
-      setState("ready");
+      // A late play() result must not dismiss a media error or an in-flight
+      // completion save. Only playback states may transition to ready.
+      setState((current) => ["loading", "ready", "buffering", "blocked"].includes(current) ? "ready" : current);
     } catch {
-      setState("blocked");
+      setState((current) => ["loading", "ready", "buffering", "blocked"].includes(current) ? "blocked" : current);
     }
   };
 
@@ -48,7 +50,7 @@ function VideoPlayerInstance({ src, captionsSrc, startAt = 0, testOnly = false, 
   const resume = () => {
     const video = videoRef.current;
     if (video && startAt > 0 && startAt <= video.duration - 1) video.currentTime = startAt;
-    setState((current) => ["error", "saving", "save_error", "ended"].includes(current) ? current : "ready");
+    setState((current) => ["blocked", "error", "saving", "save_error", "ended"].includes(current) ? current : "ready");
   };
 
   useEffect(() => {
@@ -56,7 +58,7 @@ function VideoPlayerInstance({ src, captionsSrc, startAt = 0, testOnly = false, 
     if (!video) return;
     const restoreSavedPosition = () => {
       if (startAt > 0 && Number.isFinite(video.duration) && startAt <= video.duration - 1) video.currentTime = startAt;
-      setState((current) => ["error", "saving", "save_error", "ended"].includes(current) ? current : "ready");
+      setState((current) => ["blocked", "error", "saving", "save_error", "ended"].includes(current) ? current : "ready");
     };
     video.addEventListener("loadedmetadata", restoreSavedPosition);
     if (video.readyState >= HTMLMediaElement.HAVE_METADATA) restoreSavedPosition();
@@ -93,6 +95,9 @@ function VideoPlayerInstance({ src, captionsSrc, startAt = 0, testOnly = false, 
     const video = videoRef.current;
     if (!video) return;
     video.currentTime = 0;
+    // A completed lesson can be replayed, but an old play() promise must
+    // never override a later error/saving state.
+    setState("ready");
     void play();
   };
 
@@ -106,10 +111,10 @@ function VideoPlayerInstance({ src, captionsSrc, startAt = 0, testOnly = false, 
         playsInline
         preload="metadata"
         onLoadedMetadata={resume}
-        onCanPlay={() => setState((current) => ["ended", "error", "saving", "save_error"].includes(current) ? current : "ready")}
-        onWaiting={() => setState((current) => ["ended", "error", "saving", "save_error"].includes(current) ? current : "buffering")}
-        onStalled={() => setState((current) => ["ended", "error", "saving", "save_error"].includes(current) ? current : "buffering")}
-        onPlaying={() => setState((current) => ["error", "saving", "save_error", "ended"].includes(current) ? current : "ready")}
+        onCanPlay={() => setState((current) => ["blocked", "ended", "error", "saving", "save_error"].includes(current) ? current : "ready")}
+        onWaiting={() => setState((current) => ["blocked", "ended", "error", "saving", "save_error"].includes(current) ? current : "buffering")}
+        onStalled={() => setState((current) => ["blocked", "ended", "error", "saving", "save_error"].includes(current) ? current : "buffering")}
+        onPlaying={() => setState((current) => ["blocked", "error", "saving", "save_error", "ended"].includes(current) ? current : "ready")}
         onTimeUpdate={checkpoint}
         onPause={checkpoint}
         onError={() => setState((current) => ["saving", "save_error", "ended"].includes(current) ? current : "error")}
