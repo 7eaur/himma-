@@ -6,7 +6,26 @@
   "timezone": "Asia/Aden",
   "mode": "ACTIVE",
   "stop_reason": null,
-  "lease": null,
+  "lease": {
+    "owner": "MANUAL_CODEX",
+    "run_id": "20261026-2357-MANUAL",
+    "base_head": "4905a2a5ba8ef492aa596b54ee64a734d4115b22",
+    "scope": [
+      "services/api/v2_audio_review_evidence.py",
+      "services/api/v2_lesson_review.py",
+      "services/api/v2_assessment_runtime.py",
+      "services/api/v2_retry_runtime.py",
+      "services/api/test_v2_assessment_runtime.py",
+      "services/api/test_v2_retry_runtime.py",
+      "apps/web/src/components/admin/V2ReviewedAudioPlayer.tsx",
+      "apps/web/src/components/admin/V2ReviewedAudioPlayer.test.tsx",
+      "apps/web/src/app/admin/(dashboard)/v2-assessments/page.tsx",
+      "apps/web/src/app/admin/(dashboard)/v2-lesson-review/page.tsx",
+      "docs/v2/agent-ops"
+    ],
+    "acquired_at": "2026-10-26T20:57:00Z",
+    "expires_at": "2026-10-26T21:35:00Z"
+  },
   "scheduler": {
     "worker_a": "00 * * * *",
     "worker_b": "30 * * * *",
