@@ -524,7 +524,7 @@ test("HV2-002: a structurally valid but regressed POST progress (2 to 1) fails c
   expect(before).toEqual({ status: 200, answered: 2 });
 
   let answerRequests = 0;
-  await page.route(/\\/api\\/v2\\/assessments\\/sessions\\/\\d+\\/answers(?:\\?|$)/, async route => {
+  await page.route(/\/api\/v2\/assessments\/sessions\/\d+\/answers(?:\?|$)/, async route => {
     answerRequests += 1;
     const upstream = await route.fetch();
     expect(upstream.status()).toBe(200);
