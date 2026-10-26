@@ -252,8 +252,9 @@ describe("InteractionPlayer", () => {
     const firstPlay = new Promise<void>((_resolve, reject) => { rejectFirst = reject; });
     const instances: Array<{ play: jest.Mock; pause: jest.Mock; onerror: null | (() => void); onended: null | (() => void); onplaying: null | (() => void); onwaiting: null | (() => void) }> = [];
     global.Audio = jest.fn().mockImplementation(() => {
+      const index = instances.length;
       const instance = {
-        play: jest.fn().mockImplementation(() => instances.length === 0 ? firstPlay : Promise.resolve()),
+        play: jest.fn().mockImplementation(() => index === 0 ? firstPlay : Promise.resolve()),
         pause: jest.fn(),
         onerror: null, onended: null, onplaying: null, onwaiting: null,
       };
