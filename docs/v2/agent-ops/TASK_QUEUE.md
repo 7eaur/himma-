@@ -42,3 +42,8 @@
 3. **A / HV2-001/004:** إصلاح `dca18efe` مقبول **كـpatch فقط** بعد نجاح CI/M04/M09 على نفس SHA. لا تكرر فحصًا ناجحًا؛ استكمل أنواع الأسئلة/RTL، ولا تتداخل مع ملفات Student360 المحجوزة لبقية العمل. HV2-002 (قبلي/حفظ/استئناف) لا يزال مفتوحًا.
 4. **C / RELEASE_BLOCKER:** Railway web نشر `f4497b84` SUCCESS، بينما إضافة اختبارَي Student360 للبوابات كشفت فشلهما لاحقًا؛ `checkSuites=false` للخدمتين. لا اعتماد إنتاج أو دمج. لا توجد أدلة تسرب حقيقية مثبتة؛ `CONTROL.mode=ACTIVE` مع حظر اعتماد الإصدار.
 5. **أدلة غير مكتملة:** CI على docs HEAD `c4b977d` كان integration IN_PROGRESS وقت الفحص؛ M09 `f4497b84` IN_PROGRESS. لا تعتبر هذه نتائج نجاح. فحوص الخصوصية والـ19 درسًا وخصوصية التسجيلات هنا مصدر/اختبارات فقط، وليست اختبار أجهزة/S3 حي.
+
+## تحديث A — 2026-10-26 06:04 Asia/Aden
+- HV2-004: `33267f07` و`6d421cd0` fail-closed على الوسائط المرجعية الناقصة (audio/image/video) مع عدم كشف تلميحات التقييم؛ أربع اختبارات Jest وRTL text wrapping. Frontend/Security/M04 SUCCESS، CI Integration/M09 PENDING على SHA `6d421cd0`. لا نقل للحالة إلى DONE دون مراجعة C.
+- HV2-003: لا تزال REWORK عند B (اختبارا Chromium فاشلان على `129dcbcd`)؛ لم يعدل A ملفات Student360.
+- D-005/D-010: Railway auto-deployed `6d421cd0` قبل اكتمال CI/M09؛ RELEASE_BLOCKER باقٍ.
