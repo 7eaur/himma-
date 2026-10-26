@@ -55,6 +55,10 @@ test("P03/P04 runtime and P05 targeted support remain responsive", async ({ page
 
   let stage: "intro" | "teaching_video" | "guided_practice" | "support_practice" = "intro";
   let savedPosition = 0;
+  let holdNextProgressResponse = false;
+  let releaseDelayedCheckpoint: (() => void) | undefined;
+  let signalDelayedCheckpointStarted: (() => void) | undefined;
+  const delayedCheckpointStarted = new Promise<void>((resolve) => { signalDelayedCheckpointStarted = resolve; });
   await page.route("**/api/v2/lessons/**", async (route) => {
     const url = new URL(route.request().url());
     // The M09 gate deliberately runs the API as `trial`, where TEST_ONLY media
@@ -94,7 +98,17 @@ test("P03/P04 runtime and P05 targeted support remain responsive", async ({ page
       const body = route.request().postDataJSON();
       if (body.event_type === "video_progress") savedPosition = body.position_seconds;
       stage = body.event_type === "video_ended" ? "guided_practice" : body.event_type === "intro_complete" ? "teaching_video" : stage;
-      return route.fulfill({ json: payload(stage, savedPosition) });
+      const responsePayload = payload(stage, savedPosition);
+      if (body.event_type === "video_progress" && holdNextProgressResponse) {
+        holdNextProgressResponse = false;
+        // Hold an earlier video-stage checkpoint until AFTER video_ended.
+        // A stale reply must never move the UI back from practice to video.
+        await new Promise<void>((resolve) => {
+          releaseDelayedCheckpoint = resolve;
+          signalDelayedCheckpointStarted?.();
+        });
+      }
+      return route.fulfill({ json: responsePayload });
     }
     if (url.pathname.endsWith("/sessions/44/answers")) {
       return route.fulfill({ json: {
@@ -164,6 +178,15 @@ test("P03/P04 runtime and P05 targeted support remain responsive", async ({ page
   await resumedPlayer.getByRole("button", { name: "إعادة المحاولة" }).click();
   await expect(resumedPlayer.getByRole("alert")).toHaveCount(0);
 
+  // Reproduce a network race: an older playback checkpoint returns only
+  // after the completion event has advanced the learner to guided practice.
+  holdNextProgressResponse = true;
+  await resumedPlayer.locator("video").evaluate((element) => {
+    const video = element as HTMLVideoElement;
+    Object.defineProperty(video, "currentTime", { configurable: true, get: () => 0 });
+    video.dispatchEvent(new Event("timeupdate", { bubbles: true }));
+  });
+  await delayedCheckpointStarted;
   await resumedPlayer.locator("video").evaluate((element) => {
     const video = element as HTMLVideoElement;
     Object.defineProperty(video, "currentTime", { configurable: true, get: () => video.duration });
@@ -171,6 +194,13 @@ test("P03/P04 runtime and P05 targeted support remain responsive", async ({ page
   });
   const interaction = page.getByTestId("v2-interaction-player");
   await expect(interaction).toBeVisible();
+  const delayedResponse = page.waitForResponse((response) =>
+    response.url().endsWith("/sessions/44/events") &&
+    response.request().postData()?.includes("video_progress") === true);
+  releaseDelayedCheckpoint?.();
+  await delayedResponse;
+  await expect(interaction).toBeVisible();
+  await expect(page.getByTestId("v2-video-player")).toHaveCount(0);
   await expect(interaction.getByRole("heading", { name: "استمع ثم اختر الحرف." })).toBeVisible();
   await interaction.getByRole("button", { name: "اختيار الخيار 2" }).click();
   await interaction.getByRole("button", { name: "تحقق من الإجابة" }).click();

@@ -54,6 +54,11 @@ export default function V2LessonPage() {
     const response = await fetch(`/api/v2/lessons/sessions/${sessionId}/events`, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ event_key:eventKey(event_type), event_type, position_seconds, duration_seconds }), keepalive:event_type === "video_progress" });
     const data = await response.json().catch(() => null);
     if (!response.ok) throw new Error(data?.detail || "تعذر حفظ تقدم الدرس");
+    // Checkpoints persist the playback position, but must not replace the
+    // rendered lesson. An older checkpoint response can arrive after
+    // video_ended and otherwise regress the child from practice to video.
+    // Re-rendering on each checkpoint can also seek the player backwards.
+    if (event_type === "video_progress") return;
     if (["guided_practice", "independent_check", "waiting_review", "outcome"].includes(data?.session?.stage)) await loadLesson();
     else setLesson(data);
   }, [loadLesson, sessionId]);

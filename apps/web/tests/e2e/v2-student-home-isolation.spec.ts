@@ -189,7 +189,10 @@ test("P0: first real login starts V2 pretest and resumes a saved answer after re
     return route.continue();
   });
   await page.goto(`/student/assessment-v2/${sessionId}`);
-  await expect(page.getByRole("alert")).toContainText("تعذر استعادة التقييم");
+  // Next.js renders an additional empty route announcer with role="alert".
+  // Scope the assertion to the learner-facing error rather than matching
+  // multiple live regions and masking the actual 503/retry contract.
+  await expect(page.locator("main [role='alert']")).toContainText("تعذر استعادة التقييم");
   await expect(page.getByRole("button", { name: "إعادة المحاولة" })).toBeVisible();
   await page.getByRole("button", { name: "إعادة المحاولة" }).click();
   await expect(page.getByTestId("v2-interaction-player")).toContainText("2 من 30");
