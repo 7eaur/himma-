@@ -47,6 +47,7 @@
 | P2 | HV2-006 | جرد وسائط/بنك P09.2 وتجربة سؤال/خيار بكل نوع دون اختلاق أصول | جرد delta موثق، حالات missing/fail-closed، وأصول TEST_ONLY مميزة | وفق توجيه المشرف | BLOCKED_BY_P09_1 |
 | P2 | HV2-007 | بوابة الأجهزة الحقيقية Safari/Android وخصوصية S3 | دليل أجهزة حقيقية أو `BLOCKED_EXTERNAL_DEVICE` وتقرير متطلبات اختبار يدوي | إشراف/مالك | BLOCKED_EXTERNAL_DEVICE |
 | P0 | HV2-008 | ربط كل رفع قراءة V2 بالجلسة/المهمة والسؤال ومنع الملفات اليتيمة عند سباق الإغلاق | Migration + رفض cross-question/untracked upload + lease دائمة قبل recheck + اختبارات PostgreSQL/CI | C للمراجعة | RESOLVED_SOURCE / PENDING_GATES — `853da633`؛ 11 targeted PASS وAlembic PASS محليًا |
+| P0 | HV2-009 | منع اعتماد قراءة V2 قبل اكتمال تشغيل نسخة التسجيل الحالية ورفض أسباب المراجعة الفارغة | ACK مدقق مرتبط بالمراجع+الإجابة+AudioSubmission، UI fail-closed، whitespace validation، اختبارات API/UI وCI exact-SHA | C للمراجعة | RESOLVED_SOURCE / PENDING_GATES — `1d51b13f`؛ API 34 PASS، UI 3 PASS، lint وTypeScript PASS محليًا |
 
 ## قواعد الاختيار
 1. الالتزام بأي `BLOCKER` أحدث في `SUPERVISOR_DIRECTIVES.md` قبل أعمدة التعيين.

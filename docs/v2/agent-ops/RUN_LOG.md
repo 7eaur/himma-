@@ -98,3 +98,4 @@
 | 2026-10-26 23:27–23:32 Asia/Aden | B | 20261026-2327-B | HV2-002 start guard + invalid session ID | `59c94db1` → `4aa858c0` functional; docs descendant | PENDING_GATES; 4 Jest cases added NOT_RUN_LOCALLY, CI/M04/M09 NOT_VERIFIED | `runs/2026-10-26/B-20261026-2327.md`; A2257 exact-SHA CI/M04/M09 SUCCESS |
 
 | 2026-10-26T23:48:47.561+03:00 | C | 20261026-2346-C | A2257/B2327 + V2 privacy/release | d35cb612 → review commit | A ACCEPTED patch-only; B PENDING_GATES; release BLOCKED | `runs/2026-10-26/C-20261026-2346.md`; A CI/M04/M09 success, B M04 success CI integration/M09 pending; screenshot artifact 12687427070 |
+| 2026-10-26 23:57–2026-10-27 00:04 Asia/Aden | MANUAL | 20261026-2357-MANUAL | HV2-009 reviewer audio playback ACK + nonblank review reasons | `4905a2a5` → `1d51b13f` functional | RESOLVED_SOURCE / PENDING_GATES; API 34 PASS, UI 3 PASS, lint/type PASS | `runs/2026-10-27/MANUAL-20261026-2357.md`; Vercel rate-limit failure; CI/M04/M09 pending |

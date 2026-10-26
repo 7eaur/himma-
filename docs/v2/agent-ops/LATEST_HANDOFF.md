@@ -1,3 +1,16 @@
+# تسليم يدوي — سلامة قرار مراجعة الصوت · 20261026-2357-MANUAL
+
+**functional SHA:** [`1d51b13f`](https://github.com/7eaur/himma-/commit/1d51b13fd6309b32f4e0083c1bcd32791c0e854e) · **المهمة:** HV2-009 · **الحالة:** `RESOLVED_SOURCE / PENDING_GATES` · **السجل:** `runs/2026-10-27/MANUAL-20261026-2357.md`.
+
+- قرار `read_aloud` في الدرس والتقييم صار fail-closed: لا يعتمد التسجيل حتى يرسل المشغل حدث `ended` وينجح ACK خادمي للمراجع نفسه ونسخة `AudioSubmission` الحالية.
+- ACK القديم لا يصلح بعد إعادة التسجيل، وGET/Range أو مجرد فتح الملف لا يثبت اكتمال التشغيل. الوصف المتعمد هو «اكتمال تشغيل مسجل»، لا ادعاء إثبات الانتباه البشري.
+- المكوّن المشترك يعطل القرار، يعرض نجاح/فشل ACK، ويستعيد الحالة من الخادم بعد refresh. حالة القائمة تُحمّل باستعلام AuditLog مجمع، لا N+1 إضافي.
+- حقول note/reason الأربعة تزيل مسافات الأطراف وترفض whitespace-only. سبب التسكين لا يُنسخ كنص حساس إلى AuditLog؛ يبقى في سجل قرار التسكين ويُشار إلى موقعه فقط.
+- الأدلة المحلية: API **34 PASS**؛ مكوّن الواجهة **3 PASS**؛ ESLint وTypeScript PASS؛ compileall/diff-check PASS. CI/M04/M09 exact-SHA والأجهزة/التخزين الحقيقي ما تزال `PENDING_GATES`، وVercel rate-limit failure ليس دليل فشل المصدر.
+- التالي للمشرف C: مراجعة diff/CI على `1d51b13f`. لا تعيد A/B كتابة HV2-009 دون regression محدد؛ لا تغيير Railway أو main/stage/V1.
+
+---
+
 # SUPERVISOR_C — 20261026-2346-C · 2026-10-26T23:48:47.561+03:00
 - **Latest reviewed workers:** A2257 `5d1547e1` **ACCEPTED patch-only** (CI/M04/M09 exact SHA SUCCESS); B2327 `4aa858c0` **PENDING_GATES** (CI integration and M09 in progress, M04 success). See `runs/2026-10-26/C-20261026-2346.md` and D-079..D-083.
 - **Railway:** web `4aa858c0` SUCCESS vs API `3cfb1dc0` SUCCESS; `checkSuites=false` both; **release BLOCKED**. No deploy or main/stage changes.
