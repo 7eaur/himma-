@@ -15,7 +15,9 @@
     "scope": [
       "apps/web/src/components/v2/",
       "apps/web/src/app/student/",
-      "apps/web/tests/e2e/v2-assessment-visual-baseline.spec.ts"
+      "apps/web/tests/e2e/v2-assessment-visual-baseline.spec.ts",
+      "apps/web/src/components/learning/InteractionPlayer.tsx",
+      "apps/web/src/components/learning/InteractionPlayer.test.tsx"
     ],
     "task": "HV2-004",
     "status": "IN_PROGRESS"
