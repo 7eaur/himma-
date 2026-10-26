@@ -25,15 +25,20 @@ function VideoPlayerInstance({ src, captionsSrc, startAt = 0, testOnly = false, 
   const videoRef = useRef<HTMLVideoElement>(null);
   const lastCheckpoint = useRef(startAt);
   const completing = useRef(false);
+  // Only the newest explicit play request may change the playback state.
+  const playAttempt = useRef(0);
   const [state, setState] = useState<PlayerState>("loading");
 
   const play = async () => {
+    const attempt = ++playAttempt.current;
     try {
       await videoRef.current?.play();
+      if (attempt !== playAttempt.current) return;
       // A late play() result must not dismiss a media error or an in-flight
       // completion save. Only playback states may transition to ready.
       setState((current) => ["loading", "ready", "buffering", "blocked"].includes(current) ? "ready" : current);
     } catch {
+      if (attempt !== playAttempt.current) return;
       setState((current) => ["loading", "ready", "buffering", "blocked"].includes(current) ? "blocked" : current);
     }
   };
@@ -70,6 +75,8 @@ function VideoPlayerInstance({ src, captionsSrc, startAt = 0, testOnly = false, 
     // Native canplay/waiting events may race with an error and must not
     // silently dismiss the retry action.
     if (!videoRef.current) return;
+    // A promise from before the retry must not mark the new load as blocked.
+    playAttempt.current += 1;
     setState("loading");
     videoRef.current.load();
   };
@@ -117,7 +124,10 @@ function VideoPlayerInstance({ src, captionsSrc, startAt = 0, testOnly = false, 
         onPlaying={() => setState((current) => ["blocked", "error", "saving", "save_error", "ended"].includes(current) ? current : "ready")}
         onTimeUpdate={checkpoint}
         onPause={checkpoint}
-        onError={() => setState((current) => ["saving", "save_error", "ended"].includes(current) ? current : "error")}
+        onError={() => {
+          playAttempt.current += 1;
+          setState((current) => ["saving", "save_error", "ended"].includes(current) ? current : "error");
+        }}
         onEnded={() => void confirmCompletion()}
       >
         {captionsSrc && <track kind="captions" src={captionsSrc} srcLang="ar" label="العربية" default />}

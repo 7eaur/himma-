@@ -116,6 +116,49 @@ describe("VideoPlayer", () => {
     expect(play).toHaveBeenCalledTimes(2);
   });
 
+  it("ignores an older play rejection after a newer attempt succeeds", async () => {
+    let rejectOlder: (reason: Error) => void = () => undefined;
+    const older = new Promise<void>((_, reject) => { rejectOlder = reject; });
+    const play = jest.fn()
+      .mockRejectedValueOnce(new Error("autoplay denied"))
+      .mockImplementationOnce(() => older)
+      .mockResolvedValueOnce(undefined);
+    Object.defineProperty(HTMLMediaElement.prototype, "play", { configurable: true, value: play });
+    render(<VideoPlayer src="/fixture.mp4" onCheckpoint={jest.fn()} onEnded={jest.fn().mockResolvedValue(undefined)} />);
+    const video = screen.getByText("متصفحك لا يدعم تشغيل الفيديو.").closest("video") as HTMLVideoElement;
+    setMediaTime(video, 6);
+    fireEvent.ended(video);
+    await waitFor(() => expect(screen.getByText("أكملت الشرح")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "شاهد مرة أخرى" }));
+    await waitFor(() => expect(screen.getByText("اضغط لبدء الفيديو")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "تشغيل" }));
+    fireEvent.click(screen.getByRole("button", { name: "تشغيل" }));
+    await waitFor(() => expect(video).toHaveAttribute("controls"));
+    await act(async () => { rejectOlder(new Error("stale rejection")); });
+    expect(video).toHaveAttribute("controls");
+    expect(screen.queryByText("اضغط لبدء الفيديو")).not.toBeInTheDocument();
+    expect(play).toHaveBeenCalledTimes(3);
+  });
+
+  it("ignores a stale play rejection after media retry begins", async () => {
+    let rejectOldPlay: (reason: Error) => void = () => undefined;
+    const pending = new Promise<void>((_, reject) => { rejectOldPlay = reject; });
+    Object.defineProperty(HTMLMediaElement.prototype, "play", { configurable: true, value: jest.fn().mockReturnValue(pending) });
+    render(<VideoPlayer src="/fixture.mp4" onCheckpoint={jest.fn()} onEnded={jest.fn().mockResolvedValue(undefined)} />);
+    const video = screen.getByText("متصفحك لا يدعم تشغيل الفيديو.").closest("video") as HTMLVideoElement;
+    setMediaTime(video, 6);
+    fireEvent.ended(video);
+    await waitFor(() => expect(screen.getByText("أكملت الشرح")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "شاهد مرة أخرى" }));
+    fireEvent.error(video);
+    fireEvent.click(screen.getByRole("button", { name: "إعادة المحاولة" }));
+    expect(screen.getByText("جاري تجهيز الفيديو")).toBeInTheDocument();
+    await act(async () => { rejectOldPlay(new Error("old playback failed")); });
+    expect(screen.getByText("جاري تجهيز الفيديو")).toBeInTheDocument();
+    expect(screen.queryByText("اضغط لبدء الفيديو")).not.toBeInTheDocument();
+    expect(video).not.toHaveAttribute("controls");
+  });
+
   it("does not dismiss a media error when an earlier play promise resolves late", async () => {
     let resolvePlay: () => void = () => undefined;
     const pendingPlay = new Promise<void>((resolve) => { resolvePlay = resolve; });
