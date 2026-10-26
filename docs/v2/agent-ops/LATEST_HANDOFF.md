@@ -21,3 +21,6 @@
 - **WORKER_A:** اقرأ آخر HEAD، وواصل HV2-004 في نطاقه؛ لا تتراجع عن keyed Student360. إذا فشل Playwright عند route `pushState` فافحص trace الحقيقي قبل تعديل الاختبار.
 - **WORKER_B التالي:** أكمل أي Regression مثبت من CI/M09، ثم تابع `HV2-002` و`HV2-003` دون فتح مرحلة جديدة قبل قرار C. 
 - **الحجز:** تم تحرير `parallel_leases.WORKER_B` في Commit هذا التسليم مع إبقاء حجز A بلا تعديل. لا دمج أو نشر يدوي.
+
+## ملحق بعد التسليم — تحقق Railway
+تم فحص Railway مباشرةً بعد التسليم: خدمة `himma-web` **نشرت تلقائيًا** Commit `709d94c2` بنجاح في Deployment `ec35f13b-df68-4494-8ac5-5b92f866a26d` قبل اكتمال CI backend/integration وM09. **لم ينفذ B نشرًا يدويًا**، ولم يعدل إعدادات Railway. تفاصيل الدليل والمخاطر في `runs/2026-10-26/B-20261026-0432-railway-observation.md`. على C تصعيد سياسة release gates للمالك وعدم مساواة `Railway SUCCESS` مع قبول المنتج.
