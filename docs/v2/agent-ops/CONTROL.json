@@ -6,7 +6,18 @@
   "timezone": "Asia/Aden",
   "mode": "ACTIVE",
   "stop_reason": null,
-  "lease": null,
+  "lease": {
+    "run_id": "20261026-0330-B-HV2-003",
+    "role": "WORKER_B",
+    "base_head": "64765a41ae4ecc63800377395dd674f1814738f4",
+    "scope": [
+      "HV2-003",
+      "apps/web/src/app/admin/(dashboard)/students/[id]/page.tsx",
+      "apps/web/tests/e2e/student-detail-*.spec.ts"
+    ],
+    "acquired_at": "2026-10-26T03:35:00+03:00",
+    "expires_at": "2026-10-26T03:55:00+03:00"
+  },
   "scheduler": {
     "worker_a": "00 * * * *",
     "worker_b": "30 * * * *",
