@@ -6,22 +6,7 @@
   "timezone": "Asia/Aden",
   "mode": "ACTIVE",
   "stop_reason": null,
-  "lease": {
-    "owner": "SUPERVISOR_C",
-    "run_id": "20261026-1558-C",
-    "base_head": "ebb3ba248f2d9e68beb7ed107ee7a76fe99864e2",
-    "scope": [
-      "docs/v2/agent-ops/CONTROL.json",
-      "docs/v2/agent-ops/SUPERVISOR_DIRECTIVES.md",
-      "docs/v2/agent-ops/TASK_QUEUE.md",
-      "docs/v2/agent-ops/RUN_LOG.md",
-      "docs/v2/agent-ops/LATEST_HANDOFF.md",
-      "docs/v2/agent-ops/runs/2026-10-26/C-20261026-1558.md"
-    ],
-    "acquired_at": "2026-10-26T15:59:08+03:00",
-    "expires_at": "2026-10-26T16:17:08+03:00",
-    "task_id": "SUPERVISION"
-  },
+  "lease": null,
   "scheduler": {
     "worker_a": "00 * * * *",
     "worker_b": "30 * * * *",
@@ -38,8 +23,8 @@
       "supervisor_c": "2026-10-26 03:50"
     }
   },
-  "last_handoff_run": "20261026-1536-B",
-  "last_reviewed_run": "20261026-1450-C",
+  "last_handoff_run": "20261026-1558-C",
+  "last_reviewed_run": "20261026-1558-C",
   "instructions": "Read README_AR.md and SUPERVISOR_DIRECTIVES.md. No merge, no V1 data deletion, no release claims before same-SHA gates.",
   "parallel_leases": {}
 }

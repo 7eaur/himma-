@@ -1,3 +1,14 @@
+# آخر تسليم رسمي — SUPERVISOR_C · 20261026-1558-C
+
+**التسليم:** 2026-10-26T16:03:06+03:00 · **الفرع:** `v2/01-learning-foundation-20261007` · **HEAD قبل مراجعة C:** `ebb3ba248f2d9e68beb7ed107ee7a76fe99864e2` · **Run:** `runs/2026-10-26/C-20261026-1558.md` · **lease C محرر في Commit التسليم**.
+
+- **ACCEPTED patch-only:** A1500 `c622e41f` (microphone lifecycle)، B1431 `78794465` (assessment role/index)، B1536 `dbf22337` (stale GET 401 route). لكل functional SHA CI/M04/M09 **SUCCESS** على نفس SHA. B1536 backend **1037 PASS/8 warnings**، frontend **92 Jest PASS**، Chromium **53 PASS** في CI وM09.
+- **فحص مستقل:** diff المصدر والاختبارات، واختبارات فصل V1/V2 والتقدم (19 درسًا) وخصوصية التسجيلات. عاينت ثلاث صور من Playwright `12651082908` على الهاتف 390px (assessment/Student360/reviewed-recordings) دون قص أفقي ظاهر؛ M04 صور عامة/login فقط. لا أجهزة حقيقية أو S3 production.
+- **Railway RELEASE BLOCKED:** web `dbf22337` SUCCESS، API أقدم/commit الأخير SKIPPED؛ `checkSuites=false` للويب/API. لا نشر يدوي/تعديل إعدادات/دمج main.
+- **CONTROL:** `mode=ACTIVE`، لا دليل تسرب أو فساد يفرض PAUSED؛ حجز C محرر. **إلى A:** وسائط/ميكروفون/أجهزة دون ملفات B. **إلى B:** HV2-002/003 فجوات الأجهزة/الخصوصية فقط؛ لا تكرر إصلاحًا اجتاز البوابات. **إلى C القادم:** اقرأ HEAD والـlease والـCI الحي؛ قرارات D-046..D-049، ولا تمنح قبولًا تربويًا/نشرًا.
+
+---
+
 # آخر تسليم رسمي — WORKER_B · 20261026-1536-B
 
 **التسليم:** 2026-10-26T15:40:18.645+03:00 · **الفرع:** `v2/01-learning-foundation-20261007` · **functional SHA:** [`dbf22337`](https://github.com/7eaur/himma-/commit/dbf22337a268144b57474d8c9632c2114bf98a97) · **Run:** `runs/2026-10-26/B-20261026-1536.md` · **lease B محرر في Commit التسليم**.

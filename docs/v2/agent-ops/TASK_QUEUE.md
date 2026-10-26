@@ -5,9 +5,9 @@
 | الأولوية | الرمز | المهمة | القبول المطلوب | التعيين الابتدائي | الحالة |
 |---|---|---|---|---|---|
 | P0 | HV2-001 | إغلاق نتائج CI Integration وM09 المعلقة على آخر functional SHA وتحديد الأعطال الحقيقية | نجاح backend/frontend/security/integration وM04/M09 على نفس SHA أو تسجيل blocked واضح، وتثبيت سلوك القبلي/الاستئناف | A | PENDING_GATES — A dca18efe ACK retry patch ACCEPTED (CI/M04/M09 same SHA SUCCESS); HV2-002 pretest end-to-end and B latest browser gates still OPEN |
-| P0 | HV2-002 | رحلة طالب جديد من التسجيل إلى أول سؤال، حفظ إجابة ثم refresh/resume، وعزل V1 تمامًا | E2E مثبت بحساب اصطناعي؛ لا استدعاء V1 /api/profile؛ تفويض/401/403/409/503 | B | PENDING_GATES — C1450: B1330 c2da89b2 ACCEPTED test-only (CI/M04/M09 SUCCESS); B1431 78794465 frontend/backend/security/M04 SUCCESS, integration/M09 IN_PROGRESS; live/device and stale-401 route regression OPEN |
+| P0 | HV2-002 | رحلة طالب جديد من التسجيل إلى أول سؤال، حفظ إجابة ثم refresh/resume، وعزل V1 تمامًا | E2E مثبت بحساب اصطناعي؛ لا استدعاء V1 /api/profile؛ تفويض/401/403/409/503 | B | PENDING_GATES — C1558: B1431 78794465 + B1536 dbf22337 ACCEPTED patch-only (CI/M04/M09 same-SHA SUCCESS; 53 Chromium PASS on dbf22337); real-device/live/owner gates OPEN |
 | P1 | HV2-003 | Student360 V2 و19 درسًا ومراجعة خصوصية رمز الدخول عند التبديل بين ملفات الطلاب | لقطة شاشة فعلية وتحليل فشل المصدر والتعافي وعدم تسرب اسم/رمز طالب سابق | B | PENDING_GATES — B 54120663 Chromium test REWORK ACCEPTED patch-only (CI/M04/M09 same SHA SUCCESS); live device/visual/privacy evidence OPEN |
-| P1 | HV2-004 | معالجة المشغّل الصوتي/الفيديو وأشكال أسئلة البناء/الترتيب على الهاتف | اختبارات targeted + فيديو timeout/error/retry وCSS RTL على 360/390/430/768/1440 | A | PENDING_GATES — C1450: A1400 d7f121de ACCEPTED patch-only (CI/M04/M09 SUCCESS, Jest 90 PASS); real-media/Safari/Android acceptance OPEN |
+| P1 | HV2-004 | معالجة المشغّل الصوتي/الفيديو وأشكال أسئلة البناء/الترتيب على الهاتف | اختبارات targeted + فيديو timeout/error/retry وCSS RTL على 360/390/430/768/1440 | A | PENDING_GATES — C1558: A1500 c622e41f ACCEPTED patch-only (CI/M04/M09 same-SHA SUCCESS; 92 Jest PASS); microphone Safari/Android/real media OPEN |
 | P1 | HV2-005 | تقارير المشرف V2 منفصلة عن V1 ومنع التقدم/الدرجات غير الرسمية | API + UI + تحكم auth/null policy، مراجعة visual وE2E؛ لا تصدير بيانات طفل خاصة | A/B بعد HV2-001 | BLOCKED_BY_HV2-001 |
 | P2 | HV2-006 | جرد وسائط/بنك P09.2 وتجربة سؤال/خيار بكل نوع دون اختلاق أصول | جرد delta موثق، حالات missing/fail-closed، وأصول TEST_ONLY مميزة | وفق توجيه المشرف | BLOCKED_BY_P09_1 |
 | P2 | HV2-007 | بوابة الأجهزة الحقيقية Safari/Android وخصوصية S3 | دليل أجهزة حقيقية أو `BLOCKED_EXTERNAL_DEVICE` وتقرير متطلبات اختبار يدوي | إشراف/مالك | BLOCKED_EXTERNAL_DEVICE |
@@ -149,3 +149,10 @@
 2. **P1 / A / HV2-004:** عزل الدرس على `d7f121de` مقبول؛ تابع الوسائط التعليمية الفعلية، RTL وSafari/Android أو وثق BLOCKED_EXTERNAL_DEVICE؛ لا تعِد كتابة patch ناجحًا.
 3. **P1 / C / HV2-003 وخصوصية التسجيلات:** تأكد من صلاحيات Student360، مصدر 19 درسًا والتقدم، وأرشيف الصوت المراجع؛ الأدلة الحالية source/CI/عينات Chromium فقط، لا S3 أو جهاز حقيقي.
 4. **RELEASE BLOCKED:** web/API `checkSuites=false`؛ ممنوع اعتماد نشر/دمج main دون موافقة المالك. لا مساس بـV1 أو ElevenLabs.
+
+
+## ترتيب الدورة التالية — C 2026-10-26T16:03:06+03:00 · 20261026-1558-C
+1. **P0 / B / HV2-002:** B1536 `dbf22337` اجتاز CI/M04/M09، فلا تعِد patch D-045. تابع مسار الطالب/استئناف التقييم واختبارات التفويض والانتقال بين الطلاب عند ظهور فجوة مثبتة؛ لا تعتمد الاختبار القبلي تربويًا.
+2. **P1 / A / HV2-004:** A1500 `c622e41f` اجتاز البوابات. استكمل فحص الميكروفون والوسائط الحقيقية وRTL على Safari/Android، أو وثّق `BLOCKED_EXTERNAL_DEVICE` بوضوح؛ لا تعدّل ملفات B/ElevenLabs.
+3. **P1 / C / HV2-003 وخصوصية V2:** فحوص 19 درسًا و403/404/إخفاء الأكواد موجودة، لكن يلزم فحص S3/الأجهزة والواجهة الحية، دون خلط V1/V2 أو اختلاق درجات.
+4. **RELEASE BLOCKED:** Railway `checkSuites=false` وweb/API غير متزامنين؛ لا اعتماد نشر أو دمج main دون موافقة المالك.
