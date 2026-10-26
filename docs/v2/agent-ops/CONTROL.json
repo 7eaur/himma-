@@ -24,6 +24,6 @@
     }
   },
   "last_handoff_run": "20261026-0335-B",
-  "last_reviewed_run": null,
+  "last_reviewed_run": "20261026-0350-C",
   "instructions": "Read README_AR.md and SUPERVISOR_DIRECTIVES.md. No merge, no V1 data deletion, no release claims before same-SHA gates."
 }
