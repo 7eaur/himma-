@@ -595,7 +595,12 @@ test.describe("Himma recovered vertical slice", () => {
 
     await page.getByRole("button", { name: "المسار والتقدم" }).click();
     await expect(page.getByText(`${studentState.core_completed_items} من ${studentState.core_total_items}`, { exact: true })).toBeVisible({ timeout: 12000 });
-    await expect(page.getByText(`المستوى ${studentState.current_level}`, { exact: true }).first()).toBeVisible();
+    // Historical V1 levels include the canonical level name in their card.
+    // Do not mistake the separate V2 summary level for legacy progress.
+    await expect(page.getByRole("heading", { name: "المسار التاريخي V1" })).toBeVisible();
+    const historicalLevel = page.locator("[data-level-state]").filter({ hasText: `المستوى ${studentState.current_level} ·` });
+    await expect(historicalLevel).toHaveCount(1);
+    await expect(historicalLevel).toBeVisible();
 
     await page.getByRole("button", { name: "التقوية والتكيف" }).click();
     await expect(page.getByTestId("adaptation-panel")).toBeVisible();
