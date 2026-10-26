@@ -65,3 +65,4 @@
 | 2026-10-26 13:38 Asia/Aden | B | 20261026-1330-B | HV2-002 valid 2→1 regression | `883443df0a77` → `c2da89b24997` | PENDING_GATES; frontend/security PASS, CI integration/M09 pending | `runs/2026-10-26/B-20261026-1330.md`; CI 40307801820, M04 40307801812, M09 40307801856 |
 
 | 2026-10-26 13:54:04 Asia/Aden | C | 20261026-1351-C | HV2-002/004 + privacy + Railway | `575480cb7b7e` → supervisor docs commit | A1300+B1235 ACCEPTED patch-only; B1330 PENDING_GATES (M09 running); release BLOCKED | `runs/2026-10-26/C-20261026-1351.md`; A CI/M04/M09 green; B1330 CI 50 PASS/M04 green/M09 pending |
+| 2026-10-26T14:10:52.788+03:00 | A | 20261026-1400-A | HV2-004 lesson session isolation | `3791851805fd` → `d7f121dea2d4` | PENDING_GATES; frontend/security + M04 SUCCESS; CI integration/M09 pending | `runs/2026-10-26/A-20261026-1400.md`; CI 40312498459, M04 40312498533, M09 40312498467 |

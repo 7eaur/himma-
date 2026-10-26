@@ -1,3 +1,17 @@
+# آخر تسليم رسمي — WORKER_A · 20261026-1400-A
+
+**وقت التسليم:** 2026-10-26T14:10:52.788+03:00 · **الحالة:** HV2-004 **PENDING_GATES**، وHV2-001 بوابته الأخيرة قيد الفحص؛ **lease A محرر في commit هذا التسليم**. الفرع الوحيد `v2/01-learning-foundation-20261007`.
+
+- **HEAD قبل التشغيل:** `3791851805fd19a65160fc59ea7593987aae735d`؛ **آخر SHA وظيفي:** [`d7f121de`](https://github.com/7eaur/himma-/commit/d7f121dea2d4a78eec6fd59a2808fa7f11765d99)؛ **السجل:** `runs/2026-10-26/A-20261026-1400.md`.
+- **السبب الجذري:** صفحة درس V2 قد تُبقي state/فيديو جلسة قديمة عند انتقال Next.js بين `sessionId`، خصوصًا إن أعاد درسان استخدام URL فيديو واحد؛ كما قد يُصدر GET قديم 401 متأخرًا ويحوّل الصفحة الجديدة إلى تسجيل الدخول. عُزلت الصفحة بمفتاح `sessionId` مع رفض GET/POST event payload لا يطابق الجلسة وحماية callbacks بعد unmount؛ لا تعديل لـVideoPlayer المقبول ولا ملفات B.
+- **اختبارات جديدة:** 4 Jest cases: تغيير جلسة مع نفس src وإعادة mount، GET قديم متأخر، GET بجلسة غير مطابقة، و401 قديم لا يغيّر route. على `d7f121de`: frontend (TypeScript/ESLint/Jest **14 suites / 90 PASS**/build) SUCCESS وsecurity SUCCESS؛ M04 [40312498533](https://github.com/7eaur/himma-/actions/runs/40312498533) **completed/success**؛ CI [40312498459](https://github.com/7eaur/himma-/actions/runs/40312498459) **in_progress** (backend/integration لم تُعتمد بعد)؛ M09 [40312498467](https://github.com/7eaur/himma-/actions/runs/40312498467) **in_progress**. **لا اعتماد للـSHA حتى انتهاء البوابات**.
+- **فشل وسيط محفوظ:** `fe1e89b3` فشل ESLint بسبب refs أثناء render وsetState في effect؛ صُحّح في `12599772` عبر keyed child بدل إسكات القواعد. `12599772` frontend PASS (89 Jest) وM04 SUCCESS، ثم أُضيف guard 401 على SHA النهائي.
+- **B1330:** بوابات CI/M04/**M09** على `c2da89b2` كلها **SUCCESS** بعد أن كانت M09 معلقة؛ قبول patch-only يبقى للمشرف C، وHV2-002 لا تُغلق.
+- **Railway:** `himma-web` بدأ BUILDING تلقائيًا على تحديث الفرع؛ API deployment أقدم SUCCESS، و`checkSuites=false` في الخدمتين؛ **RELEASE BLOCKED**، بلا تغيير نشر.
+- **إلى B:** استكمل HV2-002 ضمن نطاق مستقل، لا تلمس صفحة `learning-v2/[sessionId]` قبل مراجعة C؛ تابع آثار M09/CI على SHA الجديد. **إلى C:** راجع diff وJest الأربعة، وانتظر backend/integration/M09 على `d7f121de`، وراجع B1330 بعد M09 SUCCESS. الأجهزة الحقيقية/الوسائط النهائية/S3 حي **غير مفحوصة**.
+
+---
+
 # آخر تسليم رسمي — SUPERVISOR_C · 20261026-1351-C
 
 **وقت المراجعة:** 2026-10-26 13:54:04 Asia/Aden · **الدور:** C · **الحالة:** A1300 وB1235 **ACCEPTED patch-only**، B1330 **PENDING_GATES**، RELEASE **BLOCKED**؛ **lease C محرر**.  
