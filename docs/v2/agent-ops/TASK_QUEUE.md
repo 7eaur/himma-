@@ -29,3 +29,9 @@
 - HV2-001: `709d94c2` الآن **CI + M04 + M09 SUCCESS على SHA واحد** (CI 40254864101, M04 40254864104, M09 40254864109). لا تعتبر المهمة CLOSED قبل اعتماد C وتغطية HV2-002.
 - HV2-004: `3838cccb` M09 SUCCESS؛ `dca18efe` أصلح إعادة إرسال إجابة بعد فقد ACK مع اختبارات Unit. **PENDING_GATES** على SHA الجديد: CI 40257452139 / M04 40257452187 SUCCESS / M09 40257452180. لا تغيّر حالات الجدول الأصلية دون مراجعة المشرف.
 - Railway auto-deployed dca18efe قبل اكتمال CI/M09؛ `checkSuites=false` للخدمتين؛ RELEASE_BLOCKER D-005 لا يزال قائمًا.
+
+## تحديث B — 2026-10-26 05:35 Asia/Aden
+- HV2-003: `f4497b84` فصل فشل اتصال المصادر التاريخية الاختيارية عن تحميل هوية الطالب ومصدر V2، وأضاف اختبار network abort/retry وتباطؤ A→B→A في الاتجاهين.
+- **فجوة بوابة مهمة:** لم تكن اختبارات cross-device وpartial-source ضمن CI/M09؛ `129dcbcd` أضافها في كلا المسارين. `PENDING_GATES` حتى [CI 40259709522](https://github.com/7eaur/himma-/actions/runs/40259709522) و[M09 40259709545](https://github.com/7eaur/himma-/actions/runs/40259709545) يثبتان مرورها.
+- [M04 40259653164](https://github.com/7eaur/himma-/actions/runs/40259653164) SUCCESS على functional SHA؛ لا يغني عن Playwright الجديد. HV2-002 يظل مفتوحًا لاختبار pretest/start/save/resume وتفويض الحالات الحقيقية.
+- D-005 ما زال قائمًا: Railway auto-deployed `f4497b84` قبل CI/M09؛ لا تعديل نشر دون موافقة المالك.

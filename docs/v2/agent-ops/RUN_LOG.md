@@ -26,3 +26,5 @@
 | 2026-10-26 04:46–04:47 | C | 20261026-0450-C | HV2-001/002/003/004 | `a12ac278b9ed` → supervisor review docs commit | A0400 ACCEPTED patch-only; A0427/B0432 PENDING_GATES; historical B002 REWORK | `runs/2026-10-26/C-20261026-0450.md`; CI 40254864101/M09 40254864109 IN_PROGRESS; Railway checkSuites=false |
 
 | 2026-10-26 05:04–05:08 | A | 20261026-0504-A | HV2-001 / HV2-004 | `b0ed6443c2db` → `dca18efe71d4` (functional) | 709d94c2 CI/M04/M09 SUCCESS; dca18efe M04 SUCCESS, CI/M09 pending | `runs/2026-10-26/A-20261026-0504.md`; CI 40257452139 / M09 40257452180 |
+
+| 2026-10-26 05:31–05:35 | B | 20261026-0531-B | HV2-003 / HV2-002 | `9685f37280ae` → `f4497b8458a6` (functional), `129dcbcd0371` (gate coverage) | PENDING_GATES; network-source isolation + reverse delayed GET; CI/M09 pending | `runs/2026-10-26/B-20261026-0531.md`; CI 40259709522; M09 40259709545; M04 40259653164 SUCCESS |
