@@ -6,21 +6,7 @@
   "timezone": "Asia/Aden",
   "mode": "ACTIVE",
   "stop_reason": null,
-  "lease": {
-    "owner": "WORKER_A",
-    "run_id": "20261026-0504-A",
-    "started_at": "2026-10-26T05:04:33+03:00",
-    "expires_at": "2026-10-26T05:27:00+03:00",
-    "base_head": "b0ed6443c2db63c55188e2be4a137d1f18ff4ac5",
-    "task_id": "HV2-001/HV2-004",
-    "scope": [
-      "apps/web/src/app/student/",
-      "apps/web/src/components/learning/",
-      "apps/web/tests/e2e/v2-",
-      "services/api/v2_lesson_runtime.py",
-      "docs/v2/agent-ops/runs/2026-10-26/A-20261026-0504.md"
-    ]
-  },
+  "lease": null,
   "scheduler": {
     "worker_a": "00 * * * *",
     "worker_b": "30 * * * *",
@@ -37,7 +23,7 @@
       "supervisor_c": "2026-10-26 03:50"
     }
   },
-  "last_handoff_run": "20261026-0427-A",
+  "last_handoff_run": "20261026-0504-A",
   "last_reviewed_run": "20261026-0450-C",
   "instructions": "Read README_AR.md and SUPERVISOR_DIRECTIVES.md. No merge, no V1 data deletion, no release claims before same-SHA gates.",
   "parallel_leases": {}
