@@ -80,3 +80,19 @@
 - `D-017 | P0`: `f9c250e7` لا يعتمد قبل انتهاء integration وM09؛ اختبار 503 في Chromium محاكاة HTTP وليس فقد ACK بعد وصول الطلب إلى الخادم. بعد نجاحه غطِّ 404 وcross-student GET/answer والخصوصية؛ لا تخفف الاختبارات.
 - `D-018 | RELEASE_BLOCKER`: Railway web `f9c250e7` / API `89f0b1db`، و`checkSuites=false` لكليهما؛ يمنع إعلان جاهزية الإصدار أو الدمج، ولا تعديل إعدادات النشر دون قرار المالك.
 - `D-019 | REVIEW_LIMIT`: GitHub Playwright artifact `12626798162` موجود لكن **لم يُفتح بصريًا**؛ لا دليل أجهزة Safari/Android حقيقية أو S3 production؛ لا `VISUAL_VERIFIED` ولا `PRIVACY_LIVE_VERIFIED`.
+
+
+## مراجعة SUPERVISOR_C — 2026-10-26 08:50 Asia/Aden · `20261026-0850-C`
+
+| run_id / SHA | النطاق | القرار | الدليل المستقل | الإجراء التالي |
+|---|---|---|---|---|
+| `20261026-0802-A` / `898971de` | HV2-004 وصول خيارات/RTL/44px | **ACCEPTED (patch only)** | مراجعة diff + اختبارَي Jest؛ [CI 40272294398](https://github.com/7eaur/himma-/actions/runs/40272294398)، [M04 40272294294](https://github.com/7eaur/himma-/actions/runs/40272294294)، [M09 40272294356](https://github.com/7eaur/himma-/actions/runs/40272294356) جميعها SUCCESS على SHA نفسه | A يكمل RTL/overflow/لقطات 5 مقاسات، لا إغلاق HV2-004 |
+| `20261026-0832-B` / `d7b639d9` | HV2-002 cross-student 404 وBFF replay | **PENDING_GATES** | راجعت diff الاختبارات؛ [CI 40275015229](https://github.com/7eaur/himma-/actions/runs/40275015229) integration IN_PROGRESS و[M09 40275015023](https://github.com/7eaur/himma-/actions/runs/40275015023) IN_PROGRESS؛ [M04 40275015096](https://github.com/7eaur/himma-/actions/runs/40275015096) SUCCESS؛ backend/frontend/security SUCCESS | B يتتبع Chromium وCI/M09 على SHA نفسه؛ لا ACCEPTED قبل النتيجة |
+| Railway production web `d7b639d9` / API `d25e2482` | release governance | **BLOCKED (release only)** | web/API ONLINE، لكن `checkSuites=false` للخدمتين ونشر الويب قبل اكتمال بوابات SHA | لا نشر/دمج أو قبول إصدار حتى قرار المالك بشأن gating |
+| V2 19 lessons/audio privacy | static/security | **PENDING_GATES** | مصدر اختبارات 19 درسًا/403 وعدم تسرب code/storage_key، backend job SUCCESS؛ Playwright ZIP/أجهزة/S3 حي لم يُراجع | لا `VISUAL_VERIFIED` أو `PRIVACY_LIVE_VERIFIED` |
+
+### توجيهات D-020..D-023
+- `D-020 | QA`: A `898971de` **ACCEPTED patch-only** بعد CI/M04/M09 SUCCESS على SHA واحد. يبقى HV2-004 مفتوحًا للعرض البصري والأجهزة الحقيقية وتغطية القوالب؛ لا تعديل لعمل مقبول بلا دليل تراجع.
+- `D-021 | P0`: B `d7b639d9` **PENDING_GATES** حتى انتهاء CI integration وM09؛ حافظ على 404 المتماثل وowner replay والخصوصية، وأصلح الفشل الحقيقي فقط إن ظهر؛ نتائج `f9c250e7` الأقدم لا تكفي لقبول الاختبارات الجديدة.
+- `D-022 | RELEASE_BLOCKER`: Railway web `d7b639d9` وAPI `d25e2482` ONLINE لكن `checkSuites=false` للخدمتين، والنشر يسبق QA؛ يمنع إعلان الإصدار أو الدمج، ولا تغيّر إعدادات Railway دون موافقة المالك. لا دليل فساد بيانات يستلزم `PAUSED`.
+- `D-023 | REVIEW_LIMIT`: اختبارات 19 درسًا/403/audio archive static+backend فقط؛ لم تُشاهد ZIP أو لقطات Playwright فعليًا، ولم تُختبر أجهزة Safari/Android أو S3 production. لا تُمنح حالات تحقق حي دون أدلة.

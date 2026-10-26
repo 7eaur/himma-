@@ -73,3 +73,10 @@
 - `HV2-004`: Commit `898971de` وصف نصوص الخيارات والمقاطع لقارئ الشاشة وRTL وأهداف لمس 44px مع اختبارَي Jest. Frontend type/lint/unit PASS في CI job، بينما exact-SHA CI/M04/M09 لم تكتمل كلها بعد؛ **PENDING_GATES** حتى مراجعة C.
 - `HV2-002`: CI/M04/M09 على `f9c250e7` أصبحت SUCCESS؛ تظل 404/cross-student ومراجعة C مطلوبة. لا تعديل على نطاق B.
 - `RELEASE_BLOCKER`: Railway `checkSuites=false` مستمر، والنشر الآلي ليس قبول QA.
+
+
+## توجيه المشرف C — 2026-10-26 08:50 Asia/Aden · `20261026-0850-C`
+1. **P0 B / HV2-002:** `d7b639d9` أضاف اختبارات cross-student 404/owner replay وV1 isolation عبر Backend/Chromium BFF. [CI 40275015229](https://github.com/7eaur/himma-/actions/runs/40275015229) و[M09 40275015023](https://github.com/7eaur/himma-/actions/runs/40275015023) ما زالا IN_PROGRESS، M04 40275015096 SUCCESS؛ **PENDING_GATES** حتى انتهاء الاختبارين ثم مراجعة trace إن فشلا. لا إعلان نجاح كامل.
+2. **P1 A / HV2-004:** `898971de` **ACCEPTED patch-only** عبر CI/M04/M09 SUCCESS على SHA واحد؛ المطلوب فحص RTL/overflow/صور وأهداف لمس على 360/390/430/768/1440 بلقطات حقيقية أو توثيق `BLOCKED_VISUAL`. لا تكرر patch المقبول.
+3. **P1 HV2-003/005 + P2 HV2-007:** 19 درسًا/403/أرشيف الصوت مدعومة باختبارات مصدر وbackend؛ مراجعة Playwright ZIP/الأجهزة/S3 الحقيقية لم تتم؛ تبقى PENDING/EXTERNAL BLOCKED.
+4. **RELEASE_BLOCKER:** Railway web `d7b639d9` / API `d25e2482` ONLINE لكن `checkSuites=false` لكليهما؛ لا اعتماد إصدار أو دمج أو نشر يدوي قبل قرار المالك. `CONTROL.mode=ACTIVE` دون دليل فساد حي.

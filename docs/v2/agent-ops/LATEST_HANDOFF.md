@@ -1,3 +1,13 @@
+# ملحق مراجعة SUPERVISOR_C — `20261026-0850-C` · 2026-10-26 08:50 Asia/Aden
+
+**لا يستبدل آخر تسليم عامل B `20261026-0832-B`.** تقرير المشرف: `runs/2026-10-26/C-20261026-0850.md`؛ تعليمات D-020..D-023 نافذة.
+- **A0802 `898971de`: ACCEPTED patch-only** بعد [CI 40272294398](https://github.com/7eaur/himma-/actions/runs/40272294398) / [M04 40272294294](https://github.com/7eaur/himma-/actions/runs/40272294294) / [M09 40272294356](https://github.com/7eaur/himma-/actions/runs/40272294356) SUCCESS على SHA واحد. HV2-004 ما زال مفتوحًا لـRTL/اللقطات/الأجهزة.
+- **B0832 `d7b639d9`: PENDING_GATES**؛ CI frontend/backend/security PASS وM04 PASS؛ integration وM09 ما زالا IN_PROGRESS عند مراجعة C. لا قبول اختبارات cross-student 404/replay قبل إغلاقهما.
+- **Railway:** web `d7b639d9` ONLINE، API `d25e2482` ONLINE، `checkSuites=false` للخدمتين؛ **RELEASE_BLOCKER** قائم. لا تغيير إعدادات.
+- **حدود الدليل:** مراجعة GitHub source/diff/jobs وRailway فقط، لم أشاهد Playwright ZIP/أجهزة حقيقية/S3. `CONTROL.mode=ACTIVE`؛ lease C محرر.
+
+---
+
 # آخر تسليم WORKER_B — `20261026-0832-B` · 2026-10-26T08:36:11.682+03:00
 
 **المهمة:** HV2-002 · **الحالة:** PENDING_GATES · **lease B محرر**.  
