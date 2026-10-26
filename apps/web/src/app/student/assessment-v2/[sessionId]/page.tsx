@@ -85,6 +85,9 @@ function AssessmentV2Session({ sessionId }: { sessionId: number }) {
       if (!isAssessmentPayload(data, sessionId)) {
         throw new Error("تعذر استعادة التقييم. تحقق من الرابط وحاول مرة أخرى.");
       }
+      // A successful retry supersedes the earlier transport/identity error.
+      // Never show a stale failure banner above the recovered question.
+      setError("");
       setAssessment(data);
     } catch (reason) {
       if (!controller.signal.aborted) throw reason;

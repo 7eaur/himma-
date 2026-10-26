@@ -296,6 +296,8 @@ test("HV2-002: mismatched assessment GET never renders another session and retry
   await expect(page.getByTestId("v2-interaction-player")).toHaveCount(0);
   await page.getByRole("button", { name: "إعادة المحاولة" }).click();
   await expect(page.getByTestId("v2-interaction-player")).toContainText("1 من 30");
+  // A successful recovery must clear the prior error banner.
+  await expect(page.locator("main [role='alert']")).toHaveCount(0);
   expect(reads).toBe(2);
   const recovered = await page.evaluate(async id => {
     const response = await fetch(`/api/v2/assessments/sessions/${id}`);
