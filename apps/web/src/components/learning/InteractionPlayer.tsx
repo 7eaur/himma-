@@ -123,6 +123,8 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
     if (!asset?.url) { setError("الصوت غير جاهز، ولن يُكشف بديله نصيًا."); return; }
     if (playingId === assetId && audioRef.current) {
       audioRef.current.pause();
+      // Invalidate this playback before any delayed media event/promise settles.
+      audioRef.current = null;
       setPlayingId(null);
       setAudioState("idle");
       return;
@@ -132,16 +134,37 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
     audioRef.current = audio;
     setPlayingId(assetId);
     setAudioState("loading");
-    audio.onwaiting = () => setAudioState("loading");
-    audio.onplaying = () => { clearMediaFailure(assetId); setAudioState("playing"); };
-    audio.onended = () => { setPlayingId(null); setAudioState("idle"); };
-    audio.onerror = () => { markMediaFailure(assetId); setPlayingId(null); setAudioState("idle"); setError("تعذر تشغيل الصوت. حاول مرة أخرى."); };
+    // A paused/replaced audio element can still dispatch late events or settle
+    // its play() promise. Only the current element may change media readiness.
+    audio.onwaiting = () => { if (audioRef.current === audio) setAudioState("loading"); };
+    audio.onplaying = () => {
+      if (audioRef.current !== audio) return;
+      clearMediaFailure(assetId);
+      setAudioState("playing");
+    };
+    audio.onended = () => {
+      if (audioRef.current !== audio) return;
+      audioRef.current = null;
+      setPlayingId(null);
+      setAudioState("idle");
+    };
+    audio.onerror = () => {
+      if (audioRef.current !== audio) return;
+      audioRef.current = null;
+      markMediaFailure(assetId);
+      setPlayingId(null);
+      setAudioState("idle");
+      setError("تعذر تشغيل الصوت. حاول مرة أخرى.");
+    };
     try {
       await audio.play();
+      if (audioRef.current !== audio) return;
       clearMediaFailure(assetId);
       setError("");
       setAudioState("playing");
     } catch {
+      if (audioRef.current !== audio) return;
+      audioRef.current = null;
       markMediaFailure(assetId);
       setPlayingId(null);
       setAudioState("idle");

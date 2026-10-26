@@ -247,6 +247,75 @@ describe("InteractionPlayer", () => {
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
+  it("ignores a replaced audio element's late rejection and error events", async () => {
+    let rejectFirst: (reason: Error) => void = () => { throw new Error("uninitialized"); };
+    const firstPlay = new Promise<void>((_resolve, reject) => { rejectFirst = reject; });
+    const instances: Array<{ play: jest.Mock; pause: jest.Mock; onerror: null | (() => void); onended: null | (() => void); onplaying: null | (() => void); onwaiting: null | (() => void) }> = [];
+    global.Audio = jest.fn().mockImplementation(() => {
+      const instance = {
+        play: jest.fn().mockImplementation(() => instances.length === 0 ? firstPlay : Promise.resolve()),
+        pause: jest.fn(),
+        onerror: null, onended: null, onplaying: null, onwaiting: null,
+      };
+      instances.push(instance);
+      return instance;
+    }) as unknown as typeof Audio;
+    const question = payload({
+      interaction: "listen_choose_one",
+      options: [
+        { id: "a", text: "أ", media: [{ media_id: "LET-01", kind: "audio" }] },
+        { id: "b", text: "ب", media: [{ media_id: "LET-02", kind: "audio" }] },
+      ],
+    });
+    question.media = {
+      ...question.media,
+      "LET-02": { asset_id: "LET-02", kind: "audio", state: "ready", url: "/second.mp3", test_only: true },
+    };
+    render(<InteractionPlayer sessionId={7} interaction={question} onLessonChange={jest.fn()}/>);
+    fireEvent.click(screen.getAllByRole("button", { name: "تشغيل صوت هذا الخيار" })[0]);
+    await act(async () => {
+      fireEvent.click(screen.getAllByRole("button", { name: "تشغيل صوت هذا الخيار" })[0]);
+    });
+    expect(instances).toHaveLength(2);
+    expect(instances[0].pause).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      rejectFirst(new Error("first stream aborted after replacement"));
+      await firstPlay.catch(() => undefined);
+      instances[0].onerror?.();
+      instances[0].onended?.();
+      instances[0].onplaying?.();
+      instances[0].onwaiting?.();
+    });
+    expect(screen.queryByText("تعذر تشغيل الصوت. حاول الضغط على زر الصوت مرة أخرى.")).not.toBeInTheDocument();
+    expect(screen.queryByText("تعذر تشغيل الصوت. حاول مرة أخرى.")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "إيقاف الصوت" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "اختيار الخيار 1" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "اختيار الخيار 2" })).toBeEnabled();
+  });
+
+  it("ignores late playback events after the student pauses the same audio", async () => {
+    let resolvePlay: () => void = () => { throw new Error("uninitialized"); };
+    const deferred = new Promise<void>((resolve) => { resolvePlay = resolve; });
+    const instance = { play: jest.fn().mockReturnValue(deferred), pause: jest.fn(), onerror: null as null | (() => void), onended: null as null | (() => void), onplaying: null as null | (() => void), onwaiting: null as null | (() => void) };
+    global.Audio = jest.fn().mockImplementation(() => instance) as unknown as typeof Audio;
+    render(<InteractionPlayer sessionId={7} interaction={payload({
+      interaction: "listen_choose_one",
+      stimulus: { text: null, media: [{ media_id: "LET-01", kind: "audio" }] },
+    })} onLessonChange={jest.fn()}/>);
+    fireEvent.click(screen.getByRole("button", { name: "تشغيل صوت السؤال" }));
+    fireEvent.click(screen.getByRole("button", { name: "إيقاف الصوت" }));
+    await act(async () => {
+      resolvePlay();
+      await deferred;
+      instance.onplaying?.();
+      instance.onerror?.();
+    });
+    expect(screen.getByRole("button", { name: "تشغيل صوت السؤال" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "إيقاف الصوت" })).not.toBeInTheDocument();
+    expect(screen.queryByText("تعذر تشغيل الصوت. حاول مرة أخرى.")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "اختيار الخيار 1" })).toBeEnabled();
+  });
+
   it("fails closed on an audio playback error and permits retry after playback succeeds", async () => {
     const play = jest.fn().mockRejectedValueOnce(new Error("media decode failed")).mockResolvedValueOnce(undefined);
     global.Audio = jest.fn().mockImplementation(() => ({ play, pause: jest.fn(), onended: null, onerror: null })) as unknown as typeof Audio;
