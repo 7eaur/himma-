@@ -73,6 +73,7 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
   const [logoutState, setLogoutState] = useState<"idle" | "pending" | "failed" | "auth_blocked">("idle");
   const leavingRef = useRef(false);
   const startingRef = useRef(false);
+  const logoutRequestRef = useRef(false);
   const name = home.student.full_name.split(" ")[0] || "بطل هِمّة";
   const action = home.current_action;
   const info = stage(home);
@@ -123,7 +124,9 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
   };
 
   const logout = async () => {
-    if (logoutState === "pending") return;
+    // React state may not commit between two rapid taps; guard the request synchronously.
+    if (logoutState === "pending" || logoutRequestRef.current) return;
+    logoutRequestRef.current = true;
     // Remove the previous student's identity before awaiting the network.
     leavingRef.current = true;
     setLogoutState("pending");
@@ -133,7 +136,8 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
       router.replace("/");
       router.refresh();
     } catch {
-      // Do not claim logout or reveal the dashboard on network/server failure.
+      // Only a failed attempt unlocks explicit retry; identity stays hidden.
+      logoutRequestRef.current = false;
       setLogoutState("failed");
     }
   };
