@@ -743,3 +743,84 @@ test("HV2-002: delayed unauthorized assessment GET cannot redirect after leaving
   await expect(page.getByTestId("student-home")).toBeVisible();
   expect(reads).toBe(2);
 });
+
+
+for (const reportedAnswered of [0, 2] as const) {
+  test("HV2-002: committed answer with " + (reportedAnswered === 0 ? "unchanged" : "skipped") + " progress fails closed and resumes by GET", async ({ page, request }) => {
+    test.setTimeout(150000);
+    if (!PASSWORD) throw new Error("E2E_RESEARCHER_PASSWORD required");
+
+    const admin = await request.post(API_URL + "/auth/login", {
+      data: { username: USERNAME, password: PASSWORD },
+    });
+    expect(admin.status()).toBe(200);
+    const created = await request.post(API_URL + "/researcher/students", {
+      data: { full_name: "طالب تحقق تقدم اصطناعي " + Date.now(), grade_level: 3 },
+    });
+    expect(created.status()).toBe(201);
+    const code = (await created.json()).access_code as string;
+    await page.goto("/student/login");
+    await page.getByTestId("input-access-code").fill(code);
+    await page.getByTestId("student-login-submit").click();
+    await expect(page.getByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
+    const started = await page.evaluate(async () => {
+      const response = await fetch("/api/v2/assessments/pretest/start", { method: "POST" });
+      return { status: response.status, data: await response.json() };
+    });
+    expect(started.status).toBe(200);
+    const sessionId = started.data.session.session_id as number;
+
+    let answerPosts = 0;
+    await page.route(/\\/api\\/v2\\/assessments\\/sessions\\/\\d+\\/answers(?:\\?|$)/, async route => {
+      answerPosts += 1;
+      const upstream = await route.fetch();
+      expect(upstream.status()).toBe(200);
+      const original = await upstream.json() as {
+        assessment: {
+          session: { session_id: number; progress: { answered: number; total: number } };
+          interaction: { progress: { index: number; total: number; stage: string } };
+        };
+      };
+      expect(original.assessment.session.session_id).toBe(sessionId);
+      expect(original.assessment.session.progress.answered).toBe(1);
+      expect(original.assessment.interaction.progress.index).toBe(2);
+      // The server really commits one answer. Only the browser-facing 200
+      // acknowledgement is altered, while remaining internally well-formed.
+      await route.fulfill({ response: upstream, json: {
+        ...original,
+        assessment: {
+          ...original.assessment,
+          session: {
+            ...original.assessment.session,
+            progress: { ...original.assessment.session.progress, answered: reportedAnswered },
+          },
+          interaction: {
+            ...original.assessment.interaction,
+            progress: { ...original.assessment.interaction.progress, index: reportedAnswered + 1 },
+          },
+        },
+      } });
+    });
+
+    await page.goto("/student/assessment-v2/" + sessionId);
+    await expect(page.getByTestId("v2-interaction-player")).toContainText("1 من 30");
+    await page.getByRole("button", { name: "اختيار الخيار 1" }).click();
+    await page.getByRole("button", { name: "حفظ الإجابة والمتابعة" }).click();
+    await expect(page.locator("main [role='alert']")).toContainText("تعذر تأكيد حفظ الإجابة");
+    await expect(page.getByTestId("v2-interaction-player")).toHaveCount(0);
+    expect(answerPosts).toBe(1);
+
+    await page.getByRole("button", { name: "إعادة المحاولة" }).click();
+    await expect(page.getByTestId("v2-interaction-player")).toContainText("2 من 30");
+    expect(answerPosts).toBe(1);
+    await page.reload();
+    await expect(page.getByTestId("v2-interaction-player")).toContainText("2 من 30");
+    const recovered = await page.evaluate(async id => {
+      const response = await fetch("/api/v2/assessments/sessions/" + id);
+      const body = await response.json();
+      return { status: response.status, answered: body.session.progress.answered };
+    }, sessionId);
+    expect(recovered).toEqual({ status: 200, answered: 1 });
+    expect(answerPosts).toBe(1);
+  });
+}

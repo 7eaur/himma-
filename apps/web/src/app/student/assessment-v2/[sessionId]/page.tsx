@@ -118,7 +118,9 @@ function AssessmentV2Session({ sessionId }: { sessionId: number }) {
     if (!isAssessmentPayload(value, sessionId, assessment?.session.kind) ||
         !assessment ||
         value.session.progress.total !== assessment.session.progress.total ||
-        value.session.progress.answered < assessment.session.progress.answered) {
+        value.session.progress.answered !== assessment.session.progress.answered + 1) {
+      // A successful POST must advance exactly one question. A structurally
+      // valid stale or skipped counter is not proof of saved progress.
       // The answer may already be committed: do not replay it from this
       // component. Unmount the question and recover authoritative state via GET.
       setAssessment(null);
