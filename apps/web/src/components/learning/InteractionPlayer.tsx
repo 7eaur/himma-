@@ -52,6 +52,11 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const answerKeyRef = useRef(requestKey("answer"));
   const uploadKeyRef = useRef(requestKey("upload"));
+  // A lost HTTP acknowledgment may follow a committed answer. Keep the exact
+  // request until the server confirms it; never apply a changed answer to the
+  // next question while the browser still shows the previous question.
+  const pendingAnswerRef = useRef<{ submit_key: string; answer: Record<string, unknown> } | null>(null);
+  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const [recording, setRecording] = useState(false);
@@ -110,12 +115,14 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   };
 
   const choose = (id: string) => {
+    if (saving || awaitingConfirmation) return;
     setFeedback(null);
     if (ordered) { if (!selected.includes(id)) setSelected((current) => [...current, id]); return; }
     setSelected([id]);
   };
 
   const startRecording = async () => {
+    if (saving || awaitingConfirmation) return;
     setError("");
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
       setError("التسجيل غير مدعوم في هذا المتصفح."); return;
@@ -151,7 +158,11 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   };
 
   const resetRecording = () => {
+    if (saving || awaitingConfirmation) return;
     if (audioUrl) URL.revokeObjectURL(audioUrl);
+    // A fresh recording must not reuse the idempotency key of old audio bytes.
+    uploadKeyRef.current = requestKey("upload");
+    answerKeyRef.current = requestKey("answer");
     setAudioUrl(null); setAudioBlob(null); setRecordingSeconds(0); setFeedback(null);
   };
 
@@ -159,34 +170,52 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
     if (!ready || saving) return;
     setSaving(true); setError("");
     try {
-      let answer: Record<string, unknown>;
-      if (question.interaction === "write_text") answer = { text_response: text };
-      else if (question.interaction === "read_aloud") {
-        if (!audioBlob) throw new Error("سجل قراءتك أولًا");
-        const form = new FormData();
-        form.append("file", audioBlob, "v2-reading.webm");
-        const upload = await fetch(`${endpointBase}/sessions/${sessionId}/recording`, {
-          method: "POST", headers: { "Idempotency-Key": uploadKeyRef.current }, body: form,
-        });
-        const uploaded = await upload.json().catch(() => null);
-        if (!upload.ok) throw new Error(uploaded?.detail || "تعذر رفع التسجيل");
-        answer = { ...uploaded, audio_duration_seconds: Math.max(1, recordingSeconds) };
-      } else answer = { selected_option_ids: selected };
+      let pending = pendingAnswerRef.current;
+      if (!pending) {
+        let answer: Record<string, unknown>;
+        if (question.interaction === "write_text") answer = { text_response: text };
+        else if (question.interaction === "read_aloud") {
+          if (!audioBlob) throw new Error("سجل قراءتك أولًا");
+          const form = new FormData();
+          form.append("file", audioBlob, "v2-reading.webm");
+          const upload = await fetch(`${endpointBase}/sessions/${sessionId}/recording`, {
+            method: "POST", headers: { "Idempotency-Key": uploadKeyRef.current }, body: form,
+          });
+          const uploaded = await upload.json().catch(() => null);
+          if (!upload.ok) throw new Error(uploaded?.detail || "تعذر رفع التسجيل");
+          answer = { ...uploaded, audio_duration_seconds: Math.max(1, recordingSeconds) };
+        } else answer = { selected_option_ids: [...selected] };
+        pending = { submit_key: answerKeyRef.current, answer };
+        pendingAnswerRef.current = pending;
+      }
 
       const response = await fetch(`${endpointBase}/sessions/${sessionId}/answers`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ submit_key: answerKeyRef.current, ...answer }),
+        body: JSON.stringify({ submit_key: pending.submit_key, ...pending.answer }),
       });
       const result = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(result?.detail || "تعذر حفظ الإجابة");
+      if (!response.ok) {
+        // Only a definite input-validation rejection is safe to edit in place.
+        // A 503, lost response or 409 may mean the server already advanced.
+        if (response.status === 400 || response.status === 422) {
+          pendingAnswerRef.current = null;
+          setAwaitingConfirmation(false);
+          answerKeyRef.current = requestKey("answer");
+        }
+        throw new Error(result?.detail || "تعذر حفظ الإجابة");
+      }
+      pendingAnswerRef.current = null;
+      setAwaitingConfirmation(false);
       setFeedback(result.submission);
       answerKeyRef.current = requestKey("answer");
       uploadKeyRef.current = requestKey("upload");
       if (!result.submission.retry_required) onLessonChange(result.lesson ?? result.assessment);
       else setSelected([]);
-    } catch (reason) { setError(reason instanceof Error ? reason.message : "تعذر حفظ الإجابة"); }
-    finally { setSaving(false); }
+    } catch (reason) {
+      if (pendingAnswerRef.current) setAwaitingConfirmation(true);
+      setError(reason instanceof Error ? reason.message : "تعذر حفظ الإجابة");
+    } finally { setSaving(false); }
   };
 
   const renderMedia = (reference: MediaRef, option = false) => {
@@ -215,11 +244,11 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
     {question.stimulus.text && <div className={styles.stimulusText}>{question.stimulus.text}</div>}
     {question.stimulus.media.length > 0 && <div className={styles.stimulusMedia}>{question.stimulus.media.map((item) => <div key={item.media_id}>{renderMedia(item)}</div>)}</div>}
 
-    {ordered && <div className={styles.orderTray} aria-label="الترتيب المختار">{selected.length ? selected.map((id, index) => <button key={id} type="button" onClick={() => setSelected((current) => current.filter((value) => value !== id))}><b>{index + 1}</b>{question.options.find((option) => option.id === id)?.text}<X size={14}/></button>) : <span>اضغط العناصر بالترتيب الصحيح</span>}</div>}
+    {ordered && <div className={styles.orderTray} aria-label="الترتيب المختار">{selected.length ? selected.map((id, index) => <button key={id} type="button" disabled={saving || awaitingConfirmation} onClick={() => setSelected((current) => current.filter((value) => value !== id))}><b>{index + 1}</b>{question.options.find((option) => option.id === id)?.text}<X size={14}/></button>) : <span>اضغط العناصر بالترتيب الصحيح</span>}</div>}
 
     {!OPEN_INTERACTIONS.has(question.interaction) && <div className={`${styles.options} ${question.interaction === "choose_image" ? styles.imageOptions : ""}`}>{question.options.map((option, optionIndex) => {
       const chosen = selected.includes(option.id);
-      const disabled = ordered && chosen;
+      const disabled = saving || awaitingConfirmation || (ordered && chosen);
       const audioMedia = option.media.filter((item) => item.kind === "audio");
       const visualMedia = option.media.filter((item) => item.kind !== "audio");
       return <div key={option.id} className={`${styles.option} ${chosen ? styles.selected : ""}`}>
@@ -231,13 +260,13 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
       </div>;
     })}</div>}
 
-    {question.interaction === "write_text" && <div className={styles.writing}><label htmlFor={`write-${question.question_id}`}>اكتب إجابتك هنا</label><textarea id={`write-${question.question_id}`} value={text} onChange={(event) => { setText(event.target.value); setDraftState("saving"); }} maxLength={500} rows={3} inputMode="text" autoComplete="off"/><span className={draftState === "error" ? styles.draftError : ""}>{draftState === "saving" ? "جاري حفظ المسودة..." : draftState === "saved" ? "حُفظت المسودة" : draftState === "error" ? "تعذر حفظ المسودة؛ سنحاول عند التعديل التالي" : "لا تحتاج إلى كتابة الحركات غير المطلوبة"}</span></div>}
+    {question.interaction === "write_text" && <div className={styles.writing}><label htmlFor={`write-${question.question_id}`}>اكتب إجابتك هنا</label><textarea id={`write-${question.question_id}`} disabled={saving || awaitingConfirmation} value={text} onChange={(event) => { setText(event.target.value); setDraftState("saving"); }} maxLength={500} rows={3} inputMode="text" autoComplete="off"/><span className={draftState === "error" ? styles.draftError : ""}>{draftState === "saving" ? "جاري حفظ المسودة..." : draftState === "saved" ? "حُفظت المسودة" : draftState === "error" ? "تعذر حفظ المسودة؛ سنحاول عند التعديل التالي" : "لا تحتاج إلى كتابة الحركات غير المطلوبة"}</span></div>}
 
-    {question.interaction === "read_aloud" && <div className={styles.recorder}>{!audioBlob ? <><button type="button" className={`${styles.recordButton} ${recording ? styles.recording : ""}`} onClick={recording ? stopRecording : () => void startRecording()} aria-label={recording ? "إيقاف التسجيل" : "بدء التسجيل"}>{recording ? <MicOff size={28}/> : <Mic size={28}/>}</button><p>{recording ? `جاري التسجيل… ${recordingSeconds} ث` : "اضغط ثم اقرأ بصوت واضح"}</p></> : <>{audioUrl && <audio controls src={audioUrl}/>}<button type="button" className={styles.secondary} onClick={resetRecording}><RotateCcw size={16}/> إعادة التسجيل</button><p>سيبقى التقييم معلقًا حتى يراجعه المشرف.</p></>}</div>}
+    {question.interaction === "read_aloud" && <div className={styles.recorder}>{!audioBlob ? <><button type="button" className={`${styles.recordButton} ${recording ? styles.recording : ""}`} onClick={recording ? stopRecording : () => void startRecording()} disabled={saving || awaitingConfirmation} aria-label={recording ? "إيقاف التسجيل" : "بدء التسجيل"}>{recording ? <MicOff size={28}/> : <Mic size={28}/>}</button><p>{recording ? `جاري التسجيل… ${recordingSeconds} ث` : "اضغط ثم اقرأ بصوت واضح"}</p></> : <>{audioUrl && <audio controls src={audioUrl}/>}<button type="button" className={styles.secondary} disabled={saving || awaitingConfirmation} onClick={resetRecording}><RotateCcw size={16}/> إعادة التسجيل</button><p>سيبقى التقييم معلقًا حتى يراجعه المشرف.</p></>}</div>}
 
     {feedback && <div className={`${styles.feedback} ${feedback.correct === false ? styles.retry : styles.accepted}`} role="status"><strong>{feedback.correct === true ? "أحسنت!" : feedback.correct === false ? "حاول مرة أخرى" : "تم الحفظ"}</strong><span>{feedback.message}</span>{feedback.retry_required && feedback.hint && <span className={styles.hint}>تلميح: {feedback.hint}</span>}</div>}
     {error && <div className={styles.error} role="alert">{error}</div>}
-    <button type="button" className={styles.submit} disabled={!ready || saving || recording} onClick={() => void submit()}>{saving ? "جاري الحفظ..." : question.interaction === "read_aloud" ? "إرسال التسجيل للمراجعة" : question.interaction === "write_text" ? "إرسال الكتابة للمراجعة" : isAssessment ? "حفظ الإجابة والمتابعة" : "تحقق من الإجابة"}</button>
+    <button type="button" className={styles.submit} disabled={!ready || saving || recording} onClick={() => void submit()}>{saving ? "جاري الحفظ..." : awaitingConfirmation ? "إعادة محاولة حفظ الإجابة" : question.interaction === "read_aloud" ? "إرسال التسجيل للمراجعة" : question.interaction === "write_text" ? "إرسال الكتابة للمراجعة" : isAssessment ? "حفظ الإجابة والمتابعة" : "تحقق من الإجابة"}</button>
   </section>;
 }
 

@@ -84,6 +84,53 @@ describe("InteractionPlayer", () => {
     expect(JSON.parse(request.body).selected_option_ids).toEqual(["b", "a"]);
   });
 
+  it("replays the identical answer after a lost acknowledgment and locks editing until confirmation", async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock
+      .mockResolvedValueOnce({ ok: false, status: 503, json: async () => ({ detail: "تعذر الاتصال مؤقتًا" }) })
+      .mockResolvedValueOnce({
+        ok: true, status: 200,
+        json: async () => ({
+          status: "replayed",
+          submission: { retry_required: false, status: "graded" },
+          lesson: { session: { stage: "independent_check" } },
+        }),
+      });
+    const onLessonChange = jest.fn();
+    render(<InteractionPlayer sessionId={7} interaction={payload()} onLessonChange={onLessonChange}/>);
+    fireEvent.click(screen.getByRole("button", { name: "اختيار الخيار 1" }));
+    fireEvent.click(screen.getByRole("button", { name: "تحقق من الإجابة" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "إعادة محاولة حفظ الإجابة" })).toBeInTheDocument());
+    expect(screen.getByRole("button", { name: "اختيار الخيار 2" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "إعادة محاولة حفظ الإجابة" }));
+    await waitFor(() => expect(onLessonChange).toHaveBeenCalledTimes(1));
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toEqual(JSON.parse(fetchMock.mock.calls[0][1].body));
+  });
+
+  it("unlocks correction after a definite validation rejection and uses a fresh answer key", async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock
+      .mockResolvedValueOnce({ ok: false, status: 422, json: async () => ({ detail: "إجابة غير صالحة" }) })
+      .mockResolvedValueOnce({
+        ok: true, status: 200,
+        json: async () => ({ submission: { retry_required: false, status: "graded" }, lesson: { session: {} } }),
+      });
+    render(<InteractionPlayer sessionId={7} interaction={payload()} onLessonChange={jest.fn()}/>);
+    fireEvent.click(screen.getByRole("button", { name: "اختيار الخيار 1" }));
+    fireEvent.click(screen.getByRole("button", { name: "تحقق من الإجابة" }));
+    await waitFor(() => expect(screen.getByText("إجابة غير صالحة")).toBeInTheDocument());
+    expect(screen.getByRole("button", { name: "اختيار الخيار 2" })).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: "اختيار الخيار 2" }));
+    fireEvent.click(screen.getByRole("button", { name: "تحقق من الإجابة" }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    const first = JSON.parse(fetchMock.mock.calls[0][1].body);
+    const second = JSON.parse(fetchMock.mock.calls[1][1].body);
+    expect(first.submit_key).not.toBe(second.submit_key);
+    expect(first.selected_option_ids).toEqual(["a"]);
+    expect(second.selected_option_ids).toEqual(["b"]);
+  });
+
   it("autosaves writing as a draft before it becomes review evidence", async () => {
     jest.useFakeTimers();
     (global.fetch as jest.Mock).mockResolvedValue({ ok: true, json: async () => ({ status: "saved" }) });
