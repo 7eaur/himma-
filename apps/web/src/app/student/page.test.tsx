@@ -248,4 +248,52 @@ describe("Student page V2-only learner boundary", () => {
     await waitFor(() => expect(push).toHaveBeenCalledWith("/student/assessment-v2/101"));
   });
 
+  it.each([401, 403])(
+    "hides learner identity and returns to login when pretest start is denied (%s)",
+    async status => {
+      const fetcher = jest.fn(async (url: string) => {
+        if (url === "/api/v2/student/home") return response(firstTime);
+        if (url.startsWith("/api/v2/retries/student/tasks")) return response({ items: [] });
+        if (url === "/api/v2/assessments/pretest/start") return response({ detail: "denied" }, status);
+        return response({}, 503);
+      });
+      global.fetch = fetcher as unknown as typeof fetch;
+      render(<StudentPage />);
+      fireEvent.click(await screen.findByRole("button", { name: "ابدأ الاختبار القبلي" }));
+      await waitFor(() => expect(replace).toHaveBeenCalledWith("/student/login"));
+      expect(screen.queryByTestId("student-identity")).not.toBeInTheDocument();
+      expect(screen.queryByTestId("student-home")).not.toBeInTheDocument();
+      expect(screen.getByRole("alert")).toHaveTextContent("تعذر التحقق من صلاحية الدخول");
+      expect(push).not.toHaveBeenCalled();
+      expect(fetcher.mock.calls.filter(([url]) => url === "/api/v2/assessments/pretest/start")).toHaveLength(1);
+    },
+  );
+
+  it.each([
+    { status: 409, message: "لا يمكن بدء اختبار جديد الآن" },
+    { status: 503, message: "الاختبار غير متاح حاليًا" },
+  ])("preserves the V2 start action after a $status failure for explicit retry", async ({ status, message }) => {
+    let starts = 0;
+    const fetcher = jest.fn(async (url: string) => {
+      if (url === "/api/v2/student/home") return response(firstTime);
+      if (url.startsWith("/api/v2/retries/student/tasks")) return response({ items: [] });
+      if (url === "/api/v2/assessments/pretest/start") {
+        starts += 1;
+        return starts === 1 ? response({ detail: "temporary" }, status) : response({ session: { session_id: 101 } });
+      }
+      return response({}, 503);
+    });
+    global.fetch = fetcher as unknown as typeof fetch;
+    render(<StudentPage />);
+    fireEvent.click(await screen.findByRole("button", { name: "ابدأ الاختبار القبلي" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(message);
+    expect(screen.getByRole("button", { name: "ابدأ الاختبار القبلي" })).toBeEnabled();
+    expect(starts).toBe(1);
+    expect(push).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "ابدأ الاختبار القبلي" }));
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/student/assessment-v2/101"));
+    expect(starts).toBe(2);
+    expect(fetcher.mock.calls.some(([url]) => url === "/api/profile")).toBe(false);
+  });
+
 });

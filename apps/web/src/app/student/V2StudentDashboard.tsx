@@ -70,7 +70,7 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
   const router = useRouter();
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState("");
-  const [logoutState, setLogoutState] = useState<"idle" | "pending" | "failed">("idle");
+  const [logoutState, setLogoutState] = useState<"idle" | "pending" | "failed" | "auth_blocked">("idle");
   const leavingRef = useRef(false);
   const startingRef = useRef(false);
   const name = home.student.full_name.split(" ")[0] || "بطل هِمّة";
@@ -91,13 +91,20 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
     try {
       const kind = action.action === "start_pretest" ? "pretest" : "posttest";
       const response = await fetch(`/api/v2/assessments/${kind}/start`, { method: "POST" });
+      // An authorization failure must hide the learner identity immediately.
+      // Check before parsing a potentially slow error body, and never override logout.
+      if (leavingRef.current) return;
+      if (response.status === 401 || response.status === 403) {
+        leavingRef.current = true;
+        setLogoutState("auth_blocked");
+        router.replace("/student/login");
+        return;
+      }
       const result = await response.json().catch(() => null);
       // A late pretest acknowledgement must not reopen a learner who logged out.
       if (leavingRef.current) return;
       if (!response.ok) {
-        const safeMessage = response.status === 401 || response.status === 403
-          ? "انتهت جلسة الدخول أو لا تملك صلاحية بدء الاختبار."
-          : response.status === 409
+        const safeMessage = response.status === 409
             ? "لا يمكن بدء اختبار جديد الآن. راجع المشرف للتأكد من جلستك السابقة."
             : response.status === 503
               ? "الاختبار غير متاح حاليًا. يرجى المحاولة لاحقًا."
@@ -134,6 +141,10 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
   if (logoutState !== "idle") {
     return <main className={styles.page} dir="rtl"><div className={styles.container}>
       {logoutState === "pending" ? <p role="status">جاري تسجيل الخروج...</p> :
+        logoutState === "auth_blocked" ? <section>
+          <p role="alert">تعذر التحقق من صلاحية الدخول. يرجى تسجيل الدخول من جديد.</p>
+          <button type="button" className={styles.button} onClick={() => router.replace("/student/login")}>العودة لتسجيل الدخول</button>
+        </section> :
         <section>
           <p role="alert">تعذر تأكيد تسجيل الخروج. أعد المحاولة قبل ترك الجهاز.</p>
           <button type="button" className={styles.button} onClick={() => void logout()}>إعادة محاولة تسجيل الخروج</button>
