@@ -16,6 +16,29 @@ interface AssessmentPayload {
   outcome?: { score_percent: number | null; skills: Record<string, unknown> };
 }
 
+// A valid progress counter alone cannot guarantee the question is renderable.
+// InteractionPlayer dereferences stimulus.media and every option.media during
+// render; reject malformed 200 responses before mounting it.
+function isMediaReference(value: unknown): boolean {
+  if (!value || typeof value !== "object") return false;
+  const ref = value as { media_id?: unknown; kind?: unknown };
+  return typeof ref.media_id === "string" && ref.media_id.length > 0 &&
+    (ref.kind === "audio" || ref.kind === "image" || ref.kind === "video");
+}
+
+function isRenderableAssessmentQuestion(interaction: InteractionPayload): boolean {
+  const question = interaction.question;
+  const stimulus = question?.stimulus;
+  return typeof question?.prompt === "string" &&
+    ["choose_one", "listen_choose_one", "choose_image", "sequence", "build_word", "read_aloud", "write_text"].includes(question.interaction) &&
+    !!stimulus && typeof stimulus === "object" &&
+    (stimulus.text === null || typeof stimulus.text === "string") &&
+    Array.isArray(stimulus.media) && stimulus.media.every(isMediaReference) &&
+    question.options.every(option => !!option && typeof option.id === "string" &&
+      (option.text === null || typeof option.text === "string") &&
+      Array.isArray(option.media) && option.media.every(isMediaReference));
+}
+
 // Validate both GET and POST payloads at the UI boundary. A 200 response
 // with an incomplete or stale body must not render a wrong question/progress.
 function isAssessmentPayload(value: unknown, sessionId: number, expectedKind?: AssessmentPayload["session"]["kind"]): value is AssessmentPayload {
@@ -47,7 +70,8 @@ function isAssessmentPayload(value: unknown, sessionId: number, expectedKind?: A
     interaction.progress.stage === session.kind &&
     interaction.progress.total === progress.total &&
     interaction.progress.index === progress.answered + 1 &&
-    progress.answered < progress.total;
+    progress.answered < progress.total &&
+    isRenderableAssessmentQuestion(interaction);
 }
 
 export default function AssessmentV2Page() {
