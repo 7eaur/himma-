@@ -13,8 +13,9 @@
     "expires_at": "2026-10-26T09:27:07.804Z",
     "base_head": "86e3cf1b2001e57c9b0a993e47f2967e3205ae91",
     "scope": [
-      "apps/web/src/components/v2/InteractionPlayer.tsx",
-      "apps/web/src/components/v2/InteractionPlayer.test.tsx",
+      "apps/web/src/components/learning/InteractionPlayer.tsx",
+      "apps/web/src/components/learning/InteractionPlayer.test.tsx",
+      "apps/web/src/components/learning/InteractionPlayer.module.css",
       "docs/v2/agent-ops/*"
     ],
     "task": "HV2-004"
