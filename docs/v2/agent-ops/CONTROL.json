@@ -6,14 +6,7 @@
   "timezone": "Asia/Aden",
   "mode": "ACTIVE",
   "stop_reason": null,
-  "lease": {
-    "role": "SUPERVISOR_C",
-    "run_id": "20261026-1753-C",
-    "base_head": "939becca86c21637f964d382da5667ac3011cd07",
-    "scope": "docs/v2/agent-ops review only; no product changes",
-    "acquired_at": "2026-10-26T14:54:17.084Z",
-    "expires_at": "2026-10-26T15:14:17.084Z"
-  },
+  "lease": null,
   "scheduler": {
     "worker_a": "00 * * * *",
     "worker_b": "30 * * * *",
@@ -30,8 +23,8 @@
       "supervisor_c": "2026-10-26 03:50"
     }
   },
-  "last_handoff_run": "20261026-1738-B",
-  "last_reviewed_run": "20261026-1658-C",
+  "last_handoff_run": "20261026-1753-C",
+  "last_reviewed_run": "20261026-1753-C",
   "instructions": "Read README_AR.md and SUPERVISOR_DIRECTIVES.md. No merge, no V1 data deletion, no release claims before same-SHA gates.",
   "parallel_leases": {}
 }

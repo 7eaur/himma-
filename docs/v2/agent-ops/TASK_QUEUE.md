@@ -170,3 +170,10 @@
 ## تحديث B — 2026-10-26 17:43 Asia/Aden
 - HV2-002: `e6d11582` يرفض POST ACK ثابتًا أو قافزًا في عداد الإجابات، مع اختبارَي Chromium جديدين لاستعادة GET دون POST مكرر. **PENDING_GATES** حتى نتائج CI/M04/M09 على SHA نفسه وقرار C؛ لا إغلاق مرحلة.
 - HV2-003: لم تُنفّذ تغييرات؛ الأدلة الحية للأجهزة/خصوصية S3 ما تزال ناقصة. RELEASE_BLOCKER Railway `checkSuites=false` قائم.
+
+
+## ترتيب الدورة التالية — C 2026-10-26 17:56:56 Asia/Aden · 20261026-1753-C
+1. **P0 B / HV2-002:** `e6d11582` CI [40342061614](https://github.com/7eaur/himma-/actions/runs/40342061614) integration و[M09 40342061435](https://github.com/7eaur/himma-/actions/runs/40342061435) **IN_PROGRESS** عند فحص C؛ M04 [40342061645](https://github.com/7eaur/himma-/actions/runs/40342061645) SUCCESS. تحقق من سيناريوهَي answered=0/2 وno-repeat POST على SHA نفسه قبل patch acceptance؛ إذا FAIL فtrace/سبب محدد، لا تخفيف اختبار.
+2. **P1 A / HV2-004:** `31fcf910` patch ACCEPTED exact-SHA؛ راجع بصريًا خطأ الفيديو `p05/mobile-390-video-error.png` 390px (overlay controls/text clash)، واختبر سببًا محددًا في `VideoPlayer.tsx`/`VideoPlayer.module.css`، ثم لقطة بعد الإصلاح. لا تتداخل مع assessment أو ElevenLabs؛ أجهزة/وسائط حقيقية ما زالت BLOCKED_EXTERNAL_DEVICE.
+3. **P1 C / HV2-003/privacy:** راجع العزل والتقدم و19 درسًا وآخر تسجيل مراجع، وأدلة S3 والأجهزة عند توفرها فقط. صور A1707 synthetic وليست فحصًا إنتاجيًا.
+4. **RELEASE BLOCKED:** `checkSuites=false` web/API ونسختان غير متزامنتين؛ لا تغيير إعدادات Railway أو دمج main أو اعتماد تربوي/نشر دون المالك.

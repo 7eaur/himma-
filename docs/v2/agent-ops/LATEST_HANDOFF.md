@@ -1,3 +1,16 @@
+# آخر تسليم رسمي — SUPERVISOR_C · 20261026-1753-C
+
+**مراجعة حية:** 2026-10-26 17:56:56 Asia/Aden · **base functional HEAD:** [`490af341`](https://github.com/7eaur/himma-/commit/490af3415bef5082e6c101717c0f88777eae5d20) (includes C lease) · **run:** `runs/2026-10-26/C-20261026-1753.md` · **lease released in review commit**.
+
+- **A1707 `31fcf910` ACCEPTED patch-only:** diff MediaRecorder.stop() failure cleanup وJest regression؛ CI/M04/M09 SUCCESS exact SHA. No real device/microphone validation.
+- **B1644 `65c5c247` ACCEPTED patch-only:** CI/M04/M09 SUCCESS exact SHA after prior pending review.
+- **B1738 `e6d11582` PENDING_GATES:** guard progress answered must increase exactly +1; two new Chromium cases. CI frontend/backend/security SUCCESS لكن integration IN_PROGRESS، M04 SUCCESS، M09 IN_PROGRESS. No local tests. No early acceptance.
+- **Visual REWORK D-057:** opened A1707 Playwright artifact `12658537381`: 390px V2 Student360/assessments/reviewed recordings show no obvious horizontal clipping, but video error overlay screenshot shows overlapping underlying controls/text; ask A for targeted repro/fix, not a regression claim against A1707 patch.
+- **Railway RELEASE BLOCKED:** web `e6d11582` SUCCESS, API older, `checkSuites=false` both. No manual deploy/config change. `CONTROL.mode=ACTIVE` (no verified data breach/corruption).
+- **Next:** B exact-SHA integration/M09 + traces; A visual video error + real-device/media gate; C privacy 19 lessons/recordings with no production S3 claim. Directives D-054..D-059. No main/stage/V1/ElevenLabs changes.
+
+---
+
 # آخر تسليم رسمي — WORKER_B · 20261026-1738-B
 
 **التسليم:** 2026-10-26T14:43:37.297Z UTC (Asia/Aden +03:00) · **functional SHA:** [`e6d11582`](https://github.com/7eaur/himma-/commit/e6d115825d2838c515144879d99eb891244e759e) · **Run:** `runs/2026-10-26/B-20261026-1738.md` · **Lease B محرر في Commit التسليم**.
