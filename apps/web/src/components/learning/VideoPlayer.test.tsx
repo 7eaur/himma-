@@ -90,4 +90,61 @@ describe("VideoPlayer", () => {
     fireEvent.canPlay(video);
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
+
+  it("ignores a late completion acknowledgment from the previous video", async () => {
+    let resolvePrevious: () => void = () => undefined;
+    const pending = new Promise<void>((resolve) => { resolvePrevious = resolve; });
+    const onEnded = jest.fn().mockImplementationOnce(() => pending).mockResolvedValueOnce(undefined);
+    const { rerender } = render(<VideoPlayer src="/first.mp4" onCheckpoint={jest.fn()} onEnded={onEnded} />);
+    const video = screen.getByText("متصفحك لا يدعم تشغيل الفيديو.").closest("video") as HTMLVideoElement;
+    setMediaTime(video, 6);
+    fireEvent.ended(video);
+    expect(screen.getByText("جاري حفظ اكتمال الشرح")).toBeInTheDocument();
+
+    rerender(<VideoPlayer src="/second.mp4" onCheckpoint={jest.fn()} onEnded={onEnded} />);
+    expect(screen.queryByText("جاري حفظ اكتمال الشرح")).not.toBeInTheDocument();
+    await act(async () => { resolvePrevious(); });
+    expect(screen.queryByText("أكملت الشرح")).not.toBeInTheDocument();
+
+    setMediaTime(video, 6);
+    fireEvent.ended(video);
+    await waitFor(() => expect(screen.getByText("أكملت الشرح")).toBeInTheDocument());
+    expect(onEnded).toHaveBeenCalledTimes(2);
+  });
+
+  it("ignores a delayed play rejection after the video source changes", async () => {
+    let rejectPrevious: (error: Error) => void = () => undefined;
+    const pending = new Promise<void>((_, reject) => { rejectPrevious = reject; });
+    const play = jest.fn().mockImplementationOnce(() => pending);
+    Object.defineProperty(HTMLMediaElement.prototype, "play", { configurable: true, value: play });
+    const onEnded = jest.fn().mockResolvedValue(undefined);
+    const { rerender } = render(<VideoPlayer src="/first.mp4" onCheckpoint={jest.fn()} onEnded={onEnded} />);
+    const video = screen.getByText("متصفحك لا يدعم تشغيل الفيديو.").closest("video") as HTMLVideoElement;
+    setMediaTime(video, 6);
+    fireEvent.ended(video);
+    await waitFor(() => expect(screen.getByText("أكملت الشرح")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "شاهد مرة أخرى" }));
+    expect(play).toHaveBeenCalledTimes(1);
+
+    rerender(<VideoPlayer src="/second.mp4" onCheckpoint={jest.fn()} onEnded={onEnded} />);
+    await act(async () => { rejectPrevious(new Error("old video autoplay denied")); });
+    expect(screen.queryByText("اضغط لبدء الفيديو")).not.toBeInTheDocument();
+    expect(screen.getByText("جاري تجهيز الفيديو")).toBeInTheDocument();
+  });
+
+  it("starts checkpoint tracking fresh when a new video replaces the old one", () => {
+    const onCheckpoint = jest.fn();
+    const props = { onCheckpoint, onEnded: jest.fn() };
+    const { rerender } = render(<VideoPlayer src="/first.mp4" {...props} />);
+    const video = screen.getByText("متصفحك لا يدعم تشغيل الفيديو.").closest("video") as HTMLVideoElement;
+    setMediaTime(video, 5.5, 10);
+    fireEvent.timeUpdate(video);
+    expect(onCheckpoint).toHaveBeenCalledWith(5.5, 10);
+
+    rerender(<VideoPlayer src="/second.mp4" {...props} />);
+    setMediaTime(video, 5.1, 10);
+    fireEvent.timeUpdate(video);
+    expect(onCheckpoint).toHaveBeenCalledWith(5.1, 10);
+    expect(onCheckpoint).toHaveBeenCalledTimes(2);
+  });
 });
