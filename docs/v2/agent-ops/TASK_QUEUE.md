@@ -1,3 +1,9 @@
+## تحديث بوابة SUPERVISOR_C — 2026-10-26 22:56 (يعلو على حالة B2230 المعلقة أدناه)
+1. **P0 / B2230 `fe17afd7` — ACCEPTED patch-only:** CI 40388114459 + M04 40388114470 + M09 40388114453 **SUCCESS exact SHA**؛ 101 frontend Jest و59 Chromium في M09. أبقِ HV2-002/003 PENDING_GATES لتجربة logout 503/retry وlate ACK على متصفح/جهاز فعلي ومراجعة الخصوصية.
+2. **P0 / RELEASE — BLOCKED:** `checkSuites=false` للويب/API، النشر سبق اكتمال CI؛ لا تغيير دون المالك.
+3. **P1 / A2200 وB2134 — ACCEPTED patch-only:** لا تعيد كتابة إصلاحاتهما دون regression؛ استكمل video/device وpretest full journey.
+4. **P1 / PRIVACY — PENDING_GATES:** 19 درسًا والتقدم وآخر تسجيل مراجع: المصدر/CI فقط؛ S3 الإنتاجي والوسائط الحقيقية/التحكيم غير مفحوصة.
+
 ## ترتيب أولويات SUPERVISOR_C — 2026-10-26 22:55 (الأحدث؛ يتقدم على السجلات التاريخية)
 1. **P0 / HV2-003+002 / B2230 — PENDING_GATES:** `fe17afd7` CI 40388114459 frontend 101/backend/security SUCCESS لكن integration job 121806979732 IN_PROGRESS؛ M04 40388114470 وM09 40388114453 SUCCESS (59 Chromium). تحقق من CI النهائية ثم اختبار logout 503/retry والـlate start ACK بصريًا/E2E دون كشف هوية.
 2. **P0 / RELEASE — BLOCKED:** Railway web `fe17afd7` وAPI أقدم، `checkSuites=false` للخدمتين؛ لا تغيير إعدادات/نشر/دمج main دون المالك.

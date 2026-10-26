@@ -1,3 +1,10 @@
+# ملحق بوابة SUPERVISOR_C — `20261026-2256-C` · 22:56 Asia/Aden
+- **B2230 `fe17afd7` أصبح ACCEPTED patch-only**: CI 40388114459 (بما فيها Integration) + M04 40388114470 + M09 40388114453 كلها SUCCESS exact SHA. القرار الأحدث **D-078**؛ تقرير ملحق `runs/2026-10-26/C-20261026-2256-GATES.md`.
+- **لا إغلاق HV2-002/003 أو نشر:** الأجهزة واللقطات الخاصة بـlogout وS3 production وموافقة المالك PENDING_GATES؛ Railway `checkSuites=false` وRELEASE BLOCKED.
+- **آخر تسليم عامل** B2230 كما هو؛ `CONTROL.mode=ACTIVE`، lease C محرر. اقرأ HEAD الحي قبل العمل.
+
+---
+
 # ملحق تسليم SUPERVISOR_C — `20261026-2250-C` · 26 أكتوبر 2026، 22:55 Asia/Aden
 
 - **آخر تسليم عامل محفوظ:** B `20261026-2230-B`، functional `fe17afd7`؛ **آخر مراجعة مشرف:** `20261026-2250-C`؛ تقرير `runs/2026-10-26/C-20261026-2250.md`. BASE `bcff1305`، lease C commit `21c0f813`؛ الحجز يُحرر في commit التسليم.

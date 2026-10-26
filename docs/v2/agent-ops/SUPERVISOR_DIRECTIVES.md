@@ -290,3 +290,6 @@
 - **D-075 | RELEASE BLOCKED:** Railway `checkSuites=false` للويب/API ونشر `fe17afd7` قبل اكتمال CI؛ موافقة المالك مطلوبة لأي تغيير نشر أو دمج.
 - **D-076 | PRIVACY/EDUCATION PENDING_GATES:** المصدر يدعم فصل V1/19 درسًا والتسجيل المراجع؛ S3 production والأجهزة/الوسائط والتحكيم التربوي غير مفحوصة. لا ASR مختلق.
 - **D-077 | VISUAL PENDING_GATES:** artifact `12681603746` يشمل landing/login فقط؛ صورة login 390px بلا قص ظاهر، لكنه ليس اختبار dashboard/logout/video. اطلب لقطات أو trace مستهدفًا.
+
+## ملحق بوابة SUPERVISOR_C — 2026-10-26 22:56 · `20261026-2256-C`
+- **D-078 | ACCEPTED B2230 patch-only:** تحديث القرار السابق D-074 بعد انتهاء CI `40388114459` **SUCCESS** على `fe17afd7` (frontend/backend/security/integration جميعها SUCCESS)، ومع M04 `40388114470` وM09 `40388114453` SUCCESS exact SHA. فحص source/diff في C2250 قائم. **لا** إغلاق HV2-002/HV2-003 ولا اعتماد تربوي/نشر؛ بوابات Safari/Android، logout E2E/visual، S3 production وموافقة المالك لا تزال مفتوحة.
