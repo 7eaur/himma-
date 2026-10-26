@@ -31,7 +31,7 @@ test("HV2-002: pretest start and answer recover from 503 without a duplicate sub
     return route.continue();
   });
   await page.getByTestId("student-primary-action").click();
-  await expect(page.getByRole("alert")).toContainText("الاختبار غير متاح حاليًا");
+  await expect(page.locator("[data-testid=\"student-home\"] [role=\"alert\"]")).toContainText("الاختبار غير متاح حاليًا");
   await expect(page.getByTestId("student-primary-action")).toBeEnabled();
   await page.getByTestId("student-primary-action").click();
   await expect(page).toHaveURL(/\/student\/assessment-v2\/\d+$/);
