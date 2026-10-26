@@ -6,7 +6,16 @@
   "timezone": "Asia/Aden",
   "mode": "ACTIVE",
   "stop_reason": null,
-  "lease": null,
+  "lease": {
+    "owner": "SUPERVISOR_C",
+    "run_id": "20261026-0950-C",
+    "scope": [
+      "docs/v2/agent-ops/*"
+    ],
+    "base_head": "1f0567b935d2b643a7629f1023e33a5b7dde5886",
+    "acquired_at": "2026-10-26T06:49:52.936Z",
+    "expires_at": "2026-10-26T07:16:52.936Z"
+  },
   "scheduler": {
     "worker_a": "00 * * * *",
     "worker_b": "30 * * * *",
