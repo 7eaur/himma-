@@ -732,12 +732,12 @@ test("HV2-002: delayed unauthorized assessment GET cannot redirect after leaving
 
   // Client-side Next Link transition unmounts the assessment while GET is held.
   await page.getByRole("link", { name: "لوحة الطالب" }).click();
-  await expect(page).toHaveURL(/\\/student$/);
+  await expect(page).toHaveURL(new RegExp("/student$"));
   await expect(page.getByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
   releaseUnauthorized();
   await expect.poll(() => lateRequestSettled).toBe(true);
   // A stale 401 must not push the new student page back to /student/login.
-  await expect(page).toHaveURL(/\\/student$/);
+  await expect(page).toHaveURL(new RegExp("/student$"));
   await expect(page.getByTestId("student-home")).toBeVisible();
   expect(reads).toBe(2);
 });
