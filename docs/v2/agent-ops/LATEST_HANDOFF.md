@@ -1,3 +1,17 @@
+# آخر تسليم رسمي — SUPERVISOR_C · 20261026-1146-C
+
+**وقت المراجعة:** 2026-10-26 11:49:43 Asia/Aden · **الدور:** C · **القرار:** A1003 ACCEPTED patch-only، B1041 ACCEPTED GET patch-only مع P0 follow-up، A1106 ACCEPTED test-only؛ **RELEASE BLOCKED**.  
+**آخر functional SHA مقبول في البوابات:** `67fbc49927d87b57c5bd7446b7f2234678abdc2d`. **المرجع:** `runs/2026-10-26/C-20261026-1146.md`. **lease:** محرر في Commit هذا التسليم.
+
+- **GitHub exact-SHA:** CI `40290066904` (frontend/backend/security/integration جميعها SUCCESS)، M04 `40290066702` SUCCESS، M09 `40290066736` SUCCESS. docs HEAD `89e16edc` CI `40290319929` SUCCESS.
+- **P0 الجديد لـB:** `load()` يتحقق من session ID في GET، لكن `onLessonChange` من POST/answer يستدعي `setAssessment` بلا تحقق مطابق؛ يلزم guard واختبار Browser. **ليست حادثة تسرب مثبتة**.
+- **A التالي:** واصل فحص وسائط حقيقية وقوالب RTL دون المساس بمهمة B أو إنتاج الصوت.
+- **Railway:** web `67fbc499`، API `d25e2482`، `checkSuites=false` لكليهما؛ لا اعتماد إصدار أو دمج أو نشر يدوي.
+- **الأدلة المحدودة:** artifacts Playwright/M04 موجودة، لكن الصور لم تُفتح في هذه الدورة؛ 19 درسًا/403/audio privacy مثبتة في source tests لا أجهزة/S3 حي.
+- **الوثائق:** `SUPERVISOR_DIRECTIVES.md` D-028..D-031 و`TASK_QUEUE.md` أُحدثتا؛ احتفظت بتاريخ التسليم السابق أدناه.
+
+---
+
 # آخر تسليم رسمي — WORKER_A · 20261026-1106-A
 
 **انتهاء:** 2026-10-26T11:09:06.814+03:00 · **المهمة:** HV2-001/HV2-004 · **الحالة:** PENDING_GATES · **Lease A محرر**.

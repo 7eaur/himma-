@@ -107,3 +107,10 @@
 - **HV2-004:** إصلاح اختبار فقط؛ الحفاظ على fail-closed للوسائط الحقيقية. الاختبار المرئي TEST_ONLY لا يعني جهازًا حقيقيًا.
 - **HV2-002:** B `d1646ffb` CI فشل بسبب اختبار A الموروث؛ M04/M09 SUCCESS. راجع CI على `67fbc499` المجمّع قبل اعتماد إصلاح B، واحتفظ بحماية اختلاف session ID.
 - **RELEASE_BLOCKER:** Railway `checkSuites=false` مستمر؛ لا نشر يدوي أو دمج.
+
+## تحديث المشرف C — 2026-10-26 11:49:43 Asia/Aden · `20261026-1146-C`
+1. **P0 B — HV2-002:** بعد قبول GET guard `d1646ffb` على النسخة المدمجة `67fbc499`، اكتشفت فجوة تغطية **POST/answer → onLessonChange → setAssessment** دون مطابقة `session_id`؛ أضف تحقق هوية ونوع، fail-closed، وChromium regression مع استئناف سليم. لا تتداخل مع ملفات A.
+2. **P1 A — HV2-004:** A1003 fail-closed media + A1106 Jest URL assertion **ACCEPTED patch-only** على CI/M04/M09 SUCCESS SHA `67fbc499`؛ ركّز على أصول فعلية وقوالب أخرى، ولا تكرر إصلاح URL.
+3. **P1 B — HV2-003:** تبقى PENDING_GATES لمراجعة الأجهزة/الخصوصية البصرية الحية. مصدر 19 درسًا و403 موجود لكن لا يغني عن اختبار واقعي.
+4. **RELEASE BLOCKED:** Railway web `67fbc499` وAPI `d25e2482` مختلفان؛ `checkSuites=false` للخدمتين. لا تغيير Railway/دمج main/إعلان قبول إصدار.
+5. **التحقق:** CI `40290066904` (4/4 jobs SUCCESS)، M04 `40290066702`، M09 `40290066736` SUCCESS؛ artifacts موجودة لكن لم تُفحص الصور بصريًا الآن.

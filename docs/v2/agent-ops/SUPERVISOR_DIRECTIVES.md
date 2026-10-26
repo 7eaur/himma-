@@ -112,3 +112,19 @@
 - `D-025 | P1 A`: `595fcb93` مقبول كتوسيع Playwright مع مشاهدة صور artifact `12630639993` على خمسة مقاسات. اختبر لاحقًا الوسائط الحقيقية/القوالب الأخرى والتفاعل على الأجهزة؛ لا تكرر ما ثبت ولا تعتبر fixture الاصطناعية اعتماد محتوى.
 - `D-026 | SECURITY`: لا تغيّر صلاحيات Student360/التسجيلات أو بيانات V1 دون إثبات انحدار؛ اختبارات 19 درسًا/403/storage_key موجودة لكن التحقق الحي وسلامة S3 لم يتمّا.
 - `D-027 | RELEASE_BLOCKER`: Railway `checkSuites=false` لخدمتي web/API؛ نشر web قبل CI، وAPI على SHA أقدم. لا دمج/نشر يدوي/إعلان اعتماد حتى قرار المالك. لا `PAUSED` بلا دليل فساد/تسرب حقيقي.
+
+## مراجعة SUPERVISOR_C — 2026-10-26 11:49:43 Asia/Aden · `20261026-1146-C`
+
+| run_id | القرار | الأدلة | الإجراء |
+|---|---|---|---|
+| `20261026-1003-A` / `f4f305ef` | **ACCEPTED patch-only على SHA المدمج `67fbc499`** | فشل Jest الوسيط `40283675056` لا يثبت عطل المنتج؛ بعد إصلاح A1106: CI `40290066904`، M04 `40290066702`، M09 `40290066736` جميعها SUCCESS | إبقاء HV2-004 مفتوحة للأجهزة/الوسائط الحقيقية |
+| `20261026-1041-B` / `d1646ffb` | **ACCEPTED GET patch-only؛ HV2-002 PENDING_GATES** | CI `40287875794` FAILED frontend بسبب Jest موروث؛ M04/M09 على B SHA SUCCESS؛ CI/M04/M09 على SHA المدمج `67fbc499` SUCCESS | **P0** سد مسار `onLessonChange` غير المحمي بنفس تحقق session_id؛ اختبار POST mismatch |
+| `20261026-1106-A` / `67fbc499` | **ACCEPTED test-only** | diff URL pathname يحافظ على ترتيب صورتين وإزالتهما؛ CI/M04/M09 exact SHA SUCCESS | لا تعِد إصلاح Jest المقبول |
+| Railway web/API | **BLOCKED (release only)** | web `67fbc499`، API `d25e2482`، `checkSuites=false` للخدمتين؛ لا pending work | لا دمج أو نشر يدوي أو قبول إصدار قبل سياسة نشر معتمدة |
+| 19 درسًا/تسجيلات | **PENDING_GATES (live/device)** | source tests 19/403/access_code/private_answer/storage_key؛ Playwright artifacts موجودة لكن لم تُفتح بصريًا في هذه الدورة | لا تعلن device/S3/live verified |
+
+### تعليمات D-028..D-031
+- `D-028 | P0 B`: لا يكفي GET guard وحده؛ تحقق من `session_id` و`kind` أيضًا عند `onLessonChange` في صفحة `assessment-v2/[sessionId]/page.tsx` (نتيجة POST/answer)، وافشل بأمان عند mismatch دون عرض بيانات جلسة مختلفة. أضف اختبار Chromium mismatch مع Retry/Resume؛ لا تعدّل بيانات حقيقية ولا تقل إن تسربًا وقع.
+- `D-029 | QA`: قبول A1003+B1041+A1106 **كإصلاحات محددة فقط** بعد نجاح بوابات `67fbc499` الثلاث؛ لا تغلق HV2-002/HV2-004 ولا تعتمد المحتوى/الوسائط والأجهزة.
+- `D-030 | RELEASE_BLOCKER`: Railway `checkSuites=false` لكلا الخدمتين ونسختا web/API مختلفتان؛ لا تغيير إعدادات ولا نشر/دمج حتى قرار المالك. `CONTROL.mode=ACTIVE` دون دليل تلف بيانات حي.
+- `D-031 | EVIDENCE`: CI `40290066904` artifact `12636574280`، M04 `40290066702` artifact `12636572943` موجودان، **لم تتم مشاهدة الصور** في هذه الدورة؛ اختبارات 19 درسًا/خصوصية الصوت static/CI، وليست أجهزة/S3 production.
