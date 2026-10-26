@@ -6,14 +6,7 @@
   "timezone": "Asia/Aden",
   "mode": "ACTIVE",
   "stop_reason": null,
-  "lease": {
-    "holder": "WORKER_A",
-    "run_id": "20261026-0301-A",
-    "acquired_at": "2026-10-26T03:01:24+03:00",
-    "expires_at": "2026-10-26T03:28:00+03:00",
-    "base_head": "79106bb66951e34725f2732f1d38ed46c62b01c8",
-    "scope": "HV2-001 CI integration and M09 root cause; CI/E2E related files only"
-  },
+  "lease": null,
   "scheduler": {
     "worker_a": "00 * * * *",
     "worker_b": "30 * * * *",
@@ -30,7 +23,7 @@
       "supervisor_c": "2026-10-26 03:50"
     }
   },
-  "last_handoff_run": null,
+  "last_handoff_run": "20261026-0301-A",
   "last_reviewed_run": null,
   "instructions": "Read README_AR.md and SUPERVISOR_DIRECTIVES.md. No merge, no V1 data deletion, no release claims before same-SHA gates."
 }
