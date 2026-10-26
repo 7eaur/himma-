@@ -1,3 +1,15 @@
+# تسليم يدوي — سلامة تسجيلات V2 · 20261026-1847-MANUAL
+
+**functional SHA:** [`853da633`](https://github.com/7eaur/himma-/commit/853da633072d087bf9c68d155f22bd4093727fdd) · **المهمة الجديدة:** HV2-008 · **الحالة:** `RESOLVED_SOURCE / PENDING_GATES` · **السجل:** `runs/2026-10-26/MANUAL-20261026-1847.md`.
+
+- أضيفت migration `0027_v2_audio_upload_binding`: كل رفع V2 جديد مرتبط بنوع المسار ومعرف الجلسة/المهمة والسؤال.
+- لم يعد مسموحًا إرسال ملف بلا lease، أو إعادة استخدام تسجيل سؤال في سؤال/جلسة أخرى، حتى لو كان للطالب نفسه.
+- أُغلق سباق إعادة التسجيل: تُحفظ lease المؤقتة مباشرة بعد نجاح S3 وقبل إعادة فحص المهمة؛ إذا أُغلقت المهمة أثناء الرفع يبقى الملف معروفًا لعامل التنظيف بدل أن يصبح يتيمًا.
+- نجحت اختبارات retention/retry المستهدفة **10 PASS** واختبار رفع قراءة الدرس الفعلي **1 PASS**، وcompileall/Alembic head/offline PostgreSQL SQL. البوابة الكاملة PostgreSQL وCI/M04/M09 ما تزال مطلوبة قبل `ACCEPTED`.
+- لم تُمس ملفات assessment UI الخاصة بـB ولا V1 ولا ElevenLabs أو Railway. التالي: C يراجع migration والـdiff والبوابات؛ لا تعاد المشكلة بعد قبولها.
+
+---
+
 # تسليم يدوي — إصلاح D-057 · 20261026-1830-MANUAL
 
 **functional SHA:** [`1133058c`](https://github.com/7eaur/himma-/commit/1133058c01f45cf2f978c17e2ba5eae579c87030) · **المهمة:** HV2-004 / D-057 · **الحالة:** `PENDING_GATES` · **السجل:** `runs/2026-10-26/MANUAL-20261026-1830.md`.

@@ -11,6 +11,7 @@
 | P1 | HV2-005 | تقارير المشرف V2 منفصلة عن V1 ومنع التقدم/الدرجات غير الرسمية | API + UI + تحكم auth/null policy، مراجعة visual وE2E؛ لا تصدير بيانات طفل خاصة | A/B بعد HV2-001 | BLOCKED_BY_HV2-001 |
 | P2 | HV2-006 | جرد وسائط/بنك P09.2 وتجربة سؤال/خيار بكل نوع دون اختلاق أصول | جرد delta موثق، حالات missing/fail-closed، وأصول TEST_ONLY مميزة | وفق توجيه المشرف | BLOCKED_BY_P09_1 |
 | P2 | HV2-007 | بوابة الأجهزة الحقيقية Safari/Android وخصوصية S3 | دليل أجهزة حقيقية أو `BLOCKED_EXTERNAL_DEVICE` وتقرير متطلبات اختبار يدوي | إشراف/مالك | BLOCKED_EXTERNAL_DEVICE |
+| P0 | HV2-008 | ربط كل رفع قراءة V2 بالجلسة/المهمة والسؤال ومنع الملفات اليتيمة عند سباق الإغلاق | Migration + رفض cross-question/untracked upload + lease دائمة قبل recheck + اختبارات PostgreSQL/CI | C للمراجعة | RESOLVED_SOURCE / PENDING_GATES — `853da633`؛ 11 targeted PASS وAlembic PASS محليًا |
 
 ## قواعد الاختيار
 1. الالتزام بأي `BLOCKER` أحدث في `SUPERVISOR_DIRECTIVES.md` قبل أعمدة التعيين.
@@ -182,3 +183,8 @@
 1. **P1 / HV2-004 / D-057:** نُفذ إصلاح root-cause على `1133058c`: طبقة الحالة معتمة، وبطاقة واضحة، وnative video controls معطلة أثناء الحالات الحاجبة. Unit 8/8 والواجهة 94/94 وTypeScript/ESLint/build ناجحة محليًا.
 2. **PENDING_GATES:** أضيف تحقق Playwright إلى الاختبار القائم، لكن Chromium المحلي غير متاح؛ يلزم CI/M09 exact-SHA وفتح `mobile-390-video-error.png` الجديدة قبل قبول patch.
 3. **لا تغيير لبقية الأولويات:** HV2-002 يبقى لـB، وHV2-003/005/006/007 تبقى حسب التبعيات والأجهزة/S3. حاجز Railway و`checkSuites=false` قائم، ولم تُمس V1 أو ElevenLabs.
+
+## تحديث يدوي — 2026-10-26 18:57 Asia/Aden · 20261026-1847-MANUAL
+1. **HV2-008 RESOLVED_SOURCE:** الإصلاح `853da633` يمنع التسجيل غير المتتبع وإعادة استخدام ملف القراءة بين سؤالين أو جلستين، ويربط lease بمسار `lesson/assessment/retry`.
+2. **Orphan race RESOLVED_SOURCE:** مسار retry يسجل lease ويلتزم بها بعد نجاح S3 وقبل lock/recheck؛ إغلاق المهمة أثناء الرفع يترك كائنًا مؤقتًا قابلًا للتنظيف، لا كائنًا مجهولًا.
+3. **PENDING_GATES:** C يتحقق من migration 0027 وCI/M04/M09 على نفس SHA. لا تنشئ patch آخر لنفس السبب ما لم يظهر فشل regression محدد.

@@ -81,3 +81,4 @@
 
 | 2026-10-26 17:56:56 | C | 20261026-1753-C | HV2-002/004 + visual/privacy/release | `939becca86` → review commit | A1707/B1644 ACCEPTED patch-only; B1738 PENDING_GATES; video visual REWORK; release BLOCKED | `runs/2026-10-26/C-20261026-1753.md`; CI 40342061614, M04 40342061645, M09 40342061435 |
 | 2026-10-26 18:30–18:35 | MANUAL | 20261026-1830-MANUAL | HV2-004 / D-057 video error overlay | `8c10e04040` → `1133058c01` functional | PENDING_GATES; local 94 Jest/type/lint/build PASS; browser artifact pending | `runs/2026-10-26/MANUAL-20261026-1830.md`; source artifact 12658537381 |
+| 2026-10-26 18:47–18:57 | MANUAL | 20261026-1847-MANUAL | HV2-008 audio upload binding/orphan race | `95911493dd` → `853da63307` functional | RESOLVED_SOURCE / PENDING_GATES; 11 targeted PASS; Alembic head/SQL PASS | `runs/2026-10-26/MANUAL-20261026-1847.md`; migration 0027 |
