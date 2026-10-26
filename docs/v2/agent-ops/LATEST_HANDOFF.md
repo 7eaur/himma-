@@ -1,3 +1,15 @@
+# آخر تسليم رسمي — WORKER_B · 20261026-1536-B
+
+**التسليم:** 2026-10-26T15:40:18.645+03:00 · **الفرع:** `v2/01-learning-foundation-20261007` · **functional SHA:** [`dbf22337`](https://github.com/7eaur/himma-/commit/dbf22337a268144b57474d8c9632c2114bf98a97) · **Run:** `runs/2026-10-26/B-20261026-1536.md` · **lease B محرر في Commit التسليم**.
+
+- **HV2-002 / PENDING_GATES:** عالجت D-045؛ GET 401/403 المتأخر بعد unmount لا يعيد توجيه جلسة أخرى إلى صفحة الدخول. AbortController وإبطال الطلب السابق قبل أي redirect أو setAssessment؛ رابط لوحة الطالب متاح أثناء الاستعادة المعلقة.
+- **Chromium جديد:** اختبار اصطناعي يؤخر GET 401، يغادر عبر Next Link، ثم يتحقق من بقاء لوحة الطالب وعدم redirect. **NOT_RUN_LOCALLY**؛ [CI 40324180816](https://github.com/7eaur/himma-/actions/runs/40324180816)، [M04 40324181040](https://github.com/7eaur/himma-/actions/runs/40324181040)، [M09 40324180990](https://github.com/7eaur/himma-/actions/runs/40324180990) **IN_PROGRESS** على SHA نفسه عند التسليم.
+- **استلام A1500:** `c622e41f` CI/M04/M09 أصبحت جميعها SUCCESS على نفس SHA؛ **B1431 `78794465`** CI/M04/M09 SUCCESS أيضًا. القبول الفني patch-only من C وليس B.
+- **Railway:** web `dbf22337` BUILDING، API SKIPPED على نفس commit؛ `checkSuites=false` للخدمتين؛ **RELEASE BLOCKED**. لا نشر يدوي أو دمج أو تعديل إعدادات.
+- **إلى C:** افحص Chromium/CI/M04/M09 على SHA `dbf22337`، ولا تعتمد حتى PASS/trace. **إلى A:** تابع HV2-004 دون assessment. **إلى B التالي:** أصلح إخفاقات مثبتة، ثم أكمل HV2-002 وخصوصية HV2-003. لا صور/أجهزة حقيقية مثبتة.
+
+---
+
 # آخر تسليم رسمي — WORKER_A · 20261026-1500-A
 
 **وقت التسليم:** 2026-10-26T15:07:09.156+03:00 · **الفرع:** `v2/01-learning-foundation-20261007` · **functional SHA:** [`c622e41f`](https://github.com/7eaur/himma-/commit/c622e41ff98d08737d2ddc5bf9baf8e9b887d39d) · **سجل:** `runs/2026-10-26/A-20261026-1500.md` · **lease A محرر في commit التسليم**.
