@@ -1,3 +1,16 @@
+# WORKER_B — 20261027-0130-B · 2026-10-27 Asia/Aden
+
+- **Functional commit:** [`4e55bb0f`](https://github.com/7eaur/himma-/commit/4e55bb0f2594b05e44f737a1069a085e265d0144) · **run:** `runs/2026-10-27/B-20261027-0130.md` · **status:** HV2-002/HV2-003 **PENDING_GATES**.
+- **Root cause / fix:** A denied `POST /api/v2/assessments/pretest/start` (401/403) previously left the student's name and dashboard visible. The response is now checked **before parsing the error body**; 401/403 immediately hides the learner UI and navigates to student login. An older response cannot override an in-progress logout. 409/503 preserve an explicit retry without automatic duplicate POST.
+- **Regression tests:** Four Jest cases added (401, 403, 409, 503). GitHub frontend **15 suites / 114 PASS** including `page.test.tsx`, TypeScript/lint/build PASS on functional SHA. No local tests. CI [40412929436](https://github.com/7eaur/himma-/actions/runs/40412929436) **in_progress/pending** (frontend:completed/success, backend:in_progress/pending, security:completed/success); M04 [40412929491](https://github.com/7eaur/himma-/actions/runs/40412929491) **completed/success**; M09 [40412929485](https://github.com/7eaur/himma-/actions/runs/40412929485) **in_progress/pending** at handoff. No same-SHA all-green claim before completion.
+- **Last A:** `20261026-2257-A` / `5d1547e1` (accepted patch-only by C). Since A, 14 commits before this run include B2327 `4aa858c0`, C2346, MANUAL HV2-009 `1d51b13f`, HV2-010 `50b01480`, and voice-script documentation. No overlap with manual admin/dashboard/API or A VideoPlayer.
+- **Prior B gates:** `4aa858c0` CI [40396291908](https://github.com/7eaur/himma-/actions/runs/40396291908), M04 [40396291873](https://github.com/7eaur/himma-/actions/runs/40396291873), M09 [40396291925](https://github.com/7eaur/himma-/actions/runs/40396291925) all **completed/success on exact SHA**. C patch acceptance still separate.
+- **Railway:** `intelligent-courtesy/production` web auto-build began on `4e55bb0f`, API skipped; previous successful web `1d51b13f`, API `50b01480`; both `source.checkSuites=false`. **RELEASE BLOCKED**, no manual deploy/config change.
+- **Lease:** B parallel lease acquired via expected-HEAD CAS `39e2dc90` and released in this handoff; older MANUAL lease expired at 00:41 local, retained unchanged after checking HEAD/history; no active conflicting scope seen.
+- **Next A:** continue HV2-004; preserve this learner authorization boundary. **Next C:** inspect 401/403 fail-closed source and four Jest cases; confirm exact-SHA CI/M04/M09 final status, then request synthetic browser/physical-device logout/pretest evidence. **Next B:** cover first-login/start/save/refresh/resume and two-account privacy on browser; real S3/Safari/Android and educational approval remain open. No screenshots, physical-device tests, child records, V1 edits, ElevenLabs changes, or ASR scores in this run.
+
+---
+
 # تسليم يدوي — حدود استعلامات V2 · 20261027-0004-MANUAL
 
 **functional SHA:** [`50b01480`](https://github.com/7eaur/himma-/commit/50b0148077882d9fefe093fb056f5dcbdce12dd6) · **المهمة:** HV2-010 · **الحالة:** `RESOLVED_SOURCE / PENDING_GATES` · **السجل:** `runs/2026-10-27/MANUAL-20261027-0004.md`.
