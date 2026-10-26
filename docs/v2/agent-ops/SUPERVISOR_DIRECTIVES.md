@@ -271,3 +271,22 @@
 - **D-069 | RELEASE BLOCKED:** web `49761c82` منشور قبل انتهاء gates وAPI `3cfb1dc0`، `checkSuites=false` في الخدمتين. لا موافقة إصدار/دمج أو تعديل إعدادات إنتاج دون المالك. لا دليل على تسرب/فساد فعلي يستدعي `CONTROL.mode=PAUSED` الآن.
 - **D-070 | PRIVACY/EDUCATION PENDING_GATES:** اختبار مصدر V2 للـ19 درسًا/عزل V1/تقدم الطالب/آخر تسجيل مراجع فقط؛ أجهزة Safari/Android وS3 الإنتاجي والوسائط النهائية واعتماد المالك غير مكتملة. لا ASR مختلق.
 - **D-071 | VISUAL PENDING_GATES:** M04 على `49761c82` SUCCESS، artifact `12679040895` متاح، لكن الصور لم تُفتح بصريًا في هذه الدورة؛ لا تدعِ `VISUAL_VERIFIED`.
+
+
+## مراجعة SUPERVISOR_C — 2026-10-26 22:55 Asia/Aden · `20261026-2250-C`
+
+| Run / SHA | القرار | الشاهد | الاختبار/الملفات المطلوبة |
+|---|---|---|---|
+| B2134 `49761c82` | **ACCEPTED (patch-only)** | فحص diff `d4d7cb51` + regex `49761c82`؛ CI 40379402217 وM04 40379402311 وM09 40379402366 SUCCESS exact SHA. | إبقاء HV2-002 PENDING_GATES؛ متابعة live/session/device لا إعادة فتح patch دون regression. |
+| A2200 `789f0250` | **ACCEPTED (patch-only)** | `VideoPlayer.tsx` + Jest race cases؛ CI 40383315679 وM04 40383315523 وM09 40383315599 SUCCESS exact SHA. | `VideoPlayer.tsx`/test؛ Safari/Android وفيديو حقيقي/لقطة حالة الخطأ مطلوبة. |
+| B2230 `fe17afd7` | **PENDING_GATES** | `V2StudentDashboard.tsx` + `page.test.tsx`، frontend 101 PASS، backend/security SUCCESS، M04 40388114470 SUCCESS، M09 40388114453 SUCCESS (1038 backend / 59 Chromium)؛ CI 40388114459 **integration IN_PROGRESS**. | افحص job 121806979732 على exact SHA؛ إذا FAIL أعد إنتاج logout 503/retry + late pretest ACK قبل REWORK؛ لا قبول CI مبكر. |
+| Railway release | **BLOCKED** | web `fe17afd7` SUCCESS، API older، `checkSuites=false` للخدمتين؛ نشر قبل CI. | لا تغيير نشر أو دمج main دون موافقة المالك؛ راجع gating والتوافق عند تفويضه. |
+| V2 privacy/19 lessons/audio | **PENDING_GATES** | source tests `test_v2_student_readmodel.py` و`test_v2_audio_archive.py`؛ M09 synthetic restore PASS؛ M04 15 screenshots landing/login فقط، صورة 390 login مفتوحة. | اختبار logout/login عبر حسابين، 19 درسًا والتقدم والآخر مراجع، S3 production/Safari/Android/وسائط حقيقية؛ لا بيانات خاصة بالسجلات. |
+
+### توجيهات D-072..D-077
+- **D-072 | ACCEPTED B2134 patch-only:** تحققت من صحة الحارس البنيوي واختبارات GET/POST ومن نجاح CI/M04/M09 على `49761c82`؛ لا تُغلق رحلة HV2-002.
+- **D-073 | ACCEPTED A2200 patch-only:** `playAttempt` واختبارا السباق والبوابات الخضراء على `789f0250`؛ أبقِ بوابة الفيديو الحقيقي/الأجهزة مفتوحة.
+- **D-074 | P0 B2230 PENDING_GATES:** CI integration `40388114459` لم تنتهِ؛ راجع job `121806979732` وtrace، ثم قرر. M09 59 Chromium PASS لا تعني نجاح CI أو تغطية logout بصريًا.
+- **D-075 | RELEASE BLOCKED:** Railway `checkSuites=false` للويب/API ونشر `fe17afd7` قبل اكتمال CI؛ موافقة المالك مطلوبة لأي تغيير نشر أو دمج.
+- **D-076 | PRIVACY/EDUCATION PENDING_GATES:** المصدر يدعم فصل V1/19 درسًا والتسجيل المراجع؛ S3 production والأجهزة/الوسائط والتحكيم التربوي غير مفحوصة. لا ASR مختلق.
+- **D-077 | VISUAL PENDING_GATES:** artifact `12681603746` يشمل landing/login فقط؛ صورة login 390px بلا قص ظاهر، لكنه ليس اختبار dashboard/logout/video. اطلب لقطات أو trace مستهدفًا.

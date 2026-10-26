@@ -1,3 +1,14 @@
+# ملحق تسليم SUPERVISOR_C — `20261026-2250-C` · 26 أكتوبر 2026، 22:55 Asia/Aden
+
+- **آخر تسليم عامل محفوظ:** B `20261026-2230-B`، functional `fe17afd7`؛ **آخر مراجعة مشرف:** `20261026-2250-C`؛ تقرير `runs/2026-10-26/C-20261026-2250.md`. BASE `bcff1305`، lease C commit `21c0f813`؛ الحجز يُحرر في commit التسليم.
+- **B2134 `49761c82`: ACCEPTED patch-only**، CI/M04/M09 SUCCESS exact SHA. **A2200 `789f0250`: ACCEPTED patch-only**، CI/M04/M09 SUCCESS exact SHA.
+- **B2230 `fe17afd7`: PENDING_GATES**؛ CI 40388114459 frontend/backend/security SUCCESS، integration IN_PROGRESS؛ M04 40388114470 SUCCESS؛ M09 40388114453 SUCCESS (1038 backend / 59 Chromium). مراجعة المصدر: logout privacy + late start ACK. لا قبول مبكر.
+- **Visual:** artifact M04 `12681603746` 15 صور landing/login، تمت معاينة student-login 390px بلا قص ظاهر؛ لا يغطي logout/dashboard/video. **Privacy:** 19 lessons/V1 isolation/audio archive source tests فقط، لا S3 production/أجهزة حقيقية/موافقة تربوية.
+- **Railway:** web `fe17afd7` SUCCESS، API أقدم، `checkSuites=false` للخدمتين؛ **RELEASE BLOCKED**. `CONTROL.mode=ACTIVE`، لا دليل تسرب/فساد يستوجب PAUSED.
+- **التالي:** B يفحص CI integration job `121806979732` على SHA نفسه ثم trace/logout E2E؛ A يتابع الفيديو/الأجهزة دون تعديل نطاق B؛ المشرف يراجع الأدلة في الدورة التالية. لا تغيير main/stage/V1/ElevenLabs أو إنتاج.
+
+---
+
 # آخر تسليم WORKER_B — `20261026-2230-B` · 26 أكتوبر 2026، 2026-10-26T22:37:43.426+03:00 Asia/Aden
 
 - **functional SHA:** [`fe17afd7`](https://github.com/7eaur/himma-/commit/fe17afd76ea3b5a164a50297c122b6e1a1371bad); **run:** `runs/2026-10-26/B-20261026-2230.md`; lease B released with this handoff.

@@ -1,3 +1,11 @@
+## ترتيب أولويات SUPERVISOR_C — 2026-10-26 22:55 (الأحدث؛ يتقدم على السجلات التاريخية)
+1. **P0 / HV2-003+002 / B2230 — PENDING_GATES:** `fe17afd7` CI 40388114459 frontend 101/backend/security SUCCESS لكن integration job 121806979732 IN_PROGRESS؛ M04 40388114470 وM09 40388114453 SUCCESS (59 Chromium). تحقق من CI النهائية ثم اختبار logout 503/retry والـlate start ACK بصريًا/E2E دون كشف هوية.
+2. **P0 / RELEASE — BLOCKED:** Railway web `fe17afd7` وAPI أقدم، `checkSuites=false` للخدمتين؛ لا تغيير إعدادات/نشر/دمج main دون المالك.
+3. **P1 / HV2-004 / A2200 — ACCEPTED patch-only / PENDING_GATES devices:** `789f0250` CI/M04/M09 SUCCESS؛ فحص سباق `play()` مقبول، وسائط حقيقية وSafari/Android ولقطة فيديو مستهدفة مطلوبة.
+4. **P1 / HV2-002 / B2134 — ACCEPTED patch-only / PENDING_GATES journey:** `49761c82` CI/M04/M09 SUCCESS؛ GET/POST malformed question fail-closed. لا إغلاق للقبلي/الاستئناف دون تجربة حية كاملة.
+5. **P1 / HV2-008 + V2 privacy — PENDING_GATES:** اختبارات 19 درسًا/فصل V1/التقدم/آخر تسجيل مراجع وM09 MinIO synthetic لا تثبت S3 production أو الأجهزة. لا تسجيلات خاصة في التقارير.
+6. **P2 / VISUAL — PENDING_GATES:** M04 artifact `12681603746` 15 صور landing/login فقط؛ صورة login 390px فُحصت ولا قص أفقي ظاهر؛ اطلب dashboard/logout/video screenshots/trace.
+
 ## ترتيب أولويات SUPERVISOR_C — 2026-10-26 21:50 (الأحدث، يتقدم على البنود التاريخية)
 1. **P0 / HV2-002 / B2134 — PENDING_GATES:** `49761c82`: CI 40379402217 integration وM09 40379402366 IN_PROGRESS؛ M04 40379402311 SUCCESS، jobs frontend/backend/security SUCCESS. تحقق من حالات GET/POST الثلاث الجديدة وtrace ثم القرار؛ لا قبول مبكر.
 2. **P0 / HV2-008 / B2030 — ACCEPTED test patch-only / PENDING_GATES production:** `3cfb1dc0` CI 40369963663 + M04 40369963750 + M09 40369963838 كلها SUCCESS؛ لا تُعد كتابة fixtures. تحقق migration/S3 الحقيقي لاحقًا.
