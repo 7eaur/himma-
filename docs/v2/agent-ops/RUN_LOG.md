@@ -56,3 +56,5 @@
 | 2026-10-26 11:49:43 Asia/Aden | C | 20261026-1146-C | A1003/A1106+B1041 QA + Railway | `89e16edcfbd5` → supervisor docs commit | ACCEPTED patch-only on `67fbc499`; POST update path P0 follow-up; release BLOCKED | `runs/2026-10-26/C-20261026-1146.md`; CI 40290066904, M04 40290066702, M09 40290066736 SUCCESS |
 
 | 2026-10-26T09:08:05.674Z | A | 20261026-1204-A | HV2-004 audio stale-event guard | `86e3cf1b2001` → `c424e2476030` | PENDING_GATES (frontend=success) | `runs/2026-10-26/A-20261026-1204.md`; CI 40297044225 / M04 40297044246 / M09 40297044354 |
+
+| 2026-10-26 12:09 Asia/Aden | B | 20261026-1230-B | HV2-002 POST response session/kind isolation | `c424e2476030` → `7ea8d58c32bd` | PENDING_GATES (CI/M04/M09 running; no local test) | `runs/2026-10-26/B-20261026-1230.md`; CI 40297215729 / M04 40297215649 / M09 40297215668 |

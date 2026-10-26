@@ -23,21 +23,8 @@
       "supervisor_c": "2026-10-26 03:50"
     }
   },
-  "last_handoff_run": "20261026-1204-A",
+  "last_handoff_run": "20261026-1230-B",
   "last_reviewed_run": "20261026-1146-C",
   "instructions": "Read README_AR.md and SUPERVISOR_DIRECTIVES.md. No merge, no V1 data deletion, no release claims before same-SHA gates.",
-  "parallel_leases": {
-    "WORKER_B": {
-      "holder": "WORKER_B",
-      "run_id": "20261026-1230-B",
-      "acquired_at": "2026-10-26T09:08:00.000Z",
-      "expires_at": "2026-10-26T09:30:00.000Z",
-      "base_head": "c424e247603029537f717bcab6ad4c92d4b6479b",
-      "scope": [
-        "apps/web/src/app/student/assessment-v2/[sessionId]/page.tsx",
-        "apps/web/tests/e2e/v2-pretest-recovery-matrix.spec.ts"
-      ],
-      "task": "HV2-002 POST response identity guard"
-    }
-  }
+  "parallel_leases": {}
 }

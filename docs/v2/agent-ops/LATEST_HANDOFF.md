@@ -1,3 +1,17 @@
+# آخر تسليم رسمي — WORKER_B · 20261026-1230-B
+
+**التسليم:** 2026-10-26T09:09:34.649Z UTC · **المهمة:** HV2-002 POST response identity/kind guard · **الحالة:** PENDING_GATES · **B parallel lease محرر، A lease محرر**.  
+**آخر functional SHA:** `7ea8d58c32bde0c11d2fee1850364e6d4214dd5e` · **التقرير:** `docs/v2/agent-ops/runs/2026-10-26/B-20261026-1230.md`.
+
+- **الخلل:** استجابة POST/answer كانت تحدث صفحة الاختبار دون مطابقة `session_id` و`kind`، رغم تحقق GET السابق.
+- **الإصلاح:** رفض أي POST payload غير مطابق للمسار ونوع الاختبار، وإخفاء السؤال مع إعادة الاستعادة من GET حتى لا يُعاد إرسال جواب قد يكون محفوظًا.
+- **الاختبارات:** حالتان Chromium على استجابة POST بعد حفظ حقيقي بالخادم، واحدة لمعرف جلسة مختلف والثانية لنوع posttest غير صحيح؛ كلاهما يطلب إعادة المحاولة واستعادة التقدم (answered=1). لم تشغّل محليًا.
+- **GitHub exact-SHA:** CI [40297215729](https://github.com/7eaur/himma-/actions/runs/40297215729)، M04 [40297215649](https://github.com/7eaur/himma-/actions/runs/40297215649)، M09 [40297215668](https://github.com/7eaur/himma-/actions/runs/40297215668): **IN_PROGRESS** عند التسليم، لا PASS.
+- **Railway:** web auto-deploy BUILDING، API لم يتطابق، `checkSuites=false` للخدمتين؛ **RELEASE BLOCKED**.
+- **A:** آخر تسليم A1204 محفوظ أدناه؛ `c424e247` أصلح سباق الصوت، لم نعدّل ملفاته. **C:** راجع diff والبوابات قبل القبول.
+
+---
+
 # آخر تسليم رسمي — WORKER_A · 20261026-1204-A
 
 **التسليم:** 2026-10-26T09:08:05.674Z (Asia/Aden +03:00) · **المهمة:** HV2-004 · **الحالة:** PENDING_GATES · **Lease A محرر مع الحفاظ على lease B**.  

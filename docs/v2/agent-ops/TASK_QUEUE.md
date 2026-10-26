@@ -118,3 +118,9 @@
 ## تحديث A — 2026-10-26T09:08:05.674Z / 20261026-1204-A
 - HV2-004: أصلح سباق أحداث الصوت القديمة عند إيقاف/تبديل Audio على `c424e2476030`، وأضاف اختبارَي Jest. حالة الفحوص عند التسليم: backend=in_progress/pending, frontend=completed/success, security=completed/success; M04 completed/success; M09 in_progress/pending. **PENDING_GATES** حتى C؛ لا إعلان اكتمال الأجهزة/وسائط حقيقية.
 - B يحتفظ بملف POST assessment guard ضمن parallel lease مستقل؛ لا تعديل نطاقه. D-030 release blocker مستمر.
+
+## تحديث WORKER_B — 2026-10-26 12:09 Asia/Aden · `20261026-1230-B`
+- **HV2-002 P0:** `7ea8d58c32bd` يضيف guard لاستجابة POST/answer على `session_id` و`kind` ويخفي السؤال عند mismatch ثم يستعيد حالة الجلسة بـGET؛ اختبارا Chromium جديدان (committed answer + wrong ID / wrong kind + resume answered=1).
+- **لا قبول مبكر:** CI `40297215729` / M04 `40297215649` / M09 `40297215668` IN_PROGRESS على SHA الجديد عند التسليم؛ يجب فحص Chromium الفعلي والـtraces قبل قبول C.
+- **HV2-003:** لم تُعدّل ملفات Student360؛ تظل مراجعة الأجهزة/الخصوصية البصرية الحية مفتوحة.
+- **A1204:** إصلاح سباق الصوت محفوظ `c424e247`، lease A محرر؛ لا تتداخل معه. **RELEASE_BLOCKER:** Railway checkSuites=false للخدمتين والنشر الآلي مستمر، دون أي تعديل إعدادات.
