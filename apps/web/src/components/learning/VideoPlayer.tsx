@@ -102,7 +102,7 @@ function VideoPlayerInstance({ src, captionsSrc, startAt = 0, testOnly = false, 
         ref={videoRef}
         className={styles.video}
         src={src}
-        controls
+        controls={state === "ready"}
         playsInline
         preload="metadata"
         onLoadedMetadata={resume}

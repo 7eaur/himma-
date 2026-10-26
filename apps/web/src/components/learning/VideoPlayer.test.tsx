@@ -17,6 +17,7 @@ describe("VideoPlayer", () => {
     const video = screen.getByText("متصفحك لا يدعم تشغيل الفيديو.").closest("video") as HTMLVideoElement;
     setMediaTime(video, 0);
     fireEvent.loadedMetadata(video);
+    fireEvent.canPlay(video);
     expect(video.currentTime).toBe(2.5);
     expect(video).toHaveAttribute("controls");
     expect(video.querySelector("track")).toHaveAttribute("srclang", "ar");
@@ -77,6 +78,7 @@ describe("VideoPlayer", () => {
     expect(screen.getByText("الاتصال بطيء قليلًا")).toBeInTheDocument();
     fireEvent.error(video);
     expect(screen.getByRole("alert")).toHaveTextContent("تعذر تشغيل الفيديو");
+    expect(video).not.toHaveAttribute("controls");
     fireEvent.canPlay(video);
     fireEvent.waiting(video);
     fireEvent.stalled(video);
@@ -87,8 +89,10 @@ describe("VideoPlayer", () => {
     fireEvent.click(screen.getByRole("button", { name: "إعادة المحاولة" }));
     await waitFor(() => expect(HTMLMediaElement.prototype.load).toHaveBeenCalledTimes(1));
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(video).not.toHaveAttribute("controls");
     fireEvent.canPlay(video);
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(video).toHaveAttribute("controls");
   });
 
   it("ignores a late completion acknowledgment from the previous video", async () => {

@@ -185,6 +185,8 @@ test("P03/P04 runtime and P05 targeted support remain responsive", async ({ page
 
   await resumedPlayer.locator("video").evaluate((video) => video.dispatchEvent(new Event("error")));
   await expect(resumedPlayer.getByRole("alert")).toContainText("تعذر تشغيل الفيديو");
+  await expect(resumedPlayer.getByRole("alert")).toHaveCSS("background-color", "rgb(16, 47, 73)");
+  await expect(resumedPlayer.locator("video")).not.toHaveAttribute("controls", "");
   await page.screenshot({ path: path.join(SCREENSHOT_DIR, "mobile-390-video-error.png"), fullPage: true });
   await resumedPlayer.getByRole("button", { name: "إعادة المحاولة" }).click();
   await expect(resumedPlayer.getByRole("alert")).toHaveCount(0);
