@@ -256,7 +256,7 @@ describe("InteractionPlayer", () => {
     expect(screen.getByRole("button", { name: "تحقق من الإجابة" })).toBeEnabled();
     await act(async () => { fireEvent.click(screen.getByRole("button", { name: "تشغيل صوت السؤال" })); });
     expect(screen.getByRole("button", { name: "تحقق من الإجابة" })).toBeDisabled();
-    expect(screen.getByRole("alert")).toHaveTextContent("لن تُرسل الإجابة");
+    expect(screen.getByText(/هذا السؤال يحتاج صورة أو صوتًا غير جاهز الآن/)).toHaveTextContent("لن تُرسل الإجابة");
     await act(async () => { fireEvent.click(screen.getByRole("button", { name: "تشغيل صوت السؤال" })); });
     expect(play).toHaveBeenCalledTimes(2);
     expect(screen.getByRole("button", { name: "تحقق من الإجابة" })).toBeEnabled();
