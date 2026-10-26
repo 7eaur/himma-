@@ -246,3 +246,62 @@ test("HV2-002: cross-student session ownership through the browser BFF stays pri
   }, { id: sessionId, body: answer });
   expect(restored).toEqual({ getStatus: 200, progress: 1, replayStatus: 200, replay: "replayed" });
 });
+
+
+test("HV2-002: mismatched assessment GET never renders another session and retry restores the owner", async ({ page, request }) => {
+  test.setTimeout(150000);
+  if (!PASSWORD) throw new Error("E2E_RESEARCHER_PASSWORD required");
+
+  const admin = await request.post(`${API_URL}/auth/login`, {
+    data: { username: USERNAME, password: PASSWORD },
+  });
+  expect(admin.status()).toBe(200);
+  const created = await request.post(`${API_URL}/researcher/students`, {
+    data: { full_name: `طالب تطابق جلسة اصطناعي ${Date.now()}`, grade_level: 3 },
+  });
+  expect(created.status()).toBe(201);
+  const code = (await created.json()).access_code as string;
+
+  await page.goto("/student/login");
+  await page.getByTestId("input-access-code").fill(code);
+  await page.getByTestId("student-login-submit").click();
+  await expect(page.getByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
+
+  const started = await page.evaluate(async () => {
+    const response = await fetch("/api/v2/assessments/pretest/start", { method: "POST" });
+    return { status: response.status, data: await response.json() };
+  });
+  expect(started.status).toBe(200);
+  const sessionId = started.data.session.session_id as number;
+  let reads = 0;
+  await page.route(`**/api/v2/assessments/sessions/${sessionId}`, async route => {
+    if (route.request().method() !== "GET") return route.continue();
+    reads += 1;
+    if (reads === 1) {
+      const upstream = await route.fetch();
+      expect(upstream.status()).toBe(200);
+      const original = (await upstream.json()) as { session: { session_id: number } };
+      // The upstream GET is real; only the returned session identifier is
+      // altered to reproduce a stale or cross-session response at the BFF.
+      return route.fulfill({
+        response: upstream,
+        json: { ...original, session: { ...original.session, session_id: sessionId + 1 } },
+      });
+    }
+    return route.continue();
+  });
+
+  await page.goto(`/student/assessment-v2/${sessionId}`);
+  await expect(page.locator("main [role='alert']")).toContainText("تعذر استعادة التقييم");
+  await expect(page.getByTestId("v2-interaction-player")).toHaveCount(0);
+  await page.getByRole("button", { name: "إعادة المحاولة" }).click();
+  await expect(page.getByTestId("v2-interaction-player")).toContainText("1 من 30");
+  expect(reads).toBe(2);
+  const recovered = await page.evaluate(async id => {
+    const response = await fetch(`/api/v2/assessments/sessions/${id}`);
+    return { status: response.status, data: await response.json() };
+  }, sessionId);
+  expect(recovered.status).toBe(200);
+  expect(recovered.data.session.session_id).toBe(sessionId);
+  expect(recovered.data.session.progress.answered).toBe(0);
+});

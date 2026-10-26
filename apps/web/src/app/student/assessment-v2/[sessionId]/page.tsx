@@ -18,8 +18,13 @@ interface AssessmentPayload {
 
 export default function AssessmentV2Page() {
   const params = useParams<{ sessionId: string }>();
+  // Next may reuse the page component across dynamic-route transitions.
+  // Key the session state to its route to prevent stale learner data flashing.
+  return <AssessmentV2Session key={params.sessionId} sessionId={Number(params.sessionId)} />;
+}
+
+function AssessmentV2Session({ sessionId }: { sessionId: number }) {
   const router = useRouter();
-  const sessionId = Number(params.sessionId);
   const invalid = !Number.isInteger(sessionId) || sessionId < 1;
   const [assessment, setAssessment] = useState<AssessmentPayload | null>(null);
   const [loading, setLoading] = useState(true);
@@ -33,6 +38,12 @@ export default function AssessmentV2Page() {
     if (!response.ok) throw new Error(response.status === 404
       ? "جلسة التقييم غير متاحة لهذا الحساب."
       : "تعذر استعادة التقييم. تقدّمك محفوظ، حاول مرة أخرى.");
+    // Fail closed if a delayed/cached/misrouted response belongs to another
+    // assessment. Never render another session's question or progress.
+    if (!data?.session || data.session.session_id !== sessionId ||
+        !["pretest", "posttest"].includes(data.session.kind)) {
+      throw new Error("تعذر استعادة التقييم. تحقق من الرابط وحاول مرة أخرى.");
+    }
     setAssessment(data);
   }, [invalid, router, sessionId]);
 
