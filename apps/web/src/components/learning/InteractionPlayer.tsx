@@ -66,15 +66,37 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const mountedRef = useRef(false);
+  const micRequestIdRef = useRef(0);
+  const micRequestPendingRef = useRef(false);
+  const [requestingMic, setRequestingMic] = useState(false);
   const [recording, setRecording] = useState(false);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
 
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      micRequestIdRef.current += 1;
+      micRequestPendingRef.current = false;
+      audioRef.current?.pause();
+      const recorder = recorderRef.current;
+      if (recorder) {
+        // Prevent a late recorder event from writing a child's audio into a new question.
+        recorder.ondataavailable = null;
+        recorder.onstop = null;
+        if (recorder.state !== "inactive") {
+          try { recorder.stop(); } catch { /* Tracks are stopped below even if stop() races. */ }
+        }
+        recorder.stream.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, []);
+
   useEffect(() => () => {
-    audioRef.current?.pause();
     if (audioUrl) URL.revokeObjectURL(audioUrl);
-    recorderRef.current?.stream.getTracks().forEach((track) => track.stop());
   }, [audioUrl]);
 
   useEffect(() => {
@@ -180,28 +202,59 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   };
 
   const startRecording = async () => {
-    if (saving || awaitingConfirmation) return;
+    if (saving || awaitingConfirmation || recording || micRequestPendingRef.current) return;
     setError("");
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
       setError("التسجيل غير مدعوم في هذا المتصفح."); return;
     }
+    const requestId = ++micRequestIdRef.current;
+    micRequestPendingRef.current = true;
+    setRequestingMic(true);
+    let stream: MediaStream | null = null;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Permission may arrive after the learner leaves the question. Never
+      // construct a recorder or retain an open microphone for that old route.
+      if (!mountedRef.current || requestId !== micRequestIdRef.current) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
       chunksRef.current = [];
       const preferred = "audio/webm;codecs=opus";
       const recorder = MediaRecorder.isTypeSupported(preferred) ? new MediaRecorder(stream, { mimeType: preferred }) : new MediaRecorder(stream);
-      recorder.ondataavailable = (event) => { if (event.data.size) chunksRef.current.push(event.data); };
+      recorder.ondataavailable = (event) => {
+        if (mountedRef.current && recorderRef.current === recorder && event.data.size) chunksRef.current.push(event.data);
+      };
       recorder.onstop = () => {
+        stream?.getTracks().forEach((track) => track.stop());
+        if (!mountedRef.current || recorderRef.current !== recorder) return;
+        recorderRef.current = null;
         const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
-        setAudioBlob(blob);
-        setAudioUrl((current) => { if (current) URL.revokeObjectURL(current); return URL.createObjectURL(blob); });
-        stream.getTracks().forEach((track) => track.stop());
+        if (!blob.size) {
+          // Empty captures are not evidence and must never be uploaded or graded.
+          setAudioBlob(null);
+          setError("لم يُلتقط صوت في التسجيل. حاول مرة أخرى.");
+        } else {
+          setAudioBlob(blob);
+          setAudioUrl((current) => { if (current) URL.revokeObjectURL(current); return URL.createObjectURL(blob); });
+        }
+        setRecording(false);
       };
       recorder.start();
       recorderRef.current = recorder;
       setRecording(true);
       setRecordingSeconds(0);
-    } catch { setError("لم نتمكن من تشغيل الميكروفون. اسمح باستخدامه ثم حاول مرة أخرى."); }
+    } catch {
+      stream?.getTracks().forEach((track) => track.stop());
+      if (mountedRef.current && requestId === micRequestIdRef.current) {
+        setError("لم نتمكن من تشغيل الميكروفون. اسمح باستخدامه ثم حاول مرة أخرى.");
+      }
+    } finally {
+      if (mountedRef.current && requestId === micRequestIdRef.current) {
+        micRequestPendingRef.current = false;
+        setRequestingMic(false);
+      }
+    }
   };
 
   useEffect(() => {
@@ -211,7 +264,13 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   }, [recording]);
 
   const stopRecording = () => {
-    if (recorderRef.current?.state === "recording") recorderRef.current.stop();
+    if (recorderRef.current?.state === "recording") {
+      try { recorderRef.current.stop(); }
+      catch {
+        recorderRef.current.stream.getTracks().forEach((track) => track.stop());
+        setError("تعذر إنهاء التسجيل. حاول مرة أخرى.");
+      }
+    }
     setRecording(false);
   };
 
@@ -339,7 +398,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
 
     {question.interaction === "write_text" && <div className={styles.writing}><label htmlFor={`write-${question.question_id}`}>اكتب إجابتك هنا</label><textarea id={`write-${question.question_id}`} disabled={saving || awaitingConfirmation} value={text} onChange={(event) => { setText(event.target.value); setDraftState("saving"); }} maxLength={500} rows={3} inputMode="text" autoComplete="off"/><span className={draftState === "error" ? styles.draftError : ""}>{draftState === "saving" ? "جاري حفظ المسودة..." : draftState === "saved" ? "حُفظت المسودة" : draftState === "error" ? "تعذر حفظ المسودة؛ سنحاول عند التعديل التالي" : "لا تحتاج إلى كتابة الحركات غير المطلوبة"}</span></div>}
 
-    {question.interaction === "read_aloud" && <div className={styles.recorder}>{!audioBlob ? <><button type="button" className={`${styles.recordButton} ${recording ? styles.recording : ""}`} onClick={recording ? stopRecording : () => void startRecording()} disabled={saving || awaitingConfirmation} aria-label={recording ? "إيقاف التسجيل" : "بدء التسجيل"}>{recording ? <MicOff size={28}/> : <Mic size={28}/>}</button><p>{recording ? `جاري التسجيل… ${recordingSeconds} ث` : "اضغط ثم اقرأ بصوت واضح"}</p></> : <>{audioUrl && <audio controls src={audioUrl}/>}<button type="button" className={styles.secondary} disabled={saving || awaitingConfirmation} onClick={resetRecording}><RotateCcw size={16}/> إعادة التسجيل</button><p>سيبقى التقييم معلقًا حتى يراجعه المشرف.</p></>}</div>}
+    {question.interaction === "read_aloud" && <div className={styles.recorder}>{!audioBlob ? <><button type="button" className={`${styles.recordButton} ${recording ? styles.recording : ""}`} onClick={recording ? stopRecording : () => void startRecording()} disabled={saving || awaitingConfirmation || requestingMic} aria-label={requestingMic ? "جاري تفعيل الميكروفون" : recording ? "إيقاف التسجيل" : "بدء التسجيل"}>{recording ? <MicOff size={28}/> : <Mic size={28}/>}</button><p>{requestingMic ? "جاري طلب إذن الميكروفون..." : recording ? `جاري التسجيل… ${recordingSeconds} ث` : "اضغط ثم اقرأ بصوت واضح"}</p></> : <>{audioUrl && <audio controls src={audioUrl}/>}<button type="button" className={styles.secondary} disabled={saving || awaitingConfirmation} onClick={resetRecording}><RotateCcw size={16}/> إعادة التسجيل</button><p>سيبقى التقييم معلقًا حتى يراجعه المشرف.</p></>}</div>}
 
     {!isAssessment && feedback && <div className={`${styles.feedback} ${feedback.correct === false ? styles.retry : styles.accepted}`} role="status"><strong>{feedback.correct === true ? "أحسنت!" : feedback.correct === false ? "حاول مرة أخرى" : "تم الحفظ"}</strong><span>{feedback.message}</span>{feedback.retry_required && feedback.hint && <span className={styles.hint}>تلميح: {feedback.hint}</span>}</div>}
     {error && <div className={styles.error} role="alert">{error}</div>}

@@ -366,6 +366,82 @@ describe("InteractionPlayer", () => {
     expect(screen.queryByText("حاول مرة أخرى")).not.toBeInTheDocument();
   });
 
+
+  it("stops a microphone stream granted after the learner leaves the question", async () => {
+    const previousDevices = navigator.mediaDevices;
+    const previousRecorder = global.MediaRecorder;
+    const stop = jest.fn();
+    let grant: (stream: MediaStream) => void = () => { throw new Error("permission not requested"); };
+    const permission = new Promise<MediaStream>((resolve) => { grant = resolve; });
+    const getUserMedia = jest.fn().mockReturnValue(permission);
+    Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: { getUserMedia } });
+    const recorder = Object.assign(jest.fn(), { isTypeSupported: jest.fn().mockReturnValue(false) });
+    global.MediaRecorder = recorder as unknown as typeof MediaRecorder;
+    try {
+      const { unmount } = render(<InteractionPlayer sessionId={7} interaction={payload({
+        interaction: "read_aloud", options: [],
+      })} onLessonChange={jest.fn()}/>);
+      fireEvent.click(screen.getByRole("button", { name: "بدء التسجيل" }));
+      expect(screen.getByRole("button", { name: "جاري تفعيل الميكروفون" })).toBeDisabled();
+      expect(getUserMedia).toHaveBeenCalledTimes(1);
+      unmount();
+      await act(async () => {
+        grant({ getTracks: () => [{ stop }] } as unknown as MediaStream);
+        await permission;
+      });
+      expect(stop).toHaveBeenCalledTimes(1);
+      expect(recorder).not.toHaveBeenCalled();
+    } finally {
+      Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: previousDevices });
+      global.MediaRecorder = previousRecorder;
+    }
+  });
+
+  it("rejects an empty reading capture and releases the microphone without uploading", async () => {
+    const previousDevices = navigator.mediaDevices;
+    const previousRecorder = global.MediaRecorder;
+    const stopTrack = jest.fn();
+    const stream = { getTracks: () => [{ stop: stopTrack }] } as unknown as MediaStream;
+    Object.defineProperty(navigator, "mediaDevices", {
+      configurable: true, value: { getUserMedia: jest.fn().mockResolvedValue(stream) },
+    });
+    const recorder = {
+      state: "inactive",
+      stream,
+      mimeType: "audio/webm",
+      onstop: null as (() => void) | null,
+      ondataavailable: null as ((event: BlobEvent) => void) | null,
+      start: jest.fn(),
+      stop: jest.fn(),
+    };
+    recorder.start.mockImplementation(() => { recorder.state = "recording"; });
+    recorder.stop.mockImplementation(() => { recorder.state = "inactive"; recorder.onstop?.(); });
+    const constructor = Object.assign(jest.fn().mockImplementation(() => recorder), {
+      isTypeSupported: jest.fn().mockReturnValue(false),
+    });
+    global.MediaRecorder = constructor as unknown as typeof MediaRecorder;
+    try {
+      render(<InteractionPlayer sessionId={7} interaction={payload({
+        interaction: "read_aloud", options: [],
+      })} onLessonChange={jest.fn()}/>);
+      await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: "بدء التسجيل" }));
+        await Promise.resolve();
+      });
+      expect(screen.getByRole("button", { name: "إيقاف التسجيل" })).toBeEnabled();
+      await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: "إيقاف التسجيل" }));
+      });
+      expect(stopTrack).toHaveBeenCalled();
+      expect(screen.getByRole("alert")).toHaveTextContent("لم يُلتقط صوت");
+      expect(screen.getByRole("button", { name: "إرسال التسجيل للمراجعة" })).toBeDisabled();
+      expect(global.fetch).not.toHaveBeenCalled();
+    } finally {
+      Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: previousDevices });
+      global.MediaRecorder = previousRecorder;
+    }
+  });
+
   it("autosaves writing as a draft before it becomes review evidence", async () => {
     jest.useFakeTimers();
     (global.fetch as jest.Mock).mockResolvedValue({ ok: true, json: async () => ({ status: "saved" }) });
