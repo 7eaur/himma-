@@ -177,6 +177,10 @@ test("P03/P04 runtime and P05 targeted support remain responsive", async ({ page
   await page.screenshot({ path: path.join(SCREENSHOT_DIR, "mobile-390-video-error.png"), fullPage: true });
   await resumedPlayer.getByRole("button", { name: "إعادة المحاولة" }).click();
   await expect(resumedPlayer.getByRole("alert")).toHaveCount(0);
+  // load() resets media metadata; firing ended before duration is available
+  // made this browser test flaky and skipped the real onEnded callback.
+  await expect.poll(() => resumedPlayer.locator("video").evaluate((element) =>
+    (element as HTMLVideoElement).duration)).toBeGreaterThan(0);
 
   // Reproduce a network race: an older playback checkpoint returns only
   // after the completion event has advanced the learner to guided practice.
@@ -199,6 +203,10 @@ test("P03/P04 runtime and P05 targeted support remain responsive", async ({ page
     response.request().postData()?.includes("video_progress") === true);
   releaseDelayedCheckpoint?.();
   await delayedResponse;
+  // Allow the fetch continuation and React commit to run before asserting
+  // that a stale checkpoint did not remount the video stage.
+  await page.evaluate(() => new Promise<void>((resolve) =>
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
   await expect(interaction).toBeVisible();
   await expect(page.getByTestId("v2-video-player")).toHaveCount(0);
   await expect(interaction.getByRole("heading", { name: "استمع ثم اختر الحرف." })).toBeVisible();
