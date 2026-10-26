@@ -6,7 +6,19 @@
   "timezone": "Asia/Aden",
   "mode": "ACTIVE",
   "stop_reason": null,
-  "lease": null,
+  "lease": {
+    "run_id": "20261026-0330-B",
+    "role": "WORKER_B",
+    "base_head": "3ce39dd3fb758dd74894c336af60736fd5f5be18",
+    "scope": [
+      "HV2-002",
+      "apps/web/tests/e2e/v2-student-home-isolation.spec.ts",
+      "apps/web/src/app/student/V2StudentDashboard.tsx",
+      "services/api/v2_assessment_runtime.py"
+    ],
+    "acquired_at": "2026-10-26T03:30:54+03:00",
+    "expires_at": "2026-10-26T03:57:54+03:00"
+  },
   "scheduler": {
     "worker_a": "00 * * * *",
     "worker_b": "30 * * * *",
