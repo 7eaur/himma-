@@ -40,7 +40,12 @@ function isAssessmentPayload(value: unknown, sessionId: number, expectedKind?: A
     typeof interaction.question?.interaction === "string" &&
     Array.isArray(interaction.question?.options) &&
     !!interaction.media && typeof interaction.media === "object" && !Array.isArray(interaction.media) &&
-    !!interaction.progress && Number.isInteger(interaction.progress.index);
+    interaction.question.role === session.kind &&
+    !!interaction.progress &&
+    interaction.progress.stage === session.kind &&
+    interaction.progress.total === progress.total &&
+    interaction.progress.index === progress.answered + 1 &&
+    progress.answered < progress.total;
 }
 
 export default function AssessmentV2Page() {
