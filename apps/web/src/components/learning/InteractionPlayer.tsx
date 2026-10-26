@@ -87,6 +87,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
         // Prevent a late recorder event from writing a child's audio into a new question.
         recorder.ondataavailable = null;
         recorder.onstop = null;
+        recorder.onerror = null;
         if (recorder.state !== "inactive") {
           try { recorder.stop(); } catch { /* Tracks are stopped below even if stop() races. */ }
         }
@@ -239,6 +240,24 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
           setAudioUrl((current) => { if (current) URL.revokeObjectURL(current); return URL.createObjectURL(blob); });
         }
         setRecording(false);
+      };
+      // A recorder can fail asynchronously after start() (device removal,
+      // encoder failure). Never turn partial chunks into a valid answer.
+      recorder.onerror = () => {
+        stream?.getTracks().forEach((track) => track.stop());
+        if (!mountedRef.current || recorderRef.current !== recorder) return;
+        recorder.ondataavailable = null;
+        recorder.onstop = null;
+        recorder.onerror = null;
+        if (recorder.state !== "inactive") {
+          try { recorder.stop(); } catch { /* Tracks were already stopped. */ }
+        }
+        recorderRef.current = null;
+        chunksRef.current = [];
+        setAudioBlob(null);
+        setAudioUrl((current) => { if (current) URL.revokeObjectURL(current); return null; });
+        setRecording(false);
+        setError("تعذر تسجيل الصوت. حاول مرة أخرى.");
       };
       recorder.start();
       recorderRef.current = recorder;
