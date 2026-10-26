@@ -6,22 +6,7 @@
   "timezone": "Asia/Aden",
   "mode": "ACTIVE",
   "stop_reason": null,
-  "lease": {
-    "owner": "MANUAL_CODEX",
-    "run_id": "20261027-0004-MANUAL",
-    "base_head": "8e1fc13eeba546b69a9a90e66ce0f018582e4376",
-    "scope": [
-      "services/api/v2_lesson_review.py",
-      "services/api/v2_retry_runtime.py",
-      "services/api/v2_student_readmodel.py",
-      "services/api/test_v2_lesson_review.py",
-      "services/api/test_v2_retry_runtime.py",
-      "services/api/test_v2_student_readmodel.py",
-      "docs/v2/agent-ops"
-    ],
-    "acquired_at": "2026-10-26T21:04:00Z",
-    "expires_at": "2026-10-26T21:45:00Z"
-  },
+  "lease": null,
   "scheduler": {
     "worker_a": "00 * * * *",
     "worker_b": "30 * * * *",
@@ -38,7 +23,7 @@
       "supervisor_c": "2026-10-26 03:50"
     }
   },
-  "last_handoff_run": "20261026-2357-MANUAL",
+  "last_handoff_run": "20261027-0004-MANUAL",
   "last_reviewed_run": "20261026-2346-C",
   "instructions": "Read README_AR.md and SUPERVISOR_DIRECTIVES.md. No merge, no V1 data deletion, no release claims before same-SHA gates.",
   "parallel_leases": {}

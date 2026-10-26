@@ -48,6 +48,7 @@
 | P2 | HV2-007 | بوابة الأجهزة الحقيقية Safari/Android وخصوصية S3 | دليل أجهزة حقيقية أو `BLOCKED_EXTERNAL_DEVICE` وتقرير متطلبات اختبار يدوي | إشراف/مالك | BLOCKED_EXTERNAL_DEVICE |
 | P0 | HV2-008 | ربط كل رفع قراءة V2 بالجلسة/المهمة والسؤال ومنع الملفات اليتيمة عند سباق الإغلاق | Migration + رفض cross-question/untracked upload + lease دائمة قبل recheck + اختبارات PostgreSQL/CI | C للمراجعة | RESOLVED_SOURCE / PENDING_GATES — `853da633`؛ 11 targeted PASS وAlembic PASS محليًا |
 | P0 | HV2-009 | منع اعتماد قراءة V2 قبل اكتمال تشغيل نسخة التسجيل الحالية ورفض أسباب المراجعة الفارغة | ACK مدقق مرتبط بالمراجع+الإجابة+AudioSubmission، UI fail-closed، whitespace validation، اختبارات API/UI وCI exact-SHA | C للمراجعة | RESOLVED_SOURCE / PENDING_GATES — `1d51b13f`؛ API 34 PASS، UI 3 PASS، lint وTypeScript PASS محليًا |
+| P1 | HV2-010 | إغلاق N+1 والقوائم غير المحدودة في مراجعة الدروس وإعادات الطالب وread-model V2 | eager/batch loading، اختيار محاولات محدود، تجميع خط الدروس، regression query-count/history، CI exact-SHA | C للمراجعة | RESOLVED_SOURCE / PENDING_GATES — `50b01480`؛ 26 targeted PASS وcompileall PASS محليًا |
 
 ## قواعد الاختيار
 1. الالتزام بأي `BLOCKER` أحدث في `SUPERVISOR_DIRECTIVES.md` قبل أعمدة التعيين.
