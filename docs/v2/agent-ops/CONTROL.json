@@ -12,7 +12,10 @@
     "task_id": "HV2-001",
     "scope": [
       "apps/web/tests/e2e/v2-student-home-isolation.spec.ts",
-      "apps/web/tests/e2e/v2-lesson-runtime.spec.ts"
+      "apps/web/tests/e2e/v2-lesson-runtime.spec.ts",
+      "services/api/v2_lesson_runtime.py",
+      "services/api/test_v2_lesson_runtime.py",
+      "apps/web/src/app/student/learning-v2/[sessionId]/page.tsx"
     ],
     "base_head": "15d7585a01c30558d12102567e26c416684d054e",
     "acquired_at": "2026-10-26T01:00:41.738Z",
