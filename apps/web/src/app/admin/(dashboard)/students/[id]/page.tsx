@@ -158,7 +158,7 @@ export default function StudentDetailPage() {
   const params = useParams();
   const id = params.id as string;
   const activeIdRef = useRef(id);
-  activeIdRef.current = id;
+  useEffect(() => { activeIdRef.current = id; }, [id]);
   const [activeTab, setActiveTab] = useState<TabKey>("v2");
   const [student, setStudent] = useState<Student | null>(null);
   const [loadedStudentId, setLoadedStudentId] = useState<string | null>(null);
