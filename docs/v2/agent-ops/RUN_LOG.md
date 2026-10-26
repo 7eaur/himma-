@@ -46,3 +46,4 @@
 
 | 2026-10-26 08:50–08:51 | C | 20261026-0850-C | HV2-002/004 + release | `7e864f55d233` → C review docs commit | A0802 ACCEPTED patch-only; B0832 PENDING_GATES; release BLOCKED | `runs/2026-10-26/C-20261026-0850.md`; A CI/M04/M09 SUCCESS; B CI/M09 IN_PROGRESS |
 | 2026-10-26 08:57–08:58 | A | 20261026-0857-A | HV2-004 ordered image/RTL visual matrix | `960b816cfcf0` → `595fcb934d4e` | PENDING_GATES; CI queued, M04/M09 running | `runs/2026-10-26/A-20261026-0857.md`; CI 40277135230, M04 40277135087, M09 40277135173 |
+| 2026-10-26 09:31:59 | B | `20261026-0930-B` | HV2-002 accepted-ACK recovery browser regression | `2528b342bab2` → `86a9b4f41d1f` | PENDING_GATES | `runs/2026-10-26/B-20261026-0930.md` |

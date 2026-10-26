@@ -23,19 +23,8 @@
       "supervisor_c": "2026-10-26 03:50"
     }
   },
-  "last_handoff_run": "20261026-0857-A",
+  "last_handoff_run": "20261026-0930-B",
   "last_reviewed_run": "20261026-0850-C",
   "instructions": "Read README_AR.md and SUPERVISOR_DIRECTIVES.md. No merge, no V1 data deletion, no release claims before same-SHA gates.",
-  "parallel_leases": {
-    "WORKER_B": {
-      "run_id": "20261026-0930-B",
-      "owner": "WORKER_B",
-      "base_head": "2528b342bab20ea64b4adfe996efc10ea3e4f746",
-      "scope": [
-        "apps/web/tests/e2e/v2-pretest-recovery-matrix.spec.ts"
-      ],
-      "acquired_at": "2026-10-26T06:30:00.369Z",
-      "expires_at": "2026-10-26T06:54:00.369Z"
-    }
-  }
+  "parallel_leases": {}
 }

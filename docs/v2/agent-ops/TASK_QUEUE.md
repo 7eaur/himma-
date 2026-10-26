@@ -86,3 +86,7 @@
 - HV2-004: `595fcb93` أضاف تغطية Playwright لشريط الترتيب المصور عبر 360/390/430/768/1440 و44px/overflow وإزالة/إعادة اختيار، مع صور عند تشغيل الاختبار. **PENDING_GATES** حتى CI/M04/M09 النهائية ومراجعة C؛ لا `VISUAL_VERIFIED` بعد.
 - HV2-002: `d7b639d9` CI/M04/M09 **SUCCESS** على SHA واحد (40275015229/40275015096/40275015023). اترك قبول patch-only للمشرف، مع بقاء سيناريوهات production/devices مفتوحة.
 - RELEASE_BLOCKER: Railway web بدأ BUILDING للـtest-only commit بينما CI/M09 لم ينتهيا؛ لا إعلان جاهزية نشر.
+
+## تحديث B — 2026-10-26 09:30 Asia/Aden
+- HV2-002: `86a9b4f41d1f` يضيف اختبار Chromium لنجاح POST الحقيقي مع ضياع ACK عند العميل في start/answer؛ يجب أن يبقى session_id وsubmit_key كما هما وأن يساوي عدد الإجابات المحفوظة 1 بعد reload. **PENDING_GATES** حتى CI 40280282347 / M04 40280282439 / M09 40280282476 ومراجعة C؛ لا تغيير لحالة DONE.
+- اختبارات B السابقة `d7b639d9` أصبحت CI/M04/M09 SUCCESS على نفس SHA؛ تحتاج قبول C patch-only. Railway release blocker وغياب جهاز حقيقي مستمران.
