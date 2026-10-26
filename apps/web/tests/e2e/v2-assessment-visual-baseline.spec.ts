@@ -9,6 +9,12 @@ const DIR = path.join(process.cwd(), "playwright-report", "screenshots", "p09-v2
 
 type AssessmentState = "answering" | "waiting_review" | "placement_pending_review" | "completed";
 
+// TEST_ONLY geometric asset. It verifies that image-based choices remain
+// visible after selection; it is not an educational image or answer key.
+const TEST_ONLY_IMAGE = "data:image/svg+xml," + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="80" height="60"><rect x="8" y="8" width="64" height="44" rx="8" fill="#347fd9"/></svg>'
+);
+
 function assessment(state: AssessmentState) {
   return {
     session: { session_id: 777, kind: "pretest", state, progress: { answered: state === "answering" ? 11 : 30, total: 30 } },
@@ -18,13 +24,13 @@ function assessment(state: AssessmentState) {
         prompt: "رتّب الحروف لتكوّن اسم الأداة التي نكتب بها.",
         stimulus: { text: null, media: [] },
         options: [
-          { id: "tile_01", text: "م", media: [] },
+          { id: "tile_01", text: "م", media: [{ media_id: "visual-test-only", kind: "image" }] },
           { id: "tile_02", text: "ق", media: [] },
           { id: "tile_03", text: "ل", media: [] },
         ],
         hint: null,
       },
-      media: {},
+      media: { "visual-test-only": { kind: "image", state: "ready", url: TEST_ONLY_IMAGE } },
       progress: { index: 12, total: 30, stage: "pretest" },
       attempts: 0,
       draft: null,
@@ -78,6 +84,33 @@ test("P09.0 V2 pretest states are readable without answer leakage at mobile, tab
       if (mode === "answering") {
         await expect(page.getByText("رتّب الحروف لتكوّن اسم الأداة التي نكتب بها.")).toBeVisible();
         await expect(page.getByText(/تلميح:/)).toHaveCount(0);
+        // Exercise the real ordered-choice UI at every approved breakpoint,
+        // rather than capturing only an empty tray. The selected image must
+        // remain visible, its remove button must be touch-friendly, and
+        // removing it must restore the original choice.
+        await page.getByRole("button", { name: "اختيار الخيار 1" }).click();
+        await page.getByRole("button", { name: "اختيار الخيار 2" }).click();
+        const tray = page.getByLabel("الترتيب المختار");
+        await expect(tray.getByRole("button")).toHaveCount(2);
+        await expect(tray.getByRole("img", { name: "صورة العنصر 1" })).toBeVisible();
+        const selectedBoxes = await tray.getByRole("button").evaluateAll((nodes) =>
+          nodes.map((node) => {
+            const rect = node.getBoundingClientRect();
+            return { width: rect.width, height: rect.height, left: rect.left, right: rect.right };
+          }),
+        );
+        for (const box of selectedBoxes) {
+          expect(box.height, JSON.stringify({ size, box })).toBeGreaterThanOrEqual(44);
+          expect(box.left, JSON.stringify({ size, box })).toBeGreaterThanOrEqual(-1);
+          expect(box.right, JSON.stringify({ size, box })).toBeLessThanOrEqual(size.width + 1);
+        }
+        await page.screenshot({
+          path: path.join(DIR, `${size.width}x${size.height}-answering-selected-image.png`),
+          fullPage: true,
+        });
+        await tray.getByRole("button", { name: "إزالة العنصر 1 من الترتيب" }).click();
+        await expect(page.getByRole("button", { name: "اختيار الخيار 1" })).toBeEnabled();
+        await expect(tray.getByRole("img", { name: "صورة العنصر 1" })).toHaveCount(0);
       } else {
         const sectionName = {
           waiting_review: "إجاباتك محفوظة وتنتظر المراجعة",
