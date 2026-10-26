@@ -56,6 +56,8 @@ test("P03/P04 runtime and P05 targeted support remain responsive", async ({ page
   let stage: "intro" | "teaching_video" | "guided_practice" | "support_practice" = "intro";
   let savedPosition = 0;
   let holdNextProgressResponse = false;
+  let dropFirstCompletionAcknowledgment = true;
+  const completionEventKeys: string[] = [];
   let releaseDelayedCheckpoint: (() => void) | undefined;
   let signalDelayedCheckpointStarted: (() => void) | undefined;
   const delayedCheckpointStarted = new Promise<void>((resolve) => { signalDelayedCheckpointStarted = resolve; });
@@ -99,6 +101,15 @@ test("P03/P04 runtime and P05 targeted support remain responsive", async ({ page
       if (body.event_type === "video_progress") savedPosition = body.position_seconds;
       stage = body.event_type === "video_ended" ? "guided_practice" : body.event_type === "intro_complete" ? "teaching_video" : stage;
       const responsePayload = payload(stage, savedPosition);
+      if (body.event_type === "video_ended") {
+        completionEventKeys.push(body.event_key);
+        if (dropFirstCompletionAcknowledgment) {
+          // Simulate a committed server event whose acknowledgment was lost.
+          // Retrying must not force the child to replay the video.
+          dropFirstCompletionAcknowledgment = false;
+          return route.fulfill({ status: 503, json: { detail: "Temporary completion acknowledgment failure" } });
+        }
+      }
       if (body.event_type === "video_progress" && holdNextProgressResponse) {
         holdNextProgressResponse = false;
         // Hold an earlier video-stage checkpoint until AFTER video_ended.
@@ -196,8 +207,13 @@ test("P03/P04 runtime and P05 targeted support remain responsive", async ({ page
     Object.defineProperty(video, "currentTime", { configurable: true, get: () => video.duration });
     video.dispatchEvent(new Event("ended", { bubbles: true }));
   });
+  await expect(resumedPlayer.getByRole("alert")).toContainText("تعذر تأكيد حفظ المشاهدة");
+  await expect(resumedPlayer.getByText("أكملت الشرح")).toHaveCount(0);
+  await resumedPlayer.getByRole("button", { name: "إعادة حفظ المشاهدة" }).click();
   const interaction = page.getByTestId("v2-interaction-player");
   await expect(interaction).toBeVisible();
+  expect(completionEventKeys).toHaveLength(2);
+  expect(completionEventKeys[0]).toBe(completionEventKeys[1]);
   const delayedResponse = page.waitForResponse((response) =>
     response.url().endsWith("/sessions/44/events") &&
     response.request().postData()?.includes("video_progress") === true);
