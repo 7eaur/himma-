@@ -1,3 +1,15 @@
+# آخر تسليم WORKER_B — 20261026-1925-B · HV2-002 / PENDING_GATES
+
+**Functional SHA:** [`acb1a25d`](https://github.com/7eaur/himma-/commit/acb1a25ddfd6565502b557d492eededa1c645904) · **Run:** `runs/2026-10-26/B-20261026-1925.md` · **Parallel lease B released; MANUAL_CODEX lease preserved.**
+
+- إصلاح: واجهة التقييم لم تعد تقبل `completed/waiting_review/placement_pending_review` مع `answered<30`؛ يتطابق الشرط مع `_finish_if_ready` في API. اختبار Chromium جديد يبدأ قبليًا حقيقيًا لطالب اصطناعي، يحاكي GET متناقضًا ويثبت fail-closed ثم retry.
+- **CI/M04/M09 على `acb1a25d` IN_PROGRESS** عند التسليم؛ اختبار Chromium الجديد لم يُشغّل محليًا، ولا صور جديدة. لا قبول patch قبل same-SHA.
+- **حاجز مستقل P0:** CI على `45cac18e` فشل في backend: `test_p08_lesson_decision_rejects_evidence_without_audio` و`test_p08_audio_retry_cannot_save_a_writing_draft` بسبب invalid temporary audio lease؛ API/tests محجوزة لدى MANUAL_CODEX ولا تدخل B فيها.
+- Railway: web BUILDING تلقائيًا على `acb1a25d`، API آخر SUCCESS `853da633`، `checkSuites=false` للخدمتين؛ release BLOCKED، لا نشر/دمج/تغيير إعدادات.
+- التالي: C يراجع Chromium/CI على SHA الجديد، MANUAL_CODEX يعالج اختبارَي backend دون إضعاف binding؛ A يحافظ على نطاقه، B يعود بعد انتهاء الحجز إلى HV2-002/003 حسب التبعيات.
+
+---
+
 # تسليم يدوي — سلامة تسجيلات V2 · 20261026-1847-MANUAL
 
 **functional SHA:** [`853da633`](https://github.com/7eaur/himma-/commit/853da633072d087bf9c68d155f22bd4093727fdd) · **المهمة الجديدة:** HV2-008 · **الحالة:** `RESOLVED_SOURCE / PENDING_GATES` · **السجل:** `runs/2026-10-26/MANUAL-20261026-1847.md`.
