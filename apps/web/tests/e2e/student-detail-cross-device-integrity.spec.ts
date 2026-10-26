@@ -86,3 +86,54 @@ test("canonical Student Detail truth is identical on mobile, tablet, and desktop
     await assertCanonicalState(page, studentId);
   }
 });
+
+test("Student360 never displays the previous student's identity or code during a client-side profile switch", async ({ page, request, context }) => {
+  test.setTimeout(120000);
+  await loginAsSupervisor(request, context);
+  const unique = Date.now();
+  const firstReply = await request.post(`${API_URL}/researcher/students`, {
+    data: { full_name: `طالب عزل أ ${unique}`, grade_level: 3 },
+  });
+  const secondReply = await request.post(`${API_URL}/researcher/students`, {
+    data: { full_name: `طالب عزل ب ${unique}`, grade_level: 3 },
+  });
+  expect(firstReply.status()).toBe(201);
+  expect(secondReply.status()).toBe(201);
+  const first = await firstReply.json() as { id: number; full_name: string; access_code: string };
+  const second = await secondReply.json() as { id: number; full_name: string; access_code: string };
+  expect(first.id).toBeGreaterThan(0);
+  expect(second.id).toBeGreaterThan(0);
+
+  await page.goto(`/admin/students/${first.id}`);
+  await expect(page.getByRole("heading", { name: first.full_name })).toBeVisible();
+  await page.getByRole("button", { name: "الحساب", exact: true }).click();
+  await page.getByRole("button", { name: "إظهار الرمز" }).click();
+  await expect(page.getByText(first.access_code, { exact: true })).toBeVisible();
+
+  let unblockSecond!: () => void;
+  let enteredSecond!: () => void;
+  const secondRequested = new Promise<void>(resolve => { enteredSecond = resolve; });
+  const secondGate = new Promise<void>(resolve => { unblockSecond = resolve; });
+  await page.route(`**/api/researcher/students/${second.id}`, async route => {
+    enteredSecond();
+    await secondGate;
+    await route.continue();
+  });
+  try {
+    // Next.js app router synchronizes useParams with native pushState.
+    // Holding the second response exposes any stale first-student render.
+    await page.evaluate(id => window.history.pushState(null, "", `/admin/students/${id}`), second.id);
+    await secondRequested;
+    await expect(page.getByRole("heading", { name: first.full_name })).toHaveCount(0);
+    await expect(page.getByText(first.access_code, { exact: true })).toHaveCount(0);
+  } finally {
+    unblockSecond();
+  }
+  await expect(page.getByRole("heading", { name: second.full_name })).toBeVisible();
+  await expect(page.getByText(first.access_code, { exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "الحساب", exact: true }).click();
+  await expect(page.getByText(second.access_code, { exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "إظهار الرمز" }).click();
+  await expect(page.getByText(second.access_code, { exact: true })).toBeVisible();
+  await expect(page.getByText(first.access_code, { exact: true })).toHaveCount(0);
+});
