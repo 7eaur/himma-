@@ -150,4 +150,65 @@ describe("Student page V2-only learner boundary", () => {
     expect(fetcher.mock.calls.some(([url]) => url === "/api/profile")).toBe(false);
   });
 
+  it("hides the previous student's identity while logout is pending", async () => {
+    let finishLogout!: (value: ReturnType<typeof response>) => void;
+    const pendingLogout = new Promise<ReturnType<typeof response>>(resolve => { finishLogout = resolve; });
+    const fetcher = jest.fn(async (url: string) => {
+      if (url === "/api/v2/student/home") return response(firstTime);
+      if (url.startsWith("/api/v2/retries/student/tasks")) return response({ items: [] });
+      if (url === "/api/auth/logout") return pendingLogout;
+      return response({}, 503);
+    });
+    global.fetch = fetcher as unknown as typeof fetch;
+    render(<StudentPage />);
+    expect(await screen.findByTestId("student-identity")).toHaveTextContent("طالب");
+    fireEvent.click(screen.getByRole("button", { name: /خروج/ }));
+    expect(screen.queryByTestId("student-identity")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("student-home")).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("جاري تسجيل الخروج");
+    expect(replace).not.toHaveBeenCalledWith("/");
+    finishLogout(response({}));
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/"));
+  });
+
+  it("keeps student data hidden on failed logout and retries before redirecting", async () => {
+    let logoutCalls = 0;
+    const fetcher = jest.fn(async (url: string) => {
+      if (url === "/api/v2/student/home") return response(firstTime);
+      if (url.startsWith("/api/v2/retries/student/tasks")) return response({ items: [] });
+      if (url === "/api/auth/logout") return response({}, ++logoutCalls === 1 ? 503 : 200);
+      return response({}, 503);
+    });
+    global.fetch = fetcher as unknown as typeof fetch;
+    render(<StudentPage />);
+    fireEvent.click(await screen.findByRole("button", { name: /خروج/ }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("تعذر تأكيد تسجيل الخروج");
+    expect(screen.queryByTestId("student-identity")).not.toBeInTheDocument();
+    expect(replace).not.toHaveBeenCalledWith("/");
+    fireEvent.click(screen.getByRole("button", { name: "إعادة محاولة تسجيل الخروج" }));
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/"));
+    expect(logoutCalls).toBe(2);
+  });
+
+  it("ignores a late pretest start acknowledgement after logout", async () => {
+    let finishStart!: (value: ReturnType<typeof response>) => void;
+    const pendingStart = new Promise<ReturnType<typeof response>>(resolve => { finishStart = resolve; });
+    const fetcher = jest.fn(async (url: string) => {
+      if (url === "/api/v2/student/home") return response(firstTime);
+      if (url.startsWith("/api/v2/retries/student/tasks")) return response({ items: [] });
+      if (url === "/api/v2/assessments/pretest/start") return pendingStart;
+      if (url === "/api/auth/logout") return response({});
+      return response({}, 503);
+    });
+    global.fetch = fetcher as unknown as typeof fetch;
+    render(<StudentPage />);
+    fireEvent.click(await screen.findByRole("button", { name: "ابدأ الاختبار القبلي" }));
+    await waitFor(() => expect(fetcher).toHaveBeenCalledWith("/api/v2/assessments/pretest/start", { method: "POST" }));
+    fireEvent.click(screen.getByRole("button", { name: /خروج/ }));
+    expect(screen.queryByTestId("student-identity")).not.toBeInTheDocument();
+    finishStart(response({ session: { session_id: 101 } }));
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/"));
+    expect(push).not.toHaveBeenCalledWith("/student/assessment-v2/101");
+  });
+
 });

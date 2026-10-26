@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { BookOpenCheck, CheckCircle2, ClipboardList, LogOut, Sparkles } from "lucide-react";
@@ -70,6 +70,8 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
   const router = useRouter();
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState("");
+  const [logoutState, setLogoutState] = useState<"idle" | "pending" | "failed">("idle");
+  const leavingRef = useRef(false);
   const name = home.student.full_name.split(" ")[0] || "بطل هِمّة";
   const action = home.current_action;
   const info = stage(home);
@@ -79,7 +81,7 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
   const currentLevel = placed && home.journey ? levelNames[home.journey.current_level] || `المستوى ${home.journey.current_level}` : null;
 
   const start = async () => {
-    if (starting || info.disabled) return;
+    if (starting || info.disabled || leavingRef.current) return;
     setError("");
     if (action.href) { router.push(action.href); return; }
     if (action.action !== "start_pretest" && action.action !== "start_posttest") return;
@@ -88,6 +90,8 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
       const kind = action.action === "start_pretest" ? "pretest" : "posttest";
       const response = await fetch(`/api/v2/assessments/${kind}/start`, { method: "POST" });
       const result = await response.json().catch(() => null);
+      // A late pretest acknowledgement must not reopen a learner who logged out.
+      if (leavingRef.current) return;
       if (!response.ok) {
         const safeMessage = response.status === 401 || response.status === 403
           ? "انتهت جلسة الدخول أو لا تملك صلاحية بدء الاختبار."
@@ -101,15 +105,37 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
       if (!Number.isInteger(result?.session?.session_id)) throw new Error("تعذر التحقق من جلسة الاختبار. حاول مرة أخرى.");
       router.push(`/student/assessment-v2/${result.session.session_id}`);
     } catch (cause) {
+      if (leavingRef.current) return;
       setError(cause instanceof Error ? cause.message : "تعذر الاتصال بالخادم");
       setStarting(false);
     }
   };
 
   const logout = async () => {
-    try { await fetch("/api/auth/logout", { method: "POST" }); }
-    finally { router.replace("/"); router.refresh(); }
+    if (logoutState === "pending") return;
+    // Remove the previous student's identity before awaiting the network.
+    leavingRef.current = true;
+    setLogoutState("pending");
+    try {
+      const response = await fetch("/api/auth/logout", { method: "POST" });
+      if (!response.ok) throw new Error("logout not confirmed");
+      router.replace("/");
+      router.refresh();
+    } catch {
+      // Do not claim logout or reveal the dashboard on network/server failure.
+      setLogoutState("failed");
+    }
   };
+
+  if (logoutState !== "idle") {
+    return <main className={styles.page} dir="rtl"><div className={styles.container}>
+      {logoutState === "pending" ? <p role="status">جاري تسجيل الخروج...</p> :
+        <section>
+          <p role="alert">تعذر تأكيد تسجيل الخروج. أعد المحاولة قبل ترك الجهاز.</p>
+          <button type="button" className={styles.button} onClick={() => void logout()}>إعادة محاولة تسجيل الخروج</button>
+        </section>}
+    </div></main>;
+  }
 
   return <div className={styles.page} dir="rtl" data-testid="student-home" data-learning-version="v2">
     <header className={styles.header}>
