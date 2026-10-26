@@ -1,13 +1,52 @@
 from uuid import uuid4
 
+import pytest
+from pydantic import ValidationError
+
 from conftest import TestingSessionLocal
 from db.learning_models import AssessmentQuestionResponse, PlacementDecisionV2, StudentJourney, PrivateContentBankSnapshot
-from db.models import AssessmentSession, AudioSubmission, Student
+from db.models import AssessmentSession, AudioSubmission, AuditLog, Student
 from assessment_retake import mark_official_completed_attempt
 from v2_content.contracts import PRIVATE_KEYS
 from v2_content.repository import get_question, get_release
 from v2_content.importer import register_candidate_release
 from test_v2_legacy_writing_fixture import legacy_writing_release
+from v2_assessment_runtime import PlacementRequest, ReviewRequest
+from v2_lesson_review import LessonDecision
+from v2_retry_runtime import RetryRequest
+
+
+def _ack_assessment_audio(client, response_id: int) -> int:
+    item = next(
+        row for row in client.get("/v2/assessments/admin/review-queue").json()["items"]
+        if row["response_id"] == response_id
+    )
+    audio_id = item["audio_submission_id"]
+    assert audio_id is not None
+    acknowledged = client.post(
+        f"/v2/assessments/admin/responses/{response_id}/audio-completed",
+        json={"audio_submission_id": audio_id},
+    )
+    assert acknowledged.status_code == 200, acknowledged.text
+    return audio_id
+
+
+def test_review_models_strip_edges_and_reject_whitespace_only():
+    cases = (
+        (ReviewRequest, "note", "قرار واضح"),
+        (LessonDecision, "note", "قرار واضح"),
+        (PlacementRequest, "reason", "سبب تربوي واضح"),
+        (RetryRequest, "reason", "سبب إعادة واضح"),
+    )
+    for model, field, value in cases:
+        payload = {field: f"  {value}  "}
+        if model in (ReviewRequest, LessonDecision):
+            payload["is_correct"] = True
+        if model is PlacementRequest:
+            payload["assigned_level"] = 1
+        assert getattr(model(**payload), field) == value
+        with pytest.raises(ValidationError):
+            model(**{**payload, field: " " * 20})
 
 
 def _all_keys(value):
@@ -168,6 +207,7 @@ def test_open_responses_keep_placement_pending_until_human_review_and_manual_dec
         session_id = session.id
     # Same TestClient cookie is now researcher after the researcher fixture logs in.
     for response_id in pending_ids:
+        _ack_assessment_audio(researcher_client, response_id)
         reviewed = researcher_client.post(f"/v2/assessments/admin/responses/{response_id}/review", json={"is_correct": True, "note": "مراجعة بشرية واضحة"})
         assert reviewed.status_code == 200
     with TestingSessionLocal() as db:
@@ -182,6 +222,9 @@ def test_open_responses_keep_placement_pending_until_human_review_and_manual_dec
         assert session.assigned_level == 2 and session.official_for_reporting is True
         assert journey.current_level == 2 and journey.current_lesson_id.startswith("L2-")
         assert db.query(PlacementDecisionV2).one().policy_version.endswith("candidate")
+        audit = db.query(AuditLog).filter(AuditLog.action == "v2_manual_placement_approved").one()
+        assert "قرار يدوي" not in audit.details
+        assert "reason_location=v2_placement_decisions" in audit.details
 
 
 def test_reports_use_null_for_missing_and_student_cannot_open_admin(student_client):
@@ -305,6 +348,42 @@ def test_private_audio_stream_resolves_only_linked_assessment_evidence(researche
     result = researcher_client.get(f"/v2/assessments/admin/responses/{response_id}/audio", headers={"Range": "bytes=0-2"})
     assert result.status_code == 200
     assert checked == [(f"audio/{student_id}/owned.webm", "bytes=0-2", "researcher")]
+    monkeypatch.setattr("v2_assessment_runtime.storage.verify_audio", lambda *_args, **_kwargs: None)
+    denied = researcher_client.post(
+        f"/v2/assessments/admin/responses/{response_id}/review",
+        json={"is_correct": True, "note": "تشغيل جزئي لا يكفي"},
+    )
+    assert denied.status_code == 409
+    item = next(
+        row for row in researcher_client.get("/v2/assessments/admin/review-queue").json()["items"]
+        if row["response_id"] == response_id
+    )
+    assert item["audio_playback_completed"] is False
+    audio_id = item["audio_submission_id"]
+    stale = researcher_client.post(
+        f"/v2/assessments/admin/responses/{response_id}/audio-completed",
+        json={"audio_submission_id": audio_id + 999},
+    )
+    assert stale.status_code == 409
+    for _ in range(2):
+        acknowledged = researcher_client.post(
+            f"/v2/assessments/admin/responses/{response_id}/audio-completed",
+            json={"audio_submission_id": audio_id},
+        )
+        assert acknowledged.status_code == 200, acknowledged.text
+    queue_after = researcher_client.get("/v2/assessments/admin/review-queue").json()["items"]
+    assert next(row for row in queue_after if row["response_id"] == response_id)["audio_playback_completed"] is True
+    monkeypatch.setattr("v2_assessment_runtime._finish_if_ready", lambda *_args, **_kwargs: None)
+    reviewed = researcher_client.post(
+        f"/v2/assessments/admin/responses/{response_id}/review",
+        json={"is_correct": True, "note": "اكتمل تشغيل التسجيل ومراجعته"},
+    )
+    assert reviewed.status_code == 200, reviewed.text
+    with TestingSessionLocal() as db:
+        assert db.query(AuditLog).filter(
+            AuditLog.action == "v2_review_audio_playback_completed",
+            AuditLog.entity_id == str(response_id),
+        ).count() == 1
     assert researcher_client.get("/v2/assessments/admin/responses/999999/audio").status_code == 404
 
 def test_v2_pretest_does_not_bypass_completed_v1_history(student_client):

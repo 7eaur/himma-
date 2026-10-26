@@ -9,10 +9,10 @@ from __future__ import annotations
 
 from collections import defaultdict
 from datetime import datetime, timezone
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Header, HTTPException, Query, UploadFile
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StringConstraints
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -41,6 +41,10 @@ from v2_audio_retention import (
     schedule_superseded_audio, run_retention_after_commit,
     audio_upload_binding, track_new_audio_upload, mark_audio_submitted,
 )
+from v2_audio_review_evidence import (
+    AudioPlaybackCompletion, acknowledge_audio_playback,
+    completed_audio_ids, require_audio_playback,
+)
 
 
 router = APIRouter(prefix="/v2/assessments", tags=["v2-assessments"])
@@ -53,12 +57,12 @@ class DraftRequest(BaseModel):
 
 class ReviewRequest(BaseModel):
     is_correct: bool
-    note: str = Field(min_length=2, max_length=2000)
+    note: Annotated[str, StringConstraints(strip_whitespace=True, min_length=2, max_length=2000)]
 
 
 class PlacementRequest(BaseModel):
     assigned_level: int = Field(ge=1, le=3)
-    reason: str = Field(min_length=10, max_length=2000)
+    reason: Annotated[str, StringConstraints(strip_whitespace=True, min_length=10, max_length=2000)]
 
 
 @router.get("/current-action")
@@ -493,6 +497,8 @@ def _review_item(
         "rubric": (question.get("private_answer") or {}).get("rubric"),
         "text_response": answer.get("text_response") if is_writing else None,
         "audio_url": f"/api/v2/assessments/admin/responses/{row.id}/audio" if is_reading and evidence_ready else None,
+        "audio_submission_id": audio.id if is_reading and evidence_ready and audio else None,
+        "audio_playback_completed": False,
         "evidence_ready": evidence_ready, "submitted_at": row.created_at.isoformat(),
     }
 
@@ -500,7 +506,7 @@ def _review_item(
 @router.get("/admin/review-queue")
 def review_queue(
     limit: int = Query(default=50, ge=1, le=100), offset: int = Query(default=0, ge=0),
-    _user: User = Depends(get_current_user), db: Session = Depends(get_db),
+    user: User = Depends(get_current_user), db: Session = Depends(get_db),
 ):
     query = db.query(AssessmentQuestionResponse, AssessmentSession, Student).join(
         AssessmentSession, AssessmentQuestionResponse.assessment_session_id == AssessmentSession.id
@@ -524,6 +530,15 @@ def review_queue(
             db, row, session, student, release=release_cache[session.content_release_id],
             audio=audios.get(row.id), preloaded_audio=True,
         ))
+    response_audio_ids = {
+        item["response_id"]: item["audio_submission_id"]
+        for item in items if item["audio_submission_id"] is not None
+    }
+    completed = completed_audio_ids(
+        db, kind="assessment", response_audio_ids=response_audio_ids, reviewer_id=user.id,
+    )
+    for item in items:
+        item["audio_playback_completed"] = item["audio_submission_id"] in completed
     return {"items": items, "next_offset": offset + limit if len(rows) > limit else None}
 
 
@@ -556,6 +571,46 @@ def review_audio(
     if not audio or not audio.storage_key.startswith(f"audio/{session.student_id}/"):
         raise HTTPException(status_code=404, detail="تسجيل الطالب غير متاح")
     return recordings.play_by_key(key=audio.storage_key, range_header=range_header, researcher=user)
+
+
+@router.post("/admin/responses/{response_id}/audio-completed")
+def review_audio_completed(
+    response_id: int,
+    body: AudioPlaybackCompletion,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    row = db.query(AssessmentQuestionResponse).filter(
+        AssessmentQuestionResponse.id == response_id,
+    ).with_for_update().one_or_none()
+    if not row:
+        raise HTTPException(status_code=404, detail="الإجابة غير موجودة")
+    if row.status != "pending_review":
+        raise HTTPException(status_code=409, detail="هذه الإجابة لم تعد تنتظر مراجعة")
+    enforce_review_claim(db, "assessment", row.id, user.id)
+    session = _session(db, row.assessment_session_id)
+    evidence = _review_item(db, row, session, db.query(Student).filter(Student.id == session.student_id).one())
+    if evidence["interaction"] != "read_aloud":
+        raise HTTPException(status_code=409, detail="هذه الإجابة ليست تسجيل قراءة")
+    task = active_retry(db, assessment_response_id=row.id)
+    audio = (
+        db.query(AudioSubmission).filter(
+            AudioSubmission.id == task.audio_submission_id,
+            AudioSubmission.assessment_response_id == row.id,
+        ).one_or_none()
+        if task and task.status == "submitted" and task.audio_submission_id else
+        db.query(AudioSubmission).filter(
+            AudioSubmission.assessment_response_id == row.id,
+        ).order_by(AudioSubmission.id.desc()).first()
+    )
+    if not audio or audio.status != "pending_review" or audio.id != body.audio_submission_id:
+        raise HTTPException(status_code=409, detail="نسخة التسجيل تغيرت؛ حدّث قائمة المراجعة")
+    acknowledge_audio_playback(
+        db, kind="assessment", response_id=row.id,
+        audio_submission_id=audio.id, reviewer_id=user.id,
+    )
+    db.commit()
+    return {"status": "playback_completed", "audio_submission_id": audio.id}
 
 
 @router.get("/admin/placement-queue")
@@ -617,6 +672,10 @@ def review_response(response_id: int, body: ReviewRequest, background_tasks: Bac
             raise HTTPException(status_code=409, detail="ملف التسجيل الصوتي مفقود أو تغير بعد إرساله") from exc
         except RuntimeError as exc:
             raise HTTPException(status_code=503, detail="تعذر التحقق من التسجيل؛ يرجى إعادة المحاولة") from exc
+        require_audio_playback(
+            db, kind="assessment", response_id=row.id,
+            audio_submission_id=audio_to_verify.id, reviewer_id=user.id,
+        )
     row.status = "graded"; row.is_correct = body.is_correct; row.review_note = body.note
     row.reviewed_by = user.id; row.reviewed_at = datetime.now(timezone.utc)
     audio = (db.query(AudioSubmission).filter(AudioSubmission.id == task.audio_submission_id).one_or_none()
@@ -670,7 +729,7 @@ def place_student(session_id: int, body: PlacementRequest, user: User = Depends(
     mark_official_completed_attempt(db, session)
     journey.current_level = body.assigned_level; journey.current_lesson_id = first_lesson; journey.placement_state = "placed"
     student.current_level = body.assigned_level
-    db.add(AuditLog(actor_role="researcher", actor_id=user.id, action="v2_manual_placement_approved", entity_type="assessment_session", entity_id=str(session.id), details=f"level={body.assigned_level}; policy={POLICY_VERSION}; reason={body.reason}"))
+    db.add(AuditLog(actor_role="researcher", actor_id=user.id, action="v2_manual_placement_approved", entity_type="assessment_session", entity_id=str(session.id), details=f"level={body.assigned_level}; policy={POLICY_VERSION}; reason_location=v2_placement_decisions"))
     db.commit()
     return {"status": "placed", "assigned_level": body.assigned_level, "current_lesson_id": first_lesson}
 

@@ -5,12 +5,14 @@ import { ClipboardCheck, Clock3, RefreshCw } from "lucide-react";
 import { AdminAction, AdminEmptyState, AdminPage, AdminPageHeader, AdminPanel } from "@/components/admin/AdminUI";
 import SupervisorClaimActions from "@/components/admin/SupervisorClaimActions";
 import V2EvidenceHistory from "@/components/admin/V2EvidenceHistory";
+import V2ReviewedAudioPlayer from "@/components/admin/V2ReviewedAudioPlayer";
 
 interface ReviewItem {
   response_id: number; session_id: number; student_id: number; student_name: string;
   question_id: string; lesson_id: string; interaction: "read_aloud" | "write_text";
   prompt: string; reference: unknown; rubric: unknown;
   text_response: string | null; audio_url: string | null;
+  audio_submission_id: number | null; audio_playback_completed: boolean;
   evidence_ready: boolean; submitted_at: string | null; retry_state?: "requested" | "submitted" | null;
 }
 interface ReviewQueue { items: ReviewItem[]; next_offset: number | null }
@@ -27,6 +29,7 @@ export default function V2LessonReviewPage() {
   const [busy, setBusy] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [completedAudio, setCompletedAudio] = useState<Record<number, boolean>>({});
 
   const load = useCallback(async () => {
     setError("");
@@ -65,7 +68,11 @@ export default function V2LessonReviewPage() {
 
   const decide = async (item: ReviewItem, isCorrect: boolean) => {
     const note = (notes[item.response_id] || "").trim();
-    if (note.length < 2 || !item.evidence_ready) return;
+    const playbackReady = item.interaction !== "read_aloud" || (
+      item.audio_submission_id !== null &&
+      (completedAudio[item.audio_submission_id] ?? item.audio_playback_completed)
+    );
+    if (note.length < 2 || !item.evidence_ready || !playbackReady) return;
     setBusy(item.response_id); setError("");
     try {
       const response = await fetch(`/api/v2/review/lessons/${item.response_id}/decision`, {
@@ -96,7 +103,11 @@ export default function V2LessonReviewPage() {
         : <div className="space-y-4">
           {queue.items.map((item) => {
             const note = notes[item.response_id] || "";
-            const disabled = !item.evidence_ready || note.trim().length < 2 || busy !== null;
+            const playbackReady = item.interaction !== "read_aloud" || (
+              item.audio_submission_id !== null &&
+              (completedAudio[item.audio_submission_id] ?? item.audio_playback_completed)
+            );
+            const disabled = !item.evidence_ready || !playbackReady || note.trim().length < 2 || busy !== null;
             return <article key={item.response_id} className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div><h3 className="font-bold text-slate-900">{item.student_name} · {item.lesson_id}</h3>
@@ -106,8 +117,12 @@ export default function V2LessonReviewPage() {
               <p className="font-semibold text-slate-800">{item.prompt}</p>
               {item.interaction === "write_text"
                 ? <div className="rounded-lg border border-slate-100 bg-slate-50 p-3 whitespace-pre-wrap break-words"><strong>كتابة الطالب:</strong> {item.text_response || "لا توجد كتابة"}</div>
-                : item.audio_url
-                  ? <div className="space-y-2"><p className="font-semibold text-sm">تسجيل الطالب — استمع قبل الاعتماد</p><audio controls preload="none" src={item.audio_url} className="w-full" /></div>
+                : item.audio_url && item.audio_submission_id
+                  ? <V2ReviewedAudioPlayer key={item.audio_submission_id} id={`audio-${item.response_id}`} src={item.audio_url}
+                      audioSubmissionId={item.audio_submission_id}
+                      completionUrl={`/api/v2/review/lessons/${item.response_id}/audio-completed`}
+                      initiallyCompleted={item.audio_playback_completed}
+                      onCompletionChange={(completed) => setCompletedAudio((previous) => ({ ...previous, [item.audio_submission_id!]: completed }))} />
                   : <p role="alert" className="text-amber-700">التسجيل غير متاح للمراجعة</p>}
               <details className="rounded-lg border border-blue-100 bg-blue-50/30 p-3">
                 <summary className="cursor-pointer font-semibold text-sm">المرجع والمعيار الخاص بالمشرف</summary>
@@ -120,6 +135,7 @@ export default function V2LessonReviewPage() {
                   onChange={(event) => setNotes((previous) => ({ ...previous, [item.response_id]: event.target.value }))}
                   className="w-full rounded-xl border border-slate-300 p-3 text-sm" placeholder="ما سبب قبول الدليل أو عدم استيفائه؟" />
                 {!item.evidence_ready && <p className="text-sm text-amber-700">يجب توفر دليل صوتي/كتابي قبل إصدار القرار.</p>}
+                {item.interaction === "read_aloud" && item.evidence_ready && !playbackReady && <p className="text-sm text-amber-700">أكمل تشغيل التسجيل الحالي لتفعيل قرار المراجعة.</p>}
                 <div className="flex flex-wrap gap-3">
                   <SupervisorClaimActions kind="lesson" responseId={item.response_id}/>
                   <button type="button" disabled={disabled} onClick={() => void decide(item, true)}

@@ -5,13 +5,15 @@ import { BarChart3, ClipboardCheck, Clock3, RefreshCw } from "lucide-react";
 import { AdminAction, AdminEmptyState, AdminPage, AdminPageHeader, AdminPanel, AdminStat, AdminStatGrid } from "@/components/admin/AdminUI";
 import SupervisorClaimActions from "@/components/admin/SupervisorClaimActions";
 import V2EvidenceHistory from "@/components/admin/V2EvidenceHistory";
+import V2ReviewedAudioPlayer from "@/components/admin/V2ReviewedAudioPlayer";
 
 interface ReviewItem {
   response_id: number; session_id: number; student_id: number; student_name: string;
   question_id: string; kind: string; skill_group: string; evidence_type: string;
   interaction: string; prompt: string; stimulus_text: string | null;
   reference: unknown; rubric: unknown; text_response: string | null;
-  audio_url: string | null; evidence_ready: boolean; submitted_at: string; retry_state?: "requested" | "submitted" | null;
+  audio_url: string | null; audio_submission_id: number | null; audio_playback_completed: boolean;
+  evidence_ready: boolean; submitted_at: string; retry_state?: "requested" | "submitted" | null;
 }
 interface PlacementItem {
   session_id: number; student_id: number; student_name: string; attempt_no: number;
@@ -35,6 +37,7 @@ export default function V2AssessmentsPage() {
   const [reasons, setReasons] = useState<Record<number, string>>({});
   const [error, setError] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
+  const [completedAudio, setCompletedAudio] = useState<Record<number, boolean>>({});
 
   const load = useCallback(async () => {
     setError("");
@@ -57,7 +60,11 @@ export default function V2AssessmentsPage() {
   useEffect(() => { const timer = window.setTimeout(() => { void load(); }, 0); return () => window.clearTimeout(timer); }, [load]);
 
   const review = async (item: ReviewItem, isCorrect: boolean) => {
-    if (!item.evidence_ready || (notes[item.response_id] || "").trim().length < 2) return;
+    const playbackReady = item.interaction !== "read_aloud" || (
+      item.audio_submission_id !== null &&
+      (completedAudio[item.audio_submission_id] ?? item.audio_playback_completed)
+    );
+    if (!item.evidence_ready || !playbackReady || (notes[item.response_id] || "").trim().length < 2) return;
     setBusy(`review:${item.response_id}`); setError("");
     try {
       const response = await fetch(`/api/v2/assessments/admin/responses/${item.response_id}/review`, {
@@ -119,7 +126,12 @@ export default function V2AssessmentsPage() {
     <AdminPanel title="مراجعة القراءة والكتابة" description="التسجيلات خاصة، ولا تظهر إلا للمشرف بعد تسجيل الدخول. قرار المراجعة يحتاج دليلًا وملاحظة.">
       {reviews.items.length === 0
         ? <AdminEmptyState title="لا توجد إجابات في هذه الصفحة" description="تظهر الإجابات المفتوحة التي تنتظر قرار المشرف."/>
-        : <div className="space-y-4">{reviews.items.map((item) => <article key={item.response_id} className="space-y-3 rounded-2xl border border-slate-200 p-4">
+        : <div className="space-y-4">{reviews.items.map((item) => {
+          const playbackReady = item.interaction !== "read_aloud" || (
+            item.audio_submission_id !== null &&
+            (completedAudio[item.audio_submission_id] ?? item.audio_playback_completed)
+          );
+          return <article key={item.response_id} className="space-y-3 rounded-2xl border border-slate-200 p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div><strong className="text-navy">{item.student_name} · {item.question_id}</strong>
               <p className="text-sm text-muted">{item.kind === "pretest" ? "اختبار قبلي" : "اختبار بعدي"} · {item.skill_group} · {item.evidence_type} · جلسة {item.session_id}</p></div>
@@ -134,10 +146,14 @@ export default function V2AssessmentsPage() {
           </div>
           {item.interaction === "write_text" && <div><strong className="text-sm">ما كتبه الطالب</strong>
             <p dir="rtl" className="mt-1 whitespace-pre-wrap break-words rounded-xl border p-3">{item.text_response || "لا يوجد نص محفوظ"}</p></div>}
-          {item.interaction === "read_aloud" && (item.audio_url
-            ? <div className="space-y-1"><label htmlFor={`audio-${item.response_id}`} className="text-sm font-semibold">استمع للتسجيل قبل التقييم</label>
-                <audio id={`audio-${item.response_id}`} controls preload="none" src={item.audio_url} className="w-full" /></div>
+          {item.interaction === "read_aloud" && (item.audio_url && item.audio_submission_id
+            ? <V2ReviewedAudioPlayer key={item.audio_submission_id} id={`audio-${item.response_id}`} src={item.audio_url}
+                audioSubmissionId={item.audio_submission_id}
+                completionUrl={`/api/v2/assessments/admin/responses/${item.response_id}/audio-completed`}
+                initiallyCompleted={item.audio_playback_completed}
+                onCompletionChange={(completed) => setCompletedAudio((previous) => ({ ...previous, [item.audio_submission_id!]: completed }))} />
             : <p role="alert" className="text-sm text-rose-700">ملف التسجيل غير متاح، لا يمكن اعتماد هذه الإجابة.</p>)}
+          {item.interaction === "read_aloud" && item.evidence_ready && !playbackReady && <p className="text-sm text-amber-700">أكمل تشغيل التسجيل الحالي لتفعيل قرار المراجعة.</p>}
           <V2EvidenceHistory kind="assessment" responseId={item.response_id}/>
           <label htmlFor={`note-${item.response_id}`} className="block text-sm font-semibold">سبب القرار في سجل التدقيق</label>
           <textarea id={`note-${item.response_id}`} rows={2} maxLength={2000}
@@ -145,16 +161,16 @@ export default function V2AssessmentsPage() {
             placeholder="اذكر ما لاحظته في القراءة أو الكتابة" className="w-full rounded-xl border border-slate-300 p-3" />
           <div className="flex flex-wrap gap-2">
             <SupervisorClaimActions kind="assessment" responseId={item.response_id}/>
-            <button type="button" disabled={!item.evidence_ready || (notes[item.response_id] || "").trim().length < 2 || busy !== null}
+            <button type="button" disabled={!item.evidence_ready || !playbackReady || (notes[item.response_id] || "").trim().length < 2 || busy !== null}
               onClick={() => void review(item, true)} className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-bold text-white disabled:opacity-40">مستوفٍ</button>
-            <button type="button" disabled={!item.evidence_ready || (notes[item.response_id] || "").trim().length < 2 || busy !== null}
+            <button type="button" disabled={!item.evidence_ready || !playbackReady || (notes[item.response_id] || "").trim().length < 2 || busy !== null}
               onClick={() => void review(item, false)} className="rounded-xl bg-rose-700 px-4 py-2 text-sm font-bold text-white disabled:opacity-40">غير مستوفٍ</button>
             <button type="button" disabled={item.retry_state === "requested" || (notes[item.response_id] || "").trim().length < 10 || busy !== null}
               onClick={() => void requestRetry(item)} className="rounded-xl border border-amber-600 px-4 py-2 text-sm font-bold text-amber-900 disabled:opacity-40">{item.interaction === "read_aloud" ? "اطلب إعادة التسجيل" : "اطلب إعادة الكتابة"}</button>
           </div>
           {item.retry_state === "requested" && <p role="status" className="text-sm text-amber-700">تم إرسال طلب الإعادة للطالب؛ لا يمكن اعتماد التسجيل الأصلي.</p>}
           {item.retry_state === "submitted" && <p role="status" className="text-sm text-blue-700">وصل دليل جديد؛ راجعه قبل القرار.</p>}
-        </article>)}</div>}
+        </article>;})}</div>}
       <div className="mt-3 flex items-center justify-between gap-2">
         <button type="button" className="rounded-lg border px-3 py-2 disabled:opacity-40" disabled={reviewOffset === 0} onClick={() => setReviewOffset(Math.max(0, reviewOffset - 25))}>السابق</button>
         <span className="text-sm text-muted">من {reviewOffset + 1} إلى {reviewOffset + reviews.items.length}</span>

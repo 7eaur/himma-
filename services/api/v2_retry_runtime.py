@@ -2,10 +2,10 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Literal
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, Header, HTTPException, Query, UploadFile
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StringConstraints
 from sqlalchemy.orm import Session
 
 import storage
@@ -27,7 +27,7 @@ router = APIRouter(prefix="/v2/retries", tags=["v2-retries"])
 
 
 class RetryRequest(BaseModel):
-    reason: str = Field(min_length=10, max_length=2000)
+    reason: Annotated[str, StringConstraints(strip_whitespace=True, min_length=10, max_length=2000)]
 
 
 class RetryDraftRequest(BaseModel):

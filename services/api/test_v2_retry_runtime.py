@@ -151,6 +151,15 @@ def test_p08_learner_audio_retry_never_overwrites_original_recording(student_cli
     queue = student_client.get("/v2/review/lesson-queue").json()["items"]
     item = next(x for x in queue if x["response_id"] == response_id)
     assert item["retry_state"] == "submitted" and item["evidence_ready"] is True
+    denied_before_playback = student_client.post(f"/v2/review/lessons/{response_id}/decision", json={
+        "is_correct": True, "note": "لا يكفي وصول الملف دون إكمال تشغيله",
+    })
+    assert denied_before_playback.status_code == 409
+    acknowledged = student_client.post(
+        f"/v2/review/lessons/{response_id}/audio-completed",
+        json={"audio_submission_id": item["audio_submission_id"]},
+    )
+    assert acknowledged.status_code == 200, acknowledged.text
     grade = student_client.post(f"/v2/review/lessons/{response_id}/decision", json={
         "is_correct": True, "note": "تم الاستماع للنسخة الجديدة وتقييمها",
     })

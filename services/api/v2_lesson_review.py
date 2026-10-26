@@ -7,9 +7,10 @@ mastery projection changes only after the authenticated supervisor's decision.
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from typing import Annotated
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, StringConstraints
 from sqlalchemy.orm import Session
 
 import recordings
@@ -29,13 +30,17 @@ from v2_assessment_runtime import _session_release
 from v2_retry_state import active_retry
 from v2_review_claims import enforce_review_claim, clear_review_claim
 from v2_audio_retention import schedule_superseded_audio, run_retention_after_commit
+from v2_audio_review_evidence import (
+    AudioPlaybackCompletion, acknowledge_audio_playback,
+    completed_audio_ids, require_audio_playback,
+)
 
 router = APIRouter(prefix="/v2/review", tags=["v2-review"])
 
 
 class LessonDecision(BaseModel):
     is_correct: bool
-    note: str = Field(min_length=2, max_length=2000)
+    note: Annotated[str, StringConstraints(strip_whitespace=True, min_length=2, max_length=2000)]
 
 
 def _lesson_audio(db: Session, response_id: int) -> AudioSubmission | None:
@@ -86,6 +91,8 @@ def _item(db: Session, row: LessonQuestionResponse, session: LessonSession, stud
         "rubric": (question.get("private_answer") or {}).get("rubric"),
         "text_response": answer.get("text_response") if question["interaction"] == "write_text" else None,
         "audio_url": f"/api/v2/review/lessons/{row.id}/audio" if audio and ready else None,
+        "audio_submission_id": audio.id if audio and ready else None,
+        "audio_playback_completed": False,
         "evidence_ready": ready,
         "submitted_at": row.created_at.isoformat() if row.created_at else None,
     }
@@ -95,7 +102,7 @@ def _item(db: Session, row: LessonQuestionResponse, session: LessonSession, stud
 def lesson_queue(
     limit: int = Query(default=25, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
-    _user: User = Depends(get_current_user),
+    user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     rows = db.query(LessonQuestionResponse, LessonSession, Student).join(
@@ -103,8 +110,17 @@ def lesson_queue(
     ).join(Student, Student.id == LessonSession.student_id).filter(
         LessonQuestionResponse.status == "pending_review",
     ).order_by(LessonQuestionResponse.created_at, LessonQuestionResponse.id).offset(offset).limit(limit + 1).all()
-    return {"items": [_item(db, row, session, student) for row, session, student in rows[:limit]],
-            "next_offset": offset + limit if len(rows) > limit else None}
+    items = [_item(db, row, session, student) for row, session, student in rows[:limit]]
+    response_audio_ids = {
+        item["response_id"]: item["audio_submission_id"]
+        for item in items if item["audio_submission_id"] is not None
+    }
+    completed = completed_audio_ids(
+        db, kind="lesson", response_audio_ids=response_audio_ids, reviewer_id=user.id,
+    )
+    for item in items:
+        item["audio_playback_completed"] = item["audio_submission_id"] in completed
+    return {"items": items, "next_offset": offset + limit if len(rows) > limit else None}
 
 
 @router.get("/lessons/{response_id}/audio")
@@ -124,6 +140,35 @@ def lesson_audio(
     if not audio or not audio.storage_key.startswith(f"audio/{session.student_id}/"):
         raise HTTPException(status_code=404, detail="تسجيل الطالب غير متاح")
     return recordings.play_by_key(key=audio.storage_key, range_header=range_header, researcher=user)
+
+
+@router.post("/lessons/{response_id}/audio-completed")
+def lesson_audio_completed(
+    response_id: int,
+    body: AudioPlaybackCompletion,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    row = db.query(LessonQuestionResponse).filter(
+        LessonQuestionResponse.id == response_id,
+    ).with_for_update().one_or_none()
+    if not row:
+        raise HTTPException(status_code=404, detail="إجابة الدرس غير موجودة")
+    if row.status != "pending_review":
+        raise HTTPException(status_code=409, detail="هذه الإجابة لم تعد تنتظر مراجعة")
+    session = db.query(LessonSession).filter(LessonSession.id == row.lesson_session_id).one()
+    if _question(db, row, session)["interaction"] != "read_aloud":
+        raise HTTPException(status_code=409, detail="هذه الإجابة ليست تسجيل قراءة")
+    enforce_review_claim(db, "lesson", row.id, user.id)
+    audio = _lesson_audio(db, row.id)
+    if not audio or audio.status != "pending_review" or audio.id != body.audio_submission_id:
+        raise HTTPException(status_code=409, detail="نسخة التسجيل تغيرت؛ حدّث قائمة المراجعة")
+    acknowledge_audio_playback(
+        db, kind="lesson", response_id=row.id,
+        audio_submission_id=audio.id, reviewer_id=user.id,
+    )
+    db.commit()
+    return {"status": "playback_completed", "audio_submission_id": audio.id}
 
 
 @router.post("/lessons/{response_id}/decision")
@@ -154,6 +199,10 @@ def decide_lesson(
             raise HTTPException(status_code=409, detail="ملف القراءة مفقود أو تغير") from exc
         except RuntimeError as exc:
             raise HTTPException(status_code=503, detail="تعذر التحقق من الملف الصوتي الآن") from exc
+        require_audio_playback(
+            db, kind="lesson", response_id=row.id,
+            audio_submission_id=audio.id, reviewer_id=user.id,
+        )
 
     enforce_review_claim(db, "lesson", row.id, user.id)
     now = datetime.now(timezone.utc)
