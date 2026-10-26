@@ -912,7 +912,7 @@ for (const malformed of ["missing stimulus", "null option"] as const) {
     const sessionId = started.data.session.session_id as number;
     let reads = 0;
     let answerPosts = 0;
-    await page.route(/\\/api\\/v2\\/assessments\\/sessions\\/\\d+\\/answers(?:\\?|$)/, async route => {
+    await page.route(/\/api\/v2\/assessments\/sessions\/\d+\/answers(?:\?|$)/, async route => {
       answerPosts += 1;
       return route.continue();
     });
@@ -968,7 +968,7 @@ test("HV2-002: malformed saved-answer question fails closed and resumes without 
   expect(started.status).toBe(200);
   const sessionId = started.data.session.session_id as number;
   let answerPosts = 0;
-  await page.route(/\\/api\\/v2\\/assessments\\/sessions\\/\\d+\\/answers(?:\\?|$)/, async route => {
+  await page.route(/\/api\/v2\/assessments\/sessions\/\d+\/answers(?:\?|$)/, async route => {
     answerPosts += 1;
     const upstream = await route.fetch();
     expect(upstream.status()).toBe(200);
