@@ -8,6 +8,7 @@ import SupervisorClaimActions from "@/components/admin/SupervisorClaimActions";
 import V2EvidenceHistory from "@/components/admin/V2EvidenceHistory";
 import V2ReviewedAudioPlayer from "@/components/admin/V2ReviewedAudioPlayer";
 import V2ReviewQueuePicker from "@/components/admin/V2ReviewQueuePicker";
+import V2ReadingRubricEditor, { emptyReadingRubric, rubricValid, type ReadingRubricDraft } from "@/components/admin/V2ReadingRubricEditor";
 
 interface ReviewItem {
   response_id: number; session_id: number; student_id: number; student_name: string;
@@ -29,6 +30,7 @@ export default function V2AssessmentsPage() {
   const [reviewOffset, setReviewOffset] = useState(0);
   const [report, setReport] = useState<Report | null>(null);
   const [notes, setNotes] = useState<Record<number, string>>({});
+  const [readingRubrics, setReadingRubrics] = useState<Record<number, ReadingRubricDraft>>({});
   const [selectedResponseId, setSelectedResponseId] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -64,15 +66,20 @@ export default function V2AssessmentsPage() {
       item.audio_submission_id !== null &&
       (completedAudio[item.audio_submission_id] ?? item.audio_playback_completed)
     );
-    if (!item.evidence_ready || !playbackReady || (notes[item.response_id] || "").trim().length < 2) return;
+    if (!item.evidence_ready || !playbackReady || (notes[item.response_id] || "").trim().length < 2 ||
+        (item.interaction === "read_aloud" && !rubricValid(readingRubrics[item.response_id] ?? emptyReadingRubric()))) return;
     setBusy(`review:${item.response_id}`); setError("");
     try {
       const response = await fetch(`/api/v2/assessments/admin/responses/${item.response_id}/review`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ is_correct: isCorrect, note: notes[item.response_id].trim() }),
+        body: JSON.stringify({
+          is_correct: isCorrect, note: notes[item.response_id].trim(),
+          ...(item.interaction === "read_aloud" ? { rubric: readingRubrics[item.response_id] } : {}),
+        }),
       });
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(data?.detail || "تعذر حفظ المراجعة");
+      setReadingRubrics(current => { const rest = {...current}; delete rest[item.response_id]; return rest; });
       await load();
     } catch (reason) { setError(reason instanceof Error ? reason.message : "تعذر حفظ المراجعة"); }
     finally { setBusy(null); }
@@ -143,13 +150,17 @@ export default function V2AssessmentsPage() {
             : <p role="alert" className="text-sm text-rose-700">ملف التسجيل غير متاح، لا يمكن اعتماد هذه الإجابة.</p>)}
           {item.interaction === "read_aloud" && item.evidence_ready && !playbackReady && <p className="text-sm text-amber-700">أكمل تشغيل التسجيل الحالي لتفعيل قرار المراجعة.</p>}
           <V2EvidenceHistory kind="assessment" responseId={item.response_id}/>
+          {item.interaction === "read_aloud" && <V2ReadingRubricEditor
+            value={readingRubrics[item.response_id] ?? emptyReadingRubric()}
+            onChange={value => setReadingRubrics(previous => ({...previous, [item.response_id]: value}))}
+            disabled={busy !== null} />}
           <label htmlFor={`note-${item.response_id}`} className="block text-sm font-semibold">سبب القرار في سجل التدقيق</label>
           <textarea id={`note-${item.response_id}`} rows={2} maxLength={2000}
             value={notes[item.response_id] || ""} onChange={event => setNotes(previous => ({ ...previous, [item.response_id]: event.target.value }))}
             placeholder="اذكر ما لاحظته في القراءة أو الكتابة" className="w-full rounded-xl border border-slate-300 p-3" />
           <div className="flex flex-wrap gap-2">
             <SupervisorClaimActions kind="assessment" responseId={item.response_id}/>
-            <button type="button" disabled={!item.evidence_ready || !playbackReady || (notes[item.response_id] || "").trim().length < 2 || busy !== null}
+            <button type="button" disabled={!item.evidence_ready || !playbackReady || (notes[item.response_id] || "").trim().length < 2 || (item.interaction === "read_aloud" && !rubricValid(readingRubrics[item.response_id] ?? emptyReadingRubric())) || busy !== null}
               onClick={() => void review(item, true)} className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-bold text-white disabled:opacity-40">مستوفٍ</button>
             <button type="button" disabled={!item.evidence_ready || !playbackReady || (notes[item.response_id] || "").trim().length < 2 || busy !== null}
               onClick={() => void review(item, false)} className="rounded-xl bg-rose-700 px-4 py-2 text-sm font-bold text-white disabled:opacity-40">غير مستوفٍ</button>
