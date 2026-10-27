@@ -355,11 +355,18 @@ def start_assessment(
             raise HTTPException(status_code=409, detail="إعادة التقييم تحتاج تفويضًا صريحًا من المشرف")
     if kind == "pretest" and not authorization and journey and journey.placement_state not in {"not_started", "in_progress"}:
         raise HTTPException(status_code=409, detail="اكتمل الاختبار القبلي والتسكين")
-    if kind == "posttest" and not journey:
-        raise HTTPException(status_code=409, detail="لا توجد رحلة V2 جاهزة للاختبار البعدي")
-    if kind == "posttest" and not authorization and (not journey or journey.placement_state != "posttest_ready" or not student.posttest_enabled):
-        raise HTTPException(status_code=409, detail="الاختبار البعدي غير متاح بعد")
-    release = register_candidate_release(db)
+    if kind == "posttest":
+        if not authorization and not student.posttest_enabled:
+            raise HTTPException(status_code=409, detail="الاختبار البعدي غير متاح بعد")
+        from v2_student_accounts import require_posttest_completion
+        require_posttest_completion(db, student, journey, allow_completed=bool(authorization))
+    # Once an academic journey exists, both later assessments keep its
+    # immutable release rather than silently switching to the newest bank.
+    release = (db.get(ContentRelease, journey.content_release_id)
+               if journey is not None else register_candidate_release(db))
+    if release is None:
+        raise HTTPException(status_code=409, detail="إصدار رحلة الطالب الأصلي غير موجود")
+    get_pinned_release(db, release.id)
     if journey is None:
         journey = StudentJourney(student_id=student.id, content_release_id=release.id, placement_state="in_progress", current_level=1)
         db.add(journey)

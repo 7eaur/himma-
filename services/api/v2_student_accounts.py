@@ -83,6 +83,26 @@ def change_code(student_id: int, body: StudentAccessCodeUpdateRequest, response:
     return account_payload(student)
 
 
+def require_posttest_completion(db: Session, student: Student, journey: StudentJourney | None, *, allow_completed: bool = False) -> None:
+    """One authoritative academic gate shared by enablement AND direct API start."""
+    if journey is None:
+        raise HTTPException(status_code=409, detail='لا توجد رحلة V2 جاهزة للاختبار البعدي')
+    home = build_student_v2_home(db, student)
+    progress = home['progress']
+    pre = home['assessments']['pretest']
+    pending_support = db.query(SupportAssignment.id).filter(SupportAssignment.student_id == student.id,
+        SupportAssignment.content_release_id == journey.content_release_id, SupportAssignment.status != 'resolved').first()
+    pending_lesson = db.query(LessonQuestionResponse.id).join(LessonSession, LessonSession.id == LessonQuestionResponse.lesson_session_id).filter(
+        LessonSession.student_id == student.id, LessonSession.content_release_id == journey.content_release_id, LessonQuestionResponse.status == 'pending_review').first()
+    pending_assessment = db.query(AssessmentQuestionResponse.id).join(AssessmentSession, AssessmentSession.id == AssessmentQuestionResponse.assessment_session_id).filter(
+        AssessmentSession.student_id == student.id, AssessmentSession.content_release_id == journey.content_release_id, AssessmentSession.v2_state.is_not(None), AssessmentQuestionResponse.status == 'pending_review').first()
+    if (not student.is_active or journey.placement_state not in ({'posttest_ready', 'completed'} if allow_completed else {'posttest_ready'}) or home['data_status'] != 'ready'
+        or not pre or not pre['official'] or pre['score_percent'] is None
+        or not any(row.id == pre['session_id'] and row.content_release_id == journey.content_release_id for row in sessions)
+        or not progress['assigned_lessons'] or progress['completed_lessons'] != progress['assigned_lessons']
+        or progress['pending_review'] or pending_support or pending_lesson or pending_assessment):
+        raise HTTPException(status_code=409, detail='يجب اعتماد القبلي وإكمال دروس V2 والدعم والمراجعات قبل فتح البعدي.')
+
 @router.post('/{student_id}/posttest-access')
 def posttest_access(student_id: int, body: StudentPosttestAccessRequest, response: Response, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     student = _student(db, student_id, lock=True)
@@ -93,21 +113,7 @@ def posttest_access(student_id: int, body: StudentPosttestAccessRequest, respons
     if any(row.session_type == 'posttest' and row.status in {'completed','in_progress'} for row in sessions):
         raise HTTPException(status_code=409, detail='الاختبار البعدي V2 مكتمل أو قيد التنفيذ؛ لا يمكن تغيير إتاحته.')
     if body.enabled:
-        home = build_student_v2_home(db, student)
-        progress = home['progress']
-        pre = home['assessments']['pretest']
-        pending_support = db.query(SupportAssignment.id).filter(SupportAssignment.student_id == student.id,
-            SupportAssignment.content_release_id == journey.content_release_id, SupportAssignment.status != 'resolved').first()
-        pending_lesson = db.query(LessonQuestionResponse.id).join(LessonSession, LessonSession.id == LessonQuestionResponse.lesson_session_id).filter(
-            LessonSession.student_id == student.id, LessonSession.content_release_id == journey.content_release_id, LessonQuestionResponse.status == 'pending_review').first()
-        pending_assessment = db.query(AssessmentQuestionResponse.id).join(AssessmentSession, AssessmentSession.id == AssessmentQuestionResponse.assessment_session_id).filter(
-            AssessmentSession.student_id == student.id, AssessmentSession.content_release_id == journey.content_release_id, AssessmentSession.v2_state.is_not(None), AssessmentQuestionResponse.status == 'pending_review').first()
-        if (not student.is_active or journey.placement_state != 'posttest_ready' or home['data_status'] != 'ready'
-            or not pre or not pre['official'] or pre['score_percent'] is None
-            or not any(row.id == pre['session_id'] and row.content_release_id == journey.content_release_id for row in sessions)
-            or not progress['assigned_lessons'] or progress['completed_lessons'] != progress['assigned_lessons']
-            or progress['pending_review'] or pending_support or pending_lesson or pending_assessment):
-            raise HTTPException(status_code=409, detail='يجب اعتماد القبلي وإكمال دروس V2 والدعم والمراجعات قبل فتح البعدي.')
+        require_posttest_completion(db, student, journey)
     if bool(student.posttest_enabled) != body.enabled:
         student.posttest_enabled = body.enabled
         student.posttest_enabled_at = datetime.now(timezone.utc) if body.enabled else None

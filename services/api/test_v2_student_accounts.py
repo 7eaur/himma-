@@ -161,3 +161,36 @@ def test_official_pretest_from_another_bank_never_enables_v2_posttest(researcher
         db.query(AssessmentSession).one().content_release_id=other.id
         db.commit()
     assert researcher_client.post(BASE+'/posttest-access',json={'enabled':True}).status_code==409
+
+
+def test_direct_posttest_start_rechecks_academic_gate_even_if_access_flag_is_stale(researcher_client):
+    # A stale enabled flag must never bypass unfinished lesson evidence.
+    _ready(complete=False)
+    with TestingSessionLocal() as db:
+        student = db.query(Student).one()
+        student.posttest_enabled = True
+        db.commit()
+    assert researcher_client.post("/auth/student-login", json={"access_code": "STU001"}).status_code == 200
+    blocked = researcher_client.post("/v2/assessments/posttest/start")
+    assert blocked.status_code == 409, blocked.text
+    with TestingSessionLocal() as db:
+        assert db.query(AssessmentSession).filter(AssessmentSession.session_type == "posttest").count() == 0
+
+
+def test_direct_posttest_start_rechecks_reviews_after_staff_enable(researcher_client):
+    _ready()
+    enabled = researcher_client.post(BASE + "/posttest-access", json={"enabled": True})
+    assert enabled.status_code == 200, enabled.text
+    with TestingSessionLocal() as db:
+        lesson = db.query(LessonSession).first()
+        db.add(LessonQuestionResponse(
+            lesson_session_id=lesson.id, question_id="pending-after-enable",
+            role="independent_check", answer_json={}, submit_key="posttest-pending-check",
+            status="pending_review",
+        ))
+        db.commit()
+    assert researcher_client.post("/auth/student-login", json={"access_code": "STU001"}).status_code == 200
+    blocked = researcher_client.post("/v2/assessments/posttest/start")
+    assert blocked.status_code == 409, blocked.text
+    with TestingSessionLocal() as db:
+        assert db.query(AssessmentSession).filter(AssessmentSession.session_type == "posttest").count() == 0
