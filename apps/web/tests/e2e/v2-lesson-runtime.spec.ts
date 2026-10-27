@@ -133,7 +133,7 @@ test("P03/P04 runtime and P05 targeted support remain responsive", async ({ page
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/student/learning-v2");
-  await expect(page.getByRole("heading", { name: "رحلة درس واضحة ومحفوظة" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "هيا نتعلم القراءة خطوة خطوة" })).toBeVisible();
   await expect(page.getByRole("button", { name: "ابدأ الدرس" })).toHaveCount(1);
   await expect(page.getByRole("button", { name: "غير متاح الآن" })).toHaveCount(2);
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
