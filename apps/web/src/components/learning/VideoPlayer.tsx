@@ -27,6 +27,8 @@ function VideoPlayerInstance({ src, captionsSrc, startAt = 0, testOnly = false, 
   // Completion is an idempotent learner action: native duplicate ended events
   // must not silently retry a failed save or re-submit after replay.
   const completionStatus = useRef<"idle" | "saving" | "failed" | "confirmed">("idle");
+  // A lost acknowledgment must reuse the same completion evidence after media resets.
+  const completionEvidence = useRef<{ position: number; duration: number } | null>(null);
   // Only the newest explicit play request may change the playback state.
   const playAttempt = useRef(0);
   const [state, setState] = useState<PlayerState>("loading");
@@ -88,14 +90,17 @@ function VideoPlayerInstance({ src, captionsSrc, startAt = 0, testOnly = false, 
     if (!video) return;
     // An ended event with unusable metadata must offer a recovery action.
     // Silently returning leaves the learner stuck with no completion or retry.
-    if (!Number.isFinite(video.duration) || video.duration <= 0 || !Number.isFinite(video.currentTime)) {
+    const evidence = manualRetry && completionStatus.current === "failed"
+      ? completionEvidence.current
+      : { position: video.currentTime, duration: video.duration };
+    if (!evidence || !Number.isFinite(evidence.duration) || evidence.duration <= 0 || !Number.isFinite(evidence.position)) {
       setState("error");
       return;
     }
     // Match the server's >=90% completion gate. A premature native ended
     // event (e.g. interrupted media) must not submit a doomed completion or
     // present a save-retry error for a video the learner has not finished.
-    const reachedEnd = Number.isFinite(video.currentTime) && video.currentTime / video.duration >= 0.9;
+    const reachedEnd = evidence.position / evidence.duration >= 0.9;
     if (completionStatus.current === "confirmed") {
       // After replay(), a stale ended event from the previous playback must
       // not cover the video while the learner is watching it again.
@@ -107,11 +112,12 @@ function VideoPlayerInstance({ src, captionsSrc, startAt = 0, testOnly = false, 
       setState("error");
       return;
     }
+    completionEvidence.current = evidence;
     completionStatus.current = "saving";
     setState("saving");
     try {
       // The learner sees success only after the server acknowledges completion.
-      await onEnded(video.currentTime, video.duration);
+      await onEnded(evidence.position, evidence.duration);
       completionStatus.current = "confirmed";
       setState("ended");
     } catch {

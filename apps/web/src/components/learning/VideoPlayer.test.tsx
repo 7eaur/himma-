@@ -71,6 +71,23 @@ describe("VideoPlayer", () => {
     expect(onEnded).toHaveBeenNthCalledWith(2, 6, 6);
   });
 
+  it("retries a lost completion acknowledgment with original evidence after media metadata resets", async () => {
+    const onEnded = jest.fn().mockRejectedValueOnce(new Error("ack lost")).mockResolvedValueOnce(undefined);
+    render(<VideoPlayer src="/fixture.mp4" onCheckpoint={jest.fn()} onEnded={onEnded} />);
+    const video = screen.getByText("متصفحك لا يدعم تشغيل الفيديو.").closest("video") as HTMLVideoElement;
+    setMediaTime(video, 5.5, 6);
+    fireEvent.ended(video);
+    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("تعذر تأكيد حفظ المشاهدة"));
+    // Browsers may reset metadata/currentTime after ended. Reuse the original
+    // request evidence under the parent's idempotency key.
+    setMediaTime(video, 0, Number.NaN);
+    fireEvent.click(screen.getByRole("button", { name: "إعادة حفظ المشاهدة" }));
+    await waitFor(() => expect(screen.getByText("أكملت الشرح")).toBeInTheDocument());
+    expect(onEnded).toHaveBeenCalledTimes(2);
+    expect(onEnded).toHaveBeenNthCalledWith(1, 5.5, 6);
+    expect(onEnded).toHaveBeenNthCalledWith(2, 5.5, 6);
+  });
+
   it("shows recoverable buffering and media error states", async () => {
     render(<VideoPlayer src="/fixture.mp4" onCheckpoint={jest.fn()} onEnded={jest.fn()} />);
     const video = screen.getByText("متصفحك لا يدعم تشغيل الفيديو.").closest("video") as HTMLVideoElement;
