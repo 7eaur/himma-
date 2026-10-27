@@ -314,6 +314,11 @@ test("W3 notifications default to the durable V2 inbox and keep V1 explicit", as
   expect((await v2.json()).source).toBe('himma_v2_attention');
   const dialog = page.getByRole('dialog', { name: 'إشعارات المشرف' });
   await expect(dialog.getByText('إشعارات V2', { exact: true })).toBeVisible();
+  const dialogBox=await dialog.boundingBox();
+  expect(dialogBox?.x).toBeGreaterThanOrEqual(0);
+  expect((dialogBox?.x??0)+(dialogBox?.width??0)).toBeLessThanOrEqual(page.viewportSize()!.width);
+  const archiveButton=dialog.getByRole('button',{name:'أرشيف إشعارات V1',exact:true});
+  expect((await archiveButton.boundingBox())?.height).toBeGreaterThanOrEqual(44);
   const legacyResponse = page.waitForResponse(response => response.url().includes('/researcher/notifications?limit=24') && response.request().method() === 'GET');
   await dialog.getByRole('button', { name: 'أرشيف إشعارات V1', exact: true }).click();
   expect((await legacyResponse).status()).toBe(200);

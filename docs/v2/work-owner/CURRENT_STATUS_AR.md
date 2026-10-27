@@ -110,3 +110,9 @@
 - اختبار الحساب + ledger الجديد محليًا بعد تصحيح IDs:24 PASS. ledger ومكون العرض الجديد محليان غير مرفوعين ضمن hotfix الاختبار؛ بوابات هذا التصحيح منفصلة.
 - قرار المكافآت نُشر قبل التنفيذ في713f6fc5db0a97fed62f858d7086990bbc03a561. التنفيذ المحلي: API/rewards+lesson+interaction+adaptation+review60 PASS، Jest155 PASS، Next production build PASS؛ migration PostgreSQL SQL generation PASS. لا ختم قبول W4 بعد.
 - محاولة متصفح E2E المحلي تعذرت قبل التشغيل: تنزيل Chromium بواسطة Playwright أعاد أرشيفًا صفريًا/تالفًا. اختبار E2E الحقيقي أُعد للبوابات المتاحة في GitHub؛ لا ادعاء نجاح تشغيله محليًا.
+
+## صندوق الإشعارات خارج عرض المكتب — عطل حي مثبت
+- بوابات9f6f41f3: backend/frontend/security SUCCESS؛ integration63 PASS/1FAIL في اختبار الإشعارات، لأن زر أرشيف V1 خارج viewport، لا خطأ source أو mutation.
+- أُعيدت المشكلة في Work حيًا: dialog.left1121/right1511/width390 بينما viewport1363؛ CSS left:0 يفتح يمين الجرس خارج الشاشة. صُححت المحاذاة إلى right:0/left:auto، وقُيد scroll داخل flex، وصارت أزرار القراءة/الأرشيف44px مع التفاف آمن.
+- E2E نفسه أضيف له assertion حدود الصندوق وارتفاع الزر، دون force-click أو حذف فحص الأرشيف. إعادة بواباته والفحص الحي بعد نشر hotfix مطلوبة.
+- فيديو المعرض التجريبي VID-L1-01 اشتغل حيًا حتى النهاية:20.01s وreadyState4؛ بقي TEST ONLY/غير معتمد. لم يُعدّ فيديو نهائيًا في بوابة P10.
