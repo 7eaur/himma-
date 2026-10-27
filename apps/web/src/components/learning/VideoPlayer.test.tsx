@@ -262,8 +262,26 @@ describe("VideoPlayer", () => {
     fireEvent.ended(video);
     await waitFor(() => expect(screen.getByText("أكملت الشرح")).toBeInTheDocument());
     fireEvent.click(screen.getByRole("button", { name: "شاهد مرة أخرى" }));
-    fireEvent.ended(video);
+    fireEvent.ended(video); // Stale native event from the first playback.
+    expect(screen.queryByText("أكملت الشرح")).not.toBeInTheDocument();
+    expect(onEnded).toHaveBeenCalledTimes(1);
+    setMediaTime(video, 6);
+    fireEvent.ended(video); // The replay really finished.
     expect(screen.getByText("أكملت الشرح")).toBeInTheDocument();
     expect(onEnded).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not submit a premature ended event as a completed video", () => {
+    const onEnded = jest.fn().mockResolvedValue(undefined);
+    render(<VideoPlayer src="/fixture.mp4" onCheckpoint={jest.fn()} onEnded={onEnded} />);
+    const video = screen.getByText("متصفحك لا يدعم تشغيل الفيديو.").closest("video") as HTMLVideoElement;
+    setMediaTime(video, 2, 6);
+    fireEvent.canPlay(video);
+    fireEvent.ended(video);
+    expect(onEnded).not.toHaveBeenCalled();
+    expect(screen.getByRole("alert")).toHaveTextContent("تعذر تشغيل الفيديو");
+    expect(screen.queryByText("أكملت الشرح")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "إعادة المحاولة" }));
+    expect(HTMLMediaElement.prototype.load).toHaveBeenCalledTimes(1);
   });
 });
