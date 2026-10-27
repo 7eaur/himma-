@@ -494,10 +494,20 @@ def test_private_audio_stream_resolves_only_linked_assessment_evidence(researche
     monkeypatch.setattr("v2_assessment_runtime._finish_if_ready", lambda *_args, **_kwargs: None)
     reviewed = researcher_client.post(
         f"/v2/assessments/admin/responses/{response_id}/review",
-        json={"is_correct": True, "note": "اكتمل تشغيل التسجيل ومراجعته"},
+        json={"is_correct": False, "note": "اكتمل تشغيل التسجيل ومراجعته",
+              "rubric": {"target_units": 4, "deletions": 1, "substitutions": 1,
+                         "insertions": 0, "pronunciation_notes": "حرف يحتاج تدريبا",
+                         "fluency_notes": "وقفات متكررة"}},
     )
     assert reviewed.status_code == 200, reviewed.text
     with TestingSessionLocal() as db:
+        from db.learning_models import V2AudioRubric
+        grade = db.query(V2AudioRubric).one()
+        assert grade.audio_submission_id == audio_id
+        assert grade.target_units == 4 and grade.deletions == 1
+        assert grade.substitutions == 1 and grade.insertions == 0
+        assert float(grade.rubric_score) == 0.5
+        assert grade.is_correct is False  # Human decision, not score-driven
         assert db.query(AuditLog).filter(
             AuditLog.action == "v2_review_audio_playback_completed",
             AuditLog.entity_id == str(response_id),
