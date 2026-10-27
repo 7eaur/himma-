@@ -47,9 +47,10 @@ from db.models import (
     Student,
 )
 from dependencies import get_current_student, get_db
+from v1_student_guard import legacy_student_only
 from placement_scoring import AssessmentEvidence, decide_initial_placement, score_assessment
 
-router = APIRouter(tags=["Assessment completion"])
+router = APIRouter(tags=["Assessment completion"], dependencies=[Depends(legacy_student_only)])
 
 SECTION_ID_BY_NAME = {
     "readiness": 1,

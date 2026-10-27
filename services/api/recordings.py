@@ -20,6 +20,7 @@ from pydantic import BaseModel
 
 from db.models import Student
 from dependencies import get_current_researcher, get_current_student
+from v1_student_guard import legacy_student_only
 from storage import MAX_AUDIO_BYTES
 
 router = APIRouter(prefix="/recordings", tags=["Recordings"])
@@ -103,7 +104,7 @@ def _validate_audio_metadata(*, file_size: int, mime_type: str) -> None:
         )
 
 
-@router.post("/init", response_model=InitResponse)
+@router.post("/init", response_model=InitResponse, dependencies=[Depends(legacy_student_only)])
 def init_recording(
     req: InitRequest,
     student: Student = Depends(get_current_student),
@@ -145,7 +146,7 @@ def init_recording(
     }
 
 
-@router.post("/complete", response_model=CompleteResponse)
+@router.post("/complete", response_model=CompleteResponse, dependencies=[Depends(legacy_student_only)])
 def complete_recording(
     req: CompleteRequest,
     student: Student = Depends(get_current_student),

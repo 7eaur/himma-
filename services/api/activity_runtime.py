@@ -63,8 +63,9 @@ from db.models import (
     Student,
 )
 from dependencies import get_current_student, get_db
+from v1_student_guard import legacy_student_only
 
-router = APIRouter(tags=["Activities"])
+router = APIRouter(tags=["Activities"], dependencies=[Depends(legacy_student_only)])
 AUDIO_INTERACTIONS = {"read_aloud", "timed_read_aloud"}
 
 

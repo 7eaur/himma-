@@ -28,6 +28,7 @@ from content_runtime import (
     step_assets,
 )
 from dependencies import get_db, get_current_student
+from v1_student_guard import legacy_student_only
 from db.activity_models import ActivityStepResponse
 from db.models import (
     AudioSubmission,
@@ -43,7 +44,7 @@ from db.models import (
 import schemas
 import storage
 
-router = APIRouter(prefix="/assessment", tags=["Assessment"])
+router = APIRouter(prefix="/assessment", tags=["Assessment"], dependencies=[Depends(legacy_student_only)])
 
 KIND_BY_SESSION_TYPE = {
     "pretest": "pretest_question",

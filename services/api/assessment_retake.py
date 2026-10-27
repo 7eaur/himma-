@@ -22,6 +22,7 @@ from sqlalchemy.orm import Session
 import schemas
 from db.models import AssessmentRetakeAuthorization, AssessmentSession, AuditLog, Student, User
 from dependencies import get_current_student, get_current_user, get_db
+from v1_student_guard import require_legacy_student
 from journey import build_journey_summary
 
 router = APIRouter(tags=["Assessment Retakes"])
@@ -98,6 +99,7 @@ def authorize_assessment_retake(student_id: int, body: RetakeAuthorizationReques
     student = db.query(Student).filter(Student.id == student_id).with_for_update().first()
     if not student:
         raise HTTPException(status_code=404, detail="الطالب غير موجود")
+    require_legacy_student(db, student)
     active = db.query(AssessmentSession).filter(AssessmentSession.student_id == student.id, AssessmentSession.status == "in_progress").first()
     if active:
         raise HTTPException(status_code=409, detail="يجب إنهاء الجلسة الحالية قبل السماح بإعادة الاختبار")
@@ -125,6 +127,7 @@ def assessment_attempt_history(student_id: int, user: User = Depends(get_current
 
 @router.post("/assessment/start", response_model=schemas.AssessmentSessionResponse)
 def start_assessment_with_retake_policy(request: schemas.AssessmentStartRequest, db: Session = Depends(get_db), student: Student = Depends(get_current_student)):
+    require_legacy_student(db, student)
     if not student.is_active:
         raise HTTPException(status_code=403, detail="حساب الطالب غير نشط")
     db.query(Student.id).filter(Student.id == student.id).with_for_update().one()
@@ -167,6 +170,7 @@ def start_assessment_with_retake_policy(request: schemas.AssessmentStartRequest,
 
 
 def finish_assessment_and_select_official_attempt(session_id: int, db: Session = Depends(get_db), student: Student = Depends(get_current_student)):
+    require_legacy_student(db, student)
     # Completion is a permanent academic service. Retakes must never depend on
     # development bypass modules or router ordering.
     from assessment_completion import finish_session
