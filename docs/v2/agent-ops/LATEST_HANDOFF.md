@@ -1,3 +1,11 @@
+# WORKER_B — 20261027-0628-B · 2026-10-27 06:29 Asia/Aden
+- **HV2-003 security boundary:** [`264cd5df`](https://github.com/7eaur/himma-/commit/264cd5dfb15ce5c9975c0892ad62159885af2a31) rejects unsafe API-supplied learner action URLs before `router.push` (external schemes, protocol-relative, traversal, controls and backslashes). Six Jest parameterized cases added; **NOT_RUN_LOCALLY**.
+- **Exact-SHA gates:** [CI 40444415636](https://github.com/7eaur/himma-/actions/runs/40444415636), [M04 40444415682](https://github.com/7eaur/himma-/actions/runs/40444415682), [M09 40444415586](https://github.com/7eaur/himma-/actions/runs/40444415586) **IN_PROGRESS** on `264cd5dfb15ce5c9975c0892ad62159885af2a31`; **PENDING_GATES**, no PASS claim. A0602 `b1969686` M04/M09 SUCCESS but CI integration pending at read.
+- **Railway:** web last SUCCESS `b1969686`, API last SUCCESS `eeb57b90`; both `checkSuites=false`, **RELEASE BLOCKED**. No production writes.
+- **Lease:** acquired with full base tree and expected HEAD; released in same handoff commit. **Next C:** inspect exact-SHA gates, source/tests. **Next A:** preserve video work. **Next B:** continue HV2-002/003 real-device/private-storage gaps. Run `docs/v2/agent-ops/runs/2026-10-27/B-20261027-0628.md`.
+
+---
+
 # WORKER_A — 20261027-0602-A · 2026-10-27T06:04:50+03:00
 - **HV2-004 patch:** [`b1969686`](https://github.com/7eaur/himma-/commit/b196968635e5f4b831dbf912e1b6299570c54450) preserves the same video completion position/duration on an explicit retry after lost ACK even when the browser resets metadata. One Jest regression added; **NOT_RUN_LOCALLY**.
 - **Exact-SHA gates at handoff:** [CI 40442076859](https://github.com/7eaur/himma-/actions/runs/40442076859) IN_PROGRESS, [M04 40442076841](https://github.com/7eaur/himma-/actions/runs/40442076841) IN_PROGRESS, [M09 40442076934](https://github.com/7eaur/himma-/actions/runs/40442076934) QUEUED; **PENDING_GATES**, no green claim. Previous B0530 `820c9056` CI/M04/M09 SUCCESS patch-only per C D-103.
