@@ -436,6 +436,7 @@ def test_fake_placement_without_official_decision_cannot_unlock_lessons(student_
     catalog = student_client.get("/v2/lessons/catalog").json()
     assert not any(item["preview_enabled"] for item in catalog["lessons"])
     assert student_client.post("/v2/lessons/L1-01/start").status_code == 409
+    assert student_client.get("/v2/assessments/current-action").json()["action"] == "placement_review"
     with TestingSessionLocal() as db:
         assert db.query(LessonSession).count() == 0
 
@@ -470,3 +471,25 @@ def test_unplaced_preview_session_cannot_write_events_or_answers(student_client)
     with TestingSessionLocal() as db:
         assert db.query(LessonProgressEvent).count() == 0
         assert db.query(LessonSession).one().stage == "intro"
+
+
+def test_unplaced_session_never_appears_in_student_catalog_or_resumable_action(student_client):
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        release = register_candidate_release(db)
+        db.add(StudentJourney(student_id=student.id, content_release_id=release.id,
+                              current_level=1, current_lesson_id="L1-01", placement_state="not_started"))
+        db.add(LessonSession(student_id=student.id, content_release_id=release.id,
+                             lesson_id="L1-01", stage="intro", status="in_progress"))
+        db.commit()
+        lesson_id = db.query(LessonSession.id).scalar()
+    catalog = student_client.get("/v2/lessons/catalog")
+    assert catalog.status_code == 200, catalog.text
+    assert not any(row["preview_enabled"] or row["session_id"] for row in catalog.json()["lessons"])
+    current = student_client.get("/v2/assessments/current-action")
+    assert current.status_code == 200, current.text
+    assert current.json()["action"] == "start_pretest"
+    assert student_client.get(f"/v2/lessons/sessions/{lesson_id}").status_code == 409
+    assert student_client.get(f"/v2/lessons/sessions/{lesson_id}/interaction").status_code == 409
+    assert student_client.get(f"/v2/adaptation/sessions/{lesson_id}/status").status_code == 409
+    assert student_client.get(f"/v2/lessons/sessions/{lesson_id}/media/VID-L1-01").status_code == 409

@@ -129,18 +129,19 @@ def lesson_catalog(
 ):
     journey = db.query(StudentJourney).filter(StudentJourney.student_id == student.id).one_or_none()
     release = get_pinned_release(db, journey.content_release_id) if journey else get_release()
-    active = db.query(LessonSession).filter(
-        LessonSession.student_id == student.id,
-        LessonSession.status.in_(("in_progress", "waiting_review")),
-    ).one_or_none()
-    completed = {
-        row.lesson_id
-        for row in db.query(LessonSession).filter(
-            LessonSession.student_id == student.id,
-            LessonSession.status == "completed",
-        )
-    }
     placed = _has_official_v2_placement(db, student.id, journey)
+    active = (db.query(LessonSession).filter(
+        LessonSession.student_id == student.id,
+        LessonSession.content_release_id == journey.content_release_id,
+        LessonSession.status.in_(("in_progress", "waiting_review")),
+    ).one_or_none() if placed else None)
+    completed = ({
+        lesson_id for lesson_id, in db.query(LessonSession.lesson_id).filter(
+            LessonSession.student_id == student.id,
+            LessonSession.content_release_id == journey.content_release_id,
+            LessonSession.status == "completed",
+        ).all()
+    } if placed else set())
     # Legacy Student.current_level is never an authorization or fallback.
     current_level = journey.current_level if placed else 1
     first_for_level = next(
@@ -246,7 +247,9 @@ def lesson_session(
     student: Student = Depends(_require_preview_student),
     db: Session = Depends(get_db),
 ):
-    return _session_payload(db, _session_or_404(db, session_id, student.id))
+    session = _session_or_404(db, session_id, student.id)
+    _require_official_lesson_session(db, session)
+    return _session_payload(db, session)
 
 
 @router.get("/sessions/{session_id}/media/{asset_id}")
@@ -258,7 +261,19 @@ def session_approved_media(
 ):
     """Serve the media bytes from this student's immutable lesson release."""
     session = _session_or_404(db, session_id, student.id)
+    _require_official_lesson_session(db, session)
     release = get_pinned_release(db, session.content_release_id)
+    lesson = _lesson_or_404(session.lesson_id, release)
+    allowed = {lesson["video_media_id"]}
+    if session.stage in {"guided_practice", "independent_check", "support_practice", "support_check", "additional_check"}:
+        # Never make the entire bank's media visible through an unrelated session.
+        from v2_interaction_runtime import _current_question
+        question = _current_question(db, session)
+        allowed.update(row["media_id"] for row in question.get("stimulus", {}).get("media", []))
+        for option in question.get("options", []):
+            allowed.update(row["media_id"] for row in option.get("media", []))
+    if asset_id not in allowed:
+        raise HTTPException(status_code=404, detail="الوسيط ليس جزءًا من خطوة الدرس الحالية")
     asset = next((row for row in release["media"] if row["id"] == asset_id), None)
     path = approved_asset_path(asset) if asset else None
     if path is None:

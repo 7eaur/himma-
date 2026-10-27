@@ -28,7 +28,7 @@ from v2_adaptation_policy import (
     resolve_focus,
 )
 from v2_content.repository import get_pinned_release
-from v2_lesson_runtime import _require_preview_student, _session_or_404
+from v2_lesson_runtime import _require_preview_student, _require_official_lesson_session, _session_or_404
 
 
 router = APIRouter(prefix="/v2/adaptation", tags=["v2-adaptation"])
@@ -337,6 +337,7 @@ def adaptation_status(
 ):
     """Read-only learner query; decisions are created only by answer commands."""
     session = _session_or_404(db, session_id, student.id)
+    _require_official_lesson_session(db, session)
     return {"session_id": session.id, "adaptation": student_adaptation_payload(db, session)}
 
 

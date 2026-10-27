@@ -36,7 +36,7 @@ from v2_content.projection import student_question
 from v2_content.repository import get_release, get_pinned_release
 from v2_content.recovery import known_recovery
 from v2_interaction_runtime import AnswerRequest, CHOICE_INTERACTIONS, OPEN_INTERACTIONS, ORDER_INTERACTIONS, _canonical_answer, _ordered_answer_is_correct
-from v2_lesson_runtime import _require_preview_student
+from v2_lesson_runtime import _require_preview_student, _has_official_v2_placement
 from v2_retry_state import active_retry
 from v2_review_claims import enforce_review_claim, clear_review_claim
 from v2_audio_retention import (
@@ -122,16 +122,16 @@ def current_action(student: Student = Depends(_require_preview_student), db: Ses
             "href": f"/student/assessment-v2/{assessment.id}",
             "label": "متابعة الاختبار" if assessment.v2_state == "answering" else "عرض حالة المراجعة",
         }
-    # Active lessons already carry an immutable, resumable learner state.
-    # Preserve that state even for historical P03 sessions whose journey
-    # still says not_started. An active V2 assessment above takes priority.
-    lesson = db.query(LessonSession).filter(
+    # Only an officially placed, release-aligned lesson may appear as resumable.
+    journey = db.query(StudentJourney).filter(StudentJourney.student_id == student.id).one_or_none()
+    eligible_lesson = _has_official_v2_placement(db, student.id, journey)
+    lesson = (db.query(LessonSession).filter(
         LessonSession.student_id == student.id,
+        LessonSession.content_release_id == journey.content_release_id,
         LessonSession.status.in_(("in_progress", "waiting_review")),
-    ).one_or_none()
+    ).one_or_none() if eligible_lesson else None)
     if lesson:
         return {"action": "lesson", "state": lesson.stage, "href": f"/student/learning-v2/{lesson.id}", "label": "متابعة الدرس"}
-    journey = db.query(StudentJourney).filter(StudentJourney.student_id == student.id).one_or_none()
     if not journey:
         # An account without a V2 journey is not necessarily a first-time
         # student. Never turn completed V1 evidence into a fresh V2 attempt.
@@ -156,6 +156,8 @@ def current_action(student: Student = Depends(_require_preview_student), db: Ses
                 }
     if not journey or journey.placement_state in {"not_started", "in_progress"}:
         return {"action": "start_pretest", "href": None, "label": "ابدأ الاختبار القبلي"}
+    if journey.placement_state == "placed" and not eligible_lesson:
+        return {"action": "placement_review", "href": None, "label": "بانتظار اعتماد التسكين"}
     if journey.placement_state == "posttest_ready":
         return {"action": "start_posttest" if student.posttest_enabled else "waiting_posttest_enable", "href": None, "label": "ابدأ الاختبار البعدي" if student.posttest_enabled else "بانتظار إتاحة الاختبار البعدي"}
     if journey.placement_state == "completed":

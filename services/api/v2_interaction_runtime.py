@@ -255,7 +255,9 @@ def current_interaction(
     student: Student = Depends(_require_preview_student),
     db: Session = Depends(get_db),
 ):
-    return _interaction_payload(db, _session_or_404(db, session_id, student.id))
+    session = _session_or_404(db, session_id, student.id)
+    _require_official_lesson_session(db, session)
+    return _interaction_payload(db, session)
 
 
 @router.put("/sessions/{session_id}/draft")
