@@ -107,6 +107,16 @@ def _has_official_v2_placement(db: Session, student_id: int, journey: StudentJou
     ).first() is not None
 
 
+def _require_official_lesson_session(db: Session, session: LessonSession) -> None:
+    """Obsolete unplaced preview sessions cannot create new academic evidence."""
+    journey = db.query(StudentJourney).filter(
+        StudentJourney.student_id == session.student_id,
+    ).one_or_none()
+    if (not _has_official_v2_placement(db, session.student_id, journey)
+            or session.content_release_id != journey.content_release_id):
+        raise HTTPException(status_code=409, detail="لا يمكن متابعة الدرس دون اختبار قبلي وتسكين رسمي مطابق")
+
+
 @router.get("/catalog")
 def lesson_catalog(
     student: Student = Depends(_require_preview_student),
@@ -244,6 +254,7 @@ def record_lesson_event(
     db: Session = Depends(get_db),
 ):
     session = _session_or_404(db, session_id, student.id)
+    _require_official_lesson_session(db, session)
     existing = db.query(LessonProgressEvent).filter(
         LessonProgressEvent.lesson_session_id == session.id,
         LessonProgressEvent.event_key == event.event_key,

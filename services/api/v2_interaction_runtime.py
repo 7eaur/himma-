@@ -23,7 +23,7 @@ from v2_content.media import MediaProvider
 from v2_content.projection import student_question
 from v2_content.repository import get_lesson, get_media, get_question
 from v2_audio_retention import audio_upload_binding, track_new_audio_upload, mark_audio_submitted
-from v2_lesson_runtime import _require_preview_student, _session_or_404, _session_payload
+from v2_lesson_runtime import _require_preview_student, _require_official_lesson_session, _session_or_404, _session_payload
 from v2_adaptation_runtime import (
     active_support_assignment,
     finish_independent_check,
@@ -260,6 +260,7 @@ def save_writing_draft(
     db: Session = Depends(get_db),
 ):
     session = _session_or_404(db, session_id, student.id)
+    _require_official_lesson_session(db, session)
     question = _current_question(db, session)
     if question["interaction"] != "write_text":
         raise HTTPException(status_code=409, detail="المسودة متاحة لسؤال الكتابة الحالي فقط")
@@ -291,6 +292,7 @@ def upload_reading(
     db: Session = Depends(get_db),
 ):
     session = _session_or_404(db, session_id, student.id)
+    _require_official_lesson_session(db, session)
     question = _current_question(db, session)
     if question["interaction"] != "read_aloud":
         raise HTTPException(status_code=409, detail="التسجيل متاح لسؤال القراءة الحالي فقط")
@@ -331,6 +333,7 @@ def submit_answer(
     ).with_for_update().one_or_none()
     if not session:
         raise HTTPException(status_code=404, detail="جلسة الدرس غير موجودة")
+    _require_official_lesson_session(db, session)
 
     existing = db.query(LessonQuestionResponse).filter(
         LessonQuestionResponse.lesson_session_id == session.id,

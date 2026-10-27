@@ -429,3 +429,35 @@ def test_fake_placement_without_official_decision_cannot_unlock_lessons(student_
     assert student_client.post("/v2/lessons/L1-01/start").status_code == 409
     with TestingSessionLocal() as db:
         assert db.query(LessonSession).count() == 0
+
+
+def test_unplaced_preview_session_cannot_write_events_or_answers(student_client):
+    # Existing P03 legacy sessions may remain in storage, but cannot
+    # accumulate new academic evidence without an official pretest placement.
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        release = register_candidate_release(db)
+        db.add(StudentJourney(
+            student_id=student.id, content_release_id=release.id,
+            current_level=1, current_lesson_id="L1-01", placement_state="not_started",
+        ))
+        row = LessonSession(
+            student_id=student.id, content_release_id=release.id,
+            lesson_id="L1-01", stage="intro", status="in_progress",
+        )
+        db.add(row)
+        db.commit()
+        session_id = row.id
+    event = student_client.post(
+        f"/v2/lessons/sessions/{session_id}/events",
+        json={"event_key": str(uuid4()), "event_type": "intro_complete"},
+    )
+    assert event.status_code == 409, event.text
+    answer = student_client.post(
+        f"/v2/lessons/sessions/{session_id}/answers",
+        json={"submit_key": str(uuid4()), "selected_option_ids": ["a"]},
+    )
+    assert answer.status_code == 409, answer.text
+    with TestingSessionLocal() as db:
+        assert db.query(LessonProgressEvent).count() == 0
+        assert db.query(LessonSession).one().stage == "intro"
