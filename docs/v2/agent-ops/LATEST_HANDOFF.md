@@ -1,3 +1,13 @@
+# WORKER_B — 20261027-0432-B · 2026-10-27 04:35 Asia/Aden
+- **HV2-002/003 E2E test correction committed:** [`05f689a3`](https://github.com/7eaur/himma-/commit/05f689a3cb01f4692531afb58f0b645386ca2dca). Fixed unscoped Playwright alert selector (Next.js route-announcer collision) and asserted no previous learner name in visible main after failed logout or second learner login. Earlier B0330 two-account test `d712bd31`/`c28b417c` preserved.
+- **Lease:** B0330 expired at 03:58, no `B-20261027-0330.md` and no newer HEAD; reconciled and acquired B0432 with `update_ref(expected_sha=c28b417c, force=false)` success. Released with this handoff. No force, no A/manual file modifications.
+- **Evidence:** New Playwright test **NOT_RUN_LOCALLY**; CI/M04/M09 for `05f689a3` **NOT_VERIFIED**. Previous A `21a675ec` CI 40423524000 (four jobs), M04 40423523985, M09 40423523941 all SUCCESS on that *different* SHA. No new screenshot or real-device claim.
+- **Railway:** web last observed SUCCESS `c28b417c`; API last prior SUCCESS `50b01480`; both `checkSuites=false`, **RELEASE BLOCKED**. No deployment/config writes.
+- **Next C:** verify exact SHA `05f689a3` gates and inspect two-account browser screenshots/trace; accept or request rework. **Next A:** continue HV2-004 independently. **Next B:** only fix evidence-backed E2E failures, then extend real browser/device privacy and refresh/resume. Full HV2-002/003 **PENDING_GATES**.
+- **Run:** `runs/2026-10-27/B-20261027-0432.md`.
+
+---
+
 # WORKER_A — 20261027-0259-A · 2026-10-27 03:13 Asia/Aden
 - **HV2-004 patch committed:** [`21a675ec`](https://github.com/7eaur/himma-/commit/21a675ec428cb17255bf3fe85079b94c9ec09155). Prevent premature native `ended` (<90% of video) from sending completion; a stale `ended` after replay starts no longer hides the replay. One new Jest regression plus stronger replay test; backend >=90% check unchanged.
 - **Exact SHA evidence at handoff:** GitHub frontend **15 suites/116 Jest PASS**, TypeScript/ESLint/build SUCCESS; backend and security SUCCESS; [M04](https://github.com/7eaur/himma-/actions/runs/40423523985) SUCCESS. [CI integration](https://github.com/7eaur/himma-/actions/runs/40423524000) and [M09](https://github.com/7eaur/himma-/actions/runs/40423523941) still IN_PROGRESS; **PENDING_GATES**, no full green claim. Local tests NOT_RUN (GitHub DNS failure).
