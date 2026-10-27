@@ -364,9 +364,9 @@ function StudentDetailView({ id }: { id: string }) {
           {activeTab === "recordings" && <>
             <p className={styles.muted}>عدد القراءات المعلقة في الدرس الحالي: {v2Home.progress.pending_review}. لا تُحتسب قراءة قبل مراجعتها.</p>
             <div className={styles.actions}>
-              <Link className={styles.primary} href="/admin/v2-assessments">مراجعة تسجيلات الاختبارات</Link>
-              <Link className={styles.secondary} href="/admin/v2-lesson-review">مراجعة قراءات الدروس</Link>
-              <Link className={styles.secondary} href={`/admin/v2-reviewed-recordings?student_id=${encodeURIComponent(id)}`}>تسجيلات الطالب المقيّمة</Link>
+              <Link className={styles.primary} href="/admin/v2-review-center?tab=assessments">مراجعة تسجيلات الاختبارات</Link>
+              <Link className={styles.secondary} href="/admin/v2-review-center?tab=lessons">مراجعة قراءات الدروس</Link>
+              <Link className={styles.secondary} href={`/admin/v2-review-center?tab=reviewed&student_id=${encodeURIComponent(id)}`}>تسجيلات الطالب المقيّمة</Link>
             </div>
           </>}
           {activeTab === "adaptation" && <>
