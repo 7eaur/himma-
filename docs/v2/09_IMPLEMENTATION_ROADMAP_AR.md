@@ -393,3 +393,9 @@ P07 لا ينشئ عائقًا مبكرًا: يجب أن ينجح Player منذ 
 6. **P0 Gate:** تصوير وتفاعل مصادق لكل صفحة على 320/360/390/430/768/1024/1440 وZoom 200%، اختبار RTL/safe-area/keyboards/voice states/preview/media/exports/empty/error/security، مع CI/M04/M09 على HEAD واحد ونشر Web/API آمن بعد backup/restore. أعمال هذه الإضافة تدخل دفعات متماسكة مع المراحل السابقة لا فرع معاينة جديدًا.
 
 **التبعيات:** لا تعطل هذه الدفعات إغلاق P0 التكيف الذاتي والمحتوى والميديا، ولا تحوّل جزءًا مشاهدًا بالمصدر إلى ادعاء VERIFIED_LIVE. التفاصيل وUXA-01..18 وAR-01..10 وMOB-01..09 وشروط القبول في الملحق.
+
+
+### P09-UX execution checkpoint (2026-10-28)
+- UX-01A **source coded**, 7 Student360 tabs + per-level lesson cards, single voice review item picker, bank category navigation + one question, scoped reviewed archive links, admin sidebar.
+- UX-01B **source coded, pending tests/migration**: numeric rubric model `V2AudioRubric` + `0030_v2_audio_rubrics` isolated from V1, hand-entered human counts in lesson and assessment reviewer, one `v2-review-center` with 3 tabs, private archive display, 12-card media paging.
+- These are **not complete** or client-ready until schema migration tested, typing/Jest/Pytest/E2E green, Web/API same SHA and mobile browser acceptance. D26 untouched: automated placement/adaptation, supervisor reads/grades sound only.
