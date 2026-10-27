@@ -103,6 +103,7 @@ describe("Student page V2-only learner boundary", () => {
     "https://external.invalid/student",
     "/student/../admin",
     "/admin",
+    "/student\\\\external",
   ])("refuses unsafe V2 action navigation (%s) without leaving the learner surface", async href => {
     mockV2({
       ...firstTime,

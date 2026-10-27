@@ -43,7 +43,7 @@ export interface StudentV2Home {
 // external schemes or an escaped path even when the response is malformed.
 function isSafeStudentRoute(href: string): boolean {
   if (!href.startsWith("/") || href.startsWith("//") ||
-      [...href].some(char => char === "\\\\" || char.charCodeAt(0) <= 32 || char.charCodeAt(0) === 127)) return false;
+      [...href].some(char => char === "\\" || char.charCodeAt(0) <= 32 || char.charCodeAt(0) === 127)) return false;
   try {
     const route = new URL(href, "https://himma.invalid");
     return route.origin === "https://himma.invalid" &&
