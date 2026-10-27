@@ -11,7 +11,7 @@ from v2_content.contracts import PRIVATE_KEYS
 from v2_content.repository import get_question, get_release
 from v2_content.importer import register_candidate_release
 from test_v2_legacy_writing_fixture import legacy_writing_release
-from v2_assessment_runtime import PlacementRequest, ReviewRequest
+from v2_assessment_runtime import PlacementRequest, ReviewRequest, _recommended_level
 from v2_lesson_review import LessonDecision
 from v2_retry_runtime import RetryRequest
 
@@ -214,14 +214,19 @@ def test_open_responses_keep_placement_pending_until_human_review_and_manual_dec
         session = db.query(AssessmentSession).filter(AssessmentSession.id == session_id).one()
         assert session.v2_state == "placement_pending_review"
         assert session.assigned_level is None
-    placed = researcher_client.post(f"/v2/assessments/admin/sessions/{session_id}/placement", json={"assigned_level": 2, "reason": "قرار يدوي مبني على ملف المهارات ومراجعة الأدلة المفتوحة"})
+    default_denied = researcher_client.post(f"/v2/assessments/admin/sessions/{session_id}/placement",
+        json={"assigned_level": 2, "reason": "قرار يدوي مبني على ملف المهارات ومراجعة الأدلة المفتوحة"})
+    assert default_denied.status_code == 409
+    placed = researcher_client.post(f"/v2/assessments/admin/sessions/{session_id}/placement",
+        json={"assigned_level": 2, "override_recommendation": True,
+              "reason": "قرار استثنائي مبني على ملف المهارات ومراجعة الأدلة المفتوحة"})
     assert placed.status_code == 200
     with TestingSessionLocal() as db:
         session = db.query(AssessmentSession).filter(AssessmentSession.id == session_id).one()
         journey = db.query(StudentJourney).one()
         assert session.assigned_level == 2 and session.official_for_reporting is True
         assert journey.current_level == 2 and journey.current_lesson_id.startswith("L2-")
-        assert db.query(PlacementDecisionV2).one().policy_version.endswith("candidate")
+        assert db.query(PlacementDecisionV2).one().policy_version.endswith("threshold-50-80-v1")
         audit = db.query(AuditLog).filter(AuditLog.action == "v2_manual_placement_approved").one()
         assert "قرار يدوي" not in audit.details
         assert "reason_location=v2_placement_decisions" in audit.details
@@ -609,3 +614,19 @@ def test_even_unanswered_v1_attempt_prevents_shell_adoption(student_client):
     with TestingSessionLocal() as db:
         assert db.query(Attempt).count() == 1
         assert db.query(StudentJourney).count() == 0
+
+
+@pytest.mark.parametrize(
+    ("percentage", "level"),
+    [(0, 1), (49.99, 1), (50, 2), (79.99, 2), (80, 3), (100, 3)],
+)
+def test_approved_placement_percentage_boundaries(percentage, level):
+    assert _recommended_level(percentage) == level
+
+
+def test_missing_or_invalid_result_cannot_produce_placement_recommendation():
+    assert _recommended_level(None) is None
+    with pytest.raises(ValueError):
+        _recommended_level(100.01)
+    with pytest.raises(ValueError):
+        _recommended_level(-0.01)

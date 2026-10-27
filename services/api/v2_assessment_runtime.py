@@ -50,7 +50,17 @@ from v2_audio_review_evidence import (
 
 
 router = APIRouter(prefix="/v2/assessments", tags=["v2-assessments"])
-POLICY_VERSION = "himma-v2-assessment/manual-placement-1-candidate"
+POLICY_VERSION = "himma-v2-assessment/placement-threshold-50-80-v1"
+
+
+def _recommended_level(score_percent: float | int | None) -> int | None:
+    """Approved pretest placement boundaries (0<=score<=100), never a V1 level."""
+    if score_percent is None:
+        return None
+    score = float(score_percent)
+    if not 0 <= score <= 100:
+        raise ValueError("pretest score outside approved percentage range")
+    return 1 if score < 50 else 2 if score < 80 else 3
 
 
 class DraftRequest(BaseModel):
@@ -65,6 +75,7 @@ class ReviewRequest(BaseModel):
 class PlacementRequest(BaseModel):
     assigned_level: int = Field(ge=1, le=3)
     reason: Annotated[str, StringConstraints(strip_whitespace=True, min_length=10, max_length=2000)]
+    override_recommendation: bool = False
 
 
 def _empty_legacy_pretest(db: Session, student_id: int) -> AssessmentSession | None:
@@ -697,7 +708,13 @@ def placement_queue(
     return {
         "items": [{
             "session_id": session.id, "student_id": student.id, "student_name": student.name,
-            "attempt_no": session.assessment_attempt_no, "result": _result_from_rows(grouped[session.id]),
+            "attempt_no": session.assessment_attempt_no,
+            "result": {
+                **_result_from_rows(grouped[session.id]),
+                "recommended_level": _recommended_level(
+                    _result_from_rows(grouped[session.id])["score_percent"]
+                ),
+            },
         } for session, student in page],
         "next_offset": offset + limit if len(rows) > limit else None,
     }
@@ -787,6 +804,12 @@ def place_student(session_id: int, body: PlacementRequest, user: User = Depends(
     result = _result(db, session)
     if result["answered"] != 30 or result["pending_review"] or result["score_percent"] is None:
         raise HTTPException(status_code=409, detail="لا يمكن تسكين طالب قبل اكتمال التقييم ومراجعة جميع الأدلة")
+    recommended = _recommended_level(result["score_percent"])
+    exceptional = body.assigned_level != recommended
+    if exceptional and not body.override_recommendation:
+        raise HTTPException(status_code=409, detail=f"المستوى المقترح من القبلي هو {recommended}؛ يلزم اعتماد الاستثناء مع تسبيب واضح")
+    if exceptional and len(body.reason) < 20:
+        raise HTTPException(status_code=422, detail="يلزم توضيح تربوي مفصل لاستثناء المستوى المقترح")
     db.add(PlacementDecisionV2(student_id=student.id, assessment_session_id=session.id, content_release_id=session.content_release_id, assigned_level=body.assigned_level, reason=body.reason, policy_version=POLICY_VERSION, decided_by=user.id))
     session.assigned_level = body.assigned_level; session.final_score = result["score_percent"]
     session.v2_result_json = result; session.v2_state = "completed"; session.status = "completed"
@@ -794,9 +817,9 @@ def place_student(session_id: int, body: PlacementRequest, user: User = Depends(
     mark_official_completed_attempt(db, session)
     journey.current_level = body.assigned_level; journey.current_lesson_id = first_lesson; journey.placement_state = "placed"
     student.current_level = body.assigned_level
-    db.add(AuditLog(actor_role="researcher", actor_id=user.id, action="v2_manual_placement_approved", entity_type="assessment_session", entity_id=str(session.id), details=f"level={body.assigned_level}; policy={POLICY_VERSION}; reason_location=v2_placement_decisions"))
+    db.add(AuditLog(actor_role="researcher", actor_id=user.id, action="v2_manual_placement_approved", entity_type="assessment_session", entity_id=str(session.id), details=f"level={body.assigned_level}; recommended_level={recommended}; override={exceptional}; score_percent={result['score_percent']}; policy={POLICY_VERSION}; reason_location=v2_placement_decisions"))
     db.commit()
-    return {"status": "placed", "assigned_level": body.assigned_level, "current_lesson_id": first_lesson}
+    return {"status": "placed", "assigned_level": body.assigned_level, "recommended_level": recommended, "override": exceptional, "current_lesson_id": first_lesson}
 
 
 def _session_report(db: Session, session: AssessmentSession) -> dict[str, Any]:

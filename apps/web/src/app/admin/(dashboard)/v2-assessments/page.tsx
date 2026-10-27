@@ -18,7 +18,7 @@ interface ReviewItem {
 }
 interface PlacementItem {
   session_id: number; student_id: number; student_name: string; attempt_no: number;
-  result: { answered: number; total: number; pending_review: number; score_percent: number | null; skills: Record<string, { graded: number; correct: number; pending: number }> };
+  result: { answered: number; total: number; pending_review: number; score_percent: number | null; recommended_level: number | null; skills: Record<string, { graded: number; correct: number; pending: number }> };
 }
 interface Paged<T> { items: T[]; blocked_items?: BlockedV2Review[]; next_offset: number | null }
 interface Report { counts: Record<string, number>; averages: { pretest: number | null; posttest: number | null }; missing_policy: string }
@@ -35,6 +35,7 @@ export default function V2AssessmentsPage() {
   const [report, setReport] = useState<Report | null>(null);
   const [notes, setNotes] = useState<Record<number, string>>({});
   const [levels, setLevels] = useState<Record<number, number>>({});
+  const [approvedOverrides, setApprovedOverrides] = useState<Record<number, boolean>>({});
   const [reasons, setReasons] = useState<Record<number, string>>({});
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -102,14 +103,17 @@ export default function V2AssessmentsPage() {
   };
 
   const place = async (item: PlacementItem) => {
-    const level = levels[item.session_id];
+    const recommended = item.result.recommended_level;
+    const level = levels[item.session_id] ?? recommended;
     const reason = (reasons[item.session_id] || "").trim();
-    if (![1, 2, 3].includes(level) || reason.length < 10) return;
+    const isOverride = recommended !== null && level !== recommended;
+    if (!level || !recommended || ![1, 2, 3].includes(level) || reason.length < 10 ||
+        (isOverride && (!approvedOverrides[item.session_id] || reason.length < 20))) return;
     setBusy(`place:${item.session_id}`); setError("");
     try {
       const response = await fetch(`/api/v2/assessments/admin/sessions/${item.session_id}/placement`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ assigned_level: level, reason }),
+        body: JSON.stringify({ assigned_level: level, reason, override_recommendation: isOverride }),
       });
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(data?.detail || "تعذر اعتماد التسكين");
@@ -121,7 +125,7 @@ export default function V2AssessmentsPage() {
   const pendingPlacement = report?.counts["pretest:placement_pending_review"] ?? 0;
   return <AdminPage>
     <AdminPageHeader eyebrow="المراجعة" icon={ClipboardCheck} title="الاختبارات والتسكين"
-      description="افحص دليل الطالب ومرجع السؤال قبل القرار؛ التسكين يدوي ومسبب إلى حين اعتماد الحدود التربوية."
+      description="راجع الأدلة أولًا؛ يُقترح المستوى آليًا وفق حدود 50% و80%، وأي استثناء موثق صراحة."
       actions={<AdminAction icon={RefreshCw} onClick={() => void load()}>تحديث</AdminAction>} />
     {error && <div role="alert" className="alert-error">{error}</div>}
     {loading ? <p role="status">جاري تحميل المراجعات...</p> : <>
@@ -186,7 +190,7 @@ export default function V2AssessmentsPage() {
         <button type="button" className="rounded-lg border px-3 py-2 disabled:opacity-40" disabled={reviews.next_offset === null} onClick={() => setReviewOffset(reviews.next_offset || 0)}>التالي</button>
       </div>
     </AdminPanel>
-    <AdminPanel title="تسكين الطلاب" description="جلسات قبلية مستوفية للمراجعات فقط؛ راجع درجات المهارات قبل اختيار المستوى وذكر سبب القرار.">
+    <AdminPanel title="تسكين الطلاب" description="التوصية من النتيجة الرسمية بعد مراجعة الأدلة: أقل من 50% المستوى الأول، 50%–أقل من 80% الثاني، ومن 80% الثالث.">
       {placements.items.length === 0 ? <AdminEmptyState title="لا توجد جلسات مؤهلة للتسكين" description="تظهر الجلسة بعد الإجابة على كل الأسئلة ومراجعة الأدلة المفتوحة."/>
         : <div className="space-y-4">{placements.items.map(item => <article key={item.session_id} className="space-y-3 rounded-2xl border border-slate-200 p-4">
           <div><strong className="text-navy">{item.student_name}</strong>
@@ -195,16 +199,28 @@ export default function V2AssessmentsPage() {
             {Object.entries(item.result.skills).map(([name, skill]) => <div key={name} className="rounded-lg bg-slate-50 p-2 text-sm">
               <strong>{name}</strong><p>{skill.correct} صحيح من {skill.graded} · {skill.pending} معلّق</p></div>)}
           </div>
-          <label className="block text-sm font-semibold" htmlFor={`level-${item.session_id}`}>المستوى المختار</label>
-          <select id={`level-${item.session_id}`} value={levels[item.session_id] ?? ""} onChange={event => setLevels(prev => ({ ...prev, [item.session_id]: Number(event.target.value) }))}
+          <p className="text-sm font-semibold text-blue-800">المستوى المقترح من القبلي: {item.result.recommended_level === null ? "بانتظار النتيجة" : `المستوى ${item.result.recommended_level}`}</p>
+          <label className="block text-sm font-semibold" htmlFor={`level-${item.session_id}`}>المستوى المعتمد</label>
+          <select id={`level-${item.session_id}`} value={levels[item.session_id] ?? item.result.recommended_level ?? ""}
+            onChange={event => { setLevels(prev => ({ ...prev, [item.session_id]: Number(event.target.value) })); setApprovedOverrides(prev => ({ ...prev, [item.session_id]: false })); }}
             className="w-full rounded-xl border border-slate-300 p-3">
             <option value="">اختر بعد المراجعة</option><option value="1">المستوى الأول</option><option value="2">المستوى الثاني</option><option value="3">المستوى الثالث</option>
           </select>
+          {item.result.recommended_level !== null && (levels[item.session_id] ?? item.result.recommended_level) !== item.result.recommended_level &&
+            <label className="flex items-start gap-2 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
+              <input type="checkbox" checked={approvedOverrides[item.session_id] ?? false}
+                onChange={event => setApprovedOverrides(prev => ({ ...prev, [item.session_id]: event.target.checked }))}/>
+              أؤكد أن هذا تسكين استثنائي يخالف نتيجة القبلي، وسأوثق السبب التربوي المحدد.
+            </label>}
           <label className="block text-sm font-semibold" htmlFor={`reason-${item.session_id}`}>مبررات التسكين</label>
           <textarea id={`reason-${item.session_id}`} value={reasons[item.session_id] || ""} rows={2} maxLength={2000}
             onChange={event => setReasons(prev => ({ ...prev, [item.session_id]: event.target.value }))}
             placeholder="اكتب مبررًا مستندًا إلى نتائج المهارات" className="w-full rounded-xl border border-slate-300 p-3"/>
-          <button type="button" disabled={busy !== null || ![1,2,3].includes(levels[item.session_id]) || (reasons[item.session_id] || "").trim().length < 10}
+          <button type="button" disabled={busy !== null || item.result.recommended_level === null ||
+            ![1,2,3].includes(levels[item.session_id] ?? item.result.recommended_level ?? 0) ||
+            (reasons[item.session_id] || "").trim().length < 10 ||
+            ((levels[item.session_id] ?? item.result.recommended_level) !== item.result.recommended_level &&
+              (!approvedOverrides[item.session_id] || (reasons[item.session_id] || "").trim().length < 20))}
             onClick={() => void place(item)} className="rounded-xl bg-blue-700 px-4 py-2 font-bold text-white disabled:opacity-40">اعتماد التسكين</button>
         </article>)}</div>}
       <div className="mt-3 flex items-center justify-between gap-2">
