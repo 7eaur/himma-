@@ -293,7 +293,53 @@ def _finish_if_ready(db: Session, session: AssessmentSession) -> None:
         session.v2_state = "waiting_review"
         return
     if session.session_type == "pretest":
-        session.v2_state = "placement_pending_review"
+        # Final graded evidence triggers autonomous placement; human reading
+        # remains the only manual approval. Never infer a V1 academic level.
+        if result["score_percent"] is None:
+            raise HTTPException(status_code=409, detail="نتيجة القبلي لم تكتمل بعد")
+        level = _recommended_level(result["score_percent"])
+        journey = db.query(StudentJourney).filter(
+            StudentJourney.student_id == session.student_id,
+        ).with_for_update().one_or_none()
+        if (journey is None or journey.content_release_id != session.content_release_id
+                or journey.placement_state != "in_progress" or journey.status != "active"):
+            raise HTTPException(status_code=409, detail="رحلة الطالب غير جاهزة للتسكين التلقائي")
+        if db.query(PlacementDecisionV2.id).filter(
+            PlacementDecisionV2.assessment_session_id == session.id,
+        ).first() is not None:
+            raise HTTPException(status_code=409, detail="قرار التسكين مسجل مسبقًا")
+        release = _session_release(db, session)
+        first_lesson = next((
+            lesson["id"] for lesson in release["lessons"]
+            if lesson["level"] == f"L{level}"
+        ), None)
+        if first_lesson is None:
+            raise HTTPException(status_code=409, detail="لا يوجد درس مناسب في الإصدار المثبت")
+        session.v2_state = "completed"
+        session.status = "completed"
+        session.completed_at = datetime.now(timezone.utc)
+        session.final_score = result["score_percent"]
+        session.assigned_level = level
+        mark_official_completed_attempt(db, session)
+        db.add(PlacementDecisionV2(
+            student_id=session.student_id,
+            assessment_session_id=session.id,
+            content_release_id=session.content_release_id,
+            assigned_level=level,
+            reason="Auto placement from finalized official 30-question V2 pretest",
+            policy_version=POLICY_VERSION,
+            decided_by=None,  # Explicit system decision, never fake a staff actor
+        ))
+        journey.current_level = level
+        journey.current_lesson_id = first_lesson
+        journey.placement_state = "placed"
+        student = db.query(Student).filter(Student.id == session.student_id).one()
+        student.current_level = level  # Legacy identity mirror, not authority
+        db.add(AuditLog(
+            actor_role="system", actor_id=0, action="v2_automatic_placement",
+            entity_type="assessment_session", entity_id=str(session.id),
+            details=f"policy={POLICY_VERSION};recommended={level};score_percent={result['score_percent']};release_id={session.content_release_id}",
+        ))
         return
     session.v2_state = "completed"
     session.status = "completed"
