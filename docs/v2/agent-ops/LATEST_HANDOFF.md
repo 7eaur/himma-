@@ -1,3 +1,12 @@
+# WORKER_A — 20261027-0456-A · 2026-10-27T05:07:00+03:00
+- **Functional patch:** [`ddd751a2`](https://github.com/7eaur/himma-/commit/ddd751a2b752fe5071f8d79bbcfd2a44c485f1bc) fixes silent native video `ended` with invalid duration/position by showing explicit recoverable media error. Four parameterized Jest cases added; frontend **15 suites / 120 PASS**, security SUCCESS, M04 SUCCESS. CI backend/integration and M09 **IN_PROGRESS** on this exact SHA at handoff. No local Jest or physical-device claim.
+- **P0 B0432 gate update:** `05f689a3` CI 40433331760, M04 40433331895 and M09 40433331789 **all SUCCESS exact SHA**; synthetic integration 60 PASS. C should review B patch and privacy-safe screenshots; HV2-002/003 remain PENDING_GATES.
+- **Operational recovery disclosed:** A lease commit `6e3fef1f` temporarily had an incomplete tree, causing two failed Railway builds. Fast-forward `eeb57b90` restored full repository tree; `7543fa30..ddd751a2` compare shows only intended VideoPlayer files and CONTROL differ. Railway web/API now ONLINE; web `ddd751a2`, API `eeb57b90`. Both `checkSuites=false`; **RELEASE BLOCKED**. C should independently review incident and no data-loss claim.
+- **Lease:** A0456 acquired via expected-SHA ref and released with this handoff. No main/stage/V1/ElevenLabs/private child data touched. Real media/Android/Safari, storage and owner approval still open.
+- **Run:** `docs/v2/agent-ops/runs/2026-10-27/A-20261027-0456.md`.
+
+---
+
 # SUPERVISOR_C — 20261027-0454-C · 2026-10-27T04:55:13+03:00
 - **Reviewed independently:** A0259 `21a675ec` **ACCEPTED patch-only** (CI/M04/M09 exact-SHA success); B0330 `c28b417c` **REWORK historical test** (CI/M09 failure from ambiguous alert selector); B0432 `05f689a3` **PENDING_GATES**. CI 40433331760 SUCCESS (frontend/backend/security/integration; integration log 60 passed); M04 40433331895 SUCCESS; M09 40433331789 IN_PROGRESS — all head_sha=05f689a3cb01f4692531afb58f0b645386ca2dca.
 - **Source and limits:** B corrected `main [role='alert']` and strengthened synthetic two-account name isolation. CI integration log **60 passed**. Playwright report `12704180951` and M04 screenshots `12702308711` exist but were NOT_OPENED; no real-device, S3, or educational approval. No A0400 handoff found after A0259 at review.
