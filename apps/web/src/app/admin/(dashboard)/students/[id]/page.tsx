@@ -92,7 +92,11 @@ export default function StudentDetailPage() {
 }
 
 function StudentDetailView({ id }: { id: string }) {
-  const [activeTab, setActiveTab] = useState<TabKey>("overview");
+  const [activeTab, setActiveTab] = useState<TabKey>(() => {
+    if (typeof window === "undefined") return "overview";
+    const requested = new URLSearchParams(window.location.search).get("tab");
+    return isTabKey(requested) ? requested : "overview";
+  });
   const [accessCode, setAccessCode] = useState<string | null>(null);
   const [student, setStudent] = useState<Student | null>(null);
   const [loadedStudentId, setLoadedStudentId] = useState<string | null>(null);
@@ -110,8 +114,6 @@ function StudentDetailView({ id }: { id: string }) {
   const [message, setMessage] = useState<{ kind: "success" | "error"; text: string }>({ kind: "success", text: "" });
 
   useEffect(() => {
-    const fromUrl = new URLSearchParams(window.location.search).get("tab");
-    if (isTabKey(fromUrl)) setActiveTab(fromUrl);
     const syncHistory = () => {
       // Browser history is another tab switch; erase previously revealed
       // credentials before restoring the destination section.
