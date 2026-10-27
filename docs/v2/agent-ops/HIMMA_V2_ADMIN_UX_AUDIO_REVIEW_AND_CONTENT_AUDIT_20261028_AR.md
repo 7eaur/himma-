@@ -117,3 +117,12 @@ MOB-09: لم يُثبت نجاح هذه الاختبارات على المتصف
 - جرى تحديث Jest/E2E المصادر لواجهة 7 تبويبات والبنك، لكن **لم تُشغّل الاختبارات محليًا أو على CI** لهذه الدفعة؛ لم يُرصد مرور Workflow لهذا HEAD. أي تراجع بصري أو تعارض مصادقة يحتاج فحص Work/Browser مصادق، و`CI/M04/M09` على SHA واحد.
 - لم تنفذ دفعة UX-01B: rubric الصوت الرقمي V2 مع قاعدة البيانات/المعيار التربوي والتقرير، دمج قوائم الصوت في inbox موحد، وتكميل عرض السجل الصوتي داخل ملف الطالب بدل روابط فحسب؛ هذه بنود منفصلة لا تُعتبر منجزة.
 - لم يحصل نشر Web/API ولا migrations، ولم تمس بيانات الإنتاج. **لا تعلن UX_DONE أو CLIENT_READY** حتى ضمان إغلاق gate ونشر آمن/اختبارات الأجهزة الفعلية.
+
+
+## 9. UX-01B source implementation — voice numeric rubric and consolidated navigation (2026-10-28)
+- API: `ReadingRubricV2` optional schema during backward-compatible rollout (UI now required) with `target_units: 1..1000`, `deletions/substitutions/insertions >=0`, deletion+substitution <= target_units, notes. Observation `max(0,1-(D+S+I)/units)`, **never a mastery threshold**. Human `is_correct` remains independent; no automatic grade or AI voice claims.
+- DB: model `V2AudioRubric`, unique per reviewed V2 `AudioSubmission`, `0030_v2_audio_rubrics` additive; intentionally isolated from V1 `audio_reviews` to avoid historical contamination. Migration needs separate DB gate.
+- Reviewer UI: shared numeric editor used by `v2-assessments` and `v2-lesson-review`, decision buttons disabled until valid observations + complete recorded playback + supervisor reason. One supervisor center `v2-review-center` uses three ARIA tabs, old routes retained; direct Student360 links go to matching tab.
+- Archive: `v2_audio_archive` returns a V2-only rubric for the latest reviewed voice with no storage key; reviewer sees numeric details on demand.
+- Media: browser gallery limited to 12 visible items/page, filter resets page; no fake media approvals.
+- Tests: new unit/UI cases for bad counts, review duplicate, explicit no-pass inference, archive privacy, reviewer tabs, 12 media cards; existing Playwright assertions may still need work. **Static source changes only**: no CI/Browser acceptance was run, no prod migration/deploy. Continue UX-02+ and P0 gates before full delivery.
