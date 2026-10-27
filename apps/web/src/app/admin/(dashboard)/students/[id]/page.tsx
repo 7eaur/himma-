@@ -228,18 +228,7 @@ function StudentDetailView({ id }: { id: string }) {
     } catch(error) {setMessage({kind:"error",text:error instanceof Error?error.message:"تعذر مزامنة الاستحقاقات"});}
     finally{setBusy("");}
   };
-  const updateV2PosttestAccess = async () => {
-    if (!student || busy) return;
-    setBusy("posttest-v2");
-    try {
-      const response = await fetch(`/api/v2/student/admin/students/${id}/posttest-access`, {method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({enabled: !student.posttest_enabled})});
-      const body = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(apiError(body, "تعذر تحديث إتاحة الاختبار البعدي"));
-      setStudent(current => current ? {...current,...body} : current); setV2Reload(value=>value+1);
-      setMessage({kind:"success",text:body.posttest_enabled ? "تم فتح الاختبار البعدي." : "تم إيقاف إتاحة الاختبار البعدي."});
-    } catch (error) { setMessage({kind:"error",text:error instanceof Error ? error.message : "تعذر حفظ إتاحة البعدي"}); }
-    finally { setBusy(""); }
-  };
+
 
   if (loading || loadedStudentId !== id) return <div className={styles.loading}><span /><span /><span /></div>;
   if (!student) return <div className={styles.page}><div className="alert-error">{message.text || "لم يتم العثور على الطالب"}</div><Link href="/admin/students" className="btn-primary mt-4">العودة إلى الطلاب</Link></div>;
@@ -310,7 +299,7 @@ function StudentDetailView({ id }: { id: string }) {
           </details>
           <details className={styles.disclosure}><summary>النجوم والشارات</summary><V2Rewards data={v2Home.rewards} variant="admin" /></details>
           <button type="button" className={styles.secondary} disabled={Boolean(busy)} onClick={() => void reconcileV2Rewards()}>مزامنة الاستحقاقات المثبتة</button>
-          {v2Home.journey?.placement_state === "posttest_ready" && <div className={styles.actions} style={{marginTop: 16}}><button className={styles.primary} disabled={Boolean(busy)} onClick={() => void updateV2PosttestAccess()}>{busy === "posttest-v2" ? "جاري الحفظ..." : student.posttest_enabled ? "إيقاف إتاحة البعدي" : "فتح الاختبار البعدي"}</button></div>}
+          {v2Home.journey?.placement_state === "posttest_ready" && <p className={styles.muted}>الاختبار البعدي متاح تلقائيًا للطالب بعد اكتمال الدروس والدعم ومراجعة القراءة.</p>}
           <div className={styles.actions} style={{ marginTop: 16 }}>
             <Link className={styles.primary} href="/admin/v2-assessments">مراجعة الاختبارات</Link>
             <Link className={styles.secondary} href="/admin/v2-lesson-review">مراجعة الدروس</Link>
