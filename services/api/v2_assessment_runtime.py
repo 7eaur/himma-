@@ -869,38 +869,16 @@ def review_response(response_id: int, body: ReviewRequest, background_tasks: Bac
 
 @router.post("/admin/sessions/{session_id}/placement")
 def place_student(session_id: int, body: PlacementRequest, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    session = db.query(AssessmentSession).filter(
-        AssessmentSession.id == session_id, AssessmentSession.v2_state.is_not(None),
-    ).with_for_update().one_or_none()
-    if not session:
-        raise HTTPException(status_code=404, detail="جلسة التقييم غير موجودة")
-    if session.session_type != "pretest" or session.v2_state != "placement_pending_review":
-        raise HTTPException(status_code=409, detail="الجلسة غير جاهزة للتسكين")
-    if db.query(PlacementDecisionV2).filter(PlacementDecisionV2.assessment_session_id == session.id).first():
-        raise HTTPException(status_code=409, detail="تم اعتماد التسكين سابقًا")
-    release = _session_release(db, session)
-    first_lesson = next(row["id"] for row in release["lessons"] if row["level"] == f"L{body.assigned_level}")
-    journey = db.query(StudentJourney).filter(StudentJourney.student_id == session.student_id).one()
-    student = db.query(Student).filter(Student.id == session.student_id).one()
-    result = _result(db, session)
-    if result["answered"] != 30 or result["pending_review"] or result["score_percent"] is None:
-        raise HTTPException(status_code=409, detail="لا يمكن تسكين طالب قبل اكتمال التقييم ومراجعة جميع الأدلة")
-    recommended = _recommended_level(result["score_percent"])
-    exceptional = body.assigned_level != recommended
-    if exceptional and not body.override_recommendation:
-        raise HTTPException(status_code=409, detail=f"المستوى المقترح من القبلي هو {recommended}؛ يلزم اعتماد الاستثناء مع تسبيب واضح")
-    if exceptional and len(body.reason) < 20:
-        raise HTTPException(status_code=422, detail="يلزم توضيح تربوي مفصل لاستثناء المستوى المقترح")
-    db.add(PlacementDecisionV2(student_id=student.id, assessment_session_id=session.id, content_release_id=session.content_release_id, assigned_level=body.assigned_level, reason=body.reason, policy_version=POLICY_VERSION, decided_by=user.id))
-    session.assigned_level = body.assigned_level; session.final_score = result["score_percent"]
-    session.v2_result_json = result; session.v2_state = "completed"; session.status = "completed"
-    session.completed_at = datetime.now(timezone.utc)
-    mark_official_completed_attempt(db, session)
-    journey.current_level = body.assigned_level; journey.current_lesson_id = first_lesson; journey.placement_state = "placed"
-    student.current_level = body.assigned_level
-    db.add(AuditLog(actor_role="researcher", actor_id=user.id, action="v2_manual_placement_approved", entity_type="assessment_session", entity_id=str(session.id), details=f"level={body.assigned_level}; recommended_level={recommended}; override={exceptional}; score_percent={result['score_percent']}; policy={POLICY_VERSION}; reason_location=v2_placement_decisions"))
-    db.commit()
-    return {"status": "placed", "assigned_level": body.assigned_level, "recommended_level": recommended, "override": exceptional, "current_lesson_id": first_lesson}
+    """Retired V2 manual placement route; no staff-directed academic writes.
+
+    Older pretests are reconciled through the authenticated student's
+    idempotent /sessions/{id}/finalize-placement route using official evidence.
+    Human reviewers may still grade audio, never choose a learning level.
+    """
+    raise HTTPException(
+        status_code=409,
+        detail="التسكين في هِمّة تلقائي بعد مراجعة تسجيلات القراءة؛ لا يُقبل اعتماد مستوى يدوي",
+    )
 
 
 def _session_report(db: Session, session: AssessmentSession) -> dict[str, Any]:
