@@ -39,6 +39,20 @@ export interface StudentV2Home {
   data_status: "ready" | "partial";
 }
 
+// The action comes from an API response. Next router.push must never receive
+// external schemes or an escaped path even when the response is malformed.
+function isSafeStudentRoute(href: string): boolean {
+  if (!href.startsWith("/") || href.startsWith("//") ||
+      [...href].some(char => char === "\\\\" || char.charCodeAt(0) <= 32 || char.charCodeAt(0) === 127)) return false;
+  try {
+    const route = new URL(href, "https://himma.invalid");
+    return route.origin === "https://himma.invalid" &&
+      (route.pathname === "/student" || route.pathname.startsWith("/student/"));
+  } catch {
+    return false;
+  }
+}
+
 const levelNames: Record<number, string> = {
   1: "الحروف والأصوات",
   2: "الحركات والكلمات",
@@ -85,7 +99,14 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
   const start = async () => {
     if (starting || startingRef.current || info.disabled || leavingRef.current) return;
     setError("");
-    if (action.href) { router.push(action.href); return; }
+    if (action.href) {
+      if (!isSafeStudentRoute(action.href)) {
+        setError("تعذر التحقق من رابط الرحلة. يرجى المحاولة لاحقًا.");
+        return;
+      }
+      router.push(action.href);
+      return;
+    }
     if (action.action !== "start_pretest" && action.action !== "start_posttest") return;
     startingRef.current = true;
     setStarting(true);

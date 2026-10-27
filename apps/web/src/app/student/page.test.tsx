@@ -97,6 +97,24 @@ describe("Student page V2-only learner boundary", () => {
     expect(fetcher.mock.calls.some(([url]) => url === "/api/rewards")).toBe(false);
   });
 
+  it.each([
+    "javascript:alert(1)",
+    "//external.invalid/student",
+    "https://external.invalid/student",
+    "/student/../admin",
+    "/admin",
+  ])("refuses unsafe V2 action navigation (%s) without leaving the learner surface", async href => {
+    mockV2({
+      ...firstTime,
+      current_action: { action: "lesson_catalog", href, label: "متابعة الرحلة التعليمية" },
+    });
+    render(<StudentPage />);
+    fireEvent.click(await screen.findByRole("button", { name: "متابعة الرحلة التعليمية" }));
+    expect(push).not.toHaveBeenCalled();
+    expect(screen.getByRole("alert")).toHaveTextContent("تعذر التحقق من رابط الرحلة");
+    expect(screen.getByTestId("student-identity")).toBeInTheDocument();
+  });
+
   it("keeps pending human reading review free of fictitious official grades", async () => {
     mockV2({
       ...firstTime,
