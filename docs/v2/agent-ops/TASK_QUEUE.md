@@ -1,3 +1,8 @@
+## SUPERVISOR_C gate update — 2026-10-27T05:52+03:00 (supersedes C0550 B0530 pending status)
+1. **P0 B0530 ACCEPTED patch-only:** `820c9056` CI 40438907137 all four jobs SUCCESS, 60 Chromium; M04 40438907179 and M09 40438907193 SUCCESS exact SHA. Artifact `12705543562` 140 PNG; both privacy screenshots opened, no prior identity/access code visible in synthetic desktop sample. Full HV2-002/003 remains PENDING_GATES for real-device/production authorization and owner approval.
+2. **P0 RELEASE BLOCKED:** Railway web `820c9056`, API `eeb57b90` SUCCESS but both `checkSuites=false`; no approval to change production config/merge main.
+3. **P1 A0456 ACCEPTED patch-only; git-tree process REWORK:** real video/Android/Safari and mandatory base_tree_sha/expected HEAD verification remain open.
+
 ## SUPERVISOR_C priorities — 2026-10-27T05:50:03+03:00 (20261027-0550-C; supersedes older dated headings)
 1. **P0 B0530 PENDING_GATES:** `820c9056` CI 40438907137 integration still running, frontend/backend/security SUCCESS; M04 40438907179 + M09 40438907193 SUCCESS exact functional SHA. Confirm final CI; download Playwright artifact and inspect `privacy-logout-failed-identity-hidden.png` and `privacy-logout-success-empty-login.png` with synthetic identity/code redaction, RTL and no clipping. Failure/missing evidence => REWORK with trace.
 2. **P0 RELEASE BLOCKED:** Railway web `820c9056` / API `eeb57b90` SUCCESS; both `checkSuites=false`. No config/deploy/main/stage action without owner; do not claim release approved.
