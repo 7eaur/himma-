@@ -21,6 +21,7 @@ it("shows an official zero independently of an unapproved posttest and uses V2 e
   expect(table).toHaveTextContent("بانتظار الاعتماد");
   expect(screen.getByRole("link", { name: /^Excel$/ })).toHaveAttribute("href", "/api/v2/reports/exports/cohort.xlsx");
   expect(fetcher.mock.calls.every(([url]) => url === "/api/v2/reports/summary")).toBe(true);
+  expect(screen.queryByText("أرشيف تقارير V1")).not.toBeInTheDocument();
 });
 it("keeps a skills source failure unavailable without loading V1 evidence", async () => {
   const fetcher = jest.fn().mockResolvedValue({ ok: false });
@@ -29,4 +30,5 @@ it("keeps a skills source failure unavailable without loading V1 evidence", asyn
   expect(await screen.findByRole("alert")).toHaveTextContent("تعذر تحميل تقارير V2");
   expect(fetcher.mock.calls.every(([url]) => url === "/api/v2/reports/summary")).toBe(true);
   expect(screen.queryByText("لا توجد أدلة مقيمة مطابقة")).not.toBeInTheDocument();
+  expect(screen.queryByText("أرشيف مهارات V1")).not.toBeInTheDocument();
 });

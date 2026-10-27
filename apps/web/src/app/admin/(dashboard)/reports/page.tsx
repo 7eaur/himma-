@@ -1,17 +1,14 @@
 "use client";
-import { useState } from "react";
 import Link from "next/link";
 import { BarChart3, CheckCircle2, FileSpreadsheet, FileText, RefreshCw, Users } from "lucide-react";
 import { AdminAction, AdminEmptyState, AdminMobileCard, AdminPage, AdminPageHeader, AdminPanel, AdminResponsiveTable, AdminStat, AdminStatGrid } from "@/components/admin/AdminUI";
 import { useV2Reports } from "@/components/admin/useV2Reports";
-import LegacyReports from "./LegacyReports";
 const score = (value: number | null | undefined) => value == null ? "—" : `${value}%`;
 export default function ReportsPage() {
   const { data, loading, error, refresh } = useV2Reports();
-  const [archive, setArchive] = useState(false);
   return <AdminPage>
     <AdminPageHeader eyebrow="النتائج المعتمدة · V2" icon={BarChart3} title="التقارير والإحصائيات"
-      description="القبلي والبعدي الرسميان وتقدم الدروس والدعم. لا تستخدم النتائج المعلقة أو قياسات V1، ولا يعاد حساب التسكين داخل التقرير."
+      description="القبلي والبعدي الرسميان وتقدم الدروس والدعم؛ النتائج المعلقة لا تدخل في المقارنة، والتسكين يؤخذ من القرار المحفوظ."
       actions={<><AdminAction href="/api/v2/reports/exports/cohort.xlsx" icon={FileSpreadsheet}>Excel</AdminAction><AdminAction href="/api/v2/reports/exports/cohort.pdf" icon={FileText}>PDF إجمالي</AdminAction><AdminAction disabled={loading} onClick={refresh} icon={RefreshCw}>تحديث</AdminAction></>} />
     {loading ? <p role="status" className="py-8">جاري تجهيز تقارير V2...</p> : error ? <div role="alert" className="alert-error">{error} <AdminAction onClick={refresh}>إعادة المحاولة</AdminAction></div> : data && <>
       <AdminStatGrid><AdminStat icon={Users} value={data.summary.students} label="إجمالي الطلاب" /><AdminStat icon={CheckCircle2} value={data.summary.official_pretests} label="قبلي معتمد" /><AdminStat icon={CheckCircle2} value={data.summary.official_posttests} label="بعدي معتمد" /><AdminStat icon={BarChart3} value={data.summary.average_improvement_points == null ? "—" : `${data.summary.average_improvement_points} نقطة`} label="متوسط التحسن للمقارنات المعتمدة" /></AdminStatGrid>
@@ -28,7 +25,5 @@ export default function ReportsPage() {
         </AdminMobileCard>)} />}
       </AdminPanel>
     </>}
-    <AdminAction onClick={() => setArchive(value => !value)}>{archive ? "إغلاق أرشيف تقارير V1" : "أرشيف تقارير V1"}</AdminAction>
-    {archive && <section aria-label="أرشيف تقارير V1"><LegacyReports /></section>}
   </AdminPage>;
 }

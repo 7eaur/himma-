@@ -3,13 +3,11 @@ import { useState } from "react";
 import { BarChart3, Download } from "lucide-react";
 import { AdminAction, AdminEmptyState, AdminPage, AdminPageHeader, AdminPanel } from "@/components/admin/AdminUI";
 import { useV2Reports } from "@/components/admin/useV2Reports";
-import LegacySkillReports from "./LegacySkillReports";
 const phases: Record<string, string> = { pretest: "قبلي رسمي", posttest: "بعدي رسمي", learning: "دليل تعلم مصحح" };
 export default function SkillReportsPage() {
   const { data, loading, error, refresh } = useV2Reports();
   const [student, setStudent] = useState("");
   const [phase, setPhase] = useState("");
-  const [archive, setArchive] = useState(false);
   const items = data?.skills.filter(row => (!student || row.student_id === Number(student)) && (!phase || row.phase === phase)) ?? [];
   return <AdminPage>
     <AdminPageHeader eyebrow="أدلة المهارات · V2" icon={BarChart3} title="ملخص المهارات"
@@ -23,7 +21,5 @@ export default function SkillReportsPage() {
         <p className="my-2 text-sm text-muted">{phases[row.phase] ?? row.phase}</p><p>{row.correct} من {row.graded} استجابة مصححة · {row.observed_accuracy_percent}% دقة مرصودة</p>
       </article>)}</div>}
     </AdminPanel>}
-    <AdminAction onClick={() => setArchive(value => !value)}>{archive ? "إغلاق أرشيف مهارات V1" : "أرشيف مهارات V1"}</AdminAction>
-    {archive && <section aria-label="أرشيف مهارات V1"><LegacySkillReports /></section>}
   </AdminPage>;
 }
