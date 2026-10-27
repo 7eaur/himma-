@@ -124,6 +124,7 @@ test("P09.0 V2 supervisor pages keep a desktop visual baseline", async ({ page }
   await page.setViewportSize({ width: 1440, height: 900 });
   await login(page);
   const routes = [
+    { route: "/admin/v2-review-center", heading: "الاختبارات ومراجعة القراءة" },
     { route: "/admin/v2-assessments", heading: "الاختبارات ومراجعة القراءة" },
     { route: "/admin/v2-lesson-review", heading: "مراجعة قراءة وكتابة الدروس" },
     { route: "/admin/v2-media", heading: "الوسائط التعليمية" },
