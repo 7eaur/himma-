@@ -1,17 +1,26 @@
 """Staff account operations shared with V2, without V1 academic projections."""
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 from db.learning_models import StudentJourney, SupportAssignment, LessonSession, LessonQuestionResponse, AssessmentQuestionResponse
 from db.models import AssessmentSession, Student, User
 from dependencies import get_current_user, get_db
-from protected import _audit, _ensure_unique_access_code, _generate_access_code, _student_payload
-from schemas import StudentUpdateRequest, StudentAccessCodeUpdateRequest, StudentPosttestAccessRequest
+from protected import _audit, _ensure_unique_access_code, _generate_access_code, _student_payload, create_student
+from schemas import StudentCreateRequest, StudentUpdateRequest, StudentAccessCodeUpdateRequest, StudentPosttestAccessRequest
 from v2_student_readmodel import build_student_v2_home
 
 router = APIRouter(prefix='/v2/student/admin/students', tags=['v2-student-accounts'])
+
+
+@router.post('', status_code=status.HTTP_201_CREATED)
+def create_account(body: StudentCreateRequest, response: Response, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    # Admissions, unique codes, and the Student identity are shared across versions.
+    # No historical assessment or V1 learning session is created by this operation.
+    student = create_student(body, user, db)
+    response.headers['Cache-Control'] = 'private, no-store'
+    return {'source': 'himma_v2_account', 'id': student['id'], 'access_code': student['access_code']}
 
 
 def _student(db, student_id, *, lock=False):

@@ -25,7 +25,7 @@ export default function NewStudentPage() {
     }
 
     try {
-      const response = await fetch("/api/researcher/students", {
+      const response = await fetch("/api/v2/student/admin/students", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -37,6 +37,10 @@ export default function NewStudentPage() {
       const data = await response.json().catch(() => null);
       if (!response.ok) {
         setError(data?.detail || "تعذر إضافة الطالب. تحقق من البيانات وحاول مرة أخرى.");
+        return;
+      }
+      if (data?.source !== "himma_v2_account" || !/^\d{6}$/.test(data?.access_code || "")) {
+        setError("تعذر التحقق من حساب هِمّة V2 الجديد.");
         return;
       }
       setSuccessCode(data.access_code);

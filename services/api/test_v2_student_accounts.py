@@ -43,6 +43,22 @@ def test_account_identity_never_fetches_credentials_or_v1_metrics(researcher_cli
         assert db.query(AuditLog).count()==audit_count and db.query(StudentJourney).count()==0
 
 
+def test_v2_admissions_create_account_without_v1_academic_records(researcher_client):
+    result=researcher_client.post('/v2/student/admin/students',json={'full_name':'طالب اصطناعي جديد','grade_level':3,'access_code':'529374'})
+    assert result.status_code==201, result.text
+    assert result.headers['cache-control']=='private, no-store'
+    assert set(result.json())=={'source','id','access_code'}
+    assert result.json()['source']=='himma_v2_account'
+    assert result.json()['access_code']=='529374'
+    student_id=result.json()['id']
+    home=researcher_client.get(f'/v2/student/admin/students/{student_id}/home')
+    assert home.status_code==200 and home.json()['current_action']['action']=='start_pretest'
+    with TestingSessionLocal() as db:
+        assert db.query(Student).count()==2
+        assert db.query(StudentJourney).count()==0
+        assert db.query(AssessmentSession).count()==0
+
+
 def test_account_updates_preserve_all_academic_history_and_omit_secret(researcher_client):
     _ready()
     result=researcher_client.patch(BASE+'/account',json={'full_name':'اسم اصطناعي جديد','is_active':False})
