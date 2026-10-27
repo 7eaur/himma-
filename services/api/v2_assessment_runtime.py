@@ -38,6 +38,7 @@ from v2_interaction_runtime import AnswerRequest, CHOICE_INTERACTIONS, OPEN_INTE
 from v2_lesson_runtime import _require_preview_student, _has_official_v2_placement
 from v2_retry_state import active_retry
 from v2_review_claims import enforce_review_claim, clear_review_claim
+from v2_audio_rubric import ReadingRubricV2, save_v2_reading_rubric
 from v2_audio_retention import (
     schedule_superseded_audio, run_retention_after_commit,
     audio_upload_binding, track_new_audio_upload, mark_audio_submitted,
@@ -69,6 +70,7 @@ class DraftRequest(BaseModel):
 class ReviewRequest(BaseModel):
     is_correct: bool
     note: Annotated[str, StringConstraints(strip_whitespace=True, min_length=2, max_length=2000)]
+    rubric: ReadingRubricV2 | None = None
 
 
 class PlacementRequest(BaseModel):
@@ -876,6 +878,10 @@ def review_response(response_id: int, body: ReviewRequest, background_tasks: Bac
              if task and task.audio_submission_id else
              db.query(AudioSubmission).filter(AudioSubmission.assessment_response_id == row.id).order_by(AudioSubmission.id.desc()).first())
     if audio: audio.status = "graded"
+    if evidence["interaction"] == "read_aloud" and audio:
+        save_v2_reading_rubric(db, audio=audio, reviewer_id=user.id, rubric=body.rubric)
+    elif body.rubric is not None:
+        raise HTTPException(status_code=422, detail="معيار القراءة غير متاح إلا للإجابة الصوتية")
     if evidence["interaction"] == "read_aloud" and audio:
         extra = tuple(
             item.get("audio_storage_key") for item in ((task.replacement_json or {}).get("superseded_staged_audio") or [])
