@@ -87,6 +87,12 @@ def require_posttest_completion(db: Session, student: Student, journey: StudentJ
     """One authoritative academic gate shared by enablement AND direct API start."""
     if journey is None:
         raise HTTPException(status_code=409, detail='لا توجد رحلة V2 جاهزة للاختبار البعدي')
+    # Both the staff enablement and direct start must verify the ORIGINAL
+    # assessment session against the same pinned release as the journey.
+    sessions = db.query(AssessmentSession).filter(
+        AssessmentSession.student_id == student.id,
+        AssessmentSession.v2_state.is_not(None),
+    ).all()
     home = build_student_v2_home(db, student)
     progress = home['progress']
     pre = home['assessments']['pretest']
