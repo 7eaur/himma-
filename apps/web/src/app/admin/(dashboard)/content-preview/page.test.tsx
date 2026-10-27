@@ -20,6 +20,7 @@ it("loads the V2 bank with section intro and never requests the archive implicit
   await waitFor(() => expect(fetcher.mock.calls.some(([url]) => url.includes("section=L1-01"))).toBe(true));
   expect(fetcher.mock.calls.every(([url]) => url.startsWith("/api/v2/content/admin/bank?"))).toBe(true);
   expect(screen.queryByTestId("content-index-item")).not.toBeInTheDocument();
+  expect(screen.queryByText("أرشيف بنك V1")).not.toBeInTheDocument();
 });
 it("keeps a bank source error unavailable and permits retry", async () => {
   global.fetch = jest.fn().mockResolvedValueOnce({ ok: false }).mockResolvedValueOnce({ ok: true, json: async () => bank });

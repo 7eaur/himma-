@@ -90,40 +90,16 @@ for (const viewport of [
       await capture(page, viewport.name, route);
 
       if (route === "/admin/content-preview") {
-        // Legacy interaction coverage remains explicit behind its historical archive.
-        await page.getByRole("button", { name: "أرشيف بنك V1", exact: true }).click();
-        await expect(page.getByTestId("content-index-item").first()).toBeAttached({ timeout: 25000 });
-        const detailPane = page.getByTestId("content-detail-pane");
-        await expect(detailPane).toBeVisible({ timeout: 10000 });
+        const firstQuestion = page.getByTestId("v2-bank-question").first();
+        await expect(firstQuestion).toBeVisible({ timeout: 25000 });
+        await firstQuestion.getByText("الإجابة والمرجع للمشرف").click();
+        await expect(firstQuestion.getByTestId("v2-bank-answer")).toHaveAttribute("open", "");
+        await page.getByRole("combobox", { name: "القسم" }).selectOption("L1-01");
+        await expect(page.getByText(/التمهيد:/)).toBeVisible();
+        await expect(page.getByTestId("v2-bank-question").first()).toBeVisible();
         await expectNoHorizontalOverflow(page);
-
         if (viewport.width <= 820) {
-          const indexPane = page.getByTestId("content-index-pane");
-          await expect(indexPane).toBeHidden();
-
-          const openNavigator = page.getByTestId("content-open-navigator");
-          await expect(openNavigator).toBeVisible();
-          const openBox = await openNavigator.boundingBox();
-          expect(openBox?.height ?? 0).toBeGreaterThanOrEqual(44);
-
-          await openNavigator.click();
-          await expect(indexPane).toBeVisible();
-
-          const firstContent = page.getByTestId("content-index-item").first();
-          await expect(firstContent).toBeVisible();
-          await firstContent.click();
-
-          await expect(indexPane).toBeHidden();
-          await expect(detailPane).toBeVisible();
-          await expect(page.getByRole("navigation", { name: "التنقل بين عناصر القسم" })).toBeVisible();
-          await expectNoHorizontalOverflow(page);
           await capture(page, viewport.name, "/admin/content-preview-detail");
-        } else {
-          const firstContent = page.getByTestId("content-index-item").first();
-          await expect(firstContent).toBeVisible();
-          await firstContent.click();
-          await expect(detailPane).toBeVisible();
-          await expectNoHorizontalOverflow(page);
         }
       }
     }

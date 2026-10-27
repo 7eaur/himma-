@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { BookOpenCheck } from "lucide-react";
 import { AdminAction, AdminEmptyState, AdminPage, AdminPageHeader, AdminPanel } from "@/components/admin/AdminUI";
 import EducationalMediaPreview, { type EducationalMedia } from "@/components/admin/EducationalMediaPreview";
-import LegacyContentPreview from "./LegacyContentPreview";
 
 type Section = { id: string; title: string; kind: string; question_count: number; intro: { text?: string } | null; objective?: string };
 type Question = { question_id: string; role: string; interaction: string; prompt: string; skill_group: string;
@@ -22,7 +21,6 @@ export default function ContentBankPage() {
   const [reload, setReload] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [archive, setArchive] = useState(false);
   useEffect(() => {
     const controller = new AbortController();
     const load = async () => {
@@ -72,7 +70,5 @@ export default function ContentBankPage() {
           </nav>
         </>}
     </AdminPanel>
-    <AdminAction onClick={() => setArchive(value => !value)}>{archive ? "إغلاق أرشيف بنك V1" : "أرشيف بنك V1"}</AdminAction>
-    {archive && <section aria-label="أرشيف بنك V1"><LegacyContentPreview /></section>}
   </AdminPage>;
 }
