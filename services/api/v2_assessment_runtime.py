@@ -33,7 +33,7 @@ from dependencies import get_current_user, get_db
 from v2_content.importer import register_candidate_release
 from v2_content.media import MediaProvider
 from v2_content.projection import student_question
-from v2_content.repository import get_release
+from v2_content.repository import get_release, get_pinned_release
 from v2_content.recovery import known_recovery
 from v2_interaction_runtime import AnswerRequest, CHOICE_INTERACTIONS, OPEN_INTERACTIONS, ORDER_INTERACTIONS, _canonical_answer, _ordered_answer_is_correct
 from v2_lesson_runtime import _require_preview_student
@@ -189,27 +189,8 @@ def _current(db: Session, session: AssessmentSession) -> dict[str, Any]:
 
 
 def _session_release(db: Session, session: AssessmentSession) -> dict[str, Any]:
-    """Resolve the original immutable bank for this exact assessment attempt.
-
-    Earlier candidates without a snapshot may read the current compiled bank
-    only when the stored checksum still matches. Never silently remap an old
-    student attempt onto a newer bank.
-    """
-    record = db.query(ContentRelease).filter(ContentRelease.id == session.content_release_id).one_or_none()
-    if not record:
-        raise HTTPException(status_code=409, detail="إصدار أسئلة هذه الجلسة غير مسجل")
-    frozen = db.query(PrivateContentBankSnapshot).filter(
-        PrivateContentBankSnapshot.content_release_id == record.id,
-    ).one_or_none()
-    if frozen:
-        snapshot = frozen.payload_json
-        if frozen.checksum != record.checksum or snapshot.get("checksum") != record.checksum or snapshot.get("version") != record.version:
-            raise HTTPException(status_code=409, detail="بصمة محتوى الجلسة لا تطابق النسخة المحفوظة")
-        return snapshot
-    current = get_release()
-    if record.checksum == current["checksum"] and record.version == current["version"]:
-        return current
-    raise HTTPException(status_code=409, detail="النسخة الأصلية غير محفوظة؛ تم إيقاف التقييم لحماية الإجابات")
+    """One canonical pinned-bank resolver shared by assessments and lessons."""
+    return get_pinned_release(db, session.content_release_id)
 
 
 def blocked_review_item(db: Session, session, row, student: Student, error: HTTPException) -> dict:
