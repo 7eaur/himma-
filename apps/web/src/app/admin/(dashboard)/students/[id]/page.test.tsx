@@ -30,7 +30,7 @@ it('only fetches a credential after explicit reveal and clears it when leaving a
  fireEvent.click(screen.getByRole('button',{name:'إظهار الرمز'}));
  expect(await screen.findByText('123456')).toBeVisible();
  expect(fetcher).toHaveBeenCalledWith('/api/v2/student/admin/students/1/access-code/reveal',expect.objectContaining({method:'POST'}));
- fireEvent.click(screen.getByRole('button',{name:'مسار هِمّة V2'}));
+ fireEvent.click(screen.getByRole('button',{name:'التقدم الدراسي'}));
  fireEvent.click(screen.getByRole('button',{name:'الحساب'}));
  expect(screen.queryByText('123456')).not.toBeInTheDocument();
 });
@@ -52,4 +52,11 @@ it('remounts identity state when routing to another learner',async()=>{
  expect(screen.queryByText('123456')).not.toBeInTheDocument();
  expect(screen.getByTestId('supervisor-v2-overview')).toBeVisible();
  await waitFor(()=>expect(fetcher).toHaveBeenCalledWith('/api/v2/student/admin/students/2/account',expect.anything()));
+});
+it('keeps the long lesson list behind an optional detail and hides archival language',async()=>{
+ setup();render(<Page/>);
+ await screen.findByRole('heading',{name:'طالب اصطناعي 1'});
+ expect(screen.getByTestId('supervisor-lesson-disclosure')).not.toHaveAttribute('open');
+ expect(screen.getByText('تفاصيل الدروس (0)')).toBeInTheDocument();
+ expect(screen.queryByText(/أرشيف|التاريخي|V1/)).not.toBeInTheDocument();
 });

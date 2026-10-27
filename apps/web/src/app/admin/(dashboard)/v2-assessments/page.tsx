@@ -120,7 +120,7 @@ export default function V2AssessmentsPage() {
 
   const pendingPlacement = report?.counts["pretest:placement_pending_review"] ?? 0;
   return <AdminPage>
-    <AdminPageHeader eyebrow="P06 · سياسة مرشحة" icon={ClipboardCheck} title="تقييمات V2 والمراجعة"
+    <AdminPageHeader eyebrow="المراجعة" icon={ClipboardCheck} title="الاختبارات والتسكين"
       description="افحص دليل الطالب ومرجع السؤال قبل القرار؛ التسكين يدوي ومسبب إلى حين اعتماد الحدود التربوية."
       actions={<AdminAction icon={RefreshCw} onClick={() => void load()}>تحديث</AdminAction>} />
     {error && <div role="alert" className="alert-error">{error}</div>}
@@ -213,7 +213,7 @@ export default function V2AssessmentsPage() {
         <button type="button" className="rounded-lg border px-3 py-2 disabled:opacity-40" disabled={placements.next_offset === null} onClick={() => setPlacementOffset(placements.next_offset || 0)}>التالي</button>
       </div>
     </AdminPanel>
-    <p className="text-sm text-muted">P06 مرشحة: القيم المفقودة لا تُعامل كصفر، ولا يُستخدم تسكين آلي قبل اعتماد السياسة تربويًا.</p>
+    <p className="text-sm text-muted">القيم غير المتاحة لا تُعامل كصفر، ويُعتمد التسكين بعد مراجعة المشرف.</p>
     </>}
   </AdminPage>;
 }

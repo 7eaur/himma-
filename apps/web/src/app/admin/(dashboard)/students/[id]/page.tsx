@@ -23,7 +23,6 @@ import type { StudentV2Home } from "@/app/student/V2StudentDashboard";
 type V2LessonItem = { lesson_id: string; title: string; level: string;
   state: "skipped" | "completed" | "waiting_review" | "in_progress" | "current" | "not_started"; session_id: number | null };
 type SupervisorV2Home = StudentV2Home & {
-  onboarding_review?: { session_id: number; kind: string; status: string; version: string; saved_attempts: number; official: boolean }[];
   lesson_overview?: { state: "ready" | "unavailable" | "awaiting_journey"; content_release_version: string | null; items: V2LessonItem[] };
 };
 
@@ -50,7 +49,7 @@ interface Student {
 
 type TabKey = "v2" | "account";
 const TABS: Array<{key: TabKey; label: string; icon: typeof User}> = [
-  {key: "v2", label: "مسار هِمّة V2", icon: BookOpen},
+  {key: "v2", label: "التقدم الدراسي", icon: BookOpen},
   {key: "account", label: "الحساب", icon: KeyRound},
 ];
 
@@ -127,7 +126,7 @@ function StudentDetailView({ id }: { id: string }) {
         const reply = await fetch(`/api/v2/student/admin/students/${id}/home`, {
           cache: "no-store", signal: controller.signal,
         });
-        if (!reply.ok) throw new Error("تعذر تحميل سجل هِمّة V2 لهذا الطالب. لا يمكن عرض أرقام V1 بدلًا عنه.");
+        if (!reply.ok) throw new Error("تعذر تحميل التقدم الدراسي لهذا الطالب.");
         const data = await reply.json() as SupervisorV2Home;
         if (data.mode !== "v2" || !data.current_action || !data.progress ||
             String(data.student?.id) !== id)
@@ -137,7 +136,7 @@ function StudentDetailView({ id }: { id: string }) {
         if (!controller.signal.aborted) {
           setV2Result({
             studentId: id, home: null,
-            error: reason instanceof Error ? reason.message : "تعذر الاتصال بمصدر V2.",
+            error: reason instanceof Error ? reason.message : "تعذر الاتصال بسجل الطالب.",
           });
         }
       }
@@ -235,9 +234,9 @@ function StudentDetailView({ id }: { id: string }) {
     try {
       const response = await fetch(`/api/v2/student/admin/students/${id}/posttest-access`, {method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({enabled: !student.posttest_enabled})});
       const body = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(apiError(body, "تعذر تحديث إتاحة البعدي V2"));
+      if (!response.ok) throw new Error(apiError(body, "تعذر تحديث إتاحة الاختبار البعدي"));
       setStudent(current => current ? {...current,...body} : current); setV2Reload(value=>value+1);
-      setMessage({kind:"success",text:body.posttest_enabled ? "تم فتح الاختبار البعدي V2." : "تم إيقاف إتاحة البعدي V2."});
+      setMessage({kind:"success",text:body.posttest_enabled ? "تم فتح الاختبار البعدي." : "تم إيقاف إتاحة الاختبار البعدي."});
     } catch (error) { setMessage({kind:"error",text:error instanceof Error ? error.message : "تعذر حفظ إتاحة البعدي"}); }
     finally { setBusy(""); }
   };
@@ -249,19 +248,19 @@ function StudentDetailView({ id }: { id: string }) {
     if (activeTab === "v2") return (
       <section className={styles.panel} data-testid="supervisor-v2-overview">
         <div className={styles.panelHeader}>
-          <div><h2>ملف الطالب الأكاديمي · هِمّة V2</h2>
-            <p>تسكين ودروس واختبارات ومكافآت من هِمّة V2.</p>
+          <div><h2>التقدم الدراسي</h2>
+            <p>التسكين والدروس والاختبارات والمكافآت.</p>
           </div><BookOpen size={20} aria-hidden="true" />
         </div>
-        {!currentV2 && <p role="status" className={styles.muted}>جاري تحميل التقدم المعتمد من V2...</p>}
+        {!currentV2 && <p role="status" className={styles.muted}>جاري تحميل التقدم الدراسي...</p>}
         {currentV2?.error && <div className="alert-error" role="alert">
           {currentV2.error}
           <button className={styles.secondary} type="button" onClick={() => setV2Reload(value => value + 1)}>إعادة المحاولة</button>
         </div>}
         {v2Home && <>
-          {v2Home.data_status !== "ready" && <p className={styles.notice}>بيانات إصدار المحتوى غير مكتملة؛ التقدم معلق ولا يمكن تقديره من النسخة القديمة.</p>}
+          {v2Home.data_status !== "ready" && <p className={styles.notice}>بيانات المحتوى غير مكتملة؛ التقدم معلق حتى استعادتها.</p>}
           <div className={styles.grid3}>
-            <div className={styles.infoCard}><span>التسكين المعتمد V2</span>
+            <div className={styles.infoCard}><span>التسكين المعتمد</span>
               <strong data-testid="supervisor-v2-level">{currentV2Level == null ? "لم يُعتمد بعد" : `المستوى ${currentV2Level}`}</strong>
             </div>
             <div className={styles.infoCard}><span>تقدم الدروس المعيّنة</span>
@@ -272,11 +271,11 @@ function StudentDetailView({ id }: { id: string }) {
             </div>
           </div>
           <div className={styles.progressBlock} style={{ marginTop: 14 }}>
-            <div className={styles.progressMeta}><span>الإنجاز الرسمي من دروس V2 فقط</span>
+            <div className={styles.progressMeta}><span>الدروس المنجزة</span>
               <strong>{officialPercent == null ? "غير متاح" : `${officialPercent}%`}</strong>
             </div>
             {officialPercent != null && <div className={styles.track} role="progressbar"
-              aria-label="تقدم دروس همة V2" aria-valuemin={0} aria-valuemax={100}
+              aria-label="تقدم الدروس" aria-valuemin={0} aria-valuemax={100}
               aria-valuenow={officialPercent}>
               <div className={styles.fill} style={{ width: `${Math.min(100, Math.max(0, officialPercent))}%` }} />
             </div>}
@@ -284,20 +283,15 @@ function StudentDetailView({ id }: { id: string }) {
           </div>
           <div className={styles.notice} data-testid="supervisor-v2-action" style={{ marginTop: 14 }}>
             <strong>الخطوة الحالية:</strong> {v2Home.current_action.label}
-            {v2Home.current_action.action === "migration_review" && <div role="status">
-              <p>هذا الحساب له جلسة سابقة؛ لا يُعامل كطالب جديد. تُحفظ المحاولات القديمة حتى مراجعة الانتقال.</p>
-              {v2Home.onboarding_review?.map(row => <p key={row.session_id}>
-                الجلسة #{row.session_id} · {row.version.toUpperCase()} · {row.kind === "pretest" ? "قبلي" : row.kind === "posttest" ? "بعدي" : "تعلم"} · {row.status === "in_progress" ? "غير مكتملة" : "مكتملة"} · المحاولات المحفوظة: {row.saved_attempts} · {row.official ? "نتيجة رسمية" : "دون نتيجة رسمية"}
-              </p>)}
-            </div>}
+            {v2Home.current_action.action === "migration_review" && <p role="status">توجد جلسة تحتاج مراجعة المشرف قبل متابعة التعلم. لا يُحذف دليل الطالب ولا يُعتمد تلقائيًا.</p>}
             {v2Home.progress.pending_review > 0 && <p>توجد مراجعة قراءة معلّقة؛ لا تُحوَّل إلى نجاح تلقائي.</p>}
           </div>
           <div className={styles.grid2} style={{ marginTop: 14 }}>
-            <div className={styles.infoCard}><span>الاختبار القبلي V2</span><strong>{v2Score("pretest")}</strong></div>
-            <div className={styles.infoCard}><span>الاختبار البعدي V2</span><strong>{v2Score("posttest")}</strong></div>
+            <div className={styles.infoCard}><span>الاختبار القبلي</span><strong>{v2Score("pretest")}</strong></div>
+            <div className={styles.infoCard}><span>الاختبار البعدي</span><strong>{v2Score("posttest")}</strong></div>
           </div>
-          <div style={{ marginTop: 20 }}>
-            <h3 className="font-bold text-navy mb-2">دروس V2 المعتمدة (19 درسًا)</h3>
+          <details className={styles.disclosure} data-testid="supervisor-lesson-disclosure">
+            <summary>تفاصيل الدروس ({v2Home.lesson_overview?.items.length ?? 0})</summary>
             {v2Home.lesson_overview?.state === "unavailable" && <p className={styles.notice}>إصدار بنك المحتوى المثبت غير متاح؛ لم تُستخدم دروس إصدار آخر بديلًا.</p>}
             {(!v2Home.lesson_overview || v2Home.lesson_overview.state === "awaiting_journey") &&
               <p className={styles.muted}>تظهر حالة الدروس بعد بدء الرحلة واعتماد التسكين.</p>}
@@ -313,12 +307,12 @@ function StudentDetailView({ id }: { id: string }) {
                   </div>
                 ))}
               </div>}
-          </div>
-          <V2Rewards data={v2Home.rewards} variant="admin" />
+          </details>
+          <details className={styles.disclosure}><summary>النجوم والشارات</summary><V2Rewards data={v2Home.rewards} variant="admin" /></details>
           <button type="button" className={styles.secondary} disabled={Boolean(busy)} onClick={() => void reconcileV2Rewards()}>مزامنة الاستحقاقات المثبتة</button>
-          {v2Home.journey?.placement_state === "posttest_ready" && <div className={styles.actions} style={{marginTop: 16}}><button className={styles.primary} disabled={Boolean(busy)} onClick={() => void updateV2PosttestAccess()}>{busy === "posttest-v2" ? "جاري الحفظ..." : student.posttest_enabled ? "إيقاف إتاحة البعدي V2" : "فتح الاختبار البعدي V2"}</button></div>}
+          {v2Home.journey?.placement_state === "posttest_ready" && <div className={styles.actions} style={{marginTop: 16}}><button className={styles.primary} disabled={Boolean(busy)} onClick={() => void updateV2PosttestAccess()}>{busy === "posttest-v2" ? "جاري الحفظ..." : student.posttest_enabled ? "إيقاف إتاحة البعدي" : "فتح الاختبار البعدي"}</button></div>}
           <div className={styles.actions} style={{ marginTop: 16 }}>
-            <Link className={styles.primary} href="/admin/v2-assessments">تقييمات ومراجعات V2</Link>
+            <Link className={styles.primary} href="/admin/v2-assessments">مراجعة الاختبارات</Link>
             <Link className={styles.secondary} href="/admin/v2-lesson-review">مراجعة الدروس</Link>
             <Link className={styles.secondary} href="/admin/v2-reviewed-recordings">التسجيلات المُقيَّمة</Link>
           </div>
@@ -357,9 +351,9 @@ function StudentDetailView({ id }: { id: string }) {
 
       <section className={styles.summary} aria-label="ملخص الطالب">
         <div className={styles.summaryCard}><span className={styles.summaryIcon}><User size={20} aria-hidden="true" /></span><div><strong>{student.status === "active" ? "حساب نشط" : "حساب موقوف"}</strong><span>حالة الطالب</span></div></div>
-        <div className={styles.summaryCard}><span className={styles.summaryIcon}><BookOpen size={20} aria-hidden="true" /></span><div><strong>{currentV2Level == null ? "غير معتمد" : `المستوى ${currentV2Level}`}</strong><span>المستوى الحالي V2</span></div></div>
-        <div className={styles.summaryCard}><span className={styles.summaryIcon}><Star size={20} aria-hidden="true" /></span><div><strong>{officialPercent == null ? "—" : `${officialPercent}%`}</strong><span>تقدم دروس V2</span></div></div>
-        <div className={styles.summaryCard}><span className={styles.summaryIcon}><ClipboardList size={20} aria-hidden="true" /></span><div><strong>{v2Home?.progress.pending_review ?? "—"}</strong><span>مراجعات V2 المعلّقة</span></div></div>
+        <div className={styles.summaryCard}><span className={styles.summaryIcon}><BookOpen size={20} aria-hidden="true" /></span><div><strong>{currentV2Level == null ? "غير معتمد" : `المستوى ${currentV2Level}`}</strong><span>المستوى الحالي</span></div></div>
+        <div className={styles.summaryCard}><span className={styles.summaryIcon}><Star size={20} aria-hidden="true" /></span><div><strong>{officialPercent == null ? "—" : `${officialPercent}%`}</strong><span>تقدم الدروس</span></div></div>
+        <div className={styles.summaryCard}><span className={styles.summaryIcon}><ClipboardList size={20} aria-hidden="true" /></span><div><strong>{v2Home?.progress.pending_review ?? "—"}</strong><span>مراجعات معلّقة</span></div></div>
       </section>
 
       <nav className={styles.tabs} aria-label="أقسام ملف الطالب">

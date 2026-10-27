@@ -11,10 +11,11 @@ import styles from "./dashboard-layout.module.css";
 import "./admin-workflow.css";
 
 const navSections = [
-  { label: "المتابعة", items: [{ href: "/admin", label: "نظرة عامة", icon: LayoutDashboard }, { href: "/admin/v2-assessments", label: "تقييمات V2", icon: ClipboardCheck }, { href: "/admin/v2-lesson-review", label: "مراجعة دروس V2", icon: Mic }, { href: "/admin/v2-reviewed-recordings", label: "التسجيلات المقيّمة", icon: Mic }] },
+  { label: "الرئيسية", items: [{ href: "/admin", label: "نظرة عامة", icon: LayoutDashboard }] },
   { label: "الطلاب", items: [{ href: "/admin/students", label: "جميع الطلاب", icon: Users }, { href: "/admin/students/new", label: "إضافة طالب", icon: UserPlus }] },
+  { label: "المراجعة", items: [{ href: "/admin/v2-assessments", label: "الاختبارات والتسكين", icon: ClipboardCheck }, { href: "/admin/v2-lesson-review", label: "قراءات الدروس", icon: Mic }, { href: "/admin/v2-reviewed-recordings", label: "التسجيلات المقيّمة", icon: Mic }] },
   { label: "النتائج والتقارير", items: [{ href: "/admin/reports", label: "التقارير", icon: BarChart3 }, { href: "/admin/skill-reports", label: "ملخص المهارات", icon: ClipboardList }] },
-  { label: "إدارة المنصة", items: [{ href: "/admin/content-preview", label: "بنك المحتوى", icon: BookOpenCheck }, { href: "/admin/v2-media", label: "وسائط V2", icon: Film }, { href: "/admin/settings", label: "الإعدادات والمشرفون", icon: Settings }] },
+  { label: "المحتوى والإعدادات", items: [{ href: "/admin/content-preview", label: "المحتوى والمعاينة", icon: BookOpenCheck }, { href: "/admin/v2-media", label: "الوسائط", icon: Film }, { href: "/admin/settings", label: "الإعدادات والمشرفون", icon: Settings }] },
 ] as const;
 
 interface SidebarContentProps { pathname: string; supervisorName: string; onNavigate: () => void; onLogout: () => void; showNotifications?: boolean; }

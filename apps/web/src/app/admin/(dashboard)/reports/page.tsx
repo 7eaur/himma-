@@ -7,10 +7,10 @@ const score = (value: number | null | undefined) => value == null ? "—" : `${v
 export default function ReportsPage() {
   const { data, loading, error, refresh } = useV2Reports();
   return <AdminPage>
-    <AdminPageHeader eyebrow="النتائج المعتمدة · V2" icon={BarChart3} title="التقارير والإحصائيات"
+    <AdminPageHeader eyebrow="النتائج المعتمدة" icon={BarChart3} title="التقارير والإحصائيات"
       description="القبلي والبعدي الرسميان وتقدم الدروس والدعم؛ النتائج المعلقة لا تدخل في المقارنة، والتسكين يؤخذ من القرار المحفوظ."
       actions={<><AdminAction href="/api/v2/reports/exports/cohort.xlsx" icon={FileSpreadsheet}>Excel</AdminAction><AdminAction href="/api/v2/reports/exports/cohort.pdf" icon={FileText}>PDF إجمالي</AdminAction><AdminAction disabled={loading} onClick={refresh} icon={RefreshCw}>تحديث</AdminAction></>} />
-    {loading ? <p role="status" className="py-8">جاري تجهيز تقارير V2...</p> : error ? <div role="alert" className="alert-error">{error} <AdminAction onClick={refresh}>إعادة المحاولة</AdminAction></div> : data && <>
+    {loading ? <p role="status" className="py-8">جاري تجهيز التقارير...</p> : error ? <div role="alert" className="alert-error">{error} <AdminAction onClick={refresh}>إعادة المحاولة</AdminAction></div> : data && <>
       <AdminStatGrid><AdminStat icon={Users} value={data.summary.students} label="إجمالي الطلاب" /><AdminStat icon={CheckCircle2} value={data.summary.official_pretests} label="قبلي معتمد" /><AdminStat icon={CheckCircle2} value={data.summary.official_posttests} label="بعدي معتمد" /><AdminStat icon={BarChart3} value={data.summary.average_improvement_points == null ? "—" : `${data.summary.average_improvement_points} نقطة`} label="متوسط التحسن للمقارنات المعتمدة" /></AdminStatGrid>
       <AdminPanel title="نتائج الطلاب" description="التحسن = البعدي − القبلي، بشرط تطابق إصدار البنك. لا تحسن نسبي عندما القبلي صفر، ولا تقدم وهمي للدروس المتجاوزة بالتسكين.">
         {data.students.length === 0 ? <AdminEmptyState title="لا توجد حسابات بعد" /> : <AdminResponsiveTable table={<table className="data-table" data-testid="v2-report-table"><thead><tr><th>الطالب</th><th>القبلي</th><th>البعدي</th><th>التحسن</th><th>الدروس</th><th>الدعم</th><th>التقرير</th></tr></thead><tbody>{data.students.map(row => <tr key={row.student_id}>

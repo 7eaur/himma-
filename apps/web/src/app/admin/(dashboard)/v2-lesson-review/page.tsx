@@ -98,7 +98,7 @@ export default function V2LessonReviewPage() {
   };
 
   return <AdminPage>
-    <AdminPageHeader eyebrow="هِمّة V2 · P08" icon={ClipboardCheck}
+    <AdminPageHeader eyebrow="المراجعة" icon={ClipboardCheck}
       title="مراجعة قراءة وكتابة الدروس"
       description="افحص دليل الطالب ونص السؤال ومعيار التصحيح قبل أي قرار. لا يُحتسب التسجيل صحيحًا تلقائيًا."
       actions={<AdminAction icon={RefreshCw} onClick={() => void load()}>تحديث القائمة</AdminAction>} />
@@ -159,7 +159,7 @@ export default function V2LessonReviewPage() {
             </article>;
           })}
         </div>}
-      <nav className="mt-5 flex items-center gap-3" aria-label="صفحات مراجعة V2">
+      <nav className="mt-5 flex items-center gap-3" aria-label="صفحات مراجعة الدروس">
         <button type="button" disabled={offset === 0 || busy !== null} onClick={() => setOffset(Math.max(0, offset - 20))}
           className="rounded-lg border px-4 py-2 disabled:opacity-40">السابق</button>
         <span className="text-sm text-slate-600">الصفحة {Math.floor(offset / 20) + 1}</span>

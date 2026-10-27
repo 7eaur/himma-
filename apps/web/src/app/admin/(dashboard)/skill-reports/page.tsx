@@ -10,7 +10,7 @@ export default function SkillReportsPage() {
   const [phase, setPhase] = useState("");
   const items = data?.skills.filter(row => (!student || row.student_id === Number(student)) && (!phase || row.phase === phase)) ?? [];
   return <AdminPage>
-    <AdminPageHeader eyebrow="أدلة المهارات · V2" icon={BarChart3} title="ملخص المهارات"
+    <AdminPageHeader eyebrow="أدلة المهارات" icon={BarChart3} title="ملخص المهارات"
       description="أدلة القبلي والبعدي الرسميين والتعلم المصحح المؤهل فقط. النسب وصفية وليست إعادة حساب للإتقان؛ المعلّق والتلميحات غير المؤهلة لا تتحول إلى إخفاق أو نجاح."
       actions={<AdminAction href="/api/v2/reports/exports/skills.xlsx" icon={Download}>تصدير Excel</AdminAction>} />
     {loading ? <p role="status">جاري تجهيز ملخص المهارات...</p> : error ? <div role="alert" className="alert-error">{error}<AdminAction onClick={refresh}>إعادة المحاولة</AdminAction></div> : data && <AdminPanel>

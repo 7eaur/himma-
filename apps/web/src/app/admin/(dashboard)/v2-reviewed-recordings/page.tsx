@@ -43,7 +43,7 @@ export default function ReviewedRecordingsPage() {
       if (!response.ok) throw new Error(body?.detail || "تعذر تحميل التسجيلات المنتهية");
       if (!body || !Array.isArray(body.items) ||
           (body.next_offset !== null && (!Number.isSafeInteger(body.next_offset) || body.next_offset < 0))) {
-        throw new Error("استجابة أرشيف التسجيلات غير صالحة");
+        throw new Error("استجابة التسجيلات المقيّمة غير صالحة");
       }
       setArchive(body as Archive);
     } catch (cause) {
@@ -65,7 +65,7 @@ export default function ReviewedRecordingsPage() {
   }, [refresh]);
 
   return <AdminPage>
-    <AdminPageHeader eyebrow="هِمّة V2 · تسجيلات خاصة" title="التسجيلات التي اكتمل تقييمها"
+    <AdminPageHeader eyebrow="مراجعة الصوت" title="التسجيلات التي اكتمل تقييمها"
       icon={Headphones}
       description="آخر تسجيل مُعتمد لكل سؤال قراءة، منفصل عن طابور انتظار المراجعة. تقييم الصوت المعروض حاليًا من المشرف، وليس من الذكاء الاصطناعي."
       actions={<AdminAction icon={RefreshCcw} onClick={() => void refresh()}>تحديث</AdminAction>} />
@@ -83,7 +83,7 @@ export default function ReviewedRecordingsPage() {
         </label>
       </div>
     </AdminPanel>
-    <AdminPanel title="أرشيف الصوت المقيّم" description="التسجيلات محفوظة بخصوصية ولا تعرض رابط تخزين مباشر.">
+    <AdminPanel title="التسجيلات المقيّمة" description="آخر تسجيل معتمد لكل نشاط، مع حفظ الخصوصية ودون رابط تخزين مباشر.">
       {error && <p role="alert" className="alert-error">{error}</p>}
       {loading ? <p role="status">جاري جلب التسجيلات...</p>
         : error ? <AdminEmptyState title="تعذر عرض التسجيلات" description="لم نعرض بيانات مخزنة قديمة. اختر تحديث لإعادة المحاولة." />

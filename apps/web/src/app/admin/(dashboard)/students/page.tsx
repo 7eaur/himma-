@@ -68,7 +68,7 @@ export default function StudentsPage() {
         const response = await fetch(`/api/v2/student/admin/students/overview?${params}`, {
           cache: "no-store", signal: controller.signal,
         });
-        if (!response.ok) throw new Error("تعذر تحميل تقدم طلاب V2، ولم تُستخدم أرقام V1 بديلة.");
+        if (!response.ok) throw new Error("تعذر تحميل تقدم الطلاب.");
         const payload = await response.json() as Cohort;
         if (payload.source !== "himma_v2_readmodel" || !Array.isArray(payload.items))
           throw new Error("مصدر بيانات الطلاب غير متطابق مع V2.");
@@ -90,8 +90,8 @@ export default function StudentsPage() {
   const count = data?.total ?? 0;
 
   return <AdminPage>
-    <AdminPageHeader eyebrow="إدارة العينة · هِمّة V2" icon={Users} title="الطلاب"
-      description="حالة الاختبار والتسكين والدروس من سجل V2 المعتمد. بيانات V1 التاريخية محفوظة في ملف الطالب ولا تُحتسب تقدمًا جديدًا."
+    <AdminPageHeader eyebrow="إدارة الطلاب" icon={Users} title="الطلاب"
+      description="تابع حالة الاختبارات والتسكين والدروس لكل طالب، وافتح ملفه للإجراءات والتفاصيل."
       actions={<AdminAction href="/admin/students/new" tone="primary" icon={UserPlus}>إضافة طالب</AdminAction>} />
     <AdminPanel>
       <AdminToolbar>
@@ -112,12 +112,12 @@ export default function StudentsPage() {
       {error && <div className="alert-error mt-3" role="alert">{error} <button type="button" className="underline font-semibold" onClick={() => setReload(value => value + 1)}>إعادة المحاولة</button></div>}
       <div style={{ height: 14 }} />
       {loading
-        ? <div className="flex flex-col items-center justify-center gap-3 py-14"><div className="spinner w-9 h-9" /><p className="text-muted">جاري تحميل بيانات V2...</p></div>
+        ? <div className="flex flex-col items-center justify-center gap-3 py-14"><div className="spinner w-9 h-9" /><p className="text-muted">جاري تحميل بيانات الطلاب...</p></div>
         : !data ? null
         : count === 0 ? <AdminEmptyState title="لا توجد نتائج" description="لا يوجد طالب مطابق لهذه التصفية، أو لم تُضف العينة بعد." action={<AdminAction href="/admin/students/new" tone="primary" icon={UserPlus}>إضافة طالب</AdminAction>} />
         : <AdminResponsiveTable
           table={<table className="data-table"><thead><tr>
-            <th>الطالب</th><th>الحساب</th><th>المستوى V2</th><th>التقدم V2</th><th>الخطوة التالية</th><th>الملف</th>
+            <th>الطالب</th><th>الحساب</th><th>المستوى</th><th>التقدم</th><th>الخطوة التالية</th><th>الملف</th>
           </tr></thead><tbody>{items.map(student => <tr key={student.id}>
             <td><Link href={`/admin/students/${student.id}`} className="font-semibold text-navy hover:text-primary">{student.full_name}</Link></td>
             <td><span className={`badge ${student.status === "active" ? "badge-green" : "badge-gray"}`}>{student.status === "active" ? "نشط" : "موقوف"}</span></td>
@@ -128,8 +128,8 @@ export default function StudentsPage() {
           </tr>)}</tbody></table>}
           cards={items.map(student => <AdminMobileCard key={student.id} title={<Link href={`/admin/students/${student.id}`}>{student.full_name}</Link>}>
             <span><strong>الحساب:</strong> {student.status === "active" ? "نشط" : "موقوف"}</span>
-            <span><strong>المستوى V2:</strong> {student.journey && ["placed", "posttest_ready", "completed"].includes(student.journey.placement_state) ? student.journey.current_level : "لم يُعتمد بعد"}</span>
-            <span><strong>التقدم V2:</strong> {progressLabel(student)}</span>
+            <span><strong>المستوى:</strong> {student.journey && ["placed", "posttest_ready", "completed"].includes(student.journey.placement_state) ? student.journey.current_level : "لم يُعتمد بعد"}</span>
+            <span><strong>التقدم:</strong> {progressLabel(student)}</span>
             <span><strong>الخطوة:</strong> {statusLabel(student)}</span>
             <span><AdminAction href={`/admin/students/${student.id}`} icon={Eye}>فتح الملف</AdminAction></span>
           </AdminMobileCard>)} />}

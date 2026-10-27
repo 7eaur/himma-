@@ -58,7 +58,7 @@ export default function AdminDashboard() {
   ];
   return <AdminPage>
     <AdminPageHeader eyebrow="مركز متابعة هِمّة" icon={ShieldCheck} title="مرحبًا، إليك متابعة الطلاب"
-      description="التسكين والدروس والمراجعات من رحلة V2. افتح ملف الطالب لمتابعة حالته أو إدارة حسابه."
+      description="التسكين والدروس والمراجعات من رحلة الطالب. افتح ملفه لمتابعة حالته أو إدارة حسابه."
       actions={<AdminAction href="/admin/students/new" tone="primary" icon={Plus}>إضافة طالب</AdminAction>} />
     {loading ? <p role="status" className="py-8 text-muted">جاري تحميل المتابعة...</p>
       : error ? <div className="alert-error" role="alert">{error} <AdminAction onClick={() => setReload(value => value + 1)}>إعادة المحاولة</AdminAction></div>
