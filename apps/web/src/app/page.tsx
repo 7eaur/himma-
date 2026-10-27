@@ -24,8 +24,8 @@ export default function WelcomePage() {
             <span className={styles.eyebrow}><span className={styles.eyebrowDot} /> رحلة قراءة تناسب مستواك خطوة بخطوة</span>
             <h1>اقرأ بثقة،<br /><span className={styles.accent}>وتقدّم مع هِمّة.</span></h1>
             <p className={styles.lead}>
-              أنشطة قصيرة بالصوت والصورة والقراءة تساعدك على تمييز الحروف والكلمات،
-              تدريب النطق والقراءة الجهرية، وفهم النصوص بطريقة واضحة وممتعة تناسب تقدمك.
+              ابدأ باختبار يحدد مستواك، ثم تعلّم في دروس قصيرة تجمع التمهيد والتدريب والاختبار.
+              تظهر لك تقوية موجهة داخل المسار عندما تحتاج إليها، وتتابع القراءة خطوة بخطوة.
             </p>
             <div className={styles.actions}>
               <Link href="/student/login" className={styles.primary}>
@@ -52,7 +52,7 @@ export default function WelcomePage() {
             <div className={styles.center}>
               <span className={styles.sectionBadge}>نتعلم بأكثر من طريقة</span>
               <h2>مهارات قراءة نبنيها معًا</h2>
-              <p className={styles.sectionIntro}>لا نعتمد على شكل واحد من الأسئلة؛ كل مهارة تحصل على نشاط يناسبها بالصوت أو الصورة أو القراءة.</p>
+              <p className={styles.sectionIntro}>لكل مهارة درس وتدريب واختبار يناسبها بالصوت أو الصورة أو القراءة.</p>
             </div>
             <div className={styles.benefits}>
               <article className={styles.benefit}>
@@ -63,7 +63,7 @@ export default function WelcomePage() {
               <article className={styles.benefit}>
                 <div className={`${styles.icon} ${styles.green}`}><Mic2 size={25} /></div>
                 <h3>القراءة بصوت واضح</h3>
-                <p>اقرأ الحروف والكلمات والجمل بصوت طبيعي، وسجّل قراءتك من داخل النشاط عندما تطلب منك هِمّة ذلك.</p>
+                <p>اقرأ الحروف والكلمات والجمل بصوت طبيعي، وسجّل قراءتك داخل الدرس عندما تطلب منك هِمّة ذلك.</p>
               </article>
               <article className={styles.benefit}>
                 <div className={`${styles.icon} ${styles.yellow}`}><Sparkles size={25} /></div>
@@ -83,7 +83,7 @@ export default function WelcomePage() {
             </div>
             <div className={styles.journey}>
               <article className={styles.journeyStep}><div className={styles.stepNumber}>١</div><h3>نعرف نقطة البداية</h3><p>اختبار قبلي متنوع يجمع بين الاختيار والصوت والصورة والقراءة.</p></article>
-              <article className={styles.journeyStep}><div className={styles.stepNumber}>٢</div><h3>نتعلم ونتدرّب</h3><p>أنشطة قصيرة في مستويات القراءة، مع تقوية موجهة عندما تحتاج إليها.</p></article>
+              <article className={styles.journeyStep}><div className={styles.stepNumber}>٢</div><h3>نتعلم ونتدرّب</h3><p>دروس قصيرة تبدأ بالتمهيد، ثم التدريب والاختبار، مع تقوية موجهة داخل المسار.</p></article>
               <article className={styles.journeyStep}><div className={styles.stepNumber}>٣</div><h3>نقيس ما تحقق</h3><p>اختبار بعدي يقيس التقدم بعد إكمال المسار التعليمي.</p></article>
             </div>
           </div>
@@ -102,7 +102,7 @@ export default function WelcomePage() {
                 <div className={styles.miniCard}><Headphones size={34} color="#347FD9" /><strong>استمع</strong><span>ثم اختر ما سمعت</span></div>
                 <div className={styles.miniCard}><Mic2 size={34} color="#51B985" /><strong>اقرأ</strong><span>وسجّل قراءتك</span></div>
                 <div className={styles.miniCard}><Route size={34} color="#D89E23" /><strong>رتّب</strong><span>الصور أو الكلمات</span></div>
-                <div className={styles.miniCard}><ShieldCheck size={34} color="#347FD9" /><strong>تقدّم بأمان</strong><span>المحتوى محفوظ ومعتمد</span></div>
+                <div className={styles.miniCard}><ShieldCheck size={34} color="#347FD9" /><strong>تقدّم بأمان</strong><span>تقدمك محفوظ في مسارك</span></div>
               </div>
             </div>
           </div>
