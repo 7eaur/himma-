@@ -7,6 +7,7 @@ import V2BlockedReviewNotice, { type BlockedV2Review } from "@/components/admin/
 import SupervisorClaimActions from "@/components/admin/SupervisorClaimActions";
 import V2EvidenceHistory from "@/components/admin/V2EvidenceHistory";
 import V2ReviewedAudioPlayer from "@/components/admin/V2ReviewedAudioPlayer";
+import V2ReviewQueuePicker from "@/components/admin/V2ReviewQueuePicker";
 
 interface ReviewItem {
   response_id: number; session_id: number; student_id: number; student_name: string;
@@ -27,6 +28,7 @@ export default function V2LessonReviewPage() {
   const [queue, setQueue] = useState<ReviewQueue>({ items: [], next_offset: null });
   const [offset, setOffset] = useState(0);
   const [notes, setNotes] = useState<Record<number, string>>({});
+  const [selectedResponseId, setSelectedResponseId] = useState<number | null>(null);
   const [busy, setBusy] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -104,11 +106,15 @@ export default function V2LessonReviewPage() {
       actions={<AdminAction icon={RefreshCw} onClick={() => void load()}>تحديث القائمة</AdminAction>} />
     {error && <div role="alert" className="rounded-xl border border-red-300 bg-red-50 p-4 text-red-800">{error}</div>}
     <V2BlockedReviewNotice items={queue.blocked_items} onRestored={load} />
+    <V2ReviewQueuePicker items={queue.items} selectedResponseId={selectedResponseId}
+      onSelect={setSelectedResponseId} busy={busy !== null}
+      label="مراجعة قراءات الدروس" />
     <AdminPanel title="أدلة معلّقة" description="قرارات المشرف موثّقة؛ لا يمكن إعادة اعتماد الإجابة نفسها.">
       {loading ? <div role="status" className="flex items-center gap-2 text-slate-600"><Clock3 size={18}/> جاري جلب الأدلة...</div>
         : queue.items.length === 0 ? <AdminEmptyState title="لا توجد أدلة قابلة للمراجعة في هذه الصفحة" description="راجع صفحة أخرى أو حدّث القائمة." />
         : <div className="space-y-4">
-          {queue.items.map((item) => {
+          {queue.items.filter(item => item.response_id ===
+              (queue.items.some(row => row.response_id === selectedResponseId) ? selectedResponseId : queue.items[0]?.response_id)).map((item) => {
             const note = notes[item.response_id] || "";
             const playbackReady = item.interaction !== "read_aloud" || (
               item.audio_submission_id !== null &&
