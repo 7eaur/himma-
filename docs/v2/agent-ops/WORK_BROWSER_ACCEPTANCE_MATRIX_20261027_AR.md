@@ -56,3 +56,19 @@
 - `P09_FUNCTIONAL_READY_WITH_TEST_MEDIA`: all routes/interactions pass + owner-reviewed functional evidence + missing production media itemized.
 - `P10_MEDIA_PENDING`: 19 final videos and any missing image/audio approval; لا نشر.
 - `RELEASE_READY`: media approvals + two-account private S3 + real-device tests + backup/restore/rollback + gated deploy + release candidate regression + owner signoff.
+
+
+## ملحق قبول التبويبات والصوت والمحتوى — 2026-10-28
+الأصل: docs/v2/agent-ops/HIMMA_V2_ADMIN_UX_AUDIO_REVIEW_AND_CONTENT_AUDIT_20261028_AR.md. هذا مصدر مراجع ولم يُنفذ اختبار متصفح مصادق جديد بعد. ملاحظة: D26 هو قرار أحدث من عبارة «قرار المشرف يفتح المستوى»؛ التسكين الذاتي يحصل بعد اكتمال تقييم الصوت فقط.
+
+| المسار | السيناريو الإلزامي للقبول |
+|---|---|
+| /admin/v2-assessments | تحديد صوت قبلي/بعدي معلّق، التشغيل الكامل، rubric رقمي بعد اعتماده، اعتماد/إعادة، حفظ API/Audit، منع النقر المكرر والقرار بلا صوت، التسكين الآلي بعد آخر مراجعة |
+| /admin/v2-lesson-review | نفس مساحة عمل الصوت للدرس والدعم، لا كتابة حرة، تحقق تسجيل آخر وإعادة/استئناف تلقائي، صوت مفقود/تالف |
+| /admin/v2-reviewed-recordings | آخر صوت مقيم فقط مع اسم الطالب والدرس والدرجة/سبب التقييم وفق سياسة الخصوصية، رابط تفاصيل، لا تسرب عبر ID |
+| /admin/students/[id] | سبعة تبويبات: عامة/دروس/اختبارات/صوت/تكيف/حساب/سجل؛ A→B→A وURL deep link، عدم كشف الرمز تلقائيًا، pending والضعف غير المثبت لا يوصفان إتقانًا |
+| /admin/content-preview | 300 سؤال/19 درسًا/12 دعمًا حسب القبلي→L1→L2→L3→بعدي ثم مراحل الدرس والسؤال، وسائل متعددة، إجابات مشرف خاصة، paging وback context |
+| /admin/v2-media | 89 أصلًا grouped/paged، تشغيل الوسائط والتمييز بين fixture والنهائي واعتماداتها، empty/error |
+| /admin/reports, /admin/skill-reports, /admin/students, /admin/settings, /admin | بطاقات وفلاتر قصيرة، تقارير رسمية مع تصدير، Tabs إعدادات سليمة، responsive navigation وpartial errors |
+
+كل المسارات: desktop 1280/1440، tablet 768/1024، هاتف 320/360/390/430، تكبير 200%، RTL، no horizontal overflow، touch >=44px، Escape/focus return، audio playback permissions، screenshots محدثة + شبكة HTTP + DB result على SHA منشور واحد. لا إعلان VERIFIED_LIVE من الكود أو E2E fixture وحده.
