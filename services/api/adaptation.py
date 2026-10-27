@@ -48,6 +48,7 @@ from dependencies import get_current_student, get_current_user, get_db
 from level_completion import level_was_completed
 from reinforcement_mapping import recommended_reinforcement_for_skill
 from reward_catalog import badge_entry_for_level, badge_levels, present_reward
+from v1_student_guard import require_legacy_student
 
 router = APIRouter(tags=["Adaptation"])
 ROOT = Path(__file__).resolve().parents[2]
@@ -716,6 +717,7 @@ def adaptation_status(
     db: Session = Depends(get_db),
     student: Student = Depends(get_current_student),
 ):
+    require_legacy_student(db, student)
     active = (
         db.query(AssessmentSession)
         .filter(
@@ -735,6 +737,7 @@ def student_rewards(
     db: Session = Depends(get_db),
     student: Student = Depends(get_current_student),
 ):
+    require_legacy_student(db, student)
     return [_reward_payload(row) for row in ensure_rewards(db, student.id)]
 
 
@@ -765,6 +768,7 @@ def researcher_rewards(
     student = db.query(Student).filter(Student.id == student_id).first()
     if not student:
         raise HTTPException(status_code=404, detail="الطالب غير موجود")
+    require_legacy_student(db, student)
     return [_reward_payload(row) for row in ensure_rewards(db, student_id)]
 
 
@@ -779,6 +783,7 @@ def manual_override(
     student = db.query(Student).filter(Student.id == student_id).with_for_update().first()
     if not student:
         raise HTTPException(status_code=404, detail="الطالب غير موجود")
+    require_legacy_student(db, student)
 
     previous_level = student.current_level
     level_changing = body.new_level != previous_level

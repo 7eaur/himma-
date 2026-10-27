@@ -22,10 +22,11 @@ from db.adaptation_models import AdaptationDecision
 from db.models import AssessmentSession, Attempt, ContentItem, Student
 from db.reinforcement_models import ReinforcementCycle
 from dependencies import get_current_student, get_db
+from v1_student_guard import legacy_student_only
 from level_completion import CORE_ACTIVITY_COUNT, completed_core_count
 from reinforcement_cycles import ensure_cycle, mark_reinforcement_completed
 
-router = APIRouter(prefix="/adaptation", tags=["Adaptation Runtime"])
+router = APIRouter(prefix="/adaptation", tags=["Adaptation Runtime"], dependencies=[Depends(legacy_student_only)])
 
 
 def _recommended_attempt(db: Session, session_id: int, item_id: int | None) -> Attempt | None:

@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session, joinedload
 from db.adaptation_models import AdaptationDecision
 from db.models import AssessmentSession, Attempt, AuditLog, ContentItem, Student, User
 from dependencies import get_current_user, get_db
+from v1_student_guard import require_legacy_student
 
 router = APIRouter(prefix="/researcher/students", tags=["Reinforcement Review"])
 
@@ -113,6 +114,7 @@ def assign_reinforcement(
     student = db.query(Student).filter(Student.id == student_id).with_for_update().first()
     if not student:
         raise HTTPException(status_code=404, detail="الطالب غير موجود")
+    require_legacy_student(db, student)
     session = _active_core_session(db, student_id)
     decision = _pending_mapping_decision(db, student_id)
     level_id = session.assigned_level or decision.new_level
