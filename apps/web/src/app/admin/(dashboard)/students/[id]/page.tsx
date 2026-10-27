@@ -383,7 +383,7 @@ function StudentDetailView({ id }: { id: string }) {
       const response = await fetch(`/api/researcher/students/${student.id}/posttest-access`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ enabled: !student.posttest_enabled }) });
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(apiError(data, "تعذر تحديث إتاحة الاختبار البعدي"));
-      setStudent(data); await refreshJourney(); setMessage({ kind: "success", text: data.posttest_enabled ? "تم فتح الاختبار البعدي للطالب." : "تم إيقاف الاختبار البعدي للطالب." });
+      setStudent(data); setV2Reload(value => value + 1); setMessage({ kind: "success", text: data.posttest_enabled ? "تم فتح الاختبار البعدي للطالب." : "تم إيقاف الاختبار البعدي للطالب." });
     } catch (error) { setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر تحديث إتاحة الاختبار البعدي" }); }
     finally { setBusy(""); }
   };
@@ -418,7 +418,7 @@ function StudentDetailView({ id }: { id: string }) {
       <section className={styles.panel} data-testid="supervisor-v2-overview">
         <div className={styles.panelHeader}>
           <div><h2>ملف الطالب الأكاديمي · هِمّة V2</h2>
-            <p>تسكين ودروس واختبارات من المصدر الحالي فقط. أرشيف V1 محفوظ في الأقسام الأخرى ولا يختلط بهذه الأرقام.</p>
+            <p>التسكين والدروس والاختبارات من رحلة الطالب المعتمدة، مع عرض المراجعات والخطوة التالية.</p>
           </div><BookOpen size={20} aria-hidden="true" />
         </div>
         {!currentV2 && <p role="status" className={styles.muted}>جاري تحميل التقدم المعتمد من V2...</p>}
@@ -482,6 +482,17 @@ function StudentDetailView({ id }: { id: string }) {
                 ))}
               </div>}
           </div>
+          {student && <div className={styles.panel} data-testid="supervisor-v2-posttest-control" style={{ marginTop: 16 }}>
+            <h3 className="font-bold text-navy">إتاحة الاختبار البعدي</h3>
+            <p className={styles.muted}>{student.posttest_enabled ? "الاختبار البعدي متاح للطالب." :
+              student.posttest_eligible ? "اكتمل المسار التعليمي ويمكن إتاحة الاختبار." :
+              "يصبح الاختبار متاحًا بعد إكمال المسار واعتماد الاختبار القبلي."}</p>
+            <button type="button" className={styles.primary} onClick={() => void updatePosttestAccess()}
+              disabled={busy === "posttest" || (!student.posttest_eligible && !student.posttest_enabled)}>
+              <Play size={17} aria-hidden="true" />
+              {busy === "posttest" ? "جاري الحفظ..." : student.posttest_enabled ? "إيقاف الإتاحة" : "فتح الاختبار البعدي"}
+            </button>
+          </div>}
           <div className={styles.actions} style={{ marginTop: 16 }}>
             <Link className={styles.primary} href="/admin/v2-assessments">تقييمات ومراجعات V2</Link>
             <Link className={styles.secondary} href="/admin/v2-lesson-review">مراجعة الدروس</Link>
@@ -539,7 +550,7 @@ function StudentDetailView({ id }: { id: string }) {
           <div className={styles.infoCard}><span>الاختبار البعدي</span><strong>{student.posttest_enabled ? "مفتوح الآن" : student.posttest_eligible ? "جاهز للفتح" : "غير جاهز بعد"}</strong></div>
         </div>
         <div className={styles.notice} style={{ marginTop: 14 }}>{student.posttest_enabled ? "الاختبار البعدي متاح للطالب الآن." : student.posttest_eligible ? "اكتمل المستوى الثالث ويمكن للمشرف فتح الاختبار البعدي." : "لا يمكن فتح الاختبار البعدي قبل إكمال رحلة التعلم حتى المستوى الثالث."}</div>
-        <div className={styles.actions} style={{ marginTop: 14 }}><button className={styles.primary} onClick={() => void updatePosttestAccess()} disabled={busy === "posttest" || (!student.posttest_eligible && !student.posttest_enabled)}><Play size={17} aria-hidden="true" />{busy === "posttest" ? "جاري الحفظ..." : student.posttest_enabled ? "إيقاف الإتاحة" : "فتح الاختبار البعدي"}</button></div>
+
       </section>
     );
 
