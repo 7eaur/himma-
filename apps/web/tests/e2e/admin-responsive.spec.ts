@@ -90,41 +90,19 @@ for (const viewport of [
       await capture(page, viewport.name, route);
 
       if (route === "/admin/content-preview") {
-        // Legacy interaction coverage remains explicit behind its historical archive.
-        await page.getByRole("button", { name: "أرشيف بنك V1", exact: true }).click();
-        await expect(page.getByTestId("content-index-item").first()).toBeAttached({ timeout: 25000 });
-        const detailPane = page.getByTestId("content-detail-pane");
-        await expect(detailPane).toBeVisible({ timeout: 10000 });
+        // The only visible bank is V2. Preserve interactive, RTL and
+        // supervisor-only answer evidence instead of legacy archive assertions.
+        await expect(page.getByRole("button", { name: "أرشيف بنك V1" })).toHaveCount(0);
+        await expect(page.getByTestId("v2-bank-question").first()).toContainText("V2-PRE-Q01");
+        await page.getByRole("combobox", { name: "القسم", exact: true }).selectOption("L1-01");
+        await expect(page.getByTestId("v2-bank-question")).toHaveCount(8);
+        const firstLessonQuestion = page.getByTestId("v2-bank-question").first();
+        await expect(firstLessonQuestion).toContainText("L1-01-GP-01");
+        await firstLessonQuestion.locator("summary").click();
+        await expect(firstLessonQuestion.getByText(/الخيارات الصحيحة أو ترتيبها/)).toBeVisible();
+        await expect(page.getByText(/التمهيد:/)).toBeVisible();
         await expectNoHorizontalOverflow(page);
-
-        if (viewport.width <= 820) {
-          const indexPane = page.getByTestId("content-index-pane");
-          await expect(indexPane).toBeHidden();
-
-          const openNavigator = page.getByTestId("content-open-navigator");
-          await expect(openNavigator).toBeVisible();
-          const openBox = await openNavigator.boundingBox();
-          expect(openBox?.height ?? 0).toBeGreaterThanOrEqual(44);
-
-          await openNavigator.click();
-          await expect(indexPane).toBeVisible();
-
-          const firstContent = page.getByTestId("content-index-item").first();
-          await expect(firstContent).toBeVisible();
-          await firstContent.click();
-
-          await expect(indexPane).toBeHidden();
-          await expect(detailPane).toBeVisible();
-          await expect(page.getByRole("navigation", { name: "التنقل بين عناصر القسم" })).toBeVisible();
-          await expectNoHorizontalOverflow(page);
-          await capture(page, viewport.name, "/admin/content-preview-detail");
-        } else {
-          const firstContent = page.getByTestId("content-index-item").first();
-          await expect(firstContent).toBeVisible();
-          await firstContent.click();
-          await expect(detailPane).toBeVisible();
-          await expectNoHorizontalOverflow(page);
-        }
+        await capture(page, viewport.name, "/admin/v2-bank-lesson-detail");
       }
     }
 
@@ -154,7 +132,7 @@ test("P09.0 V2 supervisor pages keep a desktop visual baseline", async ({ page }
     { route: "/admin/v2-media", heading: "سجل وسائط V2" },
     { route: "/admin/v2-reviewed-recordings", heading: "التسجيلات التي اكتمل تقييمها" },
     { route: "/admin/students", heading: "الطلاب" },
-    { route: "/admin/content-preview", heading: "بنك المحتوى V2" },
+    { route: "/admin/content-preview", heading: "بنك المحتوى" },
     { route: "/admin/account", heading: "إعدادات المشرف" },
   ];
   for (const { route, heading } of routes) {
