@@ -367,6 +367,11 @@ def set_posttest_access(
     student = db.query(Student).filter(Student.id == student_id).with_for_update().first()
     if not student:
         raise HTTPException(status_code=404, detail="الطالب غير موجود")
+    # The historical contract must never mutate the shared access flag once
+    # this account has a V2 journey. V2 has its own evidence gates.
+    from db.learning_models import StudentJourney
+    if db.query(StudentJourney.id).filter(StudentJourney.student_id == student.id).first():
+        raise HTTPException(status_code=409, detail="هذا الحساب لديه رحلة V2؛ استخدم إتاحة الاختبار البعدي V2.")
     pretest_completed = _completed_session(db, student.id, "pretest")
     journey = build_journey_summary(db, student)
     posttest_completed = _completed_session(db, student.id, "posttest")

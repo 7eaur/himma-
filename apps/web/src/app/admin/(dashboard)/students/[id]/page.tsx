@@ -43,15 +43,14 @@ interface Student {
   id: number;
   full_name: string;
   grade_level: number;
-  access_code: string;
   created_at: string;
-  current_level: number;
+  current_level?: number;
   status: "active" | "inactive";
   posttest_enabled: boolean;
-  posttest_eligible: boolean;
-  core_completed_items: number;
-  core_total_items: number;
-  core_completed: boolean;
+  posttest_eligible?: boolean;
+  core_completed_items?: number;
+  core_total_items?: number;
+  core_completed?: boolean;
 }
 
 interface AdaptationDecision {
@@ -166,6 +165,8 @@ export default function StudentDetailPage() {
 function StudentDetailView({ id }: { id: string }) {
   const [activeTab, setActiveTab] = useState<TabKey>("v2");
   const [archiveOpen, setArchiveOpen] = useState(false);
+  const [historicalState, setHistoricalState] = useState<SourceState>("loading");
+  const [accessCode, setAccessCode] = useState<string | null>(null);
   const [student, setStudent] = useState<Student | null>(null);
   const [loadedStudentId, setLoadedStudentId] = useState<string | null>(null);
   const [journey, setJourney] = useState<JourneySummary | null>(null);
@@ -221,19 +222,20 @@ function StudentDetailView({ id }: { id: string }) {
       }
     };
 
-    void fetch(`/api/researcher/students/${id}`, { cache: "no-store" })
+    void fetch(`/api/v2/student/admin/students/${id}/account`, { cache: "no-store" })
       .then(async studentResponse => {
         if (!studentResponse.ok) {
           const body = await studentResponse.json().catch(() => null);
           throw new Error(apiError(body, studentResponse.status === 404 ? "لم يتم العثور على الطالب" : "تعذر تحميل بيانات الطالب"));
         }
-        const studentData: Student = await studentResponse.json();
+        const studentData: Student & {source: string} = await studentResponse.json();
+        if (studentData.source !== "himma_v2_account") throw new Error("مصدر الحساب غير متطابق مع V2.");
         if (String(studentData.id) !== id) throw new Error("ملف الطالب لا يطابق الحساب المطلوب.");
         if (cancelled) return;
-        setStudent(studentData);
+        setStudent(current => ({...current, ...studentData}));
         setLoadedStudentId(id);
         setEditName(studentData.full_name);
-        setOverrideLevel(String(studentData.current_level));
+
       })
       .catch((error: unknown) => {
         if (!cancelled) {
@@ -245,6 +247,12 @@ function StudentDetailView({ id }: { id: string }) {
       .finally(() => { if (!cancelled) setLoading(false); });
 
     if (archiveOpen) {
+    void fetch(`/api/v2/student/admin/students/${id}/historical-account`, {cache: "no-store"})
+      .then(async response => {
+        const body = await response.json().catch(() => null);
+        if (!response.ok || body?.source !== "himma_v1_archived_account" || String(body.student_id) !== id) throw new Error("تعذر تحميل الأرشيف");
+        if (!cancelled) { setStudent(current => ({...current, ...body})); setOverrideLevel(String(body.current_level)); setHistoricalState("loaded"); }
+      }).catch(() => { if (!cancelled) setHistoricalState("error"); });
     void fetchSecondary<JourneySummary>(
       `/api/researcher/students/${id}/journey`, setJourney, setJourneyState,
     );
@@ -338,10 +346,10 @@ function StudentDetailView({ id }: { id: string }) {
     if (!student || editName.trim() === student.full_name) return;
     setBusy("name"); setMessage({ kind: "success", text: "" });
     try {
-      const response = await fetch(`/api/researcher/students/${student.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ full_name: editName }) });
+      const response = await fetch(`/api/v2/student/admin/students/${student.id}/account`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ full_name: editName }) });
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(apiError(data, "تعذر حفظ اسم الطالب"));
-      setStudent(data); setEditName(data.full_name); setMessage({ kind: "success", text: "تم تحديث اسم الطالب." });
+      setStudent(current => current ? {...current, ...data} : current); setEditName(data.full_name); setMessage({ kind: "success", text: "تم تحديث اسم الطالب." });
     } catch (error) { setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر حفظ اسم الطالب" }); }
     finally { setBusy(""); }
   };
@@ -350,10 +358,10 @@ function StudentDetailView({ id }: { id: string }) {
     if (!student) return;
     setBusy("status"); setMessage({ kind: "success", text: "" });
     try {
-      const response = await fetch(`/api/researcher/students/${student.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ is_active: student.status !== "active" }) });
+      const response = await fetch(`/api/v2/student/admin/students/${student.id}/account`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ is_active: student.status !== "active" }) });
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(apiError(data, "تعذر تحديث حالة الطالب"));
-      setStudent(data); setMessage({ kind: "success", text: data.status === "active" ? "تم تفعيل حساب الطالب." : "تم إيقاف حساب الطالب." });
+      setStudent(current => current ? {...current, ...data} : current); setMessage({ kind: "success", text: data.status === "active" ? "تم تفعيل حساب الطالب." : "تم إيقاف حساب الطالب." });
     } catch (error) { setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر تحديث حالة الطالب" }); }
     finally { setBusy(""); }
   };
@@ -363,17 +371,46 @@ function StudentDetailView({ id }: { id: string }) {
     if (manual && !/^\d{6}$/.test(manualCode)) { setMessage({ kind: "error", text: "الرمز اليدوي يجب أن يتكون من 6 أرقام." }); return; }
     setBusy("code"); setMessage({ kind: "success", text: "" });
     try {
-      const response = await fetch(`/api/researcher/students/${student.id}/access-code`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ access_code: manual ? manualCode : null }) });
+      const response = await fetch(`/api/v2/student/admin/students/${student.id}/access-code`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ access_code: manual ? manualCode : null }) });
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(apiError(data, "تعذر تحديث رمز الدخول"));
-      setStudent(data); setManualCode(""); setVisibleCodeForId(null); setMessage({ kind: "success", text: "تم تحديث رمز دخول الطالب." });
+      setStudent(current => current ? {...current, ...data} : current); setAccessCode(null); setManualCode(""); setVisibleCodeForId(null); setMessage({ kind: "success", text: "تم تحديث رمز دخول الطالب." });
     } catch (error) { setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر تحديث رمز الدخول" }); }
     finally { setBusy(""); }
   };
 
+  const getAccessCode = async (): Promise<string> => {
+    if (accessCode) return accessCode;
+    const response = await fetch(`/api/v2/student/admin/students/${id}/access-code/reveal`, {method: "POST", cache: "no-store"});
+    const body = await response.json().catch(() => null);
+    if (!response.ok || String(body?.student_id) !== id || typeof body?.access_code !== "string") throw new Error("تعذر إظهار رمز الدخول.");
+    setAccessCode(body.access_code);
+    return body.access_code;
+  };
+  const revealAccessCode = async () => {
+    if (codeVisible) { setVisibleCodeForId(null); setAccessCode(null); return; }
+    setBusy("reveal");
+    try { await getAccessCode(); setVisibleCodeForId(id); }
+    catch (error) { setMessage({kind: "error", text: error instanceof Error ? error.message : "تعذر إظهار الرمز"}); }
+    finally { setBusy(""); }
+  };
   const copyAccessCode = async () => {
-    if (!student) return;
-    await navigator.clipboard.writeText(student.access_code); setCopied(true); window.setTimeout(() => setCopied(false), 1500);
+    setBusy("copy");
+    try { await navigator.clipboard.writeText(await getAccessCode()); setCopied(true); window.setTimeout(() => setCopied(false), 1500); }
+    catch { setMessage({kind:"error",text:"تعذر نسخ الرمز. أظهر الرمز وأعد المحاولة."}); }
+    finally { setBusy(""); }
+  };
+  const updateV2PosttestAccess = async () => {
+    if (!student || busy) return;
+    setBusy("posttest-v2");
+    try {
+      const response = await fetch(`/api/v2/student/admin/students/${id}/posttest-access`, {method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({enabled: !student.posttest_enabled})});
+      const body = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(apiError(body, "تعذر تحديث إتاحة البعدي V2"));
+      setStudent(current => current ? {...current,...body} : current); setV2Reload(value=>value+1);
+      setMessage({kind:"success",text:body.posttest_enabled ? "تم فتح الاختبار البعدي V2." : "تم إيقاف إتاحة البعدي V2."});
+    } catch (error) { setMessage({kind:"error",text:error instanceof Error ? error.message : "تعذر حفظ إتاحة البعدي"}); }
+    finally { setBusy(""); }
   };
 
   const updatePosttestAccess = async () => {
@@ -406,14 +443,15 @@ function StudentDetailView({ id }: { id: string }) {
   if (!student) return <div className={styles.page}><div className="alert-error">{message.text || "لم يتم العثور على الطالب"}</div><Link href="/admin/students" className="btn-primary mt-4">العودة إلى الطلاب</Link></div>;
 
   const activeJourneyLevel = journey?.levels.find((level) => level.state === "active" || level.state === "ready") ?? journey?.levels.find((level) => level.level_id === student.current_level);
-  const progressCompleted = activeJourneyLevel?.completed_items ?? student.core_completed_items;
-  const progressTotal = activeJourneyLevel?.total_items ?? student.core_total_items;
+  const progressCompleted = activeJourneyLevel?.completed_items ?? student.core_completed_items ?? 0;
+  const progressTotal = activeJourneyLevel?.total_items ?? student.core_total_items ?? 0;
   const progressPercent = Math.round((progressCompleted / Math.max(1, progressTotal)) * 100);
   const reasonKey = typeof latestDecision?.explanation?.reason === "string" ? latestDecision.explanation.reason : "";
 
   const sourceError = (label: string, retry: () => void) => <div className="alert-error" role="status">تعذر تحميل {label}. <button type="button" className={styles.secondary} onClick={retry}>إعادة المحاولة</button></div>;
 
   const tabContent = (() => {
+    if (activeTab !== "v2" && activeTab !== "account" && historicalState !== "loaded") return <section className={styles.panel}><p role={historicalState === "error" ? "alert" : "status"}>{historicalState === "error" ? "تعذر تحميل أرشيف V1. أغلق الأرشيف وافتحه لإعادة المحاولة." : "جاري تحميل أرشيف V1..."}</p></section>;
     if (activeTab === "v2") return (
       <section className={styles.panel} data-testid="supervisor-v2-overview">
         <div className={styles.panelHeader}>
@@ -482,6 +520,7 @@ function StudentDetailView({ id }: { id: string }) {
                 ))}
               </div>}
           </div>
+          {v2Home.journey?.placement_state === "posttest_ready" && <div className={styles.actions} style={{marginTop: 16}}><button className={styles.primary} disabled={Boolean(busy)} onClick={() => void updateV2PosttestAccess()}>{busy === "posttest-v2" ? "جاري الحفظ..." : student.posttest_enabled ? "إيقاف إتاحة البعدي V2" : "فتح الاختبار البعدي V2"}</button></div>}
           <div className={styles.actions} style={{ marginTop: 16 }}>
             <Link className={styles.primary} href="/admin/v2-assessments">تقييمات ومراجعات V2</Link>
             <Link className={styles.secondary} href="/admin/v2-lesson-review">مراجعة الدروس</Link>
@@ -539,7 +578,7 @@ function StudentDetailView({ id }: { id: string }) {
           <div className={styles.infoCard}><span>الاختبار البعدي</span><strong>{student.posttest_enabled ? "مفتوح الآن" : student.posttest_eligible ? "جاهز للفتح" : "غير جاهز بعد"}</strong></div>
         </div>
         <div className={styles.notice} style={{ marginTop: 14 }}>{student.posttest_enabled ? "الاختبار البعدي متاح للطالب الآن." : student.posttest_eligible ? "اكتمل المستوى الثالث ويمكن للمشرف فتح الاختبار البعدي." : "لا يمكن فتح الاختبار البعدي قبل إكمال رحلة التعلم حتى المستوى الثالث."}</div>
-        <div className={styles.actions} style={{ marginTop: 14 }}><button className={styles.primary} onClick={() => void updatePosttestAccess()} disabled={busy === "posttest" || (!student.posttest_eligible && !student.posttest_enabled)}><Play size={17} aria-hidden="true" />{busy === "posttest" ? "جاري الحفظ..." : student.posttest_enabled ? "إيقاف الإتاحة" : "فتح الاختبار البعدي"}</button></div>
+        <div className={styles.actions} style={{ marginTop: 14 }}><button className={styles.primary} onClick={() => void updatePosttestAccess()} disabled={Boolean(v2Home?.journey) || busy === "posttest" || (!student.posttest_eligible && !student.posttest_enabled)}><Play size={17} aria-hidden="true" />{busy === "posttest" ? "جاري الحفظ..." : student.posttest_enabled ? "إيقاف الإتاحة" : "فتح الاختبار البعدي"}</button></div>
       </section>
     );
 
@@ -580,7 +619,7 @@ function StudentDetailView({ id }: { id: string }) {
           <div className={styles.field}><label htmlFor="student-name">اسم الطالب</label><input id="student-name" className={styles.input} value={editName} onChange={(event) => setEditName(event.target.value)} minLength={2} maxLength={80} /></div>
           <button className={styles.primary} onClick={() => void saveStudentName()} disabled={busy === "name" || editName.trim() === student.full_name}><Save size={17} aria-hidden="true" />{busy === "name" ? "جاري الحفظ..." : "حفظ الاسم"}</button>
         </div>
-        <div className={styles.codeBox} style={{ marginTop: 16 }}><div><span className={styles.muted}>رمز الدخول الحالي</span><strong className={styles.code} dir="ltr">{codeVisible ? student.access_code : "••••••"}</strong></div><button type="button" className={styles.secondary} aria-pressed={codeVisible} onClick={() => setVisibleCodeForId(current => current === id ? null : id)}>{codeVisible ? "إخفاء الرمز" : "إظهار الرمز"}</button><button className={styles.secondary} onClick={() => void copyAccessCode()}>{copied ? <Check size={17} aria-hidden="true" /> : <Copy size={17} aria-hidden="true" />}{copied ? "تم النسخ" : "نسخ الرمز"}</button></div>
+        <div className={styles.codeBox} style={{ marginTop: 16 }}><div><span className={styles.muted}>رمز الدخول الحالي</span><strong className={styles.code} dir="ltr">{codeVisible ? accessCode : "••••••"}</strong></div><button type="button" className={styles.secondary} aria-pressed={codeVisible} disabled={Boolean(busy)} onClick={() => void revealAccessCode()}>{codeVisible ? "إخفاء الرمز" : "إظهار الرمز"}</button><button className={styles.secondary} disabled={Boolean(busy)} onClick={() => void copyAccessCode()}>{copied ? <Check size={17} aria-hidden="true" /> : <Copy size={17} aria-hidden="true" />}{copied ? "تم النسخ" : "نسخ الرمز"}</button></div>
         <div className={styles.grid2}>
           <button className={styles.secondary} onClick={() => void changeAccessCode(false)} disabled={busy === "code"}><RefreshCw size={17} aria-hidden="true" /> توليد رمز جديد</button>
           <div className={styles.formGrid}><div className={styles.field}><label htmlFor="manual-code">رمز يدوي من 6 أرقام</label><input id="manual-code" className={styles.input} inputMode="numeric" maxLength={6} value={manualCode} onChange={(event) => setManualCode(event.target.value.replace(/\D/g, "").slice(0,6))} placeholder="123456" dir="ltr" /></div><button className={styles.primary} onClick={() => void changeAccessCode(true)} disabled={busy === "code" || manualCode.length !== 6}>حفظ</button></div>
@@ -619,8 +658,8 @@ function StudentDetailView({ id }: { id: string }) {
       </section>
 
       <nav className={styles.tabs} aria-label="أقسام ملف الطالب">
-        {TABS.filter(tab => archiveOpen || tab.key === "v2" || tab.key === "account").map((tab) => { const Icon = tab.icon; return <button key={tab.key} className={`${styles.tab} ${activeTab === tab.key ? styles.tabActive : ""}`} onClick={() => setActiveTab(tab.key)} aria-current={activeTab === tab.key ? "page" : undefined}><Icon size={16} aria-hidden="true" />{tab.label}</button>; })}
-        <button className={styles.tab} type="button" aria-expanded={archiveOpen} onClick={() => { setArchiveOpen(value => !value); setActiveTab("v2"); }}>أرشيف V1 التاريخي</button>
+        {TABS.filter(tab => archiveOpen || tab.key === "v2" || tab.key === "account").map((tab) => { const Icon = tab.icon; return <button key={tab.key} className={`${styles.tab} ${activeTab === tab.key ? styles.tabActive : ""}`} onClick={() => { setVisibleCodeForId(null); setAccessCode(null); setActiveTab(tab.key); }} aria-current={activeTab === tab.key ? "page" : undefined}><Icon size={16} aria-hidden="true" />{tab.label}</button>; })}
+        <button className={styles.tab} type="button" aria-expanded={archiveOpen} onClick={() => { setArchiveOpen(value => !value); setVisibleCodeForId(null); setAccessCode(null); setActiveTab("v2"); }}>أرشيف V1 التاريخي</button>
       </nav>
       {archiveOpen && <p className={styles.notice}>الأقسام التاريخية تخص V1 وحدها؛ لا تتحكم في تسكين V2 أو تقدمه أو مكافآته.</p>}
 

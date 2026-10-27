@@ -195,7 +195,12 @@ test("P09.1-D: supervisor sees official V2 first without V1 stars, and access co
   expect(id).toBeTruthy();
   await expect(page.getByText(code, { exact: true })).toHaveCount(0);
 
+  const identityRequest = page.waitForResponse(response => response.url().endsWith(`/v2/student/admin/students/${id}/account`) && response.request().method() === "GET");
   await page.goto(`/admin/students/${id}`);
+  const accountIdentity = await (await identityRequest).json();
+  expect(accountIdentity.source).toBe("himma_v2_account");
+  expect(accountIdentity).not.toHaveProperty("access_code");
+  expect(accountIdentity).not.toHaveProperty("core_completed_items");
   const projection = page.getByTestId("supervisor-v2-overview");
   await expect(projection).toBeVisible({ timeout: 10000 });
   await expect(projection.getByTestId("supervisor-v2-level")).toContainText("لم يُعتمد بعد");
