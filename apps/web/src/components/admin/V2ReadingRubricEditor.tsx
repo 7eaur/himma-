@@ -19,7 +19,7 @@ export const emptyReadingRubric = (): ReadingRubricDraft => ({
 });
 
 export function rubricValid(value: ReadingRubricDraft): boolean {
-  return Number.isInteger(value.target_units) && value.target_units > 0 &&
+  return typeof value.target_units === "number" && Number.isInteger(value.target_units) && value.target_units > 0 &&
     value.target_units <= 1000 &&
     [value.deletions, value.substitutions, value.insertions].every(
       number => Number.isInteger(number) && number >= 0 && number <= 1000
