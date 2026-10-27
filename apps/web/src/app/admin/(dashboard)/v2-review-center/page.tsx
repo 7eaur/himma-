@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { CheckCheck, ClipboardCheck, Headphones } from "lucide-react";
-import { AdminPage, AdminPageHeader } from "@/components/admin/AdminUI";
 import V2AssessmentsPage from "../v2-assessments/page";
 import V2LessonReviewPage from "../v2-lesson-review/page";
 import ReviewedRecordingsPage from "../v2-reviewed-recordings/page";
@@ -32,10 +31,8 @@ export default function V2ReviewCenterPage() {
     address.searchParams.set("tab", value);
     window.history.replaceState(null, "", address.pathname + address.search);
   };
-  return <AdminPage>
-    <AdminPageHeader eyebrow="مركز مراجعة التسجيلات" title="مراجعة الصوت"
-      icon={Headphones}
-      description="مراجعة الأصوات البشرية حاليًا. التسكين والتكيف واختيار الدعم وفتح الاختبارات ينجزها النظام تلقائيًا." />
+  return <div dir="rtl" className="mx-auto w-full max-w-screen-xl min-w-0">
+    <p className="mb-3 px-1 text-sm text-slate-600">مركز مراجعة التسجيلات · دور المشرف الحالي مراجعة الصوت فقط</p>
     <nav role="tablist" aria-label="أقسام مراجعة التسجيلات"
       className="mb-4 flex gap-2 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-2">
       {TABS.map((tab, index) => {
@@ -63,5 +60,5 @@ export default function V2ReviewCenterPage() {
       {active === "assessments" ? <V2AssessmentsPage /> :
         active === "lessons" ? <V2LessonReviewPage /> : <ReviewedRecordingsPage />}
     </div>
-  </AdminPage>;
+  </div>;
 }
