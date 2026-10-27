@@ -26,7 +26,7 @@ from v2_adaptation_runtime import (
     finish_support_check,
 )
 from v2_content.repository import get_release
-from v2_assessment_runtime import _session_release
+from v2_assessment_runtime import _session_release, blocked_review_item
 from v2_retry_state import active_retry
 from v2_review_claims import enforce_review_claim, clear_review_claim
 from v2_audio_retention import schedule_superseded_audio, run_retention_after_commit
@@ -133,20 +133,32 @@ def lesson_queue(
     latest_audio = {audio.lesson_response_id: audio for audio in audios}
     release_cache: dict[int, dict] = {}
     items = []
+    blocked_items = []
     for row, session, student in page:
-        if session.content_release_id not in release_cache:
-            release_cache[session.content_release_id] = _session_release(db, session)
+        try:
+            if session.content_release_id not in release_cache:
+                release_cache[session.content_release_id] = _session_release(db, session)
+        except HTTPException as error:
+            if error.status_code != 409:
+                raise
+            blocked_items.append(blocked_review_item(db, session, row, student, error))
+            continue
         task = retry_by_response.get(row.id)
         audio = (
             audio_by_id.get(task.audio_submission_id)
             if task and task.status == "submitted" and task.audio_submission_id else
             None if task else latest_audio.get(row.id)
         )
-        items.append(_item(
-            db, row, session, student,
-            release=release_cache[session.content_release_id],
-            task=task, audio=audio, preloaded=True,
-        ))
+        try:
+            items.append(_item(
+                db, row, session, student,
+                release=release_cache[session.content_release_id],
+                task=task, audio=audio, preloaded=True,
+            ))
+        except HTTPException as error:
+            if error.status_code != 409:
+                raise
+            blocked_items.append(blocked_review_item(db, session, row, student, error))
     response_audio_ids = {
         item["response_id"]: item["audio_submission_id"]
         for item in items if item["audio_submission_id"] is not None
@@ -156,7 +168,7 @@ def lesson_queue(
     )
     for item in items:
         item["audio_playback_completed"] = item["audio_submission_id"] in completed
-    return {"items": items, "next_offset": offset + limit if len(rows) > limit else None}
+    return {"items": items, "blocked_items": blocked_items, "next_offset": offset + limit if len(rows) > limit else None}
 
 
 @router.get("/lessons/{response_id}/audio")

@@ -200,6 +200,16 @@ def _session_release(db: Session, session: AssessmentSession) -> dict[str, Any]:
     raise HTTPException(status_code=409, detail="النسخة الأصلية غير محفوظة؛ تم إيقاف التقييم لحماية الإجابات")
 
 
+def blocked_review_item(db: Session, session, row, student: Student, error: HTTPException) -> dict:
+    """Staff recovery metadata only; never replace a lost question with today's bank."""
+    release = db.query(ContentRelease).filter(ContentRelease.id == session.content_release_id).one_or_none()
+    return {"response_id": row.id, "session_id": session.id, "student_id": student.id,
+            "student_name": student.name, "reason": "content_release_unavailable",
+            "detail": str(error.detail), "content_release_id": session.content_release_id,
+            "release_version": release.version if release else None,
+            "release_checksum": release.checksum if release else None}
+
+
 def _media(question: dict[str, Any], release: dict[str, Any]) -> dict[str, dict[str, Any]]:
     ids = {m["media_id"] for m in question.get("stimulus", {}).get("media", [])}
     ids |= {m["media_id"] for option in question.get("options", []) for m in option.get("media", [])}
@@ -568,13 +578,19 @@ def review_queue(
         ).order_by(AudioSubmission.id).all()
     } if response_ids else {}
     items = []
+    blocked_items = []
     for row, session, student in page:
-        if session.content_release_id not in release_cache:
-            release_cache[session.content_release_id] = _session_release(db, session)
-        items.append(_review_item(
-            db, row, session, student, release=release_cache[session.content_release_id],
-            audio=audios.get(row.id), preloaded_audio=True,
-        ))
+        try:
+            if session.content_release_id not in release_cache:
+                release_cache[session.content_release_id] = _session_release(db, session)
+            items.append(_review_item(
+                db, row, session, student, release=release_cache[session.content_release_id],
+                audio=audios.get(row.id), preloaded_audio=True,
+            ))
+        except HTTPException as error:
+            if error.status_code != 409:
+                raise
+            blocked_items.append(blocked_review_item(db, session, row, student, error))
     response_audio_ids = {
         item["response_id"]: item["audio_submission_id"]
         for item in items if item["audio_submission_id"] is not None
@@ -584,7 +600,7 @@ def review_queue(
     )
     for item in items:
         item["audio_playback_completed"] = item["audio_submission_id"] in completed
-    return {"items": items, "next_offset": offset + limit if len(rows) > limit else None}
+    return {"items": items, "blocked_items": blocked_items, "next_offset": offset + limit if len(rows) > limit else None}
 
 
 @router.get("/admin/responses/{response_id}/audio")

@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ClipboardCheck, Clock3, RefreshCw } from "lucide-react";
 import { AdminAction, AdminEmptyState, AdminPage, AdminPageHeader, AdminPanel } from "@/components/admin/AdminUI";
+import V2BlockedReviewNotice, { type BlockedV2Review } from "@/components/admin/V2BlockedReviewNotice";
 import SupervisorClaimActions from "@/components/admin/SupervisorClaimActions";
 import V2EvidenceHistory from "@/components/admin/V2EvidenceHistory";
 import V2ReviewedAudioPlayer from "@/components/admin/V2ReviewedAudioPlayer";
@@ -15,7 +16,7 @@ interface ReviewItem {
   audio_submission_id: number | null; audio_playback_completed: boolean;
   evidence_ready: boolean; submitted_at: string | null; retry_state?: "requested" | "submitted" | null;
 }
-interface ReviewQueue { items: ReviewItem[]; next_offset: number | null }
+interface ReviewQueue { items: ReviewItem[]; blocked_items?: BlockedV2Review[]; next_offset: number | null }
 
 function reference(value: unknown): string {
   if (value === null || value === undefined) return "لا يوجد نص مرجعي إضافي.";
@@ -31,23 +32,28 @@ export default function V2LessonReviewPage() {
   const [loading, setLoading] = useState(true);
   const [completedAudio, setCompletedAudio] = useState<Record<number, boolean>>({});
 
+  const loadId = useRef(0);
   const load = useCallback(async () => {
+    const requestId = ++loadId.current;
     setError("");
     try {
       const response = await fetch(`/api/v2/review/lesson-queue?limit=20&offset=${offset}`, { cache: "no-store" });
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(data?.detail || "تعذر تحميل قائمة مراجعة الدروس");
+      if (requestId !== loadId.current) return;
       setQueue(data as ReviewQueue);
     } catch (reason) {
+      if (requestId !== loadId.current) return;
+      setQueue({ items: [], next_offset: null });
       setError(reason instanceof Error ? reason.message : "تعذر تحميل قائمة المراجعة");
     } finally {
-      setLoading(false);
+      if (requestId === loadId.current) setLoading(false);
     }
   }, [offset]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => { void load(); }, 0);
-    return () => window.clearTimeout(timer);
+    return () => { window.clearTimeout(timer); loadId.current += 1; };
   }, [load]);
 
   const requestRetry = async (item: ReviewItem) => {
@@ -97,9 +103,10 @@ export default function V2LessonReviewPage() {
       description="افحص دليل الطالب ونص السؤال ومعيار التصحيح قبل أي قرار. لا يُحتسب التسجيل صحيحًا تلقائيًا."
       actions={<AdminAction icon={RefreshCw} onClick={() => void load()}>تحديث القائمة</AdminAction>} />
     {error && <div role="alert" className="rounded-xl border border-red-300 bg-red-50 p-4 text-red-800">{error}</div>}
+    <V2BlockedReviewNotice items={queue.blocked_items} />
     <AdminPanel title="أدلة معلّقة" description="قرارات المشرف موثّقة؛ لا يمكن إعادة اعتماد الإجابة نفسها.">
       {loading ? <div role="status" className="flex items-center gap-2 text-slate-600"><Clock3 size={18}/> جاري جلب الأدلة...</div>
-        : queue.items.length === 0 ? <AdminEmptyState title="لا توجد إجابات معلّقة في هذه الصفحة" description="راجع صفحة أخرى أو حدّث القائمة." />
+        : queue.items.length === 0 ? <AdminEmptyState title="لا توجد أدلة قابلة للمراجعة في هذه الصفحة" description="راجع صفحة أخرى أو حدّث القائمة." />
         : <div className="space-y-4">
           {queue.items.map((item) => {
             const note = notes[item.response_id] || "";

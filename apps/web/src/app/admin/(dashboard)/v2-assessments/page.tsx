@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { BarChart3, ClipboardCheck, Clock3, RefreshCw } from "lucide-react";
 import { AdminAction, AdminEmptyState, AdminPage, AdminPageHeader, AdminPanel, AdminStat, AdminStatGrid } from "@/components/admin/AdminUI";
+import V2BlockedReviewNotice, { type BlockedV2Review } from "@/components/admin/V2BlockedReviewNotice";
 import SupervisorClaimActions from "@/components/admin/SupervisorClaimActions";
 import V2EvidenceHistory from "@/components/admin/V2EvidenceHistory";
 import V2ReviewedAudioPlayer from "@/components/admin/V2ReviewedAudioPlayer";
@@ -19,7 +20,7 @@ interface PlacementItem {
   session_id: number; student_id: number; student_name: string; attempt_no: number;
   result: { answered: number; total: number; pending_review: number; score_percent: number | null; skills: Record<string, { graded: number; correct: number; pending: number }> };
 }
-interface Paged<T> { items: T[]; next_offset: number | null }
+interface Paged<T> { items: T[]; blocked_items?: BlockedV2Review[]; next_offset: number | null }
 interface Report { counts: Record<string, number>; averages: { pretest: number | null; posttest: number | null }; missing_policy: string }
 function describeReference(value: unknown): string {
   if (value === null || value === undefined) return "لم تُحدد مرجعية إضافية لهذا السؤال.";
@@ -39,7 +40,9 @@ export default function V2AssessmentsPage() {
   const [busy, setBusy] = useState<string | null>(null);
   const [completedAudio, setCompletedAudio] = useState<Record<number, boolean>>({});
 
+  const loadId = useRef(0);
   const load = useCallback(async () => {
+    const requestId = ++loadId.current;
     setError("");
     try {
       const [reviewResponse, placementResponse, summaryResponse] = await Promise.all([
@@ -51,13 +54,16 @@ export default function V2AssessmentsPage() {
       if (!reviewResponse.ok || !placementResponse.ok || !summaryResponse.ok) {
         throw new Error(queue?.detail || placement?.detail || summary?.detail || "تعذر تحميل تقييمات V2");
       }
+      if (requestId !== loadId.current) return;
       setReviews(queue); setPlacements(placement); setReport(summary);
     } catch (reason) {
+      if (requestId !== loadId.current) return;
+      setReviews({ items: [], next_offset: null }); setPlacements({ items: [], next_offset: null }); setReport(null);
       setError(reason instanceof Error ? reason.message : "تعذر تحميل تقييمات V2");
     }
   }, [reviewOffset, placementOffset]);
 
-  useEffect(() => { const timer = window.setTimeout(() => { void load(); }, 0); return () => window.clearTimeout(timer); }, [load]);
+  useEffect(() => { const timer = window.setTimeout(() => { void load(); }, 0); return () => { window.clearTimeout(timer); loadId.current += 1; }; }, [load]);
 
   const review = async (item: ReviewItem, isCorrect: boolean) => {
     const playbackReady = item.interaction !== "read_aloud" || (
@@ -117,6 +123,7 @@ export default function V2AssessmentsPage() {
       description="افحص دليل الطالب ومرجع السؤال قبل القرار؛ التسكين يدوي ومسبب إلى حين اعتماد الحدود التربوية."
       actions={<AdminAction icon={RefreshCw} onClick={() => void load()}>تحديث</AdminAction>} />
     {error && <div role="alert" className="alert-error">{error}</div>}
+    <V2BlockedReviewNotice items={reviews.blocked_items} />
     {report && <AdminStatGrid>
       <AdminStat icon={Clock3} value={reviews.items.length} label="الإجابات في الصفحة الحالية"/>
       <AdminStat icon={ClipboardCheck} value={pendingPlacement} label="جلسات تنتظر التسكين"/>
@@ -125,7 +132,7 @@ export default function V2AssessmentsPage() {
     </AdminStatGrid>}
     <AdminPanel title="مراجعة القراءة والكتابة" description="التسجيلات خاصة، ولا تظهر إلا للمشرف بعد تسجيل الدخول. قرار المراجعة يحتاج دليلًا وملاحظة.">
       {reviews.items.length === 0
-        ? <AdminEmptyState title="لا توجد إجابات في هذه الصفحة" description="تظهر الإجابات المفتوحة التي تنتظر قرار المشرف."/>
+        ? <AdminEmptyState title="لا توجد أدلة قابلة للمراجعة في هذه الصفحة" description="تظهر الإجابات المفتوحة التي تنتظر قرار المشرف."/>
         : <div className="space-y-4">{reviews.items.map((item) => {
           const playbackReady = item.interaction !== "read_aloud" || (
             item.audio_submission_id !== null &&
@@ -173,7 +180,7 @@ export default function V2AssessmentsPage() {
         </article>;})}</div>}
       <div className="mt-3 flex items-center justify-between gap-2">
         <button type="button" className="rounded-lg border px-3 py-2 disabled:opacity-40" disabled={reviewOffset === 0} onClick={() => setReviewOffset(Math.max(0, reviewOffset - 25))}>السابق</button>
-        <span className="text-sm text-muted">من {reviewOffset + 1} إلى {reviewOffset + reviews.items.length}</span>
+        <span className="text-sm text-muted">عدد سجلات الصفحة: {reviews.items.length + (reviews.blocked_items?.length ?? 0)}</span>
         <button type="button" className="rounded-lg border px-3 py-2 disabled:opacity-40" disabled={reviews.next_offset === null} onClick={() => setReviewOffset(reviews.next_offset || 0)}>التالي</button>
       </div>
     </AdminPanel>
@@ -200,7 +207,7 @@ export default function V2AssessmentsPage() {
         </article>)}</div>}
       <div className="mt-3 flex items-center justify-between gap-2">
         <button type="button" className="rounded-lg border px-3 py-2 disabled:opacity-40" disabled={placementOffset === 0} onClick={() => setPlacementOffset(Math.max(0, placementOffset - 25))}>السابق</button>
-        <span className="text-sm text-muted">من {placementOffset + 1} إلى {placementOffset + placements.items.length}</span>
+        <span className="text-sm text-muted">عدد جلسات الصفحة: {placements.items.length}</span>
         <button type="button" className="rounded-lg border px-3 py-2 disabled:opacity-40" disabled={placements.next_offset === null} onClick={() => setPlacementOffset(placements.next_offset || 0)}>التالي</button>
       </div>
     </AdminPanel>
