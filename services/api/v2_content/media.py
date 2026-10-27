@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import lru_cache
 from hashlib import sha256
 import os
 from pathlib import Path
@@ -17,6 +18,16 @@ APPROVED_STATES = {"approved", "ready", "published", "approved_temporary"}
 MISSING_STATES = {"missing", "missing_new"}
 _ALLOWED_SUFFIXES = {"audio": {".mp3", ".wav", ".ogg", ".m4a"}, "image": {".webp", ".png", ".jpg", ".jpeg"}, "video": {".mp4", ".webm"}}
 TEMPORARY_VIDEO = "assets/video/HIMMA_V2_DEMO/gemini_generated_video_72256b30.mp4"
+
+
+@lru_cache(maxsize=16)
+def _file_sha256(path: Path, size: int, mtime_ns: int, ctime_ns: int) -> str:
+    """Hash a deployed binary once per file version, not once per lesson alias."""
+    digest = sha256()
+    with path.open("rb") as source:
+        for chunk in iter(lambda: source.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def approved_asset_path(asset: dict[str, Any]) -> Path | None:
@@ -34,7 +45,8 @@ def approved_asset_path(asset: dict[str, Any]) -> Path | None:
         if kind != "video" or not str(asset.get("id", "")).startswith("VID-L") or source != TEMPORARY_VIDEO or asset.get("shared_temporary_video") is not True:
             return None
         digest = asset.get("source_sha256")
-        if not isinstance(digest, str) or sha256(path.read_bytes()).hexdigest() != digest:
+        file_stat = path.stat()
+        if not isinstance(digest, str) or _file_sha256(path, file_stat.st_size, file_stat.st_mtime_ns, file_stat.st_ctime_ns) != digest:
             return None
     return path
 

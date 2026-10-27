@@ -192,3 +192,13 @@ def test_owner_approved_temporary_video_is_bounded_to_exact_binary():
     assert approved_asset_path(dict(asset, shared_temporary_video=False)) is None
     assert approved_asset_path(dict(asset, kind="audio")) is None
     assert approved_asset_path(dict(asset, source_path="assets/video/other.mp4")) is None
+
+
+def test_shared_temporary_video_is_hashed_once_for_all_lesson_aliases():
+    from v2_content.media import _file_sha256, approved_asset_path
+    videos = [row for row in compile_release()["media"] if row["kind"] == "video"]
+    assert len(videos) == 19
+    _file_sha256.cache_clear()
+    assert all(approved_asset_path(row) is not None for row in videos)
+    cache = _file_sha256.cache_info()
+    assert cache.misses == 1 and cache.hits == 18
