@@ -29,6 +29,7 @@ from v2_content.repository import get_release
 from v2_assessment_runtime import _session_release, blocked_review_item
 from v2_retry_state import active_retry
 from v2_review_claims import enforce_review_claim, clear_review_claim
+from v2_audio_rubric import ReadingRubricV2, save_v2_reading_rubric
 from v2_audio_retention import schedule_superseded_audio, run_retention_after_commit
 from v2_audio_review_evidence import (
     AudioPlaybackCompletion, acknowledge_audio_playback,
@@ -41,6 +42,7 @@ router = APIRouter(prefix="/v2/review", tags=["v2-review"])
 class LessonDecision(BaseModel):
     is_correct: bool
     note: Annotated[str, StringConstraints(strip_whitespace=True, min_length=2, max_length=2000)]
+    rubric: ReadingRubricV2 | None = None
 
 
 def _lesson_audio(db: Session, response_id: int) -> AudioSubmission | None:
@@ -259,6 +261,9 @@ def decide_lesson(
     row.reviewed_at = now
     if audio:
         audio.status = "graded"
+        save_v2_reading_rubric(db, audio=audio, reviewer_id=user.id, rubric=body.rubric)
+    elif body.rubric is not None:
+        raise HTTPException(status_code=422, detail="معيار القراءة غير متاح إلا للإجابة الصوتية")
     proof = db.query(SkillEvidence).filter(SkillEvidence.response_id == row.id).with_for_update().one_or_none()
     if not proof:
         raise HTTPException(status_code=409, detail="دليل المهارة المرتبط بالإجابة غير موجود")
