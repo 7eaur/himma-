@@ -1,3 +1,12 @@
+# SUPERVISOR_C — 20261027-0454-C · 2026-10-27T04:55:13+03:00
+- **Reviewed independently:** A0259 `21a675ec` **ACCEPTED patch-only** (CI/M04/M09 exact-SHA success); B0330 `c28b417c` **REWORK historical test** (CI/M09 failure from ambiguous alert selector); B0432 `05f689a3` **PENDING_GATES**. CI 40433331760 SUCCESS (frontend/backend/security/integration; integration log 60 passed); M04 40433331895 SUCCESS; M09 40433331789 IN_PROGRESS — all head_sha=05f689a3cb01f4692531afb58f0b645386ca2dca.
+- **Source and limits:** B corrected `main [role='alert']` and strengthened synthetic two-account name isolation. CI integration log **60 passed**. Playwright report `12704180951` and M04 screenshots `12702308711` exist but were NOT_OPENED; no real-device, S3, or educational approval. No A0400 handoff found after A0259 at review.
+- **Railway:** web SUCCESS `05f689a3`, API last known `50b01480`, both `checkSuites=false`; **RELEASE BLOCKED**. No config/deploy/main/stage/ElevenLabs writes.
+- **Next:** B verify final M09 and inspect privacy-safe trace/screenshots, fix only proved regression; A real video/device evidence; C review new SHAs and owner release/education gates. `CONTROL.mode=ACTIVE`; no confirmed data leak or corruption.
+- **Run:** `docs/v2/agent-ops/runs/2026-10-27/C-20261027-0454.md`; D-091..D-095; C lease released in review commit.
+
+---
+
 # WORKER_B — 20261027-0432-B · 2026-10-27 04:35 Asia/Aden
 - **HV2-002/003 E2E test correction committed:** [`05f689a3`](https://github.com/7eaur/himma-/commit/05f689a3cb01f4692531afb58f0b645386ca2dca). Fixed unscoped Playwright alert selector (Next.js route-announcer collision) and asserted no previous learner name in visible main after failed logout or second learner login. Earlier B0330 two-account test `d712bd31`/`c28b417c` preserved.
 - **Lease:** B0330 expired at 03:58, no `B-20261027-0330.md` and no newer HEAD; reconciled and acquired B0432 with `update_ref(expected_sha=c28b417c, force=false)` success. Released with this handoff. No force, no A/manual file modifications.

@@ -1,3 +1,10 @@
+## SUPERVISOR_C priorities — 2026-10-27T04:55:13+03:00 (20261027-0454-C; supersedes earlier dated headings)
+1. **P0 B0432 PENDING_GATES:** `05f689a3` CI 40433331760 SUCCESS (frontend/backend/security/integration; integration log 60 passed); M04 40433331895 SUCCESS; M09 40433331789 IN_PROGRESS — all head_sha=05f689a3cb01f4692531afb58f0b645386ca2dca. Check final M09, inspect Playwright report/safe screenshots for failed logout, empty login and two-account 404/resume; regression => REWORK with trace, no weakening assertions. B0330 prior CI/M09 failure is historical and retained.
+2. **P0 RELEASE BLOCKED:** Railway web auto-deployed `05f689a3` while M09 pending; web/API `checkSuites=false`. No production config changes, new release, main merge or owner-stage approval.
+3. **P1 A0259 ACCEPTED patch-only:** `21a675ec` CI/M04/M09 SUCCESS exact SHA. Real video/Android/Safari/error/replay visual and audio ACK remain PENDING_GATES; do not overlap B files.
+4. **P1 PRIVACY / V2 19 lessons / progress / recordings:** synthetic source tests and 60 Chromium integration passes do not prove real S3/private object access, physical devices or educational validity. Need owner signoff; preserve V1 history, no fake ASR.
+5. **P2 VISUAL / PERFORMANCE:** M04 artifact `12702308711` and CI Playwright report `12704180951` listed, NOT_OPENED. Inspect safe screenshots and trace; require dashboard/logout/assessment/video RTL/touch and PostgreSQL EXPLAIN/restore evidence for manual HV2-010.
+
 ## SUPERVISOR_C priorities — 2026-10-27 02:56 (20261027-0255-C; supersedes older dated headings)
 1. **P0 RELEASE BLOCKED:** Railway web `ecb87d1b`, API `50b01480` SUCCESS, but both `checkSuites=false` and web auto-published before CI/M09 completion. Do not deploy/merge/alter production config without owner.
 2. **P0 B0225/B0130/B2327 ACCEPTED patch-only:** CI/M04/M09 completed/success exact functional SHA (latest `ecb87d1b`: 115 frontend, 1040 backend, 59 browser). Next WORKER_B: synthetic two-account login/logout, 401/403/409/503, double tap and retry, pretest start/save/refresh/resume with Playwright traces/screenshots. Broader HV2-002/003 **PENDING_GATES**.
