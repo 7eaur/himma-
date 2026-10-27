@@ -24,6 +24,12 @@ describe("VideoPlayer", () => {
     expect(screen.getByText(/TEST ONLY/)).toBeInTheDocument();
   });
 
+  it("labels the shared owner-approved video as temporary without calling it a finished lesson video", () => {
+    render(<VideoPlayer src="/approved-temporary.mp4" temporary onCheckpoint={jest.fn()} onEnded={jest.fn()} />);
+    expect(screen.getByText(/فيديو تمهيدي مؤقت مشترك/)).toBeInTheDocument();
+    expect(screen.queryByText(/TEST ONLY/)).not.toBeInTheDocument();
+  });
+
   it("restores a saved position when cached metadata was ready before the listener", () => {
     const props = { src: "/fixture.mp4", startAt: 0, onCheckpoint: jest.fn(), onEnded: jest.fn() };
     const { rerender } = render(<VideoPlayer {...props} />);

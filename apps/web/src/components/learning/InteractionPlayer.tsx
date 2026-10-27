@@ -197,7 +197,6 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
 
   const choose = (id: string) => {
     if (saving || awaitingConfirmation || missingRequiredMedia || invalidQuestion) return;
-    setFeedback(null);
     if (ordered) { if (!selected.includes(id)) setSelected((current) => [...current, id]); return; }
     setSelected([id]);
   };
@@ -386,9 +385,23 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
     : interaction.progress.stage === "pretest" ? "الاختبار القبلي"
     : interaction.progress.stage === "posttest" ? "الاختبار البعدي"
     : "اختبار مستقل";
+  const guidedStage = interaction.progress.stage === "guided_practice" || interaction.progress.stage === "support_practice";
+  const retryHint = guidedStage && feedback?.retry_required && feedback.hint ? feedback.hint : null;
+  const coachImage = retryHint || (!isAssessment && feedback?.retry_required)
+    ? "/characters/girl/try-again.png" : "/characters/girl/explain.png";
+  const coachMessage = retryHint ? `تلميح: ${retryHint}`
+    : !isAssessment && feedback?.retry_required ? "خذ وقتك، ثم جرّب إجابة أخرى."
+    : isAssessment ? "خذ وقتك، واستمع أو اقرأ السؤال ثم اختر إجابتك."
+    : interaction.progress.stage === "support_practice" ? "هذه مساعدة قصيرة. جرّب خطوة خطوة."
+    : interaction.progress.stage === "additional_check" || interaction.progress.stage === "support_check" ? "تأمل السؤال جيدًا، ثم أجب بنفسك."
+    : "اقرأ التعليمات، ثم جرّب بنفسك. يمكنك إعادة الصوت.";
 
   return <section className={styles.shell} dir="rtl" data-testid="v2-interaction-player" data-interaction={question.interaction}>
     <div className={styles.topline}><span>{stageLabel}</span><span>{interaction.progress.index} من {interaction.progress.total}</span></div>
+    <aside className={`${styles.coach} ${retryHint ? styles.coachRetry : ""}`} aria-label="رسالة هِمّة" data-testid="v2-question-coach">
+      <Image src={coachImage} alt="" width={88} height={108} aria-hidden="true" />
+      <p>{coachMessage}</p>
+    </aside>
     <h2>{question.prompt}</h2>
     {missingRequiredMedia && <div className={styles.mediaMissing} role="alert">هذا السؤال يحتاج صورة أو صوتًا غير جاهز الآن. لن تُرسل الإجابة حتى يتوفر الوسيط. إذا تعذر تحميل الصورة فحدّث الصفحة، وللصوت أعد تشغيله.</div>}
     {missingRequiredOptions && <div className={styles.mediaMissing} role="alert">خيارات هذا السؤال غير مكتملة. لن تُرسل الإجابة حتى تصبح جاهزة.</div>}
@@ -429,7 +442,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
 
     {question.interaction === "read_aloud" && <div className={styles.recorder}>{!audioBlob ? <><button type="button" className={`${styles.recordButton} ${recording ? styles.recording : ""}`} onClick={recording ? stopRecording : () => void startRecording()} disabled={saving || awaitingConfirmation || requestingMic} aria-label={requestingMic ? "جاري تفعيل الميكروفون" : recording ? "إيقاف التسجيل" : "بدء التسجيل"}>{recording ? <MicOff size={28}/> : <Mic size={28}/>}</button><p>{requestingMic ? "جاري طلب إذن الميكروفون..." : recording ? `جاري التسجيل… ${recordingSeconds} ث` : "اضغط ثم اقرأ بصوت واضح"}</p></> : <>{audioUrl && <audio controls src={audioUrl}/>}<button type="button" className={styles.secondary} disabled={saving || awaitingConfirmation} onClick={resetRecording}><RotateCcw size={16}/> إعادة التسجيل</button><p>سيبقى التقييم معلقًا حتى يراجعه المشرف.</p></>}</div>}
 
-    {!isAssessment && feedback && <div className={`${styles.feedback} ${feedback.correct === false ? styles.retry : styles.accepted}`} role="status"><strong>{feedback.correct === true ? "أحسنت!" : feedback.correct === false ? "حاول مرة أخرى" : "تم الحفظ"}</strong><span>{feedback.message}</span>{feedback.retry_required && feedback.hint && <span className={styles.hint}>تلميح: {feedback.hint}</span>}</div>}
+    {!isAssessment && feedback && <div className={`${styles.feedback} ${feedback.correct === false ? styles.retry : styles.accepted}`} role="status"><strong>{feedback.correct === true ? "أحسنت!" : feedback.correct === false ? "حاول مرة أخرى" : "تم الحفظ"}</strong><span>{feedback.message}</span></div>}
     {error && <div className={styles.error} role="alert">{error}</div>}
     <button type="button" className={styles.submit} disabled={!ready || saving || recording} onClick={() => void submit()}>{saving ? "جاري الحفظ..." : awaitingConfirmation ? "إعادة محاولة حفظ الإجابة" : question.interaction === "read_aloud" ? "إرسال التسجيل للمراجعة" : question.interaction === "write_text" ? "إرسال الكتابة للمراجعة" : isAssessment ? "حفظ الإجابة والمتابعة" : "تحقق من الإجابة"}</button>
   </section>;

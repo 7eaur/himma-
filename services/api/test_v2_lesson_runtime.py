@@ -146,7 +146,7 @@ def test_fixture_is_real_private_mp4(student_client):
 def test_admin_inventory_reports_source_gaps_not_fixture_readiness(researcher_client):
     response = researcher_client.get("/v2/lessons/admin/media-inventory")
     assert response.status_code == 200
-    assert response.json()["counts"] == {"ready": 0, "pending": 56, "missing": 33, "test_only": 89}
+    assert response.json()["counts"] == {"ready": 87, "pending": 0, "missing": 2, "test_only": 2, "temporary": 19}
 
 
 def test_student_preview_is_blocked_in_protected_runtime(student_client, monkeypatch):
@@ -160,14 +160,14 @@ def test_p07_media_contract_keeps_preview_separate_from_approval(researcher_clie
     assert response.status_code == 200
     data = response.json()
     assert len(data["items"]) == 89
-    assert data["counts"] == {"ready": 0, "pending": 56, "missing": 33, "test_only": 89}
-    assert data["publishable"] is False
+    assert data["counts"] == {"ready": 87, "pending": 0, "missing": 2, "test_only": 2, "temporary": 19}
+    assert data["publishable"] is True
     assert data["media_requirements"] == {"audio": 47, "image": 23, "video": 19}
     video = next(x for x in data["items"] if x["asset_id"] == "VID-L1-01")
-    assert video["publication_blocker"] and video["preview_kind"] == "shared_test_only_video"
+    assert not video["publication_blocker"] and video["preview_kind"] == "shared_approved_temporary_video" and video["temporary"]
     assert any(r["owner_id"] == "L1-01" for r in video["uses"])
     audio = next(x for x in data["items"] if x["asset_id"] == "AUD-L1-L")
-    assert audio["publication_blocker"] and audio["uses"]
+    assert not audio["publication_blocker"] and audio["uses"]
     assert "private_answer" not in response.text
 
 
@@ -215,7 +215,7 @@ def test_p07_supervisor_media_inventory_omits_dormant_assets_from_runtime_gate(r
     data = researcher_client.get("/v2/lessons/admin/media-inventory").json()
     assert data["required_assets"] == 73
     assert data["unused_assets"] == 16
-    assert data["publishable"] is False
+    assert data["publishable"] is True
     assert all(row["uses"] for row in data["items"] if row["required_for_runtime"])
 
 def test_p07_preview_bindings_require_explicit_test_only_marker(student_client, monkeypatch, tmp_path):

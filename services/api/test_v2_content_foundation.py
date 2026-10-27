@@ -66,7 +66,7 @@ def test_student_projection_is_recursive_private_key_allowlist():
 
 
 def test_fixture_media_is_test_only_and_blocked_from_publish():
-    asset = compile_release()["media"][0]
+    asset = {"id": "VID-L1-01", "kind": "video", "status": "missing_new"}
     resolved = MediaProvider(environment="test", fixture_enabled=True).resolve(asset)
     assert resolved.state == "ready"
     assert resolved.test_only is True
@@ -147,8 +147,9 @@ def test_p07_required_media_gate_ignores_unused_bank_assets_without_approving_th
     inventory = media_readiness_contract(release, provider=MediaProvider(environment="test", fixture_enabled=True))
     assert inventory["required_assets"] == 73
     assert inventory["unused_assets"] == 16
-    assert inventory["published_assets"] == 0
-    assert inventory["publishable"] is False
+    assert inventory["published_assets"] == 73
+    assert inventory["publishable"] is True
+    assert inventory["counts"]["temporary"] == 19
     unused = next(row for row in inventory["items"] if row["asset_id"] == "AUD-L1-03-MA")
     assert not unused["required_for_runtime"] and not unused["publication_blocker"]
 
@@ -166,9 +167,7 @@ def test_p07_production_resolution_points_to_existing_approved_media_route():
 def test_p07_approved_media_endpoint_never_serves_unapproved_or_missing_assets(student_client, monkeypatch):
     from v2_content import media as media_module
     import v2_content_api
-    # The existing bank remains unapproved, so its educational MP3 cannot be
-    # mistaken for a production-approved asset.
-    assert student_client.get("/v2/content/media/LET-01").status_code == 404
+    assert student_client.get("/v2/content/media/AUD-L1-03-MA").status_code == 404
     approved = {
         "id": "LET-01", "kind": "audio", "status": "approved",
         "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-01.mp3",
@@ -180,3 +179,16 @@ def test_p07_approved_media_endpoint_never_serves_unapproved_or_missing_assets(s
     assert res.headers.get("x-himma-test-only") is None
     approved["source_path"] = "assets/audio/HIMMA_AUDIO_V1/web_mp3/NOT-FOUND.mp3"
     assert student_client.get("/v2/content/media/LET-01").status_code == 404
+
+
+def test_owner_approved_temporary_video_is_bounded_to_exact_binary():
+    from v2_content.media import approved_asset_path
+    asset = next(row for row in compile_release()["media"] if row["id"] == "VID-L1-01")
+    assert approved_asset_path(asset) is not None
+    resolved = MediaProvider(environment="production", fixture_enabled=False).resolve(asset)
+    assert resolved.state == "ready" and resolved.temporary and not resolved.test_only
+    assert resolved.as_dict()["temporary"] is True
+    assert approved_asset_path(dict(asset, source_sha256="0" * 64)) is None
+    assert approved_asset_path(dict(asset, shared_temporary_video=False)) is None
+    assert approved_asset_path(dict(asset, kind="audio")) is None
+    assert approved_asset_path(dict(asset, source_path="assets/video/other.mp4")) is None

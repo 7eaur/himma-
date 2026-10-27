@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from hashlib import sha256
 import os
 from pathlib import Path
 from typing import Any
@@ -12,9 +13,10 @@ from .compiler import REPO_ROOT
 from runtime_flags import trial_v2_preview_allowed
 
 
-APPROVED_STATES = {"approved", "ready", "published"}
+APPROVED_STATES = {"approved", "ready", "published", "approved_temporary"}
 MISSING_STATES = {"missing", "missing_new"}
 _ALLOWED_SUFFIXES = {"audio": {".mp3", ".wav", ".ogg", ".m4a"}, "image": {".webp", ".png", ".jpg", ".jpeg"}, "video": {".mp4", ".webm"}}
+TEMPORARY_VIDEO = "assets/video/HIMMA_V2_DEMO/gemini_generated_video_72256b30.mp4"
 
 
 def approved_asset_path(asset: dict[str, Any]) -> Path | None:
@@ -28,6 +30,12 @@ def approved_asset_path(asset: dict[str, Any]) -> Path | None:
     path = (REPO_ROOT / source).resolve()
     if root not in path.parents or path.suffix.lower() not in _ALLOWED_SUFFIXES[kind] or not path.is_file():
         return None
+    if status == "approved_temporary":
+        if kind != "video" or not str(asset.get("id", "")).startswith("VID-L") or source != TEMPORARY_VIDEO or asset.get("shared_temporary_video") is not True:
+            return None
+        digest = asset.get("source_sha256")
+        if not isinstance(digest, str) or sha256(path.read_bytes()).hexdigest() != digest:
+            return None
     return path
 
 
@@ -39,6 +47,7 @@ class ResolvedMedia:
     state: str
     url: str | None
     test_only: bool
+    temporary: bool = False
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -47,6 +56,7 @@ class ResolvedMedia:
             "state": self.state,
             "url": self.url,
             "test_only": self.test_only,
+            "temporary": self.temporary,
         }
 
 
@@ -64,7 +74,7 @@ class MediaProvider:
         kind = str(asset.get("kind") or asset.get("type"))
         status = str(asset.get("status") or "missing").lower()
         if approved_asset_path(asset) is not None:
-            return ResolvedMedia(asset_id, kind, "ready", f"/api/v2/content/media/{asset_id}", False)
+            return ResolvedMedia(asset_id, kind, "ready", f"/api/v2/content/media/{asset_id}", False, status == "approved_temporary")
         if self.fixture_enabled and (
             self.environment in {"development", "test", "staging"}
             or (self.environment == "trial" and trial_v2_preview_allowed())

@@ -4866,13 +4866,15 @@
       "meaning": "",
       "v1_asset_id": "SYL-04",
       "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-04.mp3",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_later",
       "type": "audio",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "reference_spoken_private": "مَا",
       "asset_manifest_verified": true,
-      "auditory_qa_pending": true
+      "auditory_qa_pending": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "SYL-09",
@@ -4880,13 +4882,15 @@
       "meaning": "",
       "v1_asset_id": "SYL-09",
       "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-09.mp3",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_later",
       "type": "audio",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "reference_spoken_private": "بَا",
       "asset_manifest_verified": true,
-      "auditory_qa_pending": true
+      "auditory_qa_pending": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "SYL-10",
@@ -4894,13 +4898,15 @@
       "meaning": "",
       "v1_asset_id": "SYL-10",
       "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-10.mp3",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_later",
       "type": "audio",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "reference_spoken_private": "فِي",
       "asset_manifest_verified": true,
-      "auditory_qa_pending": true
+      "auditory_qa_pending": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "SYL-11",
@@ -4908,13 +4914,15 @@
       "meaning": "",
       "v1_asset_id": "SYL-11",
       "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-11.mp3",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_later",
       "type": "audio",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "reference_spoken_private": "نُو",
       "asset_manifest_verified": true,
-      "auditory_qa_pending": true
+      "auditory_qa_pending": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "SYL-12",
@@ -4922,13 +4930,15 @@
       "meaning": "",
       "v1_asset_id": "SYL-12",
       "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-12.mp3",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_later",
       "type": "audio",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "reference_spoken_private": "لِي",
       "asset_manifest_verified": true,
-      "auditory_qa_pending": true
+      "auditory_qa_pending": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "SYL-13",
@@ -4936,13 +4946,15 @@
       "meaning": "",
       "v1_asset_id": "SYL-13",
       "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-13.mp3",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_later",
       "type": "audio",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "reference_spoken_private": "سَا",
       "asset_manifest_verified": true,
-      "auditory_qa_pending": true
+      "auditory_qa_pending": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "WRD-03",
@@ -4950,13 +4962,15 @@
       "meaning": "",
       "v1_asset_id": "WRD-03",
       "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-03.mp3",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_later",
       "type": "audio",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "reference_spoken_private": "باب",
       "asset_manifest_verified": true,
-      "auditory_qa_pending": true
+      "auditory_qa_pending": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "WRD-04",
@@ -4964,13 +4978,15 @@
       "meaning": "",
       "v1_asset_id": "WRD-04",
       "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-04.mp3",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_later",
       "type": "audio",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "reference_spoken_private": "قَلَم",
       "asset_manifest_verified": true,
-      "auditory_qa_pending": true
+      "auditory_qa_pending": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "WRD-05",
@@ -4978,13 +4994,15 @@
       "meaning": "",
       "v1_asset_id": "WRD-05",
       "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-05.mp3",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_later",
       "type": "audio",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "reference_spoken_private": "سَمَك",
       "asset_manifest_verified": true,
-      "auditory_qa_pending": true
+      "auditory_qa_pending": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "WRD-09",
@@ -4992,13 +5010,15 @@
       "meaning": "",
       "v1_asset_id": "WRD-09",
       "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-09.mp3",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_later",
       "type": "audio",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "reference_spoken_private": "نَخْلَة",
       "asset_manifest_verified": true,
-      "auditory_qa_pending": true
+      "auditory_qa_pending": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "WRD-14",
@@ -5006,13 +5026,15 @@
       "meaning": "",
       "v1_asset_id": "WRD-14",
       "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-14.mp3",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_later",
       "type": "audio",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "reference_spoken_private": "نَجْم",
       "asset_manifest_verified": true,
-      "auditory_qa_pending": true
+      "auditory_qa_pending": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "WRD-15",
@@ -5020,13 +5042,15 @@
       "meaning": "",
       "v1_asset_id": "WRD-15",
       "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-15.mp3",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_later",
       "type": "audio",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "reference_spoken_private": "نور",
       "asset_manifest_verified": true,
-      "auditory_qa_pending": true
+      "auditory_qa_pending": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "WRD-16",
@@ -5034,13 +5058,15 @@
       "meaning": "",
       "v1_asset_id": "WRD-16",
       "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-16.mp3",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_later",
       "type": "audio",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "reference_spoken_private": "مَكْتَب",
       "asset_manifest_verified": true,
-      "auditory_qa_pending": true
+      "auditory_qa_pending": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "WRD-17",
@@ -5048,13 +5074,15 @@
       "meaning": "",
       "v1_asset_id": "WRD-17",
       "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-17.mp3",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_later",
       "type": "audio",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "reference_spoken_private": "بَحْر",
       "asset_manifest_verified": true,
-      "auditory_qa_pending": true
+      "auditory_qa_pending": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "WRD-18",
@@ -5062,13 +5090,15 @@
       "meaning": "",
       "v1_asset_id": "WRD-18",
       "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-18.mp3",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_later",
       "type": "audio",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "reference_spoken_private": "أَرْنَب",
       "asset_manifest_verified": true,
-      "auditory_qa_pending": true
+      "auditory_qa_pending": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "WRD-23",
@@ -5076,13 +5106,15 @@
       "meaning": "",
       "v1_asset_id": "WRD-23",
       "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-23.mp3",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_later",
       "type": "audio",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "reference_spoken_private": "فيل",
       "asset_manifest_verified": true,
-      "auditory_qa_pending": true
+      "auditory_qa_pending": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "VOC-03",
@@ -5090,13 +5122,15 @@
       "meaning": "باب",
       "v1_asset_id": "VOC-03",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-03-door-512.webp",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_later",
       "type": "image",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "source_label_private": "باب",
       "source_label_must_not_render_in_image_question": true,
-      "asset_manifest_verified": true
+      "asset_manifest_verified": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "VOC-04",
@@ -5104,13 +5138,15 @@
       "meaning": "قلم",
       "v1_asset_id": "VOC-04",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-04-pencil-512.webp",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_later",
       "type": "image",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "source_label_private": "قلم",
       "source_label_must_not_render_in_image_question": true,
-      "asset_manifest_verified": true
+      "asset_manifest_verified": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "VOC-09",
@@ -5118,13 +5154,15 @@
       "meaning": "نخلة",
       "v1_asset_id": "VOC-09",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-09-palm-tree-512.webp",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_later",
       "type": "image",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "source_label_private": "نخلة",
       "source_label_must_not_render_in_image_question": true,
-      "asset_manifest_verified": true
+      "asset_manifest_verified": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "VOC-14",
@@ -5132,13 +5170,15 @@
       "meaning": "نجم",
       "v1_asset_id": "VOC-14",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-14-star-512.webp",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_later",
       "type": "image",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "source_label_private": "نجم",
       "source_label_must_not_render_in_image_question": true,
-      "asset_manifest_verified": true
+      "asset_manifest_verified": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "VOC-18",
@@ -5146,13 +5186,15 @@
       "meaning": "مدرسة",
       "v1_asset_id": "VOC-18",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-18-school-512.webp",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_later",
       "type": "image",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "source_label_private": "مدرسة",
       "source_label_must_not_render_in_image_question": true,
-      "asset_manifest_verified": true
+      "asset_manifest_verified": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "VOC-22",
@@ -5160,13 +5202,15 @@
       "meaning": "مكتبة",
       "v1_asset_id": "VOC-22",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-22-library-512.webp",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_later",
       "type": "image",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "source_label_private": "مكتبة",
       "source_label_must_not_render_in_image_question": true,
-      "asset_manifest_verified": true
+      "asset_manifest_verified": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "VOC-28",
@@ -5174,93 +5218,115 @@
       "meaning": "زهرة",
       "v1_asset_id": "VOC-28",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-28-flower-512.webp",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_later",
       "type": "image",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "source_label_private": "زهرة",
       "source_label_must_not_render_in_image_question": true,
-      "asset_manifest_verified": true
+      "asset_manifest_verified": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "VID-L2-01",
       "kind": "video",
       "meaning": "أبني وأكتب كلمة بسيطة",
       "v1_asset_id": null,
-      "source_path": null,
-      "status": "missing_new",
+      "source_path": "assets/video/HIMMA_V2_DEMO/gemini_generated_video_72256b30.mp4",
+      "status": "approved_temporary",
       "review": "owner_later",
       "type": "video",
-      "review_state": "awaiting_production"
+      "review_state": "temporary_until_final",
+      "approval": "owner_approved_temporary_20261027",
+      "source_sha256": "57e6c7a1d6316a6d1306493dfe81f13dba56c94392f0c63d48bc1146c5252590",
+      "shared_temporary_video": true
     },
     {
       "id": "VID-L2-02",
       "kind": "video",
       "meaning": "المدود والصوت القصير والطويل",
       "v1_asset_id": null,
-      "source_path": null,
-      "status": "missing_new",
+      "source_path": "assets/video/HIMMA_V2_DEMO/gemini_generated_video_72256b30.mp4",
+      "status": "approved_temporary",
       "review": "owner_later",
       "type": "video",
-      "review_state": "awaiting_production"
+      "review_state": "temporary_until_final",
+      "approval": "owner_approved_temporary_20261027",
+      "source_sha256": "57e6c7a1d6316a6d1306493dfe81f13dba56c94392f0c63d48bc1146c5252590",
+      "shared_temporary_video": true
     },
     {
       "id": "AUD-L2-RA",
       "kind": "audio",
       "meaning": "رَا",
       "v1_asset_id": null,
-      "source_path": null,
-      "status": "missing_new",
+      "source_path": "assets/audio/HIMMA_AUDIO_V2/web_mp3/AUD-L2-RA.mp3",
+      "status": "approved",
       "review": "owner_later",
       "type": "audio",
-      "review_state": "awaiting_production",
+      "review_state": "owner_approved",
       "required_spoken_text": "رَا",
       "required_by_questions": true,
-      "recording_state": "missing_required"
+      "recording_state": "missing_required",
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "VID-L2-03",
       "kind": "video",
       "meaning": "أقرأ كلمات أطول ومتعددة المقاطع",
       "v1_asset_id": null,
-      "source_path": null,
-      "status": "missing_new",
+      "source_path": "assets/video/HIMMA_V2_DEMO/gemini_generated_video_72256b30.mp4",
+      "status": "approved_temporary",
       "review": "owner_later",
       "type": "video",
-      "review_state": "awaiting_production"
+      "review_state": "temporary_until_final",
+      "approval": "owner_approved_temporary_20261027",
+      "source_sha256": "57e6c7a1d6316a6d1306493dfe81f13dba56c94392f0c63d48bc1146c5252590",
+      "shared_temporary_video": true
     },
     {
       "id": "VID-L2-04",
       "kind": "video",
       "meaning": "أقرأ جملة قصيرة بنطق صحيح",
       "v1_asset_id": null,
-      "source_path": null,
-      "status": "missing_new",
+      "source_path": "assets/video/HIMMA_V2_DEMO/gemini_generated_video_72256b30.mp4",
+      "status": "approved_temporary",
       "review": "owner_later",
       "type": "video",
-      "review_state": "awaiting_production"
+      "review_state": "temporary_until_final",
+      "approval": "owner_approved_temporary_20261027",
+      "source_sha256": "57e6c7a1d6316a6d1306493dfe81f13dba56c94392f0c63d48bc1146c5252590",
+      "shared_temporary_video": true
     },
     {
       "id": "VID-L2-05",
       "kind": "video",
       "meaning": "أفهم معنى الجملة مباشرة",
       "v1_asset_id": null,
-      "source_path": null,
-      "status": "missing_new",
+      "source_path": "assets/video/HIMMA_V2_DEMO/gemini_generated_video_72256b30.mp4",
+      "status": "approved_temporary",
       "review": "owner_later",
       "type": "video",
-      "review_state": "awaiting_production"
+      "review_state": "temporary_until_final",
+      "approval": "owner_approved_temporary_20261027",
+      "source_sha256": "57e6c7a1d6316a6d1306493dfe81f13dba56c94392f0c63d48bc1146c5252590",
+      "shared_temporary_video": true
     },
     {
       "id": "VID-L2-06",
       "kind": "video",
       "meaning": "أبني جملة بسيطة من كلمات",
       "v1_asset_id": null,
-      "source_path": null,
-      "status": "missing_new",
+      "source_path": "assets/video/HIMMA_V2_DEMO/gemini_generated_video_72256b30.mp4",
+      "status": "approved_temporary",
       "review": "owner_later",
       "type": "video",
-      "review_state": "awaiting_production"
+      "review_state": "temporary_until_final",
+      "approval": "owner_approved_temporary_20261027",
+      "source_sha256": "57e6c7a1d6316a6d1306493dfe81f13dba56c94392f0c63d48bc1146c5252590",
+      "shared_temporary_video": true
     },
     {
       "id": "VOC-12",
@@ -5268,13 +5334,15 @@
       "meaning": "بطة",
       "v1_asset_id": "VOC-12",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-12-duck-512.webp",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_later",
       "type": "image",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "source_label_private": "بطة",
       "source_label_must_not_render_in_image_question": true,
-      "asset_manifest_verified": true
+      "asset_manifest_verified": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "VOC-10",
@@ -5282,13 +5350,15 @@
       "meaning": "كرة",
       "v1_asset_id": "VOC-10",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-10-ball-512.webp",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_later",
       "type": "image",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "source_label_private": "كرة",
       "source_label_must_not_render_in_image_question": true,
-      "asset_manifest_verified": true
+      "asset_manifest_verified": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "VOC-06",
@@ -5296,13 +5366,15 @@
       "meaning": "شمس",
       "v1_asset_id": "VOC-06",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-06-sun-512.webp",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_later",
       "type": "image",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "source_label_private": "شمس",
       "source_label_must_not_render_in_image_question": true,
-      "asset_manifest_verified": true
+      "asset_manifest_verified": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "VOC-07",
@@ -5311,11 +5383,13 @@
       "meaning": "قمر",
       "v1_asset_id": "VOC-07",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-07-moon-512.webp",
-      "status": "selected_from_v1_pending_owner_review",
-      "review_state": "owner_review_pending",
+      "status": "approved",
+      "review_state": "owner_approved",
       "source_label_private": "قمر",
       "source_label_must_not_render_in_image_question": true,
-      "asset_manifest_verified": true
+      "asset_manifest_verified": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "VOC-17",
@@ -5324,11 +5398,13 @@
       "meaning": "حقيبة",
       "v1_asset_id": "VOC-17",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-17-school-bag-512.webp",
-      "status": "selected_from_v1_pending_owner_review",
-      "review_state": "owner_review_pending",
+      "status": "approved",
+      "review_state": "owner_approved",
       "source_label_private": "حقيبة",
       "source_label_must_not_render_in_image_question": true,
-      "asset_manifest_verified": true
+      "asset_manifest_verified": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "VOC-05",
@@ -5336,11 +5412,14 @@
       "type": "image",
       "meaning": "سمكة",
       "v1_asset_id": "VOC-05",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-05-fish-512.webp",
       "source_label_private": "سمكة",
       "source_label_must_not_render_in_image_question": true,
-      "asset_manifest_verified": true
+      "asset_manifest_verified": true,
+      "approval": "owner_approved_20261027",
+      "review_state": "owner_approved",
+      "rights_review_required": false
     },
     {
       "id": "VOC-02",
@@ -5349,8 +5428,10 @@
       "meaning": "كتاب",
       "v1_asset_id": "VOC-02",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-02-book-512.webp",
-      "status": "selected_from_v1_pending_owner_review",
-      "review_state": "owner_review_pending"
+      "status": "approved",
+      "review_state": "owner_approved",
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     }
   ],
   "qa_notes": []

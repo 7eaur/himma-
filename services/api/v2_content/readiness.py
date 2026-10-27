@@ -53,7 +53,7 @@ def _candidate_path(asset: dict[str, Any]) -> Path | None:
 def media_readiness_contract(release: dict[str, Any], *, provider: MediaProvider | None = None) -> dict[str, Any]:
     provider = provider or MediaProvider()
     usages = usage_map(release)
-    counts = {"ready": 0, "pending": 0, "missing": 0, "test_only": 0}
+    counts = {"ready": 0, "pending": 0, "missing": 0, "test_only": 0, "temporary": 0}
     by_kind: dict[str, int] = defaultdict(int)
     present = 0
     approved_count = 0
@@ -68,6 +68,7 @@ def media_readiness_contract(release: dict[str, Any], *, provider: MediaProvider
         state = "ready" if source in APPROVED_STATES and approved_file else "missing" if source in MISSING_STATES else "pending"
         counts[state] += 1
         counts["test_only"] += int(resolved.test_only)
+        counts["temporary"] += int(resolved.temporary)
         by_kind[kind] += 1
         candidate = _candidate_path(asset)
         present += int(candidate is not None)
@@ -75,7 +76,9 @@ def media_readiness_contract(release: dict[str, Any], *, provider: MediaProvider
         required_total += int(active)
         unused_total += int(not active)
         approved_count += int(active and state == "ready" and not resolved.test_only)
-        if kind == "video":
+        if resolved.temporary:
+            preview_kind = "shared_approved_temporary_video"
+        elif kind == "video" and resolved.test_only:
             preview_kind = "shared_test_only_video"
         elif kind == "audio" and str(asset["id"]).startswith("AUD-") and candidate is not None:
             preview_kind = "recorded_test_only_audio"
@@ -84,7 +87,7 @@ def media_readiness_contract(release: dict[str, Any], *, provider: MediaProvider
         items.append({
             "asset_id": str(asset["id"]), "kind": kind,
             "preview_url": f'/api/v2/lessons/admin/media/{asset["id"]}' if resolved.state == "ready" else None,
-            "state": state, "runtime_state": resolved.state, "test_only": resolved.test_only,
+            "state": state, "runtime_state": resolved.state, "test_only": resolved.test_only, "temporary": resolved.temporary,
             "source_status": source, "candidate_present": candidate is not None,
             "candidate_path": str(candidate.relative_to(REPO_ROOT)) if candidate else None,
             "uses": usages.get(str(asset["id"]), []),

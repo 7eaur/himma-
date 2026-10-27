@@ -364,6 +364,30 @@ describe("InteractionPlayer", () => {
     await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
     expect(screen.queryByText(/تلميح:/)).not.toBeInTheDocument();
     expect(screen.queryByText("حاول مرة أخرى")).not.toBeInTheDocument();
+    expect(screen.getByTestId("v2-question-coach")).toHaveTextContent("خذ وقتك، واستمع أو اقرأ السؤال");
+    expect(screen.getByTestId("v2-question-coach")).not.toHaveTextContent("لا تكشف هذه المعلومة");
+  });
+
+  it("shows the coach's hint only after an incorrect guided attempt", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({ok:true,status:200,json:async()=>({
+      submission:{retry_required:true,status:"graded",correct:false,hint:"استمع إلى أول صوت في الكلمة.",message:"اقتربت! اقرأ التلميح ثم حاول مرة أخرى."},
+    })});
+    render(<InteractionPlayer sessionId={7} interaction={payload()} onLessonChange={jest.fn()}/>);
+    const coach=screen.getByTestId("v2-question-coach");
+    expect(coach).not.toHaveTextContent("استمع إلى أول صوت");
+    fireEvent.click(screen.getByRole("button",{name:"اختيار الخيار 1"}));
+    fireEvent.click(screen.getByRole("button",{name:"تحقق من الإجابة"}));
+    await waitFor(()=>expect(coach).toHaveTextContent("تلميح: استمع إلى أول صوت في الكلمة."));
+    expect(coach.querySelector('img')).toHaveAttribute('src',expect.stringContaining('try-again'));
+    expect(screen.getByRole("status")).toHaveTextContent("حاول مرة أخرى");
+  });
+
+  it("shows a supportive instruction without hints for a support check", () => {
+    const check=payload({role:"support_check"});
+    check.progress={index:1,total:2,stage:"support_check"};
+    render(<InteractionPlayer sessionId={7} interaction={check} onLessonChange={jest.fn()}/>);
+    expect(screen.getByTestId("v2-question-coach")).toHaveTextContent("ثم أجب بنفسك");
+    expect(screen.getByTestId("v2-question-coach")).not.toHaveTextContent("فكر بهدوء");
   });
 
 

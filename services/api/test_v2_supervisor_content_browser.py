@@ -50,7 +50,7 @@ def test_inventory_and_preview_are_staff_only_private_and_test_marked(researcher
         response = researcher_client.get(f'/v2/lessons/admin/media/{asset["id"]}')
         assert response.status_code == 200, response.text[:100]
         assert response.headers['cache-control'] == 'private, no-store'
-        assert response.headers['x-himma-test-only'] == 'true'
+        assert response.headers['x-himma-test-only'] == 'false'
         assert response.headers['content-type'].startswith(kind + '/')
         assert response.content
     assert researcher_client.get('/v2/lessons/admin/media/no-such-asset').status_code == 404
@@ -60,4 +60,6 @@ def test_production_preview_never_serves_unapproved_fixture_to_staff(researcher_
     monkeypatch.setenv('ENV', 'production')
     monkeypatch.setenv('V2_FIXTURE_MEDIA_ENABLED', 'false')
     response = researcher_client.get('/v2/lessons/admin/media/VID-L1-01')
-    assert response.status_code == 404
+    assert response.status_code == 200
+    assert response.headers['x-himma-test-only'] == 'false'
+    assert researcher_client.get('/v2/lessons/admin/media/AUD-L1-03-MA').status_code == 404

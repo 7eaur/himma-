@@ -105,3 +105,29 @@ it("does not redirect the current lesson when a previous route returns a late 40
   expect(screen.getByRole("heading", { name: "الدرس الثاني", level: 1 })).toBeInTheDocument();
   expect(mockRouter.replace).not.toHaveBeenCalled();
 });
+
+it("shows the lesson introduction in the learner journey before the video", async () => {
+  global.fetch = jest.fn(async () => ok({
+    ...lesson(44, "الحرف وصوته"),
+    session: {...lesson(44, "الحرف وصوته").session, stage: "intro"},
+  })) as typeof fetch;
+  render(<V2LessonPage/>);
+  expect(await screen.findByText("تمهيد تجريبي")).toBeVisible();
+  expect(screen.getByRole("button", {name:/التالي/})).toBeVisible();
+  expect(screen.queryByTestId("v2-video-player")).not.toBeInTheDocument();
+});
+
+it.each(["additional_check", "support_practice", "support_check"] as const)("shows %s as its own no-video support step", async (stage) => {
+  const base=lesson(44, "الحرف وصوته");
+  global.fetch = jest.fn(async () => ok({
+    ...base,
+    session: {...base.session, stage},
+    adaptation: {message:"لديك مساعدة قصيرة",support:{title:"تمييز الصوت",focus:"sound_mapping",mode:"targeted_support"}},
+    interaction: {question:{question_id:"SUP-Q-1",role:stage === "support_practice" ? "guided_practice" : "support_check",interaction:"choose_one",prompt:"اختر الصوت",stimulus:{text:"مَ",media:[]},options:[{id:"a",text:"مَ",media:[]},{id:"b",text:"بَ",media:[]}]},media:{},progress:{index:1,total:2,stage},attempts:0,draft:null},
+  })) as typeof fetch;
+  render(<V2LessonPage/>);
+  expect(await screen.findByTestId("v2-support-path")).toHaveTextContent("تمييز الصوت");
+  expect(screen.getByTestId("v2-interaction-player")).toBeVisible();
+  expect(screen.queryByTestId("v2-video-player")).not.toBeInTheDocument();
+  expect(screen.getByLabelText("مراحل الدرس").querySelector('[aria-current="step"]')).toHaveTextContent(stage === "additional_check" ? "تحقق قصير" : stage === "support_practice" ? "تدريب التقوية" : "تحقق بعد التقوية");
+});

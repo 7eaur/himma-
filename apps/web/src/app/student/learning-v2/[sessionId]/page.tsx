@@ -14,7 +14,7 @@ type Stage = "intro" | "teaching_video" | "guided_practice" | "independent_check
 interface LessonPayload {
   lesson_id: string; title: string; level: string; objective?: string | null;
   intro: { title: string; text: string; button: string };
-  video: { asset_id: string; url: string | null; test_only: boolean; state: string };
+  video: { asset_id: string; url: string | null; test_only: boolean; temporary?: boolean; state: string };
   practice: { count: number; first_question_id: string };
   independent_check: { count: number };
   session: { session_id: number; stage: Stage | "waiting_review"; status: string; video_position_seconds: number; video_duration_seconds: number | null; version: number };
@@ -103,17 +103,23 @@ function V2LessonSessionPage({ routeSessionId }: { routeSessionId: string }) {
   if (loading) return <div className={styles.page} dir="rtl"><div className={styles.loading}><div><div className={styles.spinner} /><p>نستعيد موضعك المحفوظ...</p></div></div></div>;
   if (!lesson) return <div className={styles.page} dir="rtl"><div className={styles.container}><div className={styles.error} role="alert">{error || "تعذر فتح الدرس"}</div><Link href="/student/learning-v2" className={styles.back}><ArrowRight size={17}/> العودة إلى الدروس</Link></div></div>;
   const stageIndex = STAGES.findIndex((stage) => stage.key === lesson.session.stage);
-  const activeIndex = stageIndex >= 0 ? stageIndex : STAGES.length - 1;
+  const activeIndex = stageIndex >= 0 ? stageIndex : STAGES.length;
+  const supportStage = ["additional_check", "support_practice", "support_check"].includes(lesson.session.stage);
+  const extraStageLabel = lesson.session.stage === "additional_check" ? "تحقق قصير"
+    : lesson.session.stage === "support_practice" ? "تدريب التقوية"
+    : lesson.session.stage === "support_check" ? "تحقق بعد التقوية"
+    : lesson.session.stage === "waiting_review" ? "مراجعة القراءة"
+    : lesson.session.stage === "supervisor_hold" ? "مساعدة المشرف" : "اكتمل الدرس";
   const captions = lesson.video.test_only ? `${lesson.video.url}/captions` : undefined;
 
   return <div className={styles.page} dir="rtl"><div className={styles.container}>
     <header className={styles.header}><Image src="/brand/logo-gradient.svg" alt="هِمّة" width={126} height={42} priority /><Link href="/student/learning-v2" className={styles.back}><ArrowRight size={17}/> الدروس</Link></header>
     <main className={styles.lessonCard}><span className={styles.eyebrow}>{lesson.level} · {lesson.lesson_id}</span><h1>{lesson.title}</h1>{lesson.objective && <p>{lesson.objective}</p>}
-      <div className={styles.progress} aria-label="مراحل الدرس">{STAGES.map((stage,index) => <span key={stage.key} className={index === activeIndex ? styles.active : ""} aria-current={index === activeIndex ? "step" : undefined}>{index < activeIndex ? "✓ " : ""}{stage.label}</span>)}</div>
+      <div className={styles.progress} aria-label="مراحل الدرس">{STAGES.map((stage,index) => <span key={stage.key} className={index === activeIndex ? styles.active : ""} aria-current={index === activeIndex ? "step" : undefined}>{index < activeIndex ? "✓ " : ""}{stage.label}</span>)}{activeIndex === STAGES.length && <span className={styles.active} aria-current="step">{extraStageLabel}</span>}</div>
       {error && <div className={styles.error} role="alert">{error}</div>}
       {lesson.session.stage === "intro" && <section className={styles.intro}><div><span className={styles.eyebrow}>هيا نبدأ</span><h2>{lesson.intro.title}</h2><p>{lesson.intro.text}</p><button type="button" className={styles.primary} disabled={saving} onClick={() => void completeIntro()}>{saving ? "جاري الحفظ..." : lesson.intro.button}<ArrowLeft size={18}/></button></div><Image src="/characters/girl/welcome.png" alt="شخصية هِمّة ترحب" width={180} height={215}/></section>}
-      {lesson.session.stage === "teaching_video" && (lesson.video.url ? <VideoPlayer key={`${sessionId}:${lesson.lesson_id}:${lesson.video.asset_id}`} src={lesson.video.url} captionsSrc={captions} startAt={lesson.session.video_position_seconds} testOnly={lesson.video.test_only} onCheckpoint={checkpoint} onEnded={ended}/> : <div className={styles.error} role="alert">فيديو الدرس غير جاهز، ولن تتجاوز هِمّة هذه الخطوة تلقائيًا.</div>)}
-      {(["additional_check", "support_practice", "support_check"] as string[]).includes(lesson.session.stage) && lesson.adaptation?.support && <section className={styles.supportIntro}><span className={styles.boundaryTag}>مساعدة قصيرة وليست خفضًا للمستوى</span><h2>{lesson.adaptation.support.title}</h2><p>{lesson.adaptation.message}</p></section>}
+      {lesson.session.stage === "teaching_video" && (lesson.video.url ? <VideoPlayer key={`${sessionId}:${lesson.lesson_id}:${lesson.video.asset_id}`} src={lesson.video.url} captionsSrc={captions} startAt={lesson.session.video_position_seconds} testOnly={lesson.video.test_only} temporary={lesson.video.temporary} onCheckpoint={checkpoint} onEnded={ended}/> : <div className={styles.error} role="alert">فيديو الدرس غير جاهز، ولن تتجاوز هِمّة هذه الخطوة تلقائيًا.</div>)}
+      {supportStage && lesson.adaptation?.support && <section className={styles.supportIntro} data-testid="v2-support-path"><span className={styles.boundaryTag}>مساعدة قصيرة وليست خفضًا للمستوى</span><h2>{lesson.adaptation.support.title}</h2><p>{lesson.adaptation.message}</p><p>{lesson.session.stage === "additional_check" ? "سنبدأ بسؤالين قصيرين دون فيديو جديد؛ إذا احتجت مساعدة نضيف تدريبًا مناسبًا." : lesson.session.stage === "support_practice" ? "تدرّب خطوة خطوة دون فيديو جديد، ثم تحقق مما تعلمته." : "الآن أجب بنفسك لنرى ما تعلمته من المساعدة."}</p></section>}
       {(["guided_practice", "independent_check", "additional_check", "support_practice", "support_check"] as string[]).includes(lesson.session.stage) && lesson.interaction && <InteractionPlayer key={lesson.interaction.question.question_id} sessionId={sessionId} interaction={lesson.interaction} onLessonChange={(updated) => setLesson(updated as LessonPayload)}/>}
       {lesson.session.stage === "waiting_review" && <section className={styles.practiceBoundary}><Image src="/characters/girl/encourage.png" alt="شخصية هِمّة تشجع" width={150} height={180}/><span className={styles.boundaryTag}>محفوظ بأمان</span><h2><CheckCircle2 size={25} aria-hidden="true"/> إجاباتك تنتظر مراجعة المشرف</h2><p>أكملت أسئلة الدرس، ولديك {lesson.summary?.pending_review ?? 1} إجابة كتابة أو قراءة معلّقة. لم تُحتسب صحيحة أو خاطئة، وسيحسمها المشرف.</p><StudentRetryTasks kind="lesson" sessionId={sessionId}/><Link href="/student/learning-v2" className={styles.back}>العودة إلى خريطة الدروس</Link></section>}
       {lesson.session.stage === "supervisor_hold" && <section className={styles.practiceBoundary}><Image src="/characters/girl/encourage.png" alt="شخصية هِمّة تشجع" width={150} height={180}/><span className={styles.boundaryTag}>تقدمك محفوظ</span><h2>سيختار المشرف أفضل مساعدة لك</h2><p>{lesson.adaptation?.message ?? "لن نخفض مستواك ولن نكرر المساعدة بلا نهاية."}</p><Link href="/student/learning-v2" className={styles.back}>العودة إلى خريطة الدروس</Link></section>}

@@ -5512,13 +5512,15 @@
       "label": "مكتبة",
       "source_v1_id": "VOC-22",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-22-library-512.webp",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_after_content_completion",
       "type": "image",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "source_label_private": "مكتبة",
       "source_label_must_not_render_in_image_question": true,
-      "asset_manifest_verified": true
+      "asset_manifest_verified": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "VOC-28",
@@ -5526,13 +5528,15 @@
       "label": "زهرة",
       "source_v1_id": "VOC-28",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-28-flower-512.webp",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_after_content_completion",
       "type": "image",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "source_label_private": "زهرة",
       "source_label_must_not_render_in_image_question": true,
-      "asset_manifest_verified": true
+      "asset_manifest_verified": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "VOC-34",
@@ -5540,13 +5544,15 @@
       "label": "طفل",
       "source_v1_id": "VOC-34",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-34-boy-512.webp",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_after_content_completion",
       "type": "image",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "source_label_private": "طفل",
       "source_label_must_not_render_in_image_question": true,
-      "asset_manifest_verified": true
+      "asset_manifest_verified": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "VOC-35",
@@ -5554,13 +5560,15 @@
       "label": "طفلة",
       "source_v1_id": "VOC-35",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-35-girl-512.webp",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_after_content_completion",
       "type": "image",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "source_label_private": "طفلة",
       "source_label_must_not_render_in_image_question": true,
-      "asset_manifest_verified": true
+      "asset_manifest_verified": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "VOC-20",
@@ -5568,13 +5576,15 @@
       "label": "عصفور",
       "source_v1_id": "VOC-20",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-20-bird-512.webp",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_after_content_completion",
       "type": "image",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "source_label_private": "عصفور",
       "source_label_must_not_render_in_image_question": true,
-      "asset_manifest_verified": true
+      "asset_manifest_verified": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "VOC-30",
@@ -5582,13 +5592,15 @@
       "label": "أوراق",
       "source_v1_id": "VOC-30",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-30-leaves-512.webp",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_after_content_completion",
       "type": "image",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "source_label_private": "أوراق شجر",
       "source_label_must_not_render_in_image_question": true,
-      "asset_manifest_verified": true
+      "asset_manifest_verified": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "VOC-21",
@@ -5596,13 +5608,15 @@
       "label": "حديقة",
       "source_v1_id": "VOC-21",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-21-garden-512.webp",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_after_content_completion",
       "type": "image",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "source_label_private": "حديقة",
       "source_label_must_not_render_in_image_question": true,
-      "asset_manifest_verified": true
+      "asset_manifest_verified": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "VOC-17",
@@ -5610,13 +5624,15 @@
       "label": "حقيبة",
       "source_v1_id": "VOC-17",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-17-school-bag-512.webp",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_after_content_completion",
       "type": "image",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "source_label_private": "حقيبة",
       "source_label_must_not_render_in_image_question": true,
-      "asset_manifest_verified": true
+      "asset_manifest_verified": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "VOC-06",
@@ -5624,13 +5640,15 @@
       "label": "شمس",
       "source_v1_id": "VOC-06",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-06-sun-512.webp",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_after_content_completion",
       "type": "image",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "source_label_private": "شمس",
       "source_label_must_not_render_in_image_question": true,
-      "asset_manifest_verified": true
+      "asset_manifest_verified": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "VOC-14",
@@ -5638,90 +5656,113 @@
       "label": "نجم",
       "source_v1_id": "VOC-14",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-14-star-512.webp",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_after_content_completion",
       "type": "image",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "source_label_private": "نجم",
       "source_label_must_not_render_in_image_question": true,
-      "asset_manifest_verified": true
+      "asset_manifest_verified": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     },
     {
       "id": "VID-L3-01",
       "kind": "video",
       "label": "أقرأ جملًا مترابطة بنطق صحيح",
       "source_v1_id": null,
-      "source_path": null,
-      "status": "missing_new",
+      "source_path": "assets/video/HIMMA_V2_DEMO/gemini_generated_video_72256b30.mp4",
+      "status": "approved_temporary",
       "review": "owner_after_content_completion",
       "type": "video",
-      "review_state": "awaiting_production"
+      "review_state": "temporary_until_final",
+      "approval": "owner_approved_temporary_20261027",
+      "source_sha256": "57e6c7a1d6316a6d1306493dfe81f13dba56c94392f0c63d48bc1146c5252590",
+      "shared_temporary_video": true
     },
     {
       "id": "VID-L3-02",
       "kind": "video",
       "label": "أقرأ نصًا قصيرًا بنطق صحيح",
       "source_v1_id": null,
-      "source_path": null,
-      "status": "missing_new",
+      "source_path": "assets/video/HIMMA_V2_DEMO/gemini_generated_video_72256b30.mp4",
+      "status": "approved_temporary",
       "review": "owner_after_content_completion",
       "type": "video",
-      "review_state": "awaiting_production"
+      "review_state": "temporary_until_final",
+      "approval": "owner_approved_temporary_20261027",
+      "source_sha256": "57e6c7a1d6316a6d1306493dfe81f13dba56c94392f0c63d48bc1146c5252590",
+      "shared_temporary_video": true
     },
     {
       "id": "VID-L3-03",
       "kind": "video",
       "label": "أفهم المعلومات المباشرة في النص",
       "source_v1_id": null,
-      "source_path": null,
-      "status": "missing_new",
+      "source_path": "assets/video/HIMMA_V2_DEMO/gemini_generated_video_72256b30.mp4",
+      "status": "approved_temporary",
       "review": "owner_after_content_completion",
       "type": "video",
-      "review_state": "awaiting_production"
+      "review_state": "temporary_until_final",
+      "approval": "owner_approved_temporary_20261027",
+      "source_sha256": "57e6c7a1d6316a6d1306493dfe81f13dba56c94392f0c63d48bc1146c5252590",
+      "shared_temporary_video": true
     },
     {
       "id": "VID-L3-04",
       "kind": "video",
       "label": "أرتب أحداث النص",
       "source_v1_id": null,
-      "source_path": null,
-      "status": "missing_new",
+      "source_path": "assets/video/HIMMA_V2_DEMO/gemini_generated_video_72256b30.mp4",
+      "status": "approved_temporary",
       "review": "owner_after_content_completion",
       "type": "video",
-      "review_state": "awaiting_production"
+      "review_state": "temporary_until_final",
+      "approval": "owner_approved_temporary_20261027",
+      "source_sha256": "57e6c7a1d6316a6d1306493dfe81f13dba56c94392f0c63d48bc1146c5252590",
+      "shared_temporary_video": true
     },
     {
       "id": "VID-L3-05",
       "kind": "video",
       "label": "أحدد الفكرة الرئيسة",
       "source_v1_id": null,
-      "source_path": null,
-      "status": "missing_new",
+      "source_path": "assets/video/HIMMA_V2_DEMO/gemini_generated_video_72256b30.mp4",
+      "status": "approved_temporary",
       "review": "owner_after_content_completion",
       "type": "video",
-      "review_state": "awaiting_production"
+      "review_state": "temporary_until_final",
+      "approval": "owner_approved_temporary_20261027",
+      "source_sha256": "57e6c7a1d6316a6d1306493dfe81f13dba56c94392f0c63d48bc1146c5252590",
+      "shared_temporary_video": true
     },
     {
       "id": "VID-L3-06",
       "kind": "video",
       "label": "أبني وأكمل جملة ذات معنى",
       "source_v1_id": null,
-      "source_path": null,
-      "status": "missing_new",
+      "source_path": "assets/video/HIMMA_V2_DEMO/gemini_generated_video_72256b30.mp4",
+      "status": "approved_temporary",
       "review": "owner_after_content_completion",
       "type": "video",
-      "review_state": "awaiting_production"
+      "review_state": "temporary_until_final",
+      "approval": "owner_approved_temporary_20261027",
+      "source_sha256": "57e6c7a1d6316a6d1306493dfe81f13dba56c94392f0c63d48bc1146c5252590",
+      "shared_temporary_video": true
     },
     {
       "id": "VID-L3-07",
       "kind": "video",
       "label": "أكتب جملة قصيرة",
       "source_v1_id": null,
-      "source_path": null,
-      "status": "missing_new",
+      "source_path": "assets/video/HIMMA_V2_DEMO/gemini_generated_video_72256b30.mp4",
+      "status": "approved_temporary",
       "review": "owner_after_content_completion",
       "type": "video",
-      "review_state": "awaiting_production"
+      "review_state": "temporary_until_final",
+      "approval": "owner_approved_temporary_20261027",
+      "source_sha256": "57e6c7a1d6316a6d1306493dfe81f13dba56c94392f0c63d48bc1146c5252590",
+      "shared_temporary_video": true
     },
     {
       "id": "VOC-18",
@@ -5729,13 +5770,15 @@
       "label": "مدرسة",
       "source_v1_id": "VOC-18",
       "source_path": "assets/education/assets/vocabulary/webp/hem-voc-18-school-512.webp",
-      "status": "selected_from_v1_pending_owner_review",
+      "status": "approved",
       "review": "owner_after_content_completion",
       "type": "image",
-      "review_state": "owner_review_pending",
+      "review_state": "owner_approved",
       "source_label_private": "مدرسة",
       "source_label_must_not_render_in_image_question": true,
-      "asset_manifest_verified": true
+      "asset_manifest_verified": true,
+      "approval": "owner_approved_20261027",
+      "rights_review_required": false
     }
   ],
   "qa_notes": []
