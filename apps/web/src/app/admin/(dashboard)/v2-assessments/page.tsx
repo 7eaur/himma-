@@ -7,6 +7,7 @@ import V2BlockedReviewNotice, { type BlockedV2Review } from "@/components/admin/
 import SupervisorClaimActions from "@/components/admin/SupervisorClaimActions";
 import V2EvidenceHistory from "@/components/admin/V2EvidenceHistory";
 import V2ReviewedAudioPlayer from "@/components/admin/V2ReviewedAudioPlayer";
+import V2ReviewQueuePicker from "@/components/admin/V2ReviewQueuePicker";
 
 interface ReviewItem {
   response_id: number; session_id: number; student_id: number; student_name: string;
@@ -28,6 +29,7 @@ export default function V2AssessmentsPage() {
   const [reviewOffset, setReviewOffset] = useState(0);
   const [report, setReport] = useState<Report | null>(null);
   const [notes, setNotes] = useState<Record<number, string>>({});
+  const [selectedResponseId, setSelectedResponseId] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
@@ -99,6 +101,9 @@ export default function V2AssessmentsPage() {
     {error && <div role="alert" className="alert-error">{error}</div>}
     {loading ? <p role="status">جاري تحميل المراجعات...</p> : <>
     <V2BlockedReviewNotice items={reviews.blocked_items} onRestored={load} />
+    <V2ReviewQueuePicker items={reviews.items} selectedResponseId={selectedResponseId}
+      onSelect={setSelectedResponseId} busy={busy !== null}
+      label="مراجعة الاختبارات" />
     {report && <AdminStatGrid>
       <AdminStat icon={Clock3} value={reviews.items.length} label="الإجابات في الصفحة الحالية"/>
       <AdminStat icon={ClipboardCheck} value={report.counts["pretest:completed"] ?? 0} label="قبلي مكتمل وتسكين آلي"/>
@@ -108,7 +113,8 @@ export default function V2AssessmentsPage() {
     <AdminPanel title="مراجعة القراءة الصوتية" description="التسجيلات خاصة، ويحدد النظام التسكين والتكيف تلقائيًا بعد اكتمال مراجعات الصوت.">
       {reviews.items.length === 0
         ? <AdminEmptyState title="لا توجد أدلة قابلة للمراجعة في هذه الصفحة" description="تظهر الإجابات المفتوحة التي تنتظر قرار المشرف."/>
-        : <div className="space-y-4">{reviews.items.map((item) => {
+        : <div className="space-y-4">{reviews.items.filter(item => item.response_id ===
+          (reviews.items.some(row => row.response_id === selectedResponseId) ? selectedResponseId : reviews.items[0]?.response_id)).map((item) => {
           const playbackReady = item.interaction !== "read_aloud" || (
             item.audio_submission_id !== null &&
             (completedAudio[item.audio_submission_id] ?? item.audio_playback_completed)
