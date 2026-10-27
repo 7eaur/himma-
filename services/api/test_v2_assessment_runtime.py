@@ -5,7 +5,7 @@ from pydantic import ValidationError
 
 from conftest import TestingSessionLocal
 from db.learning_models import AssessmentQuestionResponse, PlacementDecisionV2, StudentJourney, PrivateContentBankSnapshot
-from db.models import AssessmentSession, AudioSubmission, AuditLog, Student
+from db.models import AssessmentSession, Attempt, AudioSubmission, AuditLog, ContentItem, Skill, Student
 from assessment_retake import mark_official_completed_attempt
 from v2_content.contracts import PRIVATE_KEYS
 from v2_content.repository import get_question, get_release
@@ -498,7 +498,7 @@ def test_pretest_start_refuses_existing_v1_active_session(student_client):
         student = db.query(Student).filter(Student.access_code == "STU001").one()
         db.add(AssessmentSession(
             student_id=student.id, session_type="pretest", status="in_progress",
-            assessment_attempt_no=1,
+            assessment_attempt_no=1, elapsed_seconds=1,
         ))
         db.commit()
     blocked = student_client.post("/v2/assessments/pretest/start")
@@ -539,3 +539,73 @@ def test_pretest_503_preview_gate_keeps_answer_and_session_resumable(student_cli
         assert db.query(AssessmentQuestionResponse).filter(
             AssessmentQuestionResponse.assessment_session_id == session_id,
         ).count() == 1
+
+
+def test_untouched_legacy_pretest_is_adopted_on_explicit_start_with_audited_history(student_client):
+    import json
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == 'STU001').one()
+        shell = AssessmentSession(student_id=student.id, session_type='pretest', status='in_progress')
+        db.add(shell)
+        db.commit()
+        session_id = shell.id
+        started_at = shell.started_at
+    assert student_client.get('/v2/assessments/current-action').json()['action'] == 'start_pretest'
+    with TestingSessionLocal() as db:
+        assert db.query(StudentJourney).count() == 0
+        assert db.get(AssessmentSession, session_id).v2_state is None
+    started = student_client.post('/v2/assessments/pretest/start')
+    assert started.status_code == 200, started.text
+    assert started.json()['session']['session_id'] == session_id
+    assert started.json()['interaction']['progress']['index'] == 1
+    replay = student_client.post('/v2/assessments/pretest/start')
+    assert replay.status_code == 200 and replay.json()['session']['session_id'] == session_id
+    with TestingSessionLocal() as db:
+        assert db.query(AssessmentSession).count() == db.query(StudentJourney).count() == 1
+        row = db.get(AssessmentSession, session_id)
+        assert row.started_at == started_at and row.final_score is None
+        audit = db.query(AuditLog).filter(AuditLog.action == 'v2.pretest.empty_legacy_adopted').one()
+        original = json.loads(audit.details)
+        assert original['id'] == session_id and original['v2_state'] is None
+        assert original['status'] == 'in_progress' and original['final_score'] is None
+
+
+@pytest.mark.parametrize('metadata', [
+    {'elapsed_seconds': 1}, {'final_score': 0}, {'assigned_level': 1},
+    {'official_for_reporting': True}, {'v2_question_index': 1}, {'v2_result_json': {}},
+    {'status': 'completed'}, {'session_type': 'core'}, {'session_type': 'posttest'},
+])
+def test_legacy_evidence_is_never_reclassified_as_a_new_pretest(student_client, metadata):
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == 'STU001').one()
+        db.add(AssessmentSession(student_id=student.id, **{
+            'session_type': 'pretest', 'status': 'in_progress', **metadata,
+        }))
+        db.commit()
+    assert student_client.get('/v2/assessments/current-action').json()['action'] == 'migration_review'
+    assert student_client.post('/v2/assessments/pretest/start').status_code == 409
+    with TestingSessionLocal() as db:
+        assert db.query(StudentJourney).count() == 0
+        assert db.query(AssessmentSession).count() == 1
+        assert db.query(AssessmentSession).one().v2_state is None
+
+
+def test_even_unanswered_v1_attempt_prevents_shell_adoption(student_client):
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == 'STU001').one()
+        skill = Skill(skill_key='W1-LEGACY-SKILL', name='مهارة اصطناعية', level_id=1)
+        db.add(skill)
+        db.flush()
+        item = ContentItem(stable_key='W1-LEGACY-TEST', kind='pretest_question', level_id=1,
+                           skill_id=skill.id, interaction_type='choose_one', order_index=1,
+                           version='test', checksum='a'*64)
+        shell = AssessmentSession(student_id=student.id, session_type='pretest', status='in_progress')
+        db.add_all([item, shell])
+        db.flush()
+        db.add(Attempt(session_id=shell.id, item_id=item.id, status='in_progress'))
+        db.commit()
+    assert student_client.get('/v2/assessments/current-action').json()['action'] == 'migration_review'
+    assert student_client.post('/v2/assessments/pretest/start').status_code == 409
+    with TestingSessionLocal() as db:
+        assert db.query(Attempt).count() == 1
+        assert db.query(StudentJourney).count() == 0

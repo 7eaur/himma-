@@ -286,7 +286,7 @@ def test_migration_blocker_has_staff_only_session_evidence_without_credentials(r
     with TestingSessionLocal() as db:
         student = db.query(Student).filter(Student.access_code == 'STU001').one()
         student_id = student.id
-        db.add(AssessmentSession(student_id=student_id, session_type='pretest', status='in_progress'))
+        db.add(AssessmentSession(student_id=student_id, session_type='pretest', status='in_progress', elapsed_seconds=1))
         db.commit()
     result = researcher_client.get(f'/v2/student/admin/students/{student_id}/home')
     assert result.status_code == 200
