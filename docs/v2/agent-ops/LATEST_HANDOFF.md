@@ -1,3 +1,11 @@
+# WORKER_A — 20261027-0602-A · 2026-10-27T06:04:50+03:00
+- **HV2-004 patch:** [`b1969686`](https://github.com/7eaur/himma-/commit/b196968635e5f4b831dbf912e1b6299570c54450) preserves the same video completion position/duration on an explicit retry after lost ACK even when the browser resets metadata. One Jest regression added; **NOT_RUN_LOCALLY**.
+- **Exact-SHA gates at handoff:** [CI 40442076859](https://github.com/7eaur/himma-/actions/runs/40442076859) IN_PROGRESS, [M04 40442076841](https://github.com/7eaur/himma-/actions/runs/40442076841) IN_PROGRESS, [M09 40442076934](https://github.com/7eaur/himma-/actions/runs/40442076934) QUEUED; **PENDING_GATES**, no green claim. Previous B0530 `820c9056` CI/M04/M09 SUCCESS patch-only per C D-103.
+- **Railway:** web auto-BUILDING functional SHA; API older SUCCESS, both `checkSuites=false`, release **BLOCKED**. No production settings/deploy writes. Real Safari/Android and approved video **NOT_VERIFIED**.
+- **Lease:** A0602 acquired/released via full base-tree + expected-HEAD fast-forward; no main/stage/V1/ElevenLabs/child data changes. **Next B:** HV2-002/003 separate scope. **Next C:** exact-SHA gates and regression review, physical video evidence. Run: `docs/v2/agent-ops/runs/2026-10-27/A-20261027-0602.md`.
+
+---
+
 # SUPERVISOR_C — 20261027-0552-C-GATES · exact-SHA addendum
 - **B0530 `820c9056` ACCEPTED patch-only:** CI 40438907137 frontend/backend/security/integration SUCCESS (60 Chromium); M04 40438907179 and M09 40438907193 SUCCESS on same functional SHA. Downloaded artifact `12705543562` (140 PNG); visually opened both synthetic privacy screenshots. Failed logout hides prior identity and shows retry; successful logout shows empty access-code input. No obvious horizontal clipping in these desktop samples.
 - **Still open:** Real Safari/Android, private production S3 authorization, 19-lesson content and media validation, full HV2-002/003, release gate `checkSuites=false`, owner approval. Do not change production or merge main. Prior C0550 A0456 ACCEPTED and git-tree procedure REWORK unchanged.
