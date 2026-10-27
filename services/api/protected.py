@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 from admin_student_projection import build_student_list_payloads
 from audio_review_state import session_audio_review_summary
 from db.models import AssessmentSession, AuditLog, Attempt, ContentItem, Student, User
+from db.learning_models import StudentJourney
 from dependencies import get_db, get_current_user, get_current_student, get_any_authenticated
 from journey import build_journey_summary
 from level_completion import CORE_ACTIVITY_COUNT, session_level_completion
@@ -138,6 +139,35 @@ def _completed_session(db: Session, student_id: int, session_type: str) -> bool:
     ).first() is not None
 
 
+def _v2_posttest_eligibility(db: Session, student_id: int) -> bool | None:
+    """Use the pinned V2 journey, not legacy core activity counts.
+
+    None means the student has no V2 journey and still uses the historical
+    compatibility gate until the data migration has been audited.
+    """
+    journey = db.query(StudentJourney).filter(
+        StudentJourney.student_id == student_id,
+    ).one_or_none()
+    if journey is None:
+        return None
+    official_pretest = db.query(AssessmentSession.id).filter(
+        AssessmentSession.student_id == student_id,
+        AssessmentSession.session_type == "pretest",
+        AssessmentSession.content_release_id == journey.content_release_id,
+        AssessmentSession.v2_state.is_not(None),
+        AssessmentSession.status == "completed",
+        AssessmentSession.official_for_reporting.is_(True),
+    ).first() is not None
+    completed_posttest = db.query(AssessmentSession.id).filter(
+        AssessmentSession.student_id == student_id,
+        AssessmentSession.session_type == "posttest",
+        AssessmentSession.content_release_id == journey.content_release_id,
+        AssessmentSession.v2_state.is_not(None),
+        AssessmentSession.status == "completed",
+    ).first() is not None
+    return journey.placement_state == "posttest_ready" and official_pretest and not completed_posttest
+
+
 def _core_progress(db: Session, student_id: int) -> tuple[int, bool]:
     """Project the latest Core session through the canonical completion owner."""
     session = db.query(AssessmentSession).filter(
@@ -154,7 +184,11 @@ def _student_payload(db: Session, student: Student) -> dict:
     pretest_completed = _completed_session(db, student.id, "pretest")
     posttest_completed = _completed_session(db, student.id, "posttest")
     core_completed_items, core_completed = _core_progress(db, student.id)
-    journey = build_journey_summary(db, student)
+    v2_eligible = _v2_posttest_eligibility(db, student.id)
+    legacy_eligible = None
+    if v2_eligible is None:
+        journey = build_journey_summary(db, student)
+        legacy_eligible = pretest_completed and journey["learning_journey_completed"] and not posttest_completed
     return {
         "id": student.id,
         "full_name": student.name,
@@ -163,7 +197,7 @@ def _student_payload(db: Session, student: Student) -> dict:
         "current_level": student.current_level,
         "status": "active" if student.is_active else "inactive",
         "posttest_enabled": student.posttest_enabled,
-        "posttest_eligible": pretest_completed and journey["learning_journey_completed"] and not posttest_completed,
+        "posttest_eligible": v2_eligible if v2_eligible is not None else legacy_eligible,
         "core_completed_items": core_completed_items,
         "core_total_items": CORE_ACTIVITY_COUNT,
         "core_completed": core_completed,
@@ -367,8 +401,9 @@ def set_posttest_access(
     student = db.query(Student).filter(Student.id == student_id).with_for_update().first()
     if not student:
         raise HTTPException(status_code=404, detail="الطالب غير موجود")
-    pretest_completed = _completed_session(db, student.id, "pretest")
-    journey = build_journey_summary(db, student)
+    v2_eligible = _v2_posttest_eligibility(db, student.id)
+    pretest_completed = _completed_session(db, student.id, "pretest") if v2_eligible is None else None
+    legacy_journey = build_journey_summary(db, student) if v2_eligible is None else None
     posttest_completed = _completed_session(db, student.id, "posttest")
     if posttest_completed:
         raise HTTPException(status_code=409, detail="الاختبار البعدي مكتمل بالفعل")
@@ -379,13 +414,19 @@ def set_posttest_access(
     ).first()
     if posttest_active:
         raise HTTPException(status_code=409, detail="الاختبار البعدي قيد التنفيذ حاليًا")
-    if body.enabled and not pretest_completed:
-        raise HTTPException(status_code=409, detail="يجب إكمال الاختبار القبلي أولًا")
-    if body.enabled and not journey["learning_journey_completed"]:
+    if body.enabled and v2_eligible is not None and not v2_eligible:
         raise HTTPException(
             status_code=409,
-            detail="يجب إكمال مسار التعلم المعتمد حتى المستوى الثالث قبل فتح الاختبار البعدي",
+            detail="لا يمكن فتح الاختبار البعدي قبل اكتمال رحلة V2 واعتماد الاختبار القبلي",
         )
+    if body.enabled and v2_eligible is None:
+        if not pretest_completed:
+            raise HTTPException(status_code=409, detail="يجب إكمال الاختبار القبلي أولًا")
+        if not legacy_journey["learning_journey_completed"]:
+            raise HTTPException(
+                status_code=409,
+                detail="يجب إكمال مسار التعلم المعتمد حتى المستوى الثالث قبل فتح الاختبار البعدي",
+            )
     student.posttest_enabled = body.enabled
     student.posttest_enabled_at = datetime.now(timezone.utc) if body.enabled else None
     student.posttest_enabled_by = user.id if body.enabled else None
