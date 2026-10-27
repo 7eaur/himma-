@@ -1,5 +1,7 @@
 from v2_content.compiler import compile_release
 from v2_content.contracts import PRIVATE_KEYS
+from v2_content.readiness import media_readiness_contract
+from v2_content.media import MediaProvider
 
 
 def _all_keys(value):
@@ -60,3 +62,14 @@ def test_student_candidate_is_blocked_in_protected_runtime(student_client, monke
 def test_missing_candidate_resources_are_404(student_client):
     assert student_client.get("/v2/content/candidate/questions/nope").status_code == 404
     assert student_client.get("/v2/content/candidate/media/nope").status_code == 404
+
+
+def test_shared_temporary_lesson_video_never_makes_release_publishable():
+    bank = compile_release()
+    report = media_readiness_contract(bank, provider=MediaProvider(environment="test"))
+    videos = [item for item in report["items"]
+              if item["kind"] == "video" and item["temporary"] and item["required_for_runtime"]]
+    assert len(videos) == 19
+    assert all(item["publication_blocker"] and item["academic_qa_pending"] for item in videos)
+    assert not report["publishable"]
+    assert report["published_assets"] < report["required_assets"]
