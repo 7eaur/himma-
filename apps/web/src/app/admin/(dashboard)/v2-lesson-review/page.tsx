@@ -35,7 +35,7 @@ export default function V2LessonReviewPage() {
   const loadId = useRef(0);
   const load = useCallback(async () => {
     const requestId = ++loadId.current;
-    setError("");
+    setLoading(true); setError("");
     try {
       const response = await fetch(`/api/v2/review/lesson-queue?limit=20&offset=${offset}`, { cache: "no-store" });
       const data = await response.json().catch(() => null);

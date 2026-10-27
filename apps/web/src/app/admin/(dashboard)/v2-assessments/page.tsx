@@ -37,21 +37,22 @@ export default function V2AssessmentsPage() {
   const [levels, setLevels] = useState<Record<number, number>>({});
   const [reasons, setReasons] = useState<Record<number, string>>({});
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [completedAudio, setCompletedAudio] = useState<Record<number, boolean>>({});
 
   const loadId = useRef(0);
   const load = useCallback(async () => {
     const requestId = ++loadId.current;
-    setError("");
+    setLoading(true); setError("");
     try {
       const [reviewResponse, placementResponse, summaryResponse] = await Promise.all([
         fetch(`/api/v2/assessments/admin/review-queue?limit=25&offset=${reviewOffset}`, { cache: "no-store" }),
         fetch(`/api/v2/assessments/admin/placement-queue?limit=25&offset=${placementOffset}`, { cache: "no-store" }),
         fetch("/api/v2/assessments/admin/reports/summary", { cache: "no-store" }),
       ]);
-      const [queue, placement, summary] = await Promise.all([reviewResponse.json(), placementResponse.json(), summaryResponse.json()]);
-      if (!reviewResponse.ok || !placementResponse.ok || !summaryResponse.ok) {
+      const [queue, placement, summary] = await Promise.all([reviewResponse.json().catch(() => null), placementResponse.json().catch(() => null), summaryResponse.json().catch(() => null)]);
+      if (!reviewResponse.ok || !placementResponse.ok || !summaryResponse.ok || !queue || !placement || !summary) {
         throw new Error(queue?.detail || placement?.detail || summary?.detail || "تعذر تحميل تقييمات V2");
       }
       if (requestId !== loadId.current) return;
@@ -60,7 +61,7 @@ export default function V2AssessmentsPage() {
       if (requestId !== loadId.current) return;
       setReviews({ items: [], next_offset: null }); setPlacements({ items: [], next_offset: null }); setReport(null);
       setError(reason instanceof Error ? reason.message : "تعذر تحميل تقييمات V2");
-    }
+    } finally { if (requestId === loadId.current) setLoading(false); }
   }, [reviewOffset, placementOffset]);
 
   useEffect(() => { const timer = window.setTimeout(() => { void load(); }, 0); return () => { window.clearTimeout(timer); loadId.current += 1; }; }, [load]);
@@ -123,6 +124,7 @@ export default function V2AssessmentsPage() {
       description="افحص دليل الطالب ومرجع السؤال قبل القرار؛ التسكين يدوي ومسبب إلى حين اعتماد الحدود التربوية."
       actions={<AdminAction icon={RefreshCw} onClick={() => void load()}>تحديث</AdminAction>} />
     {error && <div role="alert" className="alert-error">{error}</div>}
+    {loading ? <p role="status">جاري تحميل المراجعات...</p> : <>
     <V2BlockedReviewNotice items={reviews.blocked_items} onRestored={load} />
     {report && <AdminStatGrid>
       <AdminStat icon={Clock3} value={reviews.items.length} label="الإجابات في الصفحة الحالية"/>
@@ -212,5 +214,6 @@ export default function V2AssessmentsPage() {
       </div>
     </AdminPanel>
     <p className="text-sm text-muted">P06 مرشحة: القيم المفقودة لا تُعامل كصفر، ولا يُستخدم تسكين آلي قبل اعتماد السياسة تربويًا.</p>
+    </>}
   </AdminPage>;
 }

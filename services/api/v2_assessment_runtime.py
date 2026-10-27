@@ -210,7 +210,7 @@ def blocked_review_item(db: Session, session, row, student: Student, error: HTTP
             "release_version": release.version if release else None,
             "release_checksum": release.checksum if release else None,
             "recoverable": bool(release and known_recovery(release.checksum) and not db.query(
-                PrivateContentBankSnapshot.id,
+                PrivateContentBankSnapshot.content_release_id,
             ).filter(PrivateContentBankSnapshot.content_release_id == release.id).first())}
 
 
