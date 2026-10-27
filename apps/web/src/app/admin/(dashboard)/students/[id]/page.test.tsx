@@ -52,7 +52,7 @@ it('remounts identity state when routing to another learner',async()=>{
  currentId='2';rerender(<Page/>);
  await screen.findByRole('heading',{name:'طالب اصطناعي 2'});
  expect(screen.queryByText('123456')).not.toBeInTheDocument();
- expect(screen.getByTestId('supervisor-v2-overview')).toBeVisible();
+ expect(await screen.findByTestId('supervisor-v2-overview')).toBeVisible();
  await waitFor(()=>expect(fetcher).toHaveBeenCalledWith('/api/v2/student/admin/students/2/account',expect.anything()));
 });
 it('shows seven task-specific sections without rendering the long lesson list on overview',async()=>{
