@@ -123,7 +123,8 @@ test("W6 reward lifecycle awards once, resolves the canonical asset, and survive
   // isolated under the archived overview rather than shown as V2 rewards.
   await expect(page.getByTestId("supervisor-v2-overview")).toBeVisible();
   await expect(page.getByTestId("canonical-reward-badge")).toHaveCount(0);
-  await page.getByRole("button", { name: "نظرة عامة" }).click();
+  await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).click();
+  await page.getByRole("button", { name: "نظرة عامة", exact: true }).click();
   await expect(page.getByRole("heading", { name: "أرشيف الطالب التاريخي V1" })).toBeVisible();
   const adminBadge = page.getByTestId("canonical-reward-badge").filter({ hasText: "مستكشف الحروف" });
   await expect(adminBadge).toHaveCount(1);
@@ -138,7 +139,8 @@ test("W6 reward lifecycle awards once, resolves the canonical asset, and survive
   await page.reload();
   await expect(page.getByTestId("supervisor-v2-overview")).toBeVisible();
   await expect(page.getByTestId("canonical-reward-badge")).toHaveCount(0);
-  await page.getByRole("button", { name: "نظرة عامة" }).click();
+  await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).click();
+  await page.getByRole("button", { name: "نظرة عامة", exact: true }).click();
   await expect(page.getByRole("heading", { name: "أرشيف الطالب التاريخي V1" })).toBeVisible();
   await expect(page.getByTestId("canonical-reward-badge").filter({ hasText: "مستكشف الحروف" })).toHaveCount(1);
 });

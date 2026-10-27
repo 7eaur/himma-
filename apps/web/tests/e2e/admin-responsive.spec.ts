@@ -281,3 +281,20 @@ test("W3: current bank and staff media gallery support real browsing and playbac
   await expectNoHorizontalOverflow(page);
   await capture(page, 'phone-390x844', '/admin/v2-media-audio-preview');
 });
+
+
+test('W3: V2 reports export a real private workbook and keep historical metrics out of the default page', async ({ page }) => {
+  await login(page);
+  await page.goto('/admin/reports');
+  await expect(page.getByTestId('v2-report-table')).toBeVisible();
+  await expect(page.getByText('التقارير والإحصائيات · V1 التاريخي', { exact: true })).toHaveCount(0);
+  const downloadReady = page.waitForEvent('download');
+  await page.getByRole('link', { name: 'Excel', exact: true }).click();
+  const download = await downloadReady;
+  expect(download.suggestedFilename()).toBe('himma-v2-cohort.xlsx');
+  const file = await download.path();
+  expect(file).toBeTruthy();
+  const bytes = await (await import('node:fs/promises')).readFile(file!);
+  expect(bytes.subarray(0, 2).toString()).toBe('PK');
+  expect(bytes.length).toBeGreaterThan(1000);
+});

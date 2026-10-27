@@ -36,7 +36,7 @@ async function expectNoHorizontalOverflow(page: Page) {
 async function expectDashboardReady(page: Page) {
   await expect(page.getByRole("heading", { name: /مرحبًا،/ })).toBeVisible({ timeout: 10000 });
   // The contract is the attention section itself, not one exact marketing/copy variant.
-  await expect(page.getByRole("heading", { name: /ما الذي يحتاج انتباهك/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "ما الذي يحتاج متابعتك؟" })).toBeVisible();
 }
 
 function channel(value: number) {
@@ -177,6 +177,8 @@ test.describe("M06 responsive and accessibility integration", () => {
 
     await page.goto(`/admin/students/${createdStudent?.id}`);
     await expect(page.getByRole("heading", { name: studentName })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId("supervisor-v2-overview")).toBeVisible();
+    await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).click();
     await page.getByRole("button", { name: "المسار والتقدم" }).click();
 
     const progress = page.getByRole("progressbar", { name: "تقدم الأنشطة الأساسية في المستوى النشط" });

@@ -84,3 +84,10 @@
 - بعض محاولات حفظ screenshot عبر clip انتهت protocol timeout، ولم تُرفع صور فارغة أو خاصة بديلًا. تظل المراجعة البصرية/الصورة المنقحة الكاملة pending إلى دليل صالح.
 - W3 بنك المحتوى/gallery صار منفذًا محليًا كدفعة جزئية موثقة في W3_CONTENT_MEDIA_BROWSER_BATCH_AR.md: API30 PASS؛ frontend142 PASS+type/lint. E2E والبوابات والتحقق الحي للدفعة الجديدة PENDING.
 - المتبقي: بقية W2/W3 (Student360/account contract، التقارير الرسمية/exports/notifications/settings وحالاتها)، W4قرار/ledger، W5تجربة الطفل، W6 قبول كامل، W7–W8 الوسائط والإصدار. لا ادعاء إغلاق هذه المسارات.
+
+## W3 تقارير وتصدير / إعادة عمل اختبارات المتصفح
+
+- last_head/functional before batch: 57a6e0dd882d2a9a477dcfa0a553acefe987bdf5. M04 40455483312 SUCCESS؛ CI 40455483314 backend/frontend/security SUCCESS لكن integration FAILURE؛ M09 40455483301 FAILURE. ستة failures موثقة بسبب locators V1 والتنقل للأرشيف بعد العزل؛ صُححت دون حذف اختبارات.
+- تقارير V2/Excel/PDF منفذة، راجع W3_REPORTS_EXPORTS_BATCH_AR.md. API25 PASS؛ Jest144 PASS؛ type/lint PASS. التحقق الحي للتصدير والبوابات على الدفعة الجديدة PENDING؛ لا إغلاق W2/W3.
+- Work حي: بنك300 و33قسمًا؛ L1-01 تمهيد و4GP قبل4IC، screenshot سليمة W3-bank-L1-01.jpg. تبقى الوسائط TEST ONLY غير معتمدة.
+- الإشعارات الحالية ما زالت تستدعي V1 وتعلّم القراءة محليًا حتى فشل POST؛ هذه المهمة التالية قبل المكافآت. A/B/C متوقفة؛ لا دمج أو اعتماد نشر نهائي.

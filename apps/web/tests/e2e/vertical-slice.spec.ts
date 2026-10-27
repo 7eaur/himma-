@@ -367,7 +367,7 @@ test.describe("Himma recovered vertical slice", () => {
 
     await loginAsSupervisor(request, context);
     await page.goto("/admin");
-    await expect(page.getByText("لوحة المشرف").first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId("admin-attention-summary")).toBeVisible({ timeout: 10000 });
     await shot(page, "03-supervisor-dashboard");
 
     await page.goto("/admin/students/new");
@@ -593,6 +593,8 @@ test.describe("Himma recovered vertical slice", () => {
     await page.goto(`/admin/students/${studentId}`);
     await expect(page.getByRole("heading", { name: studentName })).toBeVisible({ timeout: 12000 });
 
+    await expect(page.getByTestId("supervisor-v2-overview")).toBeVisible();
+    await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).click();
     await page.getByRole("button", { name: "المسار والتقدم" }).click();
     await expect(page.getByText(`${studentState.core_completed_items} من ${studentState.core_total_items}`, { exact: true })).toBeVisible({ timeout: 12000 });
     // Historical V1 levels include the canonical level name in their card.
