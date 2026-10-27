@@ -1,9 +1,12 @@
 from uuid import uuid4
 
+import pytest
+
 from conftest import TestingSessionLocal
 from db.learning_models import (
     AdaptationDecision,
     LessonSession,
+    PrivateContentBankSnapshot,
     SkillEvidence,
     StudentJourney,
     SupportAssignment,
@@ -17,7 +20,7 @@ from v2_adaptation_policy import (
     evaluate_support,
     resolve_focus,
 )
-from v2_adaptation_runtime import _open_support
+from v2_adaptation_runtime import _complete_lesson, _open_support
 from v2_content.compiler import compile_release
 from v2_content.importer import register_candidate_release
 from v2_content.repository import get_question
@@ -146,6 +149,37 @@ def test_clean_independent_check_advances_once_and_read_status_is_pure(student_c
     assert first.status_code == second.status_code == 200
     with TestingSessionLocal() as db:
         assert db.query(AdaptationDecision).count() == before
+
+
+def test_completion_follows_pinned_lesson_order_when_current_bank_changes(student_client, monkeypatch):
+    session_id = _start_at_independent(student_client)
+    import v2_adaptation_runtime as adaptation
+    import v2_content.repository as repository
+    original = repository.get_release()
+    monkeypatch.setattr(adaptation, "get_release", lambda: {
+        **original, "lessons": list(reversed(original["lessons"])), "version": "future-release",
+    }, raising=False)
+    with TestingSessionLocal() as db:
+        session = db.get(LessonSession, session_id)
+        _complete_lesson(db, session)
+        journey = db.query(StudentJourney).filter_by(student_id=session.student_id).one()
+        assert journey.current_lesson_id == "L1-02"
+        assert journey.content_release_id == session.content_release_id
+        db.commit()
+
+
+def test_completion_refuses_missing_pinned_bank_without_advancing(student_client):
+    session_id = _start_at_independent(student_client)
+    with TestingSessionLocal() as db:
+        session = db.get(LessonSession, session_id)
+        snapshot = db.get(PrivateContentBankSnapshot, session.content_release_id)
+        snapshot.checksum = "f" * 64
+        db.flush()
+        with pytest.raises(RuntimeError, match="pinned lesson bank unavailable"):
+            _complete_lesson(db, session)
+        journey = db.query(StudentJourney).filter_by(student_id=session.student_id).one()
+        assert journey.current_lesson_id == "L1-01"
+        assert session.status != "completed"
 
 
 def test_one_gap_gets_two_alternate_checks_then_returns_to_next_lesson(student_client):

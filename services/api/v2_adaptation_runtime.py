@@ -12,11 +12,12 @@ from db.learning_models import (
     AdaptationDecision,
     LessonQuestionResponse,
     LessonSession,
+    PrivateContentBankSnapshot,
     SkillEvidence,
     StudentJourney,
     SupportAssignment,
 )
-from db.models import Student, User
+from db.models import ContentRelease, Student, User
 from dependencies import get_current_user, get_db
 from v2_adaptation_policy import (
     POLICY_VERSION,
@@ -26,7 +27,7 @@ from v2_adaptation_policy import (
     evaluate_support,
     resolve_focus,
 )
-from v2_content.repository import get_question, get_release, get_support
+from v2_content.repository import get_question, get_support
 from v2_lesson_runtime import _require_preview_student, _session_or_404
 
 
@@ -178,6 +179,24 @@ def _open_support(
 
 
 def _complete_lesson(db: Session, session: LessonSession, assignment: SupportAssignment | None = None) -> None:
+    journey = db.query(StudentJourney).filter(StudentJourney.student_id == session.student_id).with_for_update().one_or_none()
+    next_lesson = None
+    if journey:
+        release = db.get(ContentRelease, session.content_release_id)
+        snapshot = db.get(PrivateContentBankSnapshot, session.content_release_id)
+        bank = snapshot.payload_json if snapshot else None
+        if (journey.content_release_id != session.content_release_id or not release or not snapshot
+            or snapshot.checksum != release.checksum or not isinstance(bank, dict)
+            or bank.get("version") != release.version or bank.get("checksum") != release.checksum
+            or not isinstance(bank.get("lessons"), list)):
+            raise RuntimeError("pinned lesson bank unavailable; progression was not changed")
+        lessons = bank["lessons"]
+        ids = [row["id"] for row in lessons]
+        if len(ids) != len(set(ids)) or session.lesson_id not in ids:
+            raise RuntimeError("pinned lesson order is invalid; progression was not changed")
+        index = ids.index(session.lesson_id)
+        next_lesson = lessons[index + 1] if index + 1 < len(lessons) else None
+
     now = datetime.now(timezone.utc)
     if assignment:
         assignment.status = "resolved"
@@ -190,14 +209,9 @@ def _complete_lesson(db: Session, session: LessonSession, assignment: SupportAss
     session.updated_at = now
     session.version += 1
 
-    journey = db.query(StudentJourney).filter(StudentJourney.student_id == session.student_id).with_for_update().one_or_none()
     if not journey:
         return
-    lessons = get_release()["lessons"]
-    ids = [row["id"] for row in lessons]
-    index = ids.index(session.lesson_id)
-    if index + 1 < len(lessons):
-        next_lesson = lessons[index + 1]
+    if next_lesson:
         journey.current_lesson_id = next_lesson["id"]
         journey.current_level = int(next_lesson["level"][1])
     else:
