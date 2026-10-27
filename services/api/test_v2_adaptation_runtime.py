@@ -24,22 +24,11 @@ from v2_adaptation_runtime import _complete_lesson, _open_support
 from v2_content.compiler import compile_release
 from v2_content.importer import register_candidate_release
 from v2_content.repository import get_question
+from test_v2_lesson_runtime import _place_fixture
 
 
 def _start_at_independent(student_client, lesson_id="L1-01"):
-    if lesson_id != "L1-01":
-        with TestingSessionLocal() as db:
-            student = db.query(Student).filter(Student.access_code == "STU001").one()
-            student.current_level = int(lesson_id[1])
-            release = register_candidate_release(db)
-            db.add(StudentJourney(
-                student_id=student.id,
-                content_release_id=release.id,
-                current_level=int(lesson_id[1]),
-                current_lesson_id=lesson_id,
-                placement_state="placed",
-            ))
-            db.commit()
+    _place_fixture(level=int(lesson_id[1]), cursor=lesson_id)
     started = student_client.post(f"/v2/lessons/{lesson_id}/start")
     assert started.status_code == 200, started.text
     session_id = started.json()["session"]["session_id"]

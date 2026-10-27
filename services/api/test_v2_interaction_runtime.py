@@ -8,25 +8,17 @@ from db.models import AudioSubmission, Student
 from v2_content.compiler import compile_release
 from v2_content.contracts import PRIVATE_KEYS
 from v2_content.importer import register_candidate_release
+from test_v2_lesson_runtime import _place_fixture
 
 
 def _start_at_questions(student_client, lesson_id: str, step_index: int = 0):
     # Component/runtime coverage deliberately opens representative questions
     # from all levels. Seed the authoritative current lesson instead of
     # weakening the production route's lesson-lock check.
-    with TestingSessionLocal() as db:
-        student = db.query(Student).filter(Student.access_code == "STU001").one()
-        student.current_level = int(lesson_id[1])
-        release = register_candidate_release(db)
-        db.add(StudentJourney(
-            student_id=student.id,
-            content_release_id=release.id,
-            current_level=int(lesson_id[1]),
-            current_lesson_id=lesson_id,
-            placement_state="placed",
-        ))
-        db.commit()
-    started = student_client.post(f"/v2/lessons/{lesson_id}/start").json()
+    _place_fixture(level=int(lesson_id[1]), cursor=lesson_id)
+    started_response = student_client.post(f"/v2/lessons/{lesson_id}/start")
+    assert started_response.status_code == 200, started_response.text
+    started = started_response.json()
     session_id = started["session"]["session_id"]
     student_client.post(
         f"/v2/lessons/sessions/{session_id}/events",

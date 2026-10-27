@@ -9,6 +9,7 @@ from db.v2_reward_models import V2RewardGrant
 from v2_content.importer import register_candidate_release
 from v2_content.repository import get_release
 from v2_rewards import reconcile_rewards, rewards_projection
+from test_v2_lesson_runtime import _place_fixture
 
 
 STUDENT_ID=None
@@ -160,7 +161,10 @@ def test_admin_reconciliation_is_explicit_replay_safe_and_forbidden_to_student(r
 def test_actual_video_transition_awards_one_star_in_its_own_transaction(student_client):
     with TestingSessionLocal() as db:
         _fixture(db);db.commit()
-    started=student_client.post('/v2/lessons/L1-01/start').json()
+    _place_fixture()
+    started_response=student_client.post('/v2/lessons/L1-01/start')
+    assert started_response.status_code==200,started_response.text
+    started=started_response.json()
     session=started['session']['session_id']
     assert student_client.post(f'/v2/lessons/sessions/{session}/events',json={'event_key':'intro-synthetic','event_type':'intro_complete'}).status_code==200
     event={'event_key':'video-synthetic','event_type':'video_ended','position_seconds':6,'duration_seconds':6}
@@ -176,7 +180,10 @@ def test_real_guided_and_independent_transitions_each_award_their_milestone_once
     from v2_content.repository import get_question
     with TestingSessionLocal() as db:
         _fixture(db);db.commit()
-    session=student_client.post('/v2/lessons/L1-01/start').json()['session']['session_id']
+    _place_fixture()
+    started=student_client.post('/v2/lessons/L1-01/start')
+    assert started.status_code==200,started.text
+    session=started.json()['session']['session_id']
     for event in [{'event_key':'intro-full-test','event_type':'intro_complete'},
                   {'event_key':'video-full-test','event_type':'video_ended','position_seconds':6,'duration_seconds':6}]:
         assert student_client.post(f'/v2/lessons/sessions/{session}/events',json=event).status_code==200
