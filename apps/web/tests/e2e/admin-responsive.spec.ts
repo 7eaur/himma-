@@ -298,3 +298,22 @@ test('W3: V2 reports export a real private workbook and keep historical metrics 
   expect(bytes.subarray(0, 2).toString()).toBe('PK');
   expect(bytes.length).toBeGreaterThan(1000);
 });
+
+test("W3 notifications default to the durable V2 inbox and keep V1 explicit", async ({ page }) => {
+  await login(page);
+  await page.goto('/admin');
+  const v2Response = page.waitForResponse(response => response.url().includes('/v2/notifications?limit=24') && response.request().method() === 'GET');
+  await page.getByRole('button', { name: 'الإشعارات', exact: true }).click();
+  const v2 = await v2Response;
+  expect(v2.status()).toBe(200);
+  expect((await v2.json()).source).toBe('himma_v2_attention');
+  const dialog = page.getByRole('dialog', { name: 'إشعارات المشرف' });
+  await expect(dialog.getByText('إشعارات V2', { exact: true })).toBeVisible();
+  const legacyResponse = page.waitForResponse(response => response.url().includes('/researcher/notifications?limit=24') && response.request().method() === 'GET');
+  await dialog.getByRole('button', { name: 'أرشيف إشعارات V1', exact: true }).click();
+  expect((await legacyResponse).status()).toBe(200);
+  await expect(dialog.getByText('أرشيف إشعارات V1', { exact: true })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(dialog).not.toBeVisible();
+  await expect(page.getByRole('button', { name: 'الإشعارات', exact: true })).toBeFocused();
+});

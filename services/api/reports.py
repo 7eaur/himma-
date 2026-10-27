@@ -312,6 +312,7 @@ def _find_report_font() -> Path | None:
     configured = os.getenv("HIMMA_REPORT_FONT_PATH")
     candidates = [
         configured,
+        str(Path(__file__).resolve().parents[2] / "assets/fonts/DejaVuSans.ttf"),
         "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
         "/usr/share/fonts/truetype/noto/NotoSansArabic-Regular.ttf",
         "C:/Windows/Fonts/arial.ttf",

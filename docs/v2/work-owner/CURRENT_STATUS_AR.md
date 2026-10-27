@@ -91,3 +91,9 @@
 - تقارير V2/Excel/PDF منفذة، راجع W3_REPORTS_EXPORTS_BATCH_AR.md. API25 PASS؛ Jest144 PASS؛ type/lint PASS. التحقق الحي للتصدير والبوابات على الدفعة الجديدة PENDING؛ لا إغلاق W2/W3.
 - Work حي: بنك300 و33قسمًا؛ L1-01 تمهيد و4GP قبل4IC، screenshot سليمة W3-bank-L1-01.jpg. تبقى الوسائط TEST ONLY غير معتمدة.
 - الإشعارات الحالية ما زالت تستدعي V1 وتعلّم القراءة محليًا حتى فشل POST؛ هذه المهمة التالية قبل المكافآت. A/B/C متوقفة؛ لا دمج أو اعتماد نشر نهائي.
+
+## إشعارات V2 / عطل خط PDF حي
+- functional/live web/API SHA4e1b074b915d586e124b10b62af1b915382589ca SUCCESS. Excel حي6370bytes/3سجلات/RTL/source V2؛ PDF الاصطناعي503 بسبب غياب خط داخل Railpack، رغم تعديل Dockerfile. أضيف الخط المرخص داخل المستودع واختبار غياب خطوط المضيف؛ إعادة التحقق الحي PENDING.
+- الإشعارات V2 منفذة منفصلة عن أرشيف V1، مع حالة قراءة idempotent لا تغيّر الأعمال الأكاديمية؛ API11 PASS، Jest148 PASS، type/lint PASS. تقارير/خط8 PASS. التفصيل W3_NOTIFICATIONS_FONT_FIX_AR.md.
+- ملف V2_ONLY_CLEANUP_INVENTORY_20261027_AR.md الذي أحال إليه المالك غير متاح: local غير موجود، GitHub404 على الفرع المحدد والافتراضي. لم نقرأه ولا نحذف سجلًا بناءً على عنوانه. يرجى توفيره على الفرع/إرفاق محتواه؛ هذا عائق لدمج تعليماته فقط، والعمل المستقل مستمر.
+- عند آخر فحص M04 على4e1b074b SUCCESS؛ CI وM09 IN_PROGRESS. لا ختم قبول W2/W3 أو انتقال قبول W4 حتى إغلاق إعادة العمل. A/B/C PAUSED؛ لا merge/final-release.

@@ -36,11 +36,12 @@ def list_notifications(
     """Read the durable inbox without reconciling or mutating domain state."""
     rows = (
         db.query(ResearcherNotification)
+        .filter(~ResearcherNotification.dedupe_key.startswith("v2:"))
         .order_by(ResearcherNotification.is_read.asc(), ResearcherNotification.created_at.desc(), ResearcherNotification.id.desc())
         .limit(limit)
         .all()
     )
-    unread = db.query(ResearcherNotification.id).filter(ResearcherNotification.is_read.is_(False)).count()
+    unread = db.query(ResearcherNotification.id).filter(ResearcherNotification.is_read.is_(False), ~ResearcherNotification.dedupe_key.startswith("v2:")).count()
     return {"unread_count": unread, "items": [_payload(row) for row in rows]}
 
 
@@ -50,7 +51,7 @@ def mark_notification_read(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    row = db.query(ResearcherNotification).filter(ResearcherNotification.id == notification_id).first()
+    row = db.query(ResearcherNotification).filter(ResearcherNotification.id == notification_id, ~ResearcherNotification.dedupe_key.startswith("v2:")).first()
     if not row:
         raise HTTPException(status_code=404, detail="الإشعار غير موجود")
     if not row.is_read:
@@ -66,7 +67,7 @@ def mark_all_notifications_read(
     user: User = Depends(get_current_user),
 ):
     now = datetime.now(timezone.utc)
-    rows = db.query(ResearcherNotification).filter(ResearcherNotification.is_read.is_(False)).all()
+    rows = db.query(ResearcherNotification).filter(ResearcherNotification.is_read.is_(False), ~ResearcherNotification.dedupe_key.startswith("v2:")).all()
     for row in rows:
         row.is_read = True
         row.read_at = now

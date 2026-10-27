@@ -126,3 +126,13 @@ def test_skill_summary_and_progress_keep_only_eligible_v2_evidence(researcher_cl
     assert report['skills'][0]['graded'] == report['skills'][0]['correct'] == 1
     assert report['skills'][0]['phase'] == 'learning'
     assert report['skills'][0]['observed_accuracy_percent'] == 100
+
+
+def test_bundled_arabic_font_works_without_host_font_packages(monkeypatch):
+    from pathlib import Path
+    from reports import _find_report_font
+    bundled = Path(__file__).resolve().parents[2] / 'assets/fonts/DejaVuSans.ttf'
+    monkeypatch.delenv('HIMMA_REPORT_FONT_PATH', raising=False)
+    monkeypatch.setattr(Path, 'is_file', lambda path: str(path) == str(bundled))
+    assert _find_report_font() == bundled
+    assert bundled.stat().st_size > 100000
