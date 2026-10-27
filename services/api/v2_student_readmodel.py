@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from db.learning_models import AssessmentQuestionResponse, LessonQuestionResponse, LessonSession, PlacementDecisionV2, PrivateContentBankSnapshot, StudentJourney
+from db.learning_models import AdaptationDecision, AssessmentQuestionResponse, LessonQuestionResponse, LessonSession, PlacementDecisionV2, PrivateContentBankSnapshot, StudentJourney, SupportAssignment
 from db.models import AssessmentSession, Attempt, ContentRelease, Student, User
 from dependencies import get_current_user, get_db
 from v2_assessment_runtime import current_action
@@ -267,8 +267,46 @@ def supervisor_student_v2_home(
                 "saved_attempts": db.query(Attempt.id).filter(Attempt.session_id == session.id).count(),
                 "official": bool(session.official_for_reporting),
             })
-    return {**home, "lesson_overview": _supervisor_lesson_overview(db, student),
-            "onboarding_review": history}
+    # Staff-only, bounded academic timeline. These are automatic policy events,
+    # not invitations for supervisors to edit a learner's placement or support.
+    release_id = (db.query(StudentJourney.content_release_id).filter(
+        StudentJourney.student_id == student.id,
+    ).scalar())
+    adaptation_rows = []
+    support_rows = []
+    if release_id is not None:
+        decisions = db.query(AdaptationDecision).filter(
+            AdaptationDecision.student_id == student.id,
+            AdaptationDecision.content_release_id == release_id,
+        ).order_by(AdaptationDecision.id.desc()).limit(30).all()
+        adaptation_rows = [{
+            "id": row.id,
+            "kind": row.decision_kind,
+            "reason_code": row.reason_code,
+            "policy_version": row.policy_version,
+            "unmastered_gap": row.reason_code == "support_gap_unresolved_continue_without_mastery",
+            "created_at": row.created_at,
+        } for row in decisions]
+        supports = db.query(SupportAssignment).filter(
+            SupportAssignment.student_id == student.id,
+            SupportAssignment.content_release_id == release_id,
+        ).order_by(SupportAssignment.id.desc()).limit(30).all()
+        support_rows = [{
+            "id": row.id,
+            "lesson_id": row.source_lesson_id,
+            "target_skill": row.target_skill,
+            "focus": row.focus,
+            "mode": row.mode,
+            "status": row.status,
+            "created_at": row.created_at,
+        } for row in supports]
+    return {
+        **home,
+        "lesson_overview": _supervisor_lesson_overview(db, student),
+        "onboarding_review": history,
+        "adaptation_decisions": adaptation_rows,
+        "support_assignments": support_rows,
+    }
 
 @router.get("/admin/students/overview")
 def supervisor_v2_cohort_overview(
