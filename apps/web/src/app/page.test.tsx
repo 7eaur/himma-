@@ -5,7 +5,8 @@ describe("Home page", () => {
   it("renders the child-focused welcome heading", () => {
     render(<Home />);
     expect(screen.getByRole("heading", { name: /اقرأ بثقة/ })).toBeInTheDocument();
-    expect(screen.getByText(/أنشطة قصيرة بالصوت والصورة والقراءة/)).toBeInTheDocument();
+    expect(screen.getByText(/ابدأ باختبار يحدد مستواك/)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /رحلتك في هِمّة/ })).toBeInTheDocument();
   });
 
   it("offers student login", () => {
