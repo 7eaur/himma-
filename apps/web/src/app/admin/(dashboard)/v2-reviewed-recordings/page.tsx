@@ -25,6 +25,7 @@ export default function ReviewedRecordingsPage() {
   const [kind, setKind] = useState("all");
   const [offset, setOffset] = useState(0);
   const [student, setStudent] = useState("");
+  const [urlReady, setUrlReady] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const requestSequence = useRef(0);
@@ -57,12 +58,21 @@ export default function ReviewedRecordingsPage() {
   }, [kind, offset, student]);
 
   useEffect(() => {
+    // Open a student's archive only after the URL-scoped filter is known.
+    // Never briefly show unrelated children's recordings on a deep link.
+    const value = new URLSearchParams(window.location.search).get("student_id");
+    if (value && /^[1-9]\\d*$/.test(value)) setStudent(value);
+    setUrlReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!urlReady) return;
     const timer = window.setTimeout(() => { void refresh(); }, 0);
     return () => {
       window.clearTimeout(timer);
       requestSequence.current += 1;
     };
-  }, [refresh]);
+  }, [refresh, urlReady]);
 
   return <AdminPage>
     <AdminPageHeader eyebrow="مراجعة الصوت" title="التسجيلات التي اكتمل تقييمها"
