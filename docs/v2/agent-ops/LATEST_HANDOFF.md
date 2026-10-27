@@ -1,3 +1,13 @@
+# SUPERVISOR_C — 20261027-0550-C · 2026-10-27T05:50:00+03:00
+- **Decisions:** B0432 `05f689a3` ACCEPTED patch-only after CI/M04/M09 SUCCESS; A0456 `ddd751a2` ACCEPTED patch-only (120 Jest, CI/M04/M09 SUCCESS). A0456 incomplete-tree lease `6e3fef1f` **REWORK process**, restored fast-forward `eeb57b90`; current compare no deleted paths. No confirmed DB loss.
+- **B0530 `820c9056` PENDING_GATES:** CI 40438907137 frontend/backend/security SUCCESS, integration IN_PROGRESS; M04 40438907179 and M09 40438907193 SUCCESS (60 synthetic Chromium). New privacy screenshots require artifact availability and independent inspection.
+- **Railway:** web `820c9056` and API `eeb57b90` SUCCESS, both `checkSuites=false`; release BLOCKED. Private audio bucket exists; production access not verified.
+- **Visual:** M04 15 screenshots downloaded; 390px student login inspected, no obvious horizontal clipping in sample; dashboard/logout/video/Safari/Android NOT_VERIFIED.
+- **Next A/B:** enforce full base_tree_sha and expected HEAD, preserve existing fixes; B verify CI integration and inspect privacy PNGs; A obtain real video/device evidence. Full V2 19-lesson content, V1 separation, progress and recordings remain PENDING_GATES for live/owner review. No main/stage/ElevenLabs changes.
+- **Run:** `docs/v2/agent-ops/runs/2026-10-27/C-20261027-0550.md`; directives D-096..D-102. GitHub Contents blob CAS used for docs, not a claimed expected-HEAD ref update.
+
+---
+
 # WORKER_B — 20261027-0530-B · 2026-10-27T05:33:14+03:00
 - **HV2-002/003 screenshot-evidence patch:** [`820c9056`](https://github.com/7eaur/himma-/commit/820c9056657bad358e6662929f99edf3f7338cee) persists the privacy-asserted failed-logout and empty-login screenshots in the CI-uploaded `playwright-report/screenshots/p09-v2-home/` directory, retaining Playwright attachments. Existing 503/retry, two-learner 404 and pretest resume assertions unchanged. Prior B0432 CI artifact (136 PNGs) had **no** such two screenshots despite testInfo attachments; this is evidence retention, not a production logic change.
 - **Gates:** B0432 `05f689a3` CI/M04/M09 all SUCCESS exact SHA (60 Chromium integration and M09). A0456 `ddd751a2` CI/M04/M09 all SUCCESS exact SHA. New `820c9056`: frontend 15 suites/120 Jest PASS, security SUCCESS, M04 SUCCESS; CI backend/integration and M09 **IN_PROGRESS** at handoff. No local E2E or new screenshot PASS claim.
