@@ -397,7 +397,7 @@ function StudentDetailView({ id }: { id: string }) {
                 </div>
               ))}</div>}
             <p className={styles.muted}>آخر 30 قرارًا من محرك التكيف V2 فقط. لا يتضمن هذا العرض سجلات الحساب الأمنية.</p>
-          </>
+          </>}
         </>}
       </section>
     );
