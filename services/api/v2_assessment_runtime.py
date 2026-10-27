@@ -450,6 +450,49 @@ def assessment_session(session_id: int, student: Student = Depends(_require_prev
     return _payload(db, _session(db, session_id, student.id))
 
 
+@router.post("/sessions/{session_id}/finalize-placement")
+def finalize_persisted_placement(
+    session_id: int,
+    student: Student = Depends(_require_preview_student),
+    db: Session = Depends(get_db),
+):
+    """Recover an already-graded V2 pretest created before automatic placement.
+
+    GETs remain read-only. A repeated POST is idempotent and returns the same
+    official result. Incomplete or unreviewed audio can never create placement.
+    """
+    db.query(Student.id).filter(Student.id == student.id).with_for_update().one()
+    session = db.query(AssessmentSession).filter(
+        AssessmentSession.id == session_id,
+        AssessmentSession.student_id == student.id,
+        AssessmentSession.session_type == "pretest",
+        AssessmentSession.v2_state.is_not(None),
+    ).with_for_update().one_or_none()
+    if session is None:
+        raise HTTPException(status_code=404, detail="جلسة القبلي غير موجودة")
+    if session.v2_state == "completed" and session.official_for_reporting:
+        return _payload(db, session)
+    if (session.v2_state != "placement_pending_review"
+            or session.status != "in_progress"
+            or session.v2_question_index != 30):
+        raise HTTPException(status_code=409, detail="جلسة القبلي ليست جاهزة لاستعادة التسكين")
+    if db.query(PlacementDecisionV2.id).filter(
+        PlacementDecisionV2.assessment_session_id == session.id,
+    ).first() is not None:
+        raise HTTPException(status_code=409, detail="قرار التسكين السابق يحتاج فحص اتساق")
+    # _finish_if_ready verifies all 30 responses, pending audio and the
+    # original immutable release before writing any academic placement.
+    result = _result(db, session)
+    if result["answered"] != 30 or result["pending_review"] or result["score_percent"] is None:
+        raise HTTPException(status_code=409, detail="ينبغي إكمال الأسئلة ومراجعة تسجيلات القراءة أولًا")
+    _finish_if_ready(db, session)
+    if session.v2_state != "completed":
+        raise HTTPException(status_code=409, detail="لم يكتمل قرار التسكين التلقائي")
+    db.commit()
+    db.refresh(session)
+    return _payload(db, session)
+
+
 @router.put("/sessions/{session_id}/draft")
 def save_draft(session_id: int, body: DraftRequest, student: Student = Depends(_require_preview_student), db: Session = Depends(get_db)):
     session = _session(db, session_id, student.id)
