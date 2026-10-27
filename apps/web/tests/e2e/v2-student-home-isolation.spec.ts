@@ -263,9 +263,13 @@ test("HV2-002/003: two synthetic learners keep pretest progress isolated across 
   await expect(page.getByTestId("student-identity")).toHaveCount(0);
   await expect(page.locator("main")).not.toContainText(names[0]);
   expect(logoutAttempts).toBe(1);
-  // Attach only the privacy-safe failed state; never capture an access code.
+  // The CI artifact uploads playwright-report/screenshots, not testInfo-only attachments.
+  // Save the privacy-asserted screen there as well, without any access code.
+  await mkdir(OUTPUT, { recursive: true });
+  const failedLogoutScreenshot = path.join(OUTPUT, "privacy-logout-failed-identity-hidden.png");
+  await page.screenshot({ path: failedLogoutScreenshot, fullPage: true });
   await testInfo.attach("v2-logout-failed-identity-hidden", {
-    body: await page.screenshot({ fullPage: true }), contentType: "image/png",
+    path: failedLogoutScreenshot, contentType: "image/png",
   });
 
   await page.getByRole("button", { name: "إعادة محاولة تسجيل الخروج" }).click();
@@ -274,8 +278,10 @@ test("HV2-002/003: two synthetic learners keep pretest progress isolated across 
   await page.unroute("**/api/auth/logout");
   await page.goto("/student/login");
   await expect(page.getByTestId("input-access-code")).toBeEmpty();
+  const emptyLoginScreenshot = path.join(OUTPUT, "privacy-logout-success-empty-login.png");
+  await page.screenshot({ path: emptyLoginScreenshot, fullPage: true });
   await testInfo.attach("v2-logout-success-empty-login", {
-    body: await page.screenshot({ fullPage: true }), contentType: "image/png",
+    path: emptyLoginScreenshot, contentType: "image/png",
   });
   const signedOutStatus = await page.evaluate(async () =>
     (await fetch("/api/v2/student/home", { cache: "no-store" })).status);
