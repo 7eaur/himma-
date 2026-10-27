@@ -15,6 +15,7 @@ from dependencies import get_current_user, get_db
 from v2_assessment_runtime import current_action
 from v2_lesson_runtime import _require_preview_student
 from v2_content.repository import get_release
+from v2_rewards import rewards_projection
 
 router = APIRouter(prefix="/v2/student", tags=["v2-student-home"])
 
@@ -169,7 +170,7 @@ def build_student_v2_home(db: Session, student: Student) -> dict:
         } if journey else None),
         "progress": progress,
         "assessments": by_kind,
-        "rewards": {"state": "not_implemented_v2"},
+        "rewards": rewards_projection(db, student.id, journey.content_release_id if journey else None),
         "data_status": "partial" if (journey or active_assessment or active_lesson) and lessons is None else "ready",
     }
 

@@ -15,6 +15,7 @@ import db.auth_models  # noqa: F401,E402
 import db.reinforcement_models  # noqa: F401,E402
 import db.speech_models  # noqa: F401,E402
 import db.notification_models  # noqa: F401,E402
+import db.v2_reward_models  # noqa: F401 — register V2 reward ledger
 import db.learning_models  # noqa: F401,E402
 from db.database import SQLALCHEMY_DATABASE_URL
 

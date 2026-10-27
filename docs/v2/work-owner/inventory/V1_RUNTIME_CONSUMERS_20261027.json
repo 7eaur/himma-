@@ -1,0 +1,696 @@
+{
+  "schema": "himma-v2-v1-dependency-review/1",
+  "date": "2026-10-27 Asia/Aden",
+  "branch": "v2/work-owner-staging-20261027",
+  "base_sha": "4d7cec1fda88bba9ccc643522a5da7b404036aaf",
+  "state": "SOURCE_INVENTORY_ONLY_NOT_DELETE_APPROVAL",
+  "sql_row_counts": "NOT_READ",
+  "backup_restore": "NOT_PERFORMED",
+  "data_delete_allowed": false,
+  "python_import_consumers": {
+    "assessment": [
+      {
+        "file": "services/api/test_option_history_reconciliation.py",
+        "line": 6,
+        "symbols": [
+          "_validate_option_ids"
+        ],
+        "test": true
+      },
+      {
+        "file": "services/api/activities.py",
+        "line": 19,
+        "symbols": [
+          "_commit_idempotent",
+          "_idempotency_replay",
+          "_request_hash",
+          "_store_idempotency",
+          "_validate_idempotency_key"
+        ],
+        "test": false
+      },
+      {
+        "file": "services/api/test_assessment_completion_route.py",
+        "line": 1,
+        "symbols": [
+          "router"
+        ],
+        "test": true
+      },
+      {
+        "file": "services/api/main.py",
+        "line": 10,
+        "symbols": [
+          "router"
+        ],
+        "test": false
+      },
+      {
+        "file": "services/api/activity_runtime.py",
+        "line": 41,
+        "symbols": [
+          "_commit_idempotent",
+          "_idempotency_replay",
+          "_request_hash",
+          "_store_idempotency",
+          "_validate_idempotency_key"
+        ],
+        "test": false
+      }
+    ],
+    "activity_runtime": [
+      {
+        "file": "services/api/test_activity_route_ownership.py",
+        "line": 6,
+        "symbols": [
+          "router"
+        ],
+        "test": true
+      },
+      {
+        "file": "services/api/learning_experience.py",
+        "line": 21,
+        "symbols": [
+          "effective_step_state",
+          "navigation_target"
+        ],
+        "test": false
+      },
+      {
+        "file": "services/api/test_activity_audio_navigation.py",
+        "line": 4,
+        "symbols": [
+          "_next_unattempted_core_item",
+          "effective_step_state",
+          "navigation_target"
+        ],
+        "test": true
+      },
+      {
+        "file": "services/api/main.py",
+        "line": 16,
+        "symbols": [
+          "router"
+        ],
+        "test": false
+      },
+      {
+        "file": "services/api/test_activities_v4.py",
+        "line": 5,
+        "symbols": [
+          "_next_unattempted_core_item"
+        ],
+        "test": true
+      }
+    ],
+    "assessment_view": [
+      {
+        "file": "services/api/test_posttest_structured_presentation.py",
+        "line": 11,
+        "symbols": [
+          "_reference_stimulus_text"
+        ],
+        "test": true
+      },
+      {
+        "file": "services/api/main.py",
+        "line": 12,
+        "symbols": [
+          "router"
+        ],
+        "test": false
+      }
+    ],
+    "learning_experience": [
+      {
+        "file": "services/api/main.py",
+        "line": 17,
+        "symbols": [
+          "router"
+        ],
+        "test": false
+      }
+    ],
+    "journey": [
+      {
+        "file": "services/api/test_manual_override_session_integrity.py",
+        "line": 15,
+        "symbols": [
+          "build_journey_summary"
+        ],
+        "test": true
+      },
+      {
+        "file": "services/api/protected.py",
+        "line": 21,
+        "symbols": [
+          "build_journey_summary"
+        ],
+        "test": false
+      },
+      {
+        "file": "services/api/researcher_journey.py",
+        "line": 13,
+        "symbols": [
+          "build_journey_summary"
+        ],
+        "test": false
+      },
+      {
+        "file": "services/api/assessment_retake.py",
+        "line": 25,
+        "symbols": [
+          "build_journey_summary"
+        ],
+        "test": false
+      },
+      {
+        "file": "services/api/main.py",
+        "line": 23,
+        "symbols": [
+          "router"
+        ],
+        "test": false
+      },
+      {
+        "file": "services/api/test_m09_full_single_candidate_journey.py",
+        "line": 29,
+        "symbols": [
+          "build_journey_summary"
+        ],
+        "test": true
+      },
+      {
+        "file": "services/api/tests/support/w6_complete_learning_fixture.py",
+        "line": 24,
+        "symbols": [
+          "build_journey_summary"
+        ],
+        "test": true
+      }
+    ],
+    "adaptation": [
+      {
+        "file": "services/api/test_level_completion_w1.py",
+        "line": 9,
+        "symbols": [
+          "ensure_rewards"
+        ],
+        "test": true
+      },
+      {
+        "file": "services/api/adaptation_runtime.py",
+        "line": 19,
+        "symbols": [
+          "evaluate_student"
+        ],
+        "test": false
+      },
+      {
+        "file": "services/api/test_audio_adaptation_boundaries.py",
+        "line": 11,
+        "symbols": [
+          "_attempt_signal"
+        ],
+        "test": true
+      },
+      {
+        "file": "services/api/test_adaptation.py",
+        "line": 5,
+        "symbols": [
+          "decide_transition",
+          "weighted_mastery"
+        ],
+        "test": true
+      },
+      {
+        "file": "services/api/test_reward_catalog.py",
+        "line": 7,
+        "symbols": [
+          "_reward_payload"
+        ],
+        "test": true
+      },
+      {
+        "file": "services/api/test_adaptation_recovery_regressions.py",
+        "line": 6,
+        "symbols": [
+          "_add_reward_once",
+          "_previous_automatic_decision_same_level",
+          "decide_transition"
+        ],
+        "test": true
+      },
+      {
+        "file": "services/api/test_adaptation_runtime.py",
+        "line": 6,
+        "symbols": [
+          "ensure_rewards"
+        ],
+        "test": true
+      },
+      {
+        "file": "services/api/activities_v4.py",
+        "line": 14,
+        "symbols": [
+          "_load_policy",
+          "_valid_signals"
+        ],
+        "test": false
+      },
+      {
+        "file": "services/api/main.py",
+        "line": 18,
+        "symbols": [
+          "router"
+        ],
+        "test": false
+      },
+      {
+        "file": "services/api/test_activities_v4.py",
+        "line": 6,
+        "symbols": [
+          "_load_policy"
+        ],
+        "test": true
+      },
+      {
+        "file": "services/api/test_student_adaptation_scenario_matrix.py",
+        "line": 13,
+        "symbols": [
+          "_completed_core_count",
+          "_valid_signals",
+          "decide_transition"
+        ],
+        "test": true
+      },
+      {
+        "file": "services/api/test_m09_full_single_candidate_journey.py",
+        "line": 21,
+        "symbols": [
+          "_load_policy"
+        ],
+        "test": true
+      }
+    ],
+    "adaptation_runtime": [
+      {
+        "file": "services/api/activities.py",
+        "line": 414,
+        "symbols": [
+          "prepare_next_for_student"
+        ],
+        "test": false
+      },
+      {
+        "file": "services/api/test_adaptation_runtime.py",
+        "line": 7,
+        "symbols": [
+          "prepare_next_for_student"
+        ],
+        "test": true
+      },
+      {
+        "file": "services/api/main.py",
+        "line": 19,
+        "symbols": [
+          "router"
+        ],
+        "test": false
+      },
+      {
+        "file": "services/api/activity_runtime.py",
+        "line": 40,
+        "symbols": [
+          "prepare_next_for_student"
+        ],
+        "test": false
+      },
+      {
+        "file": "services/api/test_m09_full_single_candidate_journey.py",
+        "line": 22,
+        "symbols": [
+          "prepare_next_for_student"
+        ],
+        "test": true
+      }
+    ],
+    "reinforcement_review": [
+      {
+        "file": "services/api/main.py",
+        "line": 20,
+        "symbols": [
+          "router"
+        ],
+        "test": false
+      }
+    ],
+    "review": [
+      {
+        "file": "services/api/main.py",
+        "line": 14,
+        "symbols": [
+          "router"
+        ],
+        "test": false
+      }
+    ],
+    "reports": [
+      {
+        "file": "services/api/v2_reports.py",
+        "line": 21,
+        "symbols": [
+          "_pdf_styles",
+          "_rtl"
+        ],
+        "test": false
+      },
+      {
+        "file": "services/api/test_reports_exports.py",
+        "line": 7,
+        "symbols": [
+          "_cohort_pdf_bytes",
+          "_student_pdf_bytes",
+          "_xlsx_bytes"
+        ],
+        "test": true
+      },
+      {
+        "file": "services/api/main.py",
+        "line": 25,
+        "symbols": [
+          "router"
+        ],
+        "test": false
+      },
+      {
+        "file": "services/api/test_v2_reports.py",
+        "line": 133,
+        "symbols": [
+          "_find_report_font"
+        ],
+        "test": true
+      }
+    ],
+    "skill_reports": [
+      {
+        "file": "services/api/main.py",
+        "line": 26,
+        "symbols": [
+          "router"
+        ],
+        "test": false
+      }
+    ],
+    "admin_notifications": [
+      {
+        "file": "services/api/main.py",
+        "line": 27,
+        "symbols": [
+          "router"
+        ],
+        "test": false
+      }
+    ],
+    "notification_events": [
+      {
+        "file": "services/api/v2_notifications.py",
+        "line": 16,
+        "symbols": [
+          "_insert_notification"
+        ],
+        "test": false
+      }
+    ],
+    "reward_catalog": [
+      {
+        "file": "services/api/adaptation.py",
+        "line": 50,
+        "symbols": [
+          "badge_entry_for_level",
+          "badge_levels",
+          "present_reward"
+        ],
+        "test": false
+      },
+      {
+        "file": "services/api/test_reward_catalog.py",
+        "line": 9,
+        "symbols": [
+          "REWARD_CATALOG_VERSION",
+          "badge_entry_for_level",
+          "catalog_payload",
+          "present_reward",
+          "star_entry"
+        ],
+        "test": true
+      },
+      {
+        "file": "services/api/v2_rewards.py",
+        "line": 15,
+        "symbols": [
+          "badge_entry_for_level",
+          "REWARD_CATALOG_VERSION"
+        ],
+        "test": false
+      },
+      {
+        "file": "services/api/reward_catalog_api.py",
+        "line": 6,
+        "symbols": [
+          "catalog_payload"
+        ],
+        "test": false
+      }
+    ],
+    "protected": [
+      {
+        "file": "services/api/test_level_completion_w1.py",
+        "line": 14,
+        "symbols": [
+          "_core_progress"
+        ],
+        "test": true
+      },
+      {
+        "file": "services/api/v2_student_accounts.py",
+        "line": 10,
+        "symbols": [
+          "_audit",
+          "_ensure_unique_access_code",
+          "_generate_access_code",
+          "_student_payload"
+        ],
+        "test": false
+      },
+      {
+        "file": "services/api/test_profile_audio_review_state.py",
+        "line": 12,
+        "symbols": [
+          "_assessment_display_status"
+        ],
+        "test": true
+      },
+      {
+        "file": "services/api/main.py",
+        "line": 9,
+        "symbols": [
+          "router"
+        ],
+        "test": false
+      }
+    ]
+  },
+  "frontend_legacy_or_shared_api_references": [
+    {
+      "file": "apps/web/src/components/StudentRerecordTasks.tsx",
+      "line": 29,
+      "reference": "? `/api/activities/session/${sessionId}/rerecord-tasks`"
+    },
+    {
+      "file": "apps/web/src/components/StudentRerecordTasks.tsx",
+      "line": 30,
+      "reference": ": `/api/assessment/session/${sessionId}/rerecord-tasks`;"
+    },
+    {
+      "file": "apps/web/src/components/ReinforcementReviewPanel.tsx",
+      "line": 55,
+      "reference": "void fetch(`/api/researcher/students/${studentId}/adaptation/reinforcement-options`, { cache: \"no-store\" })"
+    },
+    {
+      "file": "apps/web/src/components/ReinforcementReviewPanel.tsx",
+      "line": 114,
+      "reference": "const response = await fetch(`/api/researcher/students/${studentId}/adaptation/assign-reinforcement`, {"
+    },
+    {
+      "file": "apps/web/src/app/student/activity/[id]/page.tsx",
+      "line": 157,
+      "reference": "const response = await fetch(`/api/activities/session/${sessionId}/progress`, { cache: \"no-store\" });"
+    },
+    {
+      "file": "apps/web/src/app/student/activity/[id]/page.tsx",
+      "line": 190,
+      "reference": "const advance = await fetch(`/api/activities/session/${sessionId}/next`, { cache: \"no-store\" });"
+    },
+    {
+      "file": "apps/web/src/app/student/activity/[id]/page.tsx",
+      "line": 348,
+      "reference": "const response = await fetch(`/api/activities/session/${sessionId}/attempt/${itemId}/submit`, {"
+    },
+    {
+      "file": "apps/web/src/app/student/activity/[id]/page.tsx",
+      "line": 421,
+      "reference": "const upload = await fetch(`/api/assessment/session/${sessionId}/upload-audio`, {"
+    },
+    {
+      "file": "apps/web/src/app/student/activity/[id]/page.tsx",
+      "line": 429,
+      "reference": "const submit = await fetch(`/api/activities/session/${sessionId}/attempt/${itemId}/submit`, {"
+    },
+    {
+      "file": "apps/web/src/app/student/session/[id]/page.tsx",
+      "line": 170,
+      "reference": "const response = await fetch(`/api/assessment/session/${sessionId}/progress`, { cache: \"no-store\" });"
+    },
+    {
+      "file": "apps/web/src/app/student/session/[id]/page.tsx",
+      "line": 175,
+      "reference": "const response = await fetch(`/api/assessment/session/${sessionId}/rerecord-tasks`, { cache: \"no-store\" });"
+    },
+    {
+      "file": "apps/web/src/app/student/session/[id]/page.tsx",
+      "line": 189,
+      "reference": "const response = await fetch(`/api/assessment/session/${sessionId}/finish`, { method: \"POST\" });"
+    },
+    {
+      "file": "apps/web/src/app/student/session/[id]/page.tsx",
+      "line": 247,
+      "reference": "`/api/assessment/session/${sessionId}/attempt/${rerecordTask.item_id}/step/${rerecordTask.step_id}/rerecord/start`,"
+    },
+    {
+      "file": "apps/web/src/app/student/session/[id]/page.tsx",
+      "line": 310,
+      "reference": "const response = await fetch(`/api/assessment/session/${sessionId}/attempt/${item.id}/submit`, {"
+    },
+    {
+      "file": "apps/web/src/app/student/session/[id]/page.tsx",
+      "line": 367,
+      "reference": "const upload = await fetch(`/api/assessment/session/${sessionId}/upload-audio`, {"
+    },
+    {
+      "file": "apps/web/src/app/student/session/[id]/page.tsx",
+      "line": 375,
+      "reference": "const submit = await fetch(`/api/assessment/session/${sessionId}/attempt/${item.id}/submit`, {"
+    },
+    {
+      "file": "apps/web/src/app/admin/(dashboard)/content-preview/LegacyContentPreview.tsx",
+      "line": 233,
+      "reference": "const response = await fetch(\"/api/researcher/content-preview\", { cache: \"no-store\" });"
+    },
+    {
+      "file": "apps/web/src/app/admin/(dashboard)/content-preview/LegacyContentPreview.tsx",
+      "line": 240,
+      "reference": "const response = await fetch(`/api/researcher/content-preview/${encodeURIComponent(canonicalId)}`, { cache: \"no-store\" });"
+    },
+    {
+      "file": "apps/web/src/app/admin/(dashboard)/settings/page.tsx",
+      "line": 37,
+      "reference": "fetch(\"/api/researcher/account\", { cache: \"no-store\" }),"
+    },
+    {
+      "file": "apps/web/src/app/admin/(dashboard)/settings/page.tsx",
+      "line": 38,
+      "reference": "fetch(\"/api/researcher/supervisors\", { cache: \"no-store\" }),"
+    },
+    {
+      "file": "apps/web/src/app/admin/(dashboard)/settings/page.tsx",
+      "line": 80,
+      "reference": "const response = await fetch(\"/api/researcher/account\", { method: \"PATCH\", headers: { \"Content-Type\": \"application/json\" }, body: JSON.stringify({ username }) });"
+    },
+    {
+      "file": "apps/web/src/app/admin/(dashboard)/settings/page.tsx",
+      "line": 94,
+      "reference": "const response = await fetch(\"/api/researcher/account/password\", { method: \"POST\", headers: { \"Content-Type\": \"application/json\" }, body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }) });"
+    },
+    {
+      "file": "apps/web/src/app/admin/(dashboard)/settings/page.tsx",
+      "line": 104,
+      "reference": "const response = await fetch(\"/api/researcher/supervisors\", { method: \"POST\", headers: { \"Content-Type\": \"application/json\" }, body: JSON.stringify({ username: newSupervisorName, password: newSupervisorPassword }) });"
+    },
+    {
+      "file": "apps/web/src/app/admin/(dashboard)/reports/LegacyReports.tsx",
+      "line": 11,
+      "reference": "async function fetchResearchSummary():Promise<ResearchSummary>{const response=await fetch(\"/api/researcher/reports/summary\",{cache:\"no-store\"});const payload=await response.json().catch(()=>null);if(!response.ok||!payload)throw new Error(payload?.detail||\"تعذر تحميل التقرير البحثي\");return payload as ResearchSummary;}"
+    },
+    {
+      "file": "apps/web/src/app/admin/(dashboard)/reports/LegacyReports.tsx",
+      "line": 12,
+      "reference": "export default function ReportsPage(){const[data,setData]=useState<ResearchSummary|null>(null);const[loading,setLoading]=useState(true);const[error,setError]=useState(\"\");const refresh=async()=>{setLoading(true);setError(\"\");try{setData(await fetchResearchSummary());}catch(caught:unknown){setError(caught instanceof Error?caught.message:\"تعذر تحميل التقرير البحثي\");}finally{setLoading(false);}};useEffect(()=>{let cancelled=false;fetchResearchSummary().then(payload=>{if(!cancelled)setData(payload);}).catch((caught:unknown)=>{if(!cancelled)setError(caught instanceof Error?caught.message:\"تعذر تحم"
+    },
+    {
+      "file": "apps/web/src/app/admin/(dashboard)/skill-reports/LegacySkillReports.tsx",
+      "line": 9,
+      "reference": "async function fetchSkillEvidence():Promise<SkillEvidencePayload>{const response=await fetch(\"/api/researcher/reports/skills\",{cache:\"no-store\"});const payload=await response.json().catch(()=>null);if(!response.ok||!payload)throw new Error(payload?.detail||\"تعذر تحميل ملخص المهارات\");return payload as SkillEvidencePayload;}"
+    },
+    {
+      "file": "apps/web/src/app/admin/(dashboard)/skill-reports/LegacySkillReports.tsx",
+      "line": 10,
+      "reference": "export default function SkillReportsPage(){const[data,setData]=useState<SkillEvidencePayload|null>(null);const[loading,setLoading]=useState(true);const[error,setError]=useState(\"\");const refresh=async()=>{setLoading(true);setError(\"\");try{setData(await fetchSkillEvidence());}catch(caught:unknown){setError(caught instanceof Error?caught.message:\"تعذر تحميل ملخص المهارات\");}finally{setLoading(false);}};useEffect(()=>{let cancelled=false;fetchSkillEvidence().then(payload=>{if(!cancelled)setData(payload);}).catch((caught:unknown)=>{if(!cancelled)setError(caught instanceof Error?caught.message:\"تعذ"
+    },
+    {
+      "file": "apps/web/src/app/admin/(dashboard)/students/new/page.tsx",
+      "line": 28,
+      "reference": "const response = await fetch(\"/api/researcher/students\", {"
+    },
+    {
+      "file": "apps/web/src/app/admin/(dashboard)/students/[id]/page.tsx",
+      "line": 258,
+      "reference": "`/api/researcher/students/${id}/journey`, setJourney, setJourneyState,"
+    },
+    {
+      "file": "apps/web/src/app/admin/(dashboard)/students/[id]/page.tsx",
+      "line": 261,
+      "reference": "`/api/researcher/students/${id}/adaptation/history`, setHistory, setHistoryState,"
+    },
+    {
+      "file": "apps/web/src/app/admin/(dashboard)/students/[id]/page.tsx",
+      "line": 264,
+      "reference": "`/api/researcher/students/${id}/rewards`, setRewards, setRewardsState,"
+    },
+    {
+      "file": "apps/web/src/app/admin/(dashboard)/students/[id]/page.tsx",
+      "line": 320,
+      "reference": "const response = await fetch(`/api/researcher/students/${student.id}/journey`, { cache: \"no-store\" });"
+    },
+    {
+      "file": "apps/web/src/app/admin/(dashboard)/students/[id]/page.tsx",
+      "line": 333,
+      "reference": "fetch(`/api/researcher/students/${student.id}/adaptation/history`, { cache: \"no-store\" }),"
+    },
+    {
+      "file": "apps/web/src/app/admin/(dashboard)/students/[id]/page.tsx",
+      "line": 334,
+      "reference": "fetch(`/api/researcher/students/${student.id}/rewards`, { cache: \"no-store\" }),"
+    },
+    {
+      "file": "apps/web/src/app/admin/(dashboard)/students/[id]/page.tsx",
+      "line": 432,
+      "reference": "const response = await fetch(`/api/researcher/students/${student.id}/posttest-access`, { method: \"POST\", headers: { \"Content-Type\": \"application/json\" }, body: JSON.stringify({ enabled: !student.posttest_enabled }) });"
+    },
+    {
+      "file": "apps/web/src/app/admin/(dashboard)/students/[id]/page.tsx",
+      "line": 444,
+      "reference": "const response = await fetch(`/api/researcher/students/${student.id}/adaptation/manual-override`, { method: \"POST\", headers: { \"Content-Type\": \"application/json\" }, body: JSON.stringify({ new_level: Number(overrideLevel), reason: overrideReason.trim() }) });"
+    },
+    {
+      "file": "apps/web/src/app/admin/(dashboard)/students/[id]/page.tsx",
+      "line": 447,
+      "reference": "const refreshed = await fetch(`/api/researcher/students/${student.id}`, { cache: \"no-store\" });"
+    },
+    {
+      "file": "apps/web/src/components/admin/AdminNotifications.tsx",
+      "line": 29,
+      "reference": "const endpoint = archive ? \"/api/researcher/notifications\" : \"/api/v2/notifications\";"
+    }
+  ]
+}

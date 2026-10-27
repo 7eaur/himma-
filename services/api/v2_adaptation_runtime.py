@@ -206,6 +206,8 @@ def _complete_lesson(db: Session, session: LessonSession, assignment: SupportAss
         journey.placement_state = "posttest_ready"
     journey.version += 1
     journey.updated_at = now
+    from v2_rewards import reconcile_rewards
+    reconcile_rewards(db, session.student_id, lesson_session_id=session.id)
 
 
 def finish_independent_check(db: Session, session: LessonSession, *, decision_key: str = "independent:1") -> AdaptationDecision:

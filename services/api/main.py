@@ -38,6 +38,7 @@ from v2_student_readmodel import router as v2_student_readmodel_router
 from v2_reports import router as v2_reports_router
 from v2_notifications import router as v2_notifications_router
 from v2_student_accounts import router as v2_student_accounts_router
+from v2_rewards import router as v2_rewards_router
 from v2_retry_runtime import router as v2_retry_router
 from v2_review_claims import router as v2_review_claims_router
 from v2_review_history import router as v2_review_history_router
@@ -118,6 +119,7 @@ app.include_router(v2_student_readmodel_router)
 app.include_router(v2_reports_router)
 app.include_router(v2_notifications_router)
 app.include_router(v2_student_accounts_router)
+app.include_router(v2_rewards_router)
 app.include_router(v2_retry_router)
 app.include_router(v2_review_claims_router)
 app.include_router(v2_review_history_router)

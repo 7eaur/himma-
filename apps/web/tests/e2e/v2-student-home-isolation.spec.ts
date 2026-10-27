@@ -42,7 +42,7 @@ test("P09.1-C: enrolled V2 dashboard never mixes historic progress or rewards", 
       skipped_by_placement: 5, pending_review: 0, display_percent: 21.4,
     },
     assessments: { pretest: { session_id: 70, state: "completed", official: true, score_percent: 85 }, posttest: null },
-    rewards: { state: "not_implemented_v2" }, data_status: "ready",
+    rewards: { state: "ready", source: "himma_v2_reward_ledger", policy_version: "himma-v2-effort/1", total_stars: 0, badges: [], lessons: [] }, data_status: "ready",
   };
   await page.route("**/api/v2/student/home", route => route.fulfill({ json: home }));
   await page.route("**/api/v2/retries/student/tasks?*", route => route.fulfill({ json: { items: [], next_offset: null } }));
@@ -56,7 +56,7 @@ test("P09.1-C: enrolled V2 dashboard never mixes historic progress or rewards", 
     await expect(page.getByTestId("student-v2-progress")).toContainText("21.4%");
     await expect(page.getByTestId("student-journey-status")).toHaveText("الحركات والكلمات");
     await expect(page.getByTestId("student-primary-action")).toHaveText("متابعة الرحلة التعليمية");
-    await expect(page.getByText("لا نعرض نجومًا قبل اعتماد نظام مكافآت V2.")).toBeVisible();
+    await expect(page.getByTestId("v2-star-total")).toHaveText("0 نجمة");
     await expect(page.locator("[data-testid='student-badges']")).toHaveCount(0);
     await expect(page.locator("[data-testid='v2-learning-preview']")).toHaveCount(0);
     const widths = await page.evaluate(() => [document.documentElement.scrollWidth, window.innerWidth]);
@@ -98,7 +98,7 @@ test("P09.1-C: an awaiting pretest never displays fictitious scores or stars", a
       pending_review: 0, display_percent: null,
     },
     assessments: { pretest: { session_id: 80, state: "placement_pending_review", official: false, score_percent: null }, posttest: null },
-    rewards: { state: "not_implemented_v2" }, data_status: "ready",
+    rewards: { state: "ready", source: "himma_v2_reward_ledger", policy_version: "himma-v2-effort/1", total_stars: 0, badges: [], lessons: [] }, data_status: "ready",
   } }));
   await page.route("**/api/v2/retries/student/tasks?*", route => route.fulfill({ json: { items: [], next_offset: null } }));
   await page.setViewportSize({ width: 390, height: 844 });

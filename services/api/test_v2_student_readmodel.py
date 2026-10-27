@@ -13,7 +13,8 @@ def test_legacy_student_v2_home_is_non_mutating_and_never_claims_v1_rewards(stud
     assert data["journey"] is None
     assert data["progress"]["assigned_lessons"] is None
     assert data["progress"]["display_percent"] is None
-    assert data["rewards"] == {"state": "not_implemented_v2"}
+    assert data["rewards"]["source"] == "himma_v2_reward_ledger"
+    assert data["rewards"]["total_stars"] == 0
     assert data["current_action"]["action"] == "start_pretest"
     assert "access_code" not in result.text and "private_answer" not in result.text
     with TestingSessionLocal() as db:
@@ -54,7 +55,8 @@ def test_pinned_placement_counts_assigned_and_skipped_not_legacy_activities(stud
     assert data["progress"]["assigned_lessons"] + data["progress"]["skipped_by_placement"] == 19
     assert data["progress"]["display_percent"] == 0.0
     assert data["progress"]["completed_lessons"] == 0
-    assert data["rewards"]["state"] == "not_implemented_v2"
+    assert data["rewards"]["state"] == "ready"
+    assert data["rewards"]["total_stars"] == 0
     assert "private_answer" not in result.text and "access_code" not in result.text
 
 
@@ -167,7 +169,8 @@ def test_v2_home_fails_closed_when_frozen_bank_checksum_mismatches(student_clien
     assert data["data_status"] == "partial"
     assert data["progress"]["assigned_lessons"] is None
     assert data["progress"]["display_percent"] is None
-    assert data["rewards"] == {"state": "not_implemented_v2"}
+    assert data["rewards"]["source"] == "himma_v2_reward_ledger"
+    assert data["rewards"]["total_stars"] == 0
 
 
 

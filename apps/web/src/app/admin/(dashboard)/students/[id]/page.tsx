@@ -22,6 +22,7 @@ import {
   Star,
   User,
 } from "lucide-react";
+import V2Rewards from "@/components/rewards/V2Rewards";
 import CanonicalRewardBadge from "@/components/rewards/CanonicalRewardBadge";
 import type { StudentV2Home } from "@/app/student/V2StudentDashboard";
 
@@ -400,6 +401,17 @@ function StudentDetailView({ id }: { id: string }) {
     catch { setMessage({kind:"error",text:"تعذر نسخ الرمز. أظهر الرمز وأعد المحاولة."}); }
     finally { setBusy(""); }
   };
+  const reconcileV2Rewards = async () => {
+    if (busy) return;
+    setBusy("rewards-v2");
+    try {
+      const response=await fetch(`/api/v2/rewards/admin/students/${id}/reconcile`,{method:"POST"});
+      const body=await response.json().catch(()=>null);
+      if (!response.ok) throw new Error(apiError(body,"تعذر مزامنة الاستحقاقات"));
+      setV2Reload(value=>value+1);setMessage({kind:"success",text:`تم التحقق من الاستحقاقات. منح جديدة: ${body.inserted}.`});
+    } catch(error) {setMessage({kind:"error",text:error instanceof Error?error.message:"تعذر مزامنة الاستحقاقات"});}
+    finally{setBusy("");}
+  };
   const updateV2PosttestAccess = async () => {
     if (!student || busy) return;
     setBusy("posttest-v2");
@@ -520,6 +532,8 @@ function StudentDetailView({ id }: { id: string }) {
                 ))}
               </div>}
           </div>
+          <V2Rewards data={v2Home.rewards} variant="admin" />
+          <button type="button" className={styles.secondary} disabled={Boolean(busy)} onClick={() => void reconcileV2Rewards()}>مزامنة الاستحقاقات المثبتة</button>
           {v2Home.journey?.placement_state === "posttest_ready" && <div className={styles.actions} style={{marginTop: 16}}><button className={styles.primary} disabled={Boolean(busy)} onClick={() => void updateV2PosttestAccess()}>{busy === "posttest-v2" ? "جاري الحفظ..." : student.posttest_enabled ? "إيقاف إتاحة البعدي V2" : "فتح الاختبار البعدي V2"}</button></div>}
           <div className={styles.actions} style={{ marginTop: 16 }}>
             <Link className={styles.primary} href="/admin/v2-assessments">تقييمات ومراجعات V2</Link>

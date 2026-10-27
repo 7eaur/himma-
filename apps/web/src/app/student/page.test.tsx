@@ -20,7 +20,7 @@ const firstTime: StudentV2Home = {
   journey: null,
   progress: { completed_lessons: 0, assigned_lessons: null, skipped_by_placement: 0, pending_review: 0, display_percent: null },
   assessments: { pretest: null, posttest: null },
-  rewards: { state: "not_implemented_v2" },
+  rewards: { state: "ready", source: "himma_v2_reward_ledger", policy_version: "himma-v2-effort/1", total_stars: 0, badges: [], lessons: [] },
   data_status: "ready",
 };
 
@@ -91,7 +91,7 @@ describe("Student page V2-only learner boundary", () => {
     expect(await screen.findByText("أكملت 3 من 14 درسًا مخصصًا لك.")).toBeInTheDocument();
     expect(screen.getByTestId("student-journey-status")).toHaveTextContent("الحركات والكلمات");
     expect(screen.getByTestId("student-v2-progress")).toHaveTextContent("21.4%");
-    expect(screen.getByText(/لا نعرض نجومًا قبل اعتماد نظام مكافآت V2/)).toBeInTheDocument();
+    expect(screen.getByTestId("v2-star-total")).toHaveTextContent("0 نجمة");
     fireEvent.click(screen.getByRole("button", { name: "متابعة الرحلة التعليمية" }));
     expect(push).toHaveBeenCalledWith("/student/learning-v2");
     expect(fetcher.mock.calls.some(([url]) => url === "/api/rewards")).toBe(false);

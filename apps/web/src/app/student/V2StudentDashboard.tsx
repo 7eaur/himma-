@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { BookOpenCheck, CheckCircle2, ClipboardList, LogOut, Sparkles } from "lucide-react";
+import V2Rewards, { type V2RewardsData } from "@/components/rewards/V2Rewards";
 import StudentRetryTasks from "@/components/learning/StudentRetryTasks";
 import styles from "./home.module.css";
 
@@ -35,7 +36,7 @@ export interface StudentV2Home {
     pretest: { state: string | null; session_id: number; official: boolean; score_percent: number | null } | null;
     posttest: { state: string | null; session_id: number; official: boolean; score_percent: number | null } | null;
   };
-  rewards: { state: "not_implemented_v2" };
+  rewards: V2RewardsData;
   data_status: "ready" | "partial";
 }
 
@@ -239,7 +240,7 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
           <div><span>تجاوزتها بالتسكين</span><strong>{home.data_status === "partial" || !placed ? "—" : progress.skipped_by_placement}</strong></div>
           <div><span>بانتظار المراجعة</span><strong>{progress.pending_review}</strong></div>
         </div>
-        <p className="mt-4 text-sm text-muted">الدروس المتجاوزة بالتسكين لا تُحسب دروسًا منجزة، ولا نعرض نجومًا قبل اعتماد نظام مكافآت V2.</p>
+        <p className="mt-4 text-sm text-muted">ابدأ من خطوتك الحالية، وتقدم درسًا بعد درس.</p>
       </section>
 
       <section className={styles.journey} aria-label="مراحل الرحلة">
@@ -260,6 +261,7 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
         </div>
       </section>
 
+      <V2Rewards data={home.rewards} />
       <StudentRetryTasks dashboard />
       {home.test_only && <p className="mt-4 text-xs text-muted">معاينة V2 مرحلية · TEST ONLY — لم تعتمد جميع الوسائط التعليمية للنشر النهائي.</p>}
     </main>

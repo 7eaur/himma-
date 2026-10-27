@@ -432,6 +432,8 @@ def submit_answer(
             db=db,
             assignment=assignment,
         )
+    from v2_rewards import reconcile_rewards
+    reconcile_rewards(db, student.id, lesson_session_id=session.id)
     db.commit()
     db.refresh(session)
     return {

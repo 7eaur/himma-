@@ -125,7 +125,7 @@ test("Student360 never displays the previous student's identity or code during a
   let releaseSecond!: () => void;
   let secondIntercepted = false;
   const secondGate = new Promise<void>(resolve => { releaseSecond = resolve; });
-  await page.route(`**/api/researcher/students/${second.id}`, async route => {
+  await page.route(`**/api/v2/student/admin/students/${second.id}/account`, async route => {
     secondIntercepted = true;
     await secondGate;
     await route.continue();
@@ -152,7 +152,7 @@ test("Student360 never displays the previous student's identity or code during a
   let releaseFirst!: () => void;
   let firstIntercepted = false;
   const firstGate = new Promise<void>(resolve => { releaseFirst = resolve; });
-  await page.route(`**/api/researcher/students/${first.id}`, async route => {
+  await page.route(`**/api/v2/student/admin/students/${first.id}/account`, async route => {
     firstIntercepted = true;
     await firstGate;
     await route.continue();

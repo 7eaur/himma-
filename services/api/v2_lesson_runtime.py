@@ -286,6 +286,8 @@ def record_lesson_event(
             "duration_seconds": event.duration_seconds,
         },
     ))
+    from v2_rewards import reconcile_rewards
+    reconcile_rewards(db, student.id, lesson_session_id=session.id)
     db.commit()
     db.refresh(session)
     return _session_payload(session)
