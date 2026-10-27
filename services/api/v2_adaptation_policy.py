@@ -93,11 +93,10 @@ def evaluate_independent(signals: list[EvidenceSignal], questions: dict[str, dic
         else:
             unmapped.append(row)
     if unmapped:
-        return PolicyDecision(
-            kind="supervisor_hold",
-            reason_code="authoring_focus_mapping_missing",
-            evidence_ids=tuple(row.evidence_id for row in unmapped),
-        )
+        # A missing teaching mapping is a broken content release, not a
+        # learner needing a human to choose an arbitrary remediation.
+        # The compiler rejects new releases with such missing mappings.
+        raise ValueError("pinned lesson has unmapped independent evidence")
 
     counts = Counter((support_id, focus) for _, support_id, focus in mapped)
     chosen = next((key for key, count in counts.items() if count >= 2), None)
@@ -128,7 +127,8 @@ def evaluate_support(signals: list[EvidenceSignal], *, was_additional_check: boo
             evidence_ids=tuple(row.evidence_id for row in signals),
         )
     return PolicyDecision(
-        kind="targeted_support" if was_additional_check else "supervisor_hold",
-        reason_code="alternate_check_confirmed_gap" if was_additional_check else "support_attempt_limit_reached",
+        kind="targeted_support" if was_additional_check else "next_lesson",
+        reason_code=("alternate_check_confirmed_gap" if was_additional_check
+                     else "support_gap_unresolved_continue_without_mastery"),
         evidence_ids=tuple(row.evidence_id for row in signals),
     )
