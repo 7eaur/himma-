@@ -1,3 +1,12 @@
+## SUPERVISOR_C priorities — 2026-10-27T05:50:03+03:00 (20261027-0550-C; supersedes older dated headings)
+1. **P0 B0530 PENDING_GATES:** `820c9056` CI 40438907137 integration still running, frontend/backend/security SUCCESS; M04 40438907179 + M09 40438907193 SUCCESS exact functional SHA. Confirm final CI; download Playwright artifact and inspect `privacy-logout-failed-identity-hidden.png` and `privacy-logout-success-empty-login.png` with synthetic identity/code redaction, RTL and no clipping. Failure/missing evidence => REWORK with trace.
+2. **P0 RELEASE BLOCKED:** Railway web `820c9056` / API `eeb57b90` SUCCESS; both `checkSuites=false`. No config/deploy/main/stage action without owner; do not claim release approved.
+3. **P0 AGENT GIT TREE REWORK:** A0456 intermediate `6e3fef1f` missing base tree caused failed builds, restored by `eeb57b90` fast-forward. Always pass base_tree_sha and compare paths/HEAD before ref update; preserve history and verify no deletions.
+4. **P1 A0456 ACCEPTED patch-only:** `ddd751a2` exact-SHA CI/M04/M09 SUCCESS, 120 Jest; real video, Safari/Android, media error/replay and physical-device evidence PENDING_GATES.
+5. **P1 B0432 ACCEPTED patch-only:** `05f689a3` exact-SHA CI/M04/M09 SUCCESS, 60 synthetic Chromium; full HV2-002/003 journey and production privacy PENDING_GATES.
+6. **P1 19 V2 lessons/progress/recordings:** Source tests support no V1 score mix, 19 lesson projection and reviewed-audio 403; require private storage IDOR and owner educational approval; no fake ASR.
+7. **P2 VISUAL:** M04 15 login/landing screenshots; 390px student login inspected with no obvious horizontal clipping; obtain dashboard/logout/assessment/video and real-device evidence.
+
 ## SUPERVISOR_C priorities — 2026-10-27T04:55:13+03:00 (20261027-0454-C; supersedes earlier dated headings)
 1. **P0 B0432 PENDING_GATES:** `05f689a3` CI 40433331760 SUCCESS (frontend/backend/security/integration; integration log 60 passed); M04 40433331895 SUCCESS; M09 40433331789 IN_PROGRESS — all head_sha=05f689a3cb01f4692531afb58f0b645386ca2dca. Check final M09, inspect Playwright report/safe screenshots for failed logout, empty login and two-account 404/resume; regression => REWORK with trace, no weakening assertions. B0330 prior CI/M09 failure is historical and retained.
 2. **P0 RELEASE BLOCKED:** Railway web auto-deployed `05f689a3` while M09 pending; web/API `checkSuites=false`. No production config changes, new release, main merge or owner-stage approval.
