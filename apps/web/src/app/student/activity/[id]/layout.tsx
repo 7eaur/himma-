@@ -1,11 +1,5 @@
-import StudentActivityStateBoundary from "@/components/StudentActivityStateBoundary";
-import StudentAdaptiveHoldOverlay from "@/components/StudentAdaptiveHoldOverlay";
+import type { ReactNode } from "react";
 
-export default function StudentActivityLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-      <StudentAdaptiveHoldOverlay />
-      <StudentActivityStateBoundary>{children}</StudentActivityStateBoundary>
-    </>
-  );
+export default function StudentActivityRedirectLayout({ children }: { children: ReactNode }) {
+  return children;
 }

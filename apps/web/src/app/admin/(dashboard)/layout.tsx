@@ -8,7 +8,6 @@ import { BarChart3, BookOpenCheck, ClipboardCheck, ClipboardList, Film, LayoutDa
 import AdminNotifications from "@/components/admin/AdminNotifications";
 import { useAccessibleDialog } from "@/hooks/useAccessibleDialog";
 import styles from "./dashboard-layout.module.css";
-import "./admin-workflow.css";
 
 const navSections = [
   { label: "الرئيسية", items: [{ href: "/admin", label: "نظرة عامة", icon: LayoutDashboard }] },

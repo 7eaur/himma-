@@ -59,55 +59,6 @@ async function expectNoHorizontalOverflow(page: Page) {
   expect(metrics.bodyWidth, JSON.stringify(metrics)).toBeLessThanOrEqual(metrics.innerWidth + 1);
 }
 
-async function answerVisibleChoice(page: Page) {
-  const imageGroup = page.getByTestId("image-options");
-  const sequenceImageGroup = page.getByTestId("sequence-image-options");
-  const sequenceBoard = page.getByTestId("sequence-board");
-  const confirm = page.getByRole("button", { name: "تأكيد والمتابعة" });
-
-  if (await imageGroup.count()) {
-    await imageGroup.getByRole("button").first().click();
-  } else if (await sequenceImageGroup.count()) {
-    while (!(await confirm.isEnabled())) {
-      const available = sequenceImageGroup.getByRole("button").filter({ visible: true });
-      const count = await available.count();
-      expect(count, "Sequence should still expose an available choice until the required order is complete").toBeGreaterThan(0);
-      await available.first().click();
-    }
-  } else {
-    const options = page.locator('button[aria-pressed="false"]');
-    if (await options.count()) {
-      await options.first().click();
-    } else if (await sequenceBoard.count()) {
-      while (!(await confirm.isEnabled())) {
-        const candidates = page.locator("main section button");
-        let clicked = false;
-        for (let index = 0; index < await candidates.count(); index += 1) {
-          const candidate = candidates.nth(index);
-          const text = ((await candidate.textContent()) ?? "").trim();
-          if (!(await candidate.isVisible()) || !(await candidate.isEnabled())) continue;
-          if (/^(استمع|تأكيد والمتابعة|إعادة الترتيب|إعادة التسجيل|إرسال التسجيل)$/u.test(text)) continue;
-          await candidate.click();
-          clicked = true;
-          break;
-        }
-        expect(clicked, "Ordered question should expose another selectable item until the required order is complete").toBeTruthy();
-      }
-    } else {
-      const candidates = page.locator("main section button");
-      for (let index = 0; index < await candidates.count() && !(await confirm.isEnabled()); index += 1) {
-        const candidate = candidates.nth(index);
-        const text = ((await candidate.textContent()) ?? "").trim();
-        if (!(await candidate.isVisible()) || !(await candidate.isEnabled())) continue;
-        if (/^(استمع|تأكيد والمتابعة|إعادة الترتيب|إعادة التسجيل|إرسال التسجيل)$/u.test(text)) continue;
-        await candidate.click();
-      }
-    }
-  }
-  await expect(confirm).toBeEnabled();
-  await confirm.click();
-}
-
 test.describe("Himma UX system visual QA regression", () => {
   test.beforeEach(async () => {
     await mkdir(SCREENSHOT_DIR, { recursive: true });
@@ -290,56 +241,27 @@ test.describe("Himma UX system visual QA regression", () => {
     expect(acceptedAnswer).toMatchObject({ ...staged, submit_key: expect.any(String) });
   });
 
-  test("mobile assessment keeps title, image choices, and sequence choices compact", async ({ page, context, request }) => {
+  test("mobile pretest keeps the character, choices and save action compact", async ({ page, context, request }) => {
     test.setTimeout(120000);
     await page.setViewportSize({ width: 390, height: 844 });
     const accessCode = await createStudent(page, request, context, "طالب فحص السؤال");
     await loginStudent(request, context, accessCode);
-
-    const start = await request.post(`${API_URL}/assessment/start`, { data: { session_type: "pretest" } });
-    expect([200, 409]).toContain(start.status());
-    const payload = await start.json().catch(() => null);
-    let sessionId = payload?.id ?? payload?.session_id;
-    if (!sessionId) {
-      await page.goto("/student");
-      await page.getByTestId("student-primary-action").click();
-      sessionId = page.url().match(/\/student\/session\/(\d+)/)?.[1];
-    }
-    expect(sessionId).toBeTruthy();
-
-    await page.goto(`/student/session/${sessionId}`);
-    for (let index = 0; index < 10; index += 1) {
-      await expect(page.getByTestId("assessment-session")).toHaveAttribute("data-phase", "question", { timeout: 15000 });
-      await expectNoHorizontalOverflow(page);
-
-      const title = page.getByTestId("assessment-session").locator("main section h1").first();
-      const titleSize = await title.evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize));
-      expect(titleSize).toBeLessThanOrEqual(22);
-
-      if (index === 4) {
-        const imageButtons = page.getByTestId("image-options").getByRole("button");
-        await expect(imageButtons).toHaveCount(4);
-        const firstImage = imageButtons.first().locator("img");
-        await expect(firstImage).toHaveAttribute("loading", "eager");
-        await expect(firstImage).toHaveAttribute("src", /\/_next\/image\?/);
-        const firstBox = await imageButtons.first().boundingBox();
-        expect(firstBox?.height ?? 999).toBeLessThanOrEqual(190);
-        await page.screenshot({ path: path.join(SCREENSHOT_DIR, "phone-390-assessment-image-options.png"), fullPage: true });
-      }
-
-      if (index === 9) {
-        const sequenceButtons = page.getByTestId("sequence-image-options").getByRole("button");
-        expect(await sequenceButtons.count()).toBeGreaterThan(0);
-        const firstImage = sequenceButtons.first().locator("img");
-        await expect(firstImage).toHaveAttribute("loading", "eager");
-        await expect(firstImage).toHaveAttribute("src", /\/_next\/image\?/);
-        const firstBox = await sequenceButtons.first().boundingBox();
-        expect(firstBox?.height ?? 999).toBeLessThanOrEqual(190);
-        await page.screenshot({ path: path.join(SCREENSHOT_DIR, "phone-390-assessment-sequence.png"), fullPage: true });
-      }
-
-      await answerVisibleChoice(page);
-    }
+    await page.goto("/student");
+    await page.getByTestId("student-primary-action").click();
+    await expect(page).toHaveURL(/\/student\/assessment-v2\/\d+$/);
+    const question = page.getByTestId("v2-interaction-player");
+    await expect(question).toContainText("1 من 30");
+    await expect(page.getByTestId("v2-question-coach")).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+    const title = question.locator("h2");
+    const titleSize = await title.evaluate(element => Number.parseFloat(getComputedStyle(element).fontSize));
+    expect(titleSize).toBeLessThanOrEqual(25);
+    const first = question.getByRole("button", { name: "اختيار الخيار 1" });
+    await expect(first).toBeVisible();
+    expect((await first.boundingBox())?.height ?? 0).toBeGreaterThanOrEqual(44);
+    await first.click();
+    await expect(question.getByRole("button", { name: "حفظ الإجابة والمتابعة" })).toBeEnabled();
+    await page.screenshot({ path: path.join(SCREENSHOT_DIR, "phone-390-v2-assessment-character.png"), fullPage: true });
   });
 
   test("review workspace remains usable from an old bookmark on phone and desktop", async ({ page, context, request }) => {

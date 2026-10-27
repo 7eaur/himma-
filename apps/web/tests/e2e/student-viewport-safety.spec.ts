@@ -67,21 +67,21 @@ test.describe("student viewport safety", () => {
     const code = await createStudent(page, request, context);
     await loginStudent(request, context, code);
 
-    const start = await request.post(`${API_URL}/assessment/start`, { data: { session_type: "pretest" } });
-    expect(start.status()).toBe(200);
-    const payload = await start.json();
-    const sessionId = payload.id ?? payload.session_id;
+    await page.goto("/student");
+    await page.getByTestId("student-primary-action").click();
+    await expect(page).toHaveURL(/\/student\/assessment-v2\/\d+$/);
+    const sessionId = page.url().split("/").at(-1);
     expect(sessionId).toBeTruthy();
 
-    await page.goto(`/student/session/${sessionId}`);
-    const root = page.getByTestId("assessment-session");
-    await expect(root).toHaveAttribute("data-phase", "question", { timeout: 15000 });
+    await page.goto(`/student/assessment-v2/${sessionId}`);
+    const root = page.getByTestId("v2-interaction-player");
+    await expect(root).toBeVisible({ timeout: 15000 });
     await expectNoHorizontalOverflow(page);
 
-    const option = page.locator('button[aria-pressed="false"]').first();
+    const option = root.getByRole("button", { name: "اختيار الخيار 1" });
     await expect(option).toBeVisible();
     await option.click();
-    const cta = page.getByRole("button", { name: "تأكيد والمتابعة" });
+    const cta = page.getByRole("button", { name: "حفظ الإجابة والمتابعة" });
     await expectInsideViewport(page, cta);
 
     const unresolved = await page.evaluate(() => {
