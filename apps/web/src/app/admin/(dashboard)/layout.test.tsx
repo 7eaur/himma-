@@ -13,7 +13,7 @@ it('shows V2 review navigation without mounting old reinforcement or archive req
   global.fetch=fetcher;
   render(<AdminDashboardLayout><div>محتوى الطالب</div></AdminDashboardLayout>);
   expect(await screen.findByText('محتوى الطالب')).toBeVisible();
-  expect(screen.getByRole('link',{name:'قراءات الدروس'})).toHaveAttribute('href','/admin/v2-lesson-review');
+  expect(screen.getByRole('link',{name:'مركز مراجعة التسجيلات'})).toHaveAttribute('href','/admin/v2-review-center');
   expect(screen.getByRole('link',{name:'بنك الدروس والأسئلة'})).toHaveAttribute('href','/admin/content-preview');
   expect(screen.getByText('مراجعة الصوت')).toBeInTheDocument();
   expect(screen.queryByText('أرشيف V1 التاريخي')).not.toBeInTheDocument();
