@@ -385,7 +385,7 @@ def test_progress_keeps_completed_lower_level_lessons_after_advancing(researcher
     assert all(row['state'] == 'completed' for row in data['lesson_overview']['items'][:6])
 
 
-def test_staff_only_v2_support_timeline_is_bounded_and_scoped_to_pinned_release(researcher_client, student_client):
+def test_staff_only_v2_support_timeline_is_bounded_and_scoped_to_pinned_release(researcher_client):
     with TestingSessionLocal() as db:
         student = db.query(Student).filter(Student.access_code == "STU001").one()
         release = register_candidate_release(db)
@@ -422,8 +422,10 @@ def test_staff_only_v2_support_timeline_is_bounded_and_scoped_to_pinned_release(
     assert details["adaptation_decisions"][0]["reason_code"] == "support_gap_unresolved_continue_without_mastery"
     assert "access_code" not in admin_response.text
     assert "private_answer" not in admin_response.text
-    # The student's read model never exposes staff-only decision history.
-    learner = student_client.get("/v2/student/home")
+    # Explicitly switch from researcher to student only *after* checking the
+    # staff endpoint. Both fixtures otherwise share a TestClient cookie jar.
+    assert researcher_client.post("/auth/student-login", json={"access_code": "STU001"}).status_code == 200
+    learner = researcher_client.get("/v2/student/home")
     assert learner.status_code == 200
     assert "adaptation_decisions" not in learner.json()
     assert "support_assignments" not in learner.json()
