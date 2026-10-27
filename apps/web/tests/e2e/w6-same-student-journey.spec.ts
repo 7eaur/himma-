@@ -281,9 +281,13 @@ test("historical W6 compatibility preserves one identity and retained V1 pre/pos
   await loginSupervisor(request, context);
   await page.goto(`/admin/students/${studentId}`);
   await expect(page.getByRole("heading", { name: studentName })).toBeVisible({ timeout: 10000 });
+  if (await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).getAttribute("aria-expanded") === "false")
+    await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).click();
   await page.getByRole("button", { name: "المسار والتقدم" }).click();
   await expect(page.locator('[data-level-state="completed"]')).toHaveCount(3 - Number(accelerated.starting_level) + 1);
 
+  if (await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).getAttribute("aria-expanded") === "false")
+    await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).click();
   await page.getByRole("button", { name: "الاختبارات" }).click();
   const openPosttest = page.getByRole("button", { name: "فتح الاختبار البعدي" });
   await expect(openPosttest).toBeEnabled();

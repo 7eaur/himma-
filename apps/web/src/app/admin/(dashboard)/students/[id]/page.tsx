@@ -165,6 +165,7 @@ export default function StudentDetailPage() {
 
 function StudentDetailView({ id }: { id: string }) {
   const [activeTab, setActiveTab] = useState<TabKey>("v2");
+  const [archiveOpen, setArchiveOpen] = useState(false);
   const [student, setStudent] = useState<Student | null>(null);
   const [loadedStudentId, setLoadedStudentId] = useState<string | null>(null);
   const [journey, setJourney] = useState<JourneySummary | null>(null);
@@ -243,6 +244,7 @@ function StudentDetailView({ id }: { id: string }) {
       })
       .finally(() => { if (!cancelled) setLoading(false); });
 
+    if (archiveOpen) {
     void fetchSecondary<JourneySummary>(
       `/api/researcher/students/${id}/journey`, setJourney, setJourneyState,
     );
@@ -252,8 +254,9 @@ function StudentDetailView({ id }: { id: string }) {
     void fetchSecondary<RewardEvent[]>(
       `/api/researcher/students/${id}/rewards`, setRewards, setRewardsState,
     );
+    }
     return () => { cancelled = true; };
-  }, [id]);
+  }, [id, archiveOpen]);
 
   useEffect(() => {
     if (!id) return;
@@ -616,8 +619,10 @@ function StudentDetailView({ id }: { id: string }) {
       </section>
 
       <nav className={styles.tabs} aria-label="أقسام ملف الطالب">
-        {TABS.map((tab) => { const Icon = tab.icon; return <button key={tab.key} className={`${styles.tab} ${activeTab === tab.key ? styles.tabActive : ""}`} onClick={() => setActiveTab(tab.key)} aria-current={activeTab === tab.key ? "page" : undefined}><Icon size={16} aria-hidden="true" />{tab.label}</button>; })}
+        {TABS.filter(tab => archiveOpen || tab.key === "v2" || tab.key === "account").map((tab) => { const Icon = tab.icon; return <button key={tab.key} className={`${styles.tab} ${activeTab === tab.key ? styles.tabActive : ""}`} onClick={() => setActiveTab(tab.key)} aria-current={activeTab === tab.key ? "page" : undefined}><Icon size={16} aria-hidden="true" />{tab.label}</button>; })}
+        <button className={styles.tab} type="button" aria-expanded={archiveOpen} onClick={() => { setArchiveOpen(value => !value); setActiveTab("v2"); }}>أرشيف V1 التاريخي</button>
       </nav>
+      {archiveOpen && <p className={styles.notice}>الأقسام التاريخية تخص V1 وحدها؛ لا تتحكم في تسكين V2 أو تقدمه أو مكافآته.</p>}
 
       {tabContent}
     </div>

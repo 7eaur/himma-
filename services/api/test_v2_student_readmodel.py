@@ -300,3 +300,54 @@ def test_migration_blocker_has_staff_only_session_evidence_without_credentials(r
     with TestingSessionLocal() as db:
         assert db.query(AssessmentSession).count() == 1
         assert db.query(StudentJourney).count() == 0
+
+
+def test_supervisor_dashboard_is_v2_only_without_credentials_or_pagination_counts(researcher_client):
+    with TestingSessionLocal() as db:
+        release = register_candidate_release(db)
+        student = db.query(Student).one()
+        db.add(StudentJourney(student_id=student.id, content_release_id=release.id,
+                              placement_state='placed', current_level=1, current_lesson_id='L1-01'))
+        db.add_all([Student(name=f'اصطناعي {i}', access_code=f'OVW{i:03}', is_active=False) for i in range(7)])
+        db.commit()
+    result = researcher_client.get('/v2/student/admin/overview')
+    assert result.status_code == 200, result.text
+    data = result.json()
+    assert data['source'] == 'himma_v2_readmodel'
+    assert data['counts']['students'] == 8 and len(data['recent_students']) == 6
+    assert data['counts']['active_accounts'] == data['counts']['learning'] == 1
+    assert data['counts']['assessment_reviews'] == data['counts']['placements'] == 0
+    for forbidden in ('access_code', 'core_completed_items', 'private_answer', 'storage_key'):
+        assert forbidden not in result.text
+
+
+def test_student_cannot_read_supervisor_dashboard(student_client):
+    assert student_client.get('/v2/student/admin/overview').status_code == 403
+
+
+def test_progress_keeps_completed_lower_level_lessons_after_advancing(researcher_client):
+    from db.learning_models import PlacementDecisionV2
+    from db.models import User
+    with TestingSessionLocal() as db:
+        release = register_candidate_release(db)
+        student = db.query(Student).one()
+        user = db.query(User).one()
+        pretest = AssessmentSession(student_id=student.id, session_type='pretest', status='completed',
+                                    v2_state='completed', content_release_id=release.id, official_for_reporting=True)
+        db.add(pretest)
+        db.flush()
+        db.add(PlacementDecisionV2(student_id=student.id, assessment_session_id=pretest.id,
+            content_release_id=release.id, assigned_level=1, reason='تسكين اصطناعي واضح',
+            policy_version='test', decided_by=user.id))
+        db.add(StudentJourney(student_id=student.id, content_release_id=release.id,
+                              placement_state='placed', current_level=2, current_lesson_id='L2-01'))
+        db.add_all([LessonSession(student_id=student.id, content_release_id=release.id,
+            lesson_id=f'L1-{i:02}', stage='complete', status='completed') for i in range(1, 7)])
+        db.commit()
+        student_id = student.id
+    data = researcher_client.get(f'/v2/student/admin/students/{student_id}/home').json()
+    assert data['progress']['assigned_lessons'] == 19
+    assert data['progress']['completed_lessons'] == 6
+    assert data['progress']['skipped_by_placement'] == 0
+    assert data['progress']['display_percent'] == round(600 / 19, 1)
+    assert all(row['state'] == 'completed' for row in data['lesson_overview']['items'][:6])

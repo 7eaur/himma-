@@ -56,6 +56,8 @@ const canonicalJourney = {
 
 async function assertCanonicalState(page: Page, studentId: number) {
   await page.goto(`/admin/students/${studentId}`);
+  if (await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).getAttribute("aria-expanded") === "false")
+    await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).click();
   await page.getByRole("button", { name: "المسار والتقدم" }).click();
   const cards = page.locator("[data-level-state]");
   await expect(cards).toHaveCount(3);
@@ -192,6 +194,8 @@ test("Student360 keeps the selected profile visible when an optional V1 source f
   // optional legacy source had a network error.
   await expect(page.getByRole("heading", { name: student.full_name })).toBeVisible();
   await expect(page.getByTestId("supervisor-v2-overview")).toBeVisible();
+  if (await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).getAttribute("aria-expanded") === "false")
+    await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).click();
   await page.getByRole("button", { name: "المسار والتقدم" }).click();
   const failure = page.getByRole("status").filter({ hasText: "تعذر تحميل المسار الأكاديمي" });
   await expect(failure).toBeVisible();

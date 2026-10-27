@@ -72,6 +72,8 @@ test.describe("Student Detail partial-source truth states", () => {
     // and a successfully loaded empty rewards list must become actual 0.
     const summary = page.getByRole("region", { name: "ملخص الطالب" });
     await expect(summary.getByText("نجوم V1 التاريخية")).toHaveCount(0);
+    if (await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).getAttribute("aria-expanded") === "false")
+      await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).click();
     await page.getByRole("button", { name: "نظرة عامة" }).click();
     const historicalStars = page.getByText("نجوم V1 التاريخية", { exact: true }).locator("..").locator("strong");
     await expect(historicalStars).toHaveText("—");
@@ -91,6 +93,8 @@ test.describe("Student Detail partial-source truth states", () => {
 
     await page.goto(`/admin/students/${student.id}`);
     await expect(page.getByRole("heading", { name: student.full_name })).toBeVisible({ timeout: 10000 });
+    if (await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).getAttribute("aria-expanded") === "false")
+      await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).click();
     await page.getByRole("button", { name: "المسار والتقدم" }).click();
 
     const error = page.getByRole("status").filter({ hasText: "تعذر تحميل المسار الأكاديمي" });
@@ -109,6 +113,8 @@ test.describe("Student Detail partial-source truth states", () => {
 
     await page.goto(`/admin/students/${student.id}`);
     await expect(page.getByRole("heading", { name: student.full_name })).toBeVisible({ timeout: 10000 });
+    if (await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).getAttribute("aria-expanded") === "false")
+      await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).click();
     await page.getByRole("button", { name: "التقوية والتكيف" }).click();
 
     const error = page.getByRole("status").filter({ hasText: "تعذر تحميل سجل التكيف" });

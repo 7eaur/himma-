@@ -103,6 +103,8 @@ async function openJourneyWithFixture(page: Page, studentId: number, summary: Jo
     });
   });
   await page.goto(`/admin/students/${studentId}`);
+  if (await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).getAttribute("aria-expanded") === "false")
+    await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).click();
   await page.getByRole("button", { name: "المسار والتقدم" }).click();
   await expect(page.getByRole("progressbar", { name: "تقدم الأنشطة الأساسية في المستوى النشط" })).toBeVisible({ timeout: 10000 });
 }

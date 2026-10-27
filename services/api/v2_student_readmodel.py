@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from db.learning_models import LessonSession, PrivateContentBankSnapshot, StudentJourney
+from db.learning_models import AssessmentQuestionResponse, LessonQuestionResponse, LessonSession, PlacementDecisionV2, PrivateContentBankSnapshot, StudentJourney
 from db.models import AssessmentSession, Attempt, ContentRelease, Student, User
 from dependencies import get_current_user, get_db
 from v2_assessment_runtime import current_action
@@ -17,6 +17,23 @@ from v2_lesson_runtime import _require_preview_student
 from v2_content.repository import get_release
 
 router = APIRouter(prefix="/v2/student", tags=["v2-student-home"])
+
+
+def _placement_level(db: Session, journey: StudentJourney, lessons: list[dict]) -> int:
+    decision = db.query(PlacementDecisionV2).filter(
+        PlacementDecisionV2.student_id == journey.student_id,
+        PlacementDecisionV2.content_release_id == journey.content_release_id,
+    ).order_by(PlacementDecisionV2.id.desc()).first()
+    if decision:
+        return decision.assigned_level
+    # Historical preview journeys may predate placement decisions. A completed
+    # lower-level lesson is still learned evidence, never a placement skip.
+    completed = {lesson_id for lesson_id, in db.query(LessonSession.lesson_id).filter(
+        LessonSession.student_id == journey.student_id,
+        LessonSession.content_release_id == journey.content_release_id,
+        LessonSession.status == "completed",
+    ).distinct().all()}
+    return min([journey.current_level] + [int(row["level"][1]) for row in lessons if row["id"] in completed])
 
 
 def _release_lessons(db: Session, release_id: int) -> tuple[list[dict] | None, str | None]:
@@ -113,9 +130,10 @@ def build_student_v2_home(db: Session, student: Student) -> dict:
     }
     if journey and lessons is not None:
         placed = journey.placement_state in {"placed", "posttest_ready", "completed"}
+        initial_level = _placement_level(db, journey, lessons)
         skipped_ids = {
             row["id"] for row in lessons
-            if placed and int(row["level"][1]) < journey.current_level
+            if placed and int(row["level"][1]) < initial_level
         }
         assigned_ids = {row["id"] for row in lessons} - skipped_ids
         completed_ids = {
@@ -184,11 +202,12 @@ def _supervisor_lesson_overview(db: Session, student: Student) -> dict:
         ).distinct().all()
     }
     placed = journey.placement_state in {"placed", "posttest_ready", "completed"}
+    initial_level = _placement_level(db, journey, lessons)
     items = []
     for lesson in lessons:
         lesson_id = lesson["id"]
         current = latest_by_lesson.get(lesson_id)
-        skipped = placed and int(lesson["level"][1]) < journey.current_level
+        skipped = placed and int(lesson["level"][1]) < initial_level
         # Match the aggregate official count: completed attempts win over
         # unfinished retries, and placement skips never count as completion.
         if skipped:
@@ -287,4 +306,41 @@ def supervisor_v2_cohort_overview(
     return {
         "source": "himma_v2_readmodel",
         "total": total, "offset": offset, "limit": limit, "items": items,
+    }
+
+
+@router.get("/admin/overview")
+def supervisor_v2_dashboard(
+    _supervisor: User = Depends(get_current_user), db: Session = Depends(get_db),
+):
+    """V2 operational counts across the cohort, independent of list pagination."""
+    def journeys(state: str) -> int:
+        return db.query(StudentJourney.id).filter(StudentJourney.placement_state == state).count()
+
+    recent = []
+    for student in db.query(Student).order_by(Student.id.desc()).limit(6).all():
+        home = build_student_v2_home(db, student)
+        recent.append({
+            "id": student.id, "full_name": student.name,
+            "status": "active" if student.is_active else "inactive",
+            "journey": home["journey"], "current_action": home["current_action"],
+            "progress": home["progress"], "data_status": home["data_status"],
+        })
+    return {
+        "source": "himma_v2_readmodel",
+        "counts": {
+            "students": db.query(Student.id).count(),
+            "active_accounts": db.query(Student.id).filter(Student.is_active.is_(True)).count(),
+            "learning": journeys("placed"),
+            "ready_for_posttest": journeys("posttest_ready"),
+            "completed": journeys("completed"),
+            "assessment_reviews": db.query(AssessmentQuestionResponse.id).join(
+                AssessmentSession, AssessmentSession.id == AssessmentQuestionResponse.assessment_session_id,
+            ).filter(AssessmentQuestionResponse.status == "pending_review", AssessmentSession.v2_state.is_not(None)).count(),
+            "lesson_reviews": db.query(LessonQuestionResponse.id).filter(LessonQuestionResponse.status == "pending_review").count(),
+            "placements": db.query(AssessmentSession.id).filter(
+                AssessmentSession.session_type == "pretest", AssessmentSession.v2_state == "placement_pending_review",
+            ).count(),
+        },
+        "recent_students": recent,
     }
