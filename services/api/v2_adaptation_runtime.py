@@ -237,7 +237,10 @@ def finish_independent_check(db: Session, session: LessonSession, *, decision_ke
     questions = {row.question_id: question_index.get(row.question_id) for row in rows}
     if any(value is None for value in questions.values()):
         raise RuntimeError("independent evidence references missing release questions")
-    outcome = evaluate_independent(_signals(rows, session.lesson_id), questions, release=release)  # type: ignore[arg-type]
+    try:
+        outcome = evaluate_independent(_signals(rows, session.lesson_id), questions, release=release)  # type: ignore[arg-type]
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail="بيانات الدعم التعليمي في إصدار الدرس غير مكتملة") from exc
     decision = _decision(db, session, decision_key, outcome)
     if outcome.kind == "next_lesson":
         _complete_lesson(db, session)
@@ -268,6 +271,18 @@ def finish_support_check(db: Session, session: LessonSession, assignment: Suppor
     decision = _decision(db, session, decision_key or f"support:{assignment.id}:1", outcome, assignment)
     now = datetime.now(timezone.utc)
     if outcome.kind == "next_lesson":
+        if outcome.reason_code == "support_gap_unresolved_continue_without_mastery":
+            # Complete the bounded learning activity, not the skill mastery.
+            # The wrong support evidence and the durable decision remain
+            # reportable; reward reconciliation must not award a mastery star.
+            decision.explanation_json = {
+                **(decision.explanation_json or {}),
+                "skill_mastery": "not_demonstrated",
+                "support_exhausted": True,
+                "support_id": assignment.support_id,
+                "focus": assignment.focus,
+                "continues_without_supervisor": True,
+            }
         _complete_lesson(db, session, assignment)
     elif outcome.kind == "targeted_support" and was_additional:
         assignment.mode = "targeted_support"
