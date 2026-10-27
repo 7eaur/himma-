@@ -203,3 +203,97 @@ test("P0: first real login starts V2 pretest and resumes a saved answer after re
   await expect(page).toHaveURL(new RegExp(`/student/assessment-v2/${sessionId}$`));
   expect(previousApis).toEqual([]);
 });
+
+
+test("HV2-002/003: two synthetic learners keep pretest progress isolated across failed logout and retry", async ({ page, request }, testInfo) => {
+  test.setTimeout(180000);
+  if (!PASSWORD) throw new Error("E2E_RESEARCHER_PASSWORD required");
+
+  const admin = await request.post(`${API_URL}/auth/login`, {
+    data: { username: USERNAME, password: PASSWORD },
+  });
+  expect(admin.status()).toBe(200);
+
+  // Create distinct synthetic learners sequentially to avoid access-code allocator races.
+  const marker = Date.now();
+  const names = [`اختبارألف${marker}`, `اختبارباء${marker}`];
+  const codes: string[] = [];
+  for (const fullName of names) {
+    const created = await request.post(`${API_URL}/researcher/students`, {
+      data: { full_name: fullName, grade_level: 3 },
+    });
+    expect(created.status()).toBe(201);
+    codes.push((await created.json()).access_code as string);
+  }
+
+  const signIn = async (code: string, expectedName: string) => {
+    await page.goto("/student/login");
+    await page.getByTestId("input-access-code").fill(code);
+    await page.getByTestId("student-login-submit").click();
+    await expect(page.getByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
+    await expect(page.getByTestId("student-identity")).toContainText(expectedName);
+  };
+
+  await signIn(codes[0], names[0]);
+  await page.getByTestId("student-primary-action").click();
+  await expect(page).toHaveURL(/\\/student\\/assessment-v2\\/\\d+$/);
+  const sessionId = Number(page.url().split("/").at(-1));
+  await expect(page.getByTestId("v2-interaction-player")).toContainText("1 من 30");
+  await page.getByRole("button", { name: "اختيار الخيار 1" }).click();
+  await page.getByRole("button", { name: "حفظ الإجابة والمتابعة" }).click();
+  await expect(page.getByTestId("v2-interaction-player")).toContainText("2 من 30");
+
+  await page.goto("/student");
+  await expect(page.getByTestId("student-identity")).toContainText(names[0]);
+
+  // First logout fails before reaching the server. The old identity must be
+  // hidden even though the browser still has a valid session cookie.
+  let logoutAttempts = 0;
+  await page.route("**/api/auth/logout", async route => {
+    logoutAttempts += 1;
+    if (logoutAttempts === 1) {
+      return route.fulfill({ status: 503, json: { detail: "temporary outage" } });
+    }
+    return route.continue();
+  });
+  await page.getByRole("button", { name: /خروج/ }).click();
+  await expect(page.getByRole("alert")).toContainText("تعذر تأكيد تسجيل الخروج");
+  await expect(page.getByTestId("student-home")).toHaveCount(0);
+  await expect(page.getByTestId("student-identity")).toHaveCount(0);
+  expect(logoutAttempts).toBe(1);
+  // Attach only the privacy-safe failed state; never capture an access code.
+  await testInfo.attach("v2-logout-failed-identity-hidden", {
+    body: await page.screenshot({ fullPage: true }), contentType: "image/png",
+  });
+
+  await page.getByRole("button", { name: "إعادة محاولة تسجيل الخروج" }).click();
+  await expect.poll(() => logoutAttempts).toBe(2);
+  await expect(page).toHaveURL(/\\/$/);
+  await page.unroute("**/api/auth/logout");
+  await page.goto("/student/login");
+  await expect(page.getByTestId("input-access-code")).toBeEmpty();
+  await testInfo.attach("v2-logout-success-empty-login", {
+    body: await page.screenshot({ fullPage: true }), contentType: "image/png",
+  });
+  const signedOutStatus = await page.evaluate(async () =>
+    (await fetch("/api/v2/student/home", { cache: "no-store" })).status);
+  expect(signedOutStatus).toBe(401);
+
+  // Learner B must not see learner A's identity or access their persisted session.
+  await signIn(codes[1], names[1]);
+  await expect(page.getByTestId("student-identity")).not.toContainText(names[0]);
+  const deniedStatus = await page.evaluate(async id =>
+    (await fetch(`/api/v2/assessments/sessions/${id}`, { cache: "no-store" })).status, sessionId);
+  expect(deniedStatus).toBe(404);
+
+  await page.getByRole("button", { name: /خروج/ }).click();
+  await expect(page).toHaveURL(/\\/$/);
+  await signIn(codes[0], names[0]);
+  await page.goto(`/student/assessment-v2/${sessionId}`);
+  await expect(page.getByTestId("v2-interaction-player")).toContainText("2 من 30");
+  const resumed = await page.evaluate(async id => {
+    const response = await fetch(`/api/v2/assessments/sessions/${id}`, { cache: "no-store" });
+    return { status: response.status, answered: (await response.json()).session.progress.answered };
+  }, sessionId);
+  expect(resumed).toEqual({ status: 200, answered: 1 });
+});
