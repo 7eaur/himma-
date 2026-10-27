@@ -22,7 +22,7 @@ it('loads identity and V2 data without requesting V1 or learner credentials',asy
  expect(screen.queryByText('123456')).not.toBeInTheDocument();
  expect(screen.queryByRole('button',{name:'أرشيف V1 التاريخي'})).not.toBeInTheDocument();
  fireEvent.click(screen.getByRole('tab',{name:'التسجيلات'}));
- expect(screen.getByRole('link',{name:'مراجعة قراءات الدروس'})).toHaveAttribute('href','/admin/v2-lesson-review');
+ expect(screen.getByRole('link',{name:'مراجعة قراءات الدروس'})).toHaveAttribute('href','/admin/v2-review-center?tab=lessons');
 });
 it('only fetches a credential after explicit reveal and clears it when leaving account',async()=>{
  const fetcher=setup();render(<Page/>);
