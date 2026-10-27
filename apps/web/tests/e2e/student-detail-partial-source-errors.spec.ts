@@ -55,75 +55,46 @@ async function failOnce(page: Page, urlPattern: string) {
   return () => calls;
 }
 
-test.describe("Student Detail partial-source truth states", () => {
+test.describe("V2 Student Detail source truth states", () => {
   test.beforeEach(async ({ request, context }) => {
     await loginAsSupervisor(request, context);
   });
 
-  test("rewards failure stays unavailable instead of becoming zero, then retry recovers", async ({ page, request }) => {
-    const student = await createStudent(page, request, `طالب مكافآت جزئية ${Date.now()}`);
-    const calls = await failOnce(page, `**/api/researcher/students/${student.id}/rewards`);
-
+  test("academic V2 failure shows an error, never a fabricated score, and retry recovers", async ({ page, request }) => {
+    const student = await createStudent(page, request, `طالب مصدر V2 ${Date.now()}`);
+    const calls = await failOnce(page, `**/api/v2/student/admin/students/${student.id}/home`);
     await page.goto(`/admin/students/${student.id}`);
-    await expect(page.getByRole("heading", { name: student.full_name })).toBeVisible({ timeout: 10000 });
-
-    // V2 summary deliberately contains no historical V1 stars. Inspect
-    // the separate V1 archive, where an unavailable source must stay "—"
-    // and a successfully loaded empty rewards list must become actual 0.
-    const summary = page.getByRole("region", { name: "ملخص الطالب" });
-    await expect(summary.getByText("نجوم V1 التاريخية")).toHaveCount(0);
-    if (await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).getAttribute("aria-expanded") === "false")
-      await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).click();
-    await page.getByRole("button", { name: "نظرة عامة" }).click();
-    const historicalStars = page.getByText("نجوم V1 التاريخية", { exact: true }).locator("..").locator("strong");
-    await expect(historicalStars).toHaveText("—");
-
-    const error = page.getByRole("status").filter({ hasText: "تعذر تحميل المكافآت" });
+    await expect(page.getByRole("heading", { name: student.full_name })).toBeVisible();
+    const error = page.getByRole("alert").filter({ hasText: "تعذر تحميل سجل هِمّة V2" });
     await expect(error).toBeVisible();
+    await expect(page.getByTestId("supervisor-v2-level")).toHaveCount(0);
     await error.getByRole("button", { name: "إعادة المحاولة" }).click();
-    await expect(error).toBeHidden({ timeout: 10000 });
+    await expect(page.getByTestId("supervisor-v2-action")).toContainText("ابدأ الاختبار القبلي");
     expect(calls()).toBeGreaterThanOrEqual(2);
-    await expect(historicalStars).toHaveText("0");
-    await expect(summary.getByText("نجوم V1 التاريخية")).toHaveCount(0);
   });
 
-  test("journey failure does not fabricate progress and its retry restores canonical journey", async ({ page, request }) => {
-    const student = await createStudent(page, request, `طالب مسار جزئي ${Date.now()}`);
-    const calls = await failOnce(page, `**/api/researcher/students/${student.id}/journey`);
-
+  test("failed account source cannot borrow a previous or V1 identity", async ({ page, request }) => {
+    const student = await createStudent(page, request, `طالب حساب V2 ${Date.now()}`);
+    const calls = await failOnce(page, `**/api/v2/student/admin/students/${student.id}/account`);
     await page.goto(`/admin/students/${student.id}`);
-    await expect(page.getByRole("heading", { name: student.full_name })).toBeVisible({ timeout: 10000 });
-    if (await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).getAttribute("aria-expanded") === "false")
-      await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).click();
-    await page.getByRole("button", { name: "المسار والتقدم" }).click();
-
-    const error = page.getByRole("status").filter({ hasText: "تعذر تحميل المسار الأكاديمي" });
-    await expect(error).toBeVisible();
-    await expect(page.getByRole("progressbar", { name: "تقدم الأنشطة الأساسية في المستوى النشط" })).toHaveCount(0);
-
-    await error.getByRole("button", { name: "إعادة المحاولة" }).click();
-    await expect(error).toBeHidden({ timeout: 10000 });
+    await expect(page.getByRole("alert")).toContainText("temporary test failure");
+    await expect(page.getByRole("heading", { name: student.full_name })).toHaveCount(0);
+    await page.reload();
+    await expect(page.getByRole("heading", { name: student.full_name })).toBeVisible();
     expect(calls()).toBeGreaterThanOrEqual(2);
-    await expect(page.getByRole("progressbar", { name: "تقدم الأنشطة الأساسية في المستوى النشط" })).toBeVisible({ timeout: 10000 });
   });
 
-  test("adaptation-history failure is explicit and retry restores the real empty state", async ({ page, request }) => {
-    const student = await createStudent(page, request, `طالب سجل جزئي ${Date.now()}`);
-    const calls = await failOnce(page, `**/api/researcher/students/${student.id}/adaptation/history`);
-
+  test("historical academic sources are not queried by the V2 profile", async ({ page, request }) => {
+    const student = await createStudent(page, request, `طالب فصل تاريخي ${Date.now()}`);
+    let oldRequests = 0;
+    await page.route(`**/api/researcher/students/${student.id}/**`, route => {
+      oldRequests += 1;
+      return route.abort("failed");
+    });
     await page.goto(`/admin/students/${student.id}`);
-    await expect(page.getByRole("heading", { name: student.full_name })).toBeVisible({ timeout: 10000 });
-    if (await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).getAttribute("aria-expanded") === "false")
-      await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).click();
-    await page.getByRole("button", { name: "التقوية والتكيف" }).click();
-
-    const error = page.getByRole("status").filter({ hasText: "تعذر تحميل سجل التكيف" });
-    await expect(error).toBeVisible();
-    await expect(page.getByText("لا يوجد قرار تكيف محفوظ بعد.")).toHaveCount(0);
-
-    await error.getByRole("button", { name: "إعادة المحاولة" }).click();
-    await expect(error).toBeHidden({ timeout: 10000 });
-    expect(calls()).toBeGreaterThanOrEqual(2);
-    await expect(page.getByText("لا يوجد قرار تكيف محفوظ بعد.")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId("supervisor-v2-action")).toContainText("ابدأ الاختبار القبلي");
+    await expect(page.getByTestId("v2-star-total")).toHaveText("0 نجمة");
+    expect(oldRequests).toBe(0);
+    await expect(page.getByRole("button", { name: "أرشيف V1 التاريخي" })).toHaveCount(0);
   });
 });

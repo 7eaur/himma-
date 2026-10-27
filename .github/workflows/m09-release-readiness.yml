@@ -28,6 +28,7 @@ jobs:
       ADMIN_PASSWORD: m09-ci-only-researcher-password
       E2E_RESEARCHER_USERNAME: admin
       E2E_RESEARCHER_PASSWORD: m09-ci-only-researcher-password
+      HIMMA_MAX_STUDENTS: '500' # Isolated M09 database only; production keeps its study cap.
       SEED_DEMO_STUDENTS: 'false'
       S3_ENDPOINT: http://localhost:9000
       S3_ACCESS_KEY: m09-minio-access-key

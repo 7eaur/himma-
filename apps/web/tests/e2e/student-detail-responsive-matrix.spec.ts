@@ -89,20 +89,12 @@ test.describe("Student Detail deterministic responsive matrix", () => {
         await expect(page.getByRole("heading", { name: student.full_name })).toBeVisible({ timeout: 10000 });
         await expectNoHorizontalOverflow(page);
 
-        if (await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).getAttribute("aria-expanded") === "false")
-          await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).click();
-        const journeyTab = page.getByRole("button", { name: "المسار والتقدم" });
-        if (await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).getAttribute("aria-expanded") === "false")
-          await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).click();
-        const adaptationTab = page.getByRole("button", { name: "التقوية والتكيف" });
-        await expect(journeyTab).toBeVisible();
-        await expect(adaptationTab).toBeVisible();
-
-        await journeyTab.click();
-        await expect(page.getByRole("progressbar", { name: "تقدم الأنشطة الأساسية في المستوى النشط" })).toBeVisible({ timeout: 10000 });
+        await expect(page.getByRole("button", { name: "مسار هِمّة V2" })).toBeVisible();
+        await expect(page.getByTestId("supervisor-v2-action")).toContainText("ابدأ الاختبار القبلي");
+        await expect(page.getByRole("button", { name: "أرشيف V1 التاريخي" })).toHaveCount(0);
         await expectNoHorizontalOverflow(page);
-
-        await adaptationTab.click();
+        await page.getByRole("button", { name: "الحساب", exact: true }).click();
+        await expect(page.getByRole("button", { name: "إظهار الرمز" })).toBeVisible();
         await expectNoHorizontalOverflow(page);
 
         await page.goto("/admin/students/new");

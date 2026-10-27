@@ -202,6 +202,7 @@ jobs:
       ADMIN_PASSWORD: ci-only-researcher-password
       E2E_RESEARCHER_USERNAME: admin
       E2E_RESEARCHER_PASSWORD: ci-only-researcher-password
+      HIMMA_MAX_STUDENTS: '500' # Isolated CI database: cumulative synthetic browser fixtures and retries.
     steps:
       - uses: actions/checkout@v4
       - name: Start native PostgreSQL and Redis (no containers)

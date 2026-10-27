@@ -119,17 +119,11 @@ test("W6 reward lifecycle awards once, resolves the canonical asset, and survive
   await page.goto(`/admin/students/${fixture.student_id}`);
   await expect(page.getByRole("heading", { name: fixture.name })).toBeVisible({ timeout: 15000 });
 
-  // V2 is the default supervisor tab; historical V1 badges are deliberately
-  // isolated under the archived overview rather than shown as V2 rewards.
+  // Historical V1 badges remain in storage, while the V2 profile only renders
+  // its own ledger. The archived dashboard was removed from the current UI.
   await expect(page.getByTestId("supervisor-v2-overview")).toBeVisible();
   await expect(page.getByTestId("canonical-reward-badge")).toHaveCount(0);
-  await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).click();
-  await page.getByRole("button", { name: "نظرة عامة", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "أرشيف الطالب التاريخي V1" })).toBeVisible();
-  const adminBadge = page.getByTestId("canonical-reward-badge").filter({ hasText: "مستكشف الحروف" });
-  await expect(adminBadge).toHaveCount(1);
-  await expect(adminBadge).toHaveAttribute("data-reward-key", "level:1:core-complete");
-  await expect(adminBadge.getByRole("img", { name: "شارة مستكشف الحروف" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "أرشيف V1 التاريخي" })).toHaveCount(0);
 
   const adminRewards = await rewardsFromCurrentBrowser(page, `/api/researcher/students/${fixture.student_id}/rewards`);
   const adminBadgePayload = adminRewards.filter((reward) => reward.key === "level:1:core-complete");
@@ -139,8 +133,6 @@ test("W6 reward lifecycle awards once, resolves the canonical asset, and survive
   await page.reload();
   await expect(page.getByTestId("supervisor-v2-overview")).toBeVisible();
   await expect(page.getByTestId("canonical-reward-badge")).toHaveCount(0);
-  await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).click();
-  await page.getByRole("button", { name: "نظرة عامة", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "أرشيف الطالب التاريخي V1" })).toBeVisible();
-  await expect(page.getByTestId("canonical-reward-badge").filter({ hasText: "مستكشف الحروف" })).toHaveCount(1);
+  const retainedRewards = await rewardsFromCurrentBrowser(page, `/api/researcher/students/${fixture.student_id}/rewards`);
+  expect(retainedRewards.filter((reward) => reward.key === "level:1:core-complete")).toHaveLength(1);
 });

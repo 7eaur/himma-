@@ -175,13 +175,16 @@ test.describe("M06 responsive and accessibility integration", () => {
     expect(createdStudent?.full_name).toBe(studentName);
     expect(createdStudent?.id).toBeTruthy();
 
+    const homeReply = await request.get(`${API_URL}/v2/student/admin/students/${createdStudent?.id}/home`);
+    expect(homeReply.status()).toBe(200);
+    const home = await homeReply.json();
+    home.progress = { ...home.progress, completed_lessons: 2, assigned_lessons: 10, display_percent: 20 };
+    await page.route(`**/api/v2/student/admin/students/${createdStudent?.id}/home`, route =>
+      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(home) }));
     await page.goto(`/admin/students/${createdStudent?.id}`);
     await expect(page.getByRole("heading", { name: studentName })).toBeVisible({ timeout: 10000 });
     await expect(page.getByTestId("supervisor-v2-overview")).toBeVisible();
-    await page.getByRole("button", { name: "أرشيف V1 التاريخي", exact: true }).click();
-    await page.getByRole("button", { name: "المسار والتقدم" }).click();
-
-    const progress = page.getByRole("progressbar", { name: "تقدم الأنشطة الأساسية في المستوى النشط" });
+    const progress = page.getByRole("progressbar", { name: "تقدم دروس همة V2" });
     await expect(progress).toBeVisible({ timeout: 10000 });
     await expect(progress).toHaveAttribute("aria-valuemin", "0");
 
@@ -193,8 +196,9 @@ test.describe("M06 responsive and accessibility integration", () => {
     expect(max).toBeGreaterThan(0);
     expect(now).toBeGreaterThanOrEqual(0);
     expect(now).toBeLessThanOrEqual(max);
-    expect(valueText).toBe(`${now} من ${max}`);
-    await expect(page.getByText(`${now} من ${max}`, { exact: true })).toBeVisible();
+    expect(now).toBe(20);
+    expect(valueText).toBeNull();
+    await expect(page.getByText("20%", { exact: true })).toBeVisible();
   });
 
   test("child entry surfaces do not expose implementation vocabulary", async ({ page }) => {
