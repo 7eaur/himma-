@@ -1,12 +1,52 @@
 from uuid import uuid4
 
 from conftest import TestingSessionLocal
-from db.learning_models import LessonProgressEvent, LessonSession, StudentJourney
-from db.models import AssessmentSession, Student
+from db.learning_models import LessonProgressEvent, LessonSession, PlacementDecisionV2, StudentJourney
+from db.models import AssessmentSession, Student, User
 from v2_content.importer import register_candidate_release
 
 
+def _place_fixture(level=1, cursor="L1-01"):
+    """Set up an official V2 pretest + audited placement for lesson-only tests."""
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        release = register_candidate_release(db)
+        journey = db.query(StudentJourney).filter(StudentJourney.student_id == student.id).one_or_none()
+        if not journey:
+            db.add(StudentJourney(
+                student_id=student.id, content_release_id=release.id, current_level=level,
+                current_lesson_id=cursor, placement_state="placed",
+            ))
+        else:
+            journey.current_level = level
+            journey.current_lesson_id = cursor
+            journey.placement_state = "placed"
+        assessment = db.query(AssessmentSession).filter(
+            AssessmentSession.student_id == student.id,
+            AssessmentSession.session_type == "pretest",
+            AssessmentSession.official_for_reporting.is_(True),
+        ).first()
+        if not assessment:
+            assessment = AssessmentSession(
+                student_id=student.id, content_release_id=release.id,
+                session_type="pretest", status="completed", v2_state="completed",
+                v2_question_index=30, official_for_reporting=True, assigned_level=level,
+                final_score=80, assessment_attempt_no=1,
+            )
+            db.add(assessment)
+            db.flush()
+            researcher = db.query(User).filter(User.username == "researcher1").one()
+            db.add(PlacementDecisionV2(
+                student_id=student.id, assessment_session_id=assessment.id,
+                content_release_id=release.id, assigned_level=level,
+                reason="Official placement fixture for lesson authorization regression",
+                policy_version="test-official-placement", decided_by=researcher.id,
+            ))
+        db.commit()
+
+
 def _start(student_client, lesson_id="L1-01"):
+    _place_fixture()
     response = student_client.post(f"/v2/lessons/{lesson_id}/start")
     assert response.status_code == 200, response.text
     return response.json()
@@ -25,8 +65,12 @@ def test_catalog_is_candidate_test_only_and_requires_student(student_client):
     payload = response.json()
     assert payload["test_only"] is True
     assert len(payload["lessons"]) == 19
-    assert {row["lesson_id"] for row in payload["lessons"] if row["preview_enabled"]} == {"L1-01"}
-    assert next(row for row in payload["lessons"] if row["lesson_id"] == "L1-02")["state"] == "locked"
+    assert not any(row["preview_enabled"] for row in payload["lessons"])
+    assert payload["current_action"] == "placement_required"
+    _place_fixture()
+    placed = student_client.get("/v2/lessons/catalog").json()
+    assert {row["lesson_id"] for row in placed["lessons"] if row["preview_enabled"]} == {"L1-01"}
+    assert next(row for row in placed["lessons"] if row["lesson_id"] == "L1-02")["state"] == "locked"
 
 
 def test_catalog_rejects_researcher(researcher_client):
@@ -49,6 +93,7 @@ def test_start_is_release_pinned_resumable_and_other_lesson_is_blocked(student_c
 
 
 def test_direct_url_cannot_bypass_the_current_lesson_lock(student_client):
+    _place_fixture()
     response = student_client.post("/v2/lessons/L1-05/start")
     assert response.status_code == 409
     assert response.json()["detail"]["current_lesson_id"] == "L1-01"
@@ -263,13 +308,8 @@ def test_catalog_uses_v2_placement_level_not_stale_legacy_student_level(student_
     with TestingSessionLocal() as db:
         student = db.query(Student).filter(Student.access_code == "STU001").one()
         assert student.current_level == 1
-        release = register_candidate_release(db)
-        journey = StudentJourney(
-            student_id=student.id, content_release_id=release.id,
-            current_level=2, current_lesson_id=None, placement_state="placed",
-        )
-        db.add(journey)
-        db.commit()
+        assert db.query(StudentJourney).count() == 0
+    _place_fixture(level=2, cursor=None)
     result = student_client.get("/v2/lessons/catalog")
     assert result.status_code == 200, result.text
     rows = result.json()["lessons"]
@@ -312,8 +352,7 @@ def test_missing_cursor_does_not_bypass_unfinished_pretest(student_client):
 
 
 def test_current_action_resumes_active_lesson_before_suggesting_pretest(student_client):
-    # Earlier P03 students have a V2 lesson already in progress even when
-    # journey.placement_state is not_started. Never strand their saved work.
+    # A placed student must resume the existing, authorized V2 lesson.
     started = _start(student_client)
     session_id = started["session"]["session_id"]
     current = student_client.get("/v2/assessments/current-action")
@@ -323,7 +362,7 @@ def test_current_action_resumes_active_lesson_before_suggesting_pretest(student_
     assert current.json()["state"] == "intro"
     with TestingSessionLocal() as db:
         journey = db.query(StudentJourney).one()
-        assert journey.placement_state == "not_started"
+        assert journey.placement_state == "placed"
         assert db.query(LessonSession).filter(LessonSession.id == session_id).one().status == "in_progress"
 
 
@@ -349,7 +388,7 @@ def test_current_action_prioritizes_pending_assessment_before_active_lesson(stud
     assert payload["state"] == "placement_pending_review"
     assert payload["href"] == f"/student/assessment-v2/{assessment_id}"
     with TestingSessionLocal() as db:
-        assert db.query(StudentJourney).one().placement_state == "not_started"
+        assert db.query(StudentJourney).one().placement_state == "placed"
 
 
 def test_current_action_keeps_supervisor_waiting_lesson_resumable(student_client):
@@ -365,3 +404,28 @@ def test_current_action_keeps_supervisor_waiting_lesson_resumable(student_client
     assert payload["action"] == "lesson"
     assert payload["state"] == "waiting_review"
     assert payload["href"] == f"/student/learning-v2/{session_id}"
+
+
+def test_direct_start_never_creates_journey_without_official_pretest(student_client):
+    catalog = student_client.get("/v2/lessons/catalog").json()
+    assert not any(item["preview_enabled"] for item in catalog["lessons"])
+    response = student_client.post("/v2/lessons/L1-01/start")
+    assert response.status_code == 409, response.text
+    assert "الاختبار القبلي" in response.json()["detail"]
+    with TestingSessionLocal() as db:
+        assert db.query(StudentJourney).count() == 0
+        assert db.query(LessonSession).count() == 0
+
+
+def test_fake_placement_without_official_decision_cannot_unlock_lessons(student_client):
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        release = register_candidate_release(db)
+        db.add(StudentJourney(student_id=student.id, content_release_id=release.id,
+                              current_level=1, current_lesson_id="L1-01", placement_state="placed"))
+        db.commit()
+    catalog = student_client.get("/v2/lessons/catalog").json()
+    assert not any(item["preview_enabled"] for item in catalog["lessons"])
+    assert student_client.post("/v2/lessons/L1-01/start").status_code == 409
+    with TestingSessionLocal() as db:
+        assert db.query(LessonSession).count() == 0

@@ -13,8 +13,8 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from db.learning_models import LessonProgressEvent, LessonSession, StudentJourney
-from db.models import ContentRelease, Student, User
+from db.learning_models import LessonProgressEvent, LessonSession, PlacementDecisionV2, StudentJourney
+from db.models import AssessmentSession, ContentRelease, Student, User
 from dependencies import get_current_student, get_current_user, get_db
 from runtime_flags import protected_runtime, trial_v2_preview_allowed
 from v2_content.importer import register_candidate_release
@@ -87,6 +87,26 @@ def _session_payload(session: LessonSession) -> dict:
     return payload
 
 
+def _has_official_v2_placement(db: Session, student_id: int, journey: StudentJourney | None) -> bool:
+    """Fail closed when a V2 lesson lacks an official, release-aligned pretest."""
+    if not journey or journey.status != "active" or journey.placement_state != "placed":
+        return False
+    return db.query(PlacementDecisionV2.id).join(
+        AssessmentSession, AssessmentSession.id == PlacementDecisionV2.assessment_session_id,
+    ).filter(
+        PlacementDecisionV2.student_id == student_id,
+        PlacementDecisionV2.content_release_id == journey.content_release_id,
+        PlacementDecisionV2.assigned_level <= journey.current_level,
+        AssessmentSession.student_id == student_id,
+        AssessmentSession.content_release_id == journey.content_release_id,
+        AssessmentSession.session_type == "pretest",
+        AssessmentSession.status == "completed",
+        AssessmentSession.v2_state == "completed",
+        AssessmentSession.official_for_reporting.is_(True),
+        AssessmentSession.assigned_level == PlacementDecisionV2.assigned_level,
+    ).first() is not None
+
+
 @router.get("/catalog")
 def lesson_catalog(
     student: Student = Depends(_require_preview_student),
@@ -105,22 +125,23 @@ def lesson_catalog(
         )
     }
     journey = db.query(StudentJourney).filter(StudentJourney.student_id == student.id).one_or_none()
-    # The V2 placement is authoritative. The legacy Student.current_level
-    # may lag behind a pinned journey and must never unlock an older level.
-    current_level = journey.current_level if journey else student.current_level
+    placed = _has_official_v2_placement(db, student.id, journey)
+    # Legacy Student.current_level is never an authorization or fallback.
+    current_level = journey.current_level if placed else 1
     first_for_level = next(
         row["id"] for row in release["lessons"] if int(row["level"][1]) == current_level
     )
-    current_lesson_id = active.lesson_id if active else (
-        (journey.current_lesson_id or first_for_level) if journey else first_for_level
+    current_lesson_id = (
+        (active.lesson_id if active else (journey.current_lesson_id or first_for_level))
+        if placed else None
     )
     rows = []
     for lesson in release["lessons"]:
         if lesson["id"] in completed:
             state = "done"
-        elif current_lesson_id == lesson["id"]:
+        elif placed and current_lesson_id == lesson["id"]:
             state = "current"
-        elif int(lesson["level"][1]) < current_level:
+        elif placed and int(lesson["level"][1]) < current_level:
             state = "skipped"
         else:
             state = "locked"
@@ -136,7 +157,7 @@ def lesson_catalog(
         "mode": "candidate_preview",
         "test_only": True,
         "release_version": release["version"],
-        "current_action": "posttest_ready" if journey and journey.placement_state == "posttest_ready" else "lesson",
+        "current_action": "lesson" if placed else "placement_required",
         "lessons": rows,
     }
 
@@ -147,12 +168,19 @@ def start_lesson(
     student: Student = Depends(_require_preview_student),
     db: Session = Depends(get_db),
 ):
+    # Serialize lesson starts and never create V2 academic state from V1 level.
+    db.query(Student.id).filter(Student.id == student.id).with_for_update().first()
+    journey = db.query(StudentJourney).filter(StudentJourney.student_id == student.id).one_or_none()
+    if not _has_official_v2_placement(db, student.id, journey):
+        raise HTTPException(status_code=409, detail="يجب إكمال الاختبار القبلي واعتماد التسكين أولًا")
     _lesson_or_404(lesson_id)
     active = db.query(LessonSession).filter(
         LessonSession.student_id == student.id,
         LessonSession.status.in_(("in_progress", "waiting_review")),
     ).one_or_none()
     if active:
+        if active.content_release_id != journey.content_release_id:
+            raise HTTPException(status_code=409, detail="جلسة الدرس لا تطابق إصدار رحلة الطالب")
         if active.lesson_id != lesson_id:
             raise HTTPException(
                 status_code=409,
@@ -161,24 +189,7 @@ def start_lesson(
         return _session_payload(active)
 
     release_row = register_candidate_release(db)
-    journey = db.query(StudentJourney).filter(StudentJourney.student_id == student.id).one_or_none()
-    if journey is None:
-        first_lesson = next(
-            row["id"] for row in get_release()["lessons"] if int(row["level"][1]) == student.current_level
-        )
-        if lesson_id != first_lesson:
-            raise HTTPException(
-                status_code=409,
-                detail={"message": "هذا الدرس ما يزال مغلقًا", "current_lesson_id": first_lesson},
-            )
-        journey = StudentJourney(
-            student_id=student.id,
-            content_release_id=release_row.id,
-            current_level=student.current_level,
-            current_lesson_id=lesson_id,
-        )
-        db.add(journey)
-    elif journey.content_release_id != release_row.id:
+    if journey.content_release_id != release_row.id:
         raise HTTPException(status_code=409, detail="رحلة الطالب مثبتة على إصدار محتوى مختلف")
     elif journey.current_lesson_id is None and journey.placement_state == "placed":
         # An earlier, already-approved placement can have a missing cursor.
