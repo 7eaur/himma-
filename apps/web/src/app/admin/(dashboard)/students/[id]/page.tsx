@@ -4,12 +4,16 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
+  Activity,
   ArrowRight,
   BookOpen,
   Check,
   ClipboardList,
   Copy,
+  Headphones,
+  History,
   KeyRound,
+  LayoutDashboard,
   LockKeyhole,
   Power,
   RefreshCw,
@@ -23,6 +27,8 @@ import type { StudentV2Home } from "@/app/student/V2StudentDashboard";
 type V2LessonItem = { lesson_id: string; title: string; level: string;
   state: "skipped" | "completed" | "waiting_review" | "in_progress" | "current" | "not_started"; session_id: number | null };
 type SupervisorV2Home = StudentV2Home & {
+  adaptation_decisions?: Array<{id: number; kind: string; reason_code: string; policy_version: string; unmastered_gap: boolean; created_at: string}>;
+  support_assignments?: Array<{id: number; lesson_id: string; target_skill: string; focus: string; mode: string; status: string; created_at: string}>;
   lesson_overview?: { state: "ready" | "unavailable" | "awaiting_journey"; content_release_version: string | null; items: V2LessonItem[] };
 };
 
@@ -47,11 +53,26 @@ interface Student {
   core_completed?: boolean;
 }
 
-type TabKey = "v2" | "account";
+type TabKey = "overview" | "journey" | "tests" | "recordings" | "adaptation" | "account" | "history";
 const TABS: Array<{key: TabKey; label: string; icon: typeof User}> = [
-  {key: "v2", label: "التقدم الدراسي", icon: BookOpen},
+  {key: "overview", label: "نظرة عامة", icon: LayoutDashboard},
+  {key: "journey", label: "المسار والدروس", icon: BookOpen},
+  {key: "tests", label: "الاختبارات", icon: ClipboardList},
+  {key: "recordings", label: "التسجيلات", icon: Headphones},
+  {key: "adaptation", label: "التكيف والتقوية", icon: Activity},
   {key: "account", label: "الحساب", icon: KeyRound},
+  {key: "history", label: "سجل المتابعة", icon: History},
 ];
+const isTabKey = (candidate: string | null): candidate is TabKey =>
+  TABS.some(tab => tab.key === candidate);
+const tabDescription: Record<Exclude<TabKey, "account">, string> = {
+  overview: "ملخص حالة الطالب وخطوته التالية.",
+  journey: "دروس الطالب بحسب المستوى دون خلط ما تجاوزه بالتسكين بما أتقنه.",
+  tests: "الاختبارات الرسمية ونتائجها المعتمدة.",
+  recordings: "القراءات التي تحتاج مراجعة وآخر التسجيلات المقيمة.",
+  adaptation: "قرارات الدعم التي تتخذها المنصة آليًا وأدلتها.",
+  history: "آخر قرارات التكيف الموثقة لهذا الطالب.",
+};
 
 function apiError(data: unknown, fallback: string) {
   if (typeof data === "object" && data !== null && "detail" in data) {
@@ -71,7 +92,7 @@ export default function StudentDetailPage() {
 }
 
 function StudentDetailView({ id }: { id: string }) {
-  const [activeTab, setActiveTab] = useState<TabKey>("v2");
+  const [activeTab, setActiveTab] = useState<TabKey>("overview");
   const [accessCode, setAccessCode] = useState<string | null>(null);
   const [student, setStudent] = useState<Student | null>(null);
   const [loadedStudentId, setLoadedStudentId] = useState<string | null>(null);
@@ -82,10 +103,33 @@ function StudentDetailView({ id }: { id: string }) {
   const [v2Reload, setV2Reload] = useState(0);
   const [editName, setEditName] = useState("");
   const [manualCode, setManualCode] = useState("");
+  const [lessonLevel, setLessonLevel] = useState<"L1" | "L2" | "L3" | null>(null);
   const [copied, setCopied] = useState(false);
   const [visibleCodeForId, setVisibleCodeForId] = useState<string | null>(null);
   const codeVisible = visibleCodeForId === id;
   const [message, setMessage] = useState<{ kind: "success" | "error"; text: string }>({ kind: "success", text: "" });
+
+  useEffect(() => {
+    const fromUrl = new URLSearchParams(window.location.search).get("tab");
+    if (isTabKey(fromUrl)) setActiveTab(fromUrl);
+    const syncHistory = () => {
+      const selected = new URLSearchParams(window.location.search).get("tab");
+      setActiveTab(isTabKey(selected) ? selected : "overview");
+    };
+    window.addEventListener("popstate", syncHistory);
+    return () => window.removeEventListener("popstate", syncHistory);
+  }, [id]);
+
+  const selectTab = (tab: TabKey) => {
+    setVisibleCodeForId(null);
+    setAccessCode(null);
+    setCopied(false);
+    setActiveTab(tab);
+    const target = new URL(window.location.href);
+    if (tab === "overview") target.searchParams.delete("tab");
+    else target.searchParams.set("tab", tab);
+    window.history.replaceState(null, "", target.pathname + target.search + target.hash);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -234,11 +278,11 @@ function StudentDetailView({ id }: { id: string }) {
   if (!student) return <div className={styles.page}><div className="alert-error">{message.text || "لم يتم العثور على الطالب"}</div><Link href="/admin/students" className="btn-primary mt-4">العودة إلى الطلاب</Link></div>;
 
   const tabContent = (() => {
-    if (activeTab === "v2") return (
+    if (activeTab !== "account") return (
       <section className={styles.panel} data-testid="supervisor-v2-overview">
         <div className={styles.panelHeader}>
-          <div><h2>التقدم الدراسي</h2>
-            <p>التسكين والدروس والاختبارات والمكافآت.</p>
+          <div><h2>{TABS.find(tab => tab.key === activeTab)?.label}</h2>
+            <p>{tabDescription[activeTab as Exclude<TabKey, "account">]}</p>
           </div><BookOpen size={20} aria-hidden="true" />
         </div>
         {!currentV2 && <p role="status" className={styles.muted}>جاري تحميل التقدم الدراسي...</p>}
