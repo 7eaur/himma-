@@ -6,6 +6,7 @@ const home = (id:number) => ({mode:'v2',test_only:true,student:{id,full_name:`ط
 const account=(id:number)=>({source:'himma_v2_account',id,full_name:`طالب اصطناعي ${id}`,grade_level:3,status:'active',created_at:'2026-10-27T00:00:00Z',posttest_enabled:false});
 function setup(){
  currentId='1';
+ window.history.replaceState({}, '', '/admin/students/1');
  const fetcher=jest.fn().mockImplementation((url:string)=>{
   const id=Number(url.match(/students\/(\d+)/)?.[1]||1);
   const data=url.endsWith('/home')? home(id):url.endsWith('/reveal')? {student_id:id,access_code:'123456'}:account(id);
