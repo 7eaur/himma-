@@ -1,13 +1,11 @@
 """P08 lesson review contract: authorization, immutable decisions, no fake grade."""
 from uuid import uuid4
-from unittest.mock import patch
 
 from conftest import TestingSessionLocal
-from db.learning_models import LessonQuestionResponse, SkillEvidence, V2LessonReviewAction, LessonSession, StudentJourney
-from db.models import Student
+from db.learning_models import LessonQuestionResponse, SkillEvidence, V2LessonReviewAction, LessonSession, StudentJourney, PlacementDecisionV2
+from db.models import AssessmentSession, Student
 from test_v2_interaction_runtime import _start_at_questions
 from test_v2_legacy_writing_fixture import legacy_writing_release
-from v2_content.repository import get_question
 from v2_content.importer import register_candidate_release
 
 
@@ -21,15 +19,24 @@ def _writing_response(student_client):
         session.content_release_id = historical.id
         journey = db.query(StudentJourney).filter(StudentJourney.student_id == session.student_id).one()
         journey.content_release_id = historical.id
+        pretest = db.query(AssessmentSession).filter(
+            AssessmentSession.student_id == session.student_id,
+            AssessmentSession.session_type == "pretest",
+            AssessmentSession.official_for_reporting.is_(True),
+        ).one()
+        decision = db.query(PlacementDecisionV2).filter(
+            PlacementDecisionV2.student_id == session.student_id,
+        ).one()
+        # Historical-writing regression: synthesize a genuinely release-aligned
+        # official pretest/decision instead of bypassing learner authorization.
+        pretest.content_release_id = historical.id
+        decision.content_release_id = historical.id
         db.commit()
     question_id = "L2-01-GP-04"
-    old_question = next(q for q in release["questions"] if q["id"] == question_id)
-    with patch("v2_interaction_runtime.get_question",
-               side_effect=lambda key: old_question if key == question_id else get_question(key)):
-        submitted = student_client.post(
-            f"/v2/lessons/sessions/{sid}/answers",
-            json={"submit_key": str(uuid4()), "text_response": "القلم"},
-        )
+    submitted = student_client.post(
+        f"/v2/lessons/sessions/{sid}/answers",
+        json={"submit_key": str(uuid4()), "text_response": "القلم"},
+    )
     assert submitted.status_code == 200, submitted.text
     assert submitted.json()["submission"]["status"] == "pending_review"
     return sid, question_id
