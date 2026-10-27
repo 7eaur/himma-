@@ -163,6 +163,30 @@ def test_official_pretest_from_another_bank_never_enables_v2_posttest(researcher
     assert researcher_client.post(BASE+'/posttest-access',json={'enabled':True}).status_code==409
 
 
+def test_ready_posttest_starts_without_supervisor_enable(researcher_client):
+    _ready()
+    with TestingSessionLocal() as db:
+        assert db.query(Student).one().posttest_enabled is False
+    assert researcher_client.post("/auth/student-login", json={"access_code": "STU001"}).status_code == 200
+    action = researcher_client.get("/v2/assessments/current-action")
+    assert action.status_code == 200 and action.json()["action"] == "start_posttest"
+    result = researcher_client.post("/v2/assessments/posttest/start")
+    assert result.status_code == 200, result.text
+    assert result.json()["session"]["kind"] == "posttest"
+    assert result.json()["session"]["progress"]["answered"] == 0
+    with TestingSessionLocal() as db:
+        assert db.query(AssessmentSession).filter(AssessmentSession.session_type == "posttest").count() == 1
+
+
+def test_unready_posttest_stays_blocked_without_supervisor_flag(researcher_client):
+    _ready(complete=False)
+    assert researcher_client.post("/auth/student-login", json={"access_code": "STU001"}).status_code == 200
+    response = researcher_client.post("/v2/assessments/posttest/start")
+    assert response.status_code == 409
+    with TestingSessionLocal() as db:
+        assert db.query(AssessmentSession).filter(AssessmentSession.session_type == "posttest").count() == 0
+
+
 def test_direct_posttest_start_rechecks_academic_gate_even_if_access_flag_is_stale(researcher_client):
     # A stale enabled flag must never bypass unfinished lesson evidence.
     _ready(complete=False)
