@@ -1,6 +1,6 @@
 """P09.1-B source-of-truth projections. No V1 counts or child secrets."""
 from conftest import TestingSessionLocal
-from db.learning_models import AdaptationDecision, LessonSession, StudentJourney, SupportAssignment
+from db.learning_models import AdaptationDecision, LessonSession, PlacementDecisionV2, StudentJourney, SupportAssignment
 from db.models import AssessmentSession, Student
 from v2_content.importer import register_candidate_release
 
@@ -44,6 +44,20 @@ def test_pinned_placement_counts_assigned_and_skipped_not_legacy_activities(stud
         db.add(StudentJourney(
             student_id=student.id, content_release_id=release.id, current_level=2,
             current_lesson_id="L2-01", placement_state="placed",
+        ))
+        official = AssessmentSession(
+            student_id=student.id, content_release_id=release.id,
+            session_type="pretest", status="completed", v2_state="completed",
+            official_for_reporting=True, final_score=70, assessment_attempt_no=1,
+        )
+        db.add(official)
+        db.flush()
+        db.add(PlacementDecisionV2(
+            student_id=student.id, assessment_session_id=official.id,
+            content_release_id=release.id, assigned_level=2,
+            reason="قرار نظام مبني على نتيجة القبلي المصححة",
+            policy_version="himma-v2-assessment/placement-threshold-50-80-v1",
+            decided_by=None,
         ))
         db.commit()
     result = student_client.get("/v2/student/home")
