@@ -48,7 +48,7 @@ def test_pinned_placement_counts_assigned_and_skipped_not_legacy_activities(stud
         official = AssessmentSession(
             student_id=student.id, content_release_id=release.id,
             session_type="pretest", status="completed", v2_state="completed",
-            official_for_reporting=True, final_score=70, assessment_attempt_no=1,
+            official_for_reporting=True, final_score=70, assigned_level=2, assessment_attempt_no=1,
         )
         db.add(official)
         db.flush()
