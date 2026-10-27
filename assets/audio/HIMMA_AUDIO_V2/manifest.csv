@@ -1,0 +1,13 @@
+order,id,text_ar,filename_wav,filename_mp3,status
+1,AUD-L1-L,لْ,AUD-L1-L.wav,AUD-L1-L.mp3,accepted
+2,AUD-L1-SAD,صْ,AUD-L1-SAD.wav,AUD-L1-SAD.mp3,accepted
+3,AUD-L1-TA,تْ,AUD-L1-TA.wav,AUD-L1-TA.mp3,accepted
+4,AUD-L1-TAA,طْ,AUD-L1-TAA.wav,AUD-L1-TAA.mp3,accepted
+5,AUD-L1-03-SA,سَ,AUD-L1-03-SA.wav,AUD-L1-03-SA.mp3,accepted
+6,AUD-L1-03-NU,نُ,AUD-L1-03-NU.wav,AUD-L1-03-NU.mp3,accepted
+7,AUD-L1-03-LI,لِ,AUD-L1-03-LI.wav,AUD-L1-03-LI.mp3,accepted
+8,AUD-V2-SUP-DAD,ضْ,AUD-V2-SUP-DAD.wav,AUD-V2-SUP-DAD.mp3,accepted
+9,AUD-L1-03-MU,مُ,AUD-L1-03-MU.wav,AUD-L1-03-MU.mp3,accepted
+10,AUD-L2-RA,رَا,AUD-L2-RA.wav,AUD-L2-RA.mp3,accepted
+11,AUD-V2-POST-TI,تِ,AUD-V2-POST-TI.wav,AUD-V2-POST-TI.mp3,accepted
+12,AUD-V2-POST-BUU,بُو,AUD-V2-POST-BUU.wav,AUD-V2-POST-BUU.mp3,accepted

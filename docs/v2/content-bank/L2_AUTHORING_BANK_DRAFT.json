@@ -1,0 +1,5357 @@
+{
+  "schema_version": "himma-v2-authoring/0.3-draft",
+  "status": "draft_no_runtime_no_publish",
+  "level": "L2",
+  "rule": "النصوص والتعليمات بلا تشكيل؛ ضبط الحرف/المقطع/كلمة القراءة فقط عند الحاجة",
+  "lessons": [
+    {
+      "id": "L2-01",
+      "level": "L2",
+      "skill_group": "S5",
+      "title": "أبني وأكتب كلمة بسيطة",
+      "objective": "أرتب أجزاء كلمة مألوفة ثم أكتبها.",
+      "intro": {
+        "title": "أبني وأكتب كلمة بسيطة",
+        "text": "سأجمع الحروف بالترتيب الصحيح، ثم أكتب الكلمة بنفسي."
+      },
+      "template": "intro_video_practice_check",
+      "video_media_id": "VID-L2-01",
+      "video_examples": [
+        "بَاب",
+        "قَلَم",
+        "مَوْزَة"
+      ],
+      "video_brief": "يبني كلمة بحروف ثم يقرأها ثم يكتب نموذجًا مغايرًا؛ كتابة حقيقية لا نسخ صور.",
+      "practice_question_ids": [
+        "L2-01-GP-01",
+        "L2-01-GP-02",
+        "L2-01-GP-03",
+        "L2-01-GP-04"
+      ],
+      "check_question_ids": [
+        "L2-01-IC-A01",
+        "L2-01-IC-A02",
+        "L2-01-IC-A03",
+        "L2-01-IC-A04"
+      ],
+      "check_items_per_attempt": 4,
+      "evidence_types": [
+        "word_construction",
+        "word_writing"
+      ],
+      "origin_v1": [
+        "L2-CORE-09",
+        "L2-REIN-01",
+        "PRE-Q14 (للاختبارات فقط)"
+      ],
+      "support_group_id": "SUP-05",
+      "status": "authored_pending_review",
+      "version": "0.3-draft",
+      "publish_state": "blocked_pending_runtime_media_qa"
+    },
+    {
+      "id": "L2-02",
+      "level": "L2",
+      "skill_group": "S6",
+      "title": "المدود والصوت القصير والطويل",
+      "objective": "أفرق بين الصوت القصير والمد بالألف والواو والياء.",
+      "intro": {
+        "title": "المدود والصوت القصير والطويل",
+        "text": "ألاحظ كيف يصبح الصوت أطول عندما أضيف حرف مد."
+      },
+      "template": "intro_video_practice_check",
+      "video_media_id": "VID-L2-02",
+      "video_examples": [
+        "بَ / بَا",
+        "بُ / بُو",
+        "بِ / بِي"
+      ],
+      "video_brief": "اشرح المد بالألف والواو والياء، مع فرق السمع وطول الصوت. لا تدرّس كل حرف منفردًا.",
+      "practice_question_ids": [
+        "L2-02-GP-01",
+        "L2-02-GP-02",
+        "L2-02-GP-03",
+        "L2-02-GP-04"
+      ],
+      "check_question_ids": [
+        "L2-02-IC-A01",
+        "L2-02-IC-A02",
+        "L2-02-IC-A03",
+        "L2-02-IC-A04"
+      ],
+      "check_items_per_attempt": 4,
+      "evidence_types": [
+        "madd_alif",
+        "madd_waw",
+        "madd_yaa"
+      ],
+      "origin_v1": [
+        "L2-CORE-06",
+        "PRE-Q12 محفوظ"
+      ],
+      "support_group_id": "SUP-06",
+      "status": "authored_pending_review",
+      "version": "0.3-draft",
+      "publish_state": "blocked_pending_runtime_media_qa"
+    },
+    {
+      "id": "L2-03",
+      "level": "L2",
+      "skill_group": "S7",
+      "title": "أقرأ كلمات أطول ومتعددة المقاطع",
+      "objective": "أقسم الكلمة إلى أجزاء يسهل قراءتها ثم أجمعها.",
+      "intro": {
+        "title": "أقرأ كلمات أطول ومتعددة المقاطع",
+        "text": "الكلمة الطويلة تصبح أسهل عندما أقرأ أجزاءها بالترتيب."
+      },
+      "template": "intro_video_practice_check",
+      "video_media_id": "VID-L2-03",
+      "video_examples": [
+        "مَدْرَسَة",
+        "مَكْتَبَة",
+        "حَدِيقَة"
+      ],
+      "video_brief": "Chunk → Read → Blend → Read whole word؛ السكون والشدة ظاهرتان في كلمات مناسبة لا درس مستقل.",
+      "practice_question_ids": [
+        "L2-03-GP-01",
+        "L2-03-GP-02",
+        "L2-03-GP-03",
+        "L2-03-GP-04"
+      ],
+      "check_question_ids": [
+        "L2-03-IC-A01",
+        "L2-03-IC-A02",
+        "L2-03-IC-A03",
+        "L2-03-IC-A04"
+      ],
+      "check_items_per_attempt": 4,
+      "evidence_types": [
+        "long_word_reading",
+        "chunking"
+      ],
+      "origin_v1": [
+        "L3-CORE-01",
+        "L2-CORE-05",
+        "L2-CORE-07"
+      ],
+      "support_group_id": "SUP-07",
+      "status": "authored_pending_review",
+      "version": "0.3-draft",
+      "publish_state": "blocked_pending_runtime_media_qa"
+    },
+    {
+      "id": "L2-04",
+      "level": "L2",
+      "skill_group": "S8",
+      "title": "أقرأ جملة قصيرة بنطق صحيح",
+      "objective": "أقرأ جملة قصيرة قراءة واضحة ومتصلة.",
+      "intro": {
+        "title": "أقرأ جملة قصيرة بنطق صحيح",
+        "text": "سأقرأ كلمات الجملة بالترتيب، مع توقف مناسب في نهايتها."
+      },
+      "template": "intro_video_practice_check",
+      "video_media_id": "VID-L2-04",
+      "video_examples": [
+        "قرأ عمر قصة",
+        "فتحت مريم الباب"
+      ],
+      "video_brief": "قراءة الجملة مترابطة وليست كلمات منفصلة؛ يوضح الوقف والنبر الطبيعي دون التركيز على السرعة.",
+      "practice_question_ids": [
+        "L2-04-GP-01",
+        "L2-04-GP-02",
+        "L2-04-GP-03",
+        "L2-04-GP-04"
+      ],
+      "check_question_ids": [
+        "L2-04-IC-A01",
+        "L2-04-IC-A02",
+        "L2-04-IC-A03",
+        "L2-04-IC-A04"
+      ],
+      "check_items_per_attempt": 4,
+      "evidence_types": [
+        "sentence_reading"
+      ],
+      "origin_v1": [
+        "L2-CORE-10",
+        "PRE-Q23 محفوظ"
+      ],
+      "support_group_id": "SUP-08",
+      "status": "authored_pending_review",
+      "version": "0.3-draft",
+      "publish_state": "blocked_pending_runtime_media_qa"
+    },
+    {
+      "id": "L2-05",
+      "level": "L2",
+      "skill_group": "S8",
+      "title": "أفهم معنى الجملة مباشرة",
+      "objective": "أجد معلومة واضحة ذكرتها الجملة.",
+      "intro": {
+        "title": "أفهم معنى الجملة مباشرة",
+        "text": "سأقرأ الجملة ثم أبحث فيها عن الإجابة."
+      },
+      "template": "intro_video_practice_check",
+      "video_media_id": "VID-L2-05",
+      "video_examples": [
+        "لعب سالم في الحديقة",
+        "قرأَت هند القصة"
+      ],
+      "video_brief": "تحديد من؟ أين؟ ماذا فعل؟ وماذا؟ حسب المعلومة النصية؛ لا تخمين من صورة.",
+      "practice_question_ids": [
+        "L2-05-GP-01",
+        "L2-05-GP-02",
+        "L2-05-GP-03",
+        "L2-05-GP-04"
+      ],
+      "check_question_ids": [
+        "L2-05-IC-A01",
+        "L2-05-IC-A02",
+        "L2-05-IC-A03",
+        "L2-05-IC-A04"
+      ],
+      "check_items_per_attempt": 4,
+      "evidence_types": [
+        "sentence_direct_comprehension"
+      ],
+      "origin_v1": [
+        "L3-CORE-07",
+        "L2-CORE-10"
+      ],
+      "support_group_id": "SUP-09",
+      "status": "authored_pending_review",
+      "version": "0.3-draft",
+      "publish_state": "blocked_pending_runtime_media_qa"
+    },
+    {
+      "id": "L2-06",
+      "level": "L2",
+      "skill_group": "S13",
+      "title": "أبني جملة بسيطة من كلمات",
+      "objective": "أرتب كلمات لتكوين جملة صحيحة واضحة المعنى.",
+      "intro": {
+        "title": "أبني جملة بسيطة من كلمات",
+        "text": "سأرتب الكلمات لتصبح جملة مفيدة."
+      },
+      "template": "intro_video_practice_check",
+      "video_media_id": "VID-L2-06",
+      "video_examples": [
+        "شرب الطفل الماء",
+        "تلعب رنا في الحديقة"
+      ],
+      "video_brief": "تعليم ترتيب الكلمات؛ في مهام التسلسل نحدد بداية الجملة لئلا تُرفض صياغات نحوية عربية صحيحة أخرى.",
+      "practice_question_ids": [
+        "L2-06-GP-01",
+        "L2-06-GP-02",
+        "L2-06-GP-03",
+        "L2-06-GP-04"
+      ],
+      "check_question_ids": [
+        "L2-06-IC-A01",
+        "L2-06-IC-A02",
+        "L2-06-IC-A03",
+        "L2-06-IC-A04"
+      ],
+      "check_items_per_attempt": 4,
+      "evidence_types": [
+        "sentence_construction"
+      ],
+      "origin_v1": [
+        "L2-REIN-05",
+        "L3-REIN-03"
+      ],
+      "support_group_id": "SUP-12",
+      "status": "authored_pending_review",
+      "version": "0.3-draft",
+      "publish_state": "blocked_pending_runtime_media_qa"
+    }
+  ],
+  "questions": [
+    {
+      "id": "L2-01-GP-01",
+      "owner_id": "L2-01",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "build_word",
+      "prompt": "انظر إلى الصورة، ثم رتب الحروف لتكوّن اسمها.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "VOC-04",
+            "kind": "image"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "م",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "ق",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "ل",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b",
+          "c",
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "word_construction",
+      "error_focus": "letter_order",
+      "skill_group": "S5",
+      "origin_v1": "L2-CORE-09-R01",
+      "notes": "تمييز الباءين بموقعيهما دون تعريف مكرر.",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": "ابحث عن الحرف الأول من اسم الصورة، ثم أكمل ترتيب الحروف.",
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "question_image",
+        "option_mode": "ordered_letters",
+        "layout": "ordered_letter_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      }
+    },
+    {
+      "id": "L2-01-GP-02",
+      "owner_id": "L2-01",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "ما الحرف الناقص لتكتمل الكلمة؟",
+      "stimulus": {
+        "text": "عَ_َم",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "ن",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "ل",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "ر",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "word_construction",
+      "error_focus": "missing_letter",
+      "skill_group": "S5",
+      "origin_v1": "L2-REIN-01-R02",
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": "فكر في اسم الراية التي نرفعها.",
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "L2-01-GP-03",
+      "owner_id": "L2-01",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "build_word",
+      "prompt": "انظر إلى الصورة، ثم رتب الحروف لتكوّن اسمها.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "VOC-02",
+            "kind": "image"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "ب",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "ت",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "ك",
+          "media": []
+        },
+        {
+          "id": "d",
+          "text": "ا",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "c",
+          "b",
+          "d",
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "word_construction",
+      "error_focus": "letter_order",
+      "skill_group": "S5",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": "انظر إلى اسم الشيء في الصورة وانطق بدايته، ثم أكمل الحروف.",
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "question_image",
+        "option_mode": "ordered_letters",
+        "layout": "ordered_letter_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      },
+      "content_qa_note": "16-10-2026: تنويع المادة التعليمية لتجنب تكرار بنود الاختبار القبلي أو التحقق."
+    },
+    {
+      "id": "L2-01-GP-04",
+      "owner_id": "L2-01",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "build_word",
+      "prompt": "انظر إلى الصورة، ثم رتّب الحروف لتكوّن اسمها.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "VOC-03",
+            "kind": "image"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "tile_01",
+          "text": "ب",
+          "media": []
+        },
+        {
+          "id": "tile_02",
+          "text": "ب",
+          "media": []
+        },
+        {
+          "id": "tile_03",
+          "text": "ا",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "tile_02",
+          "tile_03",
+          "tile_01"
+        ],
+        "rubric": null,
+        "target_text": "باب",
+        "scoring": "ordered_option_ids_exact"
+      },
+      "evidence_type": "word_construction",
+      "error_focus": "spelling",
+      "skill_group": "S5",
+      "origin_v1": null,
+      "notes": "سؤال بناء مقيد مصحح آليًا، وفق 53_V2_WORD_SENTENCE_BANK_CONVERSION_AR.md.",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": "انطق اسم الشيء ببطء، ثم رتّب الحروف كما تسمعها.",
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "question_image",
+        "option_mode": "ordered_letters",
+        "layout": "ordered_letter_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      },
+      "ordering_scoring_policy": "server_exact_order_without_human_review"
+    },
+    {
+      "id": "L2-01-IC-A01",
+      "owner_id": "L2-01",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "build_word",
+      "prompt": "انظر إلى الصورة، ثم رتب الحروف لتكوّن اسمها.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "VOC-07",
+            "kind": "image"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "م",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "ر",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "ق",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "c",
+          "a",
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "word_construction",
+      "error_focus": "letter_order",
+      "skill_group": "S5",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "question_image",
+        "option_mode": "ordered_letters",
+        "layout": "ordered_letter_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      }
+    },
+    {
+      "id": "L2-01-IC-A02",
+      "owner_id": "L2-01",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "build_word",
+      "prompt": "انظر إلى الصورة، ثم رتّب الحروف لتكوّن اسمها.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "VOC-10",
+            "kind": "image"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "tile_01",
+          "text": "ة",
+          "media": []
+        },
+        {
+          "id": "tile_02",
+          "text": "ك",
+          "media": []
+        },
+        {
+          "id": "tile_03",
+          "text": "ر",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "tile_02",
+          "tile_03",
+          "tile_01"
+        ],
+        "rubric": null,
+        "target_text": "كرة",
+        "scoring": "ordered_option_ids_exact"
+      },
+      "evidence_type": "word_construction",
+      "error_focus": "spelling",
+      "skill_group": "S5",
+      "origin_v1": null,
+      "notes": "سؤال بناء مقيد مصحح آليًا، وفق 53_V2_WORD_SENTENCE_BANK_CONVERSION_AR.md.",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "question_image",
+        "option_mode": "ordered_letters",
+        "layout": "ordered_letter_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      },
+      "ordering_scoring_policy": "server_exact_order_without_human_review"
+    },
+    {
+      "id": "L2-01-IC-A03",
+      "owner_id": "L2-01",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "choose_one",
+      "prompt": "انظر إلى الصورة، ثم اختر الحرف الناقص لتكتمل الكلمة.",
+      "stimulus": {
+        "text": "سَ_َك",
+        "media": [
+          {
+            "media_id": "VOC-05",
+            "kind": "image"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "م",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "ن",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "ل",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "word_construction",
+      "error_focus": "missing_letter",
+      "skill_group": "S5",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "image_with_text",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      },
+      "content_qa_note": "تعرض صورة سمكة بجانب سَ_َك، ولا تُكتب كلمة سمك كاملة في السؤال."
+    },
+    {
+      "id": "L2-01-IC-A04",
+      "owner_id": "L2-01",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "build_word",
+      "prompt": "انظر إلى الصورة، ثم رتّب الحروف لتكوّن اسمها.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "VOC-06",
+            "kind": "image"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "tile_01",
+          "text": "س",
+          "media": []
+        },
+        {
+          "id": "tile_02",
+          "text": "ش",
+          "media": []
+        },
+        {
+          "id": "tile_03",
+          "text": "م",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "tile_02",
+          "tile_03",
+          "tile_01"
+        ],
+        "rubric": null,
+        "target_text": "شمس",
+        "scoring": "ordered_option_ids_exact"
+      },
+      "evidence_type": "word_construction",
+      "error_focus": "spelling",
+      "skill_group": "S5",
+      "origin_v1": null,
+      "notes": "سؤال بناء مقيد مصحح آليًا، وفق 53_V2_WORD_SENTENCE_BANK_CONVERSION_AR.md.",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "question_image",
+        "option_mode": "ordered_letters",
+        "layout": "ordered_letter_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      },
+      "ordering_scoring_policy": "server_exact_order_without_human_review"
+    },
+    {
+      "id": "L2-02-GP-01",
+      "owner_id": "L2-02",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "listen_choose_one",
+      "prompt": "اسمع ثم اختر الصوت الطويل.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "SYL-04",
+            "kind": "audio"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "مَ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "مَا",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "مُ",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "madd_alif",
+      "error_focus": "short_long_confusion",
+      "skill_group": "S6",
+      "origin_v1": "L2-CORE-06",
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": "الصوت الأطول فيه ألف بعد الفتحة.",
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      },
+      "content_qa_note": "16-10-2026: تنويع المادة التعليمية لتجنب تكرار بنود الاختبار القبلي أو التحقق."
+    },
+    {
+      "id": "L2-02-GP-02",
+      "owner_id": "L2-02",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "listen_choose_one",
+      "prompt": "اسمع واختر المقطع.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "SYL-05",
+            "kind": "audio"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "مِ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "مِي",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "مَا",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "madd_yaa",
+      "error_focus": "short_long_confusion",
+      "skill_group": "S6",
+      "origin_v1": "L2-CORE-06",
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": "هل الصوت الذي سمعته قصير أم ممدود؟ أعد الاستماع.",
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      },
+      "content_qa_note": "16-10-2026: تنويع المادة التعليمية لتجنب تكرار بنود الاختبار القبلي أو التحقق."
+    },
+    {
+      "id": "L2-02-GP-03",
+      "owner_id": "L2-02",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "ما حرف المد في كلمة نُور؟",
+      "stimulus": {
+        "text": "نُور",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "و",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "ا",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "ي",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "madd_waw",
+      "error_focus": "madd_letter",
+      "skill_group": "S6",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": "ابحث عن الحرف الذي يطيل صوت الضمة.",
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "L2-02-GP-04",
+      "owner_id": "L2-02",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "listen_choose_one",
+      "prompt": "اسمع ثم حدد المقطع الذي فيه مد بالواو.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "SYL-11",
+            "kind": "audio"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "نُ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "نُو",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "نَا",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "madd_waw",
+      "error_focus": "short_long_confusion",
+      "skill_group": "S6",
+      "origin_v1": "L2-CORE-06",
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": "استمع إلى طول الصوت بعد الضمة.",
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "L2-02-IC-A01",
+      "owner_id": "L2-02",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "listen_choose_one",
+      "prompt": "اختر المقطع المسموع.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "SYL-13",
+            "kind": "audio"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "سَ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "سَا",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "سُ",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "madd_alif",
+      "error_focus": "short_long_confusion",
+      "skill_group": "S6",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "L2-02-IC-A02",
+      "owner_id": "L2-02",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "listen_choose_one",
+      "prompt": "اختر المقطع المسموع.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "SYL-12",
+            "kind": "audio"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "لِ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "لِي",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "لُ",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "madd_yaa",
+      "error_focus": "short_long_confusion",
+      "skill_group": "S6",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "L2-02-IC-A03",
+      "owner_id": "L2-02",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "choose_one",
+      "prompt": "أي كلمة فيها مد بالواو؟",
+      "stimulus": {
+        "text": null,
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "نُور",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "نَهَر",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "نَجْم",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "madd_waw",
+      "error_focus": "madd_letter",
+      "skill_group": "S6",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "none",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "L2-02-IC-A04",
+      "owner_id": "L2-02",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "listen_choose_one",
+      "prompt": "اختر المقطع الذي سمعته.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "AUD-L2-RA",
+            "kind": "audio"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "رَ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "رَا",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "رُ",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "madd_alif",
+      "error_focus": "short_long_confusion",
+      "skill_group": "S6",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "L2-03-GP-01",
+      "owner_id": "L2-03",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الكلمة جزءًا جزءًا ثم كاملة.",
+      "stimulus": {
+        "text": "مَكْتَب",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "target_or_reference": "مَكْتَب",
+          "criteria": [
+            "صحة القراءة",
+            "سلامة الحركات الحاسمة",
+            "الترتيب والوقف الطبيعي"
+          ],
+          "needs_human_review": true
+        }
+      },
+      "evidence_type": "long_word_reading",
+      "error_focus": "chunking_error",
+      "skill_group": "S7",
+      "origin_v1": "L2-CORE-05",
+      "notes": null,
+      "reading_reference": "مَكْتَب",
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": "اقرأ مَكْ ثم تَب، ثم اجمعهما.",
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
+      }
+    },
+    {
+      "id": "L2-03-GP-02",
+      "owner_id": "L2-03",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "اختر التقسيم المناسب لكلمة حَدِيقَة.",
+      "stimulus": {
+        "text": "حَدِيقَة",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "حَ / دِي / قَة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "حَ / دِ / يَقَ",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "حَدِي / قَ / ة",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "chunking",
+      "error_focus": "chunking_error",
+      "skill_group": "S7",
+      "origin_v1": null,
+      "notes": "التقطيع مبسط تعليمي لا تحليل عروض/فونولوجيا نهائي.",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": "انطق الكلمة وحدد أجزاءها الممكنة.",
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "L2-03-GP-03",
+      "owner_id": "L2-03",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الكلمة من أولها إلى آخرها.",
+      "stimulus": {
+        "text": "سَفِينَة",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "target_or_reference": "سَفِينَة",
+          "criteria": [
+            "صحة القراءة",
+            "سلامة الحركات الحاسمة",
+            "الترتيب والوقف الطبيعي"
+          ],
+          "needs_human_review": true,
+          "reference_text": "سَفِينَة"
+        }
+      },
+      "evidence_type": "long_word_reading",
+      "error_focus": "omission",
+      "skill_group": "S7",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": "سَفِينَة",
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": "اقرأ الكلمة على أجزاء، وانتبه إلى حرف المد.",
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
+      },
+      "content_qa_note": "16-10-2026: تنويع المادة التعليمية لتجنب تكرار بنود الاختبار القبلي أو التحقق."
+    },
+    {
+      "id": "L2-03-GP-04",
+      "owner_id": "L2-03",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "ما الكلمة التي تتكوّن من المقاطع المعروضة؟",
+      "stimulus": {
+        "text": "حَ / قِي / بَة",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "حَقِيبَة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "حَضِيرَة",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "حَقِيقَة",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "chunking",
+      "error_focus": "blending_error",
+      "skill_group": "S7",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": "اجمع الأجزاء بالترتيب.",
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "L2-03-IC-A01",
+      "owner_id": "L2-03",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الكلمة.",
+      "stimulus": {
+        "text": "حَقِيبَة",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "target_or_reference": "حَقِيبَة",
+          "criteria": [
+            "صحة القراءة",
+            "سلامة الحركات الحاسمة",
+            "الترتيب والوقف الطبيعي"
+          ],
+          "needs_human_review": true
+        }
+      },
+      "evidence_type": "long_word_reading",
+      "error_focus": "chunking_error",
+      "skill_group": "S7",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": "حَقِيبَة",
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": null,
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
+      }
+    },
+    {
+      "id": "L2-03-IC-A02",
+      "owner_id": "L2-03",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الكلمة.",
+      "stimulus": {
+        "text": "مَزْرَعَة",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "target_or_reference": "مَزْرَعَة",
+          "criteria": [
+            "صحة القراءة",
+            "سلامة الحركات الحاسمة",
+            "الترتيب والوقف الطبيعي"
+          ],
+          "needs_human_review": true,
+          "reference_text": "مَزْرَعَة"
+        }
+      },
+      "evidence_type": "long_word_reading",
+      "error_focus": "omission",
+      "skill_group": "S7",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": "مَزْرَعَة",
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": null,
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
+      },
+      "content_qa_note": "16-10-2026: تنويع المادة التعليمية لتجنب تكرار بنود الاختبار القبلي أو التحقق."
+    },
+    {
+      "id": "L2-03-IC-A03",
+      "owner_id": "L2-03",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "choose_one",
+      "prompt": "أي تقسيم يساعد على قراءة كلمة مَكْتَبَة؟",
+      "stimulus": {
+        "text": "مَكْتَبَة",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "مَكْ / تَ / بَة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "مَ / كْتَ / بَة",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "مَكْتَ / بْ / ة",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "chunking",
+      "error_focus": "chunking_error",
+      "skill_group": "S7",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "L2-03-IC-A04",
+      "owner_id": "L2-03",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الكلمة.",
+      "stimulus": {
+        "text": "زَرَافَة",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "target_or_reference": "زَرَافَة",
+          "criteria": [
+            "صحة القراءة",
+            "سلامة الحركات الحاسمة",
+            "الترتيب والوقف الطبيعي"
+          ],
+          "needs_human_review": true
+        }
+      },
+      "evidence_type": "long_word_reading",
+      "error_focus": "omission",
+      "skill_group": "S7",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": "زَرَافَة",
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": null,
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
+      }
+    },
+    {
+      "id": "L2-04-GP-01",
+      "owner_id": "L2-04",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الجملة بصوت واضح.",
+      "stimulus": {
+        "text": "ذهب سامي إلى المدرسة.",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "target_or_reference": "ذَهَبَ سَامِي إِلَى الْمَدْرَسَةِ.",
+          "criteria": [
+            "صحة القراءة",
+            "سلامة الحركات الحاسمة",
+            "الترتيب والوقف الطبيعي"
+          ],
+          "needs_human_review": true
+        }
+      },
+      "evidence_type": "sentence_reading",
+      "error_focus": "word_omission",
+      "skill_group": "S8",
+      "origin_v1": "L2-CORE-10 (أسلوب)",
+      "notes": null,
+      "reading_reference": "ذَهَبَ سَامِي إِلَى الْمَدْرَسَةِ.",
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": "اقرأ كل كلمة، ثم اقرأ الجملة كاملة.",
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
+      }
+    },
+    {
+      "id": "L2-04-GP-02",
+      "owner_id": "L2-04",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الجملة وتوقف عند النقطة.",
+      "stimulus": {
+        "text": "تشرب هند الماء.",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "target_or_reference": "تَشْرَبُ هِنْدٌ الْمَاءَ.",
+          "criteria": [
+            "صحة القراءة",
+            "سلامة الحركات الحاسمة",
+            "الترتيب والوقف الطبيعي"
+          ],
+          "needs_human_review": true
+        }
+      },
+      "evidence_type": "sentence_reading",
+      "error_focus": "word_order",
+      "skill_group": "S8",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": "تَشْرَبُ هِنْدٌ الْمَاءَ.",
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": "حدد أين تنتهي الجملة ثم اقرأها مرة ثانية.",
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
+      }
+    },
+    {
+      "id": "L2-04-GP-03",
+      "owner_id": "L2-04",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "أين تتوقف عند قراءة الجملة؟",
+      "stimulus": {
+        "text": "فتح سالم النافذة.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "بعد كلمة سالم",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "بعد كلمة النافذة",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "بعد كلمة فتح",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "sentence_reading_structure",
+      "error_focus": "inappropriate_pause",
+      "skill_group": "S8",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": "توقف عند نهاية المعنى والنقطة.",
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "L2-04-GP-04",
+      "owner_id": "L2-04",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الجملة قراءة متصلة.",
+      "stimulus": {
+        "text": "تجري رنا في الحديقة.",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "target_or_reference": "تَجْرِي رَنَا فِي الْحَدِيقَةِ.",
+          "criteria": [
+            "صحة القراءة",
+            "سلامة الحركات الحاسمة",
+            "الترتيب والوقف الطبيعي"
+          ],
+          "needs_human_review": true
+        }
+      },
+      "evidence_type": "sentence_reading",
+      "error_focus": "hesitation",
+      "skill_group": "S8",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": "تَجْرِي رَنَا فِي الْحَدِيقَةِ.",
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": "اقرأ الكلمات أولًا ثم حاول قراءتها متصلة.",
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
+      }
+    },
+    {
+      "id": "L2-04-IC-A01",
+      "owner_id": "L2-04",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الجملة.",
+      "stimulus": {
+        "text": "جلس نادر تحت الشجرة.",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "target_or_reference": "جَلَسَ نَادِرٌ تَحْتَ الشَّجَرَةِ.",
+          "criteria": [
+            "صحة القراءة",
+            "سلامة الحركات الحاسمة",
+            "الترتيب والوقف الطبيعي"
+          ],
+          "needs_human_review": true
+        }
+      },
+      "evidence_type": "sentence_reading",
+      "error_focus": "word_omission",
+      "skill_group": "S8",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": "جَلَسَ نَادِرٌ تَحْتَ الشَّجَرَةِ.",
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": null,
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
+      }
+    },
+    {
+      "id": "L2-04-IC-A02",
+      "owner_id": "L2-04",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الجملة.",
+      "stimulus": {
+        "text": "حملت ليلى حقيبتها.",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "target_or_reference": "حَمَلَتْ لَيْلَى حَقِيبَتَهَا.",
+          "criteria": [
+            "صحة القراءة",
+            "سلامة الحركات الحاسمة",
+            "الترتيب والوقف الطبيعي"
+          ],
+          "needs_human_review": true
+        }
+      },
+      "evidence_type": "sentence_reading",
+      "error_focus": "word_order",
+      "skill_group": "S8",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": "حَمَلَتْ لَيْلَى حَقِيبَتَهَا.",
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": null,
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
+      }
+    },
+    {
+      "id": "L2-04-IC-A03",
+      "owner_id": "L2-04",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الجملة.",
+      "stimulus": {
+        "text": "يلعب خالد بالكرة.",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "target_or_reference": "يَلْعَبُ خَالِدٌ بِالْكُرَةِ.",
+          "criteria": [
+            "صحة القراءة",
+            "سلامة الحركات الحاسمة",
+            "الترتيب والوقف الطبيعي"
+          ],
+          "needs_human_review": true
+        }
+      },
+      "evidence_type": "sentence_reading",
+      "error_focus": "word_omission",
+      "skill_group": "S8",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": "يَلْعَبُ خَالِدٌ بِالْكُرَةِ.",
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": null,
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
+      }
+    },
+    {
+      "id": "L2-04-IC-A04",
+      "owner_id": "L2-04",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الجملة.",
+      "stimulus": {
+        "text": "كتبت سارة واجبها.",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "target_or_reference": "كَتَبَتْ سَارَةُ وَاجِبَهَا.",
+          "criteria": [
+            "صحة القراءة",
+            "سلامة الحركات الحاسمة",
+            "الترتيب والوقف الطبيعي"
+          ],
+          "needs_human_review": true
+        }
+      },
+      "evidence_type": "sentence_reading",
+      "error_focus": "hesitation",
+      "skill_group": "S8",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": "كَتَبَتْ سَارَةُ وَاجِبَهَا.",
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": null,
+      "display_scoring_policy": {
+        "display_diacritics_present": false,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": false,
+        "allow_valid_readings_of_unvowelled_text": true,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
+      }
+    },
+    {
+      "id": "L2-05-GP-01",
+      "owner_id": "L2-05",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "أين لعب ماجد؟",
+      "stimulus": {
+        "text": "لعب ماجد في الحديقة.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "في الحديقة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "في السوق",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "في البيت",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "sentence_direct_comprehension",
+      "error_focus": "unsupported_guess",
+      "skill_group": "S8",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": "ارجع للجملة وابحث عن المكان.",
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "L2-05-GP-02",
+      "owner_id": "L2-05",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "ماذا شربت مريم؟",
+      "stimulus": {
+        "text": "شربت مريم الحليب.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "العصير",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "الحليب",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "الماء",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "sentence_direct_comprehension",
+      "error_focus": "unsupported_guess",
+      "skill_group": "S8",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": "ابحث عن الشيء الذي شربته مريم.",
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "L2-05-GP-03",
+      "owner_id": "L2-05",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "من وضع الكتاب على الطاولة؟",
+      "stimulus": {
+        "text": "وضعت هند الكتاب على الطاولة.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "سالم",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "هند",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "أحمد",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "sentence_direct_comprehension",
+      "error_focus": "who_confusion",
+      "skill_group": "S8",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": "ابحث عن اسم الشخص في الجملة.",
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "L2-05-GP-04",
+      "owner_id": "L2-05",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "متى خرج سالم؟",
+      "stimulus": {
+        "text": "خرج سالم صباحا.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "مساء",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "صباحا",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "بعد المغرب",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "sentence_direct_comprehension",
+      "error_focus": "when_confusion",
+      "skill_group": "S8",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": "ابحث عن كلمة تدل على الوقت.",
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "L2-05-IC-A01",
+      "owner_id": "L2-05",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "choose_one",
+      "prompt": "أين جلست ليان؟",
+      "stimulus": {
+        "text": "جلست ليان تحت الشجرة.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "تحت الشجرة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "في الصف",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "قرب البحر",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "sentence_direct_comprehension",
+      "error_focus": "unsupported_guess",
+      "skill_group": "S8",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "L2-05-IC-A02",
+      "owner_id": "L2-05",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "choose_one",
+      "prompt": "ماذا حمل نادر؟",
+      "stimulus": {
+        "text": "حمل نادر حقيبة صغيرة.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "كرة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "حقيبة",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "كتابا",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "sentence_direct_comprehension",
+      "error_focus": "unsupported_guess",
+      "skill_group": "S8",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "L2-05-IC-A03",
+      "owner_id": "L2-05",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "choose_one",
+      "prompt": "من قرأ القصة؟",
+      "stimulus": {
+        "text": "قرأ ياسر القصة قبل النوم.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "ياسر",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "ماجد",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "سالم",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "sentence_direct_comprehension",
+      "error_focus": "who_confusion",
+      "skill_group": "S8",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "L2-05-IC-A04",
+      "owner_id": "L2-05",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "choose_one",
+      "prompt": "متى عاد أخو مريم؟",
+      "stimulus": {
+        "text": "عاد أخو مريم مساء.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "صباحا",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "ظهرا",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "مساء",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "c"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "sentence_direct_comprehension",
+      "error_focus": "when_confusion",
+      "skill_group": "S8",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "L2-06-GP-01",
+      "owner_id": "L2-06",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "sequence",
+      "prompt": "رتب الكلمات لتبدأ الجملة بكلمة يقرأ.",
+      "stimulus": {
+        "text": null,
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "سالم",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "كتابا",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "يقرأ",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "c",
+          "a",
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "sentence_construction",
+      "error_focus": "word_order",
+      "skill_group": "S13",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": "ابدأ بالفعل يقرأ ثم حدد من يقرأ.",
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "none",
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      }
+    },
+    {
+      "id": "L2-06-GP-02",
+      "owner_id": "L2-06",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "sequence",
+      "prompt": "رتب الكلمات لتبدأ الجملة بكلمة شربت.",
+      "stimulus": {
+        "text": null,
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "الماء",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "شربت",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "مريم",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b",
+          "c",
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "sentence_construction",
+      "error_focus": "word_order",
+      "skill_group": "S13",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": "اختر شربت أولًا.",
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "none",
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      }
+    },
+    {
+      "id": "L2-06-GP-03",
+      "owner_id": "L2-06",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "أي ترتيب يصنع جملة مفيدة؟",
+      "stimulus": {
+        "text": "المدرسة / ذهب / أحمد / إلى",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "ذهب أحمد إلى المدرسة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "إلى المدرسة ذهب أحمد إلى",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "أحمد إلى ذهب المدرسة",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "sentence_construction",
+      "error_focus": "word_order",
+      "skill_group": "S13",
+      "origin_v1": "L2-REIN-05 strategy",
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": "ابحث عن فعل ثم فاعل ثم المكان.",
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "L2-06-GP-04",
+      "owner_id": "L2-06",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "sequence",
+      "prompt": "رتب الكلمات لتبدأ الجملة بكلمة زرعت.",
+      "stimulus": {
+        "text": null,
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "زهرة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "سارة",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "زرعت",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "c",
+          "b",
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "sentence_construction",
+      "error_focus": "word_order",
+      "skill_group": "S13",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": "ضع زرعت أولًا، ثم اسم من زرع.",
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "none",
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      }
+    },
+    {
+      "id": "L2-06-IC-A01",
+      "owner_id": "L2-06",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "sequence",
+      "prompt": "رتب الكلمات لتبدأ الجملة بكلمة حمل.",
+      "stimulus": {
+        "text": null,
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "الحقيبة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "حمل",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "خالد",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b",
+          "c",
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "sentence_construction",
+      "error_focus": "word_order",
+      "skill_group": "S13",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "none",
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      }
+    },
+    {
+      "id": "L2-06-IC-A02",
+      "owner_id": "L2-06",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "sequence",
+      "prompt": "رتب الكلمات لتبدأ الجملة بكلمة فتحت.",
+      "stimulus": {
+        "text": null,
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "هند",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "النافذة",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "فتحت",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "c",
+          "a",
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "sentence_construction",
+      "error_focus": "word_order",
+      "skill_group": "S13",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "none",
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      }
+    },
+    {
+      "id": "L2-06-IC-A03",
+      "owner_id": "L2-06",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "choose_one",
+      "prompt": "أي خيار جملة صحيحة؟",
+      "stimulus": {
+        "text": null,
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "ليلى قرأت القصة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "قرأت القصة ليلى قرأت",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "القصة قرأت إلى ليلى",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "sentence_construction",
+      "error_focus": "word_order",
+      "skill_group": "S13",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "none",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "L2-06-IC-A04",
+      "owner_id": "L2-06",
+      "mode": "IC",
+      "role": "independent_check",
+      "interaction": "sequence",
+      "prompt": "رتب الكلمات لتبدأ الجملة بكلمة أكل.",
+      "stimulus": {
+        "text": null,
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "فهد",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "أكل",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "التفاحة",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b",
+          "a",
+          "c"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "sentence_construction",
+      "error_focus": "word_order",
+      "skill_group": "S13",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "none",
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      }
+    },
+    {
+      "id": "SUP-05-GP-01",
+      "owner_id": "SUP-05",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "build_word",
+      "prompt": "انظر إلى الصورة، ثم رتب الحروف لتكوّن اسمها.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "VOC-10",
+            "kind": "image"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "ر",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "ة",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "ك",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "c",
+          "a",
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "word_construction",
+      "error_focus": "letter_order",
+      "skill_group": "S5",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": "ابدأ بالحرف الأول من اسم الصورة.",
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "question_image",
+        "option_mode": "ordered_letters",
+        "layout": "ordered_letter_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      }
+    },
+    {
+      "id": "SUP-05-GP-02",
+      "owner_id": "SUP-05",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "build_word",
+      "prompt": "انظر إلى الصورة، ثم رتّب الحروف لتكوّن اسمها.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "VOC-14",
+            "kind": "image"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "tile_01",
+          "text": "م",
+          "media": []
+        },
+        {
+          "id": "tile_02",
+          "text": "ن",
+          "media": []
+        },
+        {
+          "id": "tile_03",
+          "text": "ج",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "tile_02",
+          "tile_03",
+          "tile_01"
+        ],
+        "rubric": null,
+        "target_text": "نجم",
+        "scoring": "ordered_option_ids_exact"
+      },
+      "evidence_type": "word_construction",
+      "error_focus": "spelling",
+      "skill_group": "S5",
+      "origin_v1": null,
+      "notes": "سؤال بناء مقيد مصحح آليًا، وفق 53_V2_WORD_SENTENCE_BANK_CONVERSION_AR.md.",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": "انطق اسم الشيء ببطء، ثم رتّب الحروف كما تسمعها.",
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "question_image",
+        "option_mode": "ordered_letters",
+        "layout": "ordered_letter_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      },
+      "ordering_scoring_policy": "server_exact_order_without_human_review"
+    },
+    {
+      "id": "SUP-05-SC-01",
+      "owner_id": "SUP-05",
+      "mode": "IC",
+      "role": "support_check",
+      "interaction": "build_word",
+      "prompt": "رتب الحروف لتكوّن الكلمة المناسبة للمعنى.",
+      "stimulus": {
+        "text": "فعل يعني تدوين كلمات بالقلم.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "ب",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "ك",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "ت",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b",
+          "c",
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "word_construction",
+      "error_focus": "letter_order",
+      "skill_group": "S5",
+      "origin_v1": null,
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "ordered_letters",
+        "layout": "ordered_letter_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      }
+    },
+    {
+      "id": "SUP-05-SC-02",
+      "owner_id": "SUP-05",
+      "mode": "IC",
+      "role": "support_check",
+      "interaction": "build_word",
+      "prompt": "انظر إلى الصورة، ثم رتّب الحروف لتكوّن اسمها.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "VOC-09",
+            "kind": "image"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "tile_01",
+          "text": "ة",
+          "media": []
+        },
+        {
+          "id": "tile_02",
+          "text": "ن",
+          "media": []
+        },
+        {
+          "id": "tile_03",
+          "text": "خ",
+          "media": []
+        },
+        {
+          "id": "tile_04",
+          "text": "ل",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "tile_02",
+          "tile_03",
+          "tile_04",
+          "tile_01"
+        ],
+        "rubric": null,
+        "target_text": "نخلة",
+        "scoring": "ordered_option_ids_exact"
+      },
+      "evidence_type": "word_construction",
+      "error_focus": "spelling",
+      "skill_group": "S5",
+      "origin_v1": null,
+      "notes": "سؤال بناء مقيد مصحح آليًا، وفق 53_V2_WORD_SENTENCE_BANK_CONVERSION_AR.md.",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "question_image",
+        "option_mode": "ordered_letters",
+        "layout": "ordered_letter_tray",
+        "choice_count": 4,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      },
+      "ordering_scoring_policy": "server_exact_order_without_human_review"
+    },
+    {
+      "id": "SUP-06-GP-01",
+      "owner_id": "SUP-06",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "listen_choose_one",
+      "prompt": "اختر المقطع المسموع.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "SYL-04",
+            "kind": "audio"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "مَ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "مَا",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "madd_alif",
+      "error_focus": "short_long_confusion",
+      "skill_group": "S6",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": "المد أطول من الحركة القصيرة.",
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "SUP-06-GP-02",
+      "owner_id": "SUP-06",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "أي كلمة فيها مد بالياء؟",
+      "stimulus": {
+        "text": null,
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "فِيل",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "فُل",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "فَل",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "madd_yaa",
+      "error_focus": "madd_letter",
+      "skill_group": "S6",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": "ابحث عن الياء بعد الكسرة.",
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "none",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "SUP-06-SC-01",
+      "owner_id": "SUP-06",
+      "mode": "IC",
+      "role": "support_check",
+      "interaction": "choose_one",
+      "prompt": "أي كلمة فيها مد بالواو؟",
+      "stimulus": {
+        "text": null,
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "سُوق",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "سَكَن",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "madd_waw",
+      "error_focus": "short_long_confusion",
+      "skill_group": "S6",
+      "origin_v1": null,
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "none",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "SUP-06-SC-02",
+      "owner_id": "SUP-06",
+      "mode": "IC",
+      "role": "support_check",
+      "interaction": "choose_one",
+      "prompt": "حدد حرف المد في كلمة بَاب.",
+      "stimulus": {
+        "text": "بَاب",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "و",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "ي",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "ا",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "c"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "madd_alif",
+      "error_focus": "madd_letter",
+      "skill_group": "S6",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "SUP-07-GP-01",
+      "owner_id": "SUP-07",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ هذه الكلمة ببطء ثم كاملة.",
+      "stimulus": {
+        "text": "حَدِيقَة",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "target_or_reference": "حَدِيقَة",
+          "criteria": [
+            "صحة القراءة",
+            "سلامة الحركات الحاسمة",
+            "الترتيب والوقف الطبيعي"
+          ],
+          "needs_human_review": true
+        }
+      },
+      "evidence_type": "long_word_reading",
+      "error_focus": "chunking_error",
+      "skill_group": "S7",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": "حَدِيقَة",
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": "اقرأ حَ ثم دِي ثم قَة.",
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
+      }
+    },
+    {
+      "id": "SUP-07-GP-02",
+      "owner_id": "SUP-07",
+      "mode": "GP",
+      "role": "guided_practice",
+      "interaction": "choose_one",
+      "prompt": "ما الكلمة الناتجة من جمع هذين المقطعين؟",
+      "stimulus": {
+        "text": "مَكْ / تَب",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "مَكْتَب",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "مَكْتَبَة",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "chunking",
+      "error_focus": "blending_error",
+      "skill_group": "S7",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": "اجمع الجزأين دون إضافة.",
+      "retry": "hint_on_error_then_one_more_try_no_test_evidence",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "SUP-07-SC-01",
+      "owner_id": "SUP-07",
+      "mode": "IC",
+      "role": "support_check",
+      "interaction": "read_aloud",
+      "prompt": "اقرأ الكلمة.",
+      "stimulus": {
+        "text": "مَكْتَبَة",
+        "media": []
+      },
+      "options": [],
+      "private_answer": {
+        "correct_option_ids": [],
+        "rubric": {
+          "authority": "human_supervisor",
+          "target_or_reference": "مِفْتَاح",
+          "criteria": [
+            "صحة القراءة",
+            "سلامة الحركات الحاسمة",
+            "الترتيب والوقف الطبيعي"
+          ],
+          "needs_human_review": true,
+          "reference": "مَكْتَبَة"
+        }
+      },
+      "evidence_type": "long_word_reading",
+      "error_focus": "chunking_error",
+      "skill_group": "S7",
+      "origin_v1": null,
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
+      "reading_reference": "مَكْتَبَة",
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": null,
+      "display_scoring_policy": {
+        "display_diacritics_present": true,
+        "word_identity_required": true,
+        "grade_only_explicitly_indicated_vowels": true,
+        "allow_valid_readings_of_unvowelled_text": false,
+        "do_not_penalize_unshown_case_endings": true,
+        "academic_authority": "human_supervisor"
+      },
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "no_choices",
+        "layout": "adaptive_cards",
+        "choice_count": 0,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "voice_recording"
+      }
+    },
+    {
+      "id": "SUP-07-SC-02",
+      "owner_id": "SUP-07",
+      "mode": "IC",
+      "role": "support_check",
+      "interaction": "choose_one",
+      "prompt": "أي تقسيم يساعدك على قراءة كلمة مَدْرَسَة؟",
+      "stimulus": {
+        "text": "مَدْرَسَة",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "مَدْ / رَ / سَة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "مَ / دْرَسَ / ة",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "chunking",
+      "error_focus": "chunking_error",
+      "skill_group": "S7",
+      "origin_v1": null,
+      "notes": null,
+      "reading_reference": null,
+      "technical_gaps": [],
+      "status": "draft",
+      "hint": null,
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "SUP-05-GP-03",
+      "owner_id": "SUP-05",
+      "role": "guided_practice",
+      "mode": "GP",
+      "interaction": "build_word",
+      "prompt": "رتب الحروف لتكوّن الكلمة المناسبة للمعنى.",
+      "stimulus": {
+        "text": "فعل يعني صنع صورة بالقلم.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "ر",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "س",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "م",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a",
+          "b",
+          "c"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "word_construction",
+      "error_focus": "letter_order",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "origin_v1": null,
+      "status": "draft_pending_qa",
+      "hint": "فكر في الحرف الذي تبدأ به كلمة العمل المطلوب.",
+      "retry": "hint_then_one_more_guided_attempt",
+      "skill_group": "S5",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "ordered_letters",
+        "layout": "ordered_letter_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      }
+    },
+    {
+      "id": "SUP-05-GP-04",
+      "owner_id": "SUP-05",
+      "role": "guided_practice",
+      "mode": "GP",
+      "interaction": "build_word",
+      "prompt": "انظر إلى الصورة، ثم رتّب الحروف لتكوّن اسمها.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "VOC-12",
+            "kind": "image"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "tile_01",
+          "text": "ة",
+          "media": []
+        },
+        {
+          "id": "tile_02",
+          "text": "ب",
+          "media": []
+        },
+        {
+          "id": "tile_03",
+          "text": "ط",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "tile_02",
+          "tile_03",
+          "tile_01"
+        ],
+        "rubric": null,
+        "target_text": "بطة",
+        "scoring": "ordered_option_ids_exact"
+      },
+      "evidence_type": "word_construction",
+      "error_focus": "spelling",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "origin_v1": null,
+      "status": "draft_pending_qa",
+      "hint": "انطق اسم الشيء ببطء، ثم رتّب الحروف كما تسمعها.",
+      "retry": "hint_then_one_more_guided_attempt",
+      "notes": "سؤال بناء مقيد مصحح آليًا، وفق 53_V2_WORD_SENTENCE_BANK_CONVERSION_AR.md.",
+      "skill_group": "S5",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "question_image",
+        "option_mode": "ordered_letters",
+        "layout": "ordered_letter_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      },
+      "ordering_scoring_policy": "server_exact_order_without_human_review"
+    },
+    {
+      "id": "SUP-05-SC-03",
+      "owner_id": "SUP-05",
+      "role": "support_check",
+      "mode": "IC",
+      "interaction": "build_word",
+      "prompt": "رتب الحروف لتكوّن الكلمة المناسبة للمعنى.",
+      "stimulus": {
+        "text": "اسم حيوان يعيش في الماء.",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "ك",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "م",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "س",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "c",
+          "b",
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "word_construction",
+      "error_focus": "letter_order",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "origin_v1": null,
+      "status": "draft_pending_qa",
+      "hint": null,
+      "skill_group": "S5",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "ordered_letters",
+        "layout": "ordered_letter_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      }
+    },
+    {
+      "id": "SUP-05-SC-04",
+      "owner_id": "SUP-05",
+      "role": "support_check",
+      "mode": "IC",
+      "interaction": "build_word",
+      "prompt": "رتّب الحروف لتكوّن اسم الأداة التي نكتب بها.",
+      "stimulus": {
+        "text": "أداة للكتابة",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "tile_01",
+          "text": "م",
+          "media": []
+        },
+        {
+          "id": "tile_02",
+          "text": "ق",
+          "media": []
+        },
+        {
+          "id": "tile_03",
+          "text": "ل",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "tile_02",
+          "tile_03",
+          "tile_01"
+        ],
+        "rubric": null,
+        "target_text": "قلم",
+        "scoring": "ordered_option_ids_exact"
+      },
+      "evidence_type": "word_construction",
+      "error_focus": "spelling",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "origin_v1": null,
+      "status": "draft_pending_qa",
+      "hint": null,
+      "skill_group": "S5",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "ordered_letters",
+        "layout": "ordered_letter_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      },
+      "ordering_scoring_policy": "server_exact_order_without_human_review"
+    },
+    {
+      "id": "SUP-06-GP-03",
+      "owner_id": "SUP-06",
+      "role": "guided_practice",
+      "mode": "GP",
+      "interaction": "listen_choose_one",
+      "prompt": "استمع ثم اختر الصوت.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "SYL-11",
+            "kind": "audio"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "نُ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "نُو",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "madd_waw",
+      "error_focus": "waw",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "origin_v1": null,
+      "status": "draft_pending_qa",
+      "hint": "استمع إلى المد الطويل.",
+      "retry": "hint_then_one_more_guided_attempt",
+      "skill_group": "S6",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "SUP-06-GP-04",
+      "owner_id": "SUP-06",
+      "role": "guided_practice",
+      "mode": "GP",
+      "interaction": "listen_choose_one",
+      "prompt": "استمع واختر.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "SYL-12",
+            "kind": "audio"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "لِ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "لِي",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "madd_yaa",
+      "error_focus": "yaa",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "origin_v1": null,
+      "status": "draft_pending_qa",
+      "hint": "الياء تطيل صوت الكسرة.",
+      "retry": "hint_then_one_more_guided_attempt",
+      "skill_group": "S6",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "SUP-06-SC-03",
+      "owner_id": "SUP-06",
+      "role": "support_check",
+      "mode": "IC",
+      "interaction": "listen_choose_one",
+      "prompt": "استمع ثم اختر.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "SYL-13",
+            "kind": "audio"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "سَ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "سَا",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "madd_alif",
+      "error_focus": "alif",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "origin_v1": null,
+      "status": "draft_pending_qa",
+      "hint": null,
+      "skill_group": "S6",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "SUP-06-SC-04",
+      "owner_id": "SUP-06",
+      "role": "support_check",
+      "mode": "IC",
+      "interaction": "choose_one",
+      "prompt": "أي كلمة فيها مد بالواو؟",
+      "stimulus": {
+        "text": null,
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "نُور",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "نَهْر",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "madd_waw",
+      "error_focus": "waw",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "origin_v1": null,
+      "status": "draft_pending_qa",
+      "hint": null,
+      "skill_group": "S6",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "none",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "SUP-06-SC-05",
+      "owner_id": "SUP-06",
+      "role": "support_check",
+      "mode": "IC",
+      "interaction": "choose_one",
+      "prompt": "أي كلمة فيها مد بالياء؟",
+      "stimulus": {
+        "text": null,
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "فِيل",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "فَل",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "madd_yaa",
+      "error_focus": "yaa",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "origin_v1": null,
+      "status": "draft_pending_qa",
+      "hint": null,
+      "skill_group": "S6",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "none",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "SUP-06-SC-06",
+      "owner_id": "SUP-06",
+      "role": "support_check",
+      "mode": "IC",
+      "interaction": "listen_choose_one",
+      "prompt": "اختر المقطع الذي تسمعه.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "SYL-10",
+            "kind": "audio"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "فِ",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "فِي",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "madd_yaa",
+      "error_focus": "yaa",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "origin_v1": null,
+      "status": "draft_pending_qa",
+      "hint": null,
+      "skill_group": "S6",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "audio_play_button",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "SUP-07-GP-03",
+      "owner_id": "SUP-07",
+      "role": "guided_practice",
+      "mode": "GP",
+      "interaction": "choose_one",
+      "prompt": "اختر تقسيم الكلمة الصحيح.",
+      "stimulus": {
+        "text": "حَدِيقَة",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "حَ / دِي / قَة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "حَ / دِ / يَقَ",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "chunking",
+      "error_focus": "chunking",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "origin_v1": null,
+      "status": "draft_pending_qa",
+      "hint": "اقرأ أجزاء الكلمة.",
+      "retry": "hint_then_one_more_guided_attempt",
+      "skill_group": "S7",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "SUP-07-GP-04",
+      "owner_id": "SUP-07",
+      "role": "guided_practice",
+      "mode": "GP",
+      "interaction": "sequence",
+      "prompt": "انظر إلى الصورة، ثم رتب المقاطع لتكوّن اسمها.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "VOC-22",
+            "kind": "image"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "بَة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "مَكْ",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "تَ",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b",
+          "c",
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "syllable_blending",
+      "error_focus": "blending",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "origin_v1": null,
+      "status": "draft_pending_qa",
+      "hint": "ابدأ بمقطع الكلمة الأول.",
+      "retry": "hint_then_one_more_guided_attempt",
+      "skill_group": "S7",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "question_image",
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      }
+    },
+    {
+      "id": "SUP-07-SC-03",
+      "owner_id": "SUP-07",
+      "role": "support_check",
+      "mode": "IC",
+      "interaction": "choose_one",
+      "prompt": "ما الكلمة الناتجة من جمع المقاطع؟",
+      "stimulus": {
+        "text": "حَ + دِي + قَة",
+        "media": []
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "حَدِيقَة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "حَقِيبَة",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "syllable_blending",
+      "error_focus": "blending",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "origin_v1": null,
+      "status": "draft_pending_qa",
+      "hint": null,
+      "skill_group": "S7",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "text_block",
+        "option_mode": "text_cards",
+        "layout": "adaptive_cards",
+        "choice_count": 2,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "select_option"
+      }
+    },
+    {
+      "id": "SUP-07-SC-04",
+      "owner_id": "SUP-07",
+      "role": "support_check",
+      "mode": "IC",
+      "interaction": "sequence",
+      "prompt": "انظر إلى الصورة، ثم رتب المقاطع لتكوّن اسمها.",
+      "stimulus": {
+        "text": null,
+        "media": [
+          {
+            "media_id": "VOC-17",
+            "kind": "image"
+          }
+        ]
+      },
+      "options": [
+        {
+          "id": "a",
+          "text": "بَة",
+          "media": []
+        },
+        {
+          "id": "b",
+          "text": "حَ",
+          "media": []
+        },
+        {
+          "id": "c",
+          "text": "قِي",
+          "media": []
+        }
+      ],
+      "private_answer": {
+        "correct_option_ids": [
+          "b",
+          "c",
+          "a"
+        ],
+        "rubric": null
+      },
+      "evidence_type": "syllable_blending",
+      "error_focus": "blending",
+      "reading_reference": null,
+      "technical_gaps": [],
+      "origin_v1": null,
+      "status": "draft_pending_qa",
+      "hint": null,
+      "notes": "QA 2026-10-15: تعديل تربوي لتجنب التكرار أو كشف الحل أو صياغة غير دقيقة.",
+      "skill_group": "S7",
+      "version": "0.3-draft",
+      "authoring_state": "draft",
+      "student_presentation": {
+        "stimulus_mode": "question_image",
+        "option_mode": "ordered_tokens",
+        "layout": "ordered_token_tray",
+        "choice_count": 3,
+        "stimulus_audio_transcript_public": false,
+        "image_answer_caption_public": false,
+        "hint_initially_visible": false,
+        "answer_initially_visible": false,
+        "student_input": "tap_order"
+      }
+    }
+  ],
+  "supports": [
+    {
+      "id": "SUP-05",
+      "title": "بناء وكتابة الكلمة",
+      "target_skill": "S5",
+      "linked_lessons": [
+        "L2-01"
+      ],
+      "focus": [
+        "letter_order",
+        "spelling"
+      ],
+      "teaching_method": "إعادة بناء كلمة من حرفين أو ثلاثة قبل مهمة كتابة قصيرة.",
+      "examples": [
+        "بَاب",
+        "نَجْم"
+      ],
+      "practice_ids": [
+        "SUP-05-GP-01",
+        "SUP-05-GP-02",
+        "SUP-05-GP-03",
+        "SUP-05-GP-04"
+      ],
+      "check_ids": [
+        "SUP-05-SC-01",
+        "SUP-05-SC-02",
+        "SUP-05-SC-03",
+        "SUP-05-SC-04"
+      ],
+      "check_items_per_attempt": 2,
+      "video_media_id": null,
+      "status": "authored_focus_draft_pending_review",
+      "origin_v1": [
+        "L2-REIN-01",
+        "L2-CORE-09"
+      ],
+      "focus_item_map": {
+        "letter_order": {
+          "practice_ids": [
+            "SUP-05-GP-01",
+            "SUP-05-GP-03"
+          ],
+          "check_ids": [
+            "SUP-05-SC-01",
+            "SUP-05-SC-03"
+          ],
+          "items_per_attempt": 2
+        },
+        "spelling": {
+          "practice_ids": [
+            "SUP-05-GP-02",
+            "SUP-05-GP-04"
+          ],
+          "check_ids": [
+            "SUP-05-SC-02",
+            "SUP-05-SC-04"
+          ],
+          "items_per_attempt": 2
+        }
+      },
+      "selection_rule": "يظهر دعم focus واحد و2 سؤال تحقق فقط بحسب الفجوة",
+      "version": "0.3-draft",
+      "intro": {
+        "title": "بناء وكتابة الكلمة",
+        "text": "سنرتب الحروف ونكتب كلمة واضحة."
+      },
+      "teaching_media_strategy": "short_approved_video_audio_or_visual_pending_choice",
+      "publish_state": "blocked_pending_media_runtime_qa"
+    },
+    {
+      "id": "SUP-06",
+      "title": "المدود",
+      "target_skill": "S6",
+      "linked_lessons": [
+        "L2-02"
+      ],
+      "focus": [
+        "alif",
+        "waw",
+        "yaa"
+      ],
+      "teaching_method": "مقارنة قصيرة بين مقطع قصير وآخر طويل وتأكيد موضع حرف المد.",
+      "examples": [
+        "بَ / بَا",
+        "فِ / فِي"
+      ],
+      "practice_ids": [
+        "SUP-06-GP-01",
+        "SUP-06-GP-02",
+        "SUP-06-GP-03",
+        "SUP-06-GP-04"
+      ],
+      "check_ids": [
+        "SUP-06-SC-01",
+        "SUP-06-SC-02",
+        "SUP-06-SC-03",
+        "SUP-06-SC-04",
+        "SUP-06-SC-05",
+        "SUP-06-SC-06"
+      ],
+      "check_items_per_attempt": 2,
+      "video_media_id": null,
+      "status": "authored_focus_draft_pending_review",
+      "origin_v1": [
+        "L2-CORE-06"
+      ],
+      "focus_item_map": {
+        "alif": {
+          "practice_ids": [
+            "SUP-06-GP-01"
+          ],
+          "check_ids": [
+            "SUP-06-SC-02",
+            "SUP-06-SC-03"
+          ],
+          "items_per_attempt": 2
+        },
+        "waw": {
+          "practice_ids": [
+            "SUP-06-GP-03"
+          ],
+          "check_ids": [
+            "SUP-06-SC-01",
+            "SUP-06-SC-04"
+          ],
+          "items_per_attempt": 2
+        },
+        "yaa": {
+          "practice_ids": [
+            "SUP-06-GP-02",
+            "SUP-06-GP-04"
+          ],
+          "check_ids": [
+            "SUP-06-SC-05",
+            "SUP-06-SC-06"
+          ],
+          "items_per_attempt": 2
+        }
+      },
+      "selection_rule": "يظهر دعم focus واحد و2 سؤال تحقق فقط بحسب الفجوة",
+      "version": "0.3-draft",
+      "intro": {
+        "title": "المدود",
+        "text": "سنميز بين الصوت القصير والمد الطويل."
+      },
+      "teaching_media_strategy": "short_approved_video_audio_or_visual_pending_choice",
+      "publish_state": "blocked_pending_media_runtime_qa"
+    },
+    {
+      "id": "SUP-07",
+      "title": "الكلمات الأطول",
+      "target_skill": "S7",
+      "linked_lessons": [
+        "L2-03"
+      ],
+      "focus": [
+        "chunking",
+        "blending"
+      ],
+      "teaching_method": "فك كلمة إلى جزأين ثم قراءتها كاملة دون حذف جزء.",
+      "examples": [
+        "مَكْتَب",
+        "حَدِيقَة"
+      ],
+      "practice_ids": [
+        "SUP-07-GP-01",
+        "SUP-07-GP-02",
+        "SUP-07-GP-03",
+        "SUP-07-GP-04"
+      ],
+      "check_ids": [
+        "SUP-07-SC-01",
+        "SUP-07-SC-02",
+        "SUP-07-SC-03",
+        "SUP-07-SC-04"
+      ],
+      "check_items_per_attempt": 2,
+      "video_media_id": null,
+      "status": "authored_focus_draft_pending_review",
+      "origin_v1": [
+        "L2-CORE-05",
+        "L3-CORE-01"
+      ],
+      "focus_item_map": {
+        "chunking": {
+          "practice_ids": [
+            "SUP-07-GP-01",
+            "SUP-07-GP-03"
+          ],
+          "check_ids": [
+            "SUP-07-SC-01",
+            "SUP-07-SC-02"
+          ],
+          "items_per_attempt": 2
+        },
+        "blending": {
+          "practice_ids": [
+            "SUP-07-GP-02",
+            "SUP-07-GP-04"
+          ],
+          "check_ids": [
+            "SUP-07-SC-03",
+            "SUP-07-SC-04"
+          ],
+          "items_per_attempt": 2
+        }
+      },
+      "selection_rule": "يظهر دعم focus واحد و2 سؤال تحقق فقط بحسب الفجوة",
+      "version": "0.3-draft",
+      "intro": {
+        "title": "الكلمات الأطول",
+        "text": "سنقسم الكلمة إلى أجزاء صغيرة ثم نقرأها كاملة."
+      },
+      "teaching_media_strategy": "short_approved_video_audio_or_visual_pending_choice",
+      "publish_state": "blocked_pending_media_runtime_qa"
+    }
+  ],
+  "media": [
+    {
+      "id": "SYL-04",
+      "kind": "audio",
+      "meaning": "",
+      "v1_asset_id": "SYL-04",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-04.mp3",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "owner_review_pending",
+      "reference_spoken_private": "مَا",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
+    },
+    {
+      "id": "SYL-09",
+      "kind": "audio",
+      "meaning": "",
+      "v1_asset_id": "SYL-09",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-09.mp3",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "owner_review_pending",
+      "reference_spoken_private": "بَا",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
+    },
+    {
+      "id": "SYL-10",
+      "kind": "audio",
+      "meaning": "",
+      "v1_asset_id": "SYL-10",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-10.mp3",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "owner_review_pending",
+      "reference_spoken_private": "فِي",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
+    },
+    {
+      "id": "SYL-11",
+      "kind": "audio",
+      "meaning": "",
+      "v1_asset_id": "SYL-11",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-11.mp3",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "owner_review_pending",
+      "reference_spoken_private": "نُو",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
+    },
+    {
+      "id": "SYL-12",
+      "kind": "audio",
+      "meaning": "",
+      "v1_asset_id": "SYL-12",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-12.mp3",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "owner_review_pending",
+      "reference_spoken_private": "لِي",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
+    },
+    {
+      "id": "SYL-13",
+      "kind": "audio",
+      "meaning": "",
+      "v1_asset_id": "SYL-13",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/SYL-13.mp3",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "owner_review_pending",
+      "reference_spoken_private": "سَا",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
+    },
+    {
+      "id": "WRD-03",
+      "kind": "audio",
+      "meaning": "",
+      "v1_asset_id": "WRD-03",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-03.mp3",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "owner_review_pending",
+      "reference_spoken_private": "باب",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
+    },
+    {
+      "id": "WRD-04",
+      "kind": "audio",
+      "meaning": "",
+      "v1_asset_id": "WRD-04",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-04.mp3",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "owner_review_pending",
+      "reference_spoken_private": "قَلَم",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
+    },
+    {
+      "id": "WRD-05",
+      "kind": "audio",
+      "meaning": "",
+      "v1_asset_id": "WRD-05",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-05.mp3",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "owner_review_pending",
+      "reference_spoken_private": "سَمَك",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
+    },
+    {
+      "id": "WRD-09",
+      "kind": "audio",
+      "meaning": "",
+      "v1_asset_id": "WRD-09",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-09.mp3",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "owner_review_pending",
+      "reference_spoken_private": "نَخْلَة",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
+    },
+    {
+      "id": "WRD-14",
+      "kind": "audio",
+      "meaning": "",
+      "v1_asset_id": "WRD-14",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-14.mp3",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "owner_review_pending",
+      "reference_spoken_private": "نَجْم",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
+    },
+    {
+      "id": "WRD-15",
+      "kind": "audio",
+      "meaning": "",
+      "v1_asset_id": "WRD-15",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-15.mp3",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "owner_review_pending",
+      "reference_spoken_private": "نور",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
+    },
+    {
+      "id": "WRD-16",
+      "kind": "audio",
+      "meaning": "",
+      "v1_asset_id": "WRD-16",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-16.mp3",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "owner_review_pending",
+      "reference_spoken_private": "مَكْتَب",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
+    },
+    {
+      "id": "WRD-17",
+      "kind": "audio",
+      "meaning": "",
+      "v1_asset_id": "WRD-17",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-17.mp3",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "owner_review_pending",
+      "reference_spoken_private": "بَحْر",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
+    },
+    {
+      "id": "WRD-18",
+      "kind": "audio",
+      "meaning": "",
+      "v1_asset_id": "WRD-18",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-18.mp3",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "owner_review_pending",
+      "reference_spoken_private": "أَرْنَب",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
+    },
+    {
+      "id": "WRD-23",
+      "kind": "audio",
+      "meaning": "",
+      "v1_asset_id": "WRD-23",
+      "source_path": "assets/audio/HIMMA_AUDIO_V1/web_mp3/WRD-23.mp3",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "owner_review_pending",
+      "reference_spoken_private": "فيل",
+      "asset_manifest_verified": true,
+      "auditory_qa_pending": true
+    },
+    {
+      "id": "VOC-03",
+      "kind": "image",
+      "meaning": "باب",
+      "v1_asset_id": "VOC-03",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-03-door-512.webp",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_later",
+      "type": "image",
+      "review_state": "owner_review_pending",
+      "source_label_private": "باب",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
+    },
+    {
+      "id": "VOC-04",
+      "kind": "image",
+      "meaning": "قلم",
+      "v1_asset_id": "VOC-04",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-04-pencil-512.webp",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_later",
+      "type": "image",
+      "review_state": "owner_review_pending",
+      "source_label_private": "قلم",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
+    },
+    {
+      "id": "VOC-09",
+      "kind": "image",
+      "meaning": "نخلة",
+      "v1_asset_id": "VOC-09",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-09-palm-tree-512.webp",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_later",
+      "type": "image",
+      "review_state": "owner_review_pending",
+      "source_label_private": "نخلة",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
+    },
+    {
+      "id": "VOC-14",
+      "kind": "image",
+      "meaning": "نجم",
+      "v1_asset_id": "VOC-14",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-14-star-512.webp",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_later",
+      "type": "image",
+      "review_state": "owner_review_pending",
+      "source_label_private": "نجم",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
+    },
+    {
+      "id": "VOC-18",
+      "kind": "image",
+      "meaning": "مدرسة",
+      "v1_asset_id": "VOC-18",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-18-school-512.webp",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_later",
+      "type": "image",
+      "review_state": "owner_review_pending",
+      "source_label_private": "مدرسة",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
+    },
+    {
+      "id": "VOC-22",
+      "kind": "image",
+      "meaning": "مكتبة",
+      "v1_asset_id": "VOC-22",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-22-library-512.webp",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_later",
+      "type": "image",
+      "review_state": "owner_review_pending",
+      "source_label_private": "مكتبة",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
+    },
+    {
+      "id": "VOC-28",
+      "kind": "image",
+      "meaning": "زهرة",
+      "v1_asset_id": "VOC-28",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-28-flower-512.webp",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_later",
+      "type": "image",
+      "review_state": "owner_review_pending",
+      "source_label_private": "زهرة",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
+    },
+    {
+      "id": "VID-L2-01",
+      "kind": "video",
+      "meaning": "أبني وأكتب كلمة بسيطة",
+      "v1_asset_id": null,
+      "source_path": null,
+      "status": "missing_new",
+      "review": "owner_later",
+      "type": "video",
+      "review_state": "awaiting_production"
+    },
+    {
+      "id": "VID-L2-02",
+      "kind": "video",
+      "meaning": "المدود والصوت القصير والطويل",
+      "v1_asset_id": null,
+      "source_path": null,
+      "status": "missing_new",
+      "review": "owner_later",
+      "type": "video",
+      "review_state": "awaiting_production"
+    },
+    {
+      "id": "AUD-L2-RA",
+      "kind": "audio",
+      "meaning": "رَا",
+      "v1_asset_id": null,
+      "source_path": null,
+      "status": "missing_new",
+      "review": "owner_later",
+      "type": "audio",
+      "review_state": "awaiting_production",
+      "required_spoken_text": "رَا",
+      "required_by_questions": true,
+      "recording_state": "missing_required"
+    },
+    {
+      "id": "VID-L2-03",
+      "kind": "video",
+      "meaning": "أقرأ كلمات أطول ومتعددة المقاطع",
+      "v1_asset_id": null,
+      "source_path": null,
+      "status": "missing_new",
+      "review": "owner_later",
+      "type": "video",
+      "review_state": "awaiting_production"
+    },
+    {
+      "id": "VID-L2-04",
+      "kind": "video",
+      "meaning": "أقرأ جملة قصيرة بنطق صحيح",
+      "v1_asset_id": null,
+      "source_path": null,
+      "status": "missing_new",
+      "review": "owner_later",
+      "type": "video",
+      "review_state": "awaiting_production"
+    },
+    {
+      "id": "VID-L2-05",
+      "kind": "video",
+      "meaning": "أفهم معنى الجملة مباشرة",
+      "v1_asset_id": null,
+      "source_path": null,
+      "status": "missing_new",
+      "review": "owner_later",
+      "type": "video",
+      "review_state": "awaiting_production"
+    },
+    {
+      "id": "VID-L2-06",
+      "kind": "video",
+      "meaning": "أبني جملة بسيطة من كلمات",
+      "v1_asset_id": null,
+      "source_path": null,
+      "status": "missing_new",
+      "review": "owner_later",
+      "type": "video",
+      "review_state": "awaiting_production"
+    },
+    {
+      "id": "VOC-12",
+      "kind": "image",
+      "meaning": "بطة",
+      "v1_asset_id": "VOC-12",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-12-duck-512.webp",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_later",
+      "type": "image",
+      "review_state": "owner_review_pending",
+      "source_label_private": "بطة",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
+    },
+    {
+      "id": "VOC-10",
+      "kind": "image",
+      "meaning": "كرة",
+      "v1_asset_id": "VOC-10",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-10-ball-512.webp",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_later",
+      "type": "image",
+      "review_state": "owner_review_pending",
+      "source_label_private": "كرة",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
+    },
+    {
+      "id": "VOC-06",
+      "kind": "image",
+      "meaning": "شمس",
+      "v1_asset_id": "VOC-06",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-06-sun-512.webp",
+      "status": "selected_from_v1_pending_owner_review",
+      "review": "owner_later",
+      "type": "image",
+      "review_state": "owner_review_pending",
+      "source_label_private": "شمس",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
+    },
+    {
+      "id": "VOC-07",
+      "kind": "image",
+      "type": "image",
+      "meaning": "قمر",
+      "v1_asset_id": "VOC-07",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-07-moon-512.webp",
+      "status": "selected_from_v1_pending_owner_review",
+      "review_state": "owner_review_pending",
+      "source_label_private": "قمر",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
+    },
+    {
+      "id": "VOC-17",
+      "kind": "image",
+      "type": "image",
+      "meaning": "حقيبة",
+      "v1_asset_id": "VOC-17",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-17-school-bag-512.webp",
+      "status": "selected_from_v1_pending_owner_review",
+      "review_state": "owner_review_pending",
+      "source_label_private": "حقيبة",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
+    },
+    {
+      "id": "VOC-05",
+      "kind": "image",
+      "type": "image",
+      "meaning": "سمكة",
+      "v1_asset_id": "VOC-05",
+      "status": "selected_from_v1_pending_owner_review",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-05-fish-512.webp",
+      "source_label_private": "سمكة",
+      "source_label_must_not_render_in_image_question": true,
+      "asset_manifest_verified": true
+    },
+    {
+      "id": "VOC-02",
+      "kind": "image",
+      "type": "image",
+      "meaning": "كتاب",
+      "v1_asset_id": "VOC-02",
+      "source_path": "assets/education/assets/vocabulary/webp/hem-voc-02-book-512.webp",
+      "status": "selected_from_v1_pending_owner_review",
+      "review_state": "owner_review_pending"
+    }
+  ],
+  "qa_notes": []
+}

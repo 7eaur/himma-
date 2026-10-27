@@ -1,0 +1,170 @@
+"""Student-facing learning journey summary.
+
+This module is presentation-oriented: it exposes the already-persisted academic
+state without mutating placement, adaptation, reinforcement, or assessment
+rules. The frontend can therefore render L1 -> L2 -> L3 accurately instead of
+inferring completion from the latest session only.
+
+An active Core session always takes precedence over older completed evidence at
+the same level. This matters when a supervisor deliberately reopens learning:
+historical achievements stay visible in storage, but they must not make the
+current journey or posttest look complete while remediation is active.
+
+Level completion itself is owned exclusively by ``level_completion.py``.
+Journey only projects that canonical evidence into UI-facing states.
+"""
+
+from __future__ import annotations
+
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+
+from db.models import AssessmentSession, Student
+from dependencies import get_current_student, get_db
+from level_completion import CORE_ACTIVITY_COUNT, completed_core_count, session_level_completion
+
+router = APIRouter(prefix="/journey", tags=["Student Journey"])
+
+LEVEL_NAMES = {
+    1: "الاستعداد للقراءة",
+    2: "بناء الكلمة",
+    3: "الطلاقة والفهم",
+}
+
+
+def _latest_completed_assessment(
+    db: Session,
+    student_id: int,
+    session_type: str,
+) -> AssessmentSession | None:
+    """Return the newest persisted completed result for the requested assessment."""
+    return (
+        db.query(AssessmentSession)
+        .filter(
+            AssessmentSession.student_id == student_id,
+            AssessmentSession.session_type == session_type,
+            AssessmentSession.status == "completed",
+        )
+        .order_by(AssessmentSession.assessment_attempt_no.desc(), AssessmentSession.id.desc())
+        .first()
+    )
+
+
+def _pretest_state(db: Session, student_id: int) -> tuple[bool, int | None, float | None]:
+    pretest = _latest_completed_assessment(db, student_id, "pretest")
+    if not pretest:
+        return False, None, None
+    score = float(pretest.final_score) if pretest.final_score is not None else None
+    return True, pretest.assigned_level, score
+
+
+def _posttest_state(db: Session, student_id: int) -> tuple[bool, float | None]:
+    posttest = _latest_completed_assessment(db, student_id, "posttest")
+    if not posttest:
+        return False, None
+    score = float(posttest.final_score) if posttest.final_score is not None else None
+    return True, score
+
+
+def build_journey_summary(db: Session, student: Student) -> dict:
+    pretest_completed, placed_level, pretest_score = _pretest_state(db, student.id)
+    starting_level = placed_level if placed_level in {1, 2, 3} else (student.current_level if pretest_completed else None)
+
+    sessions = (
+        db.query(AssessmentSession)
+        .filter(
+            AssessmentSession.student_id == student.id,
+            AssessmentSession.session_type == "core",
+        )
+        .order_by(AssessmentSession.id)
+        .all()
+    )
+    by_level: dict[int, list[AssessmentSession]] = {1: [], 2: [], 3: []}
+    for session in sessions:
+        if session.assigned_level in by_level:
+            by_level[int(session.assigned_level)].append(session)
+
+    active_core_exists = any(session.status == "in_progress" for session in sessions)
+    levels: list[dict] = []
+    level3_completed = False
+
+    for level_id in (1, 2, 3):
+        candidates = by_level[level_id]
+        active = next((session for session in reversed(candidates) if session.status == "in_progress"), None)
+
+        completed_candidates: list[tuple[AssessmentSession, int]] = []
+        latest_count = 0
+        for session in candidates:
+            evidence = session_level_completion(db, session)
+            if session is candidates[-1]:
+                latest_count = evidence.completed_core_count
+            if evidence.completed:
+                completed_candidates.append((session, evidence.completed_core_count))
+
+        completed_entry = completed_candidates[-1] if completed_candidates else None
+
+        if not pretest_completed:
+            state = "locked"
+            completed_items = 0
+            session_id = None
+        elif active:
+            # A supervisor-reopened/remedial session is the current truth even
+            # when an older session at this level was previously completed.
+            state = "active"
+            completed_items = completed_core_count(db, active.id, level_id)
+            session_id = active.id
+        elif completed_entry:
+            state = "completed"
+            completed_items = completed_entry[1]
+            session_id = completed_entry[0].id
+        elif starting_level is not None and level_id < starting_level and not candidates:
+            # Placement legitimately skipped this level and no later manual
+            # intervention ever created real learning evidence here.
+            state = "skipped"
+            completed_items = 0
+            session_id = None
+        elif level_id == student.current_level:
+            state = "ready"
+            completed_items = latest_count
+            session_id = candidates[-1].id if candidates else None
+        else:
+            state = "locked"
+            completed_items = latest_count
+            session_id = candidates[-1].id if candidates else None
+
+        if level_id == 3 and state == "completed":
+            level3_completed = True
+
+        levels.append(
+            {
+                "level_id": level_id,
+                "name": LEVEL_NAMES[level_id],
+                "state": state,
+                "completed_items": min(CORE_ACTIVITY_COUNT, completed_items),
+                "total_items": CORE_ACTIVITY_COUNT,
+                "session_id": session_id,
+            }
+        )
+
+    posttest_completed, posttest_score = _posttest_state(db, student.id)
+    learning_journey_completed = level3_completed and not active_core_exists
+    return {
+        "pretest_completed": pretest_completed,
+        "pretest_score": pretest_score,
+        "starting_level": starting_level,
+        "current_level": student.current_level,
+        "levels": levels,
+        "learning_journey_completed": learning_journey_completed,
+        "posttest_enabled": bool(student.posttest_enabled),
+        "posttest_completed": posttest_completed,
+        "posttest_score": posttest_score,
+        "posttest_ready": learning_journey_completed and bool(student.posttest_enabled) and not posttest_completed,
+    }
+
+
+@router.get("")
+def student_journey(
+    db: Session = Depends(get_db),
+    student: Student = Depends(get_current_student),
+):
+    return build_journey_summary(db, student)

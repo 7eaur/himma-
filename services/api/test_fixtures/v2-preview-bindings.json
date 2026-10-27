@@ -1,0 +1,18 @@
+{
+  "schema": "himma-v2-preview-bindings/1",
+  "test_only": true,
+  "bindings": {
+    "VID-L1-01": {
+      "kind": "video",
+      "path": "assets/video/HIMMA_V2_DEMO/gemini_generated_video_72256b30.mp4"
+    },
+    "AUD-L1-L": {
+      "kind": "audio",
+      "path": "assets/audio/HIMMA_AUDIO_V2/web_mp3/AUD-L1-L.mp3"
+    },
+    "VOC-04": {
+      "kind": "image",
+      "path": "assets/education/assets/vocabulary/webp/hem-voc-04-pencil-512.webp"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+/*
+ * Arabic typography is emitted as self-hosted assets by next/font during the
+ * Next.js build/dev pipeline. These semantic tokens intentionally override the
+ * historical font-family literals in globals.css after PostCSS removes its
+ * obsolete runtime Google Fonts import.
+ */
+:root {
+  --font-student: var(--font-tajawal), "Noto Sans Arabic", sans-serif;
+  --font-researcher: var(--font-ibm-plex-sans-arabic), "Noto Sans Arabic", sans-serif;
+}

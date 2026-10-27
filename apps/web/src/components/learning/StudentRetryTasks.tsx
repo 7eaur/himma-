@@ -1,0 +1,292 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Mic, MicOff, RefreshCw, RotateCcw } from "lucide-react";
+
+interface RetryItem {
+  task_id: number; kind: "lesson" | "assessment"; session_id: number;
+  question_id: string; status: "requested" | "submitted";
+  request_kind: "rerecord" | "rewrite"; reason: string; prompt: string;
+  draft_text?: string | null;
+  staged_audio?: {
+    audio_storage_key: string; audio_file_size: number;
+    audio_mime_type: string; audio_duration_seconds: number | null;
+  } | null;
+}
+
+function newKey(): string {
+  return typeof crypto !== "undefined" && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `p08-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) {
+  const [text, setText] = useState(task.draft_text ?? "");
+  const [draftSaved, setDraftSaved] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [seconds, setSeconds] = useState(0);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  // Derive recovery state from the server's latest response, avoiding effect-
+  // driven React state updates and retaining a successful local upload until
+  // the next refresh. Never persist the student's raw recording in storage.
+  const [uploadedAudio, setUploadedAudio] = useState<RetryItem["staged_audio"]>(null);
+  const stagedAudio = uploadedAudio ?? task.staged_audio ?? null;
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const startedAt = useRef(0);
+  const uploadKey = useRef(newKey());
+  const submitKey = useRef(newKey());
+
+  useEffect(() => () => {
+    if (recorderRef.current?.state === "recording") recorderRef.current.stop();
+    recorderRef.current?.stream.getTracks().forEach((track) => track.stop());
+    if (audioUrl) URL.revokeObjectURL(audioUrl);
+  }, [audioUrl]);
+
+  const startRecording = async () => {
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      setError("متصفحك لا يدعم التسجيل؛ افتح الموقع في متصفح يدعم الميكروفون."); return;
+    }
+    setError("");
+    let openedStream: MediaStream | null = null;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      openedStream = stream;
+      const supported = ["audio/webm;codecs=opus", "audio/mp4", "audio/webm"].find((type) => MediaRecorder.isTypeSupported(type));
+      const recorder = supported ? new MediaRecorder(stream, { mimeType: supported }) : new MediaRecorder(stream);
+      // New audio is a new submission: never reuse the old audio idempotency key.
+      if (audioUrl) URL.revokeObjectURL(audioUrl);
+      setAudioUrl(null);
+      setAudioBlob(null);
+      setUploadedAudio(null);
+      uploadKey.current = newKey();
+      submitKey.current = newKey();
+      chunksRef.current = [];
+      let recorderFailed = false;
+      recorder.ondataavailable = (event) => { if (event.data.size) chunksRef.current.push(event.data); };
+      recorder.onerror = () => {
+        recorderFailed = true;
+        stream.getTracks().forEach((track) => track.stop());
+        setRecording(false);
+        setError("حدث خطأ أثناء التسجيل. حاول مرة أخرى بعد التحقق من إذن الميكروفون.");
+      };
+      recorder.onstop = () => {
+        stream.getTracks().forEach((track) => track.stop());
+        if (recorderFailed) return;
+        const mimeType = recorder.mimeType || chunksRef.current[0]?.type || "audio/webm";
+        const blob = new Blob(chunksRef.current, { type: mimeType });
+        if (!blob.size || blob.size > 10 * 1024 * 1024) {
+          // Recording may fail after permission succeeds: never leave the
+          // child's microphone stream running on an empty/oversize file.
+          stream.getTracks().forEach((track) => track.stop());
+          setError("التسجيل فارغ أو تجاوز الحجم المسموح (10 ميجابايت). سجّل قراءة أقصر.");
+          return;
+        }
+        setAudioBlob(blob);
+        setAudioUrl((previous) => { if (previous) URL.revokeObjectURL(previous); return URL.createObjectURL(blob); });
+        stream.getTracks().forEach((track) => track.stop());
+        setSeconds(Math.max(1, Math.ceil((Date.now() - startedAt.current) / 1000)));
+      };
+      recorder.start();
+      recorderRef.current = recorder;
+      startedAt.current = Date.now();
+      setRecording(true);
+    } catch {
+      // Some browsers grant a MediaStream but reject MediaRecorder.start().
+      // Release the microphone even when setup fails after permission.
+      openedStream?.getTracks().forEach((track) => track.stop());
+      setRecording(false);
+      setError("تعذر تشغيل الميكروفون. تحقق من إذنه ثم حاول مجددًا.");
+    }
+  };
+
+  const stopRecording = () => {
+    if (recorderRef.current?.state === "recording") recorderRef.current.stop();
+    setRecording(false);
+  };
+
+  const saveDraft = async () => {
+    if (busy || task.request_kind !== "rewrite") return;
+    setBusy(true); setError(""); setDraftSaved(false);
+    try {
+      const response = await fetch(`/api/v2/retries/student/tasks/${task.task_id}/draft`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text_response: text }),
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.detail || "تعذر حفظ مسودة الكتابة");
+      setDraftSaved(true);
+    } catch (reason) { setError(reason instanceof Error ? reason.message : "تعذر حفظ المسودة"); }
+    finally { setBusy(false); }
+  };
+
+  const submit = async () => {
+    if (busy || recording) return;
+    setBusy(true); setError("");
+    try {
+      let answer: Record<string, unknown>;
+      if (task.request_kind === "rewrite") {
+        const value = text.trim();
+        if (!value) throw new Error("اكتب إجابتك قبل الإرسال");
+        answer = { text_response: value };
+      } else {
+        if (!audioBlob && !stagedAudio) throw new Error("سجل قراءتك أولًا");
+        if (audioBlob) {
+          const form = new FormData();
+          form.append("file", audioBlob, audioBlob.type.includes("mp4") ? "v2-retry.m4a" : "v2-retry.webm");
+          form.append("duration_seconds", String(Math.max(1, seconds)));
+          const response = await fetch(`/api/v2/retries/student/tasks/${task.task_id}/recording`, {
+            method: "POST", headers: { "Idempotency-Key": uploadKey.current }, body: form,
+          });
+          const payload = await response.json().catch(() => null);
+          if (!response.ok) throw new Error(payload?.detail || "تعذر رفع التسجيل");
+          answer = payload;
+          setUploadedAudio(payload);
+        } else {
+          if (!stagedAudio?.audio_duration_seconds) throw new Error("مدة التسجيل غير محفوظة. يُرجى إعادة التسجيل.");
+          answer = stagedAudio;
+        }
+      }
+      const response = await fetch(`/api/v2/retries/student/tasks/${task.task_id}/submit`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ submit_key: submitKey.current, ...answer }),
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.detail || "تعذر إرسال النسخة الجديدة");
+      onSaved();
+    } catch (reason) { setError(reason instanceof Error ? reason.message : "تعذر إكمال الإعادة"); }
+    finally { setBusy(false); }
+  };
+
+  return <section className="space-y-3 rounded-2xl border border-amber-300 bg-amber-50/70 p-4" aria-label="إعادة الدليل">
+    <div><strong className="text-slate-900">طلب جديد من المشرف: {task.request_kind === "rerecord" ? "إعادة القراءة" : "إعادة الكتابة"}</strong>
+      <p className="mt-1 text-sm text-slate-700">{task.prompt}</p>
+      <p className="mt-2 text-sm text-amber-900">ملاحظة المشرف: {task.reason}</p></div>
+    {task.request_kind === "rewrite"
+      ? <div><label className="block text-sm font-semibold" htmlFor={`retry-write-${task.task_id}`}>إجابتك الجديدة</label>
+        <textarea id={`retry-write-${task.task_id}`} value={text} maxLength={500} rows={3}
+          onChange={(event) => { setText(event.target.value); setDraftSaved(false); }} className="mt-1 w-full rounded-lg border border-slate-300 bg-white p-3" />
+        <button type="button" disabled={busy} onClick={() => void saveDraft()}
+          className="mt-2 rounded-lg border border-slate-400 bg-white px-3 py-2 text-sm font-semibold disabled:opacity-40">
+          حفظ مسودة الكتابة
+        </button>
+        {draftSaved && <span role="status" className="mx-2 text-sm text-emerald-700">حُفظت مسودتك ويمكن استعادتها بعد إعادة فتح الصفحة.</span>}
+        {!draftSaved && task.draft_text !== null && task.draft_text !== undefined &&
+          <span className="mx-2 text-xs text-slate-600">آخر مسودة محفوظة على الخادم</span>}
+      </div>
+      : <div className="space-y-2">
+        {!audioBlob
+          ? <button type="button" disabled={busy} onClick={recording ? stopRecording : () => void startRecording()}
+              className="inline-flex items-center gap-2 rounded-xl bg-blue-800 px-4 py-2 font-semibold text-white disabled:opacity-50">
+              {recording ? <MicOff size={19}/> : <Mic size={19}/>}
+              {recording ? "إيقاف التسجيل" : "تسجيل القراءة من جديد"}</button>
+          : <><audio controls src={audioUrl || undefined} className="w-full"/>
+            <button type="button" onClick={() => {
+              setAudioBlob(null);
+              setUploadedAudio(null);
+              if (audioUrl) URL.revokeObjectURL(audioUrl);
+              setAudioUrl(null);
+              uploadKey.current = newKey();
+              submitKey.current = newKey();
+            }}
+              className="inline-flex items-center gap-2 rounded-lg border border-slate-400 px-3 py-2 text-sm"><RotateCcw size={16}/> إعادة المحاولة</button></>}
+        {stagedAudio && !audioBlob && <p role="status" className="text-sm text-emerald-700">
+          التسجيل السابق محفوظ في الخدمة. يمكنك إرسال النسخة دون رفعها مرة أخرى، أو إعادة التسجيل.
+        </p>}
+        <p className="text-sm text-slate-700">القراءة الجديدة ستظل بانتظار مراجعة المشرف، ولن تُحتسب نتيجة تلقائية.</p>
+      </div>}
+    {error && <p role="alert" className="text-sm text-rose-700">{error}</p>}
+    <button type="button" disabled={busy || recording || (task.request_kind === "rewrite" ? !text.trim() : (!audioBlob && !stagedAudio))}
+      onClick={() => void submit()} className="rounded-xl bg-emerald-700 px-5 py-2 font-semibold text-white disabled:opacity-40">
+      {busy ? "جاري حفظ الدليل..." : "إرسال الإجابة الجديدة للمراجعة"}</button>
+  </section>;
+}
+
+export default function StudentRetryTasks({ kind, sessionId, dashboard = false }: { kind?: "lesson" | "assessment"; sessionId?: number; dashboard?: boolean }) {
+  const [tasks, setTasks] = useState<RetryItem[]>([]);
+  const [error, setError] = useState("");
+  const [sent, setSent] = useState(false);
+  const requestSequence = useRef(0);
+  const load = useCallback(async () => {
+    const sequence = ++requestSequence.current;
+    try {
+      const allTasks: RetryItem[] = [];
+      let nextOffset: number | null = 0;
+      // A student may have open review evidence from multiple finished lessons.
+      // Never silently truncate the queue to the first 50 most recent tasks.
+      for (let page = 0; nextOffset !== null && page < 30; page += 1) {
+        const offset: number = nextOffset;
+        const response = await fetch(`/api/v2/retries/student/tasks?limit=100&offset=${offset}`, { cache: "no-store" });
+        const payload = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(payload?.detail || "تعذر تحميل طلبات الإعادة");
+        if (sequence !== requestSequence.current) return;
+        if (!Array.isArray(payload?.items)) throw new Error("قائمة الإعادات غير صالحة");
+        allTasks.push(...(payload.items as RetryItem[]));
+        const following: unknown = payload.next_offset ?? null;
+        if (following !== null && (!Number.isSafeInteger(following) || (following as number) <= offset)) {
+          throw new Error("تعذر استكمال قائمة الإعادات");
+        }
+        nextOffset = following as number | null;
+      }
+      if (nextOffset !== null) throw new Error("قائمة الإعادات كبيرة جدًا، أعد تحميل الصفحة");
+      if (sequence !== requestSequence.current) return;
+      setTasks(allTasks.filter((item) =>
+        (kind === undefined || item.kind === kind) &&
+        (sessionId === undefined || item.session_id === sessionId)
+      ));
+      setError("");
+    } catch (reason) {
+      if (sequence === requestSequence.current) {
+        setError(reason instanceof Error ? reason.message : "تعذر تحميل الإعادات");
+      }
+    }
+  }, [kind, sessionId]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void load(); }, 0);
+    const onOnline = () => { void load(); };
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") void load();
+    };
+    window.addEventListener("online", onOnline);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("online", onOnline);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [load]);
+
+  const requested = tasks.filter((task) => task.status === "requested");
+  const submitted = tasks.filter((task) => task.status === "submitted");
+  // The student dashboard must not show an empty review card: it pushes the
+  // learning journey below the viewport despite no actionable review request.
+  if (dashboard && tasks.length === 0 && !sent) {
+    if (!error) return null;
+    // On a failed request the inbox is unknown, not confirmed empty.
+    // Keep retry available without falsely claiming the student has no tasks.
+    return <div role="alert" className="mt-3 flex flex-wrap items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+      <span>تعذر تحديث طلبات المشرف: {error}</span>
+      <button type="button" onClick={() => void load()} className="rounded-lg border border-amber-400 px-3 py-1.5 font-semibold">
+        إعادة المحاولة
+      </button>
+    </div>;
+  }
+  return <section className={dashboard
+    ? "mt-3 space-y-3 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5"
+    : "mt-4 space-y-3"} dir="rtl" data-testid={dashboard ? "v2-active-retry-tasks" : undefined}>
+    {dashboard && <>
+      <h2 className="text-lg font-bold text-slate-900">طلبات مراجعة القراءة والكتابة — V2</h2>
+      <p className="text-sm text-slate-600">إذا طلب المشرف إعادة إجابة سابقة، تظهر هنا ولو أكملت الدرس. لا تُحسب نتيجة القراءة قبل المراجعة البشرية.</p>
+    </>}
+    <button type="button" className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm"
+      onClick={() => void load()}><RefreshCw size={15}/> تحديث طلبات المشرف</button>
+    {error && <p role="alert" className="text-sm text-rose-700">{error}</p>}
+    {sent && <p role="status" className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">وصلت إجابتك الجديدة؛ بانتظار قرار المشرف.</p>}
+    {submitted.length > 0 && <p role="status" className="rounded-lg border border-blue-200 p-3 text-sm">لديك {submitted.length} إجابة جديدة وصلت وتنتظر المراجعة.</p>}
+    {requested.map((task) => <RetryCard key={task.task_id} task={task} onSaved={() => { setSent(true); void load(); }}/>)}
+  </section>;
+}

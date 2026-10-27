@@ -1,0 +1,464 @@
+/* Admin workflow system
+ * Operational screens use one clear hierarchy and one primary action.
+ */
+
+.audio-review-filter {
+  display:flex; align-items:center; gap:.65rem; padding:.72rem .85rem;
+  border:1px solid #dce8f2; border-radius:12px; background:#fff; color:#5f778b; font-size:.8rem;
+}
+.audio-review-filter-link { margin-inline-start:auto; color:#2466b8; font-weight:800; }
+.audio-review-loading { min-height:140px; display:flex; align-items:center; justify-content:center; gap:.8rem; color:#647b8e; }
+
+.audio-review-workspace { display:grid; gap:12px; align-items:start; }
+.audio-review-picker-panel { padding:10px !important; }
+.audio-review-picker-panel > div { margin:0; }
+.audio-review-picker-meta { min-width:190px; display:flex; align-items:center; gap:9px; }
+.audio-review-picker-icon {
+  width:38px; height:38px; flex:0 0 auto; display:grid; place-items:center; border-radius:10px;
+  background:#edf5ff; color:#347fd9;
+}
+.audio-review-picker-meta > div { display:grid; gap:1px; }
+.audio-review-picker-meta strong { color:#20364d; font-size:.82rem; }
+.audio-review-picker-meta span { color:#7b8fa0; font-size:.68rem; }
+.audio-review-select-wrap { flex:1; min-width:min(100%,320px); }
+.audio-review-select {
+  width:100%; min-height:44px; padding:8px 11px; border:1px solid #c9d8e4; border-radius:10px;
+  background:#fff; color:#20364d; font:inherit; font-size:.8rem; font-weight:750;
+}
+.audio-review-select:hover { border-color:#9bbfdf; }
+.audio-review-select:focus { outline:3px solid rgba(52,127,217,.13); border-color:#347fd9; }
+.audio-review-select:disabled { background:#f5f8fb; color:#8193a3; cursor:not-allowed; }
+
+.audio-review-welcome {
+  min-height:260px; padding:28px 18px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:8px; text-align:center;
+}
+.audio-review-welcome-icon {
+  width:52px; height:52px; display:grid; place-items:center; border-radius:14px; background:#edf5ff; color:#347fd9;
+}
+.audio-review-welcome h2 { color:#20364d; font-size:1.02rem; }
+.audio-review-welcome p { max-width:30rem; color:#71879a; font-size:.78rem; line-height:1.7; }
+
+.audio-review-review-panel { padding:0 !important; overflow:hidden; }
+.audio-review-compact-header {
+  min-height:76px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px;
+  border-bottom:1px solid #e5edf4;
+}
+.audio-review-student-block { min-width:0; display:flex; align-items:center; gap:10px; }
+.audio-review-avatar {
+  width:42px; height:42px; flex:0 0 auto; display:grid; place-items:center; border-radius:11px;
+  background:#eaf4ff; color:#2466b8; font-size:1rem; font-weight:900;
+}
+.audio-review-student-block h2 { margin-top:1px; color:#20364d; font-size:1rem; }
+.audio-review-student-block p { margin-top:2px; color:#7c90a1; font-size:.69rem; }
+.audio-review-inline-meta { display:flex; flex-wrap:wrap; align-items:center; gap:5px; margin-bottom:1px; }
+.audio-review-inline-meta span {
+  padding:2px 7px; border-radius:999px; background:#f2f6f9; color:#657d90; font-size:.61rem; font-weight:800;
+}
+.audio-review-inline-meta span:last-child { background:#fff3d7; color:#8b5a07; }
+
+.audio-review-main-grid {
+  display:grid; grid-template-columns:minmax(0,1.08fr) minmax(360px,.92fr); align-items:start;
+}
+.audio-review-evidence-column,
+.audio-review-evaluation-column { min-width:0; padding:16px; }
+.audio-review-evaluation-column { border-inline-start:1px solid #e7eef4; background:#fbfdff; }
+.audio-review-section-heading { margin-bottom:10px; }
+.audio-review-section-heading h3 { color:#20364d; font-size:.92rem; font-weight:900; }
+.audio-review-section-heading p { margin-top:2px; color:#788d9e; font-size:.7rem; line-height:1.55; }
+
+.audio-review-reference-card {
+  min-height:112px; padding:12px 13px; border:1px solid #dfe9f1; border-radius:11px; background:#fff;
+}
+.audio-review-card-label { color:#6d8497; font-size:.66rem; font-weight:850; }
+.audio-review-reference-text {
+  margin-top:6px; color:#20364d; font-size:clamp(1rem,1.8vw,1.2rem); font-weight:750; line-height:1.85; text-wrap:pretty;
+}
+.audio-review-source-card {
+  min-width:0; min-height:0; margin-top:9px; padding:12px 13px; border:1px solid #dfe9f1; border-radius:11px; background:#fff;
+}
+.audio-review-card-heading { display:flex; align-items:center; gap:8px; }
+.audio-review-card-icon {
+  width:34px; height:34px; flex:0 0 auto; display:grid; place-items:center; border-radius:9px;
+  background:#edf5ff; color:#347fd9; font-size:.8rem; font-weight:900;
+}
+.audio-review-card-heading > div { display:grid; gap:1px; }
+.audio-review-card-heading strong { color:#2a445b; font-size:.79rem; }
+.audio-review-card-heading span { color:#8194a5; font-size:.64rem; }
+.audio-review-native-player { width:100%; min-height:2.8rem; margin-top:12px; }
+.audio-review-listen-button {
+  width:100%; min-height:46px; margin-top:12px; display:inline-flex; align-items:center; justify-content:center; gap:7px;
+  border:1px solid #b8d1e8; border-radius:9px; background:#fff; color:#2466b8; font-size:.76rem; font-weight:850;
+}
+
+.audio-review-decision-compact { margin:0 0 11px; min-inline-size:0; }
+.audio-review-decision-compact legend { margin-bottom:6px; color:#2d4a61; font-size:.72rem; font-weight:850; }
+.audio-review-segmented { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+.audio-review-segment {
+  min-height:64px; padding:8px 9px; display:flex; align-items:center; gap:7px; border:1.5px solid #d8e4ed;
+  border-radius:10px; background:#fff; color:#5f778b; text-align:start;
+}
+.audio-review-segment > span { min-width:0; display:grid; gap:1px; }
+.audio-review-segment strong { color:#29445b; font-size:.74rem; }
+.audio-review-segment small { color:#8294a4; font-size:.6rem; }
+.audio-review-segment.approve.is-selected { border-color:#46a978; background:#f5fbf8; color:#247e58; }
+.audio-review-segment.rerecord.is-selected { border-color:#d9a23a; background:#fffaf1; color:#9a6714; }
+
+.audio-review-score-compact { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:7px; margin-bottom:10px; }
+.audio-review-score-field {
+  min-width:0; display:flex; flex-direction:column; gap:5px; padding:8px; border:1px solid #dce7ef;
+  border-radius:10px; background:#fff;
+}
+.audio-review-score-label { color:#263f55; font-size:.67rem; font-weight:900; }
+.audio-review-score-input {
+  width:100%; min-height:42px; padding:5px; border:1px solid #bfceda; border-radius:8px;
+  background:#fff; color:#20364d; font:inherit; font-size:.92rem; font-weight:900; text-align:center;
+}
+.audio-review-score-input:focus { outline:3px solid rgba(52,127,217,.13); border-color:#347fd9; }
+
+.audio-review-rerecord-note {
+  display:flex; align-items:flex-start; gap:8px; margin-bottom:10px; padding:9px 10px; border:1px solid #ead394;
+  border-radius:9px; background:#fffaf1; color:#805a19;
+}
+.audio-review-rerecord-note svg { flex:0 0 auto; margin-top:2px; }
+.audio-review-rerecord-note p { font-size:.67rem; line-height:1.55; }
+.audio-review-rerecord-note strong { display:block; color:#795112; }
+
+.audio-review-notes { border-top:1px solid #e7eef4; padding-top:9px; }
+.audio-review-notes-toggle {
+  width:100%; min-height:42px; padding:7px 9px; display:flex; align-items:center; justify-content:space-between; gap:12px;
+  border:1px solid #dce7ef; border-radius:9px; background:#fff; color:#2d4a61; text-align:start;
+}
+.audio-review-notes-toggle > span:first-child { display:grid; gap:1px; }
+.audio-review-notes-toggle strong { font-size:.72rem; }
+.audio-review-notes-toggle small { color:#8194a5; font-size:.6rem; }
+.audio-review-notes-toggle > span:last-child { color:#347fd9; font-size:1.1rem; line-height:1; }
+.audio-review-notes-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-top:9px; }
+.audio-review-notes-grid label { min-width:0; display:grid; gap:5px; color:#2d4a61; font-size:.72rem; font-weight:900; }
+.audio-review-notes-textarea {
+  width:100%; min-height:80px; resize:vertical; padding:9px 10px; border:1px solid #b9cad8; border-radius:9px;
+  background:#fff; color:#20364d; font:inherit; font-size:.76rem; line-height:1.65; font-weight:500;
+}
+.audio-review-notes-textarea::placeholder { color:#9aa9b5; opacity:1; }
+.audio-review-notes-textarea:focus { outline:3px solid rgba(52,127,217,.13); border-color:#347fd9; }
+
+.audio-review-action-bar {
+  position:sticky; bottom:0; z-index:6; min-height:66px; padding:9px 16px; display:flex; align-items:center;
+  justify-content:space-between; gap:12px; border-top:1px solid #dce8f2; background:rgba(255,255,255,.98);
+}
+.audio-review-action-summary { min-width:0; display:grid; gap:1px; }
+.audio-review-action-summary strong { color:#29445b; font-size:.73rem; }
+.audio-review-action-summary span { color:#8193a3; font-size:.61rem; }
+.audio-review-action-buttons { flex:0 0 auto; display:flex; align-items:center; gap:7px; }
+
+@media (max-width:900px) {
+  .audio-review-main-grid { grid-template-columns:1fr; }
+  .audio-review-evaluation-column { border-inline-start:0; border-top:1px solid #e7eef4; }
+}
+@media (max-width:640px) {
+  .audio-review-filter { align-items:flex-start; flex-wrap:wrap; }
+  .audio-review-filter-link { width:100%; margin-inline-start:0; }
+  .audio-review-picker-panel { padding:8px !important; }
+  .audio-review-picker-panel > div { align-items:stretch; }
+  .audio-review-picker-meta { min-width:0; }
+  .audio-review-select-wrap { min-width:0; width:100%; }
+  .audio-review-compact-header { align-items:flex-start; flex-direction:column; padding:10px 11px; }
+  .audio-review-compact-header > a { width:100%; }
+  .audio-review-evidence-column,.audio-review-evaluation-column { padding:11px; }
+  .audio-review-reference-card { min-height:0; }
+  .audio-review-segmented { grid-template-columns:1fr 1fr; }
+  .audio-review-score-compact { grid-template-columns:1fr 1fr; }
+  .audio-review-notes-grid { grid-template-columns:1fr; }
+  .audio-review-action-bar {
+    position:sticky; bottom:0; align-items:stretch; flex-direction:column; padding:8px 9px;
+    box-shadow:0 -5px 18px rgba(32,54,77,.07);
+  }
+  .audio-review-action-summary { display:none; }
+  .audio-review-action-buttons { display:grid; grid-template-columns:.7fr 1.3fr; width:100%; }
+  .audio-review-action-buttons > * { width:100%; }
+  .audio-review-welcome { min-height:220px; padding:20px 12px; }
+}
+@media (max-width:380px) {
+  .audio-review-segmented { grid-template-columns:1fr; }
+}
+
+/* Dashboard attention cards are summaries, not a stream of duplicate events. */
+[data-testid="admin-attention-summary"] {
+  align-items: stretch;
+}
+
+[data-testid="admin-attention-summary"] > a {
+  min-height: 5.25rem;
+}
+
+/* Student profile tabs stay discoverable and finger-friendly on narrow screens. */
+nav[aria-label="أقسام ملف الطالب"] {
+  scroll-snap-type: inline proximity;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+}
+
+nav[aria-label="أقسام ملف الطالب"] > button {
+  min-height: 2.75rem;
+  scroll-snap-align: start;
+  scroll-snap-stop: normal;
+}
+
+nav[aria-label="أقسام ملف الطالب"] > button[aria-current="page"] {
+  font-weight: 900;
+}
+
+/* Content Preview mirrors the same density rules as the student surface. */
+[data-testid="admin-content-preview-stage"] {
+  box-shadow: none !important;
+}
+
+[data-testid="admin-content-preview-stage"] [data-preview-question] {
+  max-width: 46rem;
+  margin-inline: auto;
+  font-size: clamp(1.4rem, 2.5vw, 2rem) !important;
+  line-height: 1.5 !important;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+[data-testid="admin-content-preview-stage"] [data-preview-stimulus] {
+  width: fit-content;
+  min-width: min(8.5rem, 100%);
+  max-width: min(100%, 40rem);
+  margin-inline: auto;
+  padding: clamp(0.65rem, 1.8vw, 1rem) clamp(0.85rem, 2.6vw, 1.35rem) !important;
+  font-size: clamp(1.2rem, 2.65vw, 1.85rem) !important;
+  line-height: 1.55 !important;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+[data-testid="admin-content-preview-stage"] [data-testid="preview-image-options"] {
+  width: min(100%, 46rem);
+  margin-inline: auto;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 12rem));
+  justify-content: center;
+  gap: 0.6rem;
+}
+
+[data-testid="admin-content-preview-stage"] [data-testid="preview-image-options"] > div {
+  min-height: 0;
+  height: auto;
+  padding: 0.4rem;
+}
+
+[data-testid="admin-content-preview-stage"] [data-testid="preview-image-options"] img {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 8.25rem;
+  margin-inline: auto;
+  object-fit: contain;
+}
+
+[data-testid="preview-context-reading-text"] {
+  max-width: 46rem;
+  margin-inline: auto;
+  text-wrap: pretty;
+}
+
+@media (max-width: 980px) {
+  .audio-review-workspace {
+    grid-template-columns: minmax(220px, 270px) minmax(0, 1fr);
+  }
+
+  .audio-review-evidence-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .audio-review-reference,
+  .audio-review-player {
+    min-height: 0;
+  }
+
+  .audio-review-metrics-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .audio-review-flow-inline {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    scrollbar-width: thin;
+  }
+
+  .audio-review-flow-inline > span {
+    flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 760px) {
+  .audio-review-filter {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .audio-review-filter-link {
+    width: 100%;
+    margin-inline-start: 0;
+  }
+
+  .audio-review-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .audio-review-sidebar {
+    position: static;
+  }
+
+  .audio-review-list {
+    max-height: 260px;
+  }
+
+  .audio-review-stage {
+    overflow: visible;
+  }
+
+  .audio-review-welcome {
+    min-height: 280px;
+  }
+
+  .audio-review-detail-header {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: .95rem;
+  }
+
+  .audio-review-profile-link {
+    align-self: stretch;
+    justify-content: center;
+  }
+
+  .audio-review-flow-inline,
+  .audio-review-evidence-grid,
+  .audio-review-decision,
+  .audio-review-metrics,
+  .audio-review-notes {
+    padding-inline: .9rem;
+  }
+
+  .audio-review-decision-grid,
+  .audio-review-notes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .audio-review-metrics-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .audio-review-rerecord-note {
+    margin-inline: .9rem;
+  }
+
+  .audio-review-actions {
+    position: static;
+    align-items: stretch;
+    flex-direction: column;
+    padding: .9rem;
+    backdrop-filter: none;
+  }
+
+  .audio-review-action-buttons {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .audio-review-action-buttons .btn-primary,
+  .audio-review-action-buttons .btn-secondary {
+    width: 100%;
+  }
+
+  [data-testid="admin-attention-summary"] {
+    grid-template-columns: 1fr;
+  }
+
+  nav[aria-label="أقسام ملف الطالب"] {
+    position: sticky;
+    top: 4.25rem;
+    z-index: 20;
+    margin-inline: -0.25rem;
+    padding: 0.4rem;
+    gap: 0.35rem;
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 8px 18px rgba(32, 54, 77, 0.06);
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  nav[aria-label="أقسام ملف الطالب"]::-webkit-scrollbar {
+    display: none;
+  }
+
+  nav[aria-label="أقسام ملف الطالب"] > button {
+    min-height: 2.75rem;
+    padding-inline: 0.85rem;
+    flex: 0 0 auto;
+  }
+
+  nav[aria-label="أقسام ملف الطالب"] > button[aria-current="page"] {
+    box-shadow: inset 0 0 0 1px rgba(52, 127, 217, 0.1);
+  }
+
+  [data-testid="create-student-form"] {
+    width: 100%;
+  }
+
+  [data-testid="create-student-form"] > div:last-child button,
+  [data-testid="create-student-form"] > div:last-child a {
+    width: 100%;
+    justify-content: center;
+  }
+
+  [data-testid="admin-content-preview-stage"] [data-preview-question] {
+    max-width: 22rem;
+    font-size: clamp(1.05rem, 5vw, 1.36rem) !important;
+  }
+
+  [data-testid="admin-content-preview-stage"] [data-preview-stimulus] {
+    max-width: min(100%, 21rem);
+    padding: 0.6rem 0.8rem !important;
+    border-radius: 0.9rem;
+    font-size: clamp(1.08rem, 5vw, 1.5rem) !important;
+  }
+
+  [data-testid="admin-content-preview-stage"] [data-testid="preview-image-options"] {
+    width: min(100%, 22rem);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  [data-testid="admin-content-preview-stage"] [data-testid="preview-image-options"] img {
+    max-height: 6.5rem;
+  }
+}
+
+@media (max-width: 440px) {
+  .audio-review-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .audio-review-flow-inline {
+    padding-block: .55rem;
+  }
+
+  .audio-review-flow-inline > span:not(.is-current) {
+    font-size: .68rem;
+  }
+
+  .audio-review-reference > p {
+    font-size: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .audio-review-queue-item,
+  .audio-review-queue-button {
+    transition: none;
+  }
+}

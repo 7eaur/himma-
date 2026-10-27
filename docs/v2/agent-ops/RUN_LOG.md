@@ -1,0 +1,112 @@
+# سجل تشغيل الوكلاء — فهرس فقط
+
+السجلات التفصيلية في `runs/YYYY-MM-DD/`، و`LATEST_HANDOFF.md` يشير لأحدث سجل موثوق. هذا الفهرس يُحدث بالـCAS وتُحفظ جميع الصفوف القديمة.
+
+| local_time | agent | run_id | task | base_head → final_head | outcome | evidence |
+|---|---|---|---|---|---|---|
+| 2026-10-26 bootstrap | SYSTEM | — | Protocol only | `6c04bf8a3f1d` | PREPARED_NOT_EXECUTED | README_AR.md |
+| 2026-10-26 03:01–03:03 | A | 20261026-0301-A | HV2-001 | `79106bb66951` → `9669964cd438` | PENDING_GATES | `runs/2026-10-26/A-20261026-0301.md`; CI 40247457135, M09 40247457124 |
+
+| 2026-10-26 03:30–03:34 | B | 20261026-0330-B | HV2-002 | `3ce39dd3fb75` → `6f860762c6d2` | PENDING_GATES | `runs/2026-10-26/B-20261026-0330.md`; latest functional `125f1bd6`; CI 40250140780 |
+
+| 2026-10-26 03:35–03:40 | B | 20261026-0335-B | HV2-003 | `64765a41ae4e` → `ec537832fe2f` | PENDING_GATES | `runs/2026-10-26/B-20261026-0335.md`; CI 40250486652, M04 40250486661, M09 40250486638 |
+
+| 2026-10-26 03:50 | C | 20261026-0350-C | HV2-001/002/003 | `d57cf40d5e5d` → supervisor docs commit | A patch ACCEPTED; B002 PENDING_GATES; B003 REWORK | `runs/2026-10-26/C-20261026-0350.md`; CI 40250486652 ESLint FAIL |
+
+| 2026-10-26 04:00–04:24 | A | 20261026-0400-A | HV2-001 / HV2-004 | `15d7585a01c3` → `c9e53bb35e0d` (functional) | M09+M04 SUCCESS; CI frontend FAIL / integration SKIPPED | `runs/2026-10-26/A-20261026-0400.md`; M09 40252485283; CI 40252522540 |
+
+| 2026-10-26 04:32–04:37 | B | 20261026-0432-B | HV2-003 | `3838cccbc30f` → `709d94c245e3` | PENDING_GATES; frontend+security/M04 SUCCESS, M09/CI integration pending | `runs/2026-10-26/B-20261026-0432.md`; CI 40254864101; M04 40254864104; M09 40254864109; Railway auto-deploy observation B-20261026-0432-railway-observation.md |
+
+## ملاحظات تشغيل
+- ترتيب التاريخ لا يغني عن HEAD؛ إذا حصل Run خارج الترتيب الزمني لا تستبدل latest handoff بآخر أقدم.
+- إن فشل تحديث `RUN_LOG.md`، لا تُسقط نتيجة العمل: احفظ ملف run فريدًا ثم أعد بناء الفهرس على HEAD الأحدث.
+
+| 2026-10-26 04:29–04:39 | A | 20261026-0427-A | HV2-004 | `da7637acd8bf` → `3838cccbc30f` (functional) | PENDING_GATES; M04 SUCCESS, M09/CI pending | `runs/2026-10-26/A-20261026-0427.md`; M04 40254745768; M09 40254745739; CI 40254745758 |
+
+| 2026-10-26 04:46–04:47 | C | 20261026-0450-C | HV2-001/002/003/004 | `a12ac278b9ed` → supervisor review docs commit | A0400 ACCEPTED patch-only; A0427/B0432 PENDING_GATES; historical B002 REWORK | `runs/2026-10-26/C-20261026-0450.md`; CI 40254864101/M09 40254864109 IN_PROGRESS; Railway checkSuites=false |
+
+| 2026-10-26 05:04–05:08 | A | 20261026-0504-A | HV2-001 / HV2-004 | `b0ed6443c2db` → `dca18efe71d4` (functional) | 709d94c2 CI/M04/M09 SUCCESS; dca18efe M04 SUCCESS, CI/M09 pending | `runs/2026-10-26/A-20261026-0504.md`; CI 40257452139 / M09 40257452180 |
+
+| 2026-10-26 05:31–05:35 | B | 20261026-0531-B | HV2-003 / HV2-002 | `9685f37280ae` → `f4497b8458a6` (functional), `129dcbcd0371` (gate coverage) | PENDING_GATES; network-source isolation + reverse delayed GET; CI/M09 pending | `runs/2026-10-26/B-20261026-0531.md`; CI 40259709522; M09 40259709545; M04 40259653164 SUCCESS |
+
+| 2026-10-26 05:53–05:57 | C | 20261026-0553-C | HV2-001/002/003/004 | `c4b977d13431` → supervisor docs commit | A0504 ACCEPTED patch-only; B0531 REWORK test gates / PENDING_GATES product; release BLOCKED | `runs/2026-10-26/C-20261026-0553.md`; CI 40259709522 FAIL, M09 40259709545 FAIL (38 pass / 2 fail) |
+
+| 2026-10-26 06:00–06:04 | A | 20261026-0600-A | HV2-004 | `a0d39e172df1` → `6d421cd0266c` (functional) | PENDING_GATES; frontend/security/M04 SUCCESS, backend/integration/M09 pending | `runs/2026-10-26/A-20261026-0600.md`; CI 40262095937, M04 40262095817, M09 40262095832 |
+| 2026-10-26 06:26–06:31 | B | 20261026-0626-B | HV2-003 | `f8ab6bf8c48a` → `541206639f84` | PENDING_GATES; TS intermediate fixed, frontend/security SUCCESS | `runs/2026-10-26/B-20261026-0626.md`; CI 40264295841, M04 40264295828, M09 40264295842 |
+
+| 2026-10-26 06:50 | C | 20261026-0650-C | HV2-002/003/004 + release | `a2cac29f348a` → supervisor docs commit | A0600/B0626 ACCEPTED patch-only; full tasks PENDING_GATES; release BLOCKED | `runs/2026-10-26/C-20261026-0650.md`; CI 40264295841, M04 40264295828, M09 40264295842 SUCCESS |
+
+| 2026-10-26 07:01–07:04 | A | 20261026-0701-A | HV2-004 | `b689d0815b53` → `1d5b3e5e844c` | PENDING_GATES; 2 Jest tests added, CI/M04/M09 IN_PROGRESS | `runs/2026-10-26/A-20261026-0701.md`; CI 40267045694 / M04 40267045663 / M09 40267045676 |
+| 2026-10-26 07:29–04:33 UTC | B | 20261026-0730-B | HV2-002 | `2db33dec8d34` → `f9c250e76015` (functional) | PENDING_GATES; 4 backend tests + Chromium 503/retry test; CI/M04/M09 IN_PROGRESS | `runs/2026-10-26/B-20261026-0730.md`; CI 40269530363, M04 40269530396, M09 40269530381 |
+
+| 2026-10-26, 07:47 | C | 20261026-0745-C | HV2-002/004 + release | `461f93a553a3` → C review docs | A0701 ACCEPTED patch-only; B0730 PENDING_GATES; release BLOCKED | `runs/2026-10-26/C-20261026-0745.md`; A CI/M04/M09 SUCCESS; B CI/M09 IN_PROGRESS |
+| 2026-10-26 08:03–08:06 | A | 20261026-0802-A | HV2-004 | `0fa85fa53954` → `898971deb0a0` | PENDING_GATES; frontend unit/type/lint PASS, CI/M04/M09 still to confirm | `runs/2026-10-26/A-20261026-0802.md`; CI 40272294398 / M04 40272294294 / M09 40272294356 |
+
+| 2026-10-26 08:32–08:36 | B | 20261026-0832-B | HV2-002 cross-student 404/BFF replay | `9da1d4cfa58a` → `d7b639d929e4` | PENDING_GATES; CI/M04/M09 IN_PROGRESS | `runs/2026-10-26/B-20261026-0832.md`; CI 40275015229, M04 40275015096, M09 40275015023 |
+
+| 2026-10-26 08:50–08:51 | C | 20261026-0850-C | HV2-002/004 + release | `7e864f55d233` → C review docs commit | A0802 ACCEPTED patch-only; B0832 PENDING_GATES; release BLOCKED | `runs/2026-10-26/C-20261026-0850.md`; A CI/M04/M09 SUCCESS; B CI/M09 IN_PROGRESS |
+| 2026-10-26 08:57–08:58 | A | 20261026-0857-A | HV2-004 ordered image/RTL visual matrix | `960b816cfcf0` → `595fcb934d4e` | PENDING_GATES; CI queued, M04/M09 running | `runs/2026-10-26/A-20261026-0857.md`; CI 40277135230, M04 40277135087, M09 40277135173 |
+| 2026-10-26 09:31:59 | B | `20261026-0930-B` | HV2-002 accepted-ACK recovery browser regression | `2528b342bab2` → `86a9b4f41d1f` | PENDING_GATES | `runs/2026-10-26/B-20261026-0930.md` |
+
+| 2026-10-26T09:51:40.083+03:00 | C | 20261026-0950-C | HV2-002/004 + privacy + release | `1f0567b935d2` → supervisor docs commit | A0857 ACCEPTED test-only; B0832 ACCEPTED test-only; B0930 ACCEPTED test-only (CI green); release BLOCKED | `runs/2026-10-26/C-20261026-0950.md`; A CI/M04/M09 green, B0930 CI/M04/M09 all SUCCESS; Playwright artifact `12630639993` visually reviewed |
+| 2026-10-26 10:03–10:09 | A | `20261026-1003-A` | HV2-004 browser media failure fail-closed | `705639747cd5` → `f4f305ef35c1` | PENDING_GATES; 2 Jest tests added, CI/M04/M09 IN_PROGRESS | `runs/2026-10-26/A-20261026-1003.md`; CI 40283675056 / M04 40283675067 / M09 40283675071 |
+| 2026-10-26T10:48:18.166+03:00 | B | 20261026-1041-B | HV2-002 | `737755c397a2` → `d1646ffb48a8` | PENDING_GATES (CI/M04/M09 running) | `runs/2026-10-26/B-20261026-1041.md`; CI 40287875794; M04 40287875837; M09 40287875826 |
+| 2026-10-26T11:09:06.814+03:00 | A | 20261026-1106-A | HV2-001/HV2-004 Jest normalized image URL | `6ae900cd6396` → `67fbc49927d8` | PENDING_GATES; frontend PASS, CI integration/M04/M09 pending | `runs/2026-10-26/A-20261026-1106.md`; CI 40290066904 / M04 40290066702 / M09 40290066736 |
+
+| 2026-10-26 11:49:43 Asia/Aden | C | 20261026-1146-C | A1003/A1106+B1041 QA + Railway | `89e16edcfbd5` → supervisor docs commit | ACCEPTED patch-only on `67fbc499`; POST update path P0 follow-up; release BLOCKED | `runs/2026-10-26/C-20261026-1146.md`; CI 40290066904, M04 40290066702, M09 40290066736 SUCCESS |
+
+| 2026-10-26T09:08:05.674Z | A | 20261026-1204-A | HV2-004 audio stale-event guard | `86e3cf1b2001` → `c424e2476030` | PENDING_GATES (frontend=success) | `runs/2026-10-26/A-20261026-1204.md`; CI 40297044225 / M04 40297044246 / M09 40297044354 |
+
+| 2026-10-26 12:09 Asia/Aden | B | 20261026-1230-B | HV2-002 POST response session/kind isolation | `c424e2476030` → `7ea8d58c32bd` | PENDING_GATES (CI/M04/M09 running; no local test) | `runs/2026-10-26/B-20261026-1230.md`; CI 40297215729 / M04 40297215649 / M09 40297215668 |
+| 2026-10-26T12:39:15+03:00 | B | 20261026-1235-B | HV2-002 payload integrity | `9087d122a141` → `a1d7c00ebaa2` | PENDING_GATES; frontend/security SUCCESS; CI/M04/M09 in progress | `runs/2026-10-26/B-20261026-1235.md`; CI 40301000442, M04 40301000136, M09 40301000316 |
+
+| 2026-10-26 12:48–12:52 Asia/Aden | C | 20261026-1248-C | HV2-002/004 + privacy + Railway | `50276872f451` → review-docs commit (see Git history) | A1204/B1230 ACCEPTED patch-only; B1235 PENDING_GATES; release BLOCKED | `runs/2026-10-26/C-20261026-1248.md`; CI 40301000442 integration IN_PROGRESS; M04 40301000136 SUCCESS; M09 40301000316 IN_PROGRESS; Playwright artifact 12638904084 inspected |
+| 2026-10-26 13:00–13:04 Asia/Aden | A | 20261026-1300-A | HV2-004 VideoPlayer source lifecycle | `04b9438c36e8` → `c44b7426d832` (functional) | PENDING_GATES; 3 Jest regressions added NOT_RUN_LOCALLY, exact-SHA CI/M04/M09 unverified; B1235 CI/M04/M09 SUCCESS (different SHA) | `runs/2026-10-26/A-20261026-1300.md`; commits c5074970, baf40990, d6c727f2, c44b7426 |
+| 2026-10-26 13:38 Asia/Aden | B | 20261026-1330-B | HV2-002 valid 2→1 regression | `883443df0a77` → `c2da89b24997` | PENDING_GATES; frontend/security PASS, CI integration/M09 pending | `runs/2026-10-26/B-20261026-1330.md`; CI 40307801820, M04 40307801812, M09 40307801856 |
+
+| 2026-10-26 13:54:04 Asia/Aden | C | 20261026-1351-C | HV2-002/004 + privacy + Railway | `575480cb7b7e` → supervisor docs commit | A1300+B1235 ACCEPTED patch-only; B1330 PENDING_GATES (M09 running); release BLOCKED | `runs/2026-10-26/C-20261026-1351.md`; A CI/M04/M09 green; B1330 CI 50 PASS/M04 green/M09 pending |
+| 2026-10-26T14:10:52.788+03:00 | A | 20261026-1400-A | HV2-004 lesson session isolation | `3791851805fd` → `d7f121dea2d4` | PENDING_GATES; frontend/security + M04 SUCCESS; CI integration/M09 pending | `runs/2026-10-26/A-20261026-1400.md`; CI 40312498459, M04 40312498533, M09 40312498467 |
+| 2026-10-26T14:42:31.001+03:00 | B | 20261026-1431-B | HV2-002 role/index consistency | `7055d3161576` → `78794465a145` | PENDING_GATES; M04 SUCCESS, frontend/security SUCCESS, backend/integration/M09 pending | `runs/2026-10-26/B-20261026-1431.md`; CI 40316036166 / M04 40316035999 / M09 40316036033 |
+
+| 2026-10-26 14:47–14:50 Asia/Aden | C | 20261026-1450-C | HV2-002/004 + privacy + Railway | `d25aebc127f4` → supervisor docs commit | A1400 ACCEPTED patch-only; B1330 ACCEPTED test-only; B1431 PENDING_GATES; release BLOCKED | `runs/2026-10-26/C-20261026-1450.md`; A CI/M04/M09 SUCCESS, B1330 SUCCESS, B1431 CI integration/M09 IN_PROGRESS; Playwright A1400/M04 B1431 samples visually reviewed |
+
+| 2026-10-26 15:00–15:06 | A | 20261026-1500-A | HV2-004 | `e9cc2e48a65e` → `c622e41ff98d` (functional) | PENDING_GATES; frontend 14 suites/92 PASS, security/M04 SUCCESS, CI backend/integration + M09 pending | `runs/2026-10-26/A-20261026-1500.md`; CI 40319742396, M04 40319742460, M09 40319742341 |
+| 2026-10-26 15:36–15:40 Asia/Aden | B | 20261026-1536-B | HV2-002 stale GET 401 route isolation | `acf5a898f1db` → `dbf22337a268` (functional) | PENDING_GATES; CI/M04/M09 IN_PROGRESS; NOT_RUN_LOCALLY | `runs/2026-10-26/B-20261026-1536.md`; CI 40324180816, M04 40324181040, M09 40324180990 |
+| 2026-10-26T16:03:06+03:00 | C | 20261026-1558-C | A1500/B1431/B1536 QA + V2 privacy + Railway | `ebb3ba248f2d` → supervisor review docs commit | A1500/B1431/B1536 ACCEPTED patch-only; release BLOCKED; live/device PENDING_GATES | `runs/2026-10-26/C-20261026-1558.md`; B1536 CI 40324180816/M04 40324181040/M09 40324180990 SUCCESS, 53 Chromium PASS; Playwright artifact 12651082908 sampled |
+| 2026-10-26 13:38 UTC | A | 20261026-1633-A | HV2-004 MediaRecorder async error | `ac00858df3ae` → `1135b017ae9e` | PENDING_GATES; frontend 93 Jest PASS, security/M04 PASS, CI backend/integration + M09 pending; device BLOCKED_EXTERNAL_DEVICE | `runs/2026-10-26/A-20261026-1633.md`; CI 40332034199 / M04 40332033966 / M09 40332034053 |
+| 2026-10-26 16:44–16:50 Asia/Aden | B | 20261026-1644-B | HV2-002 stale retry banner | `a26ace3f4119` → `65c5c2470078` | PENDING_GATES; CI/M04/M09 in progress, NOT_RUN_LOCALLY | `runs/2026-10-26/B-20261026-1644.md`; CI 40333901616 / M04 40333901621 / M09 40333901506 |
+| 2026-10-26 17:03 Asia/Aden | C | 20261026-1658-C | HV2-002/004 + privacy + release | `68e95d8cbbf5` → C review docs commit | A1633 ACCEPTED patch-only; B1644 PENDING_GATES; release BLOCKED | `runs/2026-10-26/C-20261026-1658.md`; A CI/M04/M09 SUCCESS, B CI integration/M09 IN_PROGRESS, B M04 SUCCESS; A Playwright artifact 12655747659 visually sampled |
+| 2026-10-26T17:14:05.676+03:00 | A | 20261026-1707-A | HV2-004 stop() failure fail-closed | `3d83af9559ef` → `31fcf9108924` | PENDING_GATES; frontend 94 Jest/security PASS; CI integration/M04/M09 pending | `runs/2026-10-26/A-20261026-1707.md`; CI 40337100396 / M04 40337100362 / M09 40337100329 |
+| 2026-10-26 17:40–17:43 Asia/Aden | B | 20261026-1738-B | HV2-002 sequential POST progress | `59bbbcf230b8` → `e6d115825d28` functional; docs handoff descendant | PENDING_GATES; 2 Chromium tests NOT_RUN_LOCALLY; CI/M04/M09 new SHA NOT_VERIFIED | `runs/2026-10-26/B-20261026-1738.md`; functional `b8077e6e`, corrected `e6d11582` |
+
+| 2026-10-26 17:56:56 | C | 20261026-1753-C | HV2-002/004 + visual/privacy/release | `939becca86` → review commit | A1707/B1644 ACCEPTED patch-only; B1738 PENDING_GATES; video visual REWORK; release BLOCKED | `runs/2026-10-26/C-20261026-1753.md`; CI 40342061614, M04 40342061645, M09 40342061435 |
+| 2026-10-26 18:30–18:35 | MANUAL | 20261026-1830-MANUAL | HV2-004 / D-057 video error overlay | `8c10e04040` → `1133058c01` functional | PENDING_GATES; local 94 Jest/type/lint/build PASS; browser artifact pending | `runs/2026-10-26/MANUAL-20261026-1830.md`; source artifact 12658537381 |
+| 2026-10-26 18:47–18:57 | MANUAL | 20261026-1847-MANUAL | HV2-008 audio upload binding/orphan race | `95911493dd` → `853da63307` functional | RESOLVED_SOURCE / PENDING_GATES; 11 targeted PASS; Alembic head/SQL PASS | `runs/2026-10-26/MANUAL-20261026-1847.md`; migration 0027 |
+| 2026-10-26T16:32:03.294Z UTC | B | 20261026-1925-B | HV2-002 terminal-state guard | `45cac18e` → `acb1a25d` → handoff commit | PENDING_GATES; Chromium NOT_RUN_LOCALLY, CI/M04/M09 IN_PROGRESS; parallel lease released, manual lease untouched | `runs/2026-10-26/B-20261026-1925.md`; CI 40359693973, M04 40359694010, M09 40359694015; backend prior SHA red (2 tests) |
+| 2026-10-26 20:34–20:47 Asia/Aden | B | 20261026-2030-B | HV2-008 test regression / HV2-002 dependency | `98ab6cda7aa5` → `3cfb1dc06c80` functional | CI backend 1038 PASS; M04 SUCCESS; CI integration/M09 PENDING | `runs/2026-10-26/B-20261026-2030.md`; CI 40369963663, M04 40369963750, M09 40369963838 |
+
+| 2026-10-26 20:50–17:54Z | C | 20261026-2050-C | HV2-002/008 + release/privacy | `7f9a8374` → supervisor review docs commit | B1738 ACCEPTED patch-only; B1925/B2030 PENDING_GATES; release BLOCKED | `runs/2026-10-26/C-20261026-2050.md`; CI 40369963663 integration pending; M04 40369963750 SUCCESS; M09 40369963838 SUCCESS (56 Chromium) |
+| 2026-10-26 20:56–2026-10-26T17:58:31.373Z | A | 20261026-2056-A | HV2-004 late play promise / autoplay guard | `c74e71ac` → `a3601b80` functional; handoff descendant | PENDING_GATES; 2 Jest regressions added, NOT_RUN_LOCALLY; CI/M04/M09 IN_PROGRESS | `runs/2026-10-26/A-20261026-2056.md`; CI 40373455351 / M04 40373456038 / M09 40373455720; Railway web BUILDING, API SKIPPED; release BLOCKED |
+
+| 2026-10-26 2026-10-26 21:38:50 Asia/Aden | B | 20261026-2134-B | HV2-002 nested payload validation + 3 browser regressions | `4064dc91` → `49761c82` functional; handoff descendant | PENDING_GATES; new CI/M04/M09 NOT_VERIFIED; B2030/A2056 old gates SUCCESS | `runs/2026-10-26/B-20261026-2134.md`; commits d4d7cb51, 49761c82 |
+| 2026-10-26 21:50– 21:52:30 Asia/Aden | C | 20261026-2150-C | A2056/B2030/B2134 QA + Railway/privacy | `b0cb64c3` → review handoff commit | A2056/B2030 ACCEPTED patch-only; B2134 PENDING_GATES; release BLOCKED | `runs/2026-10-26/C-20261026-2150.md`; B2134 CI 40379402217/M09 40379402366 IN_PROGRESS, M04 40379402311 SUCCESS |
+| 2026-10-26 22:00–2026-10-26T19:05:06.712Z | A | 20261026-2200-A | HV2-004 overlapping/stale video play promises | `42fad764` → `789f0250` functional; handoff descendant | PENDING_GATES; 2 Jest regressions added NOT_RUN_LOCALLY; CI/M04/M09 IN_PROGRESS on functional SHA; B2134 gates SUCCESS | `runs/2026-10-26/A-20261026-2200.md`; CI 40383315679 / M04 40383315523 / M09 40383315599 |
+| 2026-10-26 22:34–22:37 Asia/Aden | B | 20261026-2230-B | HV2-003 privacy / HV2-002 logout race | `32c21ece` → `fe17afd7` functional; docs handoff descendant | PENDING_GATES; frontend 101 PASS/security PASS/M04 SUCCESS, CI integration/M09 pending | `runs/2026-10-26/B-20261026-2230.md`; CI 40388114459, M04 40388114470, M09 40388114453 |
+| 2026-10-26 22:50–22:55 Asia/Aden | C | 20261026-2250-C | A2200/B2134/B2230 QA + Railway/privacy/visual | `bcff1305` → supervisor review docs commit | A2200/B2134 ACCEPTED patch-only; B2230 PENDING_GATES; release BLOCKED | `runs/2026-10-26/C-20261026-2250.md`; B2230 CI 40388114459 integration pending; M04 40388114470 + M09 40388114453 SUCCESS; screenshot artifact 12681603746 sampled |
+| 2026-10-26 22:56 Asia/Aden | C | 20261026-2256-C | Exact-SHA CI gate reconciliation for B2230 | `a8ce4afb` → gate addendum commit | B2230 ACCEPTED patch-only (CI/M04/M09 SUCCESS); full HV2-002/003 PENDING_GATES; release BLOCKED | `runs/2026-10-26/C-20261026-2256-GATES.md`; CI 40388114459 completed/success at 19:54:40Z |
+| 2026-10-26 22:57–22:59 Asia/Aden | A | 20261026-2257-A | HV2-004 completion retry/replay idempotency | `37c759e7` → `5d1547e1` functional; handoff descendant | PENDING_GATES; 2 Jest regressions added NOT_RUN_LOCALLY; CI/M04/M09 IN_PROGRESS | `runs/2026-10-26/A-20261026-2257.md`; CI 40391479529, M04 40391479552, M09 40391479647 |
+| 2026-10-26 23:27–23:32 Asia/Aden | B | 20261026-2327-B | HV2-002 start guard + invalid session ID | `59c94db1` → `4aa858c0` functional; docs descendant | PENDING_GATES; 4 Jest cases added NOT_RUN_LOCALLY, CI/M04/M09 NOT_VERIFIED | `runs/2026-10-26/B-20261026-2327.md`; A2257 exact-SHA CI/M04/M09 SUCCESS |
+
+| 2026-10-26T23:48:47.561+03:00 | C | 20261026-2346-C | A2257/B2327 + V2 privacy/release | d35cb612 → review commit | A ACCEPTED patch-only; B PENDING_GATES; release BLOCKED | `runs/2026-10-26/C-20261026-2346.md`; A CI/M04/M09 success, B M04 success CI integration/M09 pending; screenshot artifact 12687427070 |
+| 2026-10-26 23:57–2026-10-27 00:04 Asia/Aden | MANUAL | 20261026-2357-MANUAL | HV2-009 reviewer audio playback ACK + nonblank review reasons | `4905a2a5` → `1d51b13f` functional | RESOLVED_SOURCE / PENDING_GATES; API 34 PASS, UI 3 PASS, lint/type PASS | `runs/2026-10-27/MANUAL-20261026-2357.md`; Vercel rate-limit failure; CI/M04/M09 pending |
+| 2026-10-27 00:04–00:08 Asia/Aden | MANUAL | 20261027-0004-MANUAL | HV2-010 bounded V2 queries / N+1 removal | `8e1fc13e` → `50b0148077` functional | RESOLVED_SOURCE / PENDING_GATES; 26 targeted PASS; compileall/diff-check PASS | `runs/2026-10-27/MANUAL-20261027-0004.md`; PostgreSQL CI review pending |
+
+| 2026-10-27 01:30–01:32 Asia/Aden | B | 20261027-0130-B | HV2-002/003 denied start privacy | `fab49d6f` → `4e55bb0f` functional; handoff descendant | PENDING_GATES; frontend 114 PASS; CI/M04/M09 see run | `runs/2026-10-27/B-20261027-0130.md`; CI 40412929436, M04 40412929491, M09 40412929485 |
+| 2026-10-27 02:25–02:28 Asia/Aden | B | 20261027-0225-B | HV2-003/002 logout double-tap serialization | `8cb791b6` → `ecb87d1b` functional; docs descendant | PENDING_GATES; one Jest regression added, NOT_RUN_LOCALLY; CI/M04/M09 running | `runs/2026-10-27/B-20261027-0225.md`; CI 40419891624, M04 40419891750, M09 40419891535 |
+
+| 2026-10-27 02:53–02:57 Asia/Aden | C | 20261027-0255-C | B2327/B0130/B0225 + A2257 + privacy/release | `7a42ff02` → C review docs | B patches ACCEPTED, A prior accepted, release BLOCKED, production/device PENDING_GATES | `runs/2026-10-27/C-20261027-0255.md`; CI 40419891624, M04 40419891750, M09 40419891535 success exact ecb87d1b; Railway web ecb87d1b/API 50b01480 |
+
+| 2026-10-27 02:59–03:13 Asia/Aden | A | 20261027-0259-A | HV2-004 premature ended/replay | `47fe5ac3` → `21a675ec` functional; handoff descendant | PENDING_GATES; frontend 116 PASS, backend/security/M04 SUCCESS; CI integration/M09 pending | `runs/2026-10-27/A-20261027-0259.md`; CI 40423524000, M04 40423523985, M09 40423523941; Railway web auto-deployed before gates |
+| 2026-10-27 04:33–04:35 Asia/Aden | B | 20261027-0432-B | HV2-002/003 E2E privacy assertion correction + stale B0330 lease reconciliation | `c28b417c` → `05f689a3` functional; handoff descendant | PENDING_GATES; targeted Chromium NOT_RUN_LOCALLY; exact-SHA CI/M04/M09 NOT_VERIFIED; release BLOCKED | `runs/2026-10-27/B-20261027-0432.md`; functional `05f689a3`; prior A gates CI 40423524000/M04 40423523985/M09 40423523941 SUCCESS |
+
+| 2026-10-27T04:55:13+03:00 | C | 20261027-0454-C | A0259 / B0330 / B0432 + privacy + release | `7a08cebc` → review docs commit | A ACCEPTED patch-only; B0330 REWORK; B0432 PENDING_GATES; release BLOCKED | `docs/v2/agent-ops/runs/2026-10-27/C-20261027-0454.md`; CI 40433331760 SUCCESS, M04 40433331895 SUCCESS, M09 40433331789 IN_PROGRESS |
