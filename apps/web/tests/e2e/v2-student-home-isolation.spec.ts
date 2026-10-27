@@ -236,7 +236,7 @@ test("HV2-002/003: two synthetic learners keep pretest progress isolated across 
 
   await signIn(codes[0], names[0]);
   await page.getByTestId("student-primary-action").click();
-  await expect(page).toHaveURL(/\\/student\\/assessment-v2\\/\\d+$/);
+  await expect(page).toHaveURL(/\/student\/assessment-v2\/\d+$/);
   const sessionId = Number(page.url().split("/").at(-1));
   await expect(page.getByTestId("v2-interaction-player")).toContainText("1 من 30");
   await page.getByRole("button", { name: "اختيار الخيار 1" }).click();
@@ -268,7 +268,7 @@ test("HV2-002/003: two synthetic learners keep pretest progress isolated across 
 
   await page.getByRole("button", { name: "إعادة محاولة تسجيل الخروج" }).click();
   await expect.poll(() => logoutAttempts).toBe(2);
-  await expect(page).toHaveURL(/\\/$/);
+  await expect(page).toHaveURL(/\/$/);
   await page.unroute("**/api/auth/logout");
   await page.goto("/student/login");
   await expect(page.getByTestId("input-access-code")).toBeEmpty();
@@ -287,7 +287,7 @@ test("HV2-002/003: two synthetic learners keep pretest progress isolated across 
   expect(deniedStatus).toBe(404);
 
   await page.getByRole("button", { name: /خروج/ }).click();
-  await expect(page).toHaveURL(/\\/$/);
+  await expect(page).toHaveURL(/\/$/);
   await signIn(codes[0], names[0]);
   await page.goto(`/student/assessment-v2/${sessionId}`);
   await expect(page.getByTestId("v2-interaction-player")).toContainText("2 من 30");
