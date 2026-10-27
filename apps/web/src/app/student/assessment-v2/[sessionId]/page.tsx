@@ -88,6 +88,7 @@ function AssessmentV2Session({ sessionId }: { sessionId: number }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const loadControllerRef = useRef<AbortController | null>(null);
+  const placementRecoveryAttempted = useRef(false);
 
   const load = useCallback(async () => {
     if (invalid) return;
@@ -137,6 +138,31 @@ function AssessmentV2Session({ sessionId }: { sessionId: number }) {
     };
   }, [load]);
 
+  // A previous deployment could leave a fully graded pretest waiting for a
+  // retired manual placement action. Recover it through an idempotent POST,
+  // never by trusting client-side scores or mutating on a GET.
+  const resumeAutomaticPlacement = useCallback(async () => {
+    const response = await fetch(`/api/v2/assessments/sessions/${sessionId}/finalize-placement`, {
+      method: "POST", cache: "no-store",
+    });
+    if (response.status === 401 || response.status === 403) {
+      router.replace("/student/login");
+      return;
+    }
+    if (!response.ok) throw new Error(
+      "لم يكتمل التسكين بعد. تأكد من مراجعة تسجيلات القراءة ثم أعد المحاولة."
+    );
+    await load();
+  }, [load, router, sessionId]);
+
+  useEffect(() => {
+    if (assessment?.session.state !== "placement_pending_review" || placementRecoveryAttempted.current) return;
+    placementRecoveryAttempted.current = true;
+    void resumeAutomaticPlacement().catch(reason => {
+      setError(reason instanceof Error ? reason.message : "تعذر استعادة التسكين");
+    });
+  }, [assessment?.session.state, resumeAutomaticPlacement]);
+
   // The POST /answers response is a second source of session state, not a
   // trusted replacement for the GET response. A stale/misrouted acknowledgement
   // must never render another session or switch pretest to posttest.
@@ -172,7 +198,7 @@ function AssessmentV2Session({ sessionId }: { sessionId: number }) {
       {error && <div className={styles.error} role="alert">{error}</div>}
       {assessment.session.state === "answering" && assessment.interaction && <InteractionPlayer key={assessment.interaction.question.question_id} sessionId={sessionId} interaction={assessment.interaction} endpointBase="/api/v2/assessments" onLessonChange={handleAssessmentChange}/>} 
       {assessment.session.state === "waiting_review" && <section className={styles.practiceBoundary}><Clock3 size={32}/><h2>إجاباتك محفوظة وتنتظر المراجعة</h2><p>لديك {assessment.summary.pending_review} إجابة قراءة أو كتابة. لن تُحسب صحيحة أو خاطئة قبل مراجعة المشرف.</p><StudentRetryTasks kind="assessment" sessionId={sessionId}/></section>}
-      {assessment.session.state === "placement_pending_review" && <section className={styles.practiceBoundary}><Clock3 size={32}/><h2>اكتمل الاختبار وينتظر التسكين</h2><p>سيعتمد المشرف المستوى المناسب بسبب موثق. لا تستخدم هِمّة حدودًا رقمية غير معتمدة.</p></section>}
+      {assessment.session.state === "placement_pending_review" && <section className={styles.practiceBoundary}><Clock3 size={32}/><h2>نحدد مستواك تلقائيًا</h2><p>اكتمل الاختبار، ونعيد التحقق من النتيجة المحفوظة لفتح دروسك.</p><button type="button" className={styles.primary} onClick={() => { void resumeAutomaticPlacement().catch(reason => setError(reason instanceof Error ? reason.message : "تعذر استعادة التسكين")); }}>إعادة التحقق</button></section>}
       {assessment.session.state === "completed" && <section className={styles.practiceBoundary}><CheckCircle2 size={32}/><h2>اكتمل {title}</h2><p>{assessment.session.kind === "posttest" ? "أصبحت نتيجتك النهائية محفوظة في التقرير." : "تم اعتماد مستواك وأصبحت رحلتك التعليمية جاهزة."}</p><Link href="/student/learning-v2" className={styles.back}>متابعة الرحلة</Link></section>}
     </section>
   </div></main>;
