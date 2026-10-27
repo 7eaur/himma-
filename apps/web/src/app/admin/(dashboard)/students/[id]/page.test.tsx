@@ -20,24 +20,25 @@ it('loads identity and V2 data without requesting V1 or learner credentials',asy
  expect(fetcher.mock.calls.map(([url])=>url).sort()).toEqual(['/api/v2/student/admin/students/1/account','/api/v2/student/admin/students/1/home'].sort());
  expect(screen.queryByText('123456')).not.toBeInTheDocument();
  expect(screen.queryByRole('button',{name:'أرشيف V1 التاريخي'})).not.toBeInTheDocument();
- expect(screen.getByRole('link',{name:'مراجعة الدروس'})).toHaveAttribute('href','/admin/v2-lesson-review');
+ fireEvent.click(screen.getByRole('tab',{name:'التسجيلات'}));
+ expect(screen.getByRole('link',{name:'مراجعة قراءات الدروس'})).toHaveAttribute('href','/admin/v2-lesson-review');
 });
 it('only fetches a credential after explicit reveal and clears it when leaving account',async()=>{
  const fetcher=setup();render(<Page/>);
  await screen.findByRole('heading',{name:'طالب اصطناعي 1'});
- fireEvent.click(screen.getByRole('button',{name:'الحساب'}));
+ fireEvent.click(screen.getByRole('tab',{name:'الحساب'}));
  expect(fetcher.mock.calls.some(([url])=>url.includes('/reveal'))).toBe(false);
  fireEvent.click(screen.getByRole('button',{name:'إظهار الرمز'}));
  expect(await screen.findByText('123456')).toBeVisible();
  expect(fetcher).toHaveBeenCalledWith('/api/v2/student/admin/students/1/access-code/reveal',expect.objectContaining({method:'POST'}));
- fireEvent.click(screen.getByRole('button',{name:'التقدم الدراسي'}));
- fireEvent.click(screen.getByRole('button',{name:'الحساب'}));
+ fireEvent.click(screen.getByRole('tab',{name:'نظرة عامة'}));
+ fireEvent.click(screen.getByRole('tab',{name:'الحساب'}));
  expect(screen.queryByText('123456')).not.toBeInTheDocument();
 });
 it('never reveals a code when the explicit request fails',async()=>{
  const fetcher=setup();fetcher.mockImplementation((url:string)=>Promise.resolve({ok:!url.endsWith('/reveal'),json:async()=>url.endsWith('/home')?home(1):account(1)}));
  render(<Page/>);await screen.findByRole('heading',{name:'طالب اصطناعي 1'});
- fireEvent.click(screen.getByRole('button',{name:'الحساب'}));
+ fireEvent.click(screen.getByRole('tab',{name:'الحساب'}));
  fireEvent.click(screen.getByRole('button',{name:'إظهار الرمز'}));
  await screen.findByText('تعذر إظهار رمز الدخول.');
  expect(screen.queryByText('123456')).not.toBeInTheDocument();
@@ -45,7 +46,7 @@ it('never reveals a code when the explicit request fails',async()=>{
 it('remounts identity state when routing to another learner',async()=>{
  const fetcher=setup();const {rerender}=render(<Page/>);
  await screen.findByRole('heading',{name:'طالب اصطناعي 1'});
- fireEvent.click(screen.getByRole('button',{name:'الحساب'}));
+ fireEvent.click(screen.getByRole('tab',{name:'الحساب'}));
  fireEvent.click(screen.getByRole('button',{name:'إظهار الرمز'}));await screen.findByText('123456');
  currentId='2';rerender(<Page/>);
  await screen.findByRole('heading',{name:'طالب اصطناعي 2'});
@@ -53,10 +54,13 @@ it('remounts identity state when routing to another learner',async()=>{
  expect(screen.getByTestId('supervisor-v2-overview')).toBeVisible();
  await waitFor(()=>expect(fetcher).toHaveBeenCalledWith('/api/v2/student/admin/students/2/account',expect.anything()));
 });
-it('keeps the long lesson list behind an optional detail and hides archival language',async()=>{
+it('shows seven task-specific sections without rendering the long lesson list on overview',async()=>{
  setup();render(<Page/>);
  await screen.findByRole('heading',{name:'طالب اصطناعي 1'});
- expect(screen.getByTestId('supervisor-lesson-disclosure')).not.toHaveAttribute('open');
+ expect(screen.getAllByRole('tab')).toHaveLength(7);
+ expect(screen.queryByTestId('supervisor-lesson-disclosure')).not.toBeInTheDocument();
+ fireEvent.click(screen.getByRole('tab',{name:'المسار والدروس'}));
+ expect(screen.getByTestId('supervisor-lesson-disclosure')).toHaveAttribute('open');
  expect(screen.getByText('تفاصيل الدروس (0)')).toBeInTheDocument();
  expect(screen.queryByText(/أرشيف|التاريخي|V1/)).not.toBeInTheDocument();
 });
