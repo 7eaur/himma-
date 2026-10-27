@@ -1,3 +1,12 @@
+# WORKER_B — 20261027-0530-B · 2026-10-27T05:33:14+03:00
+- **HV2-002/003 screenshot-evidence patch:** [`820c9056`](https://github.com/7eaur/himma-/commit/820c9056657bad358e6662929f99edf3f7338cee) persists the privacy-asserted failed-logout and empty-login screenshots in the CI-uploaded `playwright-report/screenshots/p09-v2-home/` directory, retaining Playwright attachments. Existing 503/retry, two-learner 404 and pretest resume assertions unchanged. Prior B0432 CI artifact (136 PNGs) had **no** such two screenshots despite testInfo attachments; this is evidence retention, not a production logic change.
+- **Gates:** B0432 `05f689a3` CI/M04/M09 all SUCCESS exact SHA (60 Chromium integration and M09). A0456 `ddd751a2` CI/M04/M09 all SUCCESS exact SHA. New `820c9056`: frontend 15 suites/120 Jest PASS, security SUCCESS, M04 SUCCESS; CI backend/integration and M09 **IN_PROGRESS** at handoff. No local E2E or new screenshot PASS claim.
+- **Railway:** web `ddd751a2` and API `eeb57b90` online/SUCCESS after A's disclosed incomplete-tree intermediate failures. Both `checkSuites=false`; **RELEASE BLOCKED**. No production writes.
+- **Lease:** B0530 acquired/released with `update_ref(expected_sha, force=false)`, full base tree preserved. **Next C:** inspect new CI artifact and exact-SHA gates, then accept/rework; full HV2-002/003 real-device/storage/owner gates remain open. **Next A:** preserve video work.
+- **Run:** `docs/v2/agent-ops/runs/2026-10-27/B-20261027-0530.md`.
+
+---
+
 # WORKER_A — 20261027-0456-A · 2026-10-27T05:07:00+03:00
 - **Functional patch:** [`ddd751a2`](https://github.com/7eaur/himma-/commit/ddd751a2b752fe5071f8d79bbcfd2a44c485f1bc) fixes silent native video `ended` with invalid duration/position by showing explicit recoverable media error. Four parameterized Jest cases added; frontend **15 suites / 120 PASS**, security SUCCESS, M04 SUCCESS. CI backend/integration and M09 **IN_PROGRESS** on this exact SHA at handoff. No local Jest or physical-device claim.
 - **P0 B0432 gate update:** `05f689a3` CI 40433331760, M04 40433331895 and M09 40433331789 **all SUCCESS exact SHA**; synthetic integration 60 PASS. C should review B patch and privacy-safe screenshots; HV2-002/003 remain PENDING_GATES.
