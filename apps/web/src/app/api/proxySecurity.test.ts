@@ -14,10 +14,18 @@ describe("BFF mutation boundary", () => {
   });
 
   it("accepts same-origin and non-browser server mutations", () => {
-    const sameOrigin = new NextRequest("https://himma.example/api/auth/login", { method: "POST", headers: { origin: "https://himma.example" } });
-    const serverRequest = new NextRequest("https://himma.example/api/auth/login", { method: "POST" });
-    expect(rejectUnsafeMutation(sameOrigin)).toBeNull();
-    expect(rejectUnsafeMutation(serverRequest)).toBeNull();
+    // Railway builds inherit RAILWAY_PUBLIC_DOMAIN. A synthetic origin test
+    // must not inherit a different deployed host, unlike real requests.
+    const previous = process.env.RAILWAY_PUBLIC_DOMAIN;
+    delete process.env.RAILWAY_PUBLIC_DOMAIN;
+    try {
+      const sameOrigin = new NextRequest("https://himma.example/api/auth/login", { method: "POST", headers: { origin: "https://himma.example" } });
+      const serverRequest = new NextRequest("https://himma.example/api/auth/login", { method: "POST" });
+      expect(rejectUnsafeMutation(sameOrigin)).toBeNull();
+      expect(rejectUnsafeMutation(serverRequest)).toBeNull();
+    } finally {
+      if (previous !== undefined) process.env.RAILWAY_PUBLIC_DOMAIN = previous;
+    }
   });
 
   it("accepts Railway HTTPS public origin even if Next sees the internal HTTP URL", () => {
