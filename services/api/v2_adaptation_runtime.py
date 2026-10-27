@@ -260,6 +260,49 @@ def finish_independent_check(db: Session, session: LessonSession, *, decision_ke
     return decision
 
 
+def _remaining_independent_gaps(db: Session, session: LessonSession) -> list[PolicyDecision]:
+    """Ordered, bounded additional focuses not already treated in this lesson.
+
+    Never rely on current authoring content or repeat check questions across
+    focuses. A particular (support, focus) is offered at most once per lesson.
+    """
+    release = get_pinned_release(db, session.content_release_id)
+    questions = {row["id"]: row for row in release["questions"]}
+    covered = {(row.support_id, row.focus) for row in db.query(SupportAssignment).filter(
+        SupportAssignment.lesson_session_id == session.id,
+    ).all()}
+    evidence = db.query(SkillEvidence).filter(
+        SkillEvidence.lesson_session_id == session.id,
+        SkillEvidence.support_assignment_id.is_(None),
+        SkillEvidence.role == "independent_check",
+        SkillEvidence.review_status == "graded",
+        SkillEvidence.is_correct.is_(False),
+    ).order_by(SkillEvidence.id).all()
+    from collections import Counter
+    mapped = []
+    for row in evidence:
+        question = questions.get(row.question_id)
+        if question is None:
+            raise HTTPException(status_code=409, detail="السؤال المثبت لتحديد الدعم غير متاح")
+        identified = resolve_focus(question, release=release)
+        if identified is None:
+            raise HTTPException(status_code=409, detail="تعذر تحديد دعم هذا السؤال في بنك الإصدار المثبت")
+        if identified not in covered:
+            mapped.append((row, identified))
+    frequencies = Counter(key for _, key in mapped)
+    suggestions = []
+    for key in dict.fromkeys(key for _, key in mapped):
+        ids = tuple(row.id for row, mapped_key in mapped if mapped_key == key)
+        suggestions.append(PolicyDecision(
+            kind="targeted_support" if frequencies[key] >= 2 else "additional_check",
+            reason_code="remaining_independent_focus_gap",
+            evidence_ids=ids,
+            support_id=key[0],
+            focus=key[1],
+        ))
+    return suggestions
+
+
 def finish_support_check(db: Session, session: LessonSession, assignment: SupportAssignment, *, decision_key: str | None = None) -> AdaptationDecision:
     rows = db.query(SkillEvidence).filter(
         SkillEvidence.lesson_session_id == session.id,
@@ -272,9 +315,9 @@ def finish_support_check(db: Session, session: LessonSession, assignment: Suppor
     now = datetime.now(timezone.utc)
     if outcome.kind == "next_lesson":
         if outcome.reason_code == "support_gap_unresolved_continue_without_mastery":
-            # Complete the bounded learning activity, not the skill mastery.
-            # The wrong support evidence and the durable decision remain
-            # reportable; reward reconciliation must not award a mastery star.
+            # Close a bounded activity without claiming that the skill was
+            # mastered. This negative academic evidence also suppresses
+            # mastery rewards, even if other focuses are resolved later.
             decision.explanation_json = {
                 **(decision.explanation_json or {}),
                 "skill_mastery": "not_demonstrated",
@@ -283,7 +326,18 @@ def finish_support_check(db: Session, session: LessonSession, assignment: Suppor
                 "focus": assignment.focus,
                 "continues_without_supervisor": True,
             }
-        _complete_lesson(db, session, assignment)
+        remaining = _remaining_independent_gaps(db, session)
+        if remaining:
+            assignment.status = "resolved"  # This detour ended, not a mastery claim
+            assignment.resolved_at = now
+            assignment.updated_at = now
+            db.flush()  # Free the partial unique active-session slot first
+            followup = remaining[0]
+            new_assignment = _open_support(db, session, followup)
+            handoff = _decision(db, session, f"remaining-focus:{assignment.id}", followup)
+            handoff.support_assignment_id = new_assignment.id
+        else:
+            _complete_lesson(db, session, assignment)
     elif outcome.kind == "targeted_support" and was_additional:
         assignment.mode = "targeted_support"
         assignment.verification_round = 1
