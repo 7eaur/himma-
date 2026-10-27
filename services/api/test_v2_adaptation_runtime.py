@@ -113,14 +113,14 @@ def test_policy_distinguishes_stable_single_repeated_pending_and_unmapped():
         is_correct=False,
         review_status="graded",
     )], {unmapped["id"]: unmapped})
-    assert held.kind == "supervisor_hold"
-    assert held.reason_code == "authoring_focus_mapping_missing"
+    assert held.kind == "additional_check"
+    assert (held.support_id, held.focus) == ("SUP-02", "kasra")
 
 
 def test_all_independent_questions_have_one_mapping_or_the_declared_hold():
     questions = [row for row in compile_release()["questions"] if row["role"] == "independent_check"]
     missing = [row["id"] for row in questions if resolve_focus(row) is None]
-    assert missing == ["L1-03-IC-A04"]
+    assert missing == []
 
 
 def test_clean_independent_check_advances_once_and_read_status_is_pure(student_client):
@@ -186,7 +186,7 @@ def test_one_gap_gets_two_alternate_checks_then_returns_to_next_lesson(student_c
         assert db.query(StudentJourney).one().current_lesson_id == "L1-02"
 
 
-def test_repeated_gap_opens_targeted_practice_and_failed_check_escalates_once(student_client):
+def test_repeated_gap_opens_targeted_practice_and_failed_check_continues_without_false_mastery(student_client):
     session_id = _start_at_independent(student_client)
     result = _complete_current_stage(student_client, session_id, [False, False, True, True])
     assert result["lesson"]["session"]["stage"] == "support_practice"
@@ -194,12 +194,19 @@ def test_repeated_gap_opens_targeted_practice_and_failed_check_escalates_once(st
     result = _complete_current_stage(student_client, session_id, [True] * practice_total)
     assert result["lesson"]["session"]["stage"] == "support_check"
     result = _complete_current_stage(student_client, session_id, [False, True])
-    assert result["lesson"]["session"]["stage"] == "supervisor_hold"
-    assert result["lesson"]["adaptation"]["state"] == "supervisor_hold"
+    assert result["lesson"]["session"]["stage"] == "outcome"
     with TestingSessionLocal() as db:
         assignment = db.query(SupportAssignment).one()
-        assert assignment.status == "escalated"
-        assert db.query(AdaptationDecision).count() == 2
+        assert assignment.status == "resolved"  # detour ended; mastery was NOT claimed
+        decisions = db.query(AdaptationDecision).order_by(AdaptationDecision.id).all()
+        assert len(decisions) == 2
+        assert decisions[-1].reason_code == "support_gap_unresolved_continue_without_mastery"
+        assert decisions[-1].explanation_json["skill_mastery"] == "not_demonstrated"
+        assert db.query(StudentJourney).one().current_lesson_id == "L1-02"
+    from v2_rewards import rewards_projection
+    from db.v2_reward_models import V2RewardGrant
+    with TestingSessionLocal() as db:
+        assert not db.query(V2RewardGrant).filter(V2RewardGrant.milestone == "lesson_complete").first()
 
 
 def test_additional_check_failure_expands_to_support_without_second_assignment(student_client):
@@ -216,7 +223,9 @@ def test_additional_check_failure_expands_to_support_without_second_assignment(s
 
 def test_support_policy_is_bounded_and_pending_is_neutral():
     assert evaluate_support([_signal(1, correct=True)], was_additional_check=False).kind == "next_lesson"
-    assert evaluate_support([_signal(1, correct=False)], was_additional_check=False).kind == "supervisor_hold"
+    result = evaluate_support([_signal(1, correct=False)], was_additional_check=False)
+    assert result.kind == "next_lesson"
+    assert result.reason_code == "support_gap_unresolved_continue_without_mastery"
     assert evaluate_support([_signal(1, correct=False)], was_additional_check=True).kind == "targeted_support"
     assert evaluate_support([_signal(1, correct=None, review="pending_review")], was_additional_check=False).kind == "waiting_review"
 
