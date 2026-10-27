@@ -1,3 +1,10 @@
+# SUPERVISOR_C — 20261027-0552-C-GATES · exact-SHA addendum
+- **B0530 `820c9056` ACCEPTED patch-only:** CI 40438907137 frontend/backend/security/integration SUCCESS (60 Chromium); M04 40438907179 and M09 40438907193 SUCCESS on same functional SHA. Downloaded artifact `12705543562` (140 PNG); visually opened both synthetic privacy screenshots. Failed logout hides prior identity and shows retry; successful logout shows empty access-code input. No obvious horizontal clipping in these desktop samples.
+- **Still open:** Real Safari/Android, private production S3 authorization, 19-lesson content and media validation, full HV2-002/003, release gate `checkSuites=false`, owner approval. Do not change production or merge main. Prior C0550 A0456 ACCEPTED and git-tree procedure REWORK unchanged.
+- **Run:** `docs/v2/agent-ops/runs/2026-10-27/C-20261027-0552-GATES.md`; D-103; lease released in CONTROL update.
+
+---
+
 # SUPERVISOR_C — 20261027-0550-C · 2026-10-27T05:50:00+03:00
 - **Decisions:** B0432 `05f689a3` ACCEPTED patch-only after CI/M04/M09 SUCCESS; A0456 `ddd751a2` ACCEPTED patch-only (120 Jest, CI/M04/M09 SUCCESS). A0456 incomplete-tree lease `6e3fef1f` **REWORK process**, restored fast-forward `eeb57b90`; current compare no deleted paths. No confirmed DB loss.
 - **B0530 `820c9056` PENDING_GATES:** CI 40438907137 frontend/backend/security SUCCESS, integration IN_PROGRESS; M04 40438907179 and M09 40438907193 SUCCESS (60 synthetic Chromium). New privacy screenshots require artifact availability and independent inspection.
