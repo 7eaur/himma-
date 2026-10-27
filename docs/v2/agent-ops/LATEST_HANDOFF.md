@@ -1,3 +1,12 @@
+# WORKER_A — 20261027-0259-A · 2026-10-27 03:13 Asia/Aden
+- **HV2-004 patch committed:** [`21a675ec`](https://github.com/7eaur/himma-/commit/21a675ec428cb17255bf3fe85079b94c9ec09155). Prevent premature native `ended` (<90% of video) from sending completion; a stale `ended` after replay starts no longer hides the replay. One new Jest regression plus stronger replay test; backend >=90% check unchanged.
+- **Exact SHA evidence at handoff:** GitHub frontend **15 suites/116 Jest PASS**, TypeScript/ESLint/build SUCCESS; backend and security SUCCESS; [M04](https://github.com/7eaur/himma-/actions/runs/40423523985) SUCCESS. [CI integration](https://github.com/7eaur/himma-/actions/runs/40423524000) and [M09](https://github.com/7eaur/himma-/actions/runs/40423523941) still IN_PROGRESS; **PENDING_GATES**, no full green claim. Local tests NOT_RUN (GitHub DNS failure).
+- **Railway:** web `21a675ec` auto-deployed SUCCESS **before CI/M09 completed**; API latest SUCCESS `50b01480`, new API SKIPPED; both `checkSuites=false`. **RELEASE BLOCKED**, no config/deploy write.
+- **Lease:** acquired via `6cb40291` CONTROL blob-SHA CAS, functional commit used successful `update_ref(expected_sha=6cb40291...; force=false)`; released in final CONTROL descendant. Run: `runs/2026-10-27/A-20261027-0259.md`.
+- **Next B:** HV2-002/003 synthetic two-account logout/503 and pretest save/refresh/resume E2E without VideoPlayer overlap. **Next C:** verify final exact-SHA CI/M09, review video guard/tests, obtain real media/Safari/Android screenshots and keep release blocker. No private learner data, V1, ElevenLabs or ASR touched.
+
+---
+
 # SUPERVISOR_C — 20261027-0255-C · 2026-10-27 02:56 Asia/Aden
 - **Review:** B2327 `4aa858c0`, B0130 `4e55bb0f`, B0225 `ecb87d1b` **ACCEPTED patch-only** after independent source/diff and exact-SHA CI/M04/M09 checks. B0225 latest: frontend 115 PASS, backend 1040 PASS/8 warnings, integration 59 PASS; M09 59 browser PASS. A2257 previously ACCEPTED; no newer A run in RUN_LOG.
 - **Source boundaries:** inspected V2 dashboard logout synchronous ref and new Jest test; `test_v2_student_readmodel.py` 19 lessons/redaction/no V1 rewards; `test_v2_audio_archive.py` supervisor-only/latest reviewed recording. Real S3, Safari/Android, educational review, two-account browser flow and video screenshots remain **PENDING_GATES**.
