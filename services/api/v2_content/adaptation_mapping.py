@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 
-EXPLICIT_HOLD_QUESTION_IDS = {"L1-03-IC-A04"}
+EXPLICIT_HOLD_QUESTION_IDS: set[str] = set()
 
 FOCUS_ALIASES: dict[str, str] = {
     "syllable_decoding": "syllable_reading",
@@ -41,6 +41,19 @@ def resolve_question_focus(question: dict[str, Any], support: dict[str, Any]) ->
         focus = "pause_or_order"
     elif error_focus == "vowel_confusion":
         focus = next((name for name in ("fatha", "damma", "kasra") if name in evidence_type), "")
+        if not focus and evidence_type == "short_vowel_mixed":
+            # The test measures recognition of the TARGET vowel, not a guessed
+            # misconception from a wrong option. Infer it from the private
+            # correct answer in the learner's pinned immutable question.
+            correct_ids = set((question.get("private_answer") or {}).get("correct_option_ids") or [])
+            matching = [option for option in question.get("options", [])
+                        if option.get("id") in correct_ids]
+            if len(matching) == 1:
+                text = str(matching[0].get("text") or "")
+                vowels = {"َ": "fatha", "ُ": "damma", "ِ": "kasra"}
+                matches = {vowels[character] for character in text if character in vowels}
+                if len(matches) == 1:
+                    focus = matches.pop()
     elif error_focus in {"short_long_confusion", "madd_letter"}:
         focus = next((name for name in ("alif", "waw", "yaa") if name in evidence_type), "")
     else:
