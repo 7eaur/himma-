@@ -16,8 +16,9 @@ it("loads the V2 bank with section intro and never requests the archive implicit
   render(<ContentBankPage />);
   expect(await screen.findByTestId("v2-bank-question")).toHaveTextContent("V2-PRE-Q01");
   expect(screen.getByRole("group", { name: "المستوى الأول" })).toBeInTheDocument();
-  expect(screen.getByTestId("v2-bank-question")).not.toHaveAttribute("open");
-  fireEvent.change(screen.getByRole("combobox", { name: "القسم" }), { target: { value: "L1-01" } });
+  expect(screen.getByTestId("v2-bank-question")).toHaveAttribute("open");
+  expect(screen.getByRole("combobox", { name: "اختر سؤالًا لعرض تفاصيله" })).toHaveValue("V2-PRE-Q01");
+  fireEvent.click(screen.getByRole("button", { name: /المستوى الأول/ }));
   expect(await screen.findByText("التمهيد: تمهيد الدرس المعتمد")).toBeInTheDocument();
   await waitFor(() => expect(fetcher.mock.calls.some(([url]) => url.includes("section=L1-01"))).toBe(true));
   expect(fetcher.mock.calls.every(([url]) => url.startsWith("/api/v2/content/admin/bank?"))).toBe(true);
