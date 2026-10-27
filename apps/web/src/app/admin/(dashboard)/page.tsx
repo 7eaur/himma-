@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Activity, ArrowLeft, BookOpenCheck, ClipboardCheck, Headphones, Plus, ShieldCheck, Users } from "lucide-react";
+import { Activity, ArrowLeft, BookOpenCheck, Headphones, Plus, ShieldCheck, Users } from "lucide-react";
 import { AdminAction, AdminEmptyState, AdminMobileCard, AdminPage, AdminPageHeader, AdminPanel, AdminResponsiveTable, AdminStat, AdminStatGrid } from "@/components/admin/AdminUI";
 import type { StudentV2Home } from "@/app/student/V2StudentDashboard";
 import styles from "./admin.module.css";
