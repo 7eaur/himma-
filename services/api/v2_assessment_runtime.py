@@ -879,7 +879,7 @@ def review_response(response_id: int, body: ReviewRequest, background_tasks: Bac
              db.query(AudioSubmission).filter(AudioSubmission.assessment_response_id == row.id).order_by(AudioSubmission.id.desc()).first())
     if audio: audio.status = "graded"
     if evidence["interaction"] == "read_aloud" and audio:
-        save_v2_reading_rubric(db, audio=audio, reviewer_id=user.id, rubric=body.rubric)
+        save_v2_reading_rubric(db, audio=audio, reviewer_id=user.id, is_correct=body.is_correct, rubric=body.rubric)
     elif body.rubric is not None:
         raise HTTPException(status_code=422, detail="معيار القراءة غير متاح إلا للإجابة الصوتية")
     if evidence["interaction"] == "read_aloud" and audio:
