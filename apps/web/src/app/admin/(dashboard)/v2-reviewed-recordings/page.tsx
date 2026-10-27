@@ -10,6 +10,11 @@ type Reviewed = {
   is_correct: boolean | null; reviewed_at: string | null;
   duration_seconds: number | null; evaluation_source: "supervisor";
   audio_url: string;
+  reading_rubric?: {
+    target_units: number; deletions: number; substitutions: number; insertions: number;
+    rubric_percent: number; is_correct: boolean; pronunciation_notes: string | null;
+    fluency_notes: string | null; policy_version: string;
+  } | null;
 };
 type Archive = { items: Reviewed[]; next_offset: number | null };
 
@@ -109,6 +114,18 @@ export default function ReviewedRecordingsPage() {
             {item.reviewed_at ? ` · بتاريخ ${new Date(item.reviewed_at).toLocaleDateString("ar")}` : ""}
             {item.duration_seconds != null ? ` · ${Math.round(item.duration_seconds)} ثانية` : ""}
           </p>
+          {item.reading_rubric && <details className="rounded-xl border border-teal-200 p-3">
+            <summary className="cursor-pointer font-semibold text-slate-800">تفاصيل التقييم الصوتي</summary>
+            <div className="mt-3 grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
+              <p>الوحدات: <strong>{item.reading_rubric.target_units}</strong></p>
+              <p>حذف: <strong>{item.reading_rubric.deletions}</strong></p>
+              <p>استبدال: <strong>{item.reading_rubric.substitutions}</strong></p>
+              <p>إضافة: <strong>{item.reading_rubric.insertions}</strong></p>
+            </div>
+            <p className="mt-2 text-sm">التقدير الرقمي الوصفي: {item.reading_rubric.rubric_percent}% — لا يحدد وحده نجاح القراءة.</p>
+            {item.reading_rubric.pronunciation_notes && <p className="mt-2 text-sm">النطق: {item.reading_rubric.pronunciation_notes}</p>}
+            {item.reading_rubric.fluency_notes && <p className="mt-2 text-sm">الطلاقة: {item.reading_rubric.fluency_notes}</p>}
+          </details>}
           <audio controls preload="none" className="w-full" src={item.audio_url} aria-label={`استمع لتسجيل ${item.student_name} للسؤال ${item.question_id}`} />
         </article>)}</div>}
       <div className="mt-4 flex items-center justify-between gap-2">
