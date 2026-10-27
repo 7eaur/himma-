@@ -113,6 +113,11 @@ function StudentDetailView({ id }: { id: string }) {
     const fromUrl = new URLSearchParams(window.location.search).get("tab");
     if (isTabKey(fromUrl)) setActiveTab(fromUrl);
     const syncHistory = () => {
+      // Browser history is another tab switch; erase previously revealed
+      // credentials before restoring the destination section.
+      setVisibleCodeForId(null);
+      setAccessCode(null);
+      setCopied(false);
       const selected = new URLSearchParams(window.location.search).get("tab");
       setActiveTab(isTabKey(selected) ? selected : "overview");
     };
