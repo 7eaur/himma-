@@ -34,11 +34,21 @@ def test_researcher_can_inspect_safe_candidate(researcher_client):
     assert response.json()["state"] == "candidate_not_approved"
 
 
-def test_candidate_media_is_explicitly_test_only(student_client):
-    asset_id = compile_release()["media"][0]["id"]
-    response = student_client.get(f"/v2/content/candidate/media/{asset_id}")
-    assert response.status_code == 200
-    assert response.json()["test_only"] is True
+def test_candidate_media_distinguishes_fixture_from_approved_temporary(student_client):
+    media = compile_release()["media"]
+    missing = next(asset for asset in media if asset["status"] in {"missing", "missing_new"})
+    fixture = student_client.get(f'/v2/content/candidate/media/{missing["id"]}')
+    assert fixture.status_code == 200
+    assert fixture.json()["test_only"] is True
+    assert fixture.json()["url"].startswith("/api/v2/lessons/test-fixtures/")
+
+    temporary = next(asset for asset in media if asset["status"] == "approved_temporary")
+    candidate = student_client.get(f'/v2/content/candidate/media/{temporary["id"]}')
+    assert candidate.status_code == 200
+    assert candidate.json()["temporary"] is True
+    assert candidate.json()["test_only"] is False
+    assert candidate.json()["url"].startswith("/api/v2/content/media/")
+
 
 
 def test_student_candidate_is_blocked_in_protected_runtime(student_client, monkeypatch):
