@@ -89,11 +89,11 @@ test.describe("Student Detail deterministic responsive matrix", () => {
         await expect(page.getByRole("heading", { name: student.full_name })).toBeVisible({ timeout: 10000 });
         await expectNoHorizontalOverflow(page);
 
-        await expect(page.getByRole("button", { name: "مسار هِمّة V2" })).toBeVisible();
+        await expect(page.getByRole("tab", { name: "المسار والدروس" })).toBeVisible();
         await expect(page.getByTestId("supervisor-v2-action")).toContainText("ابدأ الاختبار القبلي");
         await expect(page.getByRole("button", { name: "أرشيف V1 التاريخي" })).toHaveCount(0);
         await expectNoHorizontalOverflow(page);
-        await page.getByRole("button", { name: "الحساب", exact: true }).click();
+        await page.getByRole("tab", { name: "الحساب", exact: true }).click();
         await expect(page.getByRole("button", { name: "إظهار الرمز" })).toBeVisible();
         await expectNoHorizontalOverflow(page);
 
