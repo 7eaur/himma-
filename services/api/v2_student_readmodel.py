@@ -10,7 +10,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from db.learning_models import LessonSession, PrivateContentBankSnapshot, StudentJourney
-from db.models import AssessmentSession, ContentRelease, Student, User
+from db.models import AssessmentSession, Attempt, ContentRelease, Student, User
 from dependencies import get_current_user, get_db
 from v2_assessment_runtime import current_action
 from v2_lesson_runtime import _require_preview_student
@@ -232,7 +232,23 @@ def supervisor_student_v2_home(
         raise HTTPException(status_code=404, detail="الطالب غير موجود")
     # Staff-only projection deliberately returns no access code, audio keys or answer keys.
     home = build_student_v2_home(db, student)
-    return {**home, "lesson_overview": _supervisor_lesson_overview(db, student)}
+    history = []
+    if home["current_action"]["action"] == "migration_review":
+        # Explain the actual blocker to staff without credentials, answer keys,
+        # or recording URLs. Presence of a session is not evidence of completion.
+        for session in db.query(AssessmentSession).filter(
+            AssessmentSession.student_id == student.id,
+        ).order_by(AssessmentSession.id.desc()).all():
+            history.append({
+                "session_id": session.id,
+                "kind": session.session_type,
+                "status": session.status,
+                "version": "v2" if session.v2_state is not None else "v1",
+                "saved_attempts": db.query(Attempt.id).filter(Attempt.session_id == session.id).count(),
+                "official": bool(session.official_for_reporting),
+            })
+    return {**home, "lesson_overview": _supervisor_lesson_overview(db, student),
+            "onboarding_review": history}
 
 @router.get("/admin/students/overview")
 def supervisor_v2_cohort_overview(

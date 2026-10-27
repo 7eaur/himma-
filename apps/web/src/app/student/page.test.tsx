@@ -98,16 +98,23 @@ describe("Student page V2-only learner boundary", () => {
   });
 
   it.each([
+    17,
+    { path: "/student/learning-v2" },
+    ["/student/learning-v2"],
+    true,
+    "",
+    "   ",
     "javascript:alert(1)",
     "//external.invalid/student",
     "https://external.invalid/student",
     "/student/../admin",
     "/admin",
     "/student\\\\external",
-  ])("refuses unsafe V2 action navigation (%s) without leaving the learner surface", async href => {
+  ].map(href => ({ href })))("refuses unsafe V2 action navigation ($href) without leaving the learner surface", async ({ href }) => {
     mockV2({
       ...firstTime,
-      current_action: { action: "lesson_catalog", href, label: "متابعة الرحلة التعليمية" },
+      // Deliberately model unvalidated response.json(), including non-string JSON.
+      current_action: { action: "lesson_catalog", href: href as string, label: "متابعة الرحلة التعليمية" },
     });
     render(<StudentPage />);
     fireEvent.click(await screen.findByRole("button", { name: "متابعة الرحلة التعليمية" }));

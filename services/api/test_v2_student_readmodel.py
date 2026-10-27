@@ -255,3 +255,48 @@ def test_supervisor_v2_lesson_timeline_obeys_pinned_placement_and_review(researc
     assert data["progress"]["skipped_by_placement"] == sum(row["state"] == "skipped" for row in detail["items"])
     assert "private_answer" not in response.text and "access_code" not in response.text
 
+
+
+def test_student_created_by_supervisor_starts_first_v2_pretest_without_legacy_session(researcher_client):
+    created = researcher_client.post('/researcher/students', json={
+        'full_name': 'طالب اصطناعي جديد W1', 'grade_level': 3,
+    })
+    assert created.status_code == 201, created.text
+    student = created.json()
+    with TestingSessionLocal() as db:
+        assert db.query(AssessmentSession).filter(AssessmentSession.student_id == student['id']).count() == 0
+        assert db.query(StudentJourney).filter(StudentJourney.student_id == student['id']).count() == 0
+    signed_in = researcher_client.post('/auth/student-login', json={'access_code': student['access_code']})
+    assert signed_in.status_code == 200
+    for _ in range(2):
+        home = researcher_client.get('/v2/student/home')
+        assert home.status_code == 200
+        assert home.json()['current_action']['action'] == 'start_pretest'
+        assert 'onboarding_review' not in home.json()
+    started = researcher_client.post('/v2/assessments/pretest/start')
+    assert started.status_code == 200, started.text
+    assert started.json()['interaction']['progress']['index'] == 1
+    resumed = researcher_client.post('/v2/assessments/pretest/start')
+    assert resumed.json()['session']['session_id'] == started.json()['session']['session_id']
+    with TestingSessionLocal() as db:
+        assert db.query(AssessmentSession).filter(AssessmentSession.student_id == student['id']).count() == 1
+
+
+def test_migration_blocker_has_staff_only_session_evidence_without_credentials(researcher_client):
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == 'STU001').one()
+        student_id = student.id
+        db.add(AssessmentSession(student_id=student_id, session_type='pretest', status='in_progress'))
+        db.commit()
+    result = researcher_client.get(f'/v2/student/admin/students/{student_id}/home')
+    assert result.status_code == 200
+    blocker = result.json()['onboarding_review']
+    assert len(blocker) == 1
+    assert blocker[0]['version'] == 'v1'
+    assert blocker[0]['status'] == 'in_progress'
+    assert blocker[0]['saved_attempts'] == 0
+    assert blocker[0]['official'] is False
+    assert 'access_code' not in result.text and 'storage_key' not in result.text
+    with TestingSessionLocal() as db:
+        assert db.query(AssessmentSession).count() == 1
+        assert db.query(StudentJourney).count() == 0

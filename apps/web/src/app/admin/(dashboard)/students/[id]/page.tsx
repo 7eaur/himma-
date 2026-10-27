@@ -28,6 +28,7 @@ import type { StudentV2Home } from "@/app/student/V2StudentDashboard";
 type V2LessonItem = { lesson_id: string; title: string; level: string;
   state: "skipped" | "completed" | "waiting_review" | "in_progress" | "current" | "not_started"; session_id: number | null };
 type SupervisorV2Home = StudentV2Home & {
+  onboarding_review?: { session_id: number; kind: string; status: string; version: string; saved_attempts: number; official: boolean }[];
   lesson_overview?: { state: "ready" | "unavailable" | "awaiting_journey"; content_release_version: string | null; items: V2LessonItem[] };
 };
 
@@ -448,7 +449,12 @@ function StudentDetailView({ id }: { id: string }) {
           </div>
           <div className={styles.notice} data-testid="supervisor-v2-action" style={{ marginTop: 14 }}>
             <strong>الخطوة الحالية:</strong> {v2Home.current_action.label}
-            {v2Home.current_action.action === "migration_review" && <p>يلزم قرار مشرف بشأن الانتقال من البيانات التاريخية قبل السماح بإعادة الاختبار القبلي.</p>}
+            {v2Home.current_action.action === "migration_review" && <div role="status">
+              <p>هذا الحساب له جلسة سابقة؛ لا يُعامل كطالب جديد. تُحفظ المحاولات القديمة حتى مراجعة الانتقال.</p>
+              {v2Home.onboarding_review?.map(row => <p key={row.session_id}>
+                الجلسة #{row.session_id} · {row.version.toUpperCase()} · {row.kind === "pretest" ? "قبلي" : row.kind === "posttest" ? "بعدي" : "تعلم"} · {row.status === "in_progress" ? "غير مكتملة" : "مكتملة"} · المحاولات المحفوظة: {row.saved_attempts} · {row.official ? "نتيجة رسمية" : "دون نتيجة رسمية"}
+              </p>)}
+            </div>}
             {v2Home.progress.pending_review > 0 && <p>توجد مراجعة قراءة معلّقة؛ لا تُحوَّل إلى نجاح تلقائي.</p>}
           </div>
           <div className={styles.grid2} style={{ marginTop: 14 }}>

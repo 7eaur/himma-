@@ -41,8 +41,8 @@ export interface StudentV2Home {
 
 // The action comes from an API response. Next router.push must never receive
 // external schemes or an escaped path even when the response is malformed.
-function isSafeStudentRoute(href: string): boolean {
-  if (!href.startsWith("/") || href.startsWith("//") ||
+function isSafeStudentRoute(href: unknown): href is string {
+  if (typeof href !== "string" || !href.startsWith("/") || href.startsWith("//") ||
       [...href].some(char => char === "\\" || char.charCodeAt(0) <= 32 || char.charCodeAt(0) === 127)) return false;
   try {
     const route = new URL(href, "https://himma.invalid");
@@ -99,7 +99,7 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
   const start = async () => {
     if (starting || startingRef.current || info.disabled || leavingRef.current) return;
     setError("");
-    if (action.href) {
+    if (action.href !== null || (action.action !== "start_pretest" && action.action !== "start_posttest")) {
       if (!isSafeStudentRoute(action.href)) {
         setError("تعذر التحقق من رابط الرحلة. يرجى المحاولة لاحقًا.");
         return;
