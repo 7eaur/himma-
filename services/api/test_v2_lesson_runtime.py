@@ -373,10 +373,19 @@ def test_current_action_prioritizes_pending_assessment_before_active_lesson(stud
     with TestingSessionLocal() as db:
         student = db.query(Student).filter(Student.access_code == "STU001").one()
         journey = db.query(StudentJourney).filter(StudentJourney.student_id == student.id).one()
+        prior = db.query(AssessmentSession).filter(
+            AssessmentSession.student_id == student.id,
+            AssessmentSession.session_type == "pretest",
+            AssessmentSession.official_for_reporting.is_(True),
+        ).one()
+        # This scenario is an explicitly modeled second pretest attempt.
+        # Never reuse attempt #1: PostgreSQL has a unique attempt constraint.
         row = AssessmentSession(
             student_id=student.id, content_release_id=journey.content_release_id,
             session_type="pretest", status="in_progress", v2_state="placement_pending_review",
-            v2_question_index=30, v2_policy_version="test", assessment_attempt_no=1,
+            v2_question_index=30, v2_policy_version="test",
+            assessment_attempt_no=prior.assessment_attempt_no + 1,
+            supersedes_session_id=prior.id,
         )
         db.add(row)
         db.commit()
