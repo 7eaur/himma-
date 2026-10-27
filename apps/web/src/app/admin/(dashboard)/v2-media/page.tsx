@@ -9,6 +9,7 @@ interface MediaItem { asset_id: string; kind: string; state: "ready" | "pending"
 interface Inventory { mode: "read_only"; release_state: string; counts: { ready: number; pending: number; missing: number; test_only: number; temporary: number }; items: MediaItem[]; candidate_files_present: number; published_assets: number; required_assets: number; publishable: boolean; }
 const states = { ready: "جاهز", pending: "بانتظار المراجعة", missing: "مفقود" };
 const kinds: Record<string, string> = { audio: "صوت", video: "فيديو", image: "صورة" };
+const MEDIA_PAGE_SIZE = 12;
 
 export default function V2MediaInventoryPage() {
   const [inventory, setInventory] = useState<Inventory | null>(null);
@@ -16,6 +17,7 @@ export default function V2MediaInventoryPage() {
   const [kind, setKind] = useState("all");
   const [search, setSearch] = useState("");
   const [reload, setReload] = useState(0);
+  const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   useEffect(() => {
@@ -36,6 +38,9 @@ export default function V2MediaInventoryPage() {
   const items = useMemo(() => inventory?.items.filter(item => (filter === "all" || item.state === filter)
     && (kind === "all" || item.kind === kind)
     && (!search.trim() || `${item.asset_id} ${item.uses.map(ref => ref.owner_id).join(" ")}`.toLowerCase().includes(search.trim().toLowerCase()))) ?? [], [filter, kind, search, inventory]);
+  const pageCount = Math.max(1, Math.ceil(items.length / MEDIA_PAGE_SIZE));
+  const effectivePage = Math.min(page, pageCount - 1);
+  const visibleItems = items.slice(effectivePage * MEDIA_PAGE_SIZE, (effectivePage + 1) * MEDIA_PAGE_SIZE);
   return <AdminPage>
     <AdminPageHeader eyebrow="المحتوى والوسائط" icon={Film} title="الوسائط التعليمية"
       description="معرض الأصول التعليمية والصوت والصورة والفيديو. التشغيل للمعاينة فقط، ولا يمنح اعتمادًا أو يغير تقدم الطالب." />
@@ -47,12 +52,12 @@ export default function V2MediaInventoryPage() {
         <p className="mt-4 text-sm text-muted">الأصول المطلوبة المتاحة: {inventory.published_assets} من {inventory.required_assets}. الملفات الموجودة في البنك: {inventory.candidate_files_present} من {inventory.items.length}. {inventory.publishable ? "اعتماد الوسائط المطلوبة متاح؛ يبقى فحص التشغيل والقبول النهائي." : "بعض الأصول المطلوبة غير جاهزة."}</p>
         <AdminPanel>
           <div className="flex flex-wrap items-end gap-3">
-            <label className="flex min-w-0 flex-1 flex-col gap-2"><span>بحث بمعرّف الوسيط أو الدرس</span><input className="input-field" value={search} onChange={e => setSearch(e.target.value)} /></label>
-            <label className="flex flex-col gap-2"><span>نوع الوسيط</span><select className="input-field" value={kind} onChange={e => setKind(e.target.value)}><option value="all">جميع الأنواع</option><option value="audio">الصوت</option><option value="video">الفيديو</option><option value="image">الصور</option></select></label>
+            <label className="flex min-w-0 flex-1 flex-col gap-2"><span>بحث بمعرّف الوسيط أو الدرس</span><input className="input-field" value={search} onChange={e => { setSearch(e.target.value); setPage(0); }} /></label>
+            <label className="flex flex-col gap-2"><span>نوع الوسيط</span><select className="input-field" value={kind} onChange={e => { setKind(e.target.value); setPage(0); }}><option value="all">جميع الأنواع</option><option value="audio">الصوت</option><option value="video">الفيديو</option><option value="image">الصور</option></select></label>
           </div>
-          <div className="my-4 flex flex-wrap gap-2" aria-label="تصفية الوسائط">{(["all", "ready", "pending", "missing"] as const).map(value => <button key={value} type="button" aria-pressed={filter === value} onClick={() => setFilter(value)} className={`min-h-11 rounded-xl border px-4 py-2 text-sm font-semibold ${filter === value ? "border-primary text-primary" : "border-border"}`}>{value === "all" ? "الكل" : states[value]}</button>)}</div>
+          <div className="my-4 flex flex-wrap gap-2" aria-label="تصفية الوسائط">{(["all", "ready", "pending", "missing"] as const).map(value => <button key={value} type="button" aria-pressed={filter === value} onClick={() => { setFilter(value); setPage(0); }} className={`min-h-11 rounded-xl border px-4 py-2 text-sm font-semibold ${filter === value ? "border-primary text-primary" : "border-border"}`}>{value === "all" ? "الكل" : states[value]}</button>)}</div>
           <p className="mb-4 text-sm text-muted">{items.length} أصلًا مطابقًا من {inventory.items.length}</p>
-          {items.length === 0 ? <AdminEmptyState title="لا توجد أصول مطابقة" /> : <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3" data-testid="v2-media-gallery">{items.map(item => <article key={item.asset_id} className="min-w-0 space-y-3 rounded-2xl border border-border p-4" data-testid="v2-media-card">
+          {items.length === 0 ? <AdminEmptyState title="لا توجد أصول مطابقة" /> : <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3" data-testid="v2-media-gallery">{visibleItems.map(item => <article key={item.asset_id} className="min-w-0 space-y-3 rounded-2xl border border-border p-4" data-testid="v2-media-card">
             <h2 className="break-all font-mono font-bold text-navy">{item.asset_id}</h2>
             <p className="text-sm">{kinds[item.kind] ?? item.kind} · {states[item.state]}</p>
             <p className="text-sm text-muted">{item.temporary ? "فيديو مشترك معتمد مؤقتًا إلى حين إنتاج فيديو الدرس" : item.candidate_present ? "ملف موجود" : "الملف غير متوفر"}{item.publication_blocker ? " · غير معتمد للاستخدام" : ""}</p>
@@ -60,6 +65,15 @@ export default function V2MediaInventoryPage() {
             <EducationalMediaPreview asset={{ asset_id: item.asset_id, kind: item.kind, url: item.preview_url, test_only: item.test_only }} />
             <details className="text-sm"><summary className="cursor-pointer py-2">الاستخدامات ({item.uses.length})</summary><ul className="space-y-1 break-all">{item.uses.map((ref, index) => <li key={`${ref.owner_id}-${index}`}>{ref.owner_id} · {ref.role}</li>)}</ul></details>
           </article>)}</div>}
+          {items.length > MEDIA_PAGE_SIZE && <nav aria-label="صفحات الوسائط التعليمية" className="mt-5 flex items-center justify-between gap-3">
+            <button type="button" className="min-h-11 rounded-xl border px-4 font-semibold disabled:opacity-40"
+              disabled={effectivePage === 0} onClick={() => setPage(previous => Math.max(0, previous - 1))}>السابق</button>
+            <span className="text-sm text-muted" aria-live="polite">
+              صفحة {effectivePage + 1} من {pageCount} · عرض {effectivePage * MEDIA_PAGE_SIZE + 1}–{Math.min(items.length, (effectivePage + 1) * MEDIA_PAGE_SIZE)}
+            </span>
+            <button type="button" className="min-h-11 rounded-xl border px-4 font-semibold disabled:opacity-40"
+              disabled={effectivePage + 1 >= pageCount} onClick={() => setPage(previous => previous + 1)}>التالي</button>
+          </nav>}
         </AdminPanel>
       </>}
   </AdminPage>;
