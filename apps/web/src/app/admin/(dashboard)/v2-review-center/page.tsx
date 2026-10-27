@@ -18,9 +18,11 @@ function safeTab(value: string | null): ReviewTab {
 }
 
 export default function V2ReviewCenterPage() {
-  const [active, setActive] = useState<ReviewTab>("assessments");
+  const [active, setActive] = useState<ReviewTab>(() => (
+    typeof window === "undefined" ? "assessments"
+      : safeTab(new URLSearchParams(window.location.search).get("tab"))
+  ));
   useEffect(() => {
-    setActive(safeTab(new URLSearchParams(window.location.search).get("tab")));
     const sync = () => setActive(safeTab(new URLSearchParams(window.location.search).get("tab")));
     window.addEventListener("popstate", sync);
     return () => window.removeEventListener("popstate", sync);
