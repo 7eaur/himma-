@@ -1,6 +1,6 @@
 """Authenticated, learner-safe preview boundary for the unapproved V2 release."""
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import FileResponse
 
 from dependencies import get_any_authenticated, get_current_user, get_db
@@ -14,6 +14,52 @@ from v2_content.recovery import restore_original_snapshot
 
 
 router = APIRouter(prefix="/v2/content", tags=["v2-content"])
+
+
+@router.get("/admin/bank")
+def supervisor_content_bank(
+    section: str = Query(default="", max_length=30), search: str = Query(default="", max_length=100),
+    limit: int = Query(default=25, ge=1, le=50), offset: int = Query(default=0, ge=0),
+    _user: User = Depends(get_current_user),
+):
+    """Read-only current authoring bank; private answers require staff authorization."""
+    release = get_release()
+    sections = [{"id": "pretest", "title": "الاختبار القبلي", "kind": "assessment", "intro": None}]
+    for lesson in release["lessons"]:
+        sections.append({"id": lesson["id"], "title": lesson["title"], "kind": "lesson",
+                         "intro": lesson.get("intro"), "objective": lesson.get("objective")})
+    for support in release["supports"]:
+        sections.append({"id": support["id"], "title": support["title"], "kind": "support",
+                         "intro": support.get("intro"), "objective": support.get("objective")})
+    sections.append({"id": "posttest", "title": "الاختبار البعدي", "kind": "assessment", "intro": None})
+    order = {row["id"]: i for i, row in enumerate(sections)}
+    if section and section not in order:
+        raise HTTPException(status_code=404, detail="قسم المحتوى غير موجود")
+    questions = sorted(release["questions"], key=lambda q: (
+        order[q.get("owner_id") or q["role"]],
+        {"guided_practice": 0, "independent_check": 1, "support_check": 1}.get(q["role"], 0), q["id"],
+    ))
+    for row in sections:
+        row["question_count"] = sum((q.get("owner_id") or q["role"]) == row["id"] for q in questions)
+    selected = [q for q in questions if (not section or (q.get("owner_id") or q["role"]) == section)
+                and (not search.strip() or search.strip().casefold() in f'{q["id"]} {q["prompt"]}'.casefold())]
+    items = []
+    for question in selected[offset:offset + limit]:
+        media_ids = {m["media_id"] for m in question.get("stimulus", {}).get("media", [])}
+        media_ids |= {m["media_id"] for option in question.get("options", []) for m in option.get("media", [])}
+        media = []
+        for asset in release["media"]:
+            if asset["id"] in media_ids:
+                resolved = MediaProvider().resolve(asset).as_dict()
+                resolved["url"] = f'/api/v2/lessons/admin/media/{asset["id"]}' if resolved["state"] == "ready" else None
+                media.append(resolved)
+        items.append({"question": student_question(question), "section_id": question.get("owner_id") or question["role"],
+                      "answer": question.get("private_answer"), "reading_reference": question.get("reading_reference"),
+                      "media": media})
+    return {"mode": "read_only", "release_version": release["version"], "release_checksum": release["checksum"],
+            "release_state": release["state"], "bank_total": len(questions), "total": len(selected),
+            "sections": sections, "items": items, "offset": offset,
+            "next_offset": offset + limit if offset + limit < len(selected) else None}
 
 
 @router.post("/admin/releases/{release_id}/restore-original-snapshot")

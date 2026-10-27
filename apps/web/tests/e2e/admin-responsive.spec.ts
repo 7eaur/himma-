@@ -75,7 +75,7 @@ for (const viewport of [
       await page.waitForTimeout(250);
       if (route === "/admin/content-preview") {
         // Do not record the initial spinner as evidence of loaded V2/V1 UI.
-        await expect(page.getByTestId("content-index-item").first()).toBeAttached({ timeout: 25000 });
+        await expect(page.getByTestId("v2-bank-question").first()).toBeVisible({ timeout: 25000 });
       }
       if (route === "/admin/students") {
         await expect(page.getByText("جاري تحميل بيانات V2...")).toHaveCount(0, { timeout: 20000 });
@@ -90,6 +90,9 @@ for (const viewport of [
       await capture(page, viewport.name, route);
 
       if (route === "/admin/content-preview") {
+        // Legacy interaction coverage remains explicit behind its historical archive.
+        await page.getByRole("button", { name: "أرشيف بنك V1", exact: true }).click();
+        await expect(page.getByTestId("content-index-item").first()).toBeAttached({ timeout: 25000 });
         const detailPane = page.getByTestId("content-detail-pane");
         await expect(detailPane).toBeVisible({ timeout: 10000 });
         await expectNoHorizontalOverflow(page);
@@ -151,7 +154,7 @@ test("P09.0 V2 supervisor pages keep a desktop visual baseline", async ({ page }
     { route: "/admin/v2-media", heading: "سجل وسائط V2" },
     { route: "/admin/v2-reviewed-recordings", heading: "التسجيلات التي اكتمل تقييمها" },
     { route: "/admin/students", heading: "الطلاب" },
-    { route: "/admin/content-preview", heading: "المحتوى المعتمد" },
+    { route: "/admin/content-preview", heading: "بنك المحتوى V2" },
     { route: "/admin/account", heading: "إعدادات المشرف" },
   ];
   for (const { route, heading } of routes) {
@@ -163,7 +166,7 @@ test("P09.0 V2 supervisor pages keep a desktop visual baseline", async ({ page }
     }
     await expect(page.getByRole("heading", { level: 1, name: heading, exact: true })).toBeVisible();
     if (route === "/admin/content-preview") {
-      await expect(page.getByTestId("content-index-item").first()).toBeAttached({ timeout: 25000 });
+      await expect(page.getByTestId("v2-bank-question").first()).toBeVisible({ timeout: 25000 });
     }
     if (route === "/admin/v2-media") {
       await expect(page.getByText(/الملفات المرشحة الموجودة/)).toBeVisible({ timeout: 15000 });
@@ -246,4 +249,35 @@ test("P09.1-D: supervisor sees official V2 first without V1 stars, and access co
   await page.unroute(v2Route);
   await page.getByRole("button", { name: "إعادة المحاولة" }).click();
   await expect(page.getByTestId("supervisor-v2-progress")).toContainText("بانتظار الاعتماد", { timeout: 15000 });
+});
+
+
+test("W3: current bank and staff media gallery support real browsing and playback", async ({ page }) => {
+  test.setTimeout(120000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await login(page);
+  await page.goto('/admin/content-preview');
+  const first = page.getByTestId('v2-bank-question').first();
+  await expect(first).toContainText('V2-PRE-Q01');
+  await first.getByText('الإجابة والمرجع للمشرف', { exact: true }).click();
+  await expect(first.getByText(/الخيارات الصحيحة أو ترتيبها/)).toBeVisible();
+  await page.getByRole('combobox', { name: 'القسم', exact: true }).selectOption('L1-01');
+  await expect(page.getByTestId('v2-bank-question')).toHaveCount(8);
+  await expect(page.getByTestId('v2-bank-question').first()).toContainText('L1-01-GP-01');
+  await expect(page.getByText(/التمهيد:/)).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+  await capture(page, 'phone-390x844', '/admin/v2-bank-lesson');
+  await page.goto('/admin/v2-media');
+  await expect(page.getByTestId('v2-media-card')).toHaveCount(89);
+  await page.getByRole('combobox', { name: 'نوع الوسيط' }).selectOption('audio');
+  await expect(page.getByTestId('v2-media-card')).toHaveCount(47);
+  const card = page.getByTestId('v2-media-card').first();
+  await card.getByRole('button', { name: /معاينة/ }).click();
+  const audio = card.locator('audio');
+  await expect(audio).toBeVisible();
+  await audio.evaluate(async element => { await (element as HTMLAudioElement).play(); });
+  await expect.poll(() => audio.evaluate(element => (element as HTMLAudioElement).duration)).toBeGreaterThan(0);
+  await audio.evaluate(element => (element as HTMLAudioElement).pause());
+  await expectNoHorizontalOverflow(page);
+  await capture(page, 'phone-390x844', '/admin/v2-media-audio-preview');
 });

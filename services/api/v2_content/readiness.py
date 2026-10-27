@@ -83,6 +83,7 @@ def media_readiness_contract(release: dict[str, Any], *, provider: MediaProvider
             preview_kind = f"generic_test_only_{kind}" if resolved.test_only else "no_preview"
         items.append({
             "asset_id": str(asset["id"]), "kind": kind,
+            "preview_url": f'/api/v2/lessons/admin/media/{asset["id"]}' if resolved.state == "ready" else None,
             "state": state, "runtime_state": resolved.state, "test_only": resolved.test_only,
             "source_status": source, "candidate_present": candidate is not None,
             "candidate_path": str(candidate.relative_to(REPO_ROOT)) if candidate else None,

@@ -429,3 +429,26 @@ def media_inventory(
     _user: User = Depends(get_current_user),
 ):
     return media_readiness_contract(get_release(), provider=MediaProvider())
+
+
+@router.get("/admin/media/{asset_id}")
+def supervisor_educational_media(asset_id: str, _user: User = Depends(get_current_user)):
+    """Staff educational preview only; never a child's private recording."""
+    from v2_content.media import approved_asset_path
+    asset = get_media(asset_id)
+    if not asset:
+        raise HTTPException(status_code=404, detail="الوسيط غير موجود")
+    resolved = MediaProvider().resolve(asset)
+    if resolved.state != "ready":
+        raise HTTPException(status_code=404, detail="معاينة هذا الوسيط غير متاحة")
+    path = approved_asset_path(asset)
+    if path is None and resolved.test_only:
+        if resolved.kind == "video":
+            path = _bound_preview_source(asset_id, "video") or (DEMO_LESSON_VIDEO if DEMO_LESSON_VIDEO.is_file() else FIXTURE_VIDEO)
+        elif resolved.kind in {"audio", "image"}:
+            path = _fixture_source(asset, kind=resolved.kind)
+    if path is None or not path.is_file():
+        raise HTTPException(status_code=404, detail="ملف المعاينة غير موجود")
+    return FileResponse(path, media_type=mimetypes.guess_type(path.name)[0] or "application/octet-stream",
+                        headers={"Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff",
+                                 "X-Himma-Test-Only": str(resolved.test_only).lower()})
