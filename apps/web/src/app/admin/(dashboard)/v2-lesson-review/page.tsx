@@ -8,6 +8,7 @@ import SupervisorClaimActions from "@/components/admin/SupervisorClaimActions";
 import V2EvidenceHistory from "@/components/admin/V2EvidenceHistory";
 import V2ReviewedAudioPlayer from "@/components/admin/V2ReviewedAudioPlayer";
 import V2ReviewQueuePicker from "@/components/admin/V2ReviewQueuePicker";
+import V2ReadingRubricEditor, { emptyReadingRubric, rubricValid, type ReadingRubricDraft } from "@/components/admin/V2ReadingRubricEditor";
 
 interface ReviewItem {
   response_id: number; session_id: number; student_id: number; student_name: string;
@@ -28,6 +29,7 @@ export default function V2LessonReviewPage() {
   const [queue, setQueue] = useState<ReviewQueue>({ items: [], next_offset: null });
   const [offset, setOffset] = useState(0);
   const [notes, setNotes] = useState<Record<number, string>>({});
+  const [readingRubrics, setReadingRubrics] = useState<Record<number, ReadingRubricDraft>>({});
   const [selectedResponseId, setSelectedResponseId] = useState<number | null>(null);
   const [busy, setBusy] = useState<number | null>(null);
   const [error, setError] = useState("");
@@ -80,17 +82,22 @@ export default function V2LessonReviewPage() {
       item.audio_submission_id !== null &&
       (completedAudio[item.audio_submission_id] ?? item.audio_playback_completed)
     );
-    if (note.length < 2 || !item.evidence_ready || !playbackReady) return;
+    if (note.length < 2 || !item.evidence_ready || !playbackReady ||
+        (item.interaction === "read_aloud" && !rubricValid(readingRubrics[item.response_id] ?? emptyReadingRubric()))) return;
     setBusy(item.response_id); setError("");
     try {
       const response = await fetch(`/api/v2/review/lessons/${item.response_id}/decision`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ is_correct: isCorrect, note }),
+        body: JSON.stringify({
+          is_correct: isCorrect, note,
+          ...(item.interaction === "read_aloud" ? { rubric: readingRubrics[item.response_id] } : {}),
+        }),
       });
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(data?.detail || "تعذر تسجيل قرار المراجعة");
       setNotes((previous) => { const updated = { ...previous }; delete updated[item.response_id]; return updated; });
+      setReadingRubrics(current => { const rest = {...current}; delete rest[item.response_id]; return rest; });
       await load();
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "تعذر حفظ القرار");
@@ -120,7 +127,8 @@ export default function V2LessonReviewPage() {
               item.audio_submission_id !== null &&
               (completedAudio[item.audio_submission_id] ?? item.audio_playback_completed)
             );
-            const disabled = !item.evidence_ready || !playbackReady || note.trim().length < 2 || busy !== null;
+            const disabled = !item.evidence_ready || !playbackReady || note.trim().length < 2 || busy !== null ||
+              (item.interaction === "read_aloud" && !rubricValid(readingRubrics[item.response_id] ?? emptyReadingRubric()));
             return <article key={item.response_id} className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div><h3 className="font-bold text-slate-900">{item.student_name} · {item.lesson_id}</h3>
@@ -142,6 +150,10 @@ export default function V2LessonReviewPage() {
                 <pre className="mt-2 whitespace-pre-wrap break-words text-xs text-slate-700 font-sans">{reference(item.reference)}{"\n"}{reference(item.rubric)}</pre>
               </details>
               <V2EvidenceHistory kind="lesson" responseId={item.response_id}/>
+              {item.interaction === "read_aloud" && <V2ReadingRubricEditor
+                value={readingRubrics[item.response_id] ?? emptyReadingRubric()}
+                onChange={value => setReadingRubrics(previous => ({...previous, [item.response_id]: value}))}
+                disabled={busy !== null} />}
               <div className="space-y-2">
                 <label htmlFor={`note-${item.response_id}`} className="block text-sm font-semibold">سبب قرار المراجعة (مطلوب)</label>
                 <textarea id={`note-${item.response_id}`} value={note} maxLength={2000} rows={2}
