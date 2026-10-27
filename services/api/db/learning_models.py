@@ -2,7 +2,7 @@
 
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, CheckConstraint, Column, DateTime, Float, ForeignKey, Index, Integer, JSON, String, UniqueConstraint, text
+from sqlalchemy import Boolean, CheckConstraint, Column, DateTime, Float, ForeignKey, Index, Integer, Numeric, JSON, String, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import JSONB
 
 from db.models import Base
@@ -308,6 +308,38 @@ class PlacementDecisionV2(Base):
     __table_args__ = (
         CheckConstraint("assigned_level BETWEEN 1 AND 3", name="ck_placement_v2_level"),
         Index("ix_placement_v2_student_created", "student_id", "created_at"),
+    )
+
+
+class V2AudioRubric(Base):
+    """One V2-only immutable human reading observation per audio submission.
+
+    This deliberately does not share V1 audio_reviews, preventing historical V1
+    reports and score semantics from incorporating V2 research evidence.
+    """
+
+    __tablename__ = "v2_audio_rubrics"
+
+    id = Column(Integer, primary_key=True)
+    audio_submission_id = Column(Integer, ForeignKey("audio_submissions.id", ondelete="CASCADE"), nullable=False, unique=True)
+    reviewer_id = Column(Integer, ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)
+    is_correct = Column(Boolean, nullable=False)  # Explicit reviewer judgment
+    target_units = Column(Integer, nullable=False)
+    deletions = Column(Integer, nullable=False, default=0)
+    substitutions = Column(Integer, nullable=False, default=0)
+    insertions = Column(Integer, nullable=False, default=0)
+    rubric_score = Column(Numeric(precision=10, scale=4), nullable=False)
+    pronunciation_notes = Column(String, nullable=True)
+    fluency_notes = Column(String, nullable=True)
+    policy_version = Column(String(100), nullable=False, default="himma-v2-reading-rubric/1-observation")
+    created_at = Column(DateTime(timezone=True), nullable=False, default=_now)
+
+    __table_args__ = (
+        CheckConstraint("target_units BETWEEN 1 AND 1000", name="ck_v2_audio_rubric_target"),
+        CheckConstraint("deletions >= 0 AND substitutions >= 0 AND insertions >= 0", name="ck_v2_audio_rubric_errors"),
+        CheckConstraint("deletions + substitutions <= target_units", name="ck_v2_audio_rubric_exclusive_units"),
+        CheckConstraint("rubric_score BETWEEN 0 AND 1", name="ck_v2_audio_rubric_score"),
+        Index("ix_v2_audio_rubrics_reviewer", "reviewer_id", "created_at"),
     )
 
 
