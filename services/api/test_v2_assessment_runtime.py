@@ -237,6 +237,73 @@ def test_posttest_gate_requires_ready_journey_and_explicit_enable(student_client
     assert blocked.status_code == 409
 
 
+def test_v2_posttest_access_uses_pinned_journey_not_legacy_core(researcher_client, student_client):
+    """Completing V2 must not require finishing V1 activities or a V1 core session."""
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        student_id = student.id
+        release = register_candidate_release(db)
+        db.add(StudentJourney(
+            student_id=student_id, content_release_id=release.id,
+            current_level=3, current_lesson_id=None,
+            placement_state="posttest_ready",
+        ))
+        db.add(AssessmentSession(
+            student_id=student_id, content_release_id=release.id,
+            session_type="pretest", status="completed", v2_state="completed",
+            final_score=80, official_for_reporting=True, assessment_attempt_no=1,
+        ))
+        db.commit()
+
+    before = researcher_client.get(f"/researcher/students/{student_id}")
+    assert before.status_code == 200, before.text
+    assert before.json()["posttest_eligible"] is True
+    opened = researcher_client.post(
+        f"/researcher/students/{student_id}/posttest-access",
+        json={"enabled": True},
+    )
+    assert opened.status_code == 200, opened.text
+    assert opened.json()["posttest_enabled"] is True
+
+    assert student_client.post("/auth/student-login", json={"access_code": "STU001"}).status_code == 200
+    action = student_client.get("/v2/assessments/current-action")
+    assert action.status_code == 200
+    assert action.json()["action"] == "start_posttest"
+    started = student_client.post("/v2/assessments/posttest/start")
+    assert started.status_code == 200, started.text
+    assert started.json()["session"]["progress"]["answered"] == 0
+    replay = student_client.post("/v2/assessments/posttest/start")
+    assert replay.status_code == 200
+    assert replay.json()["session"]["session_id"] == started.json()["session"]["session_id"]
+
+
+def test_v2_posttest_rejects_missing_official_v2_pretest_despite_legacy_evidence(researcher_client):
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        student_id = student.id
+        release = register_candidate_release(db)
+        db.add(StudentJourney(
+            student_id=student_id, content_release_id=release.id,
+            current_level=3, placement_state="posttest_ready",
+        ))
+        db.add(AssessmentSession(
+            student_id=student_id, session_type="pretest",
+            status="completed", v2_state=None,
+            assessment_attempt_no=1, official_for_reporting=True,
+        ))
+        db.commit()
+    response = researcher_client.get(f"/researcher/students/{student_id}")
+    assert response.status_code == 200, response.text
+    assert response.json()["posttest_eligible"] is False
+    refused = researcher_client.post(
+        f"/researcher/students/{student_id}/posttest-access",
+        json={"enabled": True},
+    )
+    assert refused.status_code == 409
+    with TestingSessionLocal() as db:
+        assert db.get(Student, student_id).posttest_enabled is False
+
+
 def test_v2_admin_queues_reject_student(student_client):
     assert student_client.get("/v2/assessments/admin/review-queue").status_code == 403
     assert student_client.get("/v2/assessments/admin/placement-queue").status_code == 403
