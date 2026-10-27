@@ -181,7 +181,7 @@ def test_v2_session_endpoints_hide_legacy_v1_attempts(student_client):
         assert db.query(AssessmentQuestionResponse).count() == 0
 
 
-def test_open_responses_keep_placement_pending_until_human_review_and_manual_decision(researcher_client, monkeypatch):
+def test_voice_review_completion_automatically_places_student_without_staff_decision(researcher_client, monkeypatch):
     import storage
     monkeypatch.setattr(storage, "verify_audio", lambda *args, **kwargs: None)
     with TestingSessionLocal() as db:
@@ -212,24 +212,18 @@ def test_open_responses_keep_placement_pending_until_human_review_and_manual_dec
         assert reviewed.status_code == 200
     with TestingSessionLocal() as db:
         session = db.query(AssessmentSession).filter(AssessmentSession.id == session_id).one()
-        assert session.v2_state == "placement_pending_review"
-        assert session.assigned_level is None
-    default_denied = researcher_client.post(f"/v2/assessments/admin/sessions/{session_id}/placement",
-        json={"assigned_level": 2, "reason": "قرار يدوي مبني على ملف المهارات ومراجعة الأدلة المفتوحة"})
-    assert default_denied.status_code == 409
-    placed = researcher_client.post(f"/v2/assessments/admin/sessions/{session_id}/placement",
-        json={"assigned_level": 2, "override_recommendation": True,
-              "reason": "قرار استثنائي مبني على ملف المهارات ومراجعة الأدلة المفتوحة"})
-    assert placed.status_code == 200
-    with TestingSessionLocal() as db:
-        session = db.query(AssessmentSession).filter(AssessmentSession.id == session_id).one()
         journey = db.query(StudentJourney).one()
-        assert session.assigned_level == 2 and session.official_for_reporting is True
-        assert journey.current_level == 2 and journey.current_lesson_id.startswith("L2-")
-        assert db.query(PlacementDecisionV2).one().policy_version.endswith("threshold-50-80-v1")
-        audit = db.query(AuditLog).filter(AuditLog.action == "v2_manual_placement_approved").one()
-        assert "قرار يدوي" not in audit.details
-        assert "reason_location=v2_placement_decisions" in audit.details
+        assert session.v2_state == "completed"
+        assert session.assigned_level == 3 and session.official_for_reporting is True
+        assert journey.current_level == 3 and journey.current_lesson_id.startswith("L3-")
+        decision = db.query(PlacementDecisionV2).one()
+        assert decision.decided_by is None and decision.assigned_level == 3
+        assert decision.policy_version.endswith("threshold-50-80-v1")
+        audit = db.query(AuditLog).filter(AuditLog.action == "v2_automatic_placement").one()
+        assert audit.actor_role == "system" and "recommended=3" in audit.details
+    duplicate = researcher_client.post(f"/v2/assessments/admin/sessions/{session_id}/placement",
+        json={"assigned_level": 1, "reason": "محاولة تجاوز القرار التلقائي المعتمد"})
+    assert duplicate.status_code == 409
 
 
 def test_reports_use_null_for_missing_and_student_cannot_open_admin(student_client):
