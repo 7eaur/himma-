@@ -1,8 +1,7 @@
-"""P06 candidate pre/post runtime and supervisor review boundary.
+"""V2 pre/post assessment with official automatic placement and human audio review.
 
-The bank is complete (30+30), but placement thresholds are not academically
-approved. Therefore objective evidence is graded privately, open evidence is
-human-reviewed, and pretest placement is an explicit audited supervisor act.
+Objective evidence is corrected privately. Only recorded reading remains under
+human review. After all 30 answers are graded, placement is a system action.
 """
 
 from __future__ import annotations
@@ -485,6 +484,38 @@ def finalize_persisted_placement(
     result = _result(db, session)
     if result["answered"] != 30 or result["pending_review"] or result["score_percent"] is None:
         raise HTTPException(status_code=409, detail="ينبغي إكمال الأسئلة ومراجعة تسجيلات القراءة أولًا")
+    # A legacy "graded" flag alone is not proof that the child's actual
+    # recording survived. Verify the pinned reading questions and the latest
+    # graded recording before recovering an official placement decision.
+    release = _session_release(db, session)
+    required_reading = {
+        row["id"] for row in release["questions"]
+        if row["role"] == "pretest" and row["interaction"] == "read_aloud"
+    }
+    responses = db.query(AssessmentQuestionResponse).filter(
+        AssessmentQuestionResponse.assessment_session_id == session.id,
+    ).all()
+    readings = [row for row in responses if row.question_id in required_reading]
+    if ({row.question_id for row in readings} != required_reading
+            or any(row.status != "graded" or row.is_correct is None for row in readings)):
+        raise HTTPException(status_code=409, detail="لم تكتمل مراجعة تسجيلات القراءة الأصلية")
+    reading_ids = [row.id for row in readings]
+    recordings = db.query(AudioSubmission).filter(
+        AudioSubmission.assessment_response_id.in_(reading_ids),
+        AudioSubmission.status == "graded",
+    ).order_by(AudioSubmission.id.desc()).all() if reading_ids else []
+    latest = {}
+    for audio in recordings:
+        latest.setdefault(audio.assessment_response_id, audio)
+    if len(latest) != len(readings):
+        raise HTTPException(status_code=409, detail="الدليل الصوتي المعتمد مفقود؛ لم نُنشئ تسكينًا")
+    for audio in latest.values():
+        try:
+            storage.verify_audio(audio.storage_key, audio.file_size, audio.mime_type)
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail="ملف القراءة المعتمد غير موجود أو تغيّر") from exc
+        except RuntimeError as exc:
+            raise HTTPException(status_code=503, detail="تعذر فحص التخزين الصوتي حاليًا") from exc
     _finish_if_ready(db, session)
     if session.v2_state != "completed":
         raise HTTPException(status_code=409, detail="لم يكتمل قرار التسكين التلقائي")
