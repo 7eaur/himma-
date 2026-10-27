@@ -260,3 +260,22 @@ def test_lower_level_support_does_not_demote_current_journey():
         assert assignment.source_level == 2
         assert assignment.support_level == 1
         assert journey.current_level == 2
+
+
+def test_different_independent_focus_gaps_are_checked_automatically_in_sequence(student_client):
+    # L1-03 assesses damma, kasra, fatha, kasra. Two distinct failed
+    # focuses must not be collapsed into only the first selected detour.
+    session_id = _start_at_independent(student_client, "L1-03")
+    first = _complete_current_stage(student_client, session_id, [False, False, True, True])
+    assert first["lesson"]["session"]["stage"] == "additional_check"
+    assert first["lesson"]["adaptation"]["support"]["focus"] == "damma"
+    next_focus = _complete_current_stage(student_client, session_id, [True, True])
+    assert next_focus["lesson"]["session"]["stage"] == "additional_check"
+    assert next_focus["lesson"]["adaptation"]["support"]["focus"] == "kasra"
+    completed = _complete_current_stage(student_client, session_id, [True, True])
+    assert completed["lesson"]["session"]["stage"] == "outcome"
+    with TestingSessionLocal() as db:
+        assignments = db.query(SupportAssignment).order_by(SupportAssignment.id).all()
+        assert [(a.focus, a.status) for a in assignments] == [
+            ("damma", "resolved"), ("kasra", "resolved")]
+        assert db.query(StudentJourney).one().current_lesson_id == "L1-04"
