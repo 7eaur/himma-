@@ -10,7 +10,7 @@ from sqlalchemy import func, literal, select, union_all
 from sqlalchemy.orm import Session
 
 from db.learning_models import (
-    AssessmentQuestionResponse, LessonQuestionResponse, LessonSession,
+    AssessmentQuestionResponse, LessonQuestionResponse, LessonSession, V2AudioRubric,
 )
 from db.models import AssessmentSession, AudioSubmission, Student, User
 from dependencies import get_current_user, get_db
@@ -100,14 +100,35 @@ def reviewed_recordings(
     rows = db.execute(ordered).mappings().all()
     ids = {int(row["student_id"]) for row in rows[:limit]}
     names = {student.id: student.name for student in db.query(Student).filter(Student.id.in_(ids)).all()} if ids else {}
+    audio_ids = [int(row["audio_id"]) for row in rows[:limit]]
+    # Load all V2-only human rubrics in one query, never by asking the legacy
+    # V1 AudioReview ledger or leaking an unapproved score.
+    rubric_by_audio = {
+        record.audio_submission_id: record
+        for record in db.query(V2AudioRubric).filter(
+            V2AudioRubric.audio_submission_id.in_(audio_ids),
+        ).all()
+    } if audio_ids else {}
     items = []
     for row in rows[:limit]:
         if row["kind"] == "lesson":
             url = f"/api/v2/review/lessons/{row['response_id']}/audio"
         else:
             url = f"/api/v2/assessments/admin/responses/{row['response_id']}/audio"
+        rubric = rubric_by_audio.get(row["audio_id"])
         items.append({
             "audio_id": row["audio_id"],
+            "reading_rubric": {
+                "target_units": rubric.target_units,
+                "deletions": rubric.deletions,
+                "substitutions": rubric.substitutions,
+                "insertions": rubric.insertions,
+                "rubric_percent": round(float(rubric.rubric_score) * 100, 1),
+                "is_correct": rubric.is_correct,
+                "pronunciation_notes": rubric.pronunciation_notes,
+                "fluency_notes": rubric.fluency_notes,
+                "policy_version": rubric.policy_version,
+            } if rubric is not None else None,
             "response_id": row["response_id"],
             "student_id": row["student_id"],
             "student_name": names.get(row["student_id"], "طالب"),
