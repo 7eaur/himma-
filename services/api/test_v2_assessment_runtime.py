@@ -226,6 +226,29 @@ def test_voice_review_completion_automatically_places_student_without_staff_deci
     assert duplicate.status_code == 409
 
 
+def test_staff_cannot_choose_a_level_before_autonomous_reconciliation(researcher_client):
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        release = register_candidate_release(db)
+        db.add(StudentJourney(student_id=student.id, content_release_id=release.id,
+                              placement_state="in_progress", current_level=1))
+        session = AssessmentSession(student_id=student.id, content_release_id=release.id,
+            session_type="pretest", status="in_progress",
+            v2_state="placement_pending_review", v2_question_index=30,
+            assessment_attempt_no=1)
+        db.add(session)
+        db.commit()
+        session_id = session.id
+    forbidden = researcher_client.post(
+        f"/v2/assessments/admin/sessions/{session_id}/placement",
+        json={"assigned_level": 3, "reason": "التسكين القديم اليدوي غير مسموح"},
+    )
+    assert forbidden.status_code == 409
+    with TestingSessionLocal() as db:
+        assert db.query(PlacementDecisionV2).count() == 0
+        assert db.query(StudentJourney).one().placement_state == "in_progress"
+
+
 def test_legacy_ready_pretest_reconciles_to_system_placement_once(student_client):
     """Persisted review queue is recovered with no researcher actor or retake."""
     with TestingSessionLocal() as db:
