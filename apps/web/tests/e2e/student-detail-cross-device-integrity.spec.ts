@@ -42,8 +42,9 @@ async function createStudent(page: Page, request: APIRequestContext) {
 async function assertCanonicalState(page: Page, studentId: number) {
   await page.goto(`/admin/students/${studentId}`);
   await expect(page.getByTestId("supervisor-v2-overview")).toBeVisible();
-  await expect(page.getByTestId("supervisor-v2-progress")).toHaveText("2 من 10 درس");
-  await expect(page.getByRole("progressbar", { name: "تقدم دروس همة V2" })).toHaveAttribute("aria-valuenow", "20");
+  await expect(page.getByTestId("supervisor-v2-progress")).toHaveText("1 من 19 درس");
+  await expect(page.getByRole("progressbar", { name: "تقدم الدروس" })).toHaveAttribute("aria-valuenow", "5.3");
+  await page.getByRole("tab", { name: "المسار والدروس" }).click();
   const cards = page.getByTestId("supervisor-v2-lesson");
   await expect(cards).toHaveCount(3);
   await expect(cards.nth(0)).toHaveAttribute("data-level-state", "completed");
@@ -60,8 +61,8 @@ test("canonical V2 Student Detail truth is identical on mobile, tablet, and desk
   const homeReply = await request.get(`${API_URL}/v2/student/admin/students/${studentId}/home`);
   expect(homeReply.status()).toBe(200);
   const home = await homeReply.json();
-  home.journey = { placement_state: "placed", current_level: 2 };
-  home.progress = { ...home.progress, completed_lessons: 2, assigned_lessons: 10, display_percent: 20 };
+  home.journey = { placement_state: "placed", current_level: 1 };
+  home.progress = { ...home.progress, completed_lessons: 1, assigned_lessons: 19, display_percent: 5.3 };
   home.lesson_overview = { state: "ready", content_release_version: "test", items: [
     { lesson_id: "L1-01", title: "الأول", level: "L1", state: "completed", session_id: 1 },
     { lesson_id: "L1-02", title: "الثاني", level: "L1", state: "current", session_id: null },
@@ -98,7 +99,7 @@ test("Student360 never displays the previous student's identity or code during a
 
   await page.goto(`/admin/students/${first.id}`);
   await expect(page.getByRole("heading", { name: first.full_name })).toBeVisible();
-  await page.getByRole("button", { name: "الحساب", exact: true }).click();
+  await page.getByRole("tab", { name: "الحساب", exact: true }).click();
   await page.getByRole("button", { name: "إظهار الرمز" }).click();
   await expect(page.getByText(first.access_code, { exact: true })).toBeVisible();
 
@@ -132,7 +133,7 @@ test("Student360 never displays the previous student's identity or code during a
   }
   await expect(page.getByRole("heading", { name: second.full_name })).toBeVisible();
   await expect(page.getByText(first.access_code, { exact: true })).toHaveCount(0);
-  await page.getByRole("button", { name: "الحساب", exact: true }).click();
+  await page.getByRole("tab", { name: "الحساب", exact: true }).click();
   await expect(page.getByText(second.access_code, { exact: true })).toHaveCount(0);
   await page.getByRole("button", { name: "إظهار الرمز" }).click();
   await expect(page.getByText(second.access_code, { exact: true })).toBeVisible();
@@ -157,7 +158,7 @@ test("Student360 never displays the previous student's identity or code during a
     releaseFirst();
   }
   await expect(page.getByRole("heading", { name: first.full_name })).toBeVisible();
-  await page.getByRole("button", { name: "الحساب", exact: true }).click();
+  await page.getByRole("tab", { name: "الحساب", exact: true }).click();
   await expect(page.getByText(first.access_code, { exact: true })).toHaveCount(0);
 
 });
