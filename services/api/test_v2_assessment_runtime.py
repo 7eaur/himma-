@@ -226,6 +226,67 @@ def test_voice_review_completion_automatically_places_student_without_staff_deci
     assert duplicate.status_code == 409
 
 
+def test_legacy_ready_pretest_reconciles_to_system_placement_once(student_client):
+    """Persisted review queue is recovered with no researcher actor or retake."""
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        release = register_candidate_release(db)
+        db.add(StudentJourney(student_id=student.id, content_release_id=release.id,
+                              current_level=1, placement_state="in_progress"))
+        session = AssessmentSession(
+            student_id=student.id, content_release_id=release.id, session_type="pretest",
+            status="in_progress", v2_state="placement_pending_review", v2_question_index=30,
+            assessment_attempt_no=1, v2_policy_version="older-human-placement",
+        )
+        db.add(session); db.flush()
+        for question in (q for q in get_release()["questions"] if q["role"] == "pretest"):
+            db.add(AssessmentQuestionResponse(
+                assessment_session_id=session.id, question_id=question["id"],
+                role="pretest", answer_json={"synthetic": True}, submit_key=str(uuid4()),
+                status="graded", is_correct=True, skill_group=question["skill_group"],
+                evidence_type=question["evidence_type"],
+            ))
+        session_id = session.id
+        db.commit()
+    response = student_client.post(f"/v2/assessments/sessions/{session_id}/finalize-placement")
+    assert response.status_code == 200, response.text
+    assert response.json()["session"]["state"] == "completed"
+    replay = student_client.post(f"/v2/assessments/sessions/{session_id}/finalize-placement")
+    assert replay.status_code == 200
+    with TestingSessionLocal() as db:
+        assert db.query(PlacementDecisionV2).count() == 1
+        assert db.query(PlacementDecisionV2).one().decided_by is None
+        assert db.query(AssessmentSession).one().official_for_reporting is True
+        assert db.query(StudentJourney).one().current_level == 3
+
+
+def test_pretest_reconciliation_rejects_unreviewed_voice_without_placement(student_client):
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        release = register_candidate_release(db)
+        db.add(StudentJourney(student_id=student.id, content_release_id=release.id, placement_state="in_progress"))
+        session = AssessmentSession(student_id=student.id, content_release_id=release.id,
+            session_type="pretest", status="in_progress", v2_state="placement_pending_review",
+            v2_question_index=30, assessment_attempt_no=1)
+        db.add(session); db.flush()
+        for index, question in enumerate(q for q in get_release()["questions"] if q["role"] == "pretest"):
+            pending = index == 0
+            db.add(AssessmentQuestionResponse(
+                assessment_session_id=session.id, question_id=question["id"], role="pretest",
+                answer_json={"synthetic": True}, submit_key=str(uuid4()),
+                status="pending_review" if pending else "graded",
+                is_correct=None if pending else True, skill_group=question["skill_group"],
+                evidence_type=question["evidence_type"],
+            ))
+        session_id = session.id
+        db.commit()
+    result = student_client.post(f"/v2/assessments/sessions/{session_id}/finalize-placement")
+    assert result.status_code == 409
+    with TestingSessionLocal() as db:
+        assert db.query(PlacementDecisionV2).count() == 0
+        assert db.query(StudentJourney).one().placement_state == "in_progress"
+
+
 def test_reports_use_null_for_missing_and_student_cannot_open_admin(student_client):
     assert student_client.get("/v2/assessments/admin/reports/summary").status_code == 403
     assert student_client.get("/v2/assessments/current-action").json()["action"] == "start_pretest"
