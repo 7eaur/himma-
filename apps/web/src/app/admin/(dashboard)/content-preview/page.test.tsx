@@ -15,6 +15,8 @@ it("loads the V2 bank with section intro and never requests the archive implicit
   global.fetch = fetcher;
   render(<ContentBankPage />);
   expect(await screen.findByTestId("v2-bank-question")).toHaveTextContent("V2-PRE-Q01");
+  expect(screen.getByRole("group", { name: "المستوى الأول" })).toBeInTheDocument();
+  expect(screen.getByTestId("v2-bank-question")).not.toHaveAttribute("open");
   fireEvent.change(screen.getByRole("combobox", { name: "القسم" }), { target: { value: "L1-01" } });
   expect(await screen.findByText("التمهيد: تمهيد الدرس المعتمد")).toBeInTheDocument();
   await waitFor(() => expect(fetcher.mock.calls.some(([url]) => url.includes("section=L1-01"))).toBe(true));

@@ -12,6 +12,14 @@ type Row = { question: Question; section_id: string; answer: { correct_option_id
 type Bank = { mode: "read_only"; release_version: string; release_state: string; bank_total: number; total: number; offset: number; next_offset: number | null; sections: Section[]; items: Row[] };
 const types: Record<string, string> = { choose_one: "اختيار نص", listen_choose_one: "استماع واختيار", sequence: "ترتيب", build_word: "تركيب كلمة", choose_image: "اختيار صورة", read_aloud: "قراءة مسجلة" };
 const roles: Record<string, string> = { pretest: "قبلي", posttest: "بعدي", guided_practice: "تدريب موجّه", independent_check: "اختبار الدرس", support_check: "تحقق الدعم" };
+const sectionGroups = [
+  { key: "pretest", label: "الاختبار القبلي", includes: (row: Section) => row.id === "pretest" },
+  { key: "L1", label: "المستوى الأول", includes: (row: Section) => row.kind === "lesson" && row.id.startsWith("L1-") },
+  { key: "L2", label: "المستوى الثاني", includes: (row: Section) => row.kind === "lesson" && row.id.startsWith("L2-") },
+  { key: "L3", label: "المستوى الثالث", includes: (row: Section) => row.kind === "lesson" && row.id.startsWith("L3-") },
+  { key: "support", label: "التقوية", includes: (row: Section) => row.kind === "support" },
+  { key: "posttest", label: "الاختبار البعدي", includes: (row: Section) => row.id === "posttest" },
+];
 
 export default function ContentBankPage() {
   const [bank, setBank] = useState<Bank | null>(null);
@@ -45,7 +53,10 @@ export default function ContentBankPage() {
       <div className="flex flex-wrap gap-3">
         <label className="flex min-w-0 flex-1 flex-col gap-2"><span>القسم</span><select className="input-field w-full min-w-0" value={section} onChange={e => { setSection(e.target.value); setOffset(0); }}>
           <option value="">البنك كاملًا · 300 سؤال</option>
-          {bank?.sections.map(row => <option key={row.id} value={row.id}>{row.id} · {row.title} ({row.question_count})</option>)}
+          {sectionGroups.map(group => {
+            const entries = bank?.sections.filter(group.includes) ?? [];
+            return entries.length ? <optgroup key={group.key} label={group.label}>{entries.map(row => <option key={row.id} value={row.id}>{row.id} · {row.title} ({row.question_count})</option>)}</optgroup> : null;
+          })}
         </select></label>
         <label className="flex min-w-0 flex-1 flex-col gap-2"><span>بحث في السؤال أو المعرّف</span><input className="input-field" value={search} onChange={e => { setSearch(e.target.value); setOffset(0); }} /></label>
       </div>
