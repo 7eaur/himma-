@@ -1,29 +1,23 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
-  Activity,
   ArrowRight,
   BookOpen,
   Check,
   ClipboardList,
   Copy,
-  Headphones,
-  History,
   KeyRound,
   LockKeyhole,
-  Play,
   Power,
   RefreshCw,
   Save,
-  ShieldCheck,
   Star,
   User,
 } from "lucide-react";
 import V2Rewards from "@/components/rewards/V2Rewards";
-import CanonicalRewardBadge from "@/components/rewards/CanonicalRewardBadge";
 import type { StudentV2Home } from "@/app/student/V2StudentDashboard";
 
 type V2LessonItem = { lesson_id: string; title: string; level: string;
@@ -54,97 +48,11 @@ interface Student {
   core_completed?: boolean;
 }
 
-interface AdaptationDecision {
-  decision_id: number;
-  source: "automatic" | "manual";
-  action: "promote" | "stay" | "support" | "demote" | "hold" | "override";
-  mastery_score: number | null;
-  previous_level: number;
-  new_level: number;
-  weakest_skill_id: number | null;
-  recommended_item_id: number | null;
-  valid_attempt_count: number;
-  consecutive_low_count: number;
-  explanation: Record<string, unknown>;
-  manual_reason?: string | null;
-  created_at: string;
-}
-
-interface RewardEvent {
-  id: number;
-  type: "stars" | "badge";
-  key?: string | null;
-  stars: number | null;
-  label: string;
-  catalog_version?: string | null;
-  asset_id?: string | null;
-  asset_slug?: string | null;
-  asset_path?: string | null;
-  details: Record<string, unknown>;
-  created_at: string;
-}
-
-type JourneyLevelState = "locked" | "active" | "completed" | "skipped" | "ready";
-interface JourneyLevel {
-  level_id: number;
-  name: string;
-  state: JourneyLevelState;
-  completed_items: number;
-  total_items: number;
-  session_id: number | null;
-}
-interface JourneySummary {
-  pretest_completed: boolean;
-  starting_level: number | null;
-  current_level: number;
-  levels: JourneyLevel[];
-  learning_journey_completed: boolean;
-  posttest_enabled: boolean;
-  posttest_completed: boolean;
-  posttest_ready: boolean;
-}
-
-type SourceState = "loading" | "loaded" | "error";
-type TabKey = "v2" | "overview" | "journey" | "tests" | "recordings" | "adaptation" | "account" | "history";
-
-const TABS: Array<{ key: TabKey; label: string; icon: typeof User }> = [
-  { key: "v2", label: "مسار هِمّة V2", icon: BookOpen },
-  { key: "overview", label: "نظرة عامة", icon: User },
-  { key: "journey", label: "المسار والتقدم", icon: BookOpen },
-  { key: "tests", label: "الاختبارات", icon: ClipboardList },
-  { key: "recordings", label: "التسجيلات", icon: Headphones },
-  { key: "adaptation", label: "التقوية والتكيف", icon: Activity },
-  { key: "account", label: "الحساب", icon: KeyRound },
-  { key: "history", label: "السجل", icon: History },
+type TabKey = "v2" | "account";
+const TABS: Array<{key: TabKey; label: string; icon: typeof User}> = [
+  {key: "v2", label: "مسار هِمّة V2", icon: BookOpen},
+  {key: "account", label: "الحساب", icon: KeyRound},
 ];
-
-const ACTION_LABEL: Record<string, string> = {
-  promote: "ترقية مستوى",
-  stay: "استمرار في المستوى",
-  support: "تقوية موجهة",
-  demote: "خفض مستوى واحد",
-  hold: "انتظار بيانات كافية",
-  override: "تعديل يدوي",
-};
-
-const REASON_LABEL: Record<string, string> = {
-  second_consecutive_low_mastery: "انخفاض الإتقان في قرارين متتاليين",
-  low_mastery_support_first: "الإتقان منخفض؛ تبدأ التقوية قبل أي قرار آخر",
-  top_level_mastery: "إتقان مرتفع في أعلى مستوى",
-  promotion_waiting_for_skill_coverage: "الإتقان مرتفع لكن تغطية المهارات لم تكتمل",
-  promotion_blocked_by_skill_floor: "توجد مهارة مطلوبة لم تصل إلى الحد المطلوب",
-  mastery_and_skill_gates_passed: "اجتاز الإتقان وتغطية المهارات والبوابات المطلوبة",
-  mastery_in_stability_band: "الأداء في نطاق الاستمرار الحالي",
-  researcher_manual_override: "قرار يدوي موثق من المشرف",
-};
-
-const JOURNEY_STATE_LABEL: Record<JourneyLevelState, string> = {
-  completed: "مكتمل",
-  active: "قيد التعلم",
-  ready: "جاهز للبدء",
-  skipped: "تم تجاوزه وفق نقطة البداية",
-  locked: "لاحقًا",
-};
 
 function apiError(data: unknown, fallback: string) {
   if (typeof data === "object" && data !== null && "detail" in data) {
@@ -165,24 +73,14 @@ export default function StudentDetailPage() {
 
 function StudentDetailView({ id }: { id: string }) {
   const [activeTab, setActiveTab] = useState<TabKey>("v2");
-  const [archiveOpen, setArchiveOpen] = useState(false);
-  const [historicalState, setHistoricalState] = useState<SourceState>("loading");
   const [accessCode, setAccessCode] = useState<string | null>(null);
   const [student, setStudent] = useState<Student | null>(null);
   const [loadedStudentId, setLoadedStudentId] = useState<string | null>(null);
-  const [journey, setJourney] = useState<JourneySummary | null>(null);
-  const [history, setHistory] = useState<AdaptationDecision[]>([]);
-  const [rewards, setRewards] = useState<RewardEvent[]>([]);
-  const [historyState, setHistoryState] = useState<SourceState>("loading");
-  const [rewardsState, setRewardsState] = useState<SourceState>("loading");
-  const [journeyState, setJourneyState] = useState<SourceState>("loading");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState("");
   // Scope both data and errors to the URL student ID; never show a previous child's projection.
   const [v2Result, setV2Result] = useState<{ studentId: string; home: SupervisorV2Home | null; error: string } | null>(null);
   const [v2Reload, setV2Reload] = useState(0);
-  const [overrideLevel, setOverrideLevel] = useState("1");
-  const [overrideReason, setOverrideReason] = useState("");
   const [editName, setEditName] = useState("");
   const [manualCode, setManualCode] = useState("");
   const [copied, setCopied] = useState(false);
@@ -190,39 +88,10 @@ function StudentDetailView({ id }: { id: string }) {
   const codeVisible = visibleCodeForId === id;
   const [message, setMessage] = useState<{ kind: "success" | "error"; text: string }>({ kind: "success", text: "" });
 
-  const loadSecondarySource = async <T,>(
-    response: Response, setter: (value: T) => void, stateSetter: (state: SourceState) => void,
-    isCurrent: () => boolean,
-  ) => {
-    if (!response.ok) {
-      if (isCurrent()) stateSetter("error");
-      return;
-    }
-    const data = await response.json() as T;
-    if (!isCurrent()) return;
-    setter(data);
-    stateSetter("loaded");
-  };
-
   useEffect(() => {
     let cancelled = false;
     if (!id) return;
-    // A keyed child starts with empty state on each student identity change.
-    // Do not synchronously reset state in an effect or render a previous student.
-    // A failed legacy archive request must never hide a successfully loaded
-    // student identity (or make V2 appear missing). Each source fails closed
-    // independently and can be retried from its own tab.
-    const fetchSecondary = async <T,>(
-      url: string, setter: (value: T) => void, stateSetter: (state: SourceState) => void,
-    ) => {
-      try {
-        const response = await fetch(url, { cache: "no-store" });
-        await loadSecondarySource<T>(response, setter, stateSetter, () => !cancelled);
-      } catch {
-        if (!cancelled) stateSetter("error");
-      }
-    };
-
+    // Account identity is independent from the academic V2 projection.
     void fetch(`/api/v2/student/admin/students/${id}/account`, { cache: "no-store" })
       .then(async studentResponse => {
         if (!studentResponse.ok) {
@@ -247,25 +116,8 @@ function StudentDetailView({ id }: { id: string }) {
       })
       .finally(() => { if (!cancelled) setLoading(false); });
 
-    if (archiveOpen) {
-    void fetch(`/api/v2/student/admin/students/${id}/historical-account`, {cache: "no-store"})
-      .then(async response => {
-        const body = await response.json().catch(() => null);
-        if (!response.ok || body?.source !== "himma_v1_archived_account" || String(body.student_id) !== id) throw new Error("تعذر تحميل الأرشيف");
-        if (!cancelled) { setStudent(current => ({...current, ...body})); setOverrideLevel(String(body.current_level)); setHistoricalState("loaded"); }
-      }).catch(() => { if (!cancelled) setHistoricalState("error"); });
-    void fetchSecondary<JourneySummary>(
-      `/api/researcher/students/${id}/journey`, setJourney, setJourneyState,
-    );
-    void fetchSecondary<AdaptationDecision[]>(
-      `/api/researcher/students/${id}/adaptation/history`, setHistory, setHistoryState,
-    );
-    void fetchSecondary<RewardEvent[]>(
-      `/api/researcher/students/${id}/rewards`, setRewards, setRewardsState,
-    );
-    }
     return () => { cancelled = true; };
-  }, [id, archiveOpen]);
+  }, [id]);
 
   useEffect(() => {
     if (!id) return;
@@ -306,41 +158,6 @@ function StudentDetailView({ id }: { id: string }) {
     return assessment?.official && assessment.score_percent != null
       ? `${Math.round(assessment.score_percent * 10) / 10}%`
       : "لم تُعتمد نتيجة";
-  };
-
-  const latestDecision = useMemo(() => history.at(-1) ?? null, [history]);
-  const totalStars = rewards.reduce((sum, reward) => sum + (reward.stars ?? 0), 0);
-  const badges = rewards.filter((reward) => reward.type === "badge");
-  const visualBadges = badges.filter((reward): reward is RewardEvent & { asset_path: string } => Boolean(reward.asset_path));
-
-  const refreshJourney = async () => {
-    if (!student) return;
-    setJourneyState("loading");
-    try {
-      const response = await fetch(`/api/researcher/students/${student.id}/journey`, { cache: "no-store" });
-      await loadSecondarySource<JourneySummary>(response, setJourney, setJourneyState, () => true);
-    } catch {
-      setJourneyState("error");
-    }
-  };
-
-  const refreshAdaptiveEvidence = async () => {
-    if (!student) return;
-    setHistoryState("loading");
-    setRewardsState("loading");
-    try {
-      const [historyResponse, rewardsResponse] = await Promise.all([
-        fetch(`/api/researcher/students/${student.id}/adaptation/history`, { cache: "no-store" }),
-        fetch(`/api/researcher/students/${student.id}/rewards`, { cache: "no-store" }),
-      ]);
-      await Promise.all([
-        loadSecondarySource<AdaptationDecision[]>(historyResponse, setHistory, setHistoryState, () => true),
-        loadSecondarySource<RewardEvent[]>(rewardsResponse, setRewards, setRewardsState, () => true),
-      ]);
-    } catch {
-      setHistoryState("error");
-      setRewardsState("error");
-    }
   };
 
   const saveStudentName = async () => {
@@ -425,50 +242,15 @@ function StudentDetailView({ id }: { id: string }) {
     finally { setBusy(""); }
   };
 
-  const updatePosttestAccess = async () => {
-    if (!student) return;
-    setBusy("posttest"); setMessage({ kind: "success", text: "" });
-    try {
-      const response = await fetch(`/api/researcher/students/${student.id}/posttest-access`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ enabled: !student.posttest_enabled }) });
-      const data = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(apiError(data, "تعذر تحديث إتاحة الاختبار البعدي"));
-      setStudent(data); await refreshJourney(); setMessage({ kind: "success", text: data.posttest_enabled ? "تم فتح الاختبار البعدي للطالب." : "تم إيقاف الاختبار البعدي للطالب." });
-    } catch (error) { setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر تحديث إتاحة الاختبار البعدي" }); }
-    finally { setBusy(""); }
-  };
-
-  const saveManualOverride = async () => {
-    if (!student) return;
-    setBusy("override"); setMessage({ kind: "success", text: "" });
-    try {
-      const response = await fetch(`/api/researcher/students/${student.id}/adaptation/manual-override`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ new_level: Number(overrideLevel), reason: overrideReason.trim() }) });
-      const data = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(apiError(data, "تعذر حفظ التعديل اليدوي"));
-      const refreshed = await fetch(`/api/researcher/students/${student.id}`, { cache: "no-store" });
-      if (refreshed.ok) { const updated: Student = await refreshed.json(); setStudent(updated); setEditName(updated.full_name); }
-      setOverrideReason(""); await Promise.all([refreshAdaptiveEvidence(), refreshJourney()]); setMessage({ kind: "success", text: "تم حفظ قرار المشرف مع سببه في السجل." });
-    } catch (error) { setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر حفظ التعديل اليدوي" }); }
-    finally { setBusy(""); }
-  };
-
   if (loading || loadedStudentId !== id) return <div className={styles.loading}><span /><span /><span /></div>;
   if (!student) return <div className={styles.page}><div className="alert-error">{message.text || "لم يتم العثور على الطالب"}</div><Link href="/admin/students" className="btn-primary mt-4">العودة إلى الطلاب</Link></div>;
 
-  const activeJourneyLevel = journey?.levels.find((level) => level.state === "active" || level.state === "ready") ?? journey?.levels.find((level) => level.level_id === student.current_level);
-  const progressCompleted = activeJourneyLevel?.completed_items ?? student.core_completed_items ?? 0;
-  const progressTotal = activeJourneyLevel?.total_items ?? student.core_total_items ?? 0;
-  const progressPercent = Math.round((progressCompleted / Math.max(1, progressTotal)) * 100);
-  const reasonKey = typeof latestDecision?.explanation?.reason === "string" ? latestDecision.explanation.reason : "";
-
-  const sourceError = (label: string, retry: () => void) => <div className="alert-error" role="status">تعذر تحميل {label}. <button type="button" className={styles.secondary} onClick={retry}>إعادة المحاولة</button></div>;
-
   const tabContent = (() => {
-    if (activeTab !== "v2" && activeTab !== "account" && historicalState !== "loaded") return <section className={styles.panel}><p role={historicalState === "error" ? "alert" : "status"}>{historicalState === "error" ? "تعذر تحميل أرشيف V1. أغلق الأرشيف وافتحه لإعادة المحاولة." : "جاري تحميل أرشيف V1..."}</p></section>;
     if (activeTab === "v2") return (
       <section className={styles.panel} data-testid="supervisor-v2-overview">
         <div className={styles.panelHeader}>
           <div><h2>ملف الطالب الأكاديمي · هِمّة V2</h2>
-            <p>تسكين ودروس واختبارات من المصدر الحالي فقط. أرشيف V1 محفوظ في الأقسام الأخرى ولا يختلط بهذه الأرقام.</p>
+            <p>تسكين ودروس واختبارات ومكافآت من هِمّة V2.</p>
           </div><BookOpen size={20} aria-hidden="true" />
         </div>
         {!currentV2 && <p role="status" className={styles.muted}>جاري تحميل التقدم المعتمد من V2...</p>}
@@ -543,89 +325,6 @@ function StudentDetailView({ id }: { id: string }) {
         </>}
       </section>
     );
-    if (activeTab === "overview") return (
-      <section className={styles.panel}>
-        <div className={styles.panelHeader}><div><h2>أرشيف الطالب التاريخي V1</h2><p>معلومات محفوظة للتوثيق والمقارنة، وليست تقدم V2.</p></div><User size={20} aria-hidden="true" /></div>
-        <div className={styles.grid3}>
-          <div className={styles.infoCard}><span>الصف</span><strong>الثالث الابتدائي</strong></div>
-          <div className={styles.infoCard}><span>المستوى الحالي</span><strong>المستوى التاريخي V1: {student.current_level}</strong></div>
-          <div className={styles.infoCard}><span>تاريخ الإضافة</span><strong>{new Date(student.created_at).toLocaleDateString("ar-SA")}</strong></div>
-        </div>
-        <div className={styles.rewardRow} style={{ marginTop: 14 }}>
-          <div className={styles.reward}><span className={styles.muted}>نجوم V1 التاريخية</span><strong>{rewardsState === "loaded" ? totalStars : "—"}</strong></div>
-          <div className={styles.reward}><span className={styles.muted}>شارات V1 التاريخية</span><strong>{rewardsState === "loaded" ? badges.length : "—"}</strong></div>
-          <div className={styles.reward}><span className={styles.muted}>تقدم أنشطة V1 التاريخي</span><strong>{journeyState === "loaded" ? `${progressPercent}%` : "—"}</strong></div>
-        </div>
-        {rewardsState === "error" && <div style={{ marginTop: 12 }}>{sourceError("المكافآت", () => void refreshAdaptiveEvidence())}</div>}
-        {rewardsState === "loaded" && badges.length === 0 && <p className={styles.muted} style={{ marginTop: 12 }}>لا توجد شارات مكتسبة لهذا الطالب بعد.</p>}
-        {rewardsState === "loaded" && visualBadges.length > 0 && <div className={styles.badgeGallery} style={{ marginTop: 12 }}>{visualBadges.map((badge) => <CanonicalRewardBadge key={badge.id} label={badge.label} assetPath={badge.asset_path} rewardKey={badge.key} variant="admin" />)}</div>}
-        {rewardsState === "loaded" && badges.length > visualBadges.length && <div className={styles.notice} style={{ marginTop: 12 }}>توجد شارة تاريخية بلا أصل مرئي معروف في النسخة الحالية من Reward Catalog؛ لم يتم اختلاق صورة بديلة لها.</div>}
-      </section>
-    );
-
-    if (activeTab === "journey") return (
-      <section className={styles.panel}>
-        <div className={styles.panelHeader}><div><h2>المسار التاريخي V1</h2><p>سجل مستويات النسخة القديمة فقط، وليس مسار دروس V2.</p></div><BookOpen size={20} aria-hidden="true" /></div>
-        {journeyState === "loading" && <p className={styles.muted}>جاري تحميل المسار الأكاديمي...</p>}
-        {journeyState === "error" && sourceError("المسار الأكاديمي", () => void refreshJourney())}
-        {journeyState === "loaded" && journey && <>
-          <div className={styles.progressBlock}>
-            <div className={styles.progressMeta}><span>الأنشطة الأساسية في مسار V1 التاريخي</span><strong>{progressCompleted} من {progressTotal}</strong></div>
-            <div className={styles.track} role="progressbar" aria-label="تقدم الأنشطة الأساسية في المستوى النشط" aria-valuemin={0} aria-valuemax={progressTotal} aria-valuenow={progressCompleted} aria-valuetext={`${progressCompleted} من ${progressTotal}`}><div className={styles.fill} style={{ width: `${progressPercent}%` }} /></div>
-          </div>
-          <div className={styles.journey}>
-            {journey.levels.map((level) => {
-              const cls = level.state === "completed" ? styles.levelDone : (level.state === "active" || level.state === "ready") ? styles.levelCurrent : styles.levelLocked;
-              return <div key={level.level_id} className={`${styles.level} ${cls}`} data-level-state={level.state}><small>المستوى {level.level_id} · {level.name}</small><strong>{JOURNEY_STATE_LABEL[level.state]}</strong>{level.state !== "skipped" && <span className={styles.muted}>{level.completed_items} من {level.total_items} أساسي</span>}</div>;
-            })}
-          </div>
-          <p className={styles.muted} style={{ marginTop: 14 }}>{journey.starting_level ? `نقطة البداية المعتمدة: المستوى ${journey.starting_level}. ` : ""}الاختبار البعدي لا يصبح جاهزًا إلا بعد اكتمال رحلة التعلم المعتمدة حتى المستوى الثالث.</p>
-        </>}
-      </section>
-    );
-
-    if (activeTab === "tests") return (
-      <section className={styles.panel}>
-        <div className={styles.panelHeader}><div><h2>الاختبارات التاريخية V1</h2><p>معلومات النسخة القديمة؛ لا تتحكم في بوابة الاختبار البعدي V2.</p></div><ClipboardList size={20} aria-hidden="true" /></div>
-        <div className={styles.grid2}>
-          <div className={styles.infoCard}><span>الاختبار القبلي</span><strong>جزء من مسار الطالب وتحديد نقطة البداية</strong></div>
-          <div className={styles.infoCard}><span>الاختبار البعدي</span><strong>{student.posttest_enabled ? "مفتوح الآن" : student.posttest_eligible ? "جاهز للفتح" : "غير جاهز بعد"}</strong></div>
-        </div>
-        <div className={styles.notice} style={{ marginTop: 14 }}>{student.posttest_enabled ? "الاختبار البعدي متاح للطالب الآن." : student.posttest_eligible ? "اكتمل المستوى الثالث ويمكن للمشرف فتح الاختبار البعدي." : "لا يمكن فتح الاختبار البعدي قبل إكمال رحلة التعلم حتى المستوى الثالث."}</div>
-        <div className={styles.actions} style={{ marginTop: 14 }}><button className={styles.primary} onClick={() => void updatePosttestAccess()} disabled={Boolean(v2Home?.journey) || busy === "posttest" || (!student.posttest_eligible && !student.posttest_enabled)}><Play size={17} aria-hidden="true" />{busy === "posttest" ? "جاري الحفظ..." : student.posttest_enabled ? "إيقاف الإتاحة" : "فتح الاختبار البعدي"}</button></div>
-      </section>
-    );
-
-    if (activeTab === "recordings") return (
-      <section className={styles.panel}>
-        <div className={styles.panelHeader}><div><h2>التسجيلات الصوتية</h2><p>الوصول إلى مراجعة قراءات هذا الطالب مع الاحتفاظ بسياقه.</p></div><Headphones size={20} aria-hidden="true" /></div>
-        <div className={styles.linkCard}><div><strong>مراجعة تسجيلات {student.full_name}</strong><p>تفتح قائمة المراجعة في سياق هذا الطالب بدل الانتقال إلى قائمة عامة غير مفلترة.</p></div><Link href={`/admin/audio-review?student_id=${student.id}`} className={styles.primary}><Headphones size={17} aria-hidden="true" /> فتح مراجعة الصوت</Link></div>
-        <p className={styles.muted} style={{ marginTop: 12 }}>بيانات المراجعة تؤخذ من قائمة التسجيلات الفعلية، ولا تُعرض أرقام تقديرية.</p>
-      </section>
-    );
-
-    if (activeTab === "adaptation") return (
-      <section className={styles.panel} data-testid="adaptation-panel">
-        <div className={styles.panelHeader}><div><h2>سجل التكيف التاريخي V1</h2><p>آخر قرار محفوظ ضمن نسخة V1 فقط؛ لا يُستعمل لتسكين V2.</p></div><Activity size={20} aria-hidden="true" /></div>
-        {historyState === "loading" && <p className={styles.muted}>جاري تحميل قرارات التكيف...</p>}
-        {historyState === "error" && sourceError("سجل التكيف", () => void refreshAdaptiveEvidence())}
-        {historyState === "loaded" && !latestDecision ? <p className={styles.muted}>لا يوجد قرار تكيف محفوظ بعد.</p> : historyState === "loaded" && latestDecision ? (
-          <div className={styles.grid3}>
-            <div className={styles.infoCard}><span>آخر قرار</span><strong>{ACTION_LABEL[latestDecision.action] || latestDecision.action}</strong></div>
-            <div className={styles.infoCard}><span>الإتقان المتحرك</span><strong>{latestDecision.mastery_score == null ? "—" : `${latestDecision.mastery_score.toFixed(1)}%`}</strong></div>
-            <div className={styles.infoCard}><span>المستوى</span><strong>{latestDecision.previous_level} ← {latestDecision.new_level}</strong></div>
-          </div>
-        ) : null}
-        {historyState === "loaded" && latestDecision && <p className={styles.muted} style={{ marginTop: 12 }}>{REASON_LABEL[reasonKey] || reasonKey || "سبب القرار محفوظ ضمن السجل."}</p>}
-        <div className={styles.notice} style={{ marginTop: 14 }}>التعديل اليدوي لا يحذف القرار الآلي ولا يعني إكمال المستوى؛ يُحفظ كحدث مستقل مع السبب والتاريخ.</div>
-        <div className={styles.grid2} style={{ marginTop: 14 }}>
-          <div className={styles.field}><label htmlFor="override-level">المستوى</label><select id="override-level" className={styles.select} value={overrideLevel} onChange={(event) => setOverrideLevel(event.target.value)}><option value="1">المستوى 1</option><option value="2">المستوى 2</option><option value="3">المستوى 3</option></select></div>
-          <div className={styles.field}><label htmlFor="override-reason">سبب التعديل</label><input id="override-reason" className={styles.input} value={overrideReason} onChange={(event) => setOverrideReason(event.target.value)} placeholder="اكتب سبب القرار" maxLength={1000} /></div>
-        </div>
-        <div className={styles.actions} style={{ marginTop: 12 }}><button className={styles.primary} onClick={() => void saveManualOverride()} disabled={busy === "override" || overrideReason.trim().length < 5}><ShieldCheck size={17} aria-hidden="true" />{busy === "override" ? "جاري الحفظ..." : "حفظ القرار اليدوي"}</button></div>
-      </section>
-    );
-
     if (activeTab === "account") return (
       <section className={styles.panel}>
         <div className={styles.panelHeader}><div><h2>الحساب والدخول</h2><p>اسم الطالب ورمز الدخول وحالة الحساب.</p></div><LockKeyhole size={20} aria-hidden="true" /></div>
@@ -641,14 +340,6 @@ function StudentDetailView({ id }: { id: string }) {
       </section>
     );
 
-    return (
-      <section className={styles.panel}>
-        <div className={styles.panelHeader}><div><h2>السجل</h2><p>قرارات التكيف والتعديلات المحفوظة زمنيًا.</p></div><History size={20} aria-hidden="true" /></div>
-        {historyState === "loading" && <p className={styles.muted}>جاري تحميل السجل...</p>}
-        {historyState === "error" && sourceError("سجل القرارات", () => void refreshAdaptiveEvidence())}
-        {historyState === "loaded" && history.length === 0 ? <p className={styles.muted}>لا يوجد سجل قرارات حتى الآن.</p> : historyState === "loaded" ? <div className={styles.history}>{[...history].reverse().map((decision) => <div key={decision.decision_id} className={styles.historyItem}><div><strong>{ACTION_LABEL[decision.action] || decision.action}</strong><p className={styles.muted}>{decision.source === "manual" ? "قرار يدوي" : "قرار آلي"}{decision.manual_reason ? ` · ${decision.manual_reason}` : ""}</p></div><small>{new Date(decision.created_at).toLocaleString("ar-SA")}</small></div>)}</div> : null}
-      </section>
-    );
   })();
 
   return (
@@ -672,10 +363,8 @@ function StudentDetailView({ id }: { id: string }) {
       </section>
 
       <nav className={styles.tabs} aria-label="أقسام ملف الطالب">
-        {TABS.filter(tab => archiveOpen || tab.key === "v2" || tab.key === "account").map((tab) => { const Icon = tab.icon; return <button key={tab.key} className={`${styles.tab} ${activeTab === tab.key ? styles.tabActive : ""}`} onClick={() => { setVisibleCodeForId(null); setAccessCode(null); setActiveTab(tab.key); }} aria-current={activeTab === tab.key ? "page" : undefined}><Icon size={16} aria-hidden="true" />{tab.label}</button>; })}
-        <button className={styles.tab} type="button" aria-expanded={archiveOpen} onClick={() => { setArchiveOpen(value => !value); setVisibleCodeForId(null); setAccessCode(null); setActiveTab("v2"); }}>أرشيف V1 التاريخي</button>
+        {TABS.map((tab) => { const Icon = tab.icon; return <button key={tab.key} className={`${styles.tab} ${activeTab === tab.key ? styles.tabActive : ""}`} onClick={() => { setVisibleCodeForId(null); setAccessCode(null); setActiveTab(tab.key); }} aria-current={activeTab === tab.key ? "page" : undefined}><Icon size={16} aria-hidden="true" />{tab.label}</button>; })}
       </nav>
-      {archiveOpen && <p className={styles.notice}>الأقسام التاريخية تخص V1 وحدها؛ لا تتحكم في تسكين V2 أو تقدمه أو مكافآته.</p>}
 
       {tabContent}
     </div>
