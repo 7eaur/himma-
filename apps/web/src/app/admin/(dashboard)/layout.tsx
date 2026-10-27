@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
-import { BarChart3, BookOpenCheck, ClipboardCheck, ClipboardList, Film, LayoutDashboard, LogOut, Menu, Mic, Settings, UserPlus, Users, X } from "lucide-react";
+import { BarChart3, BookOpenCheck, ClipboardList, Film, LayoutDashboard, LogOut, Menu, Mic, Settings, UserPlus, Users, X } from "lucide-react";
 import AdminNotifications from "@/components/admin/AdminNotifications";
 import { useAccessibleDialog } from "@/hooks/useAccessibleDialog";
 import styles from "./dashboard-layout.module.css";
