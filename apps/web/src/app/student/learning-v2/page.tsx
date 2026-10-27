@@ -25,7 +25,7 @@ export default function V2LearningCatalogPage() {
     void fetch("/api/v2/lessons/catalog", { cache: "no-store" }).then(async (response) => {
       const data = await response.json().catch(() => null);
       if (response.status === 401 || response.status === 403) { router.replace("/student/login"); return; }
-      if (!response.ok) throw new Error(data?.detail || "معاينة V2 غير متاحة في هذه البيئة");
+      if (!response.ok) throw new Error(data?.detail || "تعذر فتح الدروس الآن. حاول مرة أخرى لاحقًا.");
       setCatalog(data);
     }).catch((reason) => setError(reason instanceof Error ? reason.message : "تعذر تحميل الدروس")).finally(() => setLoading(false));
   }, [router]);
@@ -53,8 +53,8 @@ export default function V2LearningCatalogPage() {
 
   return <div className={styles.page} dir="rtl"><div className={styles.container}>
     <header className={styles.header}><Image src="/brand/logo-gradient.svg" alt="هِمّة" width={126} height={42} priority /><Link href="/student" className={styles.back}><ArrowRight size={17} /> لوحة الطالب</Link></header>
-    <section className={styles.hero}><div><span className={styles.eyebrow}><BookOpenCheck size={16} /> معاينة رحلة التعلم V2</span><h1>رحلة درس واضحة ومحفوظة</h1><p>المقدمة ثم الفيديو ثم التدريب الموجّه والاختبار المستقل، مع ستة أشكال تفاعل، منها ترتيب الحروف لتكوين كلمة وترتيب الكلمات لتكوين جملة، وتحفظ هِمّة تقدمك بأمان.</p></div><Image className={styles.character} src="/characters/girl/explain.png" alt="شخصية هِمّة تشرح" width={180} height={210} priority /></section>
-    <p className={styles.notice}>هذه معاينة مرحلية TEST ONLY للمشغّل والتفاعلات. الأصول المرشحة غير معتمدة للنشر، ولا تُحسب المشاهدة أو الإجابة المعلّقة إتقانًا.</p>
+    <section className={styles.hero}><div><span className={styles.eyebrow}><BookOpenCheck size={16} /> دروسي</span><h1>هيا نتعلم القراءة خطوة خطوة</h1><p>ابدأ بالشرح، ثم تدرّب وأجب على أسئلة الدرس. تحفظ هِمّة مكانك لتعود إليه.</p></div><Image className={styles.character} src="/characters/girl/explain.png" alt="شخصية هِمّة تشرح" width={180} height={210} priority /></section>
+    {catalog?.test_only && <p className={styles.notice}>بعض المقاطع والصور ما زالت قيد التجربة. إذا لم يعمل أحدها، اطلب مساعدة المشرف. إجابتك التي تنتظر المراجعة لا تُعد مكتملة بعد.</p>}
     {error && <div className={styles.error} role="alert">{error}</div>}
     <div className={styles.levels}>{(["L1","L2","L3"] as const).map((level) => <section key={level} className={styles.level}><h2>{LEVEL_LABELS[level]}</h2><div className={styles.cards}>{grouped[level].map((lesson) => <article key={lesson.lesson_id} className={`${styles.card} ${lesson.state === "current" ? styles.cardCurrent : ""} ${lesson.state === "done" || lesson.state === "skipped" ? styles.cardDone : ""} ${lesson.state === "locked" ? styles.cardLocked : ""}`}><div className={styles.cardTop}><span>{lesson.lesson_id}</span><span className={styles.state}>{STATE_LABELS[lesson.state]}</span></div><h3>{lesson.title}</h3><p>{lesson.preview_enabled ? "هذه خطوتك الحالية، ويمكنك متابعتها من موضعك المحفوظ." : lesson.state === "skipped" ? "تجاوزته وفق التسكين، وليس إكمالًا دراسيًا زائفًا." : "يبقى ضمن المسار، ويفتح وفق تقدم الطالب."}</p><button type="button" className={styles.start} disabled={!lesson.preview_enabled || Boolean(starting)} onClick={() => void start(lesson)}>{lesson.preview_enabled ? <><Play size={16} />{starting === lesson.lesson_id ? "جاري الفتح..." : lesson.session_id ? "متابعة الدرس" : "ابدأ الدرس"}</> : <><LockKeyhole size={15} /> غير متاح الآن</>}</button></article>)}</div></section>)}</div>
   </div></div>;

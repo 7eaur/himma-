@@ -223,7 +223,7 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
         </div>
       </section>
 
-      <section className={styles.journey} aria-label="تقدم رحلتك في هِمّة V2" data-testid="student-v2-progress">
+      <section className={styles.journey} aria-label="تقدم رحلتك في هِمّة" data-testid="student-v2-progress">
         <div className={styles.journeyHeader}>
           <div><h3>تقدمك في الدروس</h3>
             <p>{home.data_status === "partial" ? "تعذر حساب التقدم من إصدار المحتوى المثبت؛ بياناتك محفوظة." :
@@ -263,7 +263,7 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
 
       <V2Rewards data={home.rewards} />
       <StudentRetryTasks dashboard />
-      {home.test_only && <p className="mt-4 text-xs text-muted">معاينة V2 مرحلية · TEST ONLY — لم تعتمد جميع الوسائط التعليمية للنشر النهائي.</p>}
+      {home.test_only && <p className="mt-4 text-xs text-muted">بعض المقاطع والصور ما زالت قيد التجربة. إن لم يعمل شيء منها، يمكنك العودة لاحقًا وطلب مساعدة المشرف.</p>}
     </main>
   </div>;
 }
