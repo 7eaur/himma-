@@ -1,8 +1,7 @@
-"""Optional structured V2 reading rubric, using the existing audio_reviews ledger.
+"""Structured human V2 audio observation isolated from historical V1 grading.
 
-Only human reviewers choose is_correct; the numeric observation is never
-converted to a pass/fail threshold. Reuse the one audio store and the existing
-AudioReview schema rather than creating a parallel grade/recording ledger.
+The numeric observation never becomes an automatic pass/fail threshold.
+V2 shares the original secure audio storage, not the old V1 audio grade table.
 """
 from __future__ import annotations
 
@@ -13,7 +12,8 @@ from pydantic import BaseModel, Field, StringConstraints, model_validator
 from sqlalchemy.orm import Session
 from typing import Annotated
 
-from db.models import AudioReview, AudioSubmission
+from db.learning_models import V2AudioRubric
+from db.models import AudioSubmission
 
 
 class ReadingRubricV2(BaseModel):
@@ -39,7 +39,7 @@ class ReadingRubricV2(BaseModel):
 
 def save_v2_reading_rubric(
     db: Session, *, audio: AudioSubmission, reviewer_id: int,
-    rubric: ReadingRubricV2 | None,
+    is_correct: bool, rubric: ReadingRubricV2 | None,
 ) -> None:
     """Append a rubric for this exact reviewed audio, inside the outer grade txn.
 
@@ -52,14 +52,15 @@ def save_v2_reading_rubric(
         audio.lesson_response_id is None and audio.assessment_response_id is None
     ):
         raise HTTPException(status_code=409, detail="معيار القراءة مخصص لتسجيلات V2 فقط")
-    previous = db.query(AudioReview.id).filter(
-        AudioReview.submission_id == audio.id,
+    previous = db.query(V2AudioRubric.id).filter(
+        V2AudioRubric.audio_submission_id == audio.id,
     ).first()
     if previous:
         raise HTTPException(status_code=409, detail="التسجيل مقيم سابقًا؛ لا يُكرر التقييم")
-    db.add(AudioReview(
-        submission_id=audio.id,
+    db.add(V2AudioRubric(
+        audio_submission_id=audio.id,
         reviewer_id=reviewer_id,
+        is_correct=is_correct,
         target_units=rubric.target_units,
         deletions=rubric.deletions,
         substitutions=rubric.substitutions,
@@ -67,5 +68,6 @@ def save_v2_reading_rubric(
         rubric_score=rubric.observed_score(),
         pronunciation_notes=rubric.pronunciation_notes or None,
         fluency_notes=rubric.fluency_notes or None,
-        # Deliberately no derived boolean from rubric_score.
+        policy_version="himma-v2-reading-rubric/1-observation",
+        # Explicit is_correct is supplied by the human, NEVER derived from score.
     ))
