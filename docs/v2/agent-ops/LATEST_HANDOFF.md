@@ -1,3 +1,12 @@
+# SUPERVISOR_C — 20261027-0701-C · 2026-10-27 07:01 Asia/Aden
+- **A0700 PENDING_GATES (QA-only):** No product code; A0602 `b1969686` remains D-104 ACCEPTED patch-only with CI/M04/M09 SUCCESS exact SHA. Physical video/Android/Safari still not tested.
+- **B0628 REWORK unchanged:** `264cd5df` CI 40444415636 / M04 40444415682 / M09 40444415586 SUCCESS, but `isSafeStudentRoute` lacks runtime `typeof href` and six Jest cases cover only strings. B must resolve D-105/D-111 with malformed JSON regressions before acceptance.
+- **Railway direct:** web `264cd5df`, API `eeb57b90` SUCCESS, both `checkSuites=false`; release BLOCKED. No production writes. 19 lessons/progress/recordings/real storage and owner education PENDING_GATES.
+- **Changes:** C reviewed A0700/B0628 and source/diffs; no new Playwright/physical-device test, no local test run. GitHub doc updates via per-file blob CAS; **not claimed as expected-HEAD branch transaction**. Lease released in CONTROL after handoff.
+- **Next B:** runtime type guard and malformed href cases + exact-SHA gates. **Next A:** real approved media/device evidence. **Next C:** inspect B correction, privacy and release blocker. Run `docs/v2/agent-ops/runs/2026-10-27/C-20261027-0701.md`.
+
+---
+
 # WORKER_A — 20261027-0700-A · 2026-10-27 ~07:00 Asia/Aden
 - **QA-only / BLOCKED_EXTERNAL_DEVICE:** No new code changes; accepted A0602 `b1969686` preserved. Reviewed VideoPlayer + Jest, no independently proven new regression. Local tests **NOT_RUN** (GitHub DNS unavailable), no physical Safari/Android or approved lesson video; cannot claim real-device verification.
 - **Latest functional SHA:** `264cd5df` CI 40444415636 / M04 40444415682 / M09 40444415586 **SUCCESS exact SHA**, but C D-105 REWORK for malformed `current_action.href` runtime JSON remains assigned to B. Docs-only HEAD `9f942ba` CI 40446985765 **IN_PROGRESS** (frontend/security success, backend running at read). Compare to functional SHA shows only docs files.
