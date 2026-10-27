@@ -52,7 +52,6 @@ export default function AdminDashboard() {
   const counts = result?.counts;
   const attention = [
     { href: "/admin/v2-assessments", label: "قراءات الاختبارات", value: counts?.assessment_reviews, icon: Headphones },
-    { href: "/admin/v2-assessments", label: "قرارات التسكين", value: counts?.placements, icon: ClipboardCheck },
     { href: "/admin/v2-lesson-review", label: "قراءات الدروس", value: counts?.lesson_reviews, icon: BookOpenCheck },
     { href: "/admin/students", label: "جاهزون للاختبار البعدي", value: counts?.ready_for_posttest, icon: ShieldCheck },
   ];
