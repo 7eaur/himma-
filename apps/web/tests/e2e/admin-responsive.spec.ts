@@ -179,6 +179,10 @@ test("P09.1-D: supervisor sees official V2 first without V1 stars, and access co
   await expect(projection.getByTestId("supervisor-v2-level")).toContainText("لم يُعتمد بعد");
   await expect(projection.getByTestId("supervisor-v2-progress")).toContainText("بانتظار الاعتماد");
   await expect(projection.getByTestId("supervisor-v2-action")).toBeVisible();
+  const posttestControl = projection.getByTestId("supervisor-v2-posttest-control");
+  await expect(posttestControl).toBeVisible();
+  await expect(posttestControl.getByRole("button", { name: "فتح الاختبار البعدي" })).toBeDisabled();
+  await expect(posttestControl).toContainText("بعد إكمال المسار");
   await expect(projection.getByText("لم تُعتمد نتيجة")).toHaveCount(2);
   await expect(projection.getByTestId("supervisor-v2-lessons")).toHaveCount(0);
   await expect(projection.getByText("تعذر تحميل سجل هِمّة V2")).toHaveCount(0);
