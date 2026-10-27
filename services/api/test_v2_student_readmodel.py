@@ -83,6 +83,21 @@ def test_progress_ignores_duplicate_completed_sessions_and_pending_review(studen
             current_lesson_id="L1-03", placement_state="placed",
         ))
         db.flush()
+        official = AssessmentSession(
+            student_id=student.id, content_release_id=release.id,
+            session_type="pretest", status="completed", v2_state="completed",
+            official_for_reporting=True, final_score=30, assigned_level=1,
+            assessment_attempt_no=1,
+        )
+        db.add(official)
+        db.flush()
+        db.add(PlacementDecisionV2(
+            student_id=student.id, assessment_session_id=official.id,
+            content_release_id=release.id, assigned_level=1,
+            reason="قرار النظام المثبت من الاختبار القبلي",
+            policy_version="himma-v2-assessment/placement-threshold-50-80-v1",
+            decided_by=None,
+        ))
         db.add_all([
             LessonSession(student_id=student.id, content_release_id=release.id, lesson_id="L1-01",
                           status="completed", stage="complete"),
