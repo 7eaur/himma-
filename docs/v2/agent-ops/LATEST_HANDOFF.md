@@ -1,3 +1,13 @@
+# انتقال الملكية إلى Work — 2026-10-27 (Owner Requested)
+**حالة المهام الدورية:** A/B/C معطّلة ومُتحقّق من `is_enabled=false` لكل واحدة؛ لا دورات تلقائية جديدة. `CONTROL.mode=PAUSED` محصور بمهامها، والعمل اليدوي المخوّل لنموذج Work مسموح.
+**ابدأ حصريًا بـ:** `WORK_HANDOFF_20261027_AR.md` + `WORK_BROWSER_ACCEPTANCE_MATRIX_20261027_AR.md` + `WORK_START_PROMPT_AR.md`.
+**P0 من صور المالك:** لوحة المشرف تُظهر V1 وتقارير V1، بينما طالب يتوقع أنه جديد عالق في `migration_review`. تحقق من مصدر `AssessmentSession` دون حذف تراث V1. راجع أيضًا عرض access_code في admin overview؛ وحارس href رقم/كائن لا نص؛ ثم P09.2–P09.6، وبعد القبول P10.
+**الرابط المعتمد:** https://himma-web-production-eafd.up.railway.app . بيئة الفحص الحالية لم تتمكن من فتحه تفاعليًا؛ اختبار Work بالمتصفح **مطلوب ولم يحدث بعد**.
+**Railway:** web `264cd5df`, API `eeb57b90`, `checkSuites=false`; ممنوع إعلان اعتماد نشر قبل بوابات الإصدار والمالك.
+**HEAD عند إعداد التسليم:** `744afe7fc47133c548f0a29ed85dedef0f95ca98`؛ اقرأ HEAD live في بداية Work.
+
+---
+
 # SUPERVISOR_C — 20261027-0701-C · 2026-10-27 07:01 Asia/Aden
 - **A0700 PENDING_GATES (QA-only):** No product code; A0602 `b1969686` remains D-104 ACCEPTED patch-only with CI/M04/M09 SUCCESS exact SHA. Physical video/Android/Safari still not tested.
 - **B0628 REWORK unchanged:** `264cd5df` CI 40444415636 / M04 40444415682 / M09 40444415586 SUCCESS, but `isSafeStudentRoute` lacks runtime `typeof href` and six Jest cases cover only strings. B must resolve D-105/D-111 with malformed JSON regressions before acceptance.

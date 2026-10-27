@@ -4,8 +4,8 @@
   "repository": "7eaur/himma-",
   "branch": "v2/01-learning-foundation-20261007",
   "timezone": "Asia/Aden",
-  "mode": "ACTIVE",
-  "stop_reason": null,
+  "mode": "PAUSED",
+  "stop_reason": "OWNER_REQUEST_2026-10-27: A/B/C scheduled agents disabled and frozen pending single-owner ChatGPT Work takeover; no automatic edits.",
   "lease": null,
   "scheduler": {
     "worker_a": "00 * * * *",
@@ -16,15 +16,23 @@
       "worker_b": "6ade938a93b8819199bd28d806543dac",
       "supervisor_c": "6ade938f2c4c8191b5b3623d6ee1a527"
     },
-    "activation_status": "confirmed_enabled",
+    "activation_status": "confirmed_disabled_all_three_2026-10-27",
     "starts_local": {
       "worker_a": "2026-10-26 03:00",
       "worker_b": "2026-10-26 03:30",
       "supervisor_c": "2026-10-26 03:50"
+    },
+    "enabled": {
+      "worker_a": false,
+      "worker_b": false,
+      "supervisor_c": false
     }
   },
   "last_handoff_run": "20261027-0700-A",
   "last_reviewed_run": "20261027-0701-C",
-  "instructions": "Read README_AR.md and SUPERVISOR_DIRECTIVES.md. No merge, no V1 data deletion, no release claims before same-SHA gates.",
-  "parallel_leases": {}
+  "instructions": "A/B/C must NOT write or restart. Single-owner Work is authorized by user to implement fixes after reading WORK_HANDOFF_20261027_AR.md, using fresh HEAD/CAS. No main/stage merges, data deletion, release approval bypass, or children PII exposure.",
+  "parallel_leases": {},
+  "pause_scope": "SCHEDULED_AGENTS_ONLY",
+  "manual_work_authorized": true,
+  "manual_owner": "ChatGPT Work (user-initiated Work mode)"
 }

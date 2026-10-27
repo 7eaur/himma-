@@ -24,3 +24,6 @@ WORKER_B: `DTSTART;TZID=Asia/Aden:20261026T033000`، `RRULE:FREQ=HOURLY;BYMINUTE
 SUPERVISOR_C: `DTSTART;TZID=Asia/Aden:20261026T035000`، `RRULE:FREQ=HOURLY;BYMINUTE=50;BYSECOND=0`.
 
 > تنبيه: لم تنفذ أي من المهام الثلاث دورة مؤكدة لحظة إنشاء هذا المستند؛ سيتم تسجيل التشغيل الفعلي في `runs/` و`RUN_LOG.md`.
+
+## حالة جديدة 2026-10-27
+**OWNER PAUSE**: أوقف المالك جميع المهام الثلاث؛ أكد نظام Automations `is_enabled=false` لـWORKER_A وWORKER_B وSUPERVISOR_C. المواعيد السابقة محفوظة تاريخيًا فقط وليست نشطة. **لا تعِد تفعيلها** حتى إذن مباشر؛ المالك فوّض ChatGPT Work للتنفيذ اليدوي المستمر أثناء جلسة Work.
