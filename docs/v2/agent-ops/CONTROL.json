@@ -6,7 +6,22 @@
   "timezone": "Asia/Aden",
   "mode": "ACTIVE",
   "stop_reason": null,
-  "lease": null,
+  "lease": {
+    "owner": "SUPERVISOR_C",
+    "run_id": "20261027-0653-C",
+    "task_id": "SUPERVISION_A0602_B0628",
+    "base_head": "22d14afe3ddf6dfaff146dfbffcab765f2ddad82",
+    "acquired_at": "2026-10-27T03:55:12.494Z",
+    "expires_at": "2026-10-27T04:15:12.494Z",
+    "scope": [
+      "docs/v2/agent-ops/CONTROL.json",
+      "docs/v2/agent-ops/SUPERVISOR_DIRECTIVES.md",
+      "docs/v2/agent-ops/TASK_QUEUE.md",
+      "docs/v2/agent-ops/LATEST_HANDOFF.md",
+      "docs/v2/agent-ops/RUN_LOG.md",
+      "docs/v2/agent-ops/runs/2026-10-27/C-20261027-0653.md"
+    ]
+  },
   "scheduler": {
     "worker_a": "00 * * * *",
     "worker_b": "30 * * * *",
