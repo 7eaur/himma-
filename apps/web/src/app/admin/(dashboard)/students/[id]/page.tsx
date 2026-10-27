@@ -433,11 +433,27 @@ function StudentDetailView({ id }: { id: string }) {
         <div className={styles.summaryCard}><span className={styles.summaryIcon}><ClipboardList size={20} aria-hidden="true" /></span><div><strong>{v2Home?.progress.pending_review ?? "—"}</strong><span>مراجعات معلّقة</span></div></div>
       </section>
 
-      <nav className={styles.tabs} aria-label="أقسام ملف الطالب">
-        {TABS.map((tab) => { const Icon = tab.icon; return <button key={tab.key} className={`${styles.tab} ${activeTab === tab.key ? styles.tabActive : ""}`} onClick={() => { setVisibleCodeForId(null); setAccessCode(null); setActiveTab(tab.key); }} aria-current={activeTab === tab.key ? "page" : undefined}><Icon size={16} aria-hidden="true" />{tab.label}</button>; })}
+      <nav className={styles.tabs} role="tablist" aria-label="أقسام ملف الطالب">
+        {TABS.map((tab, index) => { const Icon = tab.icon; return <button key={tab.key} id={`student-tab-${tab.key}`}
+          type="button" role="tab" aria-selected={activeTab === tab.key}
+          aria-controls="student-detail-tabpanel" tabIndex={activeTab === tab.key ? 0 : -1}
+          className={`${styles.tab} ${activeTab === tab.key ? styles.tabActive : ""}`}
+          onClick={() => selectTab(tab.key)}
+          onKeyDown={event => {
+            const nextIndex = event.key === "ArrowLeft" ? (index + 1) % TABS.length
+              : event.key === "ArrowRight" ? (index - 1 + TABS.length) % TABS.length
+                : event.key === "Home" ? 0 : event.key === "End" ? TABS.length - 1 : null;
+            if (nextIndex !== null) {
+              event.preventDefault();
+              selectTab(TABS[nextIndex].key);
+              document.getElementById(`student-tab-${TABS[nextIndex].key}`)?.focus();
+            }
+          }}><Icon size={16} aria-hidden="true" />{tab.label}</button>; })}
       </nav>
 
-      {tabContent}
+      <div id="student-detail-tabpanel" role="tabpanel" aria-labelledby={`student-tab-${activeTab}`} tabIndex={0}>
+        {tabContent}
+      </div>
     </div>
   );
 }
