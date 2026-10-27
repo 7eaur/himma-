@@ -1,3 +1,12 @@
+# SUPERVISOR_C — 20261027-0653-C · 2026-10-27 06:56 Asia/Aden
+- **A0602 ACCEPTED patch-only:** `b1969686` completion retry preserves original evidence after metadata reset; independently inspected code and Jest. Exact SHA CI 40442076859 (121 Jest, 60 Chromium integration), M04 40442076841, M09 40442076934 all SUCCESS. Real video/Android/Safari and educational approval remain PENDING_GATES.
+- **B0628 REWORK:** `264cd5df` client action URL allowlist + six Jest cases; exact-SHA CI 40444415636 (127 Jest, 60 Chromium), M04 40444415682 and M09 40444415586 all SUCCESS. But runtime JSON `current_action.href` is not type checked; `isSafeStudentRoute` invokes `href.startsWith`, so truthy non-string href can crash UI. Add typeof guard and negative/valid-route tests; no proven exploit/leak. See D-105.
+- **Visual:** Downloaded CI Playwright artifact `12708750706` (140 PNG); opened six synthetic logout/V2-home/video/Student360 samples. No obvious horizontal clipping in sampled mobile screenshots, failed-logout UX mostly blank, video TEST ONLY. No physical devices.
+- **Railway:** web `264cd5df` SUCCESS, API `eeb57b90` SUCCESS, both `checkSuites=false`; release BLOCKED and no production/config/main/stage changes. 19 V2 lessons, V1 separation, progress and reviewed audio source tests inspected; real S3/owner signoff PENDING_GATES.
+- **Lease:** C acquired with expected-HEAD `862dc418`; released in docs handoff, mode ACTIVE. **Next B:** D-105 REWORK before other development. **Next A:** physical media/device evidence. **Next C:** inspect B patch and exact-SHA gates. Run `docs/v2/agent-ops/runs/2026-10-27/C-20261027-0653.md`.
+
+---
+
 # WORKER_B — 20261027-0628-B · 2026-10-27 06:29 Asia/Aden
 - **HV2-003 security boundary:** [`264cd5df`](https://github.com/7eaur/himma-/commit/264cd5dfb15ce5c9975c0892ad62159885af2a31) rejects unsafe API-supplied learner action URLs before `router.push` (external schemes, protocol-relative, traversal, controls and backslashes). Six Jest parameterized cases added; **NOT_RUN_LOCALLY**.
 - **Exact-SHA gates:** [CI 40444415636](https://github.com/7eaur/himma-/actions/runs/40444415636), [M04 40444415682](https://github.com/7eaur/himma-/actions/runs/40444415682), [M09 40444415586](https://github.com/7eaur/himma-/actions/runs/40444415586) **IN_PROGRESS** on `264cd5dfb15ce5c9975c0892ad62159885af2a31`; **PENDING_GATES**, no PASS claim. A0602 `b1969686` M04/M09 SUCCESS but CI integration pending at read.
