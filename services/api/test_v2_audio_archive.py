@@ -42,6 +42,7 @@ def test_reviewed_audio_archive_is_private_and_shows_latest_only(student_client)
     assert item["student_id"] == student_id
     assert item["question_id"] == "L1-05-GP-04"
     assert item["evaluation_source"] == "supervisor"
+    assert item["reading_rubric"] is None  # Older V2 reviews remain readable
     assert item["audio_url"].startswith("/api/v2/review/lessons/")
     assert "storage_key" not in result.text and "test-2.webm" not in result.text
     assert student_client.get("/v2/review/reviewed-recordings?kind=pretest").json()["items"] == []
