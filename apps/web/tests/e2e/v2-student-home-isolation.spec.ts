@@ -257,9 +257,11 @@ test("HV2-002/003: two synthetic learners keep pretest progress isolated across 
     return route.continue();
   });
   await page.getByRole("button", { name: /خروج/ }).click();
-  await expect(page.getByRole("alert")).toContainText("تعذر تأكيد تسجيل الخروج");
+  // Next.js adds an empty route-announcer role=alert; select the learner-visible error only.
+  await expect(page.locator("main [role='alert']")).toContainText("تعذر تأكيد تسجيل الخروج");
   await expect(page.getByTestId("student-home")).toHaveCount(0);
   await expect(page.getByTestId("student-identity")).toHaveCount(0);
+  await expect(page.locator("main")).not.toContainText(names[0]);
   expect(logoutAttempts).toBe(1);
   // Attach only the privacy-safe failed state; never capture an access code.
   await testInfo.attach("v2-logout-failed-identity-hidden", {
@@ -282,6 +284,7 @@ test("HV2-002/003: two synthetic learners keep pretest progress isolated across 
   // Learner B must not see learner A's identity or access their persisted session.
   await signIn(codes[1], names[1]);
   await expect(page.getByTestId("student-identity")).not.toContainText(names[0]);
+  await expect(page.locator("main")).not.toContainText(names[0]);
   const deniedStatus = await page.evaluate(async id =>
     (await fetch(`/api/v2/assessments/sessions/${id}`, { cache: "no-store" })).status, sessionId);
   expect(deniedStatus).toBe(404);
