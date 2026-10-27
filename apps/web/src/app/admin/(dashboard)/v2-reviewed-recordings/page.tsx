@@ -61,7 +61,7 @@ export default function ReviewedRecordingsPage() {
     // Open a student's archive only after the URL-scoped filter is known.
     // Never briefly show unrelated children's recordings on a deep link.
     const value = new URLSearchParams(window.location.search).get("student_id");
-    if (value && /^[1-9]\\d*$/.test(value)) setStudent(value);
+    if (value && /^[1-9]\d*$/.test(value)) setStudent(value);
     setUrlReady(true);
   }, []);
 
