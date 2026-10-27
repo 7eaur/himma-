@@ -25,6 +25,7 @@ export default function ContentBankPage() {
   const [bank, setBank] = useState<Bank | null>(null);
   const [section, setSection] = useState("");
   const [search, setSearch] = useState("");
+  const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
   const [offset, setOffset] = useState(0);
   const [reload, setReload] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -45,13 +46,35 @@ export default function ContentBankPage() {
     void load(); return () => controller.abort();
   }, [section, search, offset, reload]);
   const current = bank?.sections.find(row => row.id === section);
+  const activeGroup = sectionGroups.find(group => current && group.includes(current))?.key ?? "all";
+  const selectedQuestion = bank?.items.find(row => row.question.question_id === selectedQuestionId) ?? bank?.items[0];
   return <AdminPage>
     <AdminPageHeader eyebrow="المحتوى والمعاينة" icon={BookOpenCheck} title="بنك الدروس والأسئلة"
       description="تصفح القبلي والدروس والتدريب والتقوية والبعدي حسب ترتيب تعلم الطالب. الإجابات للمشرف فقط."
       actions={<AdminAction href="/admin/v2-media" icon={Film}>معاينة الوسائط</AdminAction>} />
     <AdminPanel>
+      <div className="mb-4 flex gap-2 overflow-x-auto pb-2" role="group" aria-label="نوع المحتوى التعليمي">
+        <button type="button" aria-pressed={activeGroup === "all"}
+          onClick={() => { setSection(""); setSelectedQuestionId(null); setOffset(0); }}
+          className={`min-h-11 shrink-0 rounded-xl border px-3 text-sm font-semibold ${activeGroup === "all" ? "border-blue-600 bg-blue-50 text-blue-900" : "border-slate-200"}`}>
+          البنك كاملًا
+        </button>
+        {sectionGroups.map(group => <button type="button" key={group.key}
+          aria-pressed={activeGroup === group.key}
+          onClick={() => {
+            const first = bank?.sections.find(group.includes);
+            if (!first) return;
+            setSection(first.id);
+            setSelectedQuestionId(null);
+            setOffset(0);
+          }}
+          disabled={!bank?.sections.some(group.includes)}
+          className={`min-h-11 shrink-0 rounded-xl border px-3 text-sm font-semibold disabled:opacity-40 ${activeGroup === group.key ? "border-blue-600 bg-blue-50 text-blue-900" : "border-slate-200"}`}>
+          {group.label}
+        </button>)}
+      </div>
       <div className="flex flex-wrap gap-3">
-        <label className="flex min-w-0 flex-1 flex-col gap-2"><span>القسم</span><select className="input-field w-full min-w-0" value={section} onChange={e => { setSection(e.target.value); setOffset(0); }}>
+        <label className="flex min-w-0 flex-1 flex-col gap-2"><span>القسم</span><select className="input-field w-full min-w-0" value={section} onChange={e => { setSection(e.target.value); setSelectedQuestionId(null); setOffset(0); }}>
           <option value="">البنك كاملًا · 300 سؤال</option>
           {sectionGroups.map(group => {
             const entries = bank?.sections.filter(group.includes) ?? [];
@@ -64,7 +87,18 @@ export default function ContentBankPage() {
       {loading ? <p role="status" className="py-8">جاري تحميل البنك...</p> : error ? <div role="alert" className="alert-error mt-4">{error} <AdminAction onClick={() => setReload(v => v + 1)}>إعادة المحاولة</AdminAction></div>
         : bank && <>
           <p className="my-4 break-all text-sm text-muted">{bank.total} سؤالًا مطابقًا من {bank.bank_total} · {bank.release_version}</p>
-          {bank.items.length === 0 ? <AdminEmptyState title="لا توجد أسئلة مطابقة" /> : <div className="space-y-3">{bank.items.map(({ question, answer, reading_reference, media, section_id }) => <details key={question.question_id} data-testid="v2-bank-question" className="min-w-0 rounded-2xl border border-border bg-white p-4">
+          {bank.items.length === 0 ? <AdminEmptyState title="لا توجد أسئلة مطابقة" /> : <div className="space-y-3">
+            <label className="grid gap-2 text-sm font-semibold" htmlFor="v2-bank-question-picker">
+              اختر سؤالًا لعرض تفاصيله
+              <select id="v2-bank-question-picker" value={selectedQuestion?.question.question_id ?? ""}
+                onChange={event => setSelectedQuestionId(event.target.value)}
+                className="input-field w-full min-w-0">
+                {bank.items.map(row => <option value={row.question.question_id} key={row.question.question_id}>
+                  {row.question.question_id} · {roles[row.question.role] ?? row.question.role} · {row.question.prompt}
+                </option>)}
+              </select>
+            </label>
+            {bank.items.filter(row => row.question.question_id === selectedQuestion?.question.question_id).map(({ question, answer, reading_reference, media, section_id }) => <details open key={question.question_id} data-testid="v2-bank-question" className="min-w-0 rounded-2xl border border-border bg-white p-4">
             <summary className="cursor-pointer font-bold text-navy"><span className="ms-2 text-xs font-normal text-muted">{question.question_id} · {section_id} · {roles[question.role] ?? question.role} · {types[question.interaction] ?? question.interaction}</span>{question.prompt}</summary>
             <div className="mt-4 space-y-3">
             {question.stimulus.text && <p className="whitespace-pre-wrap">{question.stimulus.text}</p>}
