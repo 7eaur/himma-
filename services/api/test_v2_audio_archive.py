@@ -47,3 +47,43 @@ def test_reviewed_audio_archive_is_private_and_shows_latest_only(student_client)
     assert "storage_key" not in result.text and "test-2.webm" not in result.text
     assert student_client.get("/v2/review/reviewed-recordings?kind=pretest").json()["items"] == []
     assert student_client.get("/v2/review/reviewed-recordings?limit=101").status_code == 422
+
+
+def test_archive_uses_v2_only_numeric_rubric_with_no_voice_key_leak(researcher_client):
+    from db.learning_models import V2AudioRubric
+    from db.models import User
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        supervisor = db.query(User).filter(User.username == "researcher1").one()
+        release = register_candidate_release(db)
+        lesson = LessonSession(student_id=student.id, content_release_id=release.id, lesson_id="L1-01")
+        db.add(lesson); db.flush()
+        response = LessonQuestionResponse(
+            lesson_session_id=lesson.id, question_id="L1-01-GP-A01", role="guided_practice",
+            answer_json={"answer": {"audio_storage_key": f"audio/{student.id}/rubric.webm"}},
+            submit_key=str(uuid4()), attempt_no=1, status="graded", is_correct=False,
+            reviewed_at=datetime.now(timezone.utc),
+        )
+        db.add(response); db.flush()
+        audio = AudioSubmission(
+            lesson_response_id=response.id, storage_key=f"audio/{student.id}/rubric.webm",
+            file_size=2000, mime_type="audio/webm", status="graded",
+        )
+        db.add(audio); db.flush()
+        db.add(V2AudioRubric(
+            audio_submission_id=audio.id, reviewer_id=supervisor.id, is_correct=False,
+            target_units=4, deletions=1, substitutions=1, insertions=0,
+            rubric_score=0.5, pronunciation_notes="إبدال حرف", fluency_notes="وقفات",
+            policy_version="himma-v2-reading-rubric/1-observation",
+        ))
+        student_id = student.id
+        db.commit()
+    result = researcher_client.get(f"/v2/review/reviewed-recordings?student_id={student_id}")
+    assert result.status_code == 200, result.text
+    item = result.json()["items"][0]
+    assert item["reading_rubric"]["rubric_percent"] == 50.0
+    assert item["reading_rubric"]["deletions"] == 1
+    assert item["reading_rubric"]["substitutions"] == 1
+    assert item["reading_rubric"]["is_correct"] is False
+    assert "rubric.webm" not in result.text
+    assert "storage_key" not in result.text
