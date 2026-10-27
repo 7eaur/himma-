@@ -1,3 +1,10 @@
+## SUPERVISOR_C priorities — 2026-10-27 07:01 Asia/Aden (20261027-0701-C; supersedes older headings)
+1. **P0 B0628 REWORK D-105/D-111:** Current `V2StudentDashboard.tsx` still calls `href.startsWith` on unvalidated API JSON; add runtime type guard, reject number/object/array/blank and malformed paths, keep valid /student navigation, verify exact-SHA CI/M04/M09. No confirmed leak; green B0628 gates alone insufficient.
+2. **P0 RELEASE BLOCKED D-112:** Railway web `264cd5df`/API `eeb57b90` SUCCESS but both `checkSuites=false`. Owner approval required for production release/config/main/stage changes.
+3. **P1 A0700 PENDING_GATES D-110:** QA-only run, no product change. A0602 accepted patch remains; physical Safari/Android, real approved video and error/replay visuals still missing. Do not churn accepted code.
+4. **P1 PRIVACY / 19 V2 LESSONS / PROGRESS / RECORDINGS D-113:** Real S3 private object authorization and two-account IDOR, media/content and owner educational signoff absent; preserve V1 and no fabricated ASR.
+5. **P2 VISUAL:** C0653 inspected six synthetic PNGs (artifact 12708750706); no new screenshot in A0700. Failed logout nearly blank; target RTL/retry UX and real-device screenshots when available.
+
 ## SUPERVISOR_C priorities — 2026-10-27 06:56 Asia/Aden (20261027-0653-C; supersedes older headings)
 1. **P0 B0628 REWORK / HV2-003:** `264cd5df` passes exact-SHA CI 40444415636 (127 frontend Jest, 60 Chromium integration), M04 40444415682, M09 40444415586. **Proven unhandled malformed JSON:** `isSafeStudentRoute` calls `href.startsWith` without runtime `typeof`; `page.tsx` only asserts TypeScript type after JSON parse. Add fail-closed type guard, test truthy nonstring href and valid student route, preserve URL safety and no navigation on invalid input. Re-run exact SHA; no confirmed exploit or data leak.
 2. **P0 RELEASE BLOCKED:** Railway web `264cd5df` SUCCESS / API `eeb57b90` SUCCESS; both `checkSuites=false`, auto-deploy preceded completed gates. No release approval, production config, main/stage merge without owner.
