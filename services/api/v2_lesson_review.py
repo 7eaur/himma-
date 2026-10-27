@@ -261,7 +261,7 @@ def decide_lesson(
     row.reviewed_at = now
     if audio:
         audio.status = "graded"
-        save_v2_reading_rubric(db, audio=audio, reviewer_id=user.id, rubric=body.rubric)
+        save_v2_reading_rubric(db, audio=audio, reviewer_id=user.id, is_correct=body.is_correct, rubric=body.rubric)
     elif body.rubric is not None:
         raise HTTPException(status_code=422, detail="معيار القراءة غير متاح إلا للإجابة الصوتية")
     proof = db.query(SkillEvidence).filter(SkillEvidence.response_id == row.id).with_for_update().one_or_none()
