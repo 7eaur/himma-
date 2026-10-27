@@ -255,6 +255,11 @@ def test_v2_posttest_access_uses_pinned_journey_not_legacy_core(researcher_clien
         ))
         db.commit()
 
+    # Both role fixtures share a TestClient cookie jar; restore the supervisor
+    # identity explicitly before checking the staff-only gate.
+    assert researcher_client.post("/auth/login", json={
+        "username": "researcher1", "password": "test-only-researcher-password",
+    }).status_code == 200
     before = researcher_client.get(f"/researcher/students/{student_id}")
     assert before.status_code == 200, before.text
     assert before.json()["posttest_eligible"] is True
