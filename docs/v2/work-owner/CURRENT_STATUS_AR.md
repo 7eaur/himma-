@@ -104,3 +104,9 @@
 - أصلح ملف الحساب: عقد هوية V2 بلا رموز/مقاييس V1؛ reveal POST صريح مدقق؛ بوابة البعدي V2 تتحقق من مصدرها والدروس/الدعم/المراجعات ولا تتبع V1، والعقد القديم يرفض تعديل علم الإتاحة لحساب لديه رحلة V2.
 - account/readmodel/assessment:62 PASS؛ test_api وposttest_journey_gate:40 PASS؛ Jest152 PASS+type/lint. التفاصيل W2_STUDENT_ACCOUNT_POSTTEST_CONTRACT_AR.md. الفحص الحي/بوابات هذه الدفعة PENDING، ولا ختم قبول شامل W2/W3.
 - ملف الجرد المحال إليه لم يصل بعد؛ قراءة محتواه عالقة وحدها، ولا حذف V1. الخطوة التالية: تحقق حي للحساب/الإشعارات ومراجعة settings، ثم قرار مكافآت موثق قبل التنفيذ. A/B/C PAUSED؛ لا main/stage merge/final-release.
+
+## تصحيح اختبارات PostgreSQL / تجهيز W4
+- SHA962f3970: M0440502189911 SUCCESS؛ CI40502189965 وM0940502189938 FAILURE. 1083 PASS و11 failures في tests الحساب الجديدة؛ السبب مثبت: student_id=1 ثابت بينما PostgreSQL sequences لا تعاد بين الاختبارات. صُححت fixtures لتقرأ IDs الفعلية؛ لم نعد ضبط sequences أو نغيّر قاعدة حية أو منطق المنتج.
+- اختبار الحساب + ledger الجديد محليًا بعد تصحيح IDs:24 PASS. ledger ومكون العرض الجديد محليان غير مرفوعين ضمن hotfix الاختبار؛ بوابات هذا التصحيح منفصلة.
+- قرار المكافآت نُشر قبل التنفيذ في713f6fc5db0a97fed62f858d7086990bbc03a561. التنفيذ المحلي: API/rewards+lesson+interaction+adaptation+review60 PASS، Jest155 PASS، Next production build PASS؛ migration PostgreSQL SQL generation PASS. لا ختم قبول W4 بعد.
+- محاولة متصفح E2E المحلي تعذرت قبل التشغيل: تنزيل Chromium بواسطة Playwright أعاد أرشيفًا صفريًا/تالفًا. اختبار E2E الحقيقي أُعد للبوابات المتاحة في GitHub؛ لا ادعاء نجاح تشغيله محليًا.

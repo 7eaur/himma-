@@ -1,10 +1,20 @@
+import pytest
 from conftest import TestingSessionLocal
 from db.learning_models import LessonSession, LessonQuestionResponse, StudentJourney
 from db.models import AssessmentSession, AuditLog, Student
 from v2_content.importer import register_candidate_release
 from v2_content.repository import get_release
 
-BASE='/v2/student/admin/students/1'
+BASE=''
+STUDENT_ID=None
+
+@pytest.fixture(autouse=True)
+def account_fixture_ids(setup_database):
+    global BASE, STUDENT_ID
+    with TestingSessionLocal() as db:
+        STUDENT_ID=db.query(Student).one().id
+    BASE=f'/v2/student/admin/students/{STUDENT_ID}'
+
 
 
 def _ready(*, complete=True):
@@ -47,7 +57,7 @@ def test_account_updates_preserve_all_academic_history_and_omit_secret(researche
 
 def test_reveal_is_explicit_private_and_audited_without_logging_the_code(researcher_client):
     result=researcher_client.post(BASE+'/access-code/reveal')
-    assert result.status_code==200 and result.json()=={'student_id':1,'access_code':'STU001'}
+    assert result.status_code==200 and result.json()=={'student_id':STUDENT_ID,'access_code':'STU001'}
     assert result.headers['cache-control']=='private, no-store'
     with TestingSessionLocal() as db:
         audit=db.query(AuditLog).filter(AuditLog.action=='v2.student.access_code.revealed').one()
@@ -73,7 +83,7 @@ def test_v2_posttest_enable_uses_actual_v2_completion_without_any_v1_activity(re
         assert result.json()['posttest_enabled'] is True
     with TestingSessionLocal() as db:
         assert db.query(AuditLog).filter(AuditLog.action=='v2.student.posttest_access.updated').count()==1
-    assert researcher_client.get('/v2/student/admin/students/1/home').json()['current_action']['action']=='start_posttest'
+    assert researcher_client.get(f'/v2/student/admin/students/{STUDENT_ID}/home').json()['current_action']['action']=='start_posttest'
     assert researcher_client.post(BASE+'/posttest-access',json={'enabled':False}).json()['posttest_enabled'] is False
 
 
@@ -105,7 +115,7 @@ def test_v2_posttest_cannot_be_toggled_during_or_after_assessment(researcher_cli
     _ready()
     with TestingSessionLocal() as db:
         release=register_candidate_release(db)
-        db.add(AssessmentSession(student_id=1,session_type='posttest',status='in_progress',v2_state='answering',content_release_id=release.id))
+        db.add(AssessmentSession(student_id=STUDENT_ID,session_type='posttest',status='in_progress',v2_state='answering',content_release_id=release.id))
         db.commit()
     for enabled in [True,False]:
         assert researcher_client.post(BASE+'/posttest-access',json={'enabled':enabled}).status_code==409
@@ -120,7 +130,7 @@ def test_student_cannot_use_staff_account_or_reveal_endpoints(student_client):
 def test_legacy_posttest_endpoint_cannot_mutate_v2_access_flag(researcher_client):
     _ready()
     assert researcher_client.post(BASE+'/posttest-access',json={'enabled':True}).status_code==200
-    blocked=researcher_client.post('/researcher/students/1/posttest-access',json={'enabled':False})
+    blocked=researcher_client.post(f'/researcher/students/{STUDENT_ID}/posttest-access',json={'enabled':False})
     assert blocked.status_code==409
     with TestingSessionLocal() as db:
         assert db.query(Student).one().posttest_enabled is True
