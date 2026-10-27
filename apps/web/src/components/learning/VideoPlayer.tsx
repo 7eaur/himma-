@@ -85,7 +85,13 @@ function VideoPlayerInstance({ src, captionsSrc, startAt = 0, testOnly = false, 
 
   const confirmCompletion = async (manualRetry = false) => {
     const video = videoRef.current;
-    if (!video || !Number.isFinite(video.duration) || video.duration <= 0) return;
+    if (!video) return;
+    // An ended event with unusable metadata must offer a recovery action.
+    // Silently returning leaves the learner stuck with no completion or retry.
+    if (!Number.isFinite(video.duration) || video.duration <= 0 || !Number.isFinite(video.currentTime)) {
+      setState("error");
+      return;
+    }
     // Match the server's >=90% completion gate. A premature native ended
     // event (e.g. interrupted media) must not submit a doomed completion or
     // present a save-retry error for a video the learner has not finished.

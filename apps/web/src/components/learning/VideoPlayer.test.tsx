@@ -284,4 +284,22 @@ describe("VideoPlayer", () => {
     fireEvent.click(screen.getByRole("button", { name: "إعادة المحاولة" }));
     expect(HTMLMediaElement.prototype.load).toHaveBeenCalledTimes(1);
   });
+  it.each([
+    ["unknown duration", 6, Number.NaN],
+    ["infinite duration", 6, Number.POSITIVE_INFINITY],
+    ["invalid playback position", Number.NaN, 6],
+    ["zero duration", 0, 0],
+  ])("shows a recoverable error instead of silently ignoring ended with %s", (_case, currentTime, duration) => {
+    const onEnded = jest.fn().mockResolvedValue(undefined);
+    render(<VideoPlayer src="/fixture.mp4" onCheckpoint={jest.fn()} onEnded={onEnded} />);
+    const video = screen.getByText("متصفحك لا يدعم تشغيل الفيديو.").closest("video") as HTMLVideoElement;
+    setMediaTime(video, currentTime, duration);
+    fireEvent.canPlay(video);
+    fireEvent.ended(video);
+    expect(onEnded).not.toHaveBeenCalled();
+    expect(screen.getByRole("alert")).toHaveTextContent("تعذر تشغيل الفيديو");
+    fireEvent.click(screen.getByRole("button", { name: "إعادة المحاولة" }));
+    expect(HTMLMediaElement.prototype.load).toHaveBeenCalledTimes(1);
+  });
+
 });
