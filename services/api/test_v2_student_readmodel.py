@@ -1,6 +1,6 @@
 """P09.1-B source-of-truth projections. No V1 counts or child secrets."""
 from conftest import TestingSessionLocal
-from db.learning_models import LessonSession, StudentJourney
+from db.learning_models import AdaptationDecision, LessonSession, StudentJourney, SupportAssignment
 from db.models import AssessmentSession, Student
 from v2_content.importer import register_candidate_release
 
@@ -354,3 +354,47 @@ def test_progress_keeps_completed_lower_level_lessons_after_advancing(researcher
     assert data['progress']['skipped_by_placement'] == 0
     assert data['progress']['display_percent'] == round(600 / 19, 1)
     assert all(row['state'] == 'completed' for row in data['lesson_overview']['items'][:6])
+
+
+def test_staff_only_v2_support_timeline_is_bounded_and_scoped_to_pinned_release(researcher_client, student_client):
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        release = register_candidate_release(db)
+        db.add(StudentJourney(student_id=student.id, content_release_id=release.id,
+                              current_level=1, current_lesson_id="L1-01", placement_state="placed"))
+        lesson = LessonSession(student_id=student.id, content_release_id=release.id,
+                               lesson_id="L1-01", status="completed", stage="complete")
+        db.add(lesson)
+        db.flush()
+        support = SupportAssignment(
+            lesson_session_id=lesson.id, student_id=student.id, content_release_id=release.id,
+            support_id="SUP-01", focus="letter_sound", target_skill="S01", source_lesson_id="L1-01",
+            source_level=1, support_level=1, mode="targeted_support", status="resolved",
+            return_to={"lesson_id": "L1-02"}, policy_version="himma-v2-adaptation/1-candidate",
+            practice_question_ids=[], check_question_ids=[],
+        )
+        db.add(support)
+        db.flush()
+        db.add(AdaptationDecision(
+            lesson_session_id=lesson.id, student_id=student.id, content_release_id=release.id,
+            support_assignment_id=support.id, decision_key="check:1", decision_kind="next_lesson",
+            reason_code="support_gap_unresolved_continue_without_mastery",
+            evidence_ids=[], explanation_json={"skill_mastery": "not_demonstrated"},
+            policy_version="himma-v2-adaptation/1-candidate",
+        ))
+        db.commit()
+        student_id = student.id
+    admin_response = researcher_client.get(f"/v2/student/admin/students/{student_id}/home")
+    assert admin_response.status_code == 200, admin_response.text
+    details = admin_response.json()
+    assert len(details["support_assignments"]) == 1
+    assert details["support_assignments"][0]["status"] == "resolved"
+    assert details["adaptation_decisions"][0]["unmastered_gap"] is True
+    assert details["adaptation_decisions"][0]["reason_code"] == "support_gap_unresolved_continue_without_mastery"
+    assert "access_code" not in admin_response.text
+    assert "private_answer" not in admin_response.text
+    # The student's read model never exposes staff-only decision history.
+    learner = student_client.get("/v2/student/home")
+    assert learner.status_code == 200
+    assert "adaptation_decisions" not in learner.json()
+    assert "support_assignments" not in learner.json()
