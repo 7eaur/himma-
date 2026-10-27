@@ -123,7 +123,7 @@ export default function V2AssessmentsPage() {
       description="افحص دليل الطالب ومرجع السؤال قبل القرار؛ التسكين يدوي ومسبب إلى حين اعتماد الحدود التربوية."
       actions={<AdminAction icon={RefreshCw} onClick={() => void load()}>تحديث</AdminAction>} />
     {error && <div role="alert" className="alert-error">{error}</div>}
-    <V2BlockedReviewNotice items={reviews.blocked_items} />
+    <V2BlockedReviewNotice items={reviews.blocked_items} onRestored={load} />
     {report && <AdminStatGrid>
       <AdminStat icon={Clock3} value={reviews.items.length} label="الإجابات في الصفحة الحالية"/>
       <AdminStat icon={ClipboardCheck} value={pendingPlacement} label="جلسات تنتظر التسكين"/>

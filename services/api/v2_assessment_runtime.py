@@ -34,6 +34,7 @@ from v2_content.importer import register_candidate_release
 from v2_content.media import MediaProvider
 from v2_content.projection import student_question
 from v2_content.repository import get_release
+from v2_content.recovery import known_recovery
 from v2_interaction_runtime import AnswerRequest, CHOICE_INTERACTIONS, OPEN_INTERACTIONS, ORDER_INTERACTIONS, _canonical_answer, _ordered_answer_is_correct
 from v2_lesson_runtime import _require_preview_student
 from v2_retry_state import active_retry
@@ -207,7 +208,10 @@ def blocked_review_item(db: Session, session, row, student: Student, error: HTTP
             "student_name": student.name, "reason": "content_release_unavailable",
             "detail": str(error.detail), "content_release_id": session.content_release_id,
             "release_version": release.version if release else None,
-            "release_checksum": release.checksum if release else None}
+            "release_checksum": release.checksum if release else None,
+            "recoverable": bool(release and known_recovery(release.checksum) and not db.query(
+                PrivateContentBankSnapshot.id,
+            ).filter(PrivateContentBankSnapshot.content_release_id == release.id).first())}
 
 
 def _media(question: dict[str, Any], release: dict[str, Any]) -> dict[str, dict[str, Any]]:

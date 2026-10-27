@@ -103,7 +103,7 @@ export default function V2LessonReviewPage() {
       description="افحص دليل الطالب ونص السؤال ومعيار التصحيح قبل أي قرار. لا يُحتسب التسجيل صحيحًا تلقائيًا."
       actions={<AdminAction icon={RefreshCw} onClick={() => void load()}>تحديث القائمة</AdminAction>} />
     {error && <div role="alert" className="rounded-xl border border-red-300 bg-red-50 p-4 text-red-800">{error}</div>}
-    <V2BlockedReviewNotice items={queue.blocked_items} />
+    <V2BlockedReviewNotice items={queue.blocked_items} onRestored={load} />
     <AdminPanel title="أدلة معلّقة" description="قرارات المشرف موثّقة؛ لا يمكن إعادة اعتماد الإجابة نفسها.">
       {loading ? <div role="status" className="flex items-center gap-2 text-slate-600"><Clock3 size={18}/> جاري جلب الأدلة...</div>
         : queue.items.length === 0 ? <AdminEmptyState title="لا توجد أدلة قابلة للمراجعة في هذه الصفحة" description="راجع صفحة أخرى أو حدّث القائمة." />

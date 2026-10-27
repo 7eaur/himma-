@@ -3,14 +3,24 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
 
-from dependencies import get_any_authenticated
+from dependencies import get_any_authenticated, get_current_user, get_db
+from sqlalchemy.orm import Session
+from db.models import User
 from runtime_flags import protected_runtime, trial_v2_preview_allowed
 from v2_content.media import MediaProvider, approved_asset_path
 from v2_content.projection import student_manifest, student_question
 from v2_content.repository import get_media, get_question, get_release
+from v2_content.recovery import restore_original_snapshot
 
 
 router = APIRouter(prefix="/v2/content", tags=["v2-content"])
+
+
+@router.post("/admin/releases/{release_id}/restore-original-snapshot")
+def restore_historical_snapshot(release_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    result = restore_original_snapshot(db, release_id, user.id)
+    db.commit()
+    return result
 
 
 def _require_candidate_access(auth=Depends(get_any_authenticated)):
