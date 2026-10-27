@@ -292,6 +292,7 @@ function StudentDetailView({ id }: { id: string }) {
         </div>}
         {v2Home && <>
           {v2Home.data_status !== "ready" && <p className={styles.notice}>بيانات المحتوى غير مكتملة؛ التقدم معلق حتى استعادتها.</p>}
+          {activeTab === "overview" && <>
           <div className={styles.grid3}>
             <div className={styles.infoCard}><span>التسكين المعتمد</span>
               <strong data-testid="supervisor-v2-level">{currentV2Level == null ? "لم يُعتمد بعد" : `المستوى ${currentV2Level}`}</strong>
@@ -319,18 +320,32 @@ function StudentDetailView({ id }: { id: string }) {
             {v2Home.current_action.action === "migration_review" && <p role="status">توجد جلسة تحتاج مراجعة المشرف قبل متابعة التعلم. لا يُحذف دليل الطالب ولا يُعتمد تلقائيًا.</p>}
             {v2Home.progress.pending_review > 0 && <p>توجد مراجعة قراءة معلّقة؛ لا تُحوَّل إلى نجاح تلقائي.</p>}
           </div>
-          <div className={styles.grid2} style={{ marginTop: 14 }}>
+          </>}
+          {(activeTab === "overview" || activeTab === "tests") && <div className={styles.grid2} style={{ marginTop: 14 }}>
             <div className={styles.infoCard}><span>الاختبار القبلي</span><strong>{v2Score("pretest")}</strong></div>
             <div className={styles.infoCard}><span>الاختبار البعدي</span><strong>{v2Score("posttest")}</strong></div>
-          </div>
-          <details className={styles.disclosure} data-testid="supervisor-lesson-disclosure">
+          </div>}
+          {activeTab === "tests" && <p className={styles.muted}>النتائج غير المكتملة أو التي تنتظر مراجعة القراءة لا تُعامل على أنها صفر. الاختبار البعدي يُتاح تلقائيًا وفق شروط الرحلة.</p>}
+          {activeTab === "journey" && <details className={styles.disclosure} data-testid="supervisor-lesson-disclosure" open>
             <summary>تفاصيل الدروس ({v2Home.lesson_overview?.items.length ?? 0})</summary>
             {v2Home.lesson_overview?.state === "unavailable" && <p className={styles.notice}>إصدار بنك المحتوى المثبت غير متاح؛ لم تُستخدم دروس إصدار آخر بديلًا.</p>}
             {(!v2Home.lesson_overview || v2Home.lesson_overview.state === "awaiting_journey") &&
               <p className={styles.muted}>تظهر حالة الدروس بعد بدء الرحلة واعتماد التسكين.</p>}
-            {v2Home.lesson_overview?.state === "ready" &&
+            {v2Home.lesson_overview?.state === "ready" && <>
+              <div className={styles.levelFilter} role="group" aria-label="اختر المستوى لعرض دروسه">
+                {(["L1", "L2", "L3"] as const).map((level, index) => {
+                  const selected = lessonLevel ?? (currentV2Level ? `L${currentV2Level}` : "L1");
+                  return <button key={level} type="button" aria-pressed={selected === level}
+                    className={selected === level ? styles.levelFilterActive : styles.levelFilterButton}
+                    onClick={() => setLessonLevel(level)}>
+                    المستوى {["الأول", "الثاني", "الثالث"][index]}
+                    <small> ({v2Home.lesson_overview?.items.filter(lesson => lesson.level === level).length ?? 0})</small>
+                  </button>;
+                })}
+              </div>
               <div className={styles.journey} data-testid="supervisor-v2-lessons">
-                {v2Home.lesson_overview.items.map(lesson => (
+                {v2Home.lesson_overview.items.filter(lesson => lesson.level ===
+                  (lessonLevel ?? (currentV2Level ? `L${currentV2Level}` : "L1"))).map(lesson => (
                   <div key={lesson.lesson_id}
                     className={`${styles.level} ${lesson.state === "completed" ? styles.levelDone : ["in_progress", "waiting_review", "current"].includes(lesson.state) ? styles.levelCurrent : styles.levelLocked}`}
                     data-testid="supervisor-v2-lesson" data-level-state={lesson.state}>
@@ -339,8 +354,8 @@ function StudentDetailView({ id }: { id: string }) {
                     <span className={styles.muted}>{lessonStateLabels[lesson.state]}</span>
                   </div>
                 ))}
-              </div>}
-          </details>
+              </div></>}
+          </details>}
           <details className={styles.disclosure}><summary>النجوم والشارات</summary><V2Rewards data={v2Home.rewards} variant="admin" /></details>
           <button type="button" className={styles.secondary} disabled={Boolean(busy)} onClick={() => void reconcileV2Rewards()}>مزامنة الاستحقاقات المثبتة</button>
           {v2Home.journey?.placement_state === "posttest_ready" && <p className={styles.muted}>الاختبار البعدي متاح تلقائيًا للطالب بعد اكتمال الدروس والدعم ومراجعة القراءة.</p>}
