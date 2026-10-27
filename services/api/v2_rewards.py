@@ -8,7 +8,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.orm import Session
 
-from db.learning_models import LessonQuestionResponse, LessonSession, PlacementDecisionV2, PrivateContentBankSnapshot, StudentJourney, SupportAssignment
+from db.learning_models import AdaptationDecision, LessonQuestionResponse, LessonSession, PlacementDecisionV2, PrivateContentBankSnapshot, StudentJourney, SupportAssignment
 from db.models import AuditLog, ContentRelease, Student, User
 from db.v2_reward_models import V2RewardGrant
 from dependencies import get_current_user, get_db
@@ -60,6 +60,11 @@ def reconcile_rewards(db: Session, student_id: int, *, actor_role='student', act
         rows[row.lesson_session_id].append(row)
     unresolved = {session_id for session_id, in db.query(SupportAssignment.lesson_session_id).filter(
         SupportAssignment.student_id==student_id,SupportAssignment.content_release_id==release.id,SupportAssignment.status!='resolved').all()}
+    unresolved_mastery_sessions = {session_id for session_id, in db.query(AdaptationDecision.lesson_session_id).filter(
+        AdaptationDecision.student_id == student_id,
+        AdaptationDecision.content_release_id == release.id,
+        AdaptationDecision.reason_code == 'support_gap_unresolved_continue_without_mastery',
+    ).distinct().all()}
     questions = defaultdict(lambda: defaultdict(set))
     for question in bank['questions']:
         questions[question.get('owner_id')][question['role']].add(question['id'])
@@ -82,7 +87,8 @@ def reconcile_rewards(db: Session, student_id: int, *, actor_role='student', act
         ic_graded = {row.question_id for row in evidence if row.role=='independent_check' and row.status=='graded' and row.is_correct is not None}
         pending_ic = any(row.role=='independent_check' and row.status=='pending_review' for row in evidence)
         if (session.status=='completed' and session.stage=='complete' and session.completed_at and ic and ic<=ic_graded
-            and not pending_ic and session.id not in unresolved):
+            and not pending_ic and session.id not in unresolved
+            and session.id not in unresolved_mastery_sessions):
             milestones.append(('lesson_complete',{'session_id':session.id,'question_count':len(ic),'completed_at':session.completed_at.isoformat()}))
         for milestone, proof in milestones:
             inserted += _grant(db,student_id=student_id,release_id=release.id,scope_kind='lesson',scope_id=session.lesson_id,
