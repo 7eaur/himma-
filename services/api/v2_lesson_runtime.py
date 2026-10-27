@@ -17,8 +17,8 @@ from db.learning_models import LessonProgressEvent, LessonSession, PlacementDeci
 from db.models import AssessmentSession, ContentRelease, Student, User
 from dependencies import get_current_student, get_current_user, get_db
 from runtime_flags import protected_runtime, trial_v2_preview_allowed
-from v2_content.importer import register_candidate_release
-from v2_content.media import APPROVED_STATES, MISSING_STATES, MediaProvider
+from v2_content.repository import get_pinned_release
+from v2_content.media import APPROVED_STATES, MISSING_STATES, MediaProvider, approved_asset_path
 from v2_content.readiness import media_readiness_contract
 from v2_content.projection import student_lesson
 from v2_content.repository import get_lesson, get_media, get_release
@@ -49,8 +49,9 @@ def _require_preview_student(student: Student = Depends(get_current_student)) ->
     return student
 
 
-def _lesson_or_404(lesson_id: str) -> dict:
-    lesson = get_lesson(lesson_id)
+def _lesson_or_404(lesson_id: str, release: dict | None = None) -> dict:
+    lesson = (next((row for row in release["lessons"] if row["id"] == lesson_id), None)
+              if release is not None else get_lesson(lesson_id))
     if not lesson:
         raise HTTPException(status_code=404, detail="الدرس غير موجود")
     return lesson
@@ -66,12 +67,16 @@ def _session_or_404(db: Session, session_id: int, student_id: int) -> LessonSess
     return session
 
 
-def _session_payload(session: LessonSession) -> dict:
-    lesson = _lesson_or_404(session.lesson_id)
-    asset = get_media(lesson["video_media_id"])
+def _session_payload(db: Session, session: LessonSession) -> dict:
+    release = get_pinned_release(db, session.content_release_id)
+    lesson = _lesson_or_404(session.lesson_id, release)
+    asset = next((row for row in release["media"] if row["id"] == lesson["video_media_id"]), None)
     if not asset:
-        raise HTTPException(status_code=409, detail="وسيط الدرس غير مسجل")
-    payload = student_lesson(lesson, MediaProvider().resolve(asset).as_dict())
+        raise HTTPException(status_code=409, detail="وسيط الدرس غير مسجل في الإصدار المثبت")
+    resolved = MediaProvider().resolve(asset).as_dict()
+    if resolved["state"] == "ready" and not resolved["test_only"]:
+        resolved["url"] = f'/api/v2/lessons/sessions/{session.id}/media/{asset["id"]}'
+    payload = student_lesson(lesson, resolved)
     payload["session"] = {
         "session_id": session.id,
         "stage": EXTERNAL_STAGE.get(session.stage, session.stage),
@@ -122,7 +127,8 @@ def lesson_catalog(
     student: Student = Depends(_require_preview_student),
     db: Session = Depends(get_db),
 ):
-    release = get_release()
+    journey = db.query(StudentJourney).filter(StudentJourney.student_id == student.id).one_or_none()
+    release = get_pinned_release(db, journey.content_release_id) if journey else get_release()
     active = db.query(LessonSession).filter(
         LessonSession.student_id == student.id,
         LessonSession.status.in_(("in_progress", "waiting_review")),
@@ -134,7 +140,6 @@ def lesson_catalog(
             LessonSession.status == "completed",
         )
     }
-    journey = db.query(StudentJourney).filter(StudentJourney.student_id == student.id).one_or_none()
     placed = _has_official_v2_placement(db, student.id, journey)
     # Legacy Student.current_level is never an authorization or fallback.
     current_level = journey.current_level if placed else 1
@@ -183,7 +188,8 @@ def start_lesson(
     journey = db.query(StudentJourney).filter(StudentJourney.student_id == student.id).one_or_none()
     if not _has_official_v2_placement(db, student.id, journey):
         raise HTTPException(status_code=409, detail="يجب إكمال الاختبار القبلي واعتماد التسكين أولًا")
-    _lesson_or_404(lesson_id)
+    release = get_pinned_release(db, journey.content_release_id)
+    _lesson_or_404(lesson_id, release)
     active = db.query(LessonSession).filter(
         LessonSession.student_id == student.id,
         LessonSession.status.in_(("in_progress", "waiting_review")),
@@ -196,17 +202,14 @@ def start_lesson(
                 status_code=409,
                 detail={"message": "لديك درس قيد التنفيذ؛ عد إليه أولًا", "session_id": active.id},
             )
-        return _session_payload(active)
+        return _session_payload(db, active)
 
-    release_row = register_candidate_release(db)
-    if journey.content_release_id != release_row.id:
-        raise HTTPException(status_code=409, detail="رحلة الطالب مثبتة على إصدار محتوى مختلف")
-    elif journey.current_lesson_id is None and journey.placement_state == "placed":
+    if journey.current_lesson_id is None and journey.placement_state == "placed":
         # An earlier, already-approved placement can have a missing cursor.
         # GET /catalog only *projects* the fallback; the authorized POST
         # persists it atomically, and never unlocks any other lesson.
         first_placed_lesson = next(
-            row["id"] for row in get_release()["lessons"]
+            row["id"] for row in release["lessons"]
             if int(row["level"][1]) == journey.current_level
         )
         if lesson_id != first_placed_lesson:
@@ -227,14 +230,14 @@ def start_lesson(
 
     session = LessonSession(
         student_id=student.id,
-        content_release_id=release_row.id,
+        content_release_id=journey.content_release_id,
         lesson_id=lesson_id,
         return_to={"path": "/student/learning-v2"},
     )
     db.add(session)
     db.commit()
     db.refresh(session)
-    return _session_payload(session)
+    return _session_payload(db, session)
 
 
 @router.get("/sessions/{session_id}")
@@ -243,7 +246,25 @@ def lesson_session(
     student: Student = Depends(_require_preview_student),
     db: Session = Depends(get_db),
 ):
-    return _session_payload(_session_or_404(db, session_id, student.id))
+    return _session_payload(db, _session_or_404(db, session_id, student.id))
+
+
+@router.get("/sessions/{session_id}/media/{asset_id}")
+def session_approved_media(
+    session_id: int,
+    asset_id: str,
+    student: Student = Depends(_require_preview_student),
+    db: Session = Depends(get_db),
+):
+    """Serve the media bytes from this student's immutable lesson release."""
+    session = _session_or_404(db, session_id, student.id)
+    release = get_pinned_release(db, session.content_release_id)
+    asset = next((row for row in release["media"] if row["id"] == asset_id), None)
+    path = approved_asset_path(asset) if asset else None
+    if path is None:
+        raise HTTPException(status_code=404, detail="وسيط الإصدار المثبت غير متاح")
+    return FileResponse(path, media_type=mimetypes.guess_type(path.name)[0] or "application/octet-stream",
+                        headers={"Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff"})
 
 
 @router.post("/sessions/{session_id}/events")
@@ -260,7 +281,7 @@ def record_lesson_event(
         LessonProgressEvent.event_key == event.event_key,
     ).one_or_none()
     if existing:
-        return _session_payload(session)
+        return _session_payload(db, session)
     # A checkpoint sent while the video was still playing may arrive after
     # video_ended. It is obsolete, not a new stage transition or a reason to
     # show an error to the learner. Return the already-advanced session
@@ -274,7 +295,7 @@ def record_lesson_event(
         and event.position_seconds is not None
         and event.duration_seconds is not None
     ):
-        return _session_payload(session)
+        return _session_payload(db, session)
     if session.status != "in_progress":
         raise HTTPException(status_code=409, detail="جلسة الدرس ليست قيد التنفيذ")
 
@@ -312,7 +333,7 @@ def record_lesson_event(
     reconcile_rewards(db, student.id, lesson_session_id=session.id)
     db.commit()
     db.refresh(session)
-    return _session_payload(session)
+    return _session_payload(db, session)
 
 
 

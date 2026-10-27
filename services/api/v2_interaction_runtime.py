@@ -21,7 +21,7 @@ from db.models import AudioSubmission, Student
 from dependencies import get_db
 from v2_content.media import MediaProvider
 from v2_content.projection import student_question
-from v2_content.repository import get_lesson, get_media, get_question
+from v2_content.repository import get_pinned_release
 from v2_audio_retention import audio_upload_binding, track_new_audio_upload, mark_audio_submitted
 from v2_lesson_runtime import _require_preview_student, _require_official_lesson_session, _session_or_404, _session_payload
 from v2_adaptation_runtime import (
@@ -78,9 +78,10 @@ def _question_ids(db: Session, session: LessonSession) -> list[str]:
         if session.stage == "support_practice":
             return list(assignment.practice_question_ids or [])
         return list(assignment.check_question_ids or [])
-    lesson = get_lesson(session.lesson_id)
+    release = get_pinned_release(db, session.content_release_id)
+    lesson = next((row for row in release["lessons"] if row["id"] == session.lesson_id), None)
     if not lesson:
-        raise HTTPException(status_code=404, detail="الدرس غير موجود")
+        raise HTTPException(status_code=409, detail="الدرس غير موجود في النسخة المثبتة")
     if session.stage == "guided_practice":
         return list(lesson["practice_question_ids"])
     if session.stage == "independent_check":
@@ -94,7 +95,8 @@ def _current_question(db: Session, session: LessonSession) -> dict[str, Any]:
         raise HTTPException(status_code=409, detail="لا يوجد سؤال متاح في مرحلة الدرس الحالية")
     if session.step_index >= len(question_ids):
         raise HTTPException(status_code=409, detail="موضع السؤال المحفوظ غير صالح")
-    question = get_question(question_ids[session.step_index])
+    release = get_pinned_release(db, session.content_release_id)
+    question = next((row for row in release["questions"] if row["id"] == question_ids[session.step_index]), None)
     if not question:
         raise HTTPException(status_code=409, detail="سؤال الدرس غير مسجل في الإصدار")
     expected_role = STAGE_ROLE.get(session.stage)
@@ -103,7 +105,7 @@ def _current_question(db: Session, session: LessonSession) -> dict[str, Any]:
     return question
 
 
-def _resolved_media(question: dict[str, Any]) -> dict[str, dict[str, Any]]:
+def _resolved_media(db: Session, session: LessonSession, question: dict[str, Any]) -> dict[str, dict[str, Any]]:
     media_ids: set[str] = set()
     for item in question.get("stimulus", {}).get("media", []):
         media_ids.add(item["media_id"])
@@ -111,12 +113,16 @@ def _resolved_media(question: dict[str, Any]) -> dict[str, dict[str, Any]]:
         for item in option.get("media", []):
             media_ids.add(item["media_id"])
     provider = MediaProvider()
+    release = get_pinned_release(db, session.content_release_id)
     result = {}
     for media_id in sorted(media_ids):
-        asset = get_media(media_id)
+        asset = next((row for row in release["media"] if row["id"] == media_id), None)
         if not asset:
-            raise HTTPException(status_code=409, detail="أحد أصول السؤال غير مسجل")
-        result[media_id] = provider.resolve(asset).as_dict()
+            raise HTTPException(status_code=409, detail="أحد أصول السؤال غير مسجل في الإصدار المثبت")
+        resolved = provider.resolve(asset).as_dict()
+        if resolved["state"] == "ready" and not resolved["test_only"]:
+            resolved["url"] = f"/api/v2/lessons/sessions/{session.id}/media/{media_id}"
+        result[media_id] = resolved
     return result
 
 
@@ -128,7 +134,7 @@ def _draft(db: Session, session_id: int, question_id: str) -> LessonQuestionDraf
 
 
 def _interaction_payload(db: Session, session: LessonSession) -> dict[str, Any]:
-    base = _session_payload(session)
+    base = _session_payload(db, session)
     base["adaptation"] = student_adaptation_payload(db, session)
     if session.stage not in STAGE_ROLE:
         base["interaction"] = None
@@ -149,7 +155,7 @@ def _interaction_payload(db: Session, session: LessonSession) -> dict[str, Any]:
     saved_draft = _draft(db, session.id, question["id"])
     base["interaction"] = {
         "question": projected,
-        "media": _resolved_media(question),
+        "media": _resolved_media(db, session, question),
         "progress": {
             "index": session.step_index + 1,
             "total": len(question_ids),
@@ -341,7 +347,8 @@ def submit_answer(
     ).one_or_none()
     if existing:
         submitted = existing.answer_json.get("answer") if isinstance(existing.answer_json, dict) else None
-        candidate_question = get_question(existing.question_id)
+        release = get_pinned_release(db, session.content_release_id)
+        candidate_question = next((row for row in release["questions"] if row["id"] == existing.question_id), None)
         if not candidate_question:
             raise HTTPException(status_code=409, detail="السؤال السابق غير موجود في الإصدار")
         canonical = _canonical_answer(candidate_question, body, student.id)
