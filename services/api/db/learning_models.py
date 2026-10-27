@@ -291,7 +291,7 @@ class AssessmentQuestionDraft(Base):
 
 
 class PlacementDecisionV2(Base):
-    """Audited human placement; no unapproved score threshold is encoded."""
+    """Audited V2 placement by the system or an authorized historical reviewer."""
 
     __tablename__ = "placement_decisions_v2"
 
@@ -302,7 +302,7 @@ class PlacementDecisionV2(Base):
     assigned_level = Column(Integer, nullable=False)
     reason = Column(String, nullable=False)
     policy_version = Column(String(100), nullable=False)
-    decided_by = Column(Integer, ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)
+    decided_by = Column(Integer, ForeignKey("users.id", ondelete="RESTRICT"), nullable=True)  # NULL = automated policy decision
     created_at = Column(DateTime(timezone=True), nullable=False, default=_now)
 
     __table_args__ = (
