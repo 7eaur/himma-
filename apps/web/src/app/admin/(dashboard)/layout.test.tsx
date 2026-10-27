@@ -14,8 +14,8 @@ it('shows V2 review navigation without mounting old reinforcement or archive req
   render(<AdminDashboardLayout><div>محتوى الطالب</div></AdminDashboardLayout>);
   expect(await screen.findByText('محتوى الطالب')).toBeVisible();
   expect(screen.getByRole('link',{name:'قراءات الدروس'})).toHaveAttribute('href','/admin/v2-lesson-review');
-  expect(screen.getByRole('link',{name:'المحتوى والمعاينة'})).toHaveAttribute('href','/admin/content-preview');
-  expect(screen.getByText('المراجعة')).toBeInTheDocument();
+  expect(screen.getByRole('link',{name:'بنك الدروس والأسئلة'})).toHaveAttribute('href','/admin/content-preview');
+  expect(screen.getByText('مراجعة الصوت')).toBeInTheDocument();
   expect(screen.queryByText('أرشيف V1 التاريخي')).not.toBeInTheDocument();
   expect(screen.queryByText('تسجيلات النسخة السابقة')).not.toBeInTheDocument();
   expect(fetcher).toHaveBeenCalled();
