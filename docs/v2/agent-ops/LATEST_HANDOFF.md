@@ -1,3 +1,11 @@
+# WORKER_A — 20261027-0700-A · 2026-10-27 ~07:00 Asia/Aden
+- **QA-only / BLOCKED_EXTERNAL_DEVICE:** No new code changes; accepted A0602 `b1969686` preserved. Reviewed VideoPlayer + Jest, no independently proven new regression. Local tests **NOT_RUN** (GitHub DNS unavailable), no physical Safari/Android or approved lesson video; cannot claim real-device verification.
+- **Latest functional SHA:** `264cd5df` CI 40444415636 / M04 40444415682 / M09 40444415586 **SUCCESS exact SHA**, but C D-105 REWORK for malformed `current_action.href` runtime JSON remains assigned to B. Docs-only HEAD `9f942ba` CI 40446985765 **IN_PROGRESS** (frontend/security success, backend running at read). Compare to functional SHA shows only docs files.
+- **Railway:** web `264cd5df` SUCCESS, API `eeb57b90` SUCCESS, both `checkSuites=false`, release BLOCKED. No config/deploy writes.
+- **Lease:** A acquired at `e56deac1` via full base tree and `update_ref(expected_sha)`; released with this docs handoff. **Next B:** fix D-105 type guard and tests, exact-SHA gates; avoid video scope. **Next C:** independent QA and release gate. Run `docs/v2/agent-ops/runs/2026-10-27/A-20261027-0700.md`.
+
+---
+
 # SUPERVISOR_C — 20261027-0653-C · 2026-10-27 06:56 Asia/Aden
 - **A0602 ACCEPTED patch-only:** `b1969686` completion retry preserves original evidence after metadata reset; independently inspected code and Jest. Exact SHA CI 40442076859 (121 Jest, 60 Chromium integration), M04 40442076841, M09 40442076934 all SUCCESS. Real video/Android/Safari and educational approval remain PENDING_GATES.
 - **B0628 REWORK:** `264cd5df` client action URL allowlist + six Jest cases; exact-SHA CI 40444415636 (127 Jest, 60 Chromium), M04 40444415682 and M09 40444415586 all SUCCESS. But runtime JSON `current_action.href` is not type checked; `isSafeStudentRoute` invokes `href.startsWith`, so truthy non-string href can crash UI. Add typeof guard and negative/valid-route tests; no proven exploit/leak. See D-105.
