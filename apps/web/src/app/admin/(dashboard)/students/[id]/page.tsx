@@ -356,14 +356,43 @@ function StudentDetailView({ id }: { id: string }) {
                 ))}
               </div></>}
           </details>}
-          <details className={styles.disclosure}><summary>النجوم والشارات</summary><V2Rewards data={v2Home.rewards} variant="admin" /></details>
-          <button type="button" className={styles.secondary} disabled={Boolean(busy)} onClick={() => void reconcileV2Rewards()}>مزامنة الاستحقاقات المثبتة</button>
-          {v2Home.journey?.placement_state === "posttest_ready" && <p className={styles.muted}>الاختبار البعدي متاح تلقائيًا للطالب بعد اكتمال الدروس والدعم ومراجعة القراءة.</p>}
-          <div className={styles.actions} style={{ marginTop: 16 }}>
-            <Link className={styles.primary} href="/admin/v2-assessments">مراجعة الاختبارات</Link>
-            <Link className={styles.secondary} href="/admin/v2-lesson-review">مراجعة الدروس</Link>
-            <Link className={styles.secondary} href="/admin/v2-reviewed-recordings">التسجيلات المُقيَّمة</Link>
-          </div>
+          {activeTab === "overview" && <>
+            <details className={styles.disclosure}><summary>النجوم والشارات</summary><V2Rewards data={v2Home.rewards} variant="admin" /></details>
+            <button type="button" className={styles.secondary} disabled={Boolean(busy)} onClick={() => void reconcileV2Rewards()}>مزامنة الاستحقاقات المثبتة</button>
+          </>}
+          {activeTab === "overview" && v2Home.journey?.placement_state === "posttest_ready" && <p className={styles.muted}>الاختبار البعدي متاح تلقائيًا للطالب بعد اكتمال الدروس والدعم ومراجعة القراءة.</p>}
+          {activeTab === "recordings" && <>
+            <p className={styles.muted}>عدد القراءات المعلقة في الدرس الحالي: {v2Home.progress.pending_review}. لا تُحتسب قراءة قبل مراجعتها.</p>
+            <div className={styles.actions}>
+              <Link className={styles.primary} href="/admin/v2-assessments">مراجعة تسجيلات الاختبارات</Link>
+              <Link className={styles.secondary} href="/admin/v2-lesson-review">مراجعة قراءات الدروس</Link>
+              <Link className={styles.secondary} href={`/admin/v2-reviewed-recordings?student_id=${encodeURIComponent(id)}`}>تسجيلات الطالب المقيّمة</Link>
+            </div>
+          </>}
+          {activeTab === "adaptation" && <>
+            <p className={styles.muted}>الدعم والتكيف يحددهما النظام تلقائيًا. انتهاء نشاط الدعم لا يعني بالضرورة إتقان المهارة.</p>
+            {(v2Home.support_assignments ?? []).length === 0
+              ? <p className={styles.notice}>لا توجد مهام تقوية مسجلة لهذا الطالب في إصدار المحتوى الحالي.</p>
+              : <div className={styles.history}>{v2Home.support_assignments?.map(item => (
+                <div key={item.id} className={styles.historyItem}>
+                  <div><strong>{item.lesson_id} · المهارة {item.target_skill}</strong>
+                    <p className={styles.muted}>نوع الدعم: {item.mode === "targeted_support" ? "تقوية موجهة" : "تحقق إضافي"} · التركيز: {item.focus}</p></div>
+                  <span>{item.status === "resolved" ? "انتهى النشاط" : item.status === "waiting_review" ? "بانتظار مراجعة الصوت" : item.status === "active" ? "جارٍ" : "حالة تاريخية"}</span>
+                </div>
+              ))}</div>}
+          </>}
+          {activeTab === "history" && <>
+            {(v2Home.adaptation_decisions ?? []).length === 0
+              ? <p className={styles.notice}>لا توجد قرارات تكيف مسجلة في الإصدار الحالي.</p>
+              : <div className={styles.history}>{v2Home.adaptation_decisions?.map(item => (
+                <div className={styles.historyItem} key={item.id}>
+                  <div><strong>{item.kind === "next_lesson" ? "متابعة المسار" : item.kind === "targeted_support" ? "دعم موجه" : item.kind === "additional_check" ? "تحقق إضافي" : item.kind === "waiting_review" ? "بانتظار مراجعة الصوت" : "قرار سابق"}</strong>
+                    <p className={styles.muted}>{item.reason_code}{item.unmastered_gap ? " · المهارة لم يُثبت إتقانها" : ""}</p></div>
+                  <small>{new Date(item.created_at).toLocaleDateString("ar")}</small>
+                </div>
+              ))}</div>}
+            <p className={styles.muted}>آخر 30 قرارًا من محرك التكيف V2 فقط. لا يتضمن هذا العرض سجلات الحساب الأمنية.</p>
+          </>
         </>}
       </section>
     );
