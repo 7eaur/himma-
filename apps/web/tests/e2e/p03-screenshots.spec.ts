@@ -68,7 +68,7 @@ test.describe("P03.2: Full screenshots — all viewports + all pages", () => {
         { route: "/admin",               name: "admin-dashboard" },
         { route: "/admin/students",       name: "admin-students" },
         { route: "/admin/students/new",   name: "admin-create-student" },
-        { route: "/admin/audio-review",   name: "admin-audio-review" },
+        { route: "/admin/v2-assessments",   name: "admin-assessment-review" },
         { route: "/admin/reports",        name: "admin-reports" },
         { route: "/admin/settings",       name: "admin-settings" },
       ];

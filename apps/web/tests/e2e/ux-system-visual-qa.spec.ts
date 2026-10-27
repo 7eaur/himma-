@@ -342,79 +342,19 @@ test.describe("Himma UX system visual QA regression", () => {
     }
   });
 
-  test("audio review decision workflow is visually stable on phone and desktop", async ({ page, context, request }) => {
+  test("review workspace remains usable from an old bookmark on phone and desktop", async ({ page, context, request }) => {
     await loginSupervisor(request, context);
-    const submission = {
-      id: 99101,
-      storage_key: "tests/ux-visual-review.webm",
-      status: "uploaded",
-      submitted_at: "2026-09-17T18:00:00Z",
-      student_id: 991,
-      student_name: "طالب فحص بصري",
-      session_type: "pretest",
-      item_title: "قراءة جملة",
-      expected_reading_text: "يَقْرَأُ سَالِمٌ كِتَابًا.",
-    };
-
-    await page.route("**/api/review/pending-audio*", async (route) => {
-      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([submission]) });
-    });
-
     for (const viewport of [
       { name: "phone-390", width: 390, height: 844 },
       { name: "desktop-1440", width: 1440, height: 1000 },
     ]) {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
       await page.goto("/admin/audio-review?submission_id=99101");
-      const workspace = page.getByTestId("audio-review-queue");
-      const selector = page.getByTestId("audio-review-selector");
-      await expect(workspace).toBeVisible();
-      await expect(selector).toBeVisible();
-      await expect(selector).toHaveValue("99101");
-      await expect(page.getByText("التسجيل المطلوب")).toBeVisible();
+      await expect(page).toHaveURL(/\/admin\/v2-assessments$/);
+      await expect(page.getByRole("heading", { name: "الاختبارات والتسكين" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "مراجعة القراءة والكتابة" })).toBeVisible();
       await expectNoHorizontalOverflow(page);
-
-      const form = page.getByTestId("audio-review-form");
-      await expect(form).toBeVisible();
-      await expect(page.getByRole("heading", { name: "طالب فحص بصري" })).toBeVisible();
-      await expect(form.getByText("يَقْرَأُ سَالِمٌ كِتَابًا.")).toBeVisible();
-      await expect(form.getByRole("button", { name: /تشغيل التسجيل/ })).toBeVisible();
-      await expect(form.getByTestId("audio-review-summary")).toBeVisible();
-      await expect(page.getByText("بانتظار المراجعة")).toBeVisible();
-
-      const approveDecision = form.getByRole("button", { name: "اعتماد القراءة", exact: true });
-      const rerecordDecision = form.getByRole("button", { name: "طلب إعادة تسجيل", exact: true });
-      await expect(approveDecision).toBeVisible();
-      await expect(rerecordDecision).toBeVisible();
-      await expect(approveDecision).toHaveAttribute("aria-pressed", "true");
-
-      const scoreFields = form.getByTestId("audio-review-score-fields");
-      await expect(scoreFields).toBeVisible();
-      await expect(scoreFields.getByLabel("إجمالي الوحدات")).toHaveValue("10");
-      await expect(scoreFields.getByLabel("الحذف")).toHaveValue("0");
-      await expect(scoreFields.getByLabel("الاستبدال")).toHaveValue("0");
-      await expect(scoreFields.getByLabel("الإضافة")).toHaveValue("0");
-
-      const approveBox = await approveDecision.boundingBox();
-      const rerecordBox = await rerecordDecision.boundingBox();
-      expect(approveBox?.height ?? 0).toBeGreaterThanOrEqual(56);
-      expect(rerecordBox?.height ?? 0).toBeGreaterThanOrEqual(56);
-      await expect(page.getByRole("button", { name: /إضافة ملاحظات/ })).toBeVisible();
-      await expect(page.locator(".audio-review-notes-textarea")).toHaveCount(0);
-
-      const workspaceBox = await workspace.boundingBox();
-      const selectorBox = await selector.boundingBox();
-      const formBox = await form.boundingBox();
-      expect(workspaceBox).toBeTruthy();
-      expect(selectorBox).toBeTruthy();
-      expect(formBox).toBeTruthy();
-      expect(formBox?.y ?? 0).toBeGreaterThan((selectorBox?.y ?? 0));
-      expect((formBox?.x ?? 0) + (formBox?.width ?? 0)).toBeLessThanOrEqual((workspaceBox?.x ?? 0) + (workspaceBox?.width ?? 0) + 1);
-
-      await expectNoHorizontalOverflow(page);
-      const pageHeight = await page.evaluate(() => document.documentElement.scrollHeight);
-      expect(pageHeight).toBeLessThanOrEqual(viewport.name === "phone-390" ? 2100 : 1300);
-      await page.screenshot({ path: path.join(SCREENSHOT_DIR, `${viewport.name}-audio-review-decision.png`), fullPage: true });
+      await page.screenshot({ path: path.join(SCREENSHOT_DIR, `${viewport.name}-assessment-review.png`), fullPage: true });
     }
   });
 });

@@ -41,7 +41,6 @@ const ROUTES = [
   "/admin",
   "/admin/students",
   "/admin/students/new",
-  "/admin/audio-review",
   "/admin/content-preview",
   "/admin/reports",
   "/admin/skill-reports",
@@ -125,12 +124,12 @@ test("P09.0 V2 supervisor pages keep a desktop visual baseline", async ({ page }
   await page.setViewportSize({ width: 1440, height: 900 });
   await login(page);
   const routes = [
-    { route: "/admin/v2-assessments", heading: "تقييمات V2 والمراجعة" },
+    { route: "/admin/v2-assessments", heading: "الاختبارات والتسكين" },
     { route: "/admin/v2-lesson-review", heading: "مراجعة قراءة وكتابة الدروس" },
-    { route: "/admin/v2-media", heading: "سجل وسائط V2" },
+    { route: "/admin/v2-media", heading: "الوسائط التعليمية" },
     { route: "/admin/v2-reviewed-recordings", heading: "التسجيلات التي اكتمل تقييمها" },
     { route: "/admin/students", heading: "الطلاب" },
-    { route: "/admin/content-preview", heading: "بنك المحتوى V2" },
+    { route: "/admin/content-preview", heading: "بنك الدروس والأسئلة" },
     { route: "/admin/account", heading: "إعدادات المشرف" },
   ];
   for (const { route, heading } of routes) {
@@ -145,7 +144,7 @@ test("P09.0 V2 supervisor pages keep a desktop visual baseline", async ({ page }
       await expect(page.getByTestId("v2-bank-question").first()).toBeVisible({ timeout: 25000 });
     }
     if (route === "/admin/v2-media") {
-      await expect(page.getByText(/الملفات المرشحة الموجودة/)).toBeVisible({ timeout: 15000 });
+      await expect(page.getByText(/الأصول المطلوبة المتاحة/)).toBeVisible({ timeout: 15000 });
     }
     await expectNoHorizontalOverflow(page);
     await capture(page, "desktop-1440x900", route);
