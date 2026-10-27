@@ -180,3 +180,17 @@ def test_reading_upload_reuses_private_storage_and_is_academically_neutral(stude
         assert recording.lesson_response_id == response.id
         assert recording.response_id is None
         assert recording.status == "pending_review"
+
+
+def test_original_snapshot_survives_current_bank_change_for_lesson_interaction(student_client, monkeypatch):
+    session_id = _start_at_questions(student_client, "L1-01")
+    initial = student_client.get(f"/v2/lessons/sessions/{session_id}/interaction")
+    assert initial.status_code == 200, initial.text
+    original = initial.json()["interaction"]["question"]["question_id"]
+
+    # The student's immutable release was stored before changing authoring.
+    monkeypatch.setattr("v2_content.repository.get_release",
+                        lambda: {"version": "later-authoring", "checksum": "different"})
+    resumed = student_client.get(f"/v2/lessons/sessions/{session_id}/interaction")
+    assert resumed.status_code == 200, resumed.text
+    assert resumed.json()["interaction"]["question"]["question_id"] == original

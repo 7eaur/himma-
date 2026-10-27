@@ -48,10 +48,17 @@ class PolicyDecision:
     focus: str | None = None
 
 
-def resolve_focus(question: dict[str, Any]) -> tuple[str, str] | None:
-    """Return an approved support/focus pair or an explicit mapping gap."""
+def resolve_focus(question: dict[str, Any], *, release: dict[str, Any] | None = None) -> tuple[str, str] | None:
+    """Resolve the approved support focus within the learner's original release."""
     lesson_id = str(question.get("owner_id") or "")
-    support = get_support_for_lesson(lesson_id)
+    if release is None:
+        support = get_support_for_lesson(lesson_id)
+    else:
+        lesson = next((row for row in release["lessons"] if row["id"] == lesson_id), None)
+        support_id = lesson.get("linked_support") if lesson else None
+        support = next((row for row in release["supports"] if row["id"] == support_id), None) if support_id else next(
+            (row for row in release["supports"] if lesson_id in row.get("linked_lessons", [])), None
+        )
     if not support:
         return None
     focus = resolve_question_focus(question, support)
@@ -60,7 +67,7 @@ def resolve_focus(question: dict[str, Any]) -> tuple[str, str] | None:
     return support["id"], focus
 
 
-def evaluate_independent(signals: list[EvidenceSignal], questions: dict[str, dict[str, Any]]) -> PolicyDecision:
+def evaluate_independent(signals: list[EvidenceSignal], questions: dict[str, dict[str, Any]], *, release: dict[str, Any] | None = None) -> PolicyDecision:
     pending = [row for row in signals if row.review_status == "pending_review" or row.is_correct is None]
     if pending:
         return PolicyDecision(
@@ -80,7 +87,7 @@ def evaluate_independent(signals: list[EvidenceSignal], questions: dict[str, dic
     mapped: list[tuple[EvidenceSignal, str, str]] = []
     unmapped: list[EvidenceSignal] = []
     for row in incorrect:
-        resolved = resolve_focus(questions[row.question_id])
+        resolved = resolve_focus(questions[row.question_id], release=release)
         if resolved:
             mapped.append((row, resolved[0], resolved[1]))
         else:

@@ -27,7 +27,7 @@ from v2_adaptation_policy import (
     evaluate_support,
     resolve_focus,
 )
-from v2_content.repository import get_question, get_support
+from v2_content.repository import get_pinned_release
 from v2_lesson_runtime import _require_preview_student, _session_or_404
 
 
@@ -51,7 +51,8 @@ def record_response_evidence(
     existing = db.query(SkillEvidence).filter(SkillEvidence.response_id == response.id).one_or_none()
     if existing:
         return existing
-    resolved = resolve_focus(question)
+    release = get_pinned_release(db, session.content_release_id)
+    resolved = resolve_focus(question, release=release)
     evidence = SkillEvidence(
         response_id=response.id,
         lesson_session_id=session.id,
@@ -141,7 +142,8 @@ def _open_support(
 ) -> SupportAssignment:
     if not outcome.support_id or not outcome.focus:
         raise RuntimeError("support outcome is missing its approved focus")
-    support = get_support(outcome.support_id)
+    release = get_pinned_release(db, session.content_release_id)
+    support = next((row for row in release["supports"] if row["id"] == outcome.support_id), None)
     if not support:
         raise RuntimeError("support definition is missing from the pinned release")
     focus_map = (support.get("focus_item_map") or {}).get(outcome.focus)
@@ -230,10 +232,12 @@ def finish_independent_check(db: Session, session: LessonSession, *, decision_ke
         SkillEvidence.support_assignment_id.is_(None),
         SkillEvidence.role == "independent_check",
     ).order_by(SkillEvidence.id).all()
-    questions = {row.question_id: get_question(row.question_id) for row in rows}
+    release = get_pinned_release(db, session.content_release_id)
+    question_index = {row["id"]: row for row in release["questions"]}
+    questions = {row.question_id: question_index.get(row.question_id) for row in rows}
     if any(value is None for value in questions.values()):
         raise RuntimeError("independent evidence references missing release questions")
-    outcome = evaluate_independent(_signals(rows, session.lesson_id), questions)  # type: ignore[arg-type]
+    outcome = evaluate_independent(_signals(rows, session.lesson_id), questions, release=release)  # type: ignore[arg-type]
     decision = _decision(db, session, decision_key, outcome)
     if outcome.kind == "next_lesson":
         _complete_lesson(db, session)
@@ -305,12 +309,19 @@ def student_adaptation_payload(db: Session, session: LessonSession) -> dict[str,
         "next_lesson": "أحسنت، أصبحت خطوتك التالية جاهزة.",
     }
     kind = latest.decision_kind if latest else assignment.mode
+    support_title = None
+    if assignment:
+        release = get_pinned_release(db, session.content_release_id)
+        support = next((row for row in release["supports"] if row["id"] == assignment.support_id), None)
+        if support is None:
+            raise HTTPException(status_code=409, detail="تعذر قراءة دعم الإصدار الأصلي")
+        support_title = support["title"]
     return {
         "state": kind,
         "message": messages.get(kind, "تقدمك محفوظ بأمان."),
         "support": {
             "support_id": assignment.support_id,
-            "title": get_support(assignment.support_id)["title"],
+            "title": support_title,
             "focus": assignment.focus,
             "mode": assignment.mode,
         } if assignment else None,
