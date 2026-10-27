@@ -249,7 +249,9 @@ def test_staff_cannot_choose_a_level_before_autonomous_reconciliation(researcher
         assert db.query(StudentJourney).one().placement_state == "in_progress"
 
 
-def test_legacy_ready_pretest_reconciles_to_system_placement_once(student_client):
+def test_legacy_ready_pretest_reconciles_to_system_placement_once(student_client, monkeypatch):
+    import storage
+    monkeypatch.setattr(storage, "verify_audio", lambda *args, **kwargs: None)
     """Persisted review queue is recovered with no researcher actor or retake."""
     with TestingSessionLocal() as db:
         student = db.query(Student).filter(Student.access_code == "STU001").one()
@@ -263,12 +265,19 @@ def test_legacy_ready_pretest_reconciles_to_system_placement_once(student_client
         )
         db.add(session); db.flush()
         for question in (q for q in get_release()["questions"] if q["role"] == "pretest"):
-            db.add(AssessmentQuestionResponse(
+            answer = AssessmentQuestionResponse(
                 assessment_session_id=session.id, question_id=question["id"],
                 role="pretest", answer_json={"synthetic": True}, submit_key=str(uuid4()),
                 status="graded", is_correct=True, skill_group=question["skill_group"],
                 evidence_type=question["evidence_type"],
-            ))
+            )
+            db.add(answer); db.flush()
+            if question["interaction"] == "read_aloud":
+                db.add(AudioSubmission(
+                    assessment_response_id=answer.id,
+                    storage_key=f"synthetic/{student.id}/{question['id']}.webm",
+                    file_size=2048, mime_type="audio/webm", status="graded",
+                ))
         session_id = session.id
         db.commit()
     response = student_client.post(f"/v2/assessments/sessions/{session_id}/finalize-placement")
@@ -281,6 +290,32 @@ def test_legacy_ready_pretest_reconciles_to_system_placement_once(student_client
         assert db.query(PlacementDecisionV2).one().decided_by is None
         assert db.query(AssessmentSession).one().official_for_reporting is True
         assert db.query(StudentJourney).one().current_level == 3
+
+
+def test_pretest_recovery_rejects_missing_graded_audio_even_when_all_flags_are_graded(student_client):
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        release = register_candidate_release(db)
+        db.add(StudentJourney(student_id=student.id, content_release_id=release.id,
+                              placement_state="in_progress", current_level=1))
+        session = AssessmentSession(student_id=student.id, content_release_id=release.id,
+            session_type="pretest", status="in_progress", v2_state="placement_pending_review",
+            v2_question_index=30, assessment_attempt_no=1)
+        db.add(session); db.flush()
+        for question in (q for q in get_release()["questions"] if q["role"] == "pretest"):
+            db.add(AssessmentQuestionResponse(
+                assessment_session_id=session.id, question_id=question["id"],
+                role="pretest", answer_json={"synthetic": True}, submit_key=str(uuid4()),
+                status="graded", is_correct=True, skill_group=question["skill_group"],
+                evidence_type=question["evidence_type"],
+            ))
+        session_id = session.id
+        db.commit()
+    result = student_client.post(f"/v2/assessments/sessions/{session_id}/finalize-placement")
+    assert result.status_code == 409
+    with TestingSessionLocal() as db:
+        assert db.query(PlacementDecisionV2).count() == 0
+        assert db.query(StudentJourney).one().placement_state == "in_progress"
 
 
 def test_pretest_reconciliation_rejects_unreviewed_voice_without_placement(student_client):
