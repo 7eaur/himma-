@@ -159,7 +159,9 @@ def current_action(student: Student = Depends(_require_preview_student), db: Ses
     if journey.placement_state == "placed" and not eligible_lesson:
         return {"action": "placement_review", "href": None, "label": "بانتظار اعتماد التسكين"}
     if journey.placement_state == "posttest_ready":
-        return {"action": "start_posttest" if student.posttest_enabled else "waiting_posttest_enable", "href": None, "label": "ابدأ الاختبار البعدي" if student.posttest_enabled else "بانتظار إتاحة الاختبار البعدي"}
+        # Read-only projection; the same server-side academic gate authorizes
+        # the actual POST. No supervisor switch is needed for a ready learner.
+        return {"action": "start_posttest", "href": None, "label": "ابدأ الاختبار البعدي"}
     if journey.placement_state == "completed":
         return {"action": "complete", "href": "/student/learning-v2", "label": "اكتملت الرحلة"}
     return {"action": "lesson_catalog", "href": "/student/learning-v2", "label": "متابعة الرحلة التعليمية"}
@@ -358,8 +360,8 @@ def start_assessment(
     if kind == "pretest" and not authorization and journey and journey.placement_state not in {"not_started", "in_progress"}:
         raise HTTPException(status_code=409, detail="اكتمل الاختبار القبلي والتسكين")
     if kind == "posttest":
-        if not authorization and not student.posttest_enabled:
-            raise HTTPException(status_code=409, detail="الاختبار البعدي غير متاح بعد")
+        # V2 learners enter the posttest on academic readiness, not a staff
+        # approval flag. Keep the strict common gate for direct API calls.
         from v2_student_accounts import require_posttest_completion
         require_posttest_completion(db, student, journey, allow_completed=bool(authorization))
     # Once an academic journey exists, both later assessments keep its
