@@ -3,7 +3,7 @@ from uuid import uuid4
 import pytest
 
 from conftest import TestingSessionLocal
-from db.learning_models import LessonQuestionDraft, LessonQuestionResponse, LessonSession, StudentJourney
+from db.learning_models import LessonQuestionResponse, LessonSession, StudentJourney
 from db.models import AudioSubmission, Student
 from v2_content.compiler import compile_release
 from v2_content.contracts import PRIVATE_KEYS
@@ -143,7 +143,7 @@ def test_word_builder_auto_grades_without_human_review(student_client):
     with TestingSessionLocal() as db:
         response = db.query(LessonQuestionResponse).one()
         assert response.is_correct is True and response.status == "graded"
-        assert db.query(LessonQuestionDraft).count() == 0
+        assert "lesson_question_drafts" not in LessonQuestionResponse.metadata.tables
 
 
 def test_reading_upload_reuses_private_storage_and_is_academically_neutral(student_client, monkeypatch):
