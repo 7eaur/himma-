@@ -133,6 +133,11 @@ test("P0: first real login starts V2 pretest and resumes a saved answer after re
   await page.getByTestId("student-login-submit").click();
   await expect(page.getByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
   await expect(page.getByTestId("student-primary-action")).toHaveText("ابدأ الاختبار القبلي");
+  await page.goto("/student/learning-v2");
+  await expect(page.getByRole("heading", { name: "دروسك تفتح بعد تحديد مستواك" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "غير متاح الآن" })).toHaveCount(0);
+  await page.getByRole("link", { name: "العودة إلى رحلتي" }).click();
+  await expect(page.getByTestId("student-primary-action")).toHaveText("ابدأ الاختبار القبلي");
   const startReply = page.waitForResponse(reply =>
     reply.request().method() === "POST" &&
     new URL(reply.url()).pathname === "/api/v2/assessments/pretest/start");
