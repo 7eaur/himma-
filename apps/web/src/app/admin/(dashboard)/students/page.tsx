@@ -37,7 +37,8 @@ const PAGE_SIZE = 30;
 function statusLabel(student: StudentListItem) {
   if (student.current_action.action === "migration_review") return "انتقال للمشرف";
   if (student.current_action.action === "start_pretest") return "بانتظار القبلي";
-  if (student.current_action.state === "waiting_review" || student.current_action.state === "placement_pending_review") return "بانتظار المراجعة";
+  if (student.current_action.state === "waiting_review") return "بانتظار مراجعة القراءة";
+  if (student.current_action.state === "placement_pending_review") return "جارٍ تحديد المستوى تلقائيًا";
   if (student.current_action.action === "complete") return "أكمل الرحلة";
   return student.current_action.label;
 }
