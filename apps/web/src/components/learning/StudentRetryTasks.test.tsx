@@ -61,3 +61,17 @@ describe("V2 student rerecord microphone privacy", () => {
   });
 
 });
+
+it("focuses the rerecording interface on its own requested question", async () => {
+  global.fetch = jest.fn().mockResolvedValue({
+    ok:true,status:200,json:async()=>({items:[
+      {task_id:77,kind:"lesson",session_id:10,question_id:"L1-05-GP-04",status:"requested",
+        request_kind:"rerecord",reason:"أعد القراءة",prompt:"اقرأ النص",stimulus:{text:"بَابٌ"},staged_audio:null},
+      {task_id:78,kind:"lesson",session_id:12,question_id:"L1-06-GP-04",status:"requested",
+        request_kind:"rerecord",reason:"أعد القراءة",prompt:"اقرأ النص",stimulus:{text:"قَلَمٌ"},staged_audio:null},
+    ],next_offset:null}),
+  });
+  render(<StudentRetryTasks taskId={77}/>);
+  expect(await screen.findByTestId("retry-original-stimulus")).toHaveTextContent("بَابٌ");
+  expect(screen.queryByText("قَلَمٌ")).not.toBeInTheDocument();
+});

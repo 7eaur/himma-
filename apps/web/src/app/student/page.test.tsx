@@ -354,3 +354,17 @@ describe("Student page V2-only learner boundary", () => {
   });
 
 });
+
+// A supervisor rerecord task must open its own focused learner page,
+// not hide below a long dashboard or recreate a complete assessment.
+it("opens the specific rerecord request from the main learner action", async () => {
+  push.mockClear();
+  mockV2({...firstTime,current_action:{
+    action:"rerecord_required",kind:"lesson",state:"requested",task_id:23,session_id:10,
+    href:"/student/retry/23",label:"أعد تسجيل القراءة",
+  }});
+  render(<StudentPage/>);
+  const button=await screen.findByTestId("student-primary-action");
+  fireEvent.click(button);
+  expect(push).toHaveBeenCalledWith("/student/retry/23");
+});

@@ -86,7 +86,7 @@ def _requested_retry_action(db: Session, student: Student) -> dict[str, Any] | N
         "task_id": task.id,
         "kind": kind,
         "session_id": session_id,
-        "href": "/student#retry-requests",
+        "href": f"/student/retry/{task.id}",
         "label": "أعد تسجيل القراءة",
     }
 

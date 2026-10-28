@@ -76,6 +76,7 @@ def test_p08_learner_audio_retry_never_overwrites_original_recording(student_cli
     assert action.status_code == 200, action.text
     assert action.json()["action"] == "rerecord_required"
     assert action.json()["task_id"] == task_id
+    assert action.json()["href"] == f"/student/retry/{task_id}"
     assert action.json()["session_id"] == sid
     new_key = f"audio/{student_id}/updated.webm"
     # A rerecord request cannot accept a previously uploaded audio key unless

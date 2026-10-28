@@ -216,10 +216,11 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
   </section>;
 }
 
-export default function StudentRetryTasks({ kind, sessionId, dashboard = false, forceVisible = false }: { kind?: "lesson" | "assessment"; sessionId?: number; dashboard?: boolean; forceVisible?: boolean }) {
+export default function StudentRetryTasks({ kind, sessionId, taskId, dashboard = false }: { kind?: "lesson" | "assessment"; sessionId?: number; taskId?: number; dashboard?: boolean }) {
   const [tasks, setTasks] = useState<RetryItem[]>([]);
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(true);
   const requestSequence = useRef(0);
   const load = useCallback(async () => {
     const sequence = ++requestSequence.current;
@@ -255,15 +256,18 @@ export default function StudentRetryTasks({ kind, sessionId, dashboard = false, 
       if (sequence !== requestSequence.current) return;
       setTasks(allTasks.filter((item) =>
         (kind === undefined || item.kind === kind) &&
-        (sessionId === undefined || item.session_id === sessionId)
+        (sessionId === undefined || item.session_id === sessionId) &&
+        (taskId === undefined || item.task_id === taskId)
       ));
       setError("");
     } catch (reason) {
       if (sequence === requestSequence.current) {
         setError(reason instanceof Error ? reason.message : "تعذر تحميل الإعادات");
       }
+    } finally {
+      if (sequence === requestSequence.current) setLoading(false);
     }
-  }, [kind, sessionId]);
+  }, [kind, sessionId, taskId]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => { void load(); }, 0);
@@ -284,7 +288,16 @@ export default function StudentRetryTasks({ kind, sessionId, dashboard = false, 
   const submitted = tasks.filter((task) => task.status === "submitted");
   // The student dashboard must not show an empty review card: it pushes the
   // learning journey below the viewport despite no actionable review request.
-  if (dashboard && tasks.length === 0 && !sent && !forceVisible) {
+  if (taskId !== undefined && loading && !error) {
+    return <p role="status" className="rounded-xl border border-blue-100 bg-white p-5 text-center text-slate-700">جارٍ فتح طلب إعادة القراءة…</p>;
+  }
+  if (taskId !== undefined && !loading && !error && tasks.length === 0 && !sent) {
+    return <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-5">
+      <p role="status" className="font-semibold text-slate-800">طلب القراءة لم يعد متاحًا للإعادة. قد يكون المشرف راجعه أو تغيرت حالته.</p>
+      <button type="button" onClick={() => { setLoading(true); void load(); }} className="min-h-11 rounded-xl border border-blue-300 px-4 py-2 font-bold text-blue-800">تحديث الطلب</button>
+    </section>;
+  }
+  if (dashboard && tasks.length === 0 && !sent) {
     if (!error) return null;
     // On a failed request the inbox is unknown, not confirmed empty.
     // Keep retry available without falsely claiming the student has no tasks.
@@ -295,7 +308,7 @@ export default function StudentRetryTasks({ kind, sessionId, dashboard = false, 
       </button>
     </div>;
   }
-  return <section id={dashboard ? "retry-requests" : undefined} className={dashboard
+  return <section className={dashboard
     ? "mt-3 space-y-3 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5"
     : "mt-4 space-y-3"} dir="rtl" data-testid={dashboard ? "v2-active-retry-tasks" : undefined}>
     {dashboard && <>
@@ -305,7 +318,6 @@ export default function StudentRetryTasks({ kind, sessionId, dashboard = false, 
     <button type="button" className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm"
       onClick={() => void load()}><RefreshCw size={15}/> تحديث طلبات المشرف</button>
     {error && <p role="alert" className="text-sm text-rose-700">{error}</p>}
-    {forceVisible && !error && !sent && tasks.length === 0 && <p role="status" className="text-sm text-slate-700">جارٍ التحقق من طلب إعادة القراءة… إذا لم يظهر، حدّث الطلبات أو أعد فتح لوحة الطالب.</p>}
     {sent && <p role="status" className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">وصلت إجابتك الجديدة؛ بانتظار قرار المشرف.</p>}
     {submitted.length > 0 && <p role="status" className="rounded-lg border border-blue-200 p-3 text-sm">لديك {submitted.length} إجابة جديدة وصلت وتنتظر المراجعة.</p>}
     {requested.map((task) => <RetryCard key={task.task_id} task={task} onSaved={() => { setSent(true); void load(); }}/>)}

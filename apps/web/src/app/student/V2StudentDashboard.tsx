@@ -104,10 +104,6 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
   const start = async () => {
     if (starting || startingRef.current || info.disabled || leavingRef.current) return;
     setError("");
-    if (action.action === "rerecord_required") {
-      document.getElementById("retry-requests")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      return;
-    }
     if (action.href !== null || (action.action !== "start_pretest" && action.action !== "start_posttest")) {
       if (!isSafeStudentRoute(action.href)) {
         setError("تعذر التحقق من رابط الرحلة. يرجى المحاولة لاحقًا.");
@@ -233,7 +229,6 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
         </div>
       </section>
 
-      {action.action === "rerecord_required" && <StudentRetryTasks dashboard forceVisible />}
       <section className={styles.journey} aria-label="تقدم رحلتك في هِمّة" data-testid="student-v2-progress">
         <div className={styles.journeyHeader}>
           <div><h3>تقدمك في الدروس</h3>
