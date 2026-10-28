@@ -21,6 +21,7 @@ function newKey(): string {
 
 function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) {
   const [recording, setRecording] = useState(false);
+  const [requestingMic, setRequestingMic] = useState(false);
   const [seconds, setSeconds] = useState(0);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   // Derive recovery state from the server's latest response, avoiding effect-
@@ -32,26 +33,56 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const recorderRef = useRef<MediaRecorder | null>(null);
+  const mountedRef = useRef(false);
+  const micRequestIdRef = useRef(0);
+  const micPendingRef = useRef(false);
   const chunksRef = useRef<Blob[]>([]);
   const startedAt = useRef(0);
   const uploadKey = useRef(newKey());
   const submitKey = useRef(newKey());
 
+  // Microphone lifetime belongs to this card, never to the playback URL.
+  // A late getUserMedia permission after navigation must close its stream.
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      micRequestIdRef.current += 1;
+      micPendingRef.current = false;
+      const recorder = recorderRef.current;
+      if (recorder) {
+        recorder.ondataavailable = null;
+        recorder.onstop = null;
+        recorder.onerror = null;
+        if (recorder.state !== "inactive") {
+          try { recorder.stop(); } catch { /* Tracks still close below. */ }
+        }
+        recorder.stream.getTracks().forEach((track) => track.stop());
+        recorderRef.current = null;
+      }
+    };
+  }, []);
   useEffect(() => () => {
-    if (recorderRef.current?.state === "recording") recorderRef.current.stop();
-    recorderRef.current?.stream.getTracks().forEach((track) => track.stop());
     if (audioUrl) URL.revokeObjectURL(audioUrl);
   }, [audioUrl]);
 
   const startRecording = async () => {
+    if (busy || recording || micPendingRef.current) return;
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
       setError("متصفحك لا يدعم التسجيل؛ افتح الموقع في متصفح يدعم الميكروفون."); return;
     }
+    const requestId = ++micRequestIdRef.current;
+    micPendingRef.current = true;
+    setRequestingMic(true);
     setError("");
     let openedStream: MediaStream | null = null;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       openedStream = stream;
+      if (!mountedRef.current || requestId !== micRequestIdRef.current) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
       const supported = ["audio/webm;codecs=opus", "audio/mp4", "audio/webm"].find((type) => MediaRecorder.isTypeSupported(type));
       const recorder = supported ? new MediaRecorder(stream, { mimeType: supported }) : new MediaRecorder(stream);
       // New audio is a new submission: never reuse the old audio idempotency key.
@@ -63,16 +94,23 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
       submitKey.current = newKey();
       chunksRef.current = [];
       let recorderFailed = false;
-      recorder.ondataavailable = (event) => { if (event.data.size) chunksRef.current.push(event.data); };
+      recorder.ondataavailable = (event) => {
+        if (mountedRef.current && recorderRef.current === recorder && event.data.size) chunksRef.current.push(event.data);
+      };
       recorder.onerror = () => {
         recorderFailed = true;
         stream.getTracks().forEach((track) => track.stop());
+        if (!mountedRef.current || recorderRef.current !== recorder) return;
+        recorderRef.current = null;
+        recorder.onstop = null;
+        chunksRef.current = [];
         setRecording(false);
         setError("حدث خطأ أثناء التسجيل. حاول مرة أخرى بعد التحقق من إذن الميكروفون.");
       };
       recorder.onstop = () => {
         stream.getTracks().forEach((track) => track.stop());
-        if (recorderFailed) return;
+        if (!mountedRef.current || recorderRef.current !== recorder || recorderFailed) return;
+        recorderRef.current = null;
         const mimeType = recorder.mimeType || chunksRef.current[0]?.type || "audio/webm";
         const blob = new Blob(chunksRef.current, { type: mimeType });
         if (!blob.size || blob.size > 10 * 1024 * 1024) {
@@ -95,8 +133,15 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
       // Some browsers grant a MediaStream but reject MediaRecorder.start().
       // Release the microphone even when setup fails after permission.
       openedStream?.getTracks().forEach((track) => track.stop());
-      setRecording(false);
-      setError("تعذر تشغيل الميكروفون. تحقق من إذنه ثم حاول مجددًا.");
+      if (mountedRef.current && requestId === micRequestIdRef.current) {
+        setRecording(false);
+        setError("تعذر تشغيل الميكروفون. تحقق من إذنه ثم حاول مجددًا.");
+      }
+    } finally {
+      if (mountedRef.current && requestId === micRequestIdRef.current) {
+        micPendingRef.current = false;
+        setRequestingMic(false);
+      }
     }
   };
 
@@ -143,10 +188,10 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
       <p className="mt-2 text-sm text-amber-900">ملاحظة المشرف: {task.reason}</p></div>
     <div className="space-y-2">
         {!audioBlob
-          ? <button type="button" disabled={busy} onClick={recording ? stopRecording : () => void startRecording()}
+          ? <button type="button" disabled={busy || requestingMic} onClick={recording ? stopRecording : () => void startRecording()}
               className="inline-flex items-center gap-2 rounded-xl bg-blue-800 px-4 py-2 font-semibold text-white disabled:opacity-50">
               {recording ? <MicOff size={19}/> : <Mic size={19}/>}
-              {recording ? "إيقاف التسجيل" : "تسجيل القراءة من جديد"}</button>
+              {requestingMic ? "جارٍ تشغيل الميكروفون..." : recording ? "إيقاف التسجيل" : "تسجيل القراءة من جديد"}</button>
           : <><audio controls src={audioUrl || undefined} className="w-full"/>
             <button type="button" onClick={() => {
               setAudioBlob(null);
@@ -163,7 +208,7 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
         <p className="text-sm text-slate-700">القراءة الجديدة ستظل بانتظار مراجعة المشرف، ولن تُحتسب نتيجة تلقائية.</p>
       </div>
     {error && <p role="alert" className="text-sm text-rose-700">{error}</p>}
-    <button type="button" disabled={busy || recording || (!audioBlob && !stagedAudio)}
+    <button type="button" disabled={busy || requestingMic || recording || (!audioBlob && !stagedAudio)}
       onClick={() => void submit()} className="rounded-xl bg-emerald-700 px-5 py-2 font-semibold text-white disabled:opacity-40">
       {busy ? "جاري حفظ الدليل..." : "إرسال الإجابة الجديدة للمراجعة"}</button>
   </section>;
