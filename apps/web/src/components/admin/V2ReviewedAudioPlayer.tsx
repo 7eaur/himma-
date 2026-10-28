@@ -45,7 +45,7 @@ export default function V2ReviewedAudioPlayer({
     <p id={`${id}-label`} className="text-sm font-semibold">استمع للتسجيل كاملًا قبل التقييم</p>
     <audio id={id} aria-labelledby={`${id}-label`} controls preload="none" src={src} onEnded={() => void acknowledgeCompletion()} className="w-full" />
     {saving && <p role="status" className="text-sm text-blue-700">جارٍ تسجيل اكتمال التشغيل...</p>}
-    {completed && <p role="status" className="text-sm text-emerald-700">اكتمل تشغيل التسجيل وسُجلت المراجعة.</p>}
+    {completed && <p role="status" className="text-sm text-emerald-700">اكتمل الاستماع. يمكنك الآن اعتماد القراءة.</p>}
     {error && <p role="alert" className="text-sm text-rose-700">{error}</p>}
   </div>;
 }

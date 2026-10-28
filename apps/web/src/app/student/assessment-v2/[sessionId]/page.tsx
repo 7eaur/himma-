@@ -30,7 +30,7 @@ function isRenderableAssessmentQuestion(interaction: InteractionPayload): boolea
   const question = interaction.question;
   const stimulus = question?.stimulus;
   return typeof question?.prompt === "string" &&
-    ["choose_one", "listen_choose_one", "choose_image", "sequence", "build_word", "read_aloud", "write_text"].includes(question.interaction) &&
+    ["choose_one", "listen_choose_one", "choose_image", "sequence", "build_word", "read_aloud"].includes(question.interaction) &&
     !!stimulus && typeof stimulus === "object" &&
     (stimulus.text === null || typeof stimulus.text === "string") &&
     Array.isArray(stimulus.media) && stimulus.media.every(isMediaReference) &&

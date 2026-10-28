@@ -21,12 +21,12 @@ describe("VideoPlayer", () => {
     expect(video.currentTime).toBe(2.5);
     expect(video).toHaveAttribute("controls");
     expect(video.querySelector("track")).toHaveAttribute("srclang", "ar");
-    expect(screen.getByText(/TEST ONLY/)).toBeInTheDocument();
+    expect(screen.queryByText(/TEST ONLY/)).not.toBeInTheDocument();
   });
 
-  it("labels the shared owner-approved video as temporary without calling it a finished lesson video", () => {
+  it("keeps approved media status details out of the child player", () => {
     render(<VideoPlayer src="/approved-temporary.mp4" temporary onCheckpoint={jest.fn()} onEnded={jest.fn()} />);
-    expect(screen.getByText(/فيديو تمهيدي مؤقت مشترك/)).toBeInTheDocument();
+    expect(screen.queryByText(/فيديو تمهيدي مؤقت مشترك/)).not.toBeInTheDocument();
     expect(screen.queryByText(/TEST ONLY/)).not.toBeInTheDocument();
   });
 

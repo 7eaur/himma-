@@ -81,7 +81,7 @@ export default function V2ReadingRubricEditor({
       </label>
     </div>
     {observation === null
-      ? <p className="mt-3 text-sm text-amber-800" role="status">أدخل عدد وحدات موجبًا، ولا تتجاوز أخطاء الحذف والاستبدال عدد الوحدات، لتفعيل قرار التقييم.</p>
+      ? <p className="mt-3 text-sm text-amber-800" role="status">أكمل القيم الصحيحة لحفظ التقدير الرقمي، أو ألغِ إضافته لاعتماد القراءة دون أرقام.</p>
       : <p className="mt-3 text-sm font-semibold text-teal-900" role="status">
           التقدير الرقمي الوصفي: {observation}% — القرار النهائي يحدده المشرف بعد مراجعة الصوت.
         </p>}

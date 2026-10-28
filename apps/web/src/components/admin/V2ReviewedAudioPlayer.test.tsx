@@ -28,7 +28,7 @@ it("acknowledges only after playback ends", async () => {
     "/api/audio-completed",
     expect.objectContaining({ method: "POST", body: JSON.stringify({ audio_submission_id: 17 }) }),
   ));
-  expect(await screen.findByText("اكتمل تشغيل التسجيل وسُجلت المراجعة.")).toBeInTheDocument();
+  expect(await screen.findByText("اكتمل الاستماع. يمكنك الآن اعتماد القراءة.")).toBeInTheDocument();
   expect(props.onCompletionChange).toHaveBeenLastCalledWith(true);
 });
 
@@ -44,8 +44,8 @@ it("keeps the review locked when the acknowledgement fails", async () => {
 it("restores a server acknowledgement and resets for a new audio revision", () => {
   const first = player({ initiallyCompleted: true });
   const { rerender } = render(<V2ReviewedAudioPlayer key={first.audioSubmissionId} {...first} />);
-  expect(screen.getByText("اكتمل تشغيل التسجيل وسُجلت المراجعة.")).toBeInTheDocument();
+  expect(screen.getByText("اكتمل الاستماع. يمكنك الآن اعتماد القراءة.")).toBeInTheDocument();
   const second = player({ audioSubmissionId: 18, src: "/api/new-private-audio" });
   rerender(<V2ReviewedAudioPlayer key={second.audioSubmissionId} {...second} />);
-  expect(screen.queryByText("اكتمل تشغيل التسجيل وسُجلت المراجعة.")).not.toBeInTheDocument();
+  expect(screen.queryByText("اكتمل الاستماع. يمكنك الآن اعتماد القراءة.")).not.toBeInTheDocument();
 });

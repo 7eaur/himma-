@@ -22,7 +22,7 @@ export default function VideoPlayer(props: VideoPlayerProps) {
   return <VideoPlayerInstance key={props.src} {...props} />;
 }
 
-function VideoPlayerInstance({ src, captionsSrc, startAt = 0, testOnly = false, temporary = false, onCheckpoint, onEnded }: VideoPlayerProps) {
+function VideoPlayerInstance({ src, captionsSrc, startAt = 0, onCheckpoint, onEnded }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const lastCheckpoint = useRef(startAt);
   // Completion is an idempotent learner action: native duplicate ended events
@@ -185,7 +185,7 @@ function VideoPlayerInstance({ src, captionsSrc, startAt = 0, testOnly = false, 
       {state === "ended" && (
         <div className={styles.status} role="status"><div className={styles.statusCard}><strong>أكملت الشرح</strong><span>تم حفظ المشاهدة، ويمكنك الانتقال إلى التدريب الموجّه.</span><button type="button" className={styles.action} onClick={replay}><RotateCcw size={18} /> شاهد مرة أخرى</button></div></div>
       )}
-      <div className={styles.meta}><span>يمكنك الإيقاف والاستكمال والتحكم بالصوت والترجمة من شريط المشغّل.</span>{testOnly && <strong className={styles.testOnly}><AlertTriangle size={14} /> فيديو TEST ONLY غير معتمد للنشر</strong>}{temporary && !testOnly && <strong>هذا فيديو تمهيدي مؤقت مشترك بين الدروس حتى تتوفر فيديوهاتها الخاصة.</strong>}</div>
+      <div className={styles.meta}><span>يمكنك الإيقاف والاستكمال والتحكم بالصوت والترجمة من شريط المشغّل.</span></div>
     </section>
   );
 }

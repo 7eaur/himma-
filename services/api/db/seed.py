@@ -6,11 +6,11 @@ import bcrypt
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from db.database import SessionLocal
-from db.models import User, Student
+from db.models import User
 
 
 def seed():
-    """Seed the initial researcher and optional synthetic sample students.
+    """Seed the initial supervisor account.
 
     IMPORTANT: Tables must already exist via `alembic upgrade head`.
     This script does NOT call Base.metadata.create_all().
@@ -34,12 +34,6 @@ def seed():
             admin_password.encode("utf-8"), bcrypt.gensalt()
         ).decode("utf-8")
         print("Admin password reset applied by explicit seed flag.")
-
-    if os.getenv("SEED_DEMO_STUDENTS", "false").lower() == "true":
-        for i in range(1, 16):
-            code = f"TST-{i:04d}"
-            if not db.query(Student).filter(Student.access_code == code).first():
-                db.add(Student(access_code=code, name=f"طالب تجريبي {i}"))
 
     db.commit()
     db.close()

@@ -34,7 +34,7 @@ export default function V2ReviewCenterPage() {
     window.history.replaceState(null, "", address.pathname + address.search);
   };
   return <div dir="rtl" className="mx-auto w-full max-w-screen-xl min-w-0">
-    <p className="mb-3 px-1 text-sm text-slate-600">مركز مراجعة التسجيلات · دور المشرف الحالي مراجعة الصوت فقط</p>
+    <p className="mb-3 px-1 text-sm text-slate-600">استمع لقراءة الطالب، ثم اعتمدها أو اطلب إعادة التسجيل.</p>
     <nav role="tablist" aria-label="أقسام مراجعة التسجيلات"
       className="mb-4 flex gap-2 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-2">
       {TABS.map((tab, index) => {

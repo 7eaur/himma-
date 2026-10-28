@@ -45,7 +45,6 @@ describe("InteractionPlayer", () => {
     ["sequence", [{ id: "a", text: "سَ", media: [] }, { id: "b", text: "مَ", media: [] }]],
     ["build_word", [{ id: "a", text: "ب", media: [] }, { id: "b", text: "اب", media: [] }]],
     ["read_aloud", []],
-    ["write_text", []],
   ] as const)("renders the shared %s interaction contract", (interaction, options) => {
     const { container } = render(<InteractionPlayer sessionId={7} interaction={payload({
       interaction,
@@ -90,6 +89,23 @@ describe("InteractionPlayer", () => {
     expect(remove).toHaveAccessibleDescription("دْ");
     fireEvent.click(remove);
     expect(screen.getByRole("button", { name: "اختيار الخيار 2" })).toBeEnabled();
+  });
+
+  it("builds a word from separate repeated letters and submits tile IDs for automatic grading", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({ok:true,json:async()=>({submission:{status:"graded",correct:true,retry_required:false},lesson:{session:{}}})});
+    render(<InteractionPlayer sessionId={9} interaction={payload({interaction:"build_word",options:[
+      {id:"b1",text:"ب",media:[]},{id:"b2",text:"ب",media:[]},{id:"a",text:"ا",media:[]},
+    ]})} onLessonChange={jest.fn()} />);
+    expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button",{name:"اختيار الخيار 1"}));
+    fireEvent.click(screen.getByRole("button",{name:"اختيار الخيار 3"}));
+    fireEvent.click(screen.getByRole("button",{name:"اختيار الخيار 2"}));
+    expect(screen.getByLabelText("الترتيب المختار").querySelectorAll("button")).toHaveLength(3);
+    fireEvent.click(screen.getByRole("button",{name:"تحقق من الإجابة"}));
+    await waitFor(()=>expect(global.fetch).toHaveBeenCalled());
+    const body=JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
+    expect(body.selected_option_ids).toEqual(["b1","a","b2"]);
+    expect(body).not.toHaveProperty("text_response");
   });
 
   it("builds an ordered response without duplicating tokens", async () => {
@@ -558,23 +574,6 @@ describe("InteractionPlayer", () => {
       Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: previousDevices });
       global.MediaRecorder = previousRecorder;
     }
-  });
-
-  it("autosaves writing as a draft before it becomes review evidence", async () => {
-    jest.useFakeTimers();
-    (global.fetch as jest.Mock).mockResolvedValue({ ok: true, json: async () => ({ status: "saved" }) });
-    render(<InteractionPlayer sessionId={9} interaction={payload({
-      interaction: "write_text", options: [], stimulus: { text: null, media: [] },
-    })} onLessonChange={jest.fn()}/>);
-    fireEvent.change(screen.getByLabelText("اكتب إجابتك هنا"), { target: { value: "باب" } });
-    expect(screen.getByText("جاري حفظ المسودة...")).toBeInTheDocument();
-    await act(async () => { jest.advanceTimersByTime(700); });
-    await waitFor(() => expect(global.fetch).toHaveBeenCalledWith(
-      "/api/v2/lessons/sessions/9/draft",
-      expect.objectContaining({ method: "PUT", body: JSON.stringify({ text: "باب" }) }),
-    ));
-    expect(screen.getByText("حُفظت المسودة")).toBeInTheDocument();
-    jest.useRealTimers();
   });
 
   it.each([

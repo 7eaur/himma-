@@ -5,7 +5,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Check, Mic, MicOff, Pause, RotateCcw, Volume2, X } from "lucide-react";
 import styles from "./InteractionPlayer.module.css";
 
-export type InteractionKind = "choose_one" | "listen_choose_one" | "choose_image" | "sequence" | "build_word" | "read_aloud" | "write_text";
+export type InteractionKind = "choose_one" | "listen_choose_one" | "choose_image" | "sequence" | "build_word" | "read_aloud";
 type MediaKind = "audio" | "image" | "video";
 interface MediaRef { media_id: string; kind: MediaKind; }
 interface Option { id: string; text: string | null; media: MediaRef[]; }
@@ -43,9 +43,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   const { question, media } = interaction;
   const descriptionIdPrefix = useId();
   const [selected, setSelected] = useState<string[]>([]);
-  const [text, setText] = useState(interaction.draft ?? "");
   const [saving, setSaving] = useState(false);
-  const [draftState, setDraftState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [feedback, setFeedback] = useState<SubmissionResult | null>(null);
   const [error, setError] = useState("");
   const [playingId, setPlayingId] = useState<string | null>(null);
@@ -100,26 +98,11 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
     if (audioUrl) URL.revokeObjectURL(audioUrl);
   }, [audioUrl]);
 
-  useEffect(() => {
-    if (question.interaction !== "write_text" || text === (interaction.draft ?? "")) return;
-    const timer = window.setTimeout(() => {
-      void fetch(`${endpointBase}/sessions/${sessionId}/draft`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
-      }).then((response) => {
-        if (!response.ok) throw new Error();
-        setDraftState("saved");
-      }).catch(() => setDraftState("error"));
-    }, 650);
-    return () => window.clearTimeout(timer);
-  }, [endpointBase, interaction.draft, question.interaction, sessionId, text]);
-
   const ordered = question.interaction === "sequence" || question.interaction === "build_word";
   const missingRequiredOptions = !OPEN_INTERACTIONS.has(question.interaction) && question.options.length === 0;
   // An empty ordered question previously satisfied 0 === 0 and enabled
   // submission of an empty answer. Never grade an incomplete question.
-  const invalidQuestion = missingRequiredOptions;
+  const invalidQuestion = missingRequiredOptions || !SUPPORTED_INTERACTIONS.has(question.interaction);
   // A missing referenced asset must not turn an audio/image question into a
   // guessable text-only answer. This also covers absent image choices even
   // when a malformed payload forgot to declare their media references.
@@ -135,11 +118,10 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
     question.options.some((option) => !option.media.some((item) => item.kind === "image")));
   const ready = useMemo(() => {
     if (missingRequiredMedia || invalidQuestion) return false;
-    if (question.interaction === "write_text") return Boolean(text.trim());
     if (question.interaction === "read_aloud") return Boolean(audioBlob);
     if (ordered) return selected.length === question.options.length;
     return selected.length === 1;
-  }, [audioBlob, invalidQuestion, missingRequiredMedia, ordered, question.interaction, question.options.length, selected.length, text]);
+  }, [audioBlob, invalidQuestion, missingRequiredMedia, ordered, question.interaction, question.options.length, selected.length]);
 
   const playMedia = async (assetId: string) => {
     const asset = media[assetId];
@@ -318,8 +300,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
       let pending = pendingAnswerRef.current;
       if (!pending) {
         let answer: Record<string, unknown>;
-        if (question.interaction === "write_text") answer = { text_response: text };
-        else if (question.interaction === "read_aloud") {
+        if (question.interaction === "read_aloud") {
           if (!audioBlob) throw new Error("سجل قراءتك أولًا");
           const form = new FormData();
           form.append("file", audioBlob, "v2-reading.webm");
@@ -438,14 +419,13 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
       </div>;
     })}</div>}
 
-    {question.interaction === "write_text" && <div className={styles.writing}><label htmlFor={`write-${question.question_id}`}>اكتب إجابتك هنا</label><textarea id={`write-${question.question_id}`} disabled={saving || awaitingConfirmation} value={text} onChange={(event) => { setText(event.target.value); setDraftState("saving"); }} maxLength={500} rows={3} inputMode="text" autoComplete="off"/><span className={draftState === "error" ? styles.draftError : ""}>{draftState === "saving" ? "جاري حفظ المسودة..." : draftState === "saved" ? "حُفظت المسودة" : draftState === "error" ? "تعذر حفظ المسودة؛ سنحاول عند التعديل التالي" : "لا تحتاج إلى كتابة الحركات غير المطلوبة"}</span></div>}
-
     {question.interaction === "read_aloud" && <div className={styles.recorder}>{!audioBlob ? <><button type="button" className={`${styles.recordButton} ${recording ? styles.recording : ""}`} onClick={recording ? stopRecording : () => void startRecording()} disabled={saving || awaitingConfirmation || requestingMic} aria-label={requestingMic ? "جاري تفعيل الميكروفون" : recording ? "إيقاف التسجيل" : "بدء التسجيل"}>{recording ? <MicOff size={28}/> : <Mic size={28}/>}</button><p>{requestingMic ? "جاري طلب إذن الميكروفون..." : recording ? `جاري التسجيل… ${recordingSeconds} ث` : "اضغط ثم اقرأ بصوت واضح"}</p></> : <>{audioUrl && <audio controls src={audioUrl}/>}<button type="button" className={styles.secondary} disabled={saving || awaitingConfirmation} onClick={resetRecording}><RotateCcw size={16}/> إعادة التسجيل</button><p>سيبقى التقييم معلقًا حتى يراجعه المشرف.</p></>}</div>}
 
     {!isAssessment && feedback && <div className={`${styles.feedback} ${feedback.correct === false ? styles.retry : styles.accepted}`} role="status"><strong>{feedback.correct === true ? "أحسنت!" : feedback.correct === false ? "حاول مرة أخرى" : "تم الحفظ"}</strong><span>{feedback.message}</span></div>}
     {error && <div className={styles.error} role="alert">{error}</div>}
-    <button type="button" className={styles.submit} disabled={!ready || saving || recording} onClick={() => void submit()}>{saving ? "جاري الحفظ..." : awaitingConfirmation ? "إعادة محاولة حفظ الإجابة" : question.interaction === "read_aloud" ? "إرسال التسجيل للمراجعة" : question.interaction === "write_text" ? "إرسال الكتابة للمراجعة" : isAssessment ? "حفظ الإجابة والمتابعة" : "تحقق من الإجابة"}</button>
+    <button type="button" className={styles.submit} disabled={!ready || saving || recording} onClick={() => void submit()}>{saving ? "جاري الحفظ..." : awaitingConfirmation ? "إعادة محاولة حفظ الإجابة" : question.interaction === "read_aloud" ? "إرسال التسجيل للمراجعة" : isAssessment ? "حفظ الإجابة والمتابعة" : "تحقق من الإجابة"}</button>
   </section>;
 }
 
-const OPEN_INTERACTIONS = new Set<InteractionKind>(["read_aloud", "write_text"]);
+const SUPPORTED_INTERACTIONS = new Set<InteractionKind>(["choose_one", "listen_choose_one", "choose_image", "sequence", "build_word", "read_aloud"]);
+const OPEN_INTERACTIONS = new Set<InteractionKind>(["read_aloud"]);
