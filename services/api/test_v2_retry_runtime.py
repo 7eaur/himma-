@@ -2,7 +2,7 @@
 from uuid import uuid4
 
 from conftest import TestingSessionLocal
-from db.learning_models import AssessmentQuestionResponse, LessonQuestionResponse, StudentJourney, V2ReviewRetryTask
+from db.learning_models import AssessmentQuestionResponse, LessonQuestionResponse, PlacementDecisionV2, StudentJourney, V2ReviewRetryTask
 from db.models import AssessmentSession, AudioSubmission, Student
 from test_v2_interaction_runtime import _start_at_questions
 from v2_content.importer import register_candidate_release
@@ -100,7 +100,13 @@ def test_p08_pretest_rewrite_resumes_original_30_questions_and_keeps_history(stu
         assert original.answer_json["text_response"] == "النسخة القديمة"
         assert task.replacement_json["text_response"] == "باب" and task.status == "resolved"
         assert original.status == "graded"
-        assert session.v2_state == "placement_pending_review"
+        # D26: the last human review finalizes the pretest and the system
+        # places the learner; there is no supervisor placement decision.
+        assert session.v2_state == "completed" and session.official_for_reporting
+        decision = db.query(PlacementDecisionV2).filter(
+            PlacementDecisionV2.assessment_session_id == session_id,
+        ).one()
+        assert decision.decided_by is None and decision.assigned_level == 3
 
 
 def test_p08_learner_audio_retry_never_overwrites_original_recording(student_client, monkeypatch):
