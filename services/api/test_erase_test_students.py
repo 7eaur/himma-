@@ -115,3 +115,15 @@ def test_orphan_audio_is_scoped_and_a_changed_object_listing_cannot_be_erased():
             execute_erasure(db,plan,plan["fingerprint"],Mock())
         with pytest.raises(ValueError,match="escaped"):
             erasure_plan(db,[child_id],2,list_audio=lambda _:["audio/999/unrelated.wav"])
+
+def test_absent_authorized_ids_never_mask_unrelated_accounts_or_orphan_audio():
+    with TestingSessionLocal() as db:
+        child_id = fixture(db)
+        missing_id = child_id + 1000
+        with pytest.raises(ValueError, match="authorized IDs absent"):
+            erasure_plan(db, [missing_id], 2)
+        with pytest.raises(ValueError, match="Private audio remains"):
+            erasure_plan(
+                db, [missing_id], 3,
+                list_audio=lambda student_id: [f"audio/{student_id}/orphan.webm"],
+            )
