@@ -8,9 +8,9 @@ describe("V2 student rerecord microphone privacy", () => {
   afterEach(() => {
     jest.restoreAllMocks();
     if (originalMediaDevices) Object.defineProperty(navigator, "mediaDevices", originalMediaDevices);
-    else delete (navigator as Navigator & { mediaDevices?: MediaDevices }).mediaDevices;
+    else Reflect.deleteProperty(navigator, "mediaDevices");
     if (originalRecorder) Object.defineProperty(globalThis, "MediaRecorder", originalRecorder);
-    else delete (globalThis as typeof globalThis & { MediaRecorder?: typeof MediaRecorder }).MediaRecorder;
+    else Reflect.deleteProperty(globalThis, "MediaRecorder");
   });
 
   it("closes a late microphone grant after the child navigates away", async () => {
