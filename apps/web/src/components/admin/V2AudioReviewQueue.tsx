@@ -152,18 +152,18 @@ export default function V2AudioReviewQueue({ kind }: { kind: Kind }) {
       <div className={styles.toolbar}><label htmlFor={`review-search-${kind}`}>بحث في هذه الصفحة</label>
         <input id={`review-search-${kind}`} className="input-field" value={search} onChange={event => setSearch(event.target.value)} placeholder="اسم الطالب أو النشاط" />
         <span>{loading ? "جارٍ التحميل" : `${audioItems.length} تسجيل في الصفحة`}</span></div>
-      {!loading && audioItems.length !== queue.items.length && <p role="alert" className="alert-error">توجد إجابات محفوظة تحتاج فحص توافق المحتوى؛ لا تُعامل كتسجيلات صوتية ولا تُعاد كتابتها.</p>}
+      {!loading && audioItems.length !== queue.items.length && <p role="status" className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">هناك {queue.items.length - audioItems.length} إجابات غير صوتية محفوظة؛ لا تظهر في قائمة مراجعة القراءة ولا تُحوَّل إلى تسجيلات.</p>}
       {loading ? <p role="status">جاري تحميل التسجيلات...</p> : !audioItems.length
         ? <AdminEmptyState title="لا توجد تسجيلات تحتاج مراجعة في هذه الصفحة" description="تظهر هنا تسجيلات القراءة التي تنتظر قرارك." />
         : !items.length ? <AdminEmptyState title="لا توجد نتائج لهذا البحث" description="غيّر البحث أو انتقل إلى صفحة أخرى." />
         : <div className={styles.tableScroll}><table className="data-table" aria-label="تسجيلات تحتاج مراجعة"><thead><tr>
           <th>الطالب</th><th>النشاط</th><th>المطلوب</th><th>تاريخ التسجيل</th><th>الحالة</th><th>الإجراء</th>
         </tr></thead><tbody>{items.map(item => <tr key={item.response_id}>
-          <td><Link href={`/admin/students/${item.student_id}?tab=recordings`}>{item.student_name}</Link></td>
-          <td>{activity(item)}</td><td className={styles.prompt}>{item.prompt}</td>
-          <td>{item.submitted_at ? new Date(item.submitted_at).toLocaleDateString("ar") : "—"}</td>
-          <td>{item.retry_state === "requested" ? "بانتظار إعادة الطالب" : item.retry_state === "submitted" ? "وصلت إعادة التسجيل" : "بانتظار المراجعة"}</td>
-          <td><button type="button" className="btn-secondary" aria-label={`مراجعة تسجيل ${item.student_name} ${item.question_id}`}
+          <td data-label="الطالب"><Link href={`/admin/students/${item.student_id}?tab=recordings`}>{item.student_name}</Link></td>
+          <td data-label="النشاط">{activity(item)}</td><td data-label="المطلوب" className={styles.prompt}>{item.prompt}</td>
+          <td data-label="تاريخ التسجيل">{item.submitted_at ? new Date(item.submitted_at).toLocaleDateString("ar") : "—"}</td>
+          <td data-label="الحالة">{item.retry_state === "requested" ? "بانتظار إعادة الطالب" : item.retry_state === "submitted" ? "وصلت إعادة التسجيل" : "بانتظار المراجعة"}</td>
+          <td data-label="الإجراء"><button type="button" className="btn-secondary" aria-label={`مراجعة تسجيل ${item.student_name} ${item.question_id}`}
             disabled={item.retry_state === "requested"} onClick={() => setSelected(item.response_id)}>مراجعة</button></td>
         </tr>)}</tbody></table></div>}
       <nav className={styles.pagination} aria-label="صفحات التسجيلات">
