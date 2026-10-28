@@ -36,13 +36,12 @@ def test_researcher_can_inspect_safe_candidate(researcher_client):
     assert response.json()["state"] == "candidate_not_approved"
 
 
-def test_candidate_media_distinguishes_fixture_from_approved_temporary(student_client):
+def test_candidate_media_has_no_unreferenced_missing_audio_and_preserves_approved_temporary(student_client):
     media = compile_release()["media"]
-    missing = next(asset for asset in media if asset["status"] in {"missing", "missing_new"})
-    fixture = student_client.get(f'/v2/content/candidate/media/{missing["id"]}')
-    assert fixture.status_code == 200
-    assert fixture.json()["test_only"] is True
-    assert fixture.json()["url"].startswith("/api/v2/lessons/test-fixtures/")
+    assert len(media) == 87
+    assert all(asset["status"] not in {"missing", "missing_new"} for asset in media)
+    for retired in ("AUD-L1-03-MA", "AUD-L1-03-SI"):
+        assert student_client.get(f"/v2/content/candidate/media/{retired}").status_code == 404
 
     temporary = next(asset for asset in media if asset["status"] == "approved_temporary")
     candidate = student_client.get(f'/v2/content/candidate/media/{temporary["id"]}')

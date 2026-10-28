@@ -259,7 +259,7 @@ def test_p07_preview_binding_swaps_only_requested_asset_without_runtime_change(s
 def test_p07_supervisor_media_inventory_omits_dormant_assets_from_runtime_gate(researcher_client):
     data = researcher_client.get("/v2/lessons/admin/media-inventory").json()
     assert data["required_assets"] == 73
-    assert data["unused_assets"] == 16
+    assert data["unused_assets"] == 14
     assert data["publishable"] is True
     assert all(row["uses"] for row in data["items"] if row["required_for_runtime"])
 
