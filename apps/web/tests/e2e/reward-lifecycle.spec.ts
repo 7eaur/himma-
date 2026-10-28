@@ -11,19 +11,6 @@ type RewardFixture = {
   student_id: number;
   access_code: string;
   name: string;
-  reward_count_before: number;
-  completion_session_id: number;
-  promotion_decision_id: number;
-};
-
-type Reward = {
-  id: number;
-  type: "stars" | "badge";
-  key: string | null;
-  label: string;
-  catalog_version: string | null;
-  asset_id: string | null;
-  asset_path: string | null;
 };
 
 async function installCookie(context: BrowserContext, response: Awaited<ReturnType<APIRequestContext["post"]>>) {
@@ -55,9 +42,11 @@ async function loginAsSupervisor(request: APIRequestContext, context: BrowserCon
   await installCookie(context, response);
 }
 
-function createRewardFixture(): RewardFixture {
+function createV2RewardFixture(): RewardFixture {
   const apiRoot = path.resolve(__dirname, "../../../../services/api");
-  const script = path.join(apiRoot, "tests/support/w6_reward_fixture.py");
+  // This fixture rejects non-local databases and only creates an approved V2
+  // journey/lesson evidence. The retired W6 fixture created a V1 core session.
+  const script = path.join(apiRoot, "tests/support/v2_reward_fixture.py");
   const output = execFileSync("python", [script], {
     cwd: apiRoot,
     env: process.env,
@@ -66,73 +55,61 @@ function createRewardFixture(): RewardFixture {
   const payload = JSON.parse(output.split(/\r?\n/).at(-1) ?? "{}") as RewardFixture;
   expect(payload.student_id).toBeGreaterThan(0);
   expect(payload.access_code).toMatch(/^\d{6}$/);
-  expect(payload.reward_count_before).toBe(0);
   return payload;
 }
 
-async function rewardsFromCurrentBrowser(page: import("@playwright/test").Page, url: string): Promise<Reward[]> {
-  return page.evaluate(async (target) => {
-    const response = await fetch(target, { cache: "no-store" });
-    if (!response.ok) throw new Error(`Reward request failed: ${response.status}`);
-    return response.json();
-  }, url);
-}
-
-test("W6 reward lifecycle awards once, resolves the canonical asset, and survives Student/Admin refresh", async ({ page, context, request }) => {
-  const fixture = createRewardFixture();
+test("W6 V2 rewards award once, survive refresh, and never reopen V1 reward routes", async ({ page, context, request }) => {
+  const fixture = createV2RewardFixture();
 
   await loginAsStudent(request, context, fixture.access_code);
   await page.goto("/student");
   await expect(page.getByTestId("student-home")).toBeVisible({ timeout: 15000 });
-
-  // Historic V1 rewards remain stored and staff-visible, not learner achievements in V2.
   await expect(page.getByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
-  const studentBadge = page.locator('[data-reward-key="level:1:core-complete"]');
-  await expect(studentBadge).toHaveCount(0);
+  await expect(page.getByTestId("v2-star-total")).toHaveText("0 نجمة");
+
+  // The old rewards route cannot be used to earn V1 achievements in V2.
+  const legacyStatus = await page.evaluate(async () =>
+    (await fetch("/api/rewards", { cache: "no-store" })).status
+  );
+  expect(legacyStatus).toBe(409);
   await expect(page.getByTestId("student-badges")).toHaveCount(0);
-
-  const firstRewards = await rewardsFromCurrentBrowser(page, "/api/rewards");
-  const firstBadge = firstRewards.filter((reward) => reward.key === "level:1:core-complete");
-  expect(firstBadge).toHaveLength(1);
-  expect(firstBadge[0]).toMatchObject({
-    type: "badge",
-    label: "مستكشف الحروف",
-    catalog_version: "HIMMA_REWARD_CATALOG_1.0.0",
-    asset_id: "BDG-04",
-    asset_path: "/assets/rewards/svg/hem-bdg-04-letter-explorer.svg",
-  });
-
-  const assetResponse = await request.get(`${BASE_URL}${firstBadge[0].asset_path}`);
-  expect(assetResponse.status()).toBe(200);
-  expect(assetResponse.headers()["content-type"] ?? "").toContain("image/svg+xml");
-
-  const secondRewards = await rewardsFromCurrentBrowser(page, "/api/rewards");
-  const secondBadge = secondRewards.filter((reward) => reward.key === "level:1:core-complete");
-  expect(secondBadge).toHaveLength(1);
-  expect(secondBadge[0].id).toBe(firstBadge[0].id);
-
-  await page.reload();
   await expect(page.locator('[data-reward-key="level:1:core-complete"]')).toHaveCount(0);
 
   await context.clearCookies();
   await loginAsSupervisor(request, context);
   await page.goto(`/admin/students/${fixture.student_id}`);
   await expect(page.getByRole("heading", { name: fixture.name })).toBeVisible({ timeout: 15000 });
-
-  // Historical V1 badges remain in storage, while the V2 profile only renders
-  // its own ledger. The archived dashboard was removed from the current UI.
   await expect(page.getByTestId("supervisor-v2-overview")).toBeVisible();
-  await expect(page.getByTestId("canonical-reward-badge")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "أرشيف V1 التاريخي" })).toHaveCount(0);
+  await expect(page.getByTestId("v2-star-total")).toHaveText("0 نجمة");
 
-  const adminRewards = await rewardsFromCurrentBrowser(page, `/api/researcher/students/${fixture.student_id}/rewards`);
-  const adminBadgePayload = adminRewards.filter((reward) => reward.key === "level:1:core-complete");
-  expect(adminBadgePayload).toHaveLength(1);
-  expect(adminBadgePayload[0].id).toBe(firstBadge[0].id);
-
+  await page.getByRole("button", { name: "مزامنة الاستحقاقات المثبتة" }).click();
+  await expect(page.getByTestId("v2-star-total")).toHaveText("3 نجمة");
+  await page.getByRole("button", { name: "مزامنة الاستحقاقات المثبتة" }).click();
+  await expect(page.getByText("تم التحقق من الاستحقاقات. منح جديدة: 0.")).toBeVisible();
   await page.reload();
-  await expect(page.getByTestId("supervisor-v2-overview")).toBeVisible();
+  await expect(page.getByTestId("v2-star-total")).toHaveText("3 نجمة");
+  await expect(page.getByRole("button", { name: "أرشيف V1 التاريخي" })).toHaveCount(0);
   await expect(page.getByTestId("canonical-reward-badge")).toHaveCount(0);
-  const retainedRewards = await rewardsFromCurrentBrowser(page, `/api/researcher/students/${fixture.student_id}/rewards`);
-  expect(retainedRewards.filter((reward) => reward.key === "level:1:core-complete")).toHaveLength(1);
+
+  const adminHome = await request.get(`${API_URL}/v2/student/admin/students/${fixture.student_id}/home`);
+  expect(adminHome.status()).toBe(200);
+  const persisted = (await adminHome.json()).rewards;
+  expect(persisted.source).toBe("himma_v2_reward_ledger");
+  expect(persisted.total_stars).toBe(3);
+  expect(persisted.lessons).toHaveLength(1);
+  expect(persisted.badges).toHaveLength(0);
+
+  const asset = await request.get(`${BASE_URL}/assets/rewards/svg/hem-bdg-04-letter-explorer.svg`);
+  expect(asset.status()).toBe(200);
+  expect(asset.headers()["content-type"] ?? "").toContain("image/svg+xml");
+
+  await context.clearCookies();
+  await loginAsStudent(request, context, fixture.access_code);
+  await page.goto("/student");
+  await expect(page.getByTestId("v2-star-total")).toHaveText("3 نجمة");
+  await page.reload();
+  await expect(page.getByTestId("v2-star-total")).toHaveText("3 نجمة");
+  const studentHome = await request.get(`${API_URL}/v2/student/home`);
+  expect(studentHome.status()).toBe(200);
+  expect((await studentHome.json()).rewards).toEqual(persisted);
 });
