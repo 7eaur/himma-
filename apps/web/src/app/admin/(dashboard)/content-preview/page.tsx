@@ -99,7 +99,10 @@ export default function ContentBankPage() {
               </select>
             </label>
             {bank.items.filter(row => row.question.question_id === selectedQuestion?.question.question_id).map(({ question, answer, reading_reference, media, section_id }) => <details open key={question.question_id} data-testid="v2-bank-question" className="min-w-0 rounded-2xl border border-border bg-white p-4">
-            <summary className="cursor-pointer font-bold text-navy"><span className="ms-2 text-xs font-normal text-muted">{question.question_id} · {section_id} · {roles[question.role] ?? question.role} · {types[question.interaction] ?? question.interaction}</span>{question.prompt}</summary>
+            <summary className="cursor-pointer break-words text-navy">
+              <span className="ms-2 text-xs font-normal text-muted">{question.question_id} · {section_id} · {roles[question.role] ?? question.role} · {types[question.interaction] ?? question.interaction}</span>
+              <strong className="mt-2 block text-lg">{question.prompt}</strong>
+            </summary>
             <div className="mt-4 space-y-3">
             {question.stimulus.text && <p className="whitespace-pre-wrap">{question.stimulus.text}</p>}
             <ol className="space-y-1 list-decimal list-inside">{question.options.map(option => <li key={option.id}><span className="font-mono text-xs">{option.id}</span> · {option.text || "خيار بصري أو صوتي"}</li>)}</ol>
