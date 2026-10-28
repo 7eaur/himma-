@@ -23,6 +23,15 @@ def erasure_plan(db, student_ids: list[int], expected_total: int, *, lock=False,
     selected_query = select(students.c.id).where(students.c.id.in_(student_ids))
     selected = set(db.scalars(selected_query.with_for_update() if lock else selected_query))
     if not selected:
+        # Absent IDs are not proof of erasure when the supposedly disposable
+        # cohort was replaced by unrelated accounts, or private audio remains.
+        # In either case refuse a misleading "already absent" result.
+        if total >= expected_total:
+            raise ValueError("Cohort changed: authorized IDs absent but an unexpected student cohort remains")
+        if list_audio is not None:
+            for student_id in student_ids:
+                if any(True for _ in list_audio(student_id)):
+                    raise ValueError("Private audio remains for an absent test student; reconcile storage first")
         return {"already_absent": True, "student_ids": student_ids, "counts": {}, "audio_objects": 0}
     if total != expected_total or selected != set(student_ids):
         raise ValueError("Cohort changed: exact IDs and total must match the owner's authorized scope")
