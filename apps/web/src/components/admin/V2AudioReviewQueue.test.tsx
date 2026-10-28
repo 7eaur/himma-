@@ -100,16 +100,16 @@ it("mobile review cards expose a label for every value including date and action
 });
 
 it("shows requested rerecords as waiting for learner, not as actionable reviews", async () => {
-  global.fetch = jest.fn(async () => ok({items:[{...item,retry_state:"requested"}],next_offset:null}));
+  global.fetch = jest.fn(async () => ok({items:[{...item,retry_state:"requested"}],next_offset:null})) as unknown as typeof fetch;
   render(<V2AudioReviewQueue kind="assessment"/>);
   expect(await screen.findByText(/0 جاهز للمراجعة · 1 بانتظار إعادة الطالب/)).toBeInTheDocument();
   expect(screen.getByRole("button",{name:/مراجعة تسجيل طالب اصطناعي/})).toBeDisabled();
 });
 
 it("permits a supervised rerecord request when the original audio file is missing", async () => {
-  global.fetch = jest.fn(async (url: string, options?: RequestInit) =>
+  global.fetch = jest.fn(async (_url: string, options?: RequestInit) =>
     options?.method === "POST" ? ok({status:"requested"}) :
-      ok({items:options?.method === "POST" ? [] : [{...item,audio_url:null,audio_submission_id:null,evidence_ready:false}],next_offset:null}));
+      ok({items:[{...item,audio_url:null,audio_submission_id:null,evidence_ready:false}],next_offset:null})) as unknown as typeof fetch;
   render(<V2AudioReviewQueue kind="assessment"/>);
   const reviewButton = await screen.findByRole("button",{name:/مراجعة تسجيل طالب اصطناعي/});
   fireEvent.click(reviewButton);
