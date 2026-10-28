@@ -14,7 +14,7 @@ function safeDestination(value: unknown): value is string {
   return typeof value === "string" && /^\/admin\/(?:v2-assessments|v2-lesson-review|v2-reviewed-recordings|students\/\d+)(?:\?[a-zA-Z0-9_=&%-]*)?$/.test(value);
 }
 
-export default function AdminNotifications() {
+export default function AdminNotifications({ surface = "any" }: { surface?: "any" | "desktop" | "mobile" }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [data, setData] = useState<NotificationPayload>(EMPTY);
@@ -40,10 +40,42 @@ export default function AdminNotifications() {
   }, []);
   useEffect(() => {
     mounted.current = true;
-    const initial = window.setTimeout(() => void refresh(), 0);
-    const timer = window.setInterval(() => void refresh(), 30000);
-    return () => { mounted.current = false; requestId.current += 1; window.clearTimeout(initial); window.clearInterval(timer); };
-  }, [refresh]);
+    // Only the visible desktop/mobile bell polls. CSS-hidden instances
+    // must never create a second request stream or poll in a background tab.
+    const query = surface === "any" || typeof window.matchMedia !== "function"
+      ? null : window.matchMedia("(max-width: 820px)");
+    let timer: number | undefined;
+    const active = () => {
+      const visibleSurface = surface === "any" || (query
+        ? (surface === "mobile" ? query.matches : !query.matches)
+        : surface === "desktop");
+      return visibleSurface && document.visibilityState === "visible";
+    };
+    const sync = () => {
+      window.clearInterval(timer);
+      if (active()) {
+        void refresh();
+        timer = window.setInterval(() => {
+          if (active()) void refresh();
+        }, 30000);
+      } else {
+        // A delayed completion from a now-hidden surface must not repaint it.
+        requestId.current += 1;
+      }
+    };
+    sync();
+    query?.addEventListener("change", sync);
+    document.addEventListener("visibilitychange", sync);
+    window.addEventListener("focus", sync);
+    return () => {
+      mounted.current = false;
+      requestId.current += 1;
+      window.clearInterval(timer);
+      query?.removeEventListener("change", sync);
+      document.removeEventListener("visibilitychange", sync);
+      window.removeEventListener("focus", sync);
+    };
+  }, [refresh, surface]);
   useEffect(() => {
     if (!open) return;
     const dismiss = (event: KeyboardEvent) => { if (event.key === "Escape") { setOpen(false); trigger.current?.focus(); } };

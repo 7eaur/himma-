@@ -47,3 +47,24 @@ it("shows unavailable instead of an empty inbox when the source fails", async ()
   expect(await screen.findByRole("alert")).toHaveTextContent("تعذر تحميل الإشعارات");
   expect(screen.queryByText("لا توجد إشعارات تحتاج انتباهك الآن.")).not.toBeInTheDocument();
 });
+
+it("polls only the visible surface, not both desktop and mobile bells", async () => {
+  const original = Object.getOwnPropertyDescriptor(window, "matchMedia");
+  const listeners = new Set<() => void>();
+  let mobile = false;
+  Object.defineProperty(window, "matchMedia", {configurable:true,value: () => ({
+    get matches() { return mobile; },
+    addEventListener: (_event:string, fn: () => void) => listeners.add(fn),
+    removeEventListener: (_event:string, fn: () => void) => listeners.delete(fn),
+  })});
+  const fetcher = jest.fn().mockResolvedValue({ok:true,json:async()=>inbox});
+  global.fetch = fetcher;
+  const {unmount} = render(<><AdminNotifications surface="desktop" /><AdminNotifications surface="mobile" /></>);
+  await waitFor(() => expect(fetcher).toHaveBeenCalledTimes(1));
+  mobile = true;
+  listeners.forEach(fn => fn());
+  await waitFor(() => expect(fetcher).toHaveBeenCalledTimes(2));
+  unmount();
+  if (original) Object.defineProperty(window, "matchMedia", original);
+  else Reflect.deleteProperty(window, "matchMedia");
+});
