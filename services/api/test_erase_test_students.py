@@ -98,3 +98,17 @@ def test_deployed_v2_distribution_rejects_legacy_routes_even_before_first_pretes
         with pytest.raises(HTTPException) as rejected:
             v1_student_guard.require_legacy_student(db,db.query(Student).one())
         assert rejected.value.status_code==409
+
+
+def test_orphan_audio_is_scoped_and_a_changed_object_listing_cannot_be_erased():
+    with TestingSessionLocal() as db:
+        child_id=fixture(db)
+        keys=[f"audio/{child_id}/orphan.wav"]
+        listing=lambda _:keys
+        plan=erasure_plan(db,[child_id],2,list_audio=listing)
+        assert plan["audio_objects"]==2
+        keys.append(f"audio/{child_id}/new-upload.wav")
+        with pytest.raises(ValueError,match="changed since"):
+            execute_erasure(db,plan,plan["fingerprint"],Mock())
+        with pytest.raises(ValueError,match="escaped"):
+            erasure_plan(db,[child_id],2,list_audio=lambda _:["audio/999/unrelated.wav"])

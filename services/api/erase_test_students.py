@@ -14,7 +14,7 @@ import re
 from sqlalchemy import MetaData, delete, func, or_, select, update
 
 
-def erasure_plan(db, student_ids: list[int], expected_total: int, *, lock=False) -> dict:
+def erasure_plan(db, student_ids: list[int], expected_total: int, *, lock=False, list_audio=None) -> dict:
     metadata = MetaData()
     metadata.reflect(bind=db.get_bind())
     tables = metadata.tables
@@ -85,11 +85,18 @@ def erasure_plan(db, student_ids: list[int], expected_total: int, *, lock=False)
             raise ValueError(f"Cross-student dependency in {name}")
         snapshot[name] = rows
         collect(rows)
-    encoded = json.dumps(snapshot, sort_keys=True, default=str, separators=(",", ":")).encode()
+    if list_audio is not None:
+        for student_id in student_ids:
+            for key in list_audio(student_id):
+                if not key.startswith(f"audio/{student_id}/"):
+                    raise ValueError("Object listing escaped the authorized student prefix")
+                audio.add(key)
+    encoded = json.dumps({"rows": snapshot, "audio": sorted(audio)}, sort_keys=True, default=str, separators=(",", ":")).encode()
     return {"already_absent": False, "student_ids": sorted(selected),
             "counts": {name: len(rows) for name, rows in sorted(snapshot.items())},
             "audio_objects": len(audio), "fingerprint": sha256(encoded).hexdigest(),
-            "_metadata": metadata, "_owned": owned, "_snapshot": snapshot, "_audio": audio, "_expected_total": expected_total}
+            "_metadata": metadata, "_owned": owned, "_snapshot": snapshot, "_audio": audio,
+            "_expected_total": expected_total, "_list_audio": list_audio}
 
 
 def execute_erasure(db, plan: dict, fingerprint: str, delete_audio) -> dict:
@@ -97,7 +104,7 @@ def execute_erasure(db, plan: dict, fingerprint: str, delete_audio) -> dict:
         return public_plan(plan)
     if fingerprint != plan["fingerprint"]:
         raise ValueError("Dry-run fingerprint does not match; no data was deleted")
-    fresh = erasure_plan(db, plan["student_ids"], plan["_expected_total"], lock=True)
+    fresh = erasure_plan(db, plan["student_ids"], plan["_expected_total"], lock=True, list_audio=plan["_list_audio"])
     if fresh.get("fingerprint") != fingerprint:
         raise ValueError("Data changed since dry-run; deletion refused")
     plan = fresh
@@ -150,8 +157,13 @@ def main():
         parser.error("positive explicit student IDs are required")
     from db.database import SessionLocal
     import storage
+    def list_audio(student_id):
+        paginator = storage.s3_client.get_paginator("list_objects_v2")
+        for page in paginator.paginate(Bucket=storage.S3_BUCKET_NAME, Prefix=f"audio/{student_id}/"):
+            for entry in page.get("Contents", []):
+                yield entry["Key"]
     with SessionLocal() as db:
-        plan = erasure_plan(db, ids, args.expected_total)
+        plan = erasure_plan(db, ids, args.expected_total, list_audio=list_audio)
         result = execute_erasure(db, plan, args.fingerprint, storage.delete_superseded_audio) if args.execute else public_plan(plan)
         print("HIMMA_TEST_ACCOUNT_ERASURE " + json.dumps(result, sort_keys=True))
 
