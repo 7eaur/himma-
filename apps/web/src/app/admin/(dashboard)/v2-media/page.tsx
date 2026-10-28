@@ -13,7 +13,7 @@ const MEDIA_PAGE_SIZE = 12;
 
 export default function V2MediaInventoryPage() {
   const [inventory, setInventory] = useState<Inventory | null>(null);
-  const [filter, setFilter] = useState<"all" | MediaItem["state"]>("all");
+  const [filter, setFilter] = useState<"all" | "temporary" | MediaItem["state"]>("all");
   const [kind, setKind] = useState("all");
   const [search, setSearch] = useState("");
   const [reload, setReload] = useState(0);
@@ -35,7 +35,7 @@ export default function V2MediaInventoryPage() {
     };
     void load(); return () => controller.abort();
   }, [reload]);
-  const items = useMemo(() => inventory?.items.filter(item => (filter === "all" || item.state === filter)
+  const items = useMemo(() => inventory?.items.filter(item => (filter === "all" || (filter === "temporary" ? item.temporary : item.state === filter))
     && (kind === "all" || item.kind === kind)
     && (!search.trim() || `${item.asset_id} ${item.uses.map(ref => ref.owner_id).join(" ")}`.toLowerCase().includes(search.trim().toLowerCase()))) ?? [], [filter, kind, search, inventory]);
   const pageCount = Math.max(1, Math.ceil(items.length / MEDIA_PAGE_SIZE));
@@ -49,13 +49,13 @@ export default function V2MediaInventoryPage() {
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">{(["ready", "temporary", "missing", "test_only"] as const).map(key => <article key={key} className="rounded-2xl border border-border bg-white p-4">
           <span className="text-sm text-muted">{key === "test_only" ? "معاينات اختبارية" : key === "temporary" ? "فيديوهات مؤقتة" : states[key]}</span><strong className="mt-2 block text-3xl text-navy">{inventory.counts[key]}</strong>
         </article>)}</div>
-        <p className="mt-4 text-sm text-muted">الأصول المطلوبة المتاحة: {inventory.published_assets} من {inventory.required_assets}. الملفات الموجودة في البنك: {inventory.candidate_files_present} من {inventory.items.length}. {inventory.publishable ? "اعتماد الوسائط المطلوبة متاح؛ يبقى فحص التشغيل والقبول النهائي." : "بعض الأصول المطلوبة غير جاهزة."}</p>
+        <p className="mt-4 text-sm text-muted">الأصول المطلوبة المتاحة لهذا الإصدار: {inventory.published_assets} من {inventory.required_assets}، منها {inventory.counts.temporary} فيديو مشترك معتمد مؤقتًا. الملفات الموجودة في البنك: {inventory.candidate_files_present} من {inventory.items.length}. {inventory.publishable ? "يبقى فحص التشغيل والقبول النهائي." : "بعض الأصول المطلوبة غير جاهزة."}</p>
         <AdminPanel>
           <div className="flex flex-wrap items-end gap-3">
             <label className="flex min-w-0 flex-1 flex-col gap-2"><span>بحث بمعرّف الوسيط أو الدرس</span><input className="input-field" value={search} onChange={e => { setSearch(e.target.value); setPage(0); }} /></label>
             <label className="flex flex-col gap-2"><span>نوع الوسيط</span><select className="input-field" value={kind} onChange={e => { setKind(e.target.value); setPage(0); }}><option value="all">جميع الأنواع</option><option value="audio">الصوت</option><option value="video">الفيديو</option><option value="image">الصور</option></select></label>
           </div>
-          <div className="my-4 flex flex-wrap gap-2" aria-label="تصفية الوسائط">{(["all", "ready", "pending", "missing"] as const).map(value => <button key={value} type="button" aria-pressed={filter === value} onClick={() => { setFilter(value); setPage(0); }} className={`min-h-11 rounded-xl border px-4 py-2 text-sm font-semibold ${filter === value ? "border-primary text-primary" : "border-border"}`}>{value === "all" ? "الكل" : states[value]}</button>)}</div>
+          <div className="my-4 flex flex-wrap gap-2" aria-label="تصفية الوسائط">{(["all", "ready", "temporary", "pending", "missing"] as const).map(value => <button key={value} type="button" aria-pressed={filter === value} onClick={() => { setFilter(value); setPage(0); }} className={`min-h-11 rounded-xl border px-4 py-2 text-sm font-semibold ${filter === value ? "border-primary text-primary" : "border-border"}`}>{value === "all" ? "الكل" : value === "temporary" ? "الفيديو المؤقت" : states[value]}</button>)}</div>
           <p className="mb-4 text-sm text-muted">{items.length} أصلًا مطابقًا من {inventory.items.length}</p>
           {items.length === 0 ? <AdminEmptyState title="لا توجد أصول مطابقة" /> : <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3" data-testid="v2-media-gallery">{visibleItems.map(item => <article key={item.asset_id} className="min-w-0 space-y-3 rounded-2xl border border-border p-4" data-testid="v2-media-card">
             <h2 className="break-all font-mono font-bold text-navy">{item.asset_id}</h2>

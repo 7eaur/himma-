@@ -75,10 +75,10 @@ def media_readiness_contract(release: dict[str, Any], *, provider: MediaProvider
         active = bool(usages.get(str(asset["id"])))
         required_total += int(active)
         unused_total += int(not active)
-        # A shared demonstration video is playable but is NOT an academically
-        # approved lesson-specific teaching video for client delivery.
+        # The owner approved the checksum-pinned shared video for this release.
+        # Keep the temporary flag visible so individual videos can replace it.
         approved_count += int(active and state == "ready" and not resolved.test_only
-                              and not resolved.temporary and not asset.get("rights_review_required"))
+                              and not asset.get("rights_review_required"))
         if resolved.temporary:
             preview_kind = "shared_approved_temporary_video"
         elif kind == "video" and resolved.test_only:
@@ -96,10 +96,10 @@ def media_readiness_contract(release: dict[str, Any], *, provider: MediaProvider
             "uses": usages.get(str(asset["id"]), []),
             "preview_kind": preview_kind,
             "publication_blocker": active and (state != "ready" or resolved.test_only
-                                               or resolved.temporary or bool(asset.get("rights_review_required"))),
+                                               or bool(asset.get("rights_review_required"))),
             "required_for_runtime": active,
             "rights_pending": bool(asset.get("rights_review_required")),
-            "academic_qa_pending": state != "ready" or resolved.temporary,
+            "academic_qa_pending": state != "ready" or bool(asset.get("rights_review_required")),
             "exact_spoken_text_private": asset.get("reference_spoken_private") if kind == "audio" else None,
             "required_format": {"video": "MP4 H.264/AAC + VTT", "audio": "MP3 (WAV master)", "image": "WebP/PNG + alt text"}[kind],
         })
@@ -109,5 +109,5 @@ def media_readiness_contract(release: dict[str, Any], *, provider: MediaProvider
         "candidate_files_present": present, "published_assets": approved_count,
         "required_assets": required_total, "unused_assets": unused_total,
         "publishable": approved_count == required_total and bool(required_total),
-        "test_only_warning": "TEST ONLY and shared temporary lesson videos never count as final approved educational assets",
+        "test_only_warning": "TEST ONLY never counts; approved temporary lesson videos count for this release and remain marked for later replacement",
     }

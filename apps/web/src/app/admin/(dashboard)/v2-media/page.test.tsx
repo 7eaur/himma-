@@ -28,8 +28,23 @@ test("paginates media on mobile-friendly 12-card pages without dropping V2 sourc
   fireEvent.click(screen.getByRole("button", {name: "التالي"}));
   expect(screen.getAllByTestId("v2-media-card")).toHaveLength(1);
   expect(screen.getByText("MEDIA-25")).toBeInTheDocument();
+  expect(screen.getByText(/الأصول المطلوبة المتاحة لهذا الإصدار: 25 من 25/)).toBeInTheDocument();
   fireEvent.change(screen.getByRole("textbox", {name: "بحث بمعرّف الوسيط أو الدرس"}),
     {target: {value: "MEDIA-02"}});
   expect(screen.getAllByTestId("v2-media-card")).toHaveLength(1);
   expect(screen.getByText("MEDIA-02")).toBeInTheDocument();
+});
+
+test("keeps owner-approved shared lesson videos visible and filterable", async () => {
+  global.fetch = jest.fn().mockResolvedValue({ok: true, json: async () => ({
+    ...inventory, counts: {...inventory.counts, temporary: 1},
+    items: [{...items[0], kind: "video", temporary: true, asset_id: "VID-L1-01"}, items[1]],
+    published_assets: 2, required_assets: 2,
+  })});
+  render(<V2MediaInventoryPage />);
+  await waitFor(() => expect(screen.getByText("VID-L1-01")).toBeInTheDocument());
+  expect(screen.getByText(/منها 1 فيديو مشترك معتمد مؤقتًا/)).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", {name: "الفيديو المؤقت"}));
+  expect(screen.getAllByTestId("v2-media-card")).toHaveLength(1);
+  expect(screen.getByText(/فيديو مشترك معتمد مؤقتًا إلى حين إنتاج فيديو الدرس/)).toBeInTheDocument();
 });

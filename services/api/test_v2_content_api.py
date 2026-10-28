@@ -64,12 +64,13 @@ def test_missing_candidate_resources_are_404(student_client):
     assert student_client.get("/v2/content/candidate/media/nope").status_code == 404
 
 
-def test_shared_temporary_lesson_video_never_makes_release_publishable():
+def test_owner_approved_shared_video_counts_for_current_release_but_stays_temporary():
     bank = compile_release()
     report = media_readiness_contract(bank, provider=MediaProvider(environment="test"))
     videos = [item for item in report["items"]
               if item["kind"] == "video" and item["temporary"] and item["required_for_runtime"]]
     assert len(videos) == 19
-    assert all(item["publication_blocker"] and item["academic_qa_pending"] for item in videos)
-    assert not report["publishable"]
-    assert report["published_assets"] < report["required_assets"]
+    assert all(not item["publication_blocker"] and not item["academic_qa_pending"] for item in videos)
+    assert report["publishable"]
+    assert report["published_assets"] == report["required_assets"] == 73
+    assert report["counts"]["temporary"] == 19
