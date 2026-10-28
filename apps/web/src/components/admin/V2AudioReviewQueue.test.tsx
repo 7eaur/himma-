@@ -87,3 +87,10 @@ it("closes without a decision and restores page scrolling", async () => {
   expect(document.body.style.overflow).not.toBe("hidden");
   expect(fetcher.mock.calls.every(([,options])=>options?.method!=="POST")).toBe(true);
 });
+
+it("mobile review cards expose a label for every value including date and action", async () => {
+  render(<V2AudioReviewQueue kind="assessment" />);
+  const table = await screen.findByRole("table", { name: "تسجيلات تحتاج مراجعة" });
+  const labels = within(table).getAllByRole("cell").map(cell => cell.getAttribute("data-label"));
+  expect(labels).toEqual(["الطالب", "النشاط", "المطلوب", "تاريخ التسجيل", "الحالة", "الإجراء"]);
+});
