@@ -114,14 +114,16 @@ function StudentDetailView({ id }: { id: string }) {
   const codeVisible = visibleCodeForId === id;
   const [message, setMessage] = useState<{ kind: "success" | "error"; text: string }>({ kind: "success", text: "" });
 
-  useEffect(() => {
-    // Next updates useSearchParams for in-app navigation and browser history.
-    // Every tab navigation hides any previously revealed learner credentials.
+  // React's guarded render-time adjustment keeps internal state aligned with
+  // Next URL changes without an effect-driven extra render (or stale credentials).
+  const [lastUrlTab, setLastUrlTab] = useState(urlTab);
+  if (lastUrlTab !== urlTab) {
+    setLastUrlTab(urlTab);
     setVisibleCodeForId(null);
     setAccessCode(null);
     setCopied(false);
     setActiveTab(urlTab);
-  }, [id, urlTab]);
+  }
 
   const selectTab = (tab: TabKey) => {
     setVisibleCodeForId(null);
