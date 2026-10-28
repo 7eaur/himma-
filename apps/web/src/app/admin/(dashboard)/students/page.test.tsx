@@ -22,7 +22,7 @@ it("distinguishes reading review from automatic placement in the V2 student list
 });
 
 it("debounces name search instead of refetching the whole cohort for every character", async () => {
-  const calls = jest.fn(async () => ({ok:true,json:async()=>({
+  const calls = jest.fn(async (_url: string) => ({ok:true,json:async()=>({
     source:"himma_v2_readmodel",total:0,offset:0,limit:30,items:[],
   })}));
   global.fetch = calls as unknown as typeof fetch;
