@@ -19,7 +19,6 @@ import storage
 import recordings
 from assessment_retake import mark_official_completed_attempt
 from db.learning_models import (
-    AssessmentQuestionDraft,
     AssessmentQuestionResponse,
     PlacementDecisionV2,
     StudentJourney,
@@ -60,10 +59,6 @@ def _recommended_level(score_percent: float | int | None) -> int | None:
     if not 0 <= score <= 100:
         raise ValueError("pretest score outside approved percentage range")
     return 1 if score < 50 else 2 if score < 80 else 3
-
-
-class DraftRequest(BaseModel):
-    text: str = Field(max_length=500)
 
 
 class ReviewRequest(BaseModel):
@@ -238,16 +233,11 @@ def _payload(db: Session, session: AssessmentSession) -> dict[str, Any]:
     }
     if session.v2_state == "answering":
         question = _current(db, session)
-        draft = db.query(AssessmentQuestionDraft).filter(
-            AssessmentQuestionDraft.assessment_session_id == session.id,
-            AssessmentQuestionDraft.question_id == question["id"],
-        ).one_or_none()
         payload["interaction"] = {
             "question": student_question(question),
             "media": _media(question, _session_release(db, session)),
             "progress": {"index": session.v2_question_index + 1, "total": 30, "stage": session.session_type},
             "attempts": 0,
-            "draft": (draft.draft_json or {}).get("text") if draft else None,
         }
     if session.v2_state == "completed" and session.session_type == "posttest":
         payload["outcome"] = session.v2_result_json
@@ -481,25 +471,6 @@ def finalize_persisted_placement(
     return _payload(db, session)
 
 
-@router.put("/sessions/{session_id}/draft")
-def save_draft(session_id: int, body: DraftRequest, student: Student = Depends(_require_preview_student), db: Session = Depends(get_db)):
-    session = _session(db, session_id, student.id)
-    question = _current(db, session)
-    if question["interaction"] != "write_text":
-        raise HTTPException(status_code=409, detail="المسودة متاحة لسؤال الكتابة فقط")
-    row = db.query(AssessmentQuestionDraft).filter(
-        AssessmentQuestionDraft.assessment_session_id == session.id,
-        AssessmentQuestionDraft.question_id == question["id"],
-    ).one_or_none()
-    if row:
-        row.draft_json = {"text": body.text}; row.version += 1; row.updated_at = datetime.now(timezone.utc)
-    else:
-        row = AssessmentQuestionDraft(assessment_session_id=session.id, question_id=question["id"], draft_json={"text": body.text})
-        db.add(row)
-    db.commit()
-    return {"status": "saved", "question_id": question["id"], "version": row.version}
-
-
 @router.post("/sessions/{session_id}/recording")
 def upload_recording(
     session_id: int,
@@ -578,12 +549,6 @@ def answer(session_id: int, body: AnswerRequest, student: Student = Depends(_req
             storage_key=canonical["audio_storage_key"], file_size=canonical["audio_file_size"],
             mime_type=canonical["audio_mime_type"], duration_seconds=canonical["audio_duration_seconds"], status="pending_review",
         ))
-    if question["interaction"] == "write_text":
-        draft = db.query(AssessmentQuestionDraft).filter(
-            AssessmentQuestionDraft.assessment_session_id == session.id,
-            AssessmentQuestionDraft.question_id == question["id"],
-        ).one_or_none()
-        if draft: db.delete(draft)
     session.v2_question_index += 1
     session.updated_at = datetime.now(timezone.utc)
     _finish_if_ready(db, session)
@@ -616,13 +581,11 @@ def _review_item(
         audio = db.query(AudioSubmission).filter(
             AudioSubmission.assessment_response_id == row.id
         ).order_by(AudioSubmission.id.desc()).first()
-    answer = (task.replacement_json if task and task.status == "submitted" else row.answer_json) or {}
     is_reading = question["interaction"] == "read_aloud"
-    is_writing = question["interaction"] == "write_text"
     evidence_ready = bool(
         audio and audio.status == "pending_review" and audio.file_size > 0
         and audio.storage_key.startswith(f"audio/{session.student_id}/")
-    ) if is_reading else bool(answer.get("text_response", "").strip()) if is_writing else False
+    ) if is_reading else False
     if task and task.status == "requested":
         evidence_ready = False
     return {
@@ -634,7 +597,6 @@ def _review_item(
         "stimulus_text": (question.get("stimulus") or {}).get("text"),
         "reference": question.get("reading_reference") if is_reading else None,
         "rubric": (question.get("private_answer") or {}).get("rubric"),
-        "text_response": answer.get("text_response") if is_writing else None,
         "audio_url": f"/api/v2/assessments/admin/responses/{row.id}/audio" if is_reading and evidence_ready else None,
         "audio_submission_id": audio.id if is_reading and evidence_ready and audio else None,
         "audio_playback_completed": False,

@@ -67,7 +67,7 @@ def _question(
     # a newer release's rubric. The shared assessment resolver is checksum-pinned.
     release = release if release is not None else _session_release(db, session)
     question = next((q for q in release["questions"] if q["id"] == row.question_id), None)
-    if not question or question["role"] != row.role or question["interaction"] not in {"read_aloud", "write_text"}:
+    if not question or question["role"] != row.role or question["interaction"] != "read_aloud":
         raise HTTPException(status_code=409, detail="دليل الدرس لا يطابق نسخته الأصلية")
     return question
 
@@ -81,14 +81,8 @@ def _item(
     if not preloaded:
         task = active_retry(db, lesson_response_id=row.id)
         audio = _lesson_audio(db, row.id) if question["interaction"] == "read_aloud" else None
-    answer = (task.replacement_json if task and task.status == "submitted" else
-              (row.answer_json or {}).get("answer")) or {}
-    ready = (
-        bool(audio and audio.status == "pending_review" and audio.file_size > 0
-             and audio.storage_key.startswith(f"audio/{session.student_id}/"))
-        if audio is not None or question["interaction"] == "read_aloud"
-        else bool(str(answer.get("text_response") or "").strip())
-    )
+    ready = bool(audio and audio.status == "pending_review" and audio.file_size > 0
+                 and audio.storage_key.startswith(f"audio/{session.student_id}/"))
     if task and task.status == "requested":
         ready = False
     return {
@@ -99,7 +93,6 @@ def _item(
         "interaction": question["interaction"], "prompt": question["prompt"],
         "reference": question.get("reading_reference") if question["interaction"] == "read_aloud" else None,
         "rubric": (question.get("private_answer") or {}).get("rubric"),
-        "text_response": answer.get("text_response") if question["interaction"] == "write_text" else None,
         "audio_url": f"/api/v2/review/lessons/{row.id}/audio" if audio and ready else None,
         "audio_submission_id": audio.id if audio and ready else None,
         "audio_playback_completed": False,

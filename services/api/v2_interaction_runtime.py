@@ -1,9 +1,9 @@
 """P04 unified interaction runtime for the V2 lesson session.
 
-All seven interactions consume the immutable authoring bank. Correct answers
+All six interactions consume the immutable authoring bank. Correct answers
 and review rubrics stay server-side; the learner receives only role-appropriate
-feedback. Open writing and reading remain academically pending until a human
-supervisor reviews them.
+feedback. Recorded reading remains academically pending until a human
+supervisor reviews it.
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field, model_validator
 from sqlalchemy.orm import Session
 
 import storage
-from db.learning_models import LessonQuestionDraft, LessonQuestionResponse, LessonSession, SupportAssignment
+from db.learning_models import LessonQuestionResponse, LessonSession, SupportAssignment
 from db.models import AudioSubmission, Student
 from dependencies import get_db
 from v2_content.media import MediaProvider
@@ -36,7 +36,7 @@ from v2_adaptation_runtime import (
 router = APIRouter(prefix="/v2/lessons", tags=["v2-interactions"])
 CHOICE_INTERACTIONS = {"choose_one", "listen_choose_one", "choose_image"}
 ORDER_INTERACTIONS = {"sequence", "build_word"}
-OPEN_INTERACTIONS = {"read_aloud", "write_text"}
+OPEN_INTERACTIONS = {"read_aloud"}
 STAGE_ROLE = {
     "guided_practice": "guided_practice",
     "independent_check": "independent_check",
@@ -49,7 +49,6 @@ STAGE_ROLE = {
 class AnswerRequest(BaseModel):
     submit_key: str = Field(min_length=8, max_length=100, pattern=r"^[A-Za-z0-9._:-]+$")
     selected_option_ids: list[str] | None = None
-    text_response: str | None = Field(default=None, max_length=500)
     audio_storage_key: str | None = Field(default=None, max_length=255)
     audio_file_size: int | None = Field(default=None, gt=0, le=storage.MAX_AUDIO_BYTES)
     audio_mime_type: str | None = Field(default=None, max_length=100)
@@ -59,15 +58,11 @@ class AnswerRequest(BaseModel):
     def one_answer_shape(self):
         shapes = sum(
             value is not None
-            for value in (self.selected_option_ids, self.text_response, self.audio_storage_key)
+            for value in (self.selected_option_ids, self.audio_storage_key)
         )
         if shapes != 1:
             raise ValueError("أرسل إجابة واحدة فقط")
         return self
-
-
-class DraftRequest(BaseModel):
-    text: str = Field(max_length=500)
 
 
 def _question_ids(db: Session, session: LessonSession) -> list[str]:
@@ -126,13 +121,6 @@ def _resolved_media(db: Session, session: LessonSession, question: dict[str, Any
     return result
 
 
-def _draft(db: Session, session_id: int, question_id: str) -> LessonQuestionDraft | None:
-    return db.query(LessonQuestionDraft).filter(
-        LessonQuestionDraft.lesson_session_id == session_id,
-        LessonQuestionDraft.question_id == question_id,
-    ).one_or_none()
-
-
 def _interaction_payload(db: Session, session: LessonSession) -> dict[str, Any]:
     base = _session_payload(db, session)
     base["adaptation"] = student_adaptation_payload(db, session)
@@ -152,7 +140,6 @@ def _interaction_payload(db: Session, session: LessonSession) -> dict[str, Any]:
     question = _current_question(db, session)
     question_ids = _question_ids(db, session)
     projected = student_question(question)
-    saved_draft = _draft(db, session.id, question["id"])
     base["interaction"] = {
         "question": projected,
         "media": _resolved_media(db, session, question),
@@ -165,7 +152,6 @@ def _interaction_payload(db: Session, session: LessonSession) -> dict[str, Any]:
             LessonQuestionResponse.lesson_session_id == session.id,
             LessonQuestionResponse.question_id == question["id"],
         ).count(),
-        "draft": (saved_draft.draft_json or {}).get("text") if saved_draft else None,
     }
     return base
 
@@ -191,11 +177,6 @@ def _canonical_answer(question: dict[str, Any], body: AnswerRequest, student_id:
         if len(selected) != len(option_ids) or len(set(selected)) != len(selected) or set(selected) != set(option_ids):
             raise HTTPException(status_code=422, detail="رتب جميع العناصر مرة واحدة")
         return {"selected_option_ids": selected}
-    if interaction == "write_text":
-        text = (body.text_response or "").strip()
-        if not text:
-            raise HTTPException(status_code=422, detail="اكتب إجابتك قبل الحفظ")
-        return {"text_response": text}
     if interaction == "read_aloud":
         if not all((body.audio_storage_key, body.audio_file_size, body.audio_mime_type, body.audio_duration_seconds)):
             raise HTTPException(status_code=422, detail="بيانات التسجيل غير مكتملة")
@@ -258,37 +239,6 @@ def current_interaction(
     session = _session_or_404(db, session_id, student.id)
     _require_official_lesson_session(db, session)
     return _interaction_payload(db, session)
-
-
-@router.put("/sessions/{session_id}/draft")
-def save_writing_draft(
-    session_id: int,
-    body: DraftRequest,
-    student: Student = Depends(_require_preview_student),
-    db: Session = Depends(get_db),
-):
-    session = _session_or_404(db, session_id, student.id)
-    _require_official_lesson_session(db, session)
-    question = _current_question(db, session)
-    if question["interaction"] != "write_text":
-        raise HTTPException(status_code=409, detail="المسودة متاحة لسؤال الكتابة الحالي فقط")
-    draft = _draft(db, session.id, question["id"])
-    now = datetime.now(timezone.utc)
-    if draft:
-        draft.draft_json = {"text": body.text}
-        draft.version += 1
-        draft.updated_at = now
-    else:
-        draft = LessonQuestionDraft(
-            lesson_session_id=session.id,
-            question_id=question["id"],
-            draft_json={"text": body.text},
-            created_at=now,
-            updated_at=now,
-        )
-        db.add(draft)
-    db.commit()
-    return {"status": "saved", "question_id": question["id"], "version": draft.version}
 
 
 @router.post("/sessions/{session_id}/recording")
@@ -433,10 +383,6 @@ def submit_answer(
             duration_seconds=canonical["audio_duration_seconds"],
             status="pending_review",
         ))
-    if question["interaction"] == "write_text":
-        draft = _draft(db, session.id, question["id"])
-        if draft:
-            db.delete(draft)
     if should_advance:
         _advance(
             session,

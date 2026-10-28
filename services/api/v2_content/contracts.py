@@ -14,7 +14,6 @@ Interaction = Literal[
     "sequence",
     "build_word",
     "read_aloud",
-    "write_text",
 ]
 QuestionRole = Literal[
     "guided_practice",
@@ -94,9 +93,9 @@ class AuthoringQuestion(AuthoringModel):
                         raise ValueError("ordered answer must use every tile exactly once")
         else:
             if self.options or self.private_answer.correct_option_ids:
-                raise ValueError("read/write interactions cannot expose choice answers")
+                raise ValueError("reading interactions cannot expose choice answers")
             if not self.private_answer.rubric:
-                raise ValueError("read/write interactions require a private review rubric")
+                raise ValueError("reading interactions require a private review rubric")
         return self
 
 

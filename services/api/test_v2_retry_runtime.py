@@ -1,13 +1,10 @@
-"""P08 complete retry flow for V2 lesson audio and V2 pretest writing."""
+"""P08 complete retry flow for V2 recorded-reading evidence."""
 from uuid import uuid4
 
 from conftest import TestingSessionLocal
-from db.learning_models import AssessmentQuestionResponse, LessonQuestionResponse, PlacementDecisionV2, StudentJourney, V2ReviewRetryTask
-from db.models import AssessmentSession, AudioSubmission, Student
+from db.learning_models import LessonQuestionResponse, V2ReviewRetryTask
+from db.models import AudioSubmission, Student
 from test_v2_interaction_runtime import _start_at_questions
-from v2_content.importer import register_candidate_release
-from v2_content.repository import get_release
-from test_v2_legacy_writing_fixture import legacy_writing_release
 from v2_audio_retention import audio_upload_binding, track_new_audio_upload
 
 
@@ -32,81 +29,18 @@ def _stage_lesson_audio(session_id: int, student_id: int, storage_key: str) -> N
         db.commit()
 
 
-def test_p08_pretest_rewrite_resumes_original_30_questions_and_keeps_history(student_client):
-    with TestingSessionLocal() as db:
-        student = db.query(Student).filter(Student.access_code == "STU001").one()
-        release = register_candidate_release(db, legacy_writing_release("V2-PRE-Q12"))
-        db.add(StudentJourney(student_id=student.id, content_release_id=release.id, placement_state="in_progress"))
-        session = AssessmentSession(
-            student_id=student.id, content_release_id=release.id, session_type="pretest",
-            status="in_progress", v2_state="waiting_review", v2_question_index=30,
-            assessment_attempt_no=1, v2_policy_version="test",
-        )
-        db.add(session); db.flush()
-        target = None
-        for question in (q for q in get_release()["questions"] if q["role"] == "pretest"):
-            writing = question["id"] == "V2-PRE-Q12"
-            row = AssessmentQuestionResponse(
-                assessment_session_id=session.id, question_id=question["id"],
-                role="pretest", answer_json={"text_response": "النسخة القديمة"} if writing else {"test": True},
-                submit_key=str(uuid4()), status="pending_review" if writing else "graded",
-                is_correct=None if writing else True,
-                skill_group=question["skill_group"], evidence_type=question["evidence_type"],
-            )
-            db.add(row); db.flush()
-            if writing:
-                target = row.id
-        session_id = session.id
-        db.commit()
-    assert target is not None
-    _researcher(student_client)
-    request = student_client.post(f"/v2/retries/admin/assessment/{target}/request", json={
-        "reason": "النص السابق غير كاف للتحكيم؛ يرجى إعادة كتابة الإجابة بوضوح",
-    })
-    assert request.status_code == 200, request.text
-    task_id = request.json()["task_id"]
-    queue = student_client.get("/v2/assessments/admin/review-queue").json()["items"]
-    pending = next(item for item in queue if item["response_id"] == target)
-    assert pending["retry_state"] == "requested" and pending["evidence_ready"] is False
-    assert student_client.post(f"/v2/assessments/admin/responses/{target}/review", json={
-        "is_correct": True, "note": "غير جائز قبل إعادة الكتابة",
-    }).status_code == 409
-    _student(student_client)
-    student_tasks = student_client.get("/v2/retries/student/tasks").json()["items"]
-    assert any(task["task_id"] == task_id and task["question_id"] == "V2-PRE-Q12" for task in student_tasks)
-    draft = student_client.post(f"/v2/retries/student/tasks/{task_id}/draft",
-                                json={"text_response": "مسودة الاختبار القبلي"})
-    assert draft.status_code == 200, draft.text
-    recovered = student_client.get("/v2/retries/student/tasks")
-    assert recovered.status_code == 200
-    assert next(t for t in recovered.json()["items"] if t["task_id"] == task_id)["draft_text"] == "مسودة الاختبار القبلي"
-    result = student_client.post(f"/v2/retries/student/tasks/{task_id}/submit", json={
-        "submit_key": str(uuid4()), "text_response": "باب",
-    })
-    assert result.status_code == 200, result.text
-    _researcher(student_client)
-    latest = next(item for item in student_client.get("/v2/assessments/admin/review-queue").json()["items"]
-                  if item["response_id"] == target)
-    assert latest["retry_state"] == "submitted"
-    assert latest["text_response"] == "باب" and latest["evidence_ready"] is True
-    grade = student_client.post(f"/v2/assessments/admin/responses/{target}/review", json={
-        "is_correct": True, "note": "تحققت من تطابق الكلمة مع مرجع السؤال",
-    })
-    assert grade.status_code == 200, grade.text
-    with TestingSessionLocal() as db:
-        original = db.query(AssessmentQuestionResponse).filter(AssessmentQuestionResponse.id == target).one()
-        task = db.query(V2ReviewRetryTask).filter(V2ReviewRetryTask.id == task_id).one()
-        session = db.query(AssessmentSession).filter(AssessmentSession.id == session_id).one()
-        assert original.answer_json["text_response"] == "النسخة القديمة"
-        assert task.replacement_json["text_response"] == "باب" and task.status == "resolved"
-        assert original.status == "graded"
-        # D26: the last human review finalizes the pretest and the system
-        # places the learner; there is no supervisor placement decision.
-        assert session.v2_state == "completed" and session.official_for_reporting
-        decision = db.query(PlacementDecisionV2).filter(
-            PlacementDecisionV2.assessment_session_id == session_id,
-        ).one()
-        assert decision.decided_by is None and decision.assigned_level == 3
+def test_v2_pretest_does_not_accept_written_answers_or_drafts(student_client):
+    started = student_client.post("/v2/assessments/pretest/start")
+    assert started.status_code == 200, started.text
+    session_id = started.json()["session"]["session_id"]
+    assert student_client.put(f"/v2/assessments/sessions/{session_id}/draft",
+        json={"text": "نص كتابي ملغى"}).status_code == 404
+    invalid = student_client.post(f"/v2/assessments/sessions/{session_id}/answers",
+        json={"submit_key": str(uuid4()), "text_response": "باب"})
+    assert invalid.status_code == 422
+    resumed = student_client.get(f"/v2/assessments/sessions/{session_id}")
+    assert resumed.status_code == 200
+    assert resumed.json()["session"]["progress"]["answered"] == 0
 
 
 def test_p08_learner_audio_retry_never_overwrites_original_recording(student_client, monkeypatch):

@@ -30,11 +30,6 @@ class RetryRequest(BaseModel):
     reason: Annotated[str, StringConstraints(strip_whitespace=True, min_length=10, max_length=2000)]
 
 
-class RetryDraftRequest(BaseModel):
-    # An unsent draft is never a graded answer; saving an empty string clears it.
-    text_response: str = Field(max_length=500)
-
-
 def _owner(db: Session, kind: Literal["lesson", "assessment"], response_id: int, *, lock: bool = False):
     if kind == "lesson":
         query = db.query(LessonQuestionResponse).filter(LessonQuestionResponse.id == response_id)
@@ -51,8 +46,8 @@ def _owner(db: Session, kind: Literal["lesson", "assessment"], response_id: int,
         session = db.query(AssessmentSession).filter(AssessmentSession.id == row.assessment_session_id).one()
         release = _session_release(db, session)
         question = next((q for q in release["questions"] if q["id"] == row.question_id), None)
-    if not question or question["interaction"] not in ("read_aloud", "write_text"):
-        raise HTTPException(status_code=409, detail="السؤال لا يقبل إعادة تسجيل أو كتابة")
+    if not question or question["interaction"] != "read_aloud":
+        raise HTTPException(status_code=409, detail="السؤال لا يقبل إعادة تسجيل قراءة")
     return row, session, question
 
 
@@ -78,22 +73,21 @@ def request_retry(
         session.status == "completed" and row.role == "guided_practice"
     ):
         raise HTTPException(status_code=409, detail="جلسة الدرس غير نشطة ولا يمكن طلب دليل جديد")
-    request_kind = "rerecord" if question["interaction"] == "read_aloud" else "rewrite"
+    request_kind = "rerecord"
     replacement = V2ReviewRetryTask(
         lesson_response_id=row.id if kind == "lesson" else None,
         assessment_response_id=row.id if kind == "assessment" else None,
         student_id=session.student_id, requested_by=user.id,
         request_kind=request_kind, status="requested", reason=body.reason,
     )
-    if request_kind == "rerecord":
-        audios = db.query(AudioSubmission)
-        audios = audios.filter(
-            AudioSubmission.lesson_response_id == row.id if kind == "lesson"
-            else AudioSubmission.assessment_response_id == row.id
-        ).order_by(AudioSubmission.id.desc())
-        old_audio = audios.first()
-        if old_audio and old_audio.status == "pending_review":
-            old_audio.status = "rerecord_required"
+    audios = db.query(AudioSubmission)
+    audios = audios.filter(
+        AudioSubmission.lesson_response_id == row.id if kind == "lesson"
+        else AudioSubmission.assessment_response_id == row.id
+    ).order_by(AudioSubmission.id.desc())
+    old_audio = audios.first()
+    if old_audio and old_audio.status == "pending_review":
+        old_audio.status = "rerecord_required"
     db.add(replacement)
     db.flush()
     clear_review_claim(db, kind, row.id)
@@ -159,15 +153,11 @@ def student_tasks(
             question for question in release_cache[session.content_release_id]["questions"]
             if question["id"] == row.question_id
         ), None)
-        if not question or question["interaction"] not in ("read_aloud", "write_text"):
-            raise HTTPException(status_code=409, detail="السؤال لا يقبل إعادة تسجيل أو كتابة")
+        if not question or question["interaction"] != "read_aloud" or task.request_kind != "rerecord":
+            raise HTTPException(status_code=409, detail="السؤال لا يقبل إعادة تسجيل قراءة")
         staged = task.replacement_json if task.status == "requested" else None
         items.append({
             "staged_audio": staged.get("staged_audio") if isinstance(staged, dict) else None,
-            "draft_text": (
-                staged.get("draft_text") if task.request_kind == "rewrite"
-                and isinstance(staged, dict) else None
-            ),
             "task_id": task.id, "kind": kind,
             "session_id": session.id, "question_id": row.question_id,
             "status": task.status, "request_kind": task.request_kind,
@@ -189,7 +179,7 @@ def _student_task(db: Session, task_id: int, student: Student, *, lock: bool = F
     task = (query.with_for_update() if lock else query).one_or_none()
     if not task:
         raise HTTPException(status_code=404, detail="مهمة الإعادة غير موجودة")
-    if row.status != "pending_review" or session.student_id != student.id:
+    if row.status != "pending_review" or session.student_id != student.id or task.request_kind != "rerecord":
         raise HTTPException(status_code=409, detail="المهمة غير متاحة لهذا الطالب")
     current = active_retry(db, **{f"{kind}_response_id": row.id})
     if not current or current.id != task.id:
@@ -201,22 +191,6 @@ def _student_task(db: Session, task_id: int, student: Student, *, lock: bool = F
     if kind == "assessment" and session.v2_state != "waiting_review":
         raise HTTPException(status_code=409, detail="جلسة الاختبار غير متاحة للإعادة")
     return task, kind, row, question
-
-
-@router.post("/student/tasks/{task_id}/draft")
-def student_retry_draft(
-    task_id: int, body: RetryDraftRequest,
-    student: Student = Depends(_require_preview_student),
-    db: Session = Depends(get_db),
-):
-    task, _, _, question = _student_task(db, task_id, student, lock=True)
-    if task.status != "requested" or task.request_kind != "rewrite" or question["interaction"] != "write_text":
-        raise HTTPException(status_code=409, detail="هذه المهمة لا تقبل مسودة كتابة")
-    # Same private retry row and existing student authorization; never append
-    # to SkillEvidence or create an Answer/AudioSubmission before final submit.
-    task.replacement_json = {"draft_text": body.text_response}
-    db.commit()
-    return {"status": "draft_saved", "task_id": task.id, "length": len(body.text_response)}
 
 
 @router.post("/student/tasks/{task_id}/recording")
@@ -292,63 +266,57 @@ def student_retry_submit(
         previous = task.replacement_json or {}
         if task.submit_key != body.submit_key:
             raise HTTPException(status_code=409, detail="أُرسلت المهمة بالفعل ولا تقبل التكرار")
-        if task.request_kind == "rewrite":
-            same = (body.text_response or "").strip() == previous.get("text_response")
-        else:
-            same = (
-                body.audio_storage_key == previous.get("audio_storage_key")
-                and body.audio_file_size == previous.get("audio_file_size")
-                and body.audio_mime_type == previous.get("audio_mime_type")
-                and body.audio_duration_seconds == previous.get("audio_duration_seconds")
-            )
+        same = (
+            body.audio_storage_key == previous.get("audio_storage_key")
+            and body.audio_file_size == previous.get("audio_file_size")
+            and body.audio_mime_type == previous.get("audio_mime_type")
+            and body.audio_duration_seconds == previous.get("audio_duration_seconds")
+        )
         if not same:
             raise HTTPException(status_code=409, detail="مفتاح الإرسال سبق استخدامه لدليل مختلف")
         return {"status": "replayed", "task_id": task.id}
     if task.status != "requested":
         raise HTTPException(status_code=409, detail="مهمة الإعادة ليست مفتوحة")
     canonical = _canonical_answer(question, body, student.id)
-    if (question["interaction"] == "read_aloud") != (task.request_kind == "rerecord"):
+    if question["interaction"] != "read_aloud" or task.request_kind != "rerecord":
         raise HTTPException(status_code=409, detail="نوع الدليل لا يطابق طلب الإعادة")
-    if task.request_kind == "rerecord":
-        staged = (task.replacement_json or {}).get("staged_audio")
-        if not staged:
-            raise HTTPException(status_code=409, detail="ارفع تسجيلًا جديدًا خاصًا بهذه المهمة قبل الإرسال")
-        fields = ("audio_storage_key", "audio_file_size", "audio_mime_type", "audio_duration_seconds")
-        if any(staged.get(field) != canonical.get(field) for field in fields):
-            raise HTTPException(status_code=409, detail="ملف الإعادة المرسل لا يطابق التسجيل المرفوع للمهمة")
-    if task.request_kind == "rerecord":
-        # Preserve private keys of replaced, never-submitted uploads for later
-        # retention management. Reviewers still grade only the current audio.
-        old_staging = task.replacement_json if isinstance(task.replacement_json, dict) else {}
-        superseded = old_staging.get("superseded_staged_audio") or []
-        if superseded:
-            canonical["superseded_staged_audio"] = superseded
+    staged = (task.replacement_json or {}).get("staged_audio")
+    if not staged:
+        raise HTTPException(status_code=409, detail="ارفع تسجيلًا جديدًا خاصًا بهذه المهمة قبل الإرسال")
+    fields = ("audio_storage_key", "audio_file_size", "audio_mime_type", "audio_duration_seconds")
+    if any(staged.get(field) != canonical.get(field) for field in fields):
+        raise HTTPException(status_code=409, detail="ملف الإعادة المرسل لا يطابق التسجيل المرفوع للمهمة")
+    # Preserve private keys of replaced, never-submitted uploads for later
+    # retention management. Reviewers still grade only the current audio.
+    old_staging = task.replacement_json if isinstance(task.replacement_json, dict) else {}
+    superseded = old_staging.get("superseded_staged_audio") or []
+    if superseded:
+        canonical["superseded_staged_audio"] = superseded
     task.replacement_json = canonical
     task.submit_key = body.submit_key
     task.submitted_at = datetime.now(timezone.utc)
     task.status = "submitted"
-    if task.request_kind == "rerecord":
-        try:
-            mark_audio_submitted(
-                db,
-                student_id=student.id,
-                storage_key=canonical["audio_storage_key"],
-                binding_key=audio_upload_binding("retry", task.id, question["id"]),
-            )
-        except ValueError as exc:
-            raise HTTPException(status_code=409, detail="ملف إعادة التسجيل المؤقت لم يعد صالحًا") from exc
-        audio = AudioSubmission(
-            response_id=None,
-            lesson_response_id=row.id if kind == "lesson" else None,
-            assessment_response_id=row.id if kind == "assessment" else None,
+    try:
+        mark_audio_submitted(
+            db,
+            student_id=student.id,
             storage_key=canonical["audio_storage_key"],
-            file_size=canonical["audio_file_size"],
-            mime_type=canonical["audio_mime_type"],
-            duration_seconds=canonical["audio_duration_seconds"], status="pending_review",
+            binding_key=audio_upload_binding("retry", task.id, question["id"]),
         )
-        db.add(audio)
-        db.flush()
-        task.audio_submission_id = audio.id
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail="ملف إعادة التسجيل المؤقت لم يعد صالحًا") from exc
+    audio = AudioSubmission(
+        response_id=None,
+        lesson_response_id=row.id if kind == "lesson" else None,
+        assessment_response_id=row.id if kind == "assessment" else None,
+        storage_key=canonical["audio_storage_key"],
+        file_size=canonical["audio_file_size"],
+        mime_type=canonical["audio_mime_type"],
+        duration_seconds=canonical["audio_duration_seconds"], status="pending_review",
+    )
+    db.add(audio)
+    db.flush()
+    task.audio_submission_id = audio.id
     db.add(AuditLog(
         actor_role="student", actor_id=student.id, action="v2_open_evidence_retry_submitted",
         entity_type="v2_review_retry_task", entity_id=str(task.id),

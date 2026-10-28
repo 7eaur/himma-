@@ -10,7 +10,6 @@ from assessment_retake import mark_official_completed_attempt
 from v2_content.contracts import PRIVATE_KEYS
 from v2_content.repository import get_question, get_release
 from v2_content.importer import register_candidate_release
-from test_v2_legacy_writing_fixture import legacy_writing_release
 from v2_assessment_runtime import PlacementRequest, ReviewRequest, _recommended_level
 from v2_lesson_review import LessonDecision
 from v2_retry_runtime import RetryRequest
@@ -360,30 +359,32 @@ def test_v2_admin_queues_reject_student(student_client):
     assert student_client.get("/v2/assessments/admin/placement-queue").status_code == 403
 
 
-def test_archived_writing_queue_is_pinned_and_private(researcher_client):
+def test_review_queue_exposes_reading_evidence_only(researcher_client):
     with TestingSessionLocal() as db:
         student = db.query(Student).filter(Student.access_code == "STU001").one()
-        old_release = legacy_writing_release("V2-PRE-Q12")
-        release = register_candidate_release(db, old_release)
-        session = AssessmentSession(student_id=student.id, content_release_id=release.id,
-            session_type="pretest", status="in_progress", v2_state="waiting_review", v2_question_index=30)
-        db.add(session); db.flush()
-        q = next(q for q in old_release["questions"] if q["id"] == "V2-PRE-Q12")
-        response = AssessmentQuestionResponse(
-            assessment_session_id=session.id, question_id=q["id"], role="pretest",
-            answer_json={"text_response": "كتابة الطالب"},
-            submit_key=str(uuid4()), status="pending_review", is_correct=None,
-            skill_group=q["skill_group"], evidence_type=q["evidence_type"],
+        release = register_candidate_release(db)
+        session = AssessmentSession(
+            student_id=student.id, content_release_id=release.id, session_type="pretest",
+            status="in_progress", v2_state="waiting_review", v2_question_index=30,
         )
-        db.add(response); db.commit()
-        response_id = response.id
-    queue = researcher_client.get("/v2/assessments/admin/review-queue").json()
-    item = next(item for item in queue["items"] if item["response_id"] == response_id)
-    assert item["evidence_ready"] is True
-    assert item["text_response"] == "كتابة الطالب"
-    assert item["prompt"] and item["rubric"]
-    assert "audio_storage_key" not in str(item)
-    assert researcher_client.get(f"/v2/assessments/admin/responses/{response_id}/audio").status_code == 404
+        db.add(session); db.flush()
+        question = next(q for q in get_release()["questions"]
+                        if q["role"] == "pretest" and q["interaction"] == "read_aloud")
+        row = AssessmentQuestionResponse(
+            assessment_session_id=session.id, question_id=question["id"], role="pretest",
+            answer_json={"audio_storage_key": f"audio/{student.id}/missing.webm"},
+            submit_key=str(uuid4()), status="pending_review", is_correct=None,
+            skill_group=question["skill_group"], evidence_type=question["evidence_type"],
+        )
+        db.add(row); db.commit()
+        rid = row.id
+    response = researcher_client.get("/v2/assessments/admin/review-queue")
+    assert response.status_code == 200, response.text
+    item = next(item for item in response.json()["items"] if item["response_id"] == rid)
+    assert item["interaction"] == "read_aloud"
+    assert item["evidence_ready"] is False and item["audio_url"] is None
+    assert "text_response" not in item
+    assert researcher_client.get(f"/v2/assessments/admin/responses/{rid}/audio").status_code == 404
     assert researcher_client.get("/v2/assessments/admin/review-queue?limit=101").status_code == 422
 
 

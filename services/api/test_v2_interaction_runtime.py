@@ -130,7 +130,7 @@ def test_word_builder_auto_grades_without_human_review(student_client):
     assert "correct_option_ids" not in set(_all_keys(item))
     assert student_client.put(
         f"/v2/lessons/sessions/{session_id}/draft", json={"text": "باب"}
-    ).status_code == 409
+    ).status_code == 404
 
     question = get_question("L2-01-GP-04")
     submitted = student_client.post(
