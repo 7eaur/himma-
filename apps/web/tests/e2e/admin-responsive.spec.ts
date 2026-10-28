@@ -206,9 +206,9 @@ test("P09.1-D: supervisor sees official V2 first without V1 stars, and access co
 
   await page.getByRole("tab", { name: "الحساب", exact: true }).click();
   await expect(page.getByText(code, { exact: true })).toHaveCount(0);
-  await page.getByRole("checkbox", { name: "إظهار الرمز" }).check();
+  await page.getByRole("button", { name: "إظهار الرمز" }).click();
   await expect(page.getByText(code, { exact: true })).toBeVisible();
-  await page.getByRole("checkbox", { name: "إظهار الرمز" }).uncheck();
+  await page.getByRole("button", { name: "إخفاء الرمز" }).click();
   await expect(page.getByText(code, { exact: true })).toHaveCount(0);
   await page.getByRole("tab", { name: "نظرة عامة" }).click();
   await expect(page.getByTestId("supervisor-v2-overview")).toBeVisible();

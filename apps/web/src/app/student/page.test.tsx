@@ -45,7 +45,7 @@ describe("Student page V2-only learner boundary", () => {
     expect(await screen.findByRole("heading", { name: "مرحبًا يا طالب" })).toBeInTheDocument();
     expect(screen.getByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
     expect(screen.getByRole("button", { name: "ابدأ الاختبار القبلي" })).toBeEnabled();
-    expect(screen.getByText("يظهر تقدم الدروس بعد اعتماد التسكين.")).toBeInTheDocument();
+    expect(screen.getByText("يظهر تقدم الدروس بعد تحديد مستواك.")).toBeInTheDocument();
     expect(screen.queryByTestId("student-badges")).not.toBeInTheDocument();
     expect(fetcher.mock.calls.some(([url]) => ["/api/profile", "/api/journey", "/api/rewards"].includes(url))).toBe(false);
   });
@@ -74,7 +74,7 @@ describe("Student page V2-only learner boundary", () => {
       current_action: { action: "migration_review", href: null, label: "بانتظار مراجعة المشرف" },
     });
     render(<StudentPage />);
-    expect(await screen.findByRole("heading", { name: "رحلتك تحتاج مراجعة المشرف" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "رحلتك جاهزة للمراجعة" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "بانتظار مراجعة المشرف" })).toBeDisabled();
     expect(screen.queryByText("ابدأ الاختبار القبلي")).not.toBeInTheDocument();
     expect(fetcher.mock.calls.some(([url]) => url === "/api/profile")).toBe(false);

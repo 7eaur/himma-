@@ -104,8 +104,9 @@ test("P09.1-C: an awaiting pretest never displays fictitious scores or stars", a
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/student");
   await expect(page.getByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
-  await expect(page.getByRole("heading", { name: "بانتظار تحديد مستواك" })).toBeVisible();
-  await expect(page.getByText("يظهر تقدم الدروس بعد اعتماد التسكين.")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "نحدد مستواك تلقائيًا" })).toBeVisible();
+  await expect(page.getByText("إجاباتك محفوظة، وستظهر دروسك بعد اكتمال مراجعة القراءة.")).toBeVisible();
+  await expect(page.getByText("يظهر تقدم الدروس بعد تحديد مستواك.")).toBeVisible();
   await expect(page.getByTestId("student-primary-action")).toHaveText("عرض حالة المراجعة");
   await expect(page.locator("[data-testid='student-progress-overview']")).toHaveCount(0);
   await expect(page.getByText("0%", { exact: true })).toHaveCount(0);

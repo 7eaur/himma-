@@ -199,7 +199,7 @@ test.describe("M06 responsive and accessibility integration", () => {
     expect(now).toBeLessThanOrEqual(max);
     expect(now).toBe(20);
     expect(valueText).toBeNull();
-    await expect(page.getByText("20%", { exact: true })).toBeVisible();
+    await expect(page.getByTestId("supervisor-v2-overview").getByText("20%", { exact: true })).toBeVisible();
   });
 
   test("child entry surfaces do not expose implementation vocabulary", async ({ page }) => {

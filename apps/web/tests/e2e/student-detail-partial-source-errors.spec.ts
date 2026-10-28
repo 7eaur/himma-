@@ -77,7 +77,7 @@ test.describe("V2 Student Detail source truth states", () => {
     const student = await createStudent(page, request, `طالب حساب V2 ${Date.now()}`);
     const calls = await failOnce(page, `**/api/v2/student/admin/students/${student.id}/account`);
     await page.goto(`/admin/students/${student.id}`);
-    await expect(page.getByRole("alert")).toContainText("temporary test failure");
+    await expect(page.getByRole("alert").filter({ hasText: "temporary test failure" })).toBeVisible();
     await expect(page.getByRole("heading", { name: student.full_name })).toHaveCount(0);
     await page.reload();
     await expect(page.getByRole("heading", { name: student.full_name })).toBeVisible();

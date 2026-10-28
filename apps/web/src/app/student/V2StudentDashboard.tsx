@@ -63,15 +63,15 @@ const levelNames: Record<number, string> = {
 function stage(home: StudentV2Home) {
   const action = home.current_action;
   if (action.action === "assessment" && action.state === "placement_pending_review")
-    return { title: "بانتظار تحديد مستواك", detail: "إجاباتك محفوظة، والمشرف يراجع التسكين قبل بدء الدروس.", disabled: false };
+    return { title: "نحدد مستواك تلقائيًا", detail: "إجاباتك محفوظة، وستظهر دروسك بعد اكتمال مراجعة القراءة.", disabled: false };
   if (action.action === "assessment" && action.state === "waiting_review")
     return { title: "بانتظار مراجعة القراءة", detail: "تم حفظ إجاباتك، وستكمل رحلتك بعد مراجعة المشرف.", disabled: false };
   if (action.action === "lesson" && action.state === "waiting_review")
     return { title: "درسُك ينتظر المراجعة", detail: "قراءتك محفوظة، ولا تحتاج إلى إعادة الدرس من البداية.", disabled: false };
   if (action.action === "migration_review")
-    return { title: "رحلتك تحتاج مراجعة المشرف", detail: "نحتفظ بتعلّمك السابق. سيراجع المشرف انتقالك إلى هِمّة الجديدة دون تكرار اختبارك أو فقدان سجلك.", disabled: true };
+    return { title: "رحلتك جاهزة للمراجعة", detail: "تقدمك محفوظ. يراجع المشرف بيانات رحلتك قبل الخطوة التالية.", disabled: true };
   if (action.action === "waiting_posttest_enable")
-    return { title: "أنهيت الدروس المطلوبة", detail: "بانتظار إتاحة الاختبار البعدي من المشرف.", disabled: true };
+    return { title: "أنهيت الدروس المطلوبة", detail: "نراجع اكتمال مسارك قبل إتاحة الاختبار البعدي.", disabled: true };
   if (action.action === "complete")
     return { title: "أكملت رحلة هِمّة!", detail: "أنجزت الرحلة والاختبار البعدي. يمكنك مراجعة تقدمك.", disabled: false };
   if (action.action === "start_pretest")
@@ -227,7 +227,7 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
         <div className={styles.journeyHeader}>
           <div><h3>تقدمك في الدروس</h3>
             <p>{home.data_status === "partial" ? "تعذر حساب التقدم من إصدار المحتوى المثبت؛ بياناتك محفوظة." :
-              percent === null ? "يظهر تقدم الدروس بعد اعتماد التسكين." :
+              percent === null ? "يظهر تقدم الدروس بعد تحديد مستواك." :
               `أكملت ${progress.completed_lessons} من ${progress.assigned_lessons} درسًا مخصصًا لك.`}</p>
           </div>
           <span>{percent === null ? "لم يُحسب بعد" : `${percent}%`}</span>

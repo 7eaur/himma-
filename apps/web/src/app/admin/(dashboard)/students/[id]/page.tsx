@@ -187,7 +187,7 @@ function StudentDetailView({ id }: { id: string }) {
         if (!controller.signal.aborted) {
           setV2Result({
             studentId: id, home: null,
-            error: reason instanceof Error ? reason.message : "تعذر الاتصال بسجل الطالب.",
+            error: reason instanceof TypeError ? "تعذر تحميل التقدم الدراسي لهذا الطالب." : reason instanceof Error ? reason.message : "تعذر الاتصال بسجل الطالب.",
           });
         }
       }

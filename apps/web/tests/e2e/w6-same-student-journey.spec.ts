@@ -51,5 +51,5 @@ test('W6: one new identity begins V2 pretest and uses its V2 account record', as
   expect((await account.json()).id).toBe(student!.id);
   await page.goto(`/admin/students/${student!.id}`);
   await expect(page.getByRole('heading',{name})).toBeVisible();
-  await expect(page.getByTestId('supervisor-v2-action')).toContainText('الاختبار القبلي');
+  await expect(page.getByTestId('supervisor-v2-action')).toContainText('متابعة الاختبار');
 });
