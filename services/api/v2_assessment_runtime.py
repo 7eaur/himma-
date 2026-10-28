@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from collections import defaultdict
 from datetime import datetime, timezone
-import json
 from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, Header, HTTPException, Query, UploadFile
@@ -27,7 +26,7 @@ from db.learning_models import (
     LessonSession,
     PrivateContentBankSnapshot,
 )
-from db.models import AssessmentRetakeAuthorization, AssessmentSession, Attempt, AudioSubmission, AuditLog, ContentRelease, Student, User
+from db.models import AssessmentRetakeAuthorization, AssessmentSession, AudioSubmission, AuditLog, ContentRelease, Student, User
 from dependencies import get_current_user, get_db
 from v2_content.importer import register_candidate_release
 from v2_content.media import MediaProvider
@@ -79,34 +78,6 @@ class PlacementRequest(BaseModel):
     override_recommendation: bool = False
 
 
-def _empty_legacy_pretest(db: Session, student_id: int) -> AssessmentSession | None:
-    """Recognize only an untouched V1 shell, never an actual historical attempt.
-
-    The old start endpoint can leave a session before the first question. Keep
-    its identity/history, but do not require academic review of absent evidence.
-    GET only recognizes it; the explicit V2 start POST adopts it under the same
-    student lock used by both assessment runtimes.
-    """
-    sessions = db.query(AssessmentSession).filter(AssessmentSession.student_id == student_id).limit(2).all()
-    if len(sessions) != 1:
-        return None
-    row = sessions[0]
-    if (row.session_type != "pretest" or row.status != "in_progress" or row.v2_state is not None
-            or row.official_for_reporting or row.final_score is not None or row.assigned_level is not None
-            or row.elapsed_seconds != 0 or row.v2_question_index != 0 or row.v2_result_json is not None
-            or row.v2_policy_version is not None or row.completed_at is not None
-            or row.assessment_attempt_no != 1 or row.supersedes_session_id is not None):
-        return None
-    if (db.query(StudentJourney.id).filter(StudentJourney.student_id == student_id).first()
-            or db.query(LessonSession.id).filter(LessonSession.student_id == student_id).first()
-            or db.query(Attempt.id).filter(Attempt.session_id == row.id).first()
-            or db.query(AssessmentQuestionResponse.id).filter(AssessmentQuestionResponse.assessment_session_id == row.id).first()
-            or db.query(AssessmentQuestionDraft.id).filter(AssessmentQuestionDraft.assessment_session_id == row.id).first()
-            or db.query(PlacementDecisionV2.id).filter(PlacementDecisionV2.student_id == student_id).first()):
-        return None
-    return row
-
-
 @router.get("/current-action")
 def current_action(student: Student = Depends(_require_preview_student), db: Session = Depends(get_db)):
     """One read-only, exhaustive resume decision for the learner dashboard."""
@@ -139,7 +110,7 @@ def current_action(student: Student = Depends(_require_preview_student), db: Ses
         prior = db.query(AssessmentSession).filter(
             AssessmentSession.student_id == student.id,
         ).order_by(AssessmentSession.id.desc()).first()
-        if prior and _empty_legacy_pretest(db, student.id) is None:
+        if prior:
             previous_pretest = db.query(AssessmentSession).filter(
                 AssessmentSession.student_id == student.id,
                 AssessmentSession.session_type == "pretest",
@@ -368,22 +339,6 @@ def start_assessment(
         AssessmentSession.status == "in_progress",
     ).one_or_none()
     if active:
-        if kind == "pretest" and _empty_legacy_pretest(db, student.id) is not None:
-            # Preserve every original column in the audit before filling the
-            # unused shell. No DELETE, fabricated result or completed V1 attempt.
-            original = {column.name: getattr(active, column.name) for column in AssessmentSession.__table__.columns}
-            release = register_candidate_release(db)
-            active.content_release_id = release.id
-            active.v2_state = "answering"
-            active.v2_policy_version = POLICY_VERSION
-            db.add(StudentJourney(student_id=student.id, content_release_id=release.id,
-                                  placement_state="in_progress", current_level=1))
-            db.add(AuditLog(actor_role="student", actor_id=student.id,
-                            action="v2.pretest.empty_legacy_adopted", entity_type="assessment_session",
-                            entity_id=str(active.id), details=json.dumps(original, default=str, sort_keys=True)))
-            db.commit()
-            db.refresh(active)
-            return _payload(db, active)
         if active.v2_state is None or active.session_type != kind:
             raise HTTPException(status_code=409, detail="لديك جلسة أخرى قيد التنفيذ")
         return _payload(db, active)

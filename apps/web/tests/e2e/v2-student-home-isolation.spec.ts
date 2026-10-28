@@ -314,29 +314,26 @@ test("HV2-002/003: two synthetic learners keep pretest progress isolated across 
 });
 
 
-test("W1: untouched legacy pretest shell starts V2 without losing its identity", async ({ page, request }) => {
+test("W1: a fresh V2 account uses one assessment and rejects the parallel legacy start", async ({ page, request }) => {
   test.setTimeout(150000);
   if (!PASSWORD) throw new Error("E2E_RESEARCHER_PASSWORD required");
   expect((await request.post(`${API_URL}/auth/login`, { data: { username: USERNAME, password: PASSWORD } })).status()).toBe(200);
-  const created = await request.post(`${API_URL}/researcher/students`, {
-    data: { full_name: `طالب جلسة فارغة اصطناعي ${Date.now()}`, grade_level: 3 },
+  const created = await request.post(`${API_URL}/v2/student/admin/students`, {
+    data: { full_name: `طالب مسار موحد اصطناعي ${Date.now()}`, grade_level: 3 },
   });
   expect(created.status()).toBe(201);
   const student = await created.json() as { access_code: string };
-  expect((await request.post(`${API_URL}/auth/student-login`, { data: { access_code: student.access_code } })).status()).toBe(200);
-  // Reproduce the prior runtime's start without opening or answering any item.
-  const legacy = await request.post(`${API_URL}/assessment/start`, { data: { session_type: "pretest" } });
-  expect(legacy.status()).toBe(200);
-  const shell = await legacy.json() as { id: number };
   await page.goto("/student/login");
   await page.getByTestId("input-access-code").fill(student.access_code);
   await page.getByTestId("student-login-submit").click();
   await expect(page.getByTestId("student-primary-action")).toHaveText("ابدأ الاختبار القبلي");
   await page.getByTestId("student-primary-action").click();
-  await expect(page).toHaveURL(`/student/assessment-v2/${shell.id}`);
+  await expect(page).toHaveURL(/\/student\/assessment-v2\/[0-9]+$/);
   await expect(page.getByTestId("v2-interaction-player")).toContainText("1 من 30");
+  const sessionUrl = page.url();
+  expect((await request.post(`${API_URL}/auth/student-login`, { data: { access_code: student.access_code } })).status()).toBe(200);
+  expect((await request.post(`${API_URL}/assessment/start`, { data: { session_type: "pretest" } })).status()).toBe(409);
   await page.reload();
+  await expect(page).toHaveURL(sessionUrl);
   await expect(page.getByTestId("v2-interaction-player")).toContainText("1 من 30");
-  await mkdir(OUTPUT, { recursive: true });
-  await page.screenshot({ path: path.join(OUTPUT, "w1-empty-legacy-shell-resumed.png"), fullPage: true });
 });

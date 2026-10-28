@@ -88,3 +88,13 @@ def test_regular_seed_cannot_recreate_demo_students_even_with_a_stale_flag(monke
     with TestingSessionLocal() as db:
         assert db.query(Student).count()==1
         assert db.query(User).count()==1
+
+
+def test_deployed_v2_distribution_rejects_legacy_routes_even_before_first_pretest(monkeypatch):
+    from fastapi import HTTPException
+    import v1_student_guard
+    monkeypatch.setattr(v1_student_guard,"protected_runtime",lambda:True)
+    with TestingSessionLocal() as db:
+        with pytest.raises(HTTPException) as rejected:
+            v1_student_guard.require_legacy_student(db,db.query(Student).one())
+        assert rejected.value.status_code==409

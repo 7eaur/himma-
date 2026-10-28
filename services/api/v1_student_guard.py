@@ -6,11 +6,12 @@ from sqlalchemy.orm import Session
 from db.learning_models import StudentJourney
 from db.models import Student
 from dependencies import get_current_student, get_db
+from runtime_flags import protected_runtime
 
 
 def require_legacy_student(db: Session, student: Student) -> None:
-    if db.query(StudentJourney.student_id).filter(StudentJourney.student_id == student.id).first():
-        raise HTTPException(status_code=409, detail="هذا الحساب يتابع رحلته في الإصدار الثاني")
+    if protected_runtime() or db.query(StudentJourney.student_id).filter(StudentJourney.student_id == student.id).first():
+        raise HTTPException(status_code=409, detail="تابع رحلتك من لوحة الطالب")
 
 
 def legacy_student_only(

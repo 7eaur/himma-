@@ -669,33 +669,17 @@ def test_pretest_503_preview_gate_keeps_answer_and_session_resumable(student_cli
         ).count() == 1
 
 
-def test_untouched_legacy_pretest_is_adopted_on_explicit_start_with_audited_history(student_client):
-    import json
+def test_legacy_shell_is_not_silently_converted_into_a_v2_assessment(student_client):
     with TestingSessionLocal() as db:
         student = db.query(Student).filter(Student.access_code == 'STU001').one()
         shell = AssessmentSession(student_id=student.id, session_type='pretest', status='in_progress')
-        db.add(shell)
-        db.commit()
+        db.add(shell); db.commit()
         session_id = shell.id
-        started_at = shell.started_at
-    assert student_client.get('/v2/assessments/current-action').json()['action'] == 'start_pretest'
+    assert student_client.get('/v2/assessments/current-action').json()['action'] == 'migration_review'
+    assert student_client.post('/v2/assessments/pretest/start').status_code == 409
     with TestingSessionLocal() as db:
-        assert db.query(StudentJourney).count() == 0
         assert db.get(AssessmentSession, session_id).v2_state is None
-    started = student_client.post('/v2/assessments/pretest/start')
-    assert started.status_code == 200, started.text
-    assert started.json()['session']['session_id'] == session_id
-    assert started.json()['interaction']['progress']['index'] == 1
-    replay = student_client.post('/v2/assessments/pretest/start')
-    assert replay.status_code == 200 and replay.json()['session']['session_id'] == session_id
-    with TestingSessionLocal() as db:
-        assert db.query(AssessmentSession).count() == db.query(StudentJourney).count() == 1
-        row = db.get(AssessmentSession, session_id)
-        assert row.started_at == started_at and row.final_score is None
-        audit = db.query(AuditLog).filter(AuditLog.action == 'v2.pretest.empty_legacy_adopted').one()
-        original = json.loads(audit.details)
-        assert original['id'] == session_id and original['v2_state'] is None
-        assert original['status'] == 'in_progress' and original['final_score'] is None
+        assert db.query(StudentJourney).count() == 0
 
 
 @pytest.mark.parametrize('metadata', [
