@@ -46,14 +46,23 @@ export default function StudentsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [status, setStatus] = useState<"all" | "active" | "inactive">("all");
   const [offset, setOffset] = useState(0);
   const [reload, setReload] = useState(0);
 
+  // One request per settled query, not one expensive cohort projection per key.
+  // The current response remains visible and marked as updating until replaced.
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    return () => window.clearTimeout(timer);
+  }, [search]);
+  const updatingSearch = search.trim() !== debouncedSearch;
+
   useEffect(() => {
     const controller = new AbortController();
     const params = new URLSearchParams({
-      limit: String(PAGE_SIZE), offset: String(offset), search, status,
+      limit: String(PAGE_SIZE), offset: String(offset), search: debouncedSearch, status,
     });
     const load = async () => {
       setLoading(true);
@@ -78,7 +87,7 @@ export default function StudentsPage() {
     };
     void load();
     return () => controller.abort();
-  }, [offset, reload, search, status]);
+  }, [offset, reload, debouncedSearch, status]);
 
   const items = data?.items ?? [];
   const count = data?.total ?? 0;
@@ -103,9 +112,10 @@ export default function StudentsPage() {
         </select>
         <span className="rounded-xl bg-white border border-border px-4 min-h-11 flex items-center justify-center text-sm text-muted whitespace-nowrap">{loading ? "جارٍ التحميل" : `${count} طالب`}</span>
       </AdminToolbar>
+      {updatingSearch && <p role="status" className="mt-2 text-sm text-muted">جارٍ تحديث البحث…</p>}
       {error && <div className="alert-error mt-3" role="alert">{error} <button type="button" className="underline font-semibold" onClick={() => setReload(value => value + 1)}>إعادة المحاولة</button></div>}
       <div style={{ height: 14 }} />
-      {loading
+      {loading && !data
         ? <div className="flex flex-col items-center justify-center gap-3 py-14"><div className="spinner w-9 h-9" /><p className="text-muted">جاري تحميل بيانات الطلاب...</p></div>
         : !data ? null
         : count === 0 ? <AdminEmptyState title="لا توجد نتائج" description="لا يوجد طالب مطابق لهذه التصفية، أو لم تُضف العينة بعد." action={<AdminAction href="/admin/students/new" tone="primary" icon={UserPlus}>إضافة طالب</AdminAction>} />
@@ -127,10 +137,10 @@ export default function StudentsPage() {
             <span><strong>الخطوة:</strong> {v2StudentActionLabel(student.current_action)}</span>
             <span><AdminAction href={`/admin/students/${student.id}`} icon={Eye}>فتح الملف</AdminAction></span>
           </AdminMobileCard>)} />}
-      {!loading && data && count > PAGE_SIZE && <div className="flex justify-between gap-3 pt-5">
-        <button type="button" className="btn-secondary" disabled={offset === 0} onClick={() => setOffset(v => Math.max(0, v - PAGE_SIZE))}>السابق</button>
+      {data && count > PAGE_SIZE && <div className="flex justify-between gap-3 pt-5">
+        <button type="button" className="btn-secondary" disabled={loading || updatingSearch || offset === 0} onClick={() => setOffset(v => Math.max(0, v - PAGE_SIZE))}>السابق</button>
         <span className="text-sm text-muted self-center">{offset + 1}–{Math.min(offset + PAGE_SIZE, count)} من {count}</span>
-        <button type="button" className="btn-secondary" disabled={offset + PAGE_SIZE >= count} onClick={() => setOffset(v => v + PAGE_SIZE)}>التالي</button>
+        <button type="button" className="btn-secondary" disabled={loading || updatingSearch || offset + PAGE_SIZE >= count} onClick={() => setOffset(v => v + PAGE_SIZE)}>التالي</button>
       </div>}
     </AdminPanel>
   </AdminPage>;
