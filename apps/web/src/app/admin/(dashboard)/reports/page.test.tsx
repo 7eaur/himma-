@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import ReportsPage from "./page";
 import SkillReportsPage from "../skill-reports/page";
 
@@ -31,4 +31,20 @@ it("keeps a skills source failure unavailable without loading V1 evidence", asyn
   expect(fetcher.mock.calls.every(([url]) => url === "/api/v2/reports/summary")).toBe(true);
   expect(screen.queryByText("لا توجد أدلة مقيمة مطابقة")).not.toBeInTheDocument();
   expect(screen.queryByText("أرشيف مهارات V1")).not.toBeInTheDocument();
+});
+
+it("keeps the report short and searches a student without mixing in older rows", async () => {
+  const students = Array.from({length: 21}, (_, index) => ({
+    ...report.students[0], student_id: index + 1, student_name: `طالب تقرير ${index + 1}`,
+  }));
+  global.fetch = jest.fn().mockResolvedValue({ok: true, json: async () => ({...report, students})});
+  render(<ReportsPage />);
+  expect(await screen.findAllByText("طالب تقرير 1")).toHaveLength(2);
+  expect(screen.getByTestId("v2-report-table").querySelectorAll("tbody tr")).toHaveLength(20);
+  fireEvent.click(screen.getByRole("button", {name: "التالي"}));
+  expect(screen.getByTestId("v2-report-table").querySelectorAll("tbody tr")).toHaveLength(1);
+  expect(screen.getAllByText("طالب تقرير 21")).toHaveLength(2);
+  fireEvent.change(screen.getByRole("textbox", {name: "بحث عن طالب أو معرّف"}), {target: {value: "تقرير 3"}});
+  expect(screen.getByTestId("v2-report-table").querySelectorAll("tbody tr")).toHaveLength(1);
+  expect(screen.getAllByText("طالب تقرير 3")).toHaveLength(2);
 });

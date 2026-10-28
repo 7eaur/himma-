@@ -282,7 +282,7 @@ function StudentDetailView({ id }: { id: string }) {
 
 
   if (loading || loadedStudentId !== id) return <div className={styles.loading}><span /><span /><span /></div>;
-  if (!student) return <div className={styles.page}><div className="alert-error">{message.text || "لم يتم العثور على الطالب"}</div><Link href="/admin/students" className="btn-primary mt-4">العودة إلى الطلاب</Link></div>;
+  if (!student) return <div className={styles.page}><div className="alert-error" role="alert">{message.text || "لم يتم العثور على الطالب"}</div><Link href="/admin/students" className="btn-primary mt-4">العودة إلى الطلاب</Link></div>;
 
   const tabContent = (() => {
     if (activeTab !== "account") return (

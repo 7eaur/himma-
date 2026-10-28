@@ -178,13 +178,14 @@ test.describe("M06 responsive and accessibility integration", () => {
     const homeReply = await request.get(`${API_URL}/v2/student/admin/students/${createdStudent?.id}/home`);
     expect(homeReply.status()).toBe(200);
     const home = await homeReply.json();
+    home.data_status = "ready";
     home.progress = { ...home.progress, completed_lessons: 2, assigned_lessons: 10, display_percent: 20 };
     await page.route(`**/api/v2/student/admin/students/${createdStudent?.id}/home`, route =>
       route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(home) }));
     await page.goto(`/admin/students/${createdStudent?.id}`);
     await expect(page.getByRole("heading", { name: studentName })).toBeVisible({ timeout: 10000 });
     await expect(page.getByTestId("supervisor-v2-overview")).toBeVisible();
-    const progress = page.getByRole("progressbar", { name: "تقدم دروس همة V2" });
+    const progress = page.getByRole("progressbar", { name: "تقدم الدروس" });
     await expect(progress).toBeVisible({ timeout: 10000 });
     await expect(progress).toHaveAttribute("aria-valuemin", "0");
 

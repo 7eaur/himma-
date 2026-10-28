@@ -178,7 +178,7 @@ test("Student360 keeps identity visible when its V2 academic source fails and re
   });
   await page.goto(`/admin/students/${student.id}`);
   await expect(page.getByRole("heading", { name: student.full_name })).toBeVisible();
-  const error = page.getByRole("alert").filter({ hasText: "تعذر الاتصال" });
+  const error = page.getByRole("alert").filter({ hasText: "تعذر تحميل التقدم الدراسي لهذا الطالب" });
   await expect(error).toBeVisible();
   await expect(page.getByTestId("supervisor-v2-progress")).toHaveCount(0);
   await error.getByRole("button", { name: "إعادة المحاولة" }).click();

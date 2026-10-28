@@ -114,7 +114,7 @@ test("P09.0 V2 pretest states are readable without answer leakage at mobile, tab
       } else {
         const sectionName = {
           waiting_review: "إجاباتك محفوظة وتنتظر المراجعة",
-          placement_pending_review: "اكتمل الاختبار وينتظر التسكين",
+          placement_pending_review: "نحدد مستواك تلقائيًا",
           completed: "اكتمل الاختبار القبلي",
         }[mode];
         await expect(page.getByRole("heading", { name: sectionName })).toBeVisible();

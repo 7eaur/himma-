@@ -77,13 +77,13 @@ for (const viewport of [
         await expect(page.getByTestId("v2-bank-question").first()).toBeVisible({ timeout: 25000 });
       }
       if (route === "/admin/students") {
-        await expect(page.getByText("جاري تحميل بيانات V2...")).toHaveCount(0, { timeout: 20000 });
+        await expect(page.getByText("جاري تحميل بيانات الطلاب...")).toHaveCount(0, { timeout: 20000 });
         await expect(page.getByText("تعذر تحميل تقدم طلاب V2، ولم تُستخدم أرقام V1 بديلة.")).toHaveCount(0);
         await expect(page.getByText("رمز الدخول", { exact: false })).toHaveCount(0);
-        await expect(page.locator("table.data-table th").filter({ hasText: "التقدم V2" })).toHaveCount(1); // The mobile card also has its own V2 progress label
+        await expect(page.locator("table.data-table th").filter({ hasText: "التقدم" })).toHaveCount(1);
       }
       if (route === "/admin/v2-media") {
-        await expect(page.getByText(/الملفات المرشحة الموجودة/)).toBeVisible({ timeout: 15000 });
+        await expect(page.getByText(/الأصول المطلوبة المتاحة لهذا الإصدار/)).toBeVisible({ timeout: 15000 });
       }
       await expectNoHorizontalOverflow(page);
       await capture(page, viewport.name, route);
@@ -204,13 +204,13 @@ test("P09.1-D: supervisor sees official V2 first without V1 stars, and access co
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.getByText(code, { exact: true })).toHaveCount(0);
 
-  await page.getByRole("button", { name: "الحساب", exact: true }).click();
+  await page.getByRole("tab", { name: "الحساب", exact: true }).click();
   await expect(page.getByText(code, { exact: true })).toHaveCount(0);
-  await page.getByRole("button", { name: "إظهار الرمز" }).click();
+  await page.getByRole("checkbox", { name: "إظهار الرمز" }).check();
   await expect(page.getByText(code, { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "إخفاء الرمز" }).click();
+  await page.getByRole("checkbox", { name: "إظهار الرمز" }).uncheck();
   await expect(page.getByText(code, { exact: true })).toHaveCount(0);
-  await page.getByRole("button", { name: "مسار هِمّة V2" }).click();
+  await page.getByRole("tab", { name: "نظرة عامة" }).click();
   await expect(page.getByTestId("supervisor-v2-overview")).toBeVisible();
 
   // Simulate an unavailable official V2 read-model. The supervisor must
@@ -220,7 +220,7 @@ test("P09.1-D: supervisor sees official V2 first without V1 stars, and access co
     status: 503, contentType: "application/json", body: '{"detail":"temporary unavailable"}',
   }));
   await page.reload();
-  await expect(page.getByRole("alert").filter({ hasText: "تعذر تحميل سجل هِمّة V2" })).toBeVisible({ timeout: 15000 });
+  await expect(page.getByRole("alert").filter({ hasText: "تعذر تحميل التقدم الدراسي لهذا الطالب" })).toBeVisible({ timeout: 15000 });
   await expect(page.getByTestId("supervisor-v2-progress")).toHaveCount(0);
   await expectNoHorizontalOverflow(page);
   await page.screenshot({
@@ -243,15 +243,17 @@ test("W3: current bank and staff media gallery support real browsing and playbac
   await first.getByText('الإجابة والمرجع للمشرف', { exact: true }).click();
   await expect(first.getByText(/الخيارات الصحيحة أو ترتيبها/)).toBeVisible();
   await page.getByRole('combobox', { name: 'القسم', exact: true }).selectOption('L1-01');
-  await expect(page.getByTestId('v2-bank-question')).toHaveCount(8);
+  await expect(page.locator('#v2-bank-question-picker option')).toHaveCount(8);
+  await expect(page.getByTestId('v2-bank-question')).toHaveCount(1);
   await expect(page.getByTestId('v2-bank-question').first()).toContainText('L1-01-GP-01');
   await expect(page.getByText(/التمهيد:/)).toBeVisible();
   await expectNoHorizontalOverflow(page);
   await capture(page, 'phone-390x844', '/admin/v2-bank-lesson');
   await page.goto('/admin/v2-media');
-  await expect(page.getByTestId('v2-media-card')).toHaveCount(89);
+  await expect(page.getByTestId('v2-media-card')).toHaveCount(12);
+  await expect(page.getByText(/89 أصلًا مطابقًا/)).toBeVisible();
   await page.getByRole('combobox', { name: 'نوع الوسيط' }).selectOption('audio');
-  await expect(page.getByTestId('v2-media-card')).toHaveCount(47);
+  await expect(page.getByTestId('v2-media-card')).toHaveCount(12);
   const card = page.getByTestId('v2-media-card').first();
   await card.getByRole('button', { name: /معاينة/ }).click();
   const audio = card.locator('audio');

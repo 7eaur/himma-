@@ -65,7 +65,7 @@ test.describe("V2 Student Detail source truth states", () => {
     const calls = await failOnce(page, `**/api/v2/student/admin/students/${student.id}/home`);
     await page.goto(`/admin/students/${student.id}`);
     await expect(page.getByRole("heading", { name: student.full_name })).toBeVisible();
-    const error = page.getByRole("alert").filter({ hasText: "تعذر تحميل سجل هِمّة V2" });
+    const error = page.getByRole("alert").filter({ hasText: "تعذر تحميل التقدم الدراسي لهذا الطالب" });
     await expect(error).toBeVisible();
     await expect(page.getByTestId("supervisor-v2-level")).toHaveCount(0);
     await error.getByRole("button", { name: "إعادة المحاولة" }).click();

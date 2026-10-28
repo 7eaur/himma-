@@ -10,7 +10,7 @@ async function addCookie(context: BrowserContext, response: Awaited<ReturnType<A
   await context.addCookies([{name:'access_token',value:code!,domain:'localhost',path:'/',httpOnly:true,sameSite:'Lax',secure:false}]);
 }
 
-test('W6: one new identity begins V2 pretest and keeps its archived V1 record separate', async ({page,context,request})=>{
+test('W6: one new identity begins V2 pretest and uses its V2 account record', async ({page,context,request})=>{
   if (!PASSWORD) throw new Error('E2E_RESEARCHER_PASSWORD required');
   const admin=await request.post(`${API_URL}/auth/login`,{data:{username:USERNAME,password:PASSWORD}});
   expect(admin.status()).toBe(200);
@@ -44,9 +44,11 @@ test('W6: one new identity begins V2 pretest and keeps its archived V1 record se
 
   await context.clearCookies();
   await addCookie(context,admin);
-  const history=await request.get(`${API_URL}/researcher/students/${student!.id}`);
-  expect(history.status()).toBe(200);
-  expect((await history.json()).id).toBe(student!.id);
+  const adminAgain=await request.post(`${API_URL}/auth/login`,{data:{username:USERNAME,password:PASSWORD}});
+  expect(adminAgain.status()).toBe(200);
+  const account=await request.get(`${API_URL}/v2/student/admin/students/${student!.id}/account`);
+  expect(account.status()).toBe(200);
+  expect((await account.json()).id).toBe(student!.id);
   await page.goto(`/admin/students/${student!.id}`);
   await expect(page.getByRole('heading',{name})).toBeVisible();
   await expect(page.getByTestId('supervisor-v2-action')).toContainText('الاختبار القبلي');
