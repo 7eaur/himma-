@@ -238,6 +238,12 @@ export default function StudentRetryTasks({ kind, sessionId, dashboard = false, 
         if (payload.items.some((item: RetryItem) => item.request_kind !== "rerecord")) {
           throw new Error("توجد مهمة غير متوافقة مع مراجعة القراءة؛ تواصل مع المشرف.");
         }
+        // Deployments may temporarily serve different Web/API revisions.
+        // A missing source text must fail closed with guidance, never crash or
+        // let a child record from a substitute question.
+        if (payload.items.some((item: RetryItem) => typeof item.stimulus?.text !== "string" || !item.stimulus.text.trim())) {
+          throw new Error("تعذر عرض النص الأصلي لطلب الإعادة. حدّث الصفحة، وإذا استمرت المشكلة تواصل مع المشرف.");
+        }
         allTasks.push(...(payload.items as RetryItem[]));
         const following: unknown = payload.next_offset ?? null;
         if (following !== null && (!Number.isSafeInteger(following) || (following as number) <= offset)) {

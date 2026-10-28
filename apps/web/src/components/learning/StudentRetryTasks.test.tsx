@@ -28,13 +28,14 @@ describe("V2 student rerecord microphone privacy", () => {
         items: [{
           task_id: 77, kind: "lesson", session_id: 10, question_id: "L1-05-GP-04",
           status: "requested", request_kind: "rerecord", reason: "القراءة غير واضحة",
-          prompt: "اقرأ الكلمة مرة أخرى", staged_audio: null,
+          prompt: "اقرأ الكلمة مرة أخرى", stimulus: { text: "بَابٌ" }, staged_audio: null,
         }],
         next_offset: null,
       }),
     });
     const { unmount } = render(<StudentRetryTasks dashboard />);
     const start = await screen.findByRole("button", { name: "تسجيل القراءة من جديد" });
+    expect(screen.getByTestId("retry-original-stimulus")).toHaveTextContent("بَابٌ");
     fireEvent.click(start);
     await waitFor(() => expect(getUserMedia).toHaveBeenCalledTimes(1));
     expect(screen.getByRole("button", { name: "جارٍ تشغيل الميكروفون..." })).toBeDisabled();
@@ -43,4 +44,20 @@ describe("V2 student rerecord microphone privacy", () => {
     expect(stop).toHaveBeenCalledTimes(1);
     expect(construct).not.toHaveBeenCalled();
   });
+  it("keeps the child's recording blocked when the pinned reading text is missing", async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true, status: 200, json: async () => ({
+        items: [{
+          task_id: 78, kind: "lesson", session_id: 10, question_id: "L1-05-GP-04",
+          status: "requested", request_kind: "rerecord", reason: "أعد القراءة بوضوح",
+          prompt: "اقرأ الكلمة", staged_audio: null,
+        }],
+        next_offset: null,
+      }),
+    });
+    render(<StudentRetryTasks dashboard />);
+    expect(await screen.findByRole("alert")).toHaveTextContent("تعذر عرض النص الأصلي");
+    expect(screen.queryByRole("button", { name: "تسجيل القراءة من جديد" })).not.toBeInTheDocument();
+  });
+
 });
