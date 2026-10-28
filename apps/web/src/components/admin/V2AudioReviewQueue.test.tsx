@@ -48,7 +48,7 @@ it.each(["assessment", "lesson"] as const)("%s opens from a table and accepts on
   const body=JSON.parse(fetcher.mock.calls.find(([path])=>path===url)![1].body);
   expect(body.is_correct).toBe(true);
   expect(body.rubric).toBeUndefined();
-  expect(body.note.length).toBeGreaterThan(10);
+  expect(body.note).toBe("");
   expect(fetcher.mock.calls.every(([path])=>!path.includes("claim"))).toBe(true);
 });
 

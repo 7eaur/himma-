@@ -78,7 +78,7 @@ def test_lesson_reading_review_is_private_requires_playback_and_updates_evidence
     item = queued(student_client, rid)
     assert item["interaction"] == "read_aloud" and item["evidence_ready"]
     assert item["rubric"] is not None and "text_response" not in item
-    body = {"is_correct": True, "note": "استمعت إلى القراءة كاملة وتحققت من النطق الصحيح"}
+    body = {"is_correct": True}
     assert student_client.post(f"/v2/review/lessons/{rid}/decision", json=body).status_code == 409
     listened(student_client, rid, item)
     accepted = student_client.post(f"/v2/review/lessons/{rid}/decision", json=body)
@@ -91,6 +91,7 @@ def test_lesson_reading_review_is_private_requires_playback_and_updates_evidence
         assert response.status == "graded" and response.is_correct is True
         assert proof.review_status == "graded" and proof.is_correct is True
         assert proof.counts_for_mastery is False and len(actions) == 1
+        assert actions[0].note == ""
     login_student(student_client)
     assert "rubric" not in student_client.get(f"/v2/lessons/sessions/{session_id}/interaction").text
 

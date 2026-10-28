@@ -16,6 +16,10 @@ on:
       - '.github/workflows/m04-responsive.yml'
   workflow_dispatch:
 
+concurrency:
+  group: himma-m04-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'push' }}
+
 jobs:
   responsive-smoke:
     runs-on: ubuntu-latest

@@ -51,7 +51,7 @@ function ReviewDialog({ item, kind, onClose, onSaved }: {
         : `${prefix}/${kind === "assessment" ? "review" : "decision"}`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestRetry ? { reason: note.trim() } : {
-          is_correct: true, note: note.trim() || "اعتمد المشرف صحة القراءة بعد الاستماع إلى التسجيل كاملًا.",
+          is_correct: true, note: note.trim(),
           ...(withRubric ? { rubric } : {}),
         }),
       });

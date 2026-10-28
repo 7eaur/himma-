@@ -41,7 +41,7 @@ router = APIRouter(prefix="/v2/review", tags=["v2-review"])
 
 class LessonDecision(BaseModel):
     is_correct: bool
-    note: Annotated[str, StringConstraints(strip_whitespace=True, min_length=2, max_length=2000)]
+    note: Annotated[str, StringConstraints(strip_whitespace=True, max_length=2000)] = ""
     rubric: ReadingRubricV2 | None = None
 
 

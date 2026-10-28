@@ -63,7 +63,7 @@ def _recommended_level(score_percent: float | int | None) -> int | None:
 
 class ReviewRequest(BaseModel):
     is_correct: bool
-    note: Annotated[str, StringConstraints(strip_whitespace=True, min_length=2, max_length=2000)]
+    note: Annotated[str, StringConstraints(strip_whitespace=True, max_length=2000)] = ""
     rubric: ReadingRubricV2 | None = None
 
 

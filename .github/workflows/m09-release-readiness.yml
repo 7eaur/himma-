@@ -17,6 +17,10 @@ on:
       - '.github/workflows/m09-release-readiness.yml'
   workflow_dispatch:
 
+concurrency:
+  group: himma-m09-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'push' }}
+
 jobs:
   release-readiness:
     runs-on: ubuntu-24.04

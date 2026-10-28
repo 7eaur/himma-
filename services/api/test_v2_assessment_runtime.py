@@ -30,17 +30,19 @@ def _ack_assessment_audio(client, response_id: int) -> int:
     return audio_id
 
 
-def test_review_models_strip_edges_and_reject_whitespace_only():
-    cases = (
-        (ReviewRequest, "note", "قرار واضح"),
-        (LessonDecision, "note", "قرار واضح"),
+def test_review_models_allow_optional_notes_but_require_actionable_retry_reasons():
+    for model in (ReviewRequest, LessonDecision):
+        assert model(is_correct=True).note == ""
+        assert model(is_correct=True, note="  ").note == ""
+        assert model(is_correct=True, note="  قرار واضح  ").note == "قرار واضح"
+        with pytest.raises(ValidationError):
+            model(is_correct=True, note="ن" * 2001)
+
+    for model, field, value in (
         (PlacementRequest, "reason", "سبب تربوي واضح"),
         (RetryRequest, "reason", "سبب إعادة واضح"),
-    )
-    for model, field, value in cases:
+    ):
         payload = {field: f"  {value}  "}
-        if model in (ReviewRequest, LessonDecision):
-            payload["is_correct"] = True
         if model is PlacementRequest:
             payload["assigned_level"] = 1
         assert getattr(model(**payload), field) == value
