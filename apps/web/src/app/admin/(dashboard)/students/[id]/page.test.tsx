@@ -1,7 +1,13 @@
 import {fireEvent, render, screen, waitFor} from '@testing-library/react';
 import Page from './page';
 let currentId = '1';
-jest.mock('next/navigation',()=>({useParams:()=>({id:currentId})}));
+const mockPush = jest.fn((href: string) => window.history.pushState({}, '', href));
+jest.mock('next/navigation',()=>({
+  useParams:()=>({id:currentId}),
+  usePathname:()=>window.location.pathname,
+  useSearchParams:()=>new URLSearchParams(window.location.search),
+  useRouter:()=>({push:mockPush}),
+}));
 const home = (id:number) => ({mode:'v2',test_only:true,student:{id,full_name:`طالب اصطناعي ${id}`,grade_level:3},journey:null,current_action:{action:'start_pretest',label:'ابدأ الاختبار القبلي',href:null},progress:{completed_lessons:0,assigned_lessons:null,skipped_by_placement:0,pending_review:0,display_percent:null},assessments:{pretest:null,posttest:null},rewards:{state:'ready',source:'himma_v2_reward_ledger',policy_version:'himma-v2-effort/1',total_stars:0,badges:[],lessons:[]},data_status:'ready',lesson_overview:{state:'awaiting_journey',items:[],content_release_version:null}});
 const account=(id:number)=>({source:'himma_v2_account',id,full_name:`طالب اصطناعي ${id}`,grade_level:3,status:'active',created_at:'2026-10-27T00:00:00Z',posttest_enabled:false});
 function setup(){
@@ -66,4 +72,17 @@ it('shows seven task-specific sections without rendering the long lesson list on
  expect(screen.getByTestId('supervisor-lesson-disclosure')).toHaveAttribute('open');
  expect(screen.getByText('تفاصيل الدروس (0)')).toBeInTheDocument();
  expect(screen.queryByText(/أرشيف|التاريخي|V1/)).not.toBeInTheDocument();
+});
+
+it('keeps tabs in sync with in-app route navigation and back/forward history', async () => {
+  setup();
+  const {rerender} = render(<Page/>);
+  await screen.findByRole('heading',{name:'طالب اصطناعي 1'});
+  fireEvent.click(screen.getByRole('tab',{name:'التسجيلات'}));
+  expect(window.location.search).toBe('?tab=recordings');
+  expect(mockPush).toHaveBeenCalledWith('/admin/students/1?tab=recordings',{scroll:false});
+  expect(screen.getByRole('tab',{name:'التسجيلات'})).toHaveAttribute('aria-selected','true');
+  window.history.pushState({},'', '/admin/students/1?tab=tests');
+  rerender(<Page/>);
+  await waitFor(()=>expect(screen.getByRole('tab',{name:'الاختبارات'})).toHaveAttribute('aria-selected','true'));
 });

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Activity,
   ArrowRight,
@@ -92,11 +92,12 @@ export default function StudentDetailPage() {
 }
 
 function StudentDetailView({ id }: { id: string }) {
-  const [activeTab, setActiveTab] = useState<TabKey>(() => {
-    if (typeof window === "undefined") return "overview";
-    const requested = new URLSearchParams(window.location.search).get("tab");
-    return isTabKey(requested) ? requested : "overview";
-  });
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const queryTab = searchParams.get("tab");
+  const urlTab: TabKey = isTabKey(queryTab) ? queryTab : "overview";
+  const [activeTab, setActiveTab] = useState<TabKey>(urlTab);
   const [accessCode, setAccessCode] = useState<string | null>(null);
   const [student, setStudent] = useState<Student | null>(null);
   const [loadedStudentId, setLoadedStudentId] = useState<string | null>(null);
@@ -114,28 +115,24 @@ function StudentDetailView({ id }: { id: string }) {
   const [message, setMessage] = useState<{ kind: "success" | "error"; text: string }>({ kind: "success", text: "" });
 
   useEffect(() => {
-    const syncHistory = () => {
-      // Browser history is another tab switch; erase previously revealed
-      // credentials before restoring the destination section.
-      setVisibleCodeForId(null);
-      setAccessCode(null);
-      setCopied(false);
-      const selected = new URLSearchParams(window.location.search).get("tab");
-      setActiveTab(isTabKey(selected) ? selected : "overview");
-    };
-    window.addEventListener("popstate", syncHistory);
-    return () => window.removeEventListener("popstate", syncHistory);
-  }, [id]);
+    // Next updates useSearchParams for in-app navigation and browser history.
+    // Every tab navigation hides any previously revealed learner credentials.
+    setVisibleCodeForId(null);
+    setAccessCode(null);
+    setCopied(false);
+    setActiveTab(urlTab);
+  }, [id, urlTab]);
 
   const selectTab = (tab: TabKey) => {
     setVisibleCodeForId(null);
     setAccessCode(null);
     setCopied(false);
     setActiveTab(tab);
-    const target = new URL(window.location.href);
-    if (tab === "overview") target.searchParams.delete("tab");
-    else target.searchParams.set("tab", tab);
-    window.history.replaceState(null, "", target.pathname + target.search + target.hash);
+    const query = new URLSearchParams(searchParams.toString());
+    if (tab === "overview") query.delete("tab");
+    else query.set("tab", tab);
+    const suffix = query.toString();
+    router.push(`${pathname}${suffix ? `?${suffix}` : ""}`, { scroll: false });
   };
 
   useEffect(() => {
