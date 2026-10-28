@@ -66,6 +66,17 @@ def test_p08_learner_audio_retry_never_overwrites_original_recording(student_cli
     assert request.status_code == 200, request.text
     task_id = request.json()["task_id"]
     _student(student_client)
+    pending_tasks = student_client.get("/v2/retries/student/tasks")
+    assert pending_tasks.status_code == 200, pending_tasks.text
+    pending = next(item for item in pending_tasks.json()["items"] if item["task_id"] == task_id)
+    assert pending["status"] == "requested" and pending["kind"] == "lesson"
+    assert isinstance(pending["stimulus"]["text"], str) and pending["stimulus"]["text"].strip()
+    assert not {"answer", "correct_answer", "rubric", "accepted_answers"} & set(pending)
+    action = student_client.get("/v2/assessments/current-action")
+    assert action.status_code == 200, action.text
+    assert action.json()["action"] == "rerecord_required"
+    assert action.json()["task_id"] == task_id
+    assert action.json()["session_id"] == sid
     new_key = f"audio/{student_id}/updated.webm"
     # A rerecord request cannot accept a previously uploaded audio key unless
     # the new recording was staged for this specific task.
@@ -87,6 +98,8 @@ def test_p08_learner_audio_retry_never_overwrites_original_recording(student_cli
         "submit_key": str(uuid4()), **staged.json(),
     })
     assert resent.status_code == 200, resent.text
+    # A submitted recording is no longer an outstanding learner task.
+    assert student_client.get("/v2/assessments/current-action").json()["action"] != "rerecord_required"
     _researcher(student_client)
     queue = student_client.get("/v2/review/lesson-queue").json()["items"]
     item = next(x for x in queue if x["response_id"] == response_id)

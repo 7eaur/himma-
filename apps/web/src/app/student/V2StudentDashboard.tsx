@@ -13,8 +13,10 @@ export interface StudentV2Home {
   test_only: boolean;
   student: { id: number; full_name: string; grade_level: number };
   current_action: {
-    action: "assessment" | "start_pretest" | "lesson" | "start_posttest" | "waiting_posttest_enable" | "complete" | "lesson_catalog" | "migration_review";
-    kind?: "pretest" | "posttest";
+    action: "assessment" | "start_pretest" | "lesson" | "start_posttest" | "waiting_posttest_enable" | "complete" | "lesson_catalog" | "migration_review" | "placement_review" | "rerecord_required";
+    kind?: "pretest" | "posttest" | "lesson" | "assessment";
+    task_id?: number;
+    session_id?: number;
     state?: string;
     href: string | null;
     label: string;
@@ -62,6 +64,8 @@ const levelNames: Record<number, string> = {
 
 function stage(home: StudentV2Home) {
   const action = home.current_action;
+  if (action.action === "rerecord_required")
+    return { title: "المشرف طلب إعادة قراءة", detail: "اقرأ النص نفسه من جديد وسجّل صوتك. إجابتك السابقة محفوظة حتى يُراجع المشرف القراءة الجديدة.", disabled: false };
   if (action.action === "assessment" && action.state === "placement_pending_review")
     return { title: "نحدد مستواك تلقائيًا", detail: "إجاباتك محفوظة، وستظهر دروسك بعد اكتمال مراجعة القراءة.", disabled: false };
   if (action.action === "assessment" && action.state === "waiting_review")
@@ -100,11 +104,17 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
   const start = async () => {
     if (starting || startingRef.current || info.disabled || leavingRef.current) return;
     setError("");
+    if (action.action === "rerecord_required") {
+      document.getElementById("retry-requests")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
     if (action.href !== null || (action.action !== "start_pretest" && action.action !== "start_posttest")) {
       if (!isSafeStudentRoute(action.href)) {
         setError("تعذر التحقق من رابط الرحلة. يرجى المحاولة لاحقًا.");
         return;
       }
+      startingRef.current = true;
+      setStarting(true);
       router.push(action.href);
       return;
     }
@@ -213,7 +223,7 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
           </div>
           <button type="button" className={styles.button} disabled={starting || info.disabled}
             onClick={() => void start()} data-testid="student-primary-action">
-            {starting ? "جاري فتح الاختبار..." : action.label}
+            {starting ? (action.action === "lesson" ? "جارٍ فتح الدرس..." : action.action === "lesson_catalog" ? "جارٍ فتح الدروس..." : "جارٍ فتح الاختبار...") : action.label}
           </button>
           {error && <div role="alert" className={styles.error}>{error}</div>}
         </div>
@@ -223,6 +233,7 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
         </div>
       </section>
 
+      {action.action === "rerecord_required" && <StudentRetryTasks dashboard forceVisible />}
       <section className={styles.journey} aria-label="تقدم رحلتك في هِمّة" data-testid="student-v2-progress">
         <div className={styles.journeyHeader}>
           <div><h3>تقدمك في الدروس</h3>
@@ -262,7 +273,7 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
       </section>
 
       <V2Rewards data={home.rewards} />
-      <StudentRetryTasks dashboard />
+      {action.action !== "rerecord_required" && <StudentRetryTasks dashboard />}
       {home.test_only && <p className="mt-4 text-xs text-muted">إذا تعذر تشغيل صوت أو صورة، اطلب مساعدة المشرف. تقدمك محفوظ.</p>}
     </main>
   </div>;

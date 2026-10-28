@@ -155,13 +155,21 @@ def student_tasks(
         ), None)
         if not question or question["interaction"] != "read_aloud" or task.request_kind != "rerecord":
             raise HTTPException(status_code=409, detail="السؤال لا يقبل إعادة تسجيل قراءة")
+        projected = student_question(question)
+        stimulus = projected.get("stimulus") or {}
+        if not isinstance(stimulus.get("text"), str) or not stimulus["text"].strip():
+            raise HTTPException(
+                status_code=409,
+                detail="تعذر عرض نص القراءة الأصلي من نسخة الدرس المثبتة؛ تواصل مع المشرف",
+            )
         staged = task.replacement_json if task.status == "requested" else None
         items.append({
             "staged_audio": staged.get("staged_audio") if isinstance(staged, dict) else None,
             "task_id": task.id, "kind": kind,
             "session_id": session.id, "question_id": row.question_id,
             "status": task.status, "request_kind": task.request_kind,
-            "reason": task.reason, "prompt": student_question(question)["prompt"],
+            "reason": task.reason, "prompt": projected["prompt"],
+            "stimulus": {"text": stimulus["text"]},
         })
     return {"items": items, "next_offset": offset + limit if len(rows) > limit else None}
 

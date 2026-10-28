@@ -166,7 +166,10 @@ a { color: inherit; text-decoration: none; }
 
 button, input, textarea, select { font: inherit; }
 
-button { cursor: pointer; border: none; background: none; }
+/* Tailwind's layered preflight already resets native button decoration.
+   An unlayered background/border reset overrode .bg-* and .border-*
+   utilities and made the student's recording CTA white on transparent. */
+button { cursor: pointer; }
 
 h1,h2,h3,h4,h5,h6 { margin: 0; font-weight: 700; line-height: 1.3; }
 

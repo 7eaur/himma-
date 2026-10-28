@@ -11,16 +11,11 @@ export default function AdminFeedbackToast({ feedback, onDismiss }: { feedback: 
 
   useEffect(() => {
     if (!visible) return;
-    const timeout = window.setTimeout(onDismiss, feedback.kind === "success" ? 3200 : 5200);
-    const dismissOnNextPointer = () => onDismiss();
-    const armPointerDismiss = window.setTimeout(() => {
-      document.addEventListener("pointerdown", dismissOnNextPointer, { once: true });
-    }, 80);
-    return () => {
-      window.clearTimeout(timeout);
-      window.clearTimeout(armPointerDismiss);
-      document.removeEventListener("pointerdown", dismissOnNextPointer);
-    };
+    // Errors need to remain readable and actionable, including for keyboard
+    // and screen-reader users. Successful acknowledgements can time out.
+    if (feedback.kind !== "success") return;
+    const timeout = window.setTimeout(onDismiss, 3200);
+    return () => window.clearTimeout(timeout);
   }, [feedback.kind, feedback.text, onDismiss, visible]);
 
   if (!visible) return null;
@@ -32,7 +27,6 @@ export default function AdminFeedbackToast({ feedback, onDismiss }: { feedback: 
         className={`${styles.toast} ${feedback.kind === "success" ? styles.success : styles.error}`}
         role={feedback.kind === "error" ? "alert" : "status"}
         aria-live={feedback.kind === "error" ? "assertive" : "polite"}
-        onClick={onDismiss}
         data-testid="admin-feedback-toast"
       >
         <Icon className={styles.icon} size={19} aria-hidden="true" />

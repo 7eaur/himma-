@@ -24,6 +24,8 @@ from db.learning_models import (
     StudentJourney,
     LessonSession,
     PrivateContentBankSnapshot,
+    LessonQuestionResponse,
+    V2ReviewRetryTask,
 )
 from db.models import AssessmentRetakeAuthorization, AssessmentSession, AudioSubmission, AuditLog, ContentRelease, Student, User
 from dependencies import get_current_user, get_db
@@ -51,6 +53,44 @@ router = APIRouter(prefix="/v2/assessments", tags=["v2-assessments"])
 POLICY_VERSION = "himma-v2-assessment/placement-threshold-50-80-v1"
 
 
+def _requested_retry_action(db: Session, student: Student) -> dict[str, Any] | None:
+    """Prioritize an actionable rerecord, without interpreting academic status in JS.
+
+    Resolve the task's original response and student-owned session. A missing
+    relationship must not become a clickable link to another student's evidence.
+    """
+    task = db.query(V2ReviewRetryTask).filter(
+        V2ReviewRetryTask.student_id == student.id,
+        V2ReviewRetryTask.status == "requested",
+    ).order_by(V2ReviewRetryTask.id.asc()).first()
+    if task is None:
+        return None
+    kind = "lesson" if task.lesson_response_id is not None else "assessment"
+    response = (db.query(LessonQuestionResponse).filter(
+        LessonQuestionResponse.id == task.lesson_response_id,
+    ).one_or_none() if kind == "lesson" else db.query(AssessmentQuestionResponse).filter(
+        AssessmentQuestionResponse.id == task.assessment_response_id,
+    ).one_or_none())
+    if response is None or response.status != "pending_review":
+        raise HTTPException(status_code=409, detail="طلب إعادة القراءة بحاجة إلى مراجعة المشرف")
+    session_id = response.lesson_session_id if kind == "lesson" else response.assessment_session_id
+    session = (db.query(LessonSession).filter(LessonSession.id == session_id).one_or_none()
+               if kind == "lesson" else db.query(AssessmentSession).filter(
+                   AssessmentSession.id == session_id,
+               ).one_or_none())
+    if session is None or session.student_id != student.id:
+        raise HTTPException(status_code=409, detail="تعذر ربط طلب القراءة بجلسة الطالب")
+    return {
+        "action": "rerecord_required",
+        "state": "requested",
+        "task_id": task.id,
+        "kind": kind,
+        "session_id": session_id,
+        "href": "/student#retry-requests",
+        "label": "أعد تسجيل القراءة",
+    }
+
+
 def _recommended_level(score_percent: float | int | None) -> int | None:
     """Approved pretest placement boundaries (0<=score<=100), never a V1 level."""
     if score_percent is None:
@@ -76,6 +116,9 @@ class PlacementRequest(BaseModel):
 @router.get("/current-action")
 def current_action(student: Student = Depends(_require_preview_student), db: Session = Depends(get_db)):
     """One read-only, exhaustive resume decision for the learner dashboard."""
+    retry_action = _requested_retry_action(db, student)
+    if retry_action is not None:
+        return retry_action
     assessment = db.query(AssessmentSession).filter(
         AssessmentSession.student_id == student.id,
         AssessmentSession.status == "in_progress",
