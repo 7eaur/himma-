@@ -196,7 +196,7 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
           <div className="student-current-status" data-testid="student-status-summary">
             <span>أنت الآن في</span>
             <strong data-testid="student-journey-status">{currentLevel ?? "تحديد نقطة البداية"}</strong>
-            <small>{placed ? "الدروس تُفتح حسب تقدمك الحقيقي." : "سنحدد مستواك بعد الاختبار القبلي ومراجعة المشرف."}</small>
+            <small>{placed ? "الدروس تُفتح حسب تقدمك الحقيقي." : "سنحدد مستواك تلقائيًا بعد الاختبار القبلي ومراجعة القراءة."}</small>
           </div>
         </div>
       </section>
@@ -248,7 +248,7 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
         <div className="grid gap-3 sm:grid-cols-3" data-testid="student-journey-steps">
           <div data-testid="student-journey-step" className="rounded-2xl border border-slate-200 p-4">
             <ClipboardList size={20} aria-hidden="true" /><strong className="block mt-2">الاختبار القبلي</strong>
-            <span className="block text-sm text-muted mt-1">{home.assessments.pretest?.official ? "نتيجة معتمدة" : "تحديد المستوى ومراجعته"}</span>
+            <span className="block text-sm text-muted mt-1">{home.assessments.pretest?.official ? "نتيجة معتمدة" : "تحديد المستوى بعد مراجعة القراءة"}</span>
           </div>
           <div data-testid="student-journey-step" className="rounded-2xl border border-slate-200 p-4">
             <BookOpenCheck size={20} aria-hidden="true" /><strong className="block mt-2">رحلة الدروس</strong>
@@ -256,14 +256,14 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
           </div>
           <div data-testid="student-journey-step" className="rounded-2xl border border-slate-200 p-4">
             <CheckCircle2 size={20} aria-hidden="true" /><strong className="block mt-2">الاختبار البعدي</strong>
-            <span className="block text-sm text-muted mt-1">{home.assessments.posttest?.official ? "نتيجة معتمدة" : "بعد إكمال الرحلة وإتاحته"}</span>
+            <span className="block text-sm text-muted mt-1">{home.assessments.posttest?.official ? "نتيجة معتمدة" : "بعد إكمال الدروس المطلوبة"}</span>
           </div>
         </div>
       </section>
 
       <V2Rewards data={home.rewards} />
       <StudentRetryTasks dashboard />
-      {home.test_only && <p className="mt-4 text-xs text-muted">بعض المقاطع والصور ما زالت قيد التجربة. إن لم يعمل شيء منها، يمكنك العودة لاحقًا وطلب مساعدة المشرف.</p>}
+      {home.test_only && <p className="mt-4 text-xs text-muted">إذا تعذر تشغيل صوت أو صورة، اطلب مساعدة المشرف. تقدمك محفوظ.</p>}
     </main>
   </div>;
 }

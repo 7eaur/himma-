@@ -46,6 +46,8 @@ describe("Student page V2-only learner boundary", () => {
     expect(screen.getByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
     expect(screen.getByRole("button", { name: "ابدأ الاختبار القبلي" })).toBeEnabled();
     expect(screen.getByText("يظهر تقدم الدروس بعد تحديد مستواك.")).toBeInTheDocument();
+    expect(screen.getByText("سنحدد مستواك تلقائيًا بعد الاختبار القبلي ومراجعة القراءة.")).toBeInTheDocument();
+    expect(screen.queryByText(/قيد التجربة/)).not.toBeInTheDocument();
     expect(screen.queryByTestId("student-badges")).not.toBeInTheDocument();
     expect(fetcher.mock.calls.some(([url]) => ["/api/profile", "/api/journey", "/api/rewards"].includes(url))).toBe(false);
   });
