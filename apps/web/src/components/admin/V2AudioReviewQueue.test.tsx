@@ -54,7 +54,11 @@ it.each(["assessment", "lesson"] as const)("%s opens from a table and accepts on
 
 it("requires a useful retry reason and sends a retry task rather than grading as wrong", async () => {
   const dialog = await open("lesson");
-  fireEvent.click(within(dialog).getByRole("button",{name:"طلب إعادة التسجيل"}));
+  const retryButton = within(dialog).getByRole("button",{name:"طلب إعادة التسجيل"});
+  expect(retryButton).toBeDisabled();
+  fireEvent.ended(within(dialog).getByLabelText("استمع للتسجيل كاملًا قبل التقييم"));
+  await waitFor(() => expect(retryButton).toBeEnabled());
+  fireEvent.click(retryButton);
   const send = within(dialog).getByRole("button",{name:"إرسال طلب الإعادة"});
   expect(send).toBeDisabled();
   fireEvent.change(within(dialog).getByLabelText("ماذا يحتاج الطالب أن يعيد؟"),{target:{value:"أعد قراءة الكلمة بصوت أوضح"}});
@@ -93,4 +97,11 @@ it("mobile review cards expose a label for every value including date and action
   const table = await screen.findByRole("table", { name: "تسجيلات تحتاج مراجعة" });
   const labels = within(table).getAllByRole("cell").map(cell => cell.getAttribute("data-label"));
   expect(labels).toEqual(["الطالب", "النشاط", "المطلوب", "تاريخ التسجيل", "الحالة", "الإجراء"]);
+});
+
+it("shows requested rerecords as waiting for learner, not as actionable reviews", async () => {
+  global.fetch = jest.fn(async () => ok({items:[{...item,retry_state:"requested"}],next_offset:null}));
+  render(<V2AudioReviewQueue kind="assessment"/>);
+  expect(await screen.findByText(/0 جاهز للمراجعة · 1 بانتظار إعادة الطالب/)).toBeInTheDocument();
+  expect(screen.getByRole("button",{name:/مراجعة تسجيل طالب اصطناعي/})).toBeDisabled();
 });

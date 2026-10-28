@@ -32,6 +32,7 @@ function ReviewDialog({ item, kind, onClose, onSaved }: {
   const [withRubric, setWithRubric] = useState(false);
   const [rubric, setRubric] = useState(emptyReadingRubric);
   const [busy, setBusy] = useState(false);
+  const savingRef = useRef(false);
   const [error, setError] = useState("");
   useEffect(() => {
     const node = dialog.current;
@@ -43,7 +44,8 @@ function ReviewDialog({ item, kind, onClose, onSaved }: {
   const prefix = kind === "assessment" ? `/api/v2/assessments/admin/responses/${item.response_id}` : `/api/v2/review/lessons/${item.response_id}`;
   const available = item.interaction === "read_aloud" && item.evidence_ready && !!item.audio_url && !!item.audio_submission_id;
   const save = async (requestRetry: boolean) => {
-    if (busy || (requestRetry ? note.trim().length < 10 : !available || !played || (withRubric && !rubricValid(rubric)))) return;
+    if (savingRef.current || busy || !available || !played || (requestRetry ? note.trim().length < 10 : withRubric && !rubricValid(rubric))) return;
+    savingRef.current = true;
     setBusy(true); setError("");
     try {
       const response = await fetch(requestRetry
@@ -61,9 +63,10 @@ function ReviewDialog({ item, kind, onClose, onSaved }: {
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "تعذر حفظ المراجعة.");
       setBusy(false);
+      savingRef.current = false;
     }
   };
-  return <dialog ref={dialog} className={styles.dialog} aria-labelledby="audio-review-title" dir="rtl"
+  return <dialog ref={dialog} className={styles.dialog} aria-labelledby="audio-review-title" aria-busy={busy} dir="rtl"
     onCancel={event => { event.preventDefault(); if (!busy) onClose(); }}
     onClick={event => { if (event.target === event.currentTarget && !busy) onClose(); }}>
     <div className={styles.dialogContent}>
@@ -96,11 +99,11 @@ function ReviewDialog({ item, kind, onClose, onSaved }: {
       </div>
       <footer className={styles.dialogFooter}>
         {retry ? <>
-          <button type="button" className="btn-primary" disabled={busy || note.trim().length < 10} onClick={() => void save(true)}>{busy ? "جارٍ الإرسال..." : "إرسال طلب الإعادة"}</button>
+          <button type="button" className="btn-primary" disabled={busy || !available || !played || note.trim().length < 10} onClick={() => void save(true)}>{busy ? "جارٍ الإرسال..." : "إرسال طلب الإعادة"}</button>
           <button type="button" className="btn-secondary" disabled={busy} onClick={() => { setRetry(false); setError(""); }}>العودة للاستماع</button>
         </> : <>
           <button type="button" className="btn-primary" disabled={busy || !available || !played || (withRubric && !rubricValid(rubric))} onClick={() => void save(false)}>{busy ? "جارٍ الحفظ..." : "القراءة صحيحة"}</button>
-          <button type="button" className="btn-secondary" disabled={busy || item.retry_state === "requested"} onClick={() => { setRetry(true); setError(""); }}>طلب إعادة التسجيل</button>
+          <button type="button" className="btn-secondary" disabled={busy || !available || !played || item.retry_state === "requested"} onClick={() => { setRetry(true); setError(""); }}>طلب إعادة التسجيل</button>
           {!played && available && <p>استمع للتسجيل كاملًا لتفعيل اعتماد القراءة.</p>}
         </>}
       </footer>
@@ -139,6 +142,8 @@ export default function V2AudioReviewQueue({ kind }: { kind: Kind }) {
   }, [load]);
   const audioItems = queue.items.filter(item => item.interaction === "read_aloud");
   const items = audioItems.filter(item => `${item.student_name} ${item.question_id} ${activity(item)}`.includes(search.trim()));
+  const readyForReview = audioItems.filter(item => item.retry_state !== "requested").length;
+  const waitingForStudent = audioItems.length - readyForReview;
   const current = queue.items.find(item => item.response_id === selected);
   return <AdminPage>
     <AdminPageHeader eyebrow="مراجعة التسجيلات" icon={ClipboardCheck}
@@ -148,10 +153,10 @@ export default function V2AudioReviewQueue({ kind }: { kind: Kind }) {
     {error && <p role="alert" className="alert-error">{error}</p>}
     {message && <p role="status" className={styles.success}>{message}</p>}
     {!loading && <V2BlockedReviewNotice items={queue.blocked_items} onRestored={load} />}
-    <AdminPanel title="تسجيلات تحتاج مراجعة">
+    <AdminPanel title="متابعة التسجيلات الصوتية">
       <div className={styles.toolbar}><label htmlFor={`review-search-${kind}`}>بحث في هذه الصفحة</label>
         <input id={`review-search-${kind}`} className="input-field" value={search} onChange={event => setSearch(event.target.value)} placeholder="اسم الطالب أو النشاط" />
-        <span>{loading ? "جارٍ التحميل" : `${audioItems.length} تسجيل في الصفحة`}</span></div>
+        <span>{loading ? "جارٍ التحميل" : `${readyForReview} جاهز للمراجعة · ${waitingForStudent} بانتظار إعادة الطالب`}</span></div>
       {!loading && audioItems.length !== queue.items.length && <p role="status" className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">هناك {queue.items.length - audioItems.length} إجابات غير صوتية محفوظة؛ لا تظهر في قائمة مراجعة القراءة ولا تُحوَّل إلى تسجيلات.</p>}
       {loading ? <p role="status">جاري تحميل التسجيلات...</p> : !audioItems.length
         ? <AdminEmptyState title="لا توجد تسجيلات تحتاج مراجعة في هذه الصفحة" description="تظهر هنا تسجيلات القراءة التي تنتظر قرارك." />

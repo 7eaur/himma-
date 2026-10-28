@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { CheckCheck, ClipboardCheck, Headphones } from "lucide-react";
 import V2AssessmentsPage from "../v2-assessments/page";
 import V2LessonReviewPage from "../v2-lesson-review/page";
@@ -18,20 +19,22 @@ function safeTab(value: string | null): ReviewTab {
 }
 
 export default function V2ReviewCenterPage() {
-  const [active, setActive] = useState<ReviewTab>(() => (
-    typeof window === "undefined" ? "assessments"
-      : safeTab(new URLSearchParams(window.location.search).get("tab"))
-  ));
-  useEffect(() => {
-    const sync = () => setActive(safeTab(new URLSearchParams(window.location.search).get("tab")));
-    window.addEventListener("popstate", sync);
-    return () => window.removeEventListener("popstate", sync);
-  }, []);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const urlTab = safeTab(searchParams.get("tab"));
+  const [active, setActive] = useState<ReviewTab>(urlTab);
+  const [lastUrlTab, setLastUrlTab] = useState(urlTab);
+  // Keep the review tab aligned with Next navigation and browser Back/Forward.
+  if (lastUrlTab !== urlTab) {
+    setLastUrlTab(urlTab);
+    setActive(urlTab);
+  }
   const selectTab = (value: ReviewTab) => {
     setActive(value);
-    const address = new URL(window.location.href);
-    address.searchParams.set("tab", value);
-    window.history.replaceState(null, "", address.pathname + address.search);
+    const query = new URLSearchParams(searchParams.toString());
+    query.set("tab", value);
+    router.push(`${pathname}?${query.toString()}`, { scroll: false });
   };
   return <div dir="rtl" className="mx-auto w-full max-w-screen-xl min-w-0">
     <p className="mb-3 px-1 text-sm text-slate-600">استمع لقراءة الطالب، ثم اعتمدها أو اطلب إعادة التسجيل.</p>
