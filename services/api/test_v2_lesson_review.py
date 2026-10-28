@@ -7,7 +7,7 @@ from pydantic import ValidationError
 from conftest import TestingSessionLocal
 from db.learning_models import (
     LessonQuestionResponse, SkillEvidence, V2LessonReviewAction,
-    LessonSession, V2ReviewRetryTask,
+    LessonSession, V2ReviewRetryTask, AdaptationDecision, PrivateContentBankSnapshot,
 )
 from db.models import Student
 from test_v2_interaction_runtime import _start_at_questions
@@ -94,6 +94,71 @@ def test_lesson_reading_review_is_private_requires_playback_and_updates_evidence
         assert actions[0].note == ""
     login_student(student_client)
     assert "rubric" not in student_client.get(f"/v2/lessons/sessions/{session_id}/interaction").text
+
+
+def test_waiting_audio_review_uses_pinned_bank_when_authoring_changes(student_client, monkeypatch):
+    """A learner already reviewing audio must not be blocked by a later bank."""
+    from v2_content.repository import get_pinned_release, get_release
+    import v2_lesson_review as review_module
+
+    session_id, response_id, _ = reading(student_client, monkeypatch)
+    with TestingSessionLocal() as db:
+        session = db.get(LessonSession, session_id)
+        original_checksum = get_pinned_release(db, session.content_release_id)["checksum"]
+        session.stage = "waiting_review"
+        session.status = "waiting_review"
+        db.add(AdaptationDecision(
+            lesson_session_id=session.id,
+            student_id=session.student_id,
+            content_release_id=session.content_release_id,
+            decision_key="independent:pending-original-voice",
+            decision_kind="waiting_review",
+            reason_code="reading_under_human_review",
+            evidence_ids=[response_id],
+            explanation_json={},
+            policy_version="himma-v2-regression/1",
+        ))
+        db.commit()
+
+    next_release = dict(get_release(), checksum="f" * 64, version="future-release")
+    monkeypatch.setattr(review_module, "get_release", lambda: next_release, raising=False)
+    resumed = []
+
+    def finish_from_original(db, session, *, decision_key):
+        assert get_pinned_release(db, session.content_release_id)["checksum"] == original_checksum
+        resumed.append(decision_key)
+
+    monkeypatch.setattr(review_module, "finish_independent_check", finish_from_original)
+    login_staff(student_client)
+    listened(student_client, response_id, queued(student_client, response_id))
+    response = student_client.post(
+        f"/v2/review/lessons/{response_id}/decision", json={"is_correct": True},
+    )
+    assert response.status_code == 200, response.text
+    assert resumed == [f"independent:reviewed:{response_id}"]
+    with TestingSessionLocal() as db:
+        assert db.get(LessonQuestionResponse, response_id).status == "graded"
+
+
+def test_audio_review_refuses_tampered_private_bank_and_preserves_pending(student_client, monkeypatch):
+    session_id, response_id, _ = reading(student_client, monkeypatch)
+    login_staff(student_client)
+    listened(student_client, response_id, queued(student_client, response_id))
+    with TestingSessionLocal() as db:
+        session = db.get(LessonSession, session_id)
+        original = db.query(PrivateContentBankSnapshot).filter_by(
+            content_release_id=session.content_release_id
+        ).one()
+        original.checksum = "0" * 64
+        db.commit()
+
+    response = student_client.post(
+        f"/v2/review/lessons/{response_id}/decision", json={"is_correct": True},
+    )
+    assert response.status_code == 409, response.text
+    with TestingSessionLocal() as db:
+        row = db.get(LessonQuestionResponse, response_id)
+        assert row.status == "pending_review" and row.is_correct is None
 
 
 def test_missing_private_audio_cannot_be_approved(student_client, monkeypatch):

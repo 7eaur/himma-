@@ -25,7 +25,7 @@ from v2_adaptation_runtime import (
     active_support_assignment, finish_independent_check,
     finish_support_check,
 )
-from v2_content.repository import get_release
+from v2_content.repository import get_pinned_release
 from v2_assessment_runtime import _session_release, blocked_review_item
 from v2_retry_state import active_retry
 from v2_review_claims import enforce_review_claim, clear_review_claim
@@ -286,13 +286,10 @@ def decide_lesson(
         LessonQuestionResponse.status == "pending_review",
     ).count()
     if not remaining and session.stage == "waiting_review" and session.status == "waiting_review":
-        # P05 progression is still compiled from the live bank; do not mutate
-        # an immutable old session using different support/lesson definitions.
-        from db.models import ContentRelease
-        pinned = db.query(ContentRelease).filter(ContentRelease.id == session.content_release_id).one()
-        compiled = get_release()
-        if pinned.checksum != compiled["checksum"] or pinned.version != compiled["version"]:
-            raise HTTPException(status_code=409, detail="قرار التكيف يتطلب إصدار الدرس المحفوظ")
+        # Continue against the immutable content snapshot pinned to this child's
+        # lesson, not today's authoring bank. Adaptation itself reads that same
+        # snapshot and fails closed when it is missing or corrupted.
+        get_pinned_release(db, session.content_release_id)
         decision = db.query(AdaptationDecision).filter(
             AdaptationDecision.lesson_session_id == session.id
         ).order_by(AdaptationDecision.id.desc()).first()
