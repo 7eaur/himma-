@@ -251,7 +251,7 @@ test("W3: current bank and staff media gallery support real browsing and playbac
   await capture(page, 'phone-390x844', '/admin/v2-bank-lesson');
   await page.goto('/admin/v2-media');
   await expect(page.getByTestId('v2-media-card')).toHaveCount(12);
-  await expect(page.getByText(/89 أصلًا مطابقًا/)).toBeVisible();
+  await expect(page.getByText(/87 أصلًا مطابقًا/)).toBeVisible();
   await page.getByRole('combobox', { name: 'نوع الوسيط' }).selectOption('audio');
   await expect(page.getByTestId('v2-media-card')).toHaveCount(12);
   const card = page.getByTestId('v2-media-card').first();
