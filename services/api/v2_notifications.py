@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from db.learning_models import AssessmentQuestionResponse, LessonQuestionResponse, LessonSession, SupportAssignment
+from db.learning_models import AssessmentQuestionResponse, LessonQuestionResponse, LessonSession, SupportAssignment, V2ReviewRetryTask
 from db.models import AssessmentSession, Student, User
 from db.notification_models import ResearcherNotification
 from dependencies import get_current_user, get_db
@@ -19,6 +19,20 @@ router = APIRouter(prefix='/v2/notifications', tags=['v2-notifications'])
 
 
 def attention_items(db: Session) -> list[dict]:
+    # Requested rerecords are waiting on the learner, not a review action.
+    # Submitted rerecords become actionable again and must remain in the queue.
+    waiting_assessments = {
+        response_id for (response_id,) in db.query(V2ReviewRetryTask.assessment_response_id).filter(
+            V2ReviewRetryTask.status == "requested",
+            V2ReviewRetryTask.assessment_response_id.is_not(None),
+        ).all()
+    }
+    waiting_lessons = {
+        response_id for (response_id,) in db.query(V2ReviewRetryTask.lesson_response_id).filter(
+            V2ReviewRetryTask.status == "requested",
+            V2ReviewRetryTask.lesson_response_id.is_not(None),
+        ).all()
+    }
     items = []
     def add(key, kind, title, message, href, student_id, created):
         items.append({'id': key, 'type': kind, 'title': title, 'message': message, 'href': href,
@@ -27,6 +41,8 @@ def attention_items(db: Session) -> list[dict]:
             AssessmentSession, AssessmentSession.id == AssessmentQuestionResponse.assessment_session_id).join(
             Student, Student.id == AssessmentSession.student_id).filter(
             AssessmentQuestionResponse.status == 'pending_review', AssessmentSession.v2_state.is_not(None), Student.is_active.is_(True)).all():
+        if response.id in waiting_assessments:
+            continue
         add(f'assessment:{response.id}', 'assessment_review', 'قراءة اختبار تحتاج مراجعة',
             f'قراءة اختبار للطالب {student.name} بانتظار قرار المشرف.',
             '/admin/v2-assessments', student.id, response.created_at)
@@ -34,6 +50,8 @@ def attention_items(db: Session) -> list[dict]:
             LessonSession, LessonSession.id == LessonQuestionResponse.lesson_session_id).join(
             Student, Student.id == LessonSession.student_id).filter(
             LessonQuestionResponse.status == 'pending_review', Student.is_active.is_(True)).all():
+        if response.id in waiting_lessons:
+            continue
         add(f'lesson:{response.id}', 'lesson_review', 'قراءة درس تحتاج مراجعة',
             f'قراءة درس للطالب {student.name} بانتظار قرار المشرف.',
             '/admin/v2-lesson-review', student.id, response.created_at)

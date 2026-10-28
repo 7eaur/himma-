@@ -1,6 +1,6 @@
 from conftest import TestingSessionLocal
-from db.learning_models import AssessmentQuestionResponse, LessonQuestionResponse, LessonSession, SupportAssignment
-from db.models import AssessmentSession, Student
+from db.learning_models import AssessmentQuestionResponse, LessonQuestionResponse, LessonSession, SupportAssignment, V2ReviewRetryTask
+from db.models import AssessmentSession, Student, User
 from db.notification_models import ResearcherNotification
 from v2_content.importer import register_candidate_release
 
@@ -93,3 +93,28 @@ def test_placement_and_support_escalation_appear_from_persisted_state(researcher
 def test_student_cannot_read_or_ack_supervisor_inbox(student_client):
     for method, path in [('get','/v2/notifications'), ('post','/v2/notifications/read-all'), ('post','/v2/notifications/assessment:1/read')]:
         assert getattr(student_client, method)(path).status_code == 403
+
+
+def test_notifications_wait_for_student_rerecord_and_reopen_after_submission(researcher_client):
+    response_id, student_id = _pending()
+    with TestingSessionLocal() as db:
+        reviewer = db.query(User).first()
+        db.add(V2ReviewRetryTask(
+            assessment_response_id=response_id,
+            student_id=student_id, requested_by=reviewer.id,
+            request_kind="rerecord", status="requested",
+            reason="يرجى إعادة القراءة بصورة أوضح",
+        ))
+        db.commit()
+    waiting = researcher_client.get('/v2/notifications')
+    assert waiting.status_code == 200
+    assert waiting.json()['total_count'] == 1
+    assert {item['type'] for item in waiting.json()['items']} == {'lesson_review'}
+    with TestingSessionLocal() as db:
+        task = db.query(V2ReviewRetryTask).one()
+        task.status = "submitted"
+        db.commit()
+    ready = researcher_client.get('/v2/notifications')
+    assert ready.status_code == 200
+    assert ready.json()['total_count'] == 2
+    assert {item['type'] for item in ready.json()['items']} == {'assessment_review','lesson_review'}

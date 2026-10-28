@@ -18,10 +18,10 @@ const navSections = [
   { label: "إدارة المنصة", items: [{ href: "/admin/settings", label: "الإعدادات والمشرفون", icon: Settings }] },
 ] as const;
 
-interface SidebarContentProps { pathname: string; supervisorName: string; onNavigate: () => void; onLogout: () => void; showNotifications?: boolean; }
-function SidebarContent({ pathname, supervisorName, onNavigate, onLogout, showNotifications = true }: SidebarContentProps) {
+interface SidebarContentProps { pathname: string; supervisorName: string; onNavigate: () => void; onLogout: () => void; logoutBusy: boolean; showNotifications?: boolean; }
+function SidebarContent({ pathname, supervisorName, onNavigate, onLogout, logoutBusy, showNotifications = true }: SidebarContentProps) {
   const initial = supervisorName.trim().charAt(0) || "م";
-  return <><div className={styles.brand}><div className={styles.brandRow}><Image src="/brand/logo-navy.svg" alt="هِمّة" width={112} height={38} priority />{showNotifications && <AdminNotifications />}</div><span className={styles.brandLabel}>مركز متابعة المشرف</span></div><nav className={styles.nav} aria-label="التنقل في لوحة المشرف">{navSections.map((section) => <div className={styles.navSection} key={section.label}><div className={styles.navSectionTitle}>{section.label}</div><div className={styles.navSectionItems}>{section.items.map((item) => { const isActive = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(`${item.href}/`)); const Icon = item.icon; return <Link key={item.href} href={item.href} onClick={onNavigate} className={`sidebar-nav-item ${styles.navItem} ${isActive ? styles.navItemActive : ""}`} aria-current={isActive ? "page" : undefined}><Icon size={19} className={styles.navIcon} aria-hidden="true" /><span>{item.label}</span></Link>; })}</div></div>)}</nav><div className={styles.sidebarFooter}><div className={styles.user}><div className={styles.avatar} aria-hidden="true">{initial}</div><div className={styles.userMeta}><div className={styles.userName}>{supervisorName || "المشرف"}</div><div className={styles.userRole}>مشرف المنصة</div></div></div><button onClick={onLogout} className={styles.logout}><LogOut size={18} aria-hidden="true" /><span>تسجيل الخروج</span></button></div></>;
+  return <><div className={styles.brand}><div className={styles.brandRow}><Image src="/brand/logo-navy.svg" alt="هِمّة" width={112} height={38} priority />{showNotifications && <AdminNotifications />}</div><span className={styles.brandLabel}>مركز متابعة المشرف</span></div><nav className={styles.nav} aria-label="التنقل في لوحة المشرف">{navSections.map((section) => <div className={styles.navSection} key={section.label}><div className={styles.navSectionTitle}>{section.label}</div><div className={styles.navSectionItems}>{section.items.map((item) => { const isActive = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(`${item.href}/`)); const Icon = item.icon; return <Link key={item.href} href={item.href} onClick={onNavigate} className={`sidebar-nav-item ${styles.navItem} ${isActive ? styles.navItemActive : ""}`} aria-current={isActive ? "page" : undefined}><Icon size={19} className={styles.navIcon} aria-hidden="true" /><span>{item.label}</span></Link>; })}</div></div>)}</nav><div className={styles.sidebarFooter}><div className={styles.user}><div className={styles.avatar} aria-hidden="true">{initial}</div><div className={styles.userMeta}><div className={styles.userName}>{supervisorName || "المشرف"}</div><div className={styles.userRole}>مشرف المنصة</div></div></div><button type="button" onClick={onLogout} disabled={logoutBusy} className={styles.logout}><LogOut size={18} aria-hidden="true" /><span>{logoutBusy ? "جارٍ تسجيل الخروج..." : "تسجيل الخروج"}</span></button></div></>;
 }
 
 export default function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
@@ -30,6 +30,9 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [authState, setAuthState] = useState<"checking" | "ready">("checking");
   const [supervisorName, setSupervisorName] = useState("");
+  const [logoutBusy, setLogoutBusy] = useState(false);
+  const [logoutError, setLogoutError] = useState("");
+  const logoutInFlight = useRef(false);
   const mobileDialogRef = useRef<HTMLDivElement>(null);
   const menuTriggerRef = useRef<HTMLButtonElement>(null);
   const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
@@ -42,8 +45,26 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
   });
 
   useEffect(() => { let alive = true; const verify = async () => { try { const response = await fetch("/api/auth/me", { cache: "no-store" }); const data = await response.json().catch(() => null); if (!response.ok || data?.role !== "researcher") { router.replace("/admin/login"); return; } if (alive) { setSupervisorName(data.display_name || "المشرف"); setAuthState("ready"); } } catch { router.replace("/admin/login"); } }; void verify(); return () => { alive = false; }; }, [router]);
-  const handleLogout = async () => { try { await fetch("/api/auth/logout", { method: "POST" }); } finally { router.replace("/admin/login"); router.refresh(); } };
+  const handleLogout = async () => {
+    if (logoutInFlight.current) return;
+    logoutInFlight.current = true;
+    setLogoutBusy(true);
+    setLogoutError("");
+    try {
+      const response = await fetch("/api/auth/logout", { method: "POST" });
+      if (!response.ok) throw new Error("logout not acknowledged");
+      router.replace("/admin/login");
+      router.refresh();
+    } catch {
+      // A failed HTTP acknowledgement does not prove that the session ended.
+      // Remain on the protected page and offer the user an explicit retry.
+      setLogoutError("تعذر تأكيد تسجيل الخروج. تحقق من اتصالك ثم أعد المحاولة قبل ترك الجهاز.");
+    } finally {
+      logoutInFlight.current = false;
+      setLogoutBusy(false);
+    }
+  };
   if (authState !== "ready") return <div className={styles.guard} dir="rtl" data-testid="admin-auth-guard"><Image src="/brand/logo-navy.svg" alt="هِمّة" width={130} height={46} priority /><div className="spinner w-12 h-12 border-4" /><p>جاري التحقق من جلسة المشرف...</p></div>;
-  const sidebarProps = { pathname, supervisorName, onNavigate: closeMobileMenu, onLogout: handleLogout };
-  return <div className={`admin-dashboard-shell ${styles.dashboardShell}`} dir="rtl"><aside className={styles.sidebarDesktop}><SidebarContent {...sidebarProps} showNotifications /></aside>{mobileMenuOpen && <div className={styles.mobileOverlay}><button className={styles.mobileBackdrop} onClick={closeMobileMenu} aria-label="إغلاق القائمة" tabIndex={-1} /><div ref={mobileDialogRef} className={styles.mobilePanel} role="dialog" aria-modal="true" aria-label="قائمة لوحة المشرف" tabIndex={-1}><button onClick={closeMobileMenu} className={styles.mobileClose} aria-label="إغلاق القائمة"><X size={24} /></button><SidebarContent {...sidebarProps} showNotifications={false} /></div></div>}<main className={styles.content}><div className={styles.mobileBar}><button ref={menuTriggerRef} onClick={() => setMobileMenuOpen(true)} className={styles.menuButton} aria-label="فتح القائمة" aria-haspopup="dialog" aria-expanded={mobileMenuOpen}><Menu size={23} /></button><Image src="/brand/logo-navy.svg" alt="هِمّة" width={92} height={30} /><span className={styles.mobileBarText}>الإدارة</span><AdminNotifications /></div>{children}</main></div>;
+  const sidebarProps = { pathname, supervisorName, onNavigate: closeMobileMenu, onLogout: handleLogout, logoutBusy };
+  return <div className={`admin-dashboard-shell ${styles.dashboardShell}`} dir="rtl"><aside className={styles.sidebarDesktop}><SidebarContent {...sidebarProps} showNotifications /></aside>{mobileMenuOpen && <div className={styles.mobileOverlay}><button className={styles.mobileBackdrop} onClick={closeMobileMenu} aria-label="إغلاق القائمة" tabIndex={-1} /><div ref={mobileDialogRef} className={styles.mobilePanel} role="dialog" aria-modal="true" aria-label="قائمة لوحة المشرف" tabIndex={-1}><button onClick={closeMobileMenu} className={styles.mobileClose} aria-label="إغلاق القائمة"><X size={24} /></button><SidebarContent {...sidebarProps} showNotifications={false} /></div></div>}<main className={styles.content}><div className={styles.mobileBar}><button ref={menuTriggerRef} onClick={() => setMobileMenuOpen(true)} className={styles.menuButton} aria-label="فتح القائمة" aria-haspopup="dialog" aria-expanded={mobileMenuOpen}><Menu size={23} /></button><Image src="/brand/logo-navy.svg" alt="هِمّة" width={92} height={30} /><span className={styles.mobileBarText}>الإدارة</span><AdminNotifications /></div>{logoutError && <div role="alert" className={styles.logoutError}><span>{logoutError}</span><button type="button" onClick={() => void handleLogout()} disabled={logoutBusy}>إعادة محاولة الخروج</button></div>}{children}</main></div>;
 }
