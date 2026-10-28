@@ -107,27 +107,12 @@ def erasure_plan(db, student_ids: list[int], expected_total: int, *, lock=False,
             "_expected_total": expected_total, "_list_audio": list_audio}
 
 
-def execute_erasure(db, plan: dict, fingerprint: str, delete_audio) -> dict:
-    if plan["already_absent"]:
-        return public_plan(plan)
-    if fingerprint != plan["fingerprint"]:
-        raise ValueError("Dry-run fingerprint does not match; no data was deleted")
-    fresh = erasure_plan(db, plan["student_ids"], plan["_expected_total"], lock=True, list_audio=plan["_list_audio"])
-    if fresh.get("fingerprint") != fingerprint:
-        raise ValueError("Data changed since dry-run; deletion refused")
-    plan = fresh
-    metadata = plan["_metadata"]
-    accounts = plan["_snapshot"]["students"]
-    if any(row["is_active"] for row in accounts):
-        raise ValueError("Deactivate the selected accounts before erasure")
-    # Storage deletions are exact object keys, scoped to authorized students.
-    # On a storage outage DB data remains; inactive accounts cannot resume.
-    for key in sorted(plan["_audio"]):
-        owner = int(key.split("/", 2)[1])
-        delete_audio(key, owner)
-    owned = {name: ids for name, ids in plan["_owned"].items() if ids}
-    # Clear self revision pointers; clearing an audio's owner would violate
-    # its exactly-one-owner constraint. Other dependencies delete child first.
+def _remove_owned_rows(db, metadata, owned: dict) -> None:
+    """Delete only the precomputed student-owned closure in safe FK order.
+
+    Used by both the transactional savepoint preflight and the real operation;
+    they must execute the identical database changes.
+    """
     for name, ids in owned.items():
         table = metadata.tables[name]
         nullable = {fk.parent.name: None for fk in table.foreign_keys
@@ -145,6 +130,46 @@ def execute_erasure(db, plan: dict, fingerprint: str, delete_audio) -> dict:
         for name in sorted(leaves):
             db.execute(delete(metadata.tables[name]).where(metadata.tables[name].c.id.in_(owned[name])))
             remaining.remove(name)
+
+
+def execute_erasure(db, plan: dict, fingerprint: str, delete_audio) -> dict:
+    if plan["already_absent"]:
+        return public_plan(plan)
+    if fingerprint != plan["fingerprint"]:
+        raise ValueError("Dry-run fingerprint does not match; no data was deleted")
+    fresh = erasure_plan(db, plan["student_ids"], plan["_expected_total"], lock=True, list_audio=plan["_list_audio"])
+    if fresh.get("fingerprint") != fingerprint:
+        raise ValueError("Data changed since dry-run; deletion refused")
+    plan = fresh
+    metadata = plan["_metadata"]
+    accounts = plan["_snapshot"]["students"]
+    if any(row["is_active"] for row in accounts):
+        raise ValueError("Deactivate the selected accounts before erasure")
+    owned = {name: ids for name, ids in plan["_owned"].items() if ids}
+
+    # Complete one real, constraint-checked database erasure inside a
+    # rollback-only savepoint BEFORE deleting any S3 object. This prevents a
+    # predictable FK, ownership or SQL failure leaving audio missing while
+    # its assessment row still exists. No DB changes survive the preview.
+    preview = db.begin_nested()
+    try:
+        _remove_owned_rows(db, metadata, owned)
+        if db.get_bind().dialect.name == "postgresql":
+            from sqlalchemy import text
+            db.execute(text("SET CONSTRAINTS ALL IMMEDIATE"))
+    except BaseException:
+        preview.rollback()
+        raise
+    preview.rollback()
+
+    # Re-run the *identical* database operations after deleting exact scoped
+    # object keys. Storage and SQL have no shared transaction; the savepoint
+    # eliminates known SQL failures, not arbitrary concurrent infrastructure
+    # failures. Keep the accounts inactive until post-delete verification.
+    for key in sorted(plan["_audio"]):
+        owner = int(key.split("/", 2)[1])
+        delete_audio(key, owner)
+    _remove_owned_rows(db, metadata, owned)
     db.commit()
     return {**public_plan(plan), "status": "deleted"}
 

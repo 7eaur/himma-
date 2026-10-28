@@ -127,3 +127,23 @@ def test_absent_authorized_ids_never_mask_unrelated_accounts_or_orphan_audio():
                 db, [missing_id], 3,
                 list_audio=lambda student_id: [f"audio/{student_id}/orphan.webm"],
             )
+
+
+def test_sql_preflight_failure_cannot_purge_student_audio(monkeypatch):
+    """S3 must not be touched if a database deletion would fail."""
+    import erase_test_students as erasure_module
+    with TestingSessionLocal() as db:
+        child_id = fixture(db)
+        plan = erasure_plan(db, [child_id], 2)
+        remove = erasure_module._remove_owned_rows
+        def fail_in_preflight(*_args, **_kwargs):
+            raise ValueError("simulated database constraint failure")
+        monkeypatch.setattr(erasure_module, "_remove_owned_rows", fail_in_preflight)
+        delete_audio = Mock()
+        with pytest.raises(ValueError, match="constraint failure"):
+            execute_erasure(db, plan, plan["fingerprint"], delete_audio)
+        delete_audio.assert_not_called()
+        db.rollback()
+        assert db.get(Student, child_id) is not None
+        assert db.query(AudioSubmission).count() == 1
+        monkeypatch.setattr(erasure_module, "_remove_owned_rows", remove)
