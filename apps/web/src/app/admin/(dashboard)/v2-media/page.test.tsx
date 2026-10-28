@@ -43,8 +43,8 @@ test("keeps owner-approved shared lesson videos visible and filterable", async (
   })});
   render(<V2MediaInventoryPage />);
   await waitFor(() => expect(screen.getByText("VID-L1-01")).toBeInTheDocument());
-  expect(screen.getByText(/منها 1 فيديو مشترك معتمد مؤقتًا/)).toBeInTheDocument();
-  fireEvent.click(screen.getByRole("button", {name: "الفيديو المؤقت"}));
+  expect(screen.getByText(/منها 1 فيديو مشترك مُدرج للإصدار الأولي/)).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", {name: "الفيديو المشترك"}));
   expect(screen.getAllByTestId("v2-media-card")).toHaveLength(1);
-  expect(screen.getByText(/فيديو مشترك معتمد مؤقتًا إلى حين إنتاج فيديو الدرس/)).toBeInTheDocument();
+  expect(screen.getByText(/فيديو مشترك بين الدروس في الإصدار الأولي/)).toBeInTheDocument();
 });
