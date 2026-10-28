@@ -274,7 +274,7 @@ test.describe("Himma UX system visual QA regression", () => {
       await page.goto("/admin/audio-review?submission_id=99101");
       await expect(page).toHaveURL(/\/admin\/v2-assessments$/);
       await expect(page.getByRole("heading", { name: "الاختبارات ومراجعة القراءة" })).toBeVisible();
-      await expect(page.getByRole("heading", { name: "مراجعة القراءة الصوتية" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "تسجيلات تحتاج مراجعة" })).toBeVisible();
       await expectNoHorizontalOverflow(page);
       await page.screenshot({ path: path.join(SCREENSHOT_DIR, `${viewport.name}-assessment-review.png`), fullPage: true });
     }

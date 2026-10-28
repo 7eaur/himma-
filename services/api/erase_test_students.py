@@ -43,9 +43,8 @@ def erasure_plan(db, student_ids: list[int], expected_total: int, *, lock=False,
             if found - previous:
                 previous.update(found); changed = True
     # These ownership fields are intentionally not foreign keys.
-    for name in ("operation_idempotency", "audit_logs"):
-        table = tables.get(name)
-        if table is not None:
+    for name, table in tables.items():
+        if "actor_role" in table.c and "actor_id" in table.c:
             conditions = [(table.c.actor_role == "student") & table.c.actor_id.in_(student_ids)]
             if name == "audit_logs":
                 conditions.append((table.c.entity_type == "student") & table.c.entity_id.in_([str(i) for i in student_ids]))

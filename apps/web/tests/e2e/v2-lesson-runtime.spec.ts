@@ -160,7 +160,7 @@ test("P03/P04 runtime and P05 targeted support remain responsive", async ({ page
   await page.getByRole("button", { name: /التالي/ }).click();
   const player = page.getByTestId("v2-video-player");
   await expect(player).toBeVisible();
-  await expect(player.getByText(/TEST ONLY/)).toBeVisible();
+  await expect(player.getByText(/TEST ONLY/)).toHaveCount(0);
   await expect(player.locator("video")).toHaveAttribute("controls", "");
   await expect.poll(() => player.locator("video").evaluate((element) => (element as HTMLVideoElement).duration)).toBeGreaterThan(0);
 

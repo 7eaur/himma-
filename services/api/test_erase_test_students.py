@@ -5,6 +5,7 @@ import pytest
 from conftest import TestingSessionLocal
 from db.models import AssessmentSession, AudioSubmission, Student, User
 from db.learning_models import AssessmentQuestionResponse
+from db.auth_models import AuthSessionState
 from erase_test_students import erasure_plan, execute_erasure, public_plan
 
 
@@ -19,6 +20,7 @@ def fixture(db):
     db.add(response); db.flush()
     db.add(AudioSubmission(assessment_response_id=response.id, storage_key=f"audio/{child.id}/test.wav",
         file_size=80, mime_type="audio/wav", status="pending_review"))
+    db.add(AuthSessionState(actor_role="student",actor_id=child.id,auth_epoch=1))
     db.commit()
     return child.id
 
@@ -51,6 +53,7 @@ def test_erases_only_authorized_child_graph_preserving_other_accounts_and_staff(
         assert db.query(AssessmentSession).count()==0
         assert db.query(AssessmentQuestionResponse).count()==0
         assert db.query(AudioSubmission).count()==0
+        assert db.query(AuthSessionState).filter(AuthSessionState.actor_role=="student",AuthSessionState.actor_id==child_id).count()==0
         assert erasure_plan(db,[child_id],2)["already_absent"] is True
 
 
