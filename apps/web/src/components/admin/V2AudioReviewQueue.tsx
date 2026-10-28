@@ -44,7 +44,9 @@ function ReviewDialog({ item, kind, onClose, onSaved }: {
   const prefix = kind === "assessment" ? `/api/v2/assessments/admin/responses/${item.response_id}` : `/api/v2/review/lessons/${item.response_id}`;
   const available = item.interaction === "read_aloud" && item.evidence_ready && !!item.audio_url && !!item.audio_submission_id;
   const save = async (requestRetry: boolean) => {
-    if (savingRef.current || busy || !available || !played || (requestRetry ? note.trim().length < 10 : withRubric && !rubricValid(rubric))) return;
+    if (savingRef.current || busy || (requestRetry
+      ? note.trim().length < 10 || (available && !played)
+      : !available || !played || (withRubric && !rubricValid(rubric)))) return;
     savingRef.current = true;
     setBusy(true); setError("");
     try {
@@ -99,11 +101,11 @@ function ReviewDialog({ item, kind, onClose, onSaved }: {
       </div>
       <footer className={styles.dialogFooter}>
         {retry ? <>
-          <button type="button" className="btn-primary" disabled={busy || !available || !played || note.trim().length < 10} onClick={() => void save(true)}>{busy ? "جارٍ الإرسال..." : "إرسال طلب الإعادة"}</button>
+          <button type="button" className="btn-primary" disabled={busy || (available && !played) || note.trim().length < 10} onClick={() => void save(true)}>{busy ? "جارٍ الإرسال..." : "إرسال طلب الإعادة"}</button>
           <button type="button" className="btn-secondary" disabled={busy} onClick={() => { setRetry(false); setError(""); }}>العودة للاستماع</button>
         </> : <>
           <button type="button" className="btn-primary" disabled={busy || !available || !played || (withRubric && !rubricValid(rubric))} onClick={() => void save(false)}>{busy ? "جارٍ الحفظ..." : "القراءة صحيحة"}</button>
-          <button type="button" className="btn-secondary" disabled={busy || !available || !played || item.retry_state === "requested"} onClick={() => { setRetry(true); setError(""); }}>طلب إعادة التسجيل</button>
+          <button type="button" className="btn-secondary" disabled={busy || (available && !played) || item.retry_state === "requested"} onClick={() => { setRetry(true); setError(""); }}>طلب إعادة التسجيل</button>
           {!played && available && <p>استمع للتسجيل كاملًا لتفعيل اعتماد القراءة.</p>}
         </>}
       </footer>

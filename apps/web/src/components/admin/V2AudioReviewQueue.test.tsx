@@ -105,3 +105,18 @@ it("shows requested rerecords as waiting for learner, not as actionable reviews"
   expect(await screen.findByText(/0 جاهز للمراجعة · 1 بانتظار إعادة الطالب/)).toBeInTheDocument();
   expect(screen.getByRole("button",{name:/مراجعة تسجيل طالب اصطناعي/})).toBeDisabled();
 });
+
+it("permits a supervised rerecord request when the original audio file is missing", async () => {
+  global.fetch = jest.fn(async (url: string, options?: RequestInit) =>
+    options?.method === "POST" ? ok({status:"requested"}) :
+      ok({items:options?.method === "POST" ? [] : [{...item,audio_url:null,audio_submission_id:null,evidence_ready:false}],next_offset:null}));
+  render(<V2AudioReviewQueue kind="assessment"/>);
+  const reviewButton = await screen.findByRole("button",{name:/مراجعة تسجيل طالب اصطناعي/});
+  fireEvent.click(reviewButton);
+  const dialog = screen.getByRole("dialog");
+  expect(within(dialog).getByRole("button",{name:"القراءة صحيحة"})).toBeDisabled();
+  fireEvent.click(within(dialog).getByRole("button",{name:"طلب إعادة التسجيل"}));
+  fireEvent.change(within(dialog).getByLabelText("ماذا يحتاج الطالب أن يعيد؟"),{target:{value:"أعد القراءة لأن الملف الصوتي لم يصل سليمًا"}});
+  fireEvent.click(within(dialog).getByRole("button",{name:"إرسال طلب الإعادة"}));
+  expect(await screen.findByText("أُرسل طلب إعادة التسجيل إلى الطالب.")).toBeInTheDocument();
+});
