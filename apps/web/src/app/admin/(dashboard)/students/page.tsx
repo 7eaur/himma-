@@ -7,6 +7,7 @@ import {
   AdminAction, AdminEmptyState, AdminMobileCard, AdminPage, AdminPageHeader,
   AdminPanel, AdminResponsiveTable, AdminToolbar,
 } from "@/components/admin/AdminUI";
+import { v2StudentActionLabel } from "@/lib/v2StudentActionLabel";
 
 type StudentListItem = {
   id: number;
@@ -34,14 +35,6 @@ type Cohort = {
 };
 const PAGE_SIZE = 30;
 
-function statusLabel(student: StudentListItem) {
-  if (student.current_action.action === "migration_review") return "انتقال للمشرف";
-  if (student.current_action.action === "start_pretest") return "بانتظار القبلي";
-  if (student.current_action.state === "waiting_review") return "بانتظار مراجعة القراءة";
-  if (student.current_action.state === "placement_pending_review") return "جارٍ تحديد المستوى تلقائيًا";
-  if (student.current_action.action === "complete") return "أكمل الرحلة";
-  return student.current_action.label;
-}
 function progressLabel(student: StudentListItem) {
   if (student.data_status !== "ready" || student.progress.display_percent == null || student.progress.assigned_lessons == null)
     return "لم يُعتمد تقدم الدروس بعد";
@@ -124,14 +117,14 @@ export default function StudentsPage() {
             <td><span className={`badge ${student.status === "active" ? "badge-green" : "badge-gray"}`}>{student.status === "active" ? "نشط" : "موقوف"}</span></td>
             <td>{student.journey && ["placed", "posttest_ready", "completed"].includes(student.journey.placement_state) ? `المستوى ${student.journey.current_level}` : "لم يُعتمد بعد"}</td>
             <td><span>{progressLabel(student)}</span></td>
-            <td>{statusLabel(student)}</td>
+            <td>{v2StudentActionLabel(student.current_action)}</td>
             <td><Link href={`/admin/students/${student.id}`} className="inline-flex items-center gap-2 text-primary font-semibold text-sm p-2 rounded-md hover:bg-primary/10"><Eye size={18} /> فتح</Link></td>
           </tr>)}</tbody></table>}
           cards={items.map(student => <AdminMobileCard key={student.id} title={<Link href={`/admin/students/${student.id}`}>{student.full_name}</Link>}>
             <span><strong>الحساب:</strong> {student.status === "active" ? "نشط" : "موقوف"}</span>
             <span><strong>المستوى:</strong> {student.journey && ["placed", "posttest_ready", "completed"].includes(student.journey.placement_state) ? student.journey.current_level : "لم يُعتمد بعد"}</span>
             <span><strong>التقدم:</strong> {progressLabel(student)}</span>
-            <span><strong>الخطوة:</strong> {statusLabel(student)}</span>
+            <span><strong>الخطوة:</strong> {v2StudentActionLabel(student.current_action)}</span>
             <span><AdminAction href={`/admin/students/${student.id}`} icon={Eye}>فتح الملف</AdminAction></span>
           </AdminMobileCard>)} />}
       {!loading && data && count > PAGE_SIZE && <div className="flex justify-between gap-3 pt-5">

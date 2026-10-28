@@ -40,3 +40,14 @@ it("rejects a legacy source without displaying its students", async () => {
   expect(await screen.findByRole("alert")).toHaveTextContent("غير متطابق مع V2");
   expect(screen.queryByText("طالب اصطناعي")).not.toBeInTheDocument();
 });
+
+it("shows automatic placement as a system step rather than a supervisor review", async () => {
+  global.fetch = jest.fn().mockResolvedValue(response({ ...payload, recent_students: [
+    { ...payload.recent_students[0], current_action: {
+      action: "assessment", state: "placement_pending_review", label: "عرض حالة المراجعة",
+    } },
+  ] }));
+  render(<AdminDashboard />);
+  expect(await screen.findByTestId("admin-v2-students")).toHaveTextContent("جارٍ تحديد المستوى تلقائيًا");
+  expect(screen.queryByText("عرض حالة المراجعة")).not.toBeInTheDocument();
+});

@@ -6,6 +6,7 @@ import { Activity, ArrowLeft, BookOpenCheck, Headphones, Plus, ShieldCheck, User
 import { AdminAction, AdminEmptyState, AdminMobileCard, AdminPage, AdminPageHeader, AdminPanel, AdminResponsiveTable, AdminStat, AdminStatGrid } from "@/components/admin/AdminUI";
 import type { StudentV2Home } from "@/app/student/V2StudentDashboard";
 import styles from "./admin.module.css";
+import { v2StudentActionLabel } from "@/lib/v2StudentActionLabel";
 
 type RecentStudent = Pick<StudentV2Home, "journey" | "progress" | "current_action" | "data_status"> & {
   id: number; full_name: string; status: "active" | "inactive";
@@ -84,9 +85,9 @@ export default function AdminDashboard() {
               <th>الطالب</th><th>المستوى</th><th>الدروس</th><th>الخطوة التالية</th><th>الحساب</th>
             </tr></thead><tbody>{result.recent_students.map(student => <tr key={student.id}>
               <td><Link className={styles.studentLink} href={`/admin/students/${student.id}`}>{student.full_name}</Link></td>
-              <td>{level(student)}</td><td>{progress(student)}</td><td>{student.current_action.label}</td><td>{student.status === "active" ? "نشط" : "موقوف"}</td>
+              <td>{level(student)}</td><td>{progress(student)}</td><td>{v2StudentActionLabel(student.current_action)}</td><td>{student.status === "active" ? "نشط" : "موقوف"}</td>
             </tr>)}</tbody></table>} cards={result.recent_students.map(student => <AdminMobileCard key={student.id} title={<Link href={`/admin/students/${student.id}`}>{student.full_name}</Link>}>
-              <span>{level(student)}</span><span>{progress(student)}</span><span>{student.current_action.label}</span>
+              <span>{level(student)}</span><span>{progress(student)}</span><span>{v2StudentActionLabel(student.current_action)}</span>
               <span>{student.status === "active" ? "نشط" : "موقوف"}</span>
             </AdminMobileCard>)} />}
         </AdminPanel>
