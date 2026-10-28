@@ -23,7 +23,6 @@ function payload(overrides: Partial<InteractionPayload["question"]> = {}): Inter
     media,
     progress: { index: 1, total: 4, stage: "guided_practice" },
     attempts: 0,
-    draft: null,
   };
 }
 

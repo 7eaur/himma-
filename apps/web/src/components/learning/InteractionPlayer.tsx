@@ -24,7 +24,6 @@ export interface InteractionPayload {
   media: Record<string, ResolvedMedia>;
   progress: { index: number; total: number; stage: string };
   attempts: number;
-  draft: string | null;
 }
 interface SubmissionResult { correct?: boolean; retry_required: boolean; hint?: string | null; message?: string; status: string; }
 

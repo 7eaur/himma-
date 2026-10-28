@@ -115,29 +115,6 @@ class LessonQuestionResponse(Base):
     )
 
 
-class LessonQuestionDraft(Base):
-    """One server-side open-response draft per lesson question.
-
-    Drafts are deliberately separate from attempts: autosave must never create
-    evidence, consume an attempt, or move the lesson state machine.
-    """
-
-    __tablename__ = "lesson_question_drafts"
-
-    id = Column(Integer, primary_key=True)
-    lesson_session_id = Column(Integer, ForeignKey("lesson_sessions.id", ondelete="CASCADE"), nullable=False)
-    question_id = Column(String(160), nullable=False)
-    draft_json = Column(JSON().with_variant(JSONB, "postgresql"), nullable=False, default=dict)
-    version = Column(Integer, nullable=False, default=1, server_default="1")
-    created_at = Column(DateTime(timezone=True), nullable=False, default=_now)
-    updated_at = Column(DateTime(timezone=True), nullable=False, default=_now, onupdate=_now)
-
-    __table_args__ = (
-        CheckConstraint("version >= 1", name="ck_lesson_question_drafts_version"),
-        UniqueConstraint("lesson_session_id", "question_id", name="uq_lesson_question_draft"),
-    )
-
-
 class SupportAssignment(Base):
     """A bounded support/check detour that returns to one lesson session."""
 
@@ -273,23 +250,6 @@ class AssessmentQuestionResponse(Base):
     )
 
 
-class AssessmentQuestionDraft(Base):
-    __tablename__ = "assessment_question_drafts"
-
-    id = Column(Integer, primary_key=True)
-    assessment_session_id = Column(Integer, ForeignKey("assessment_sessions.id", ondelete="CASCADE"), nullable=False)
-    question_id = Column(String(160), nullable=False)
-    draft_json = Column(JSON().with_variant(JSONB, "postgresql"), nullable=False, default=dict)
-    version = Column(Integer, nullable=False, default=1, server_default="1")
-    created_at = Column(DateTime(timezone=True), nullable=False, default=_now)
-    updated_at = Column(DateTime(timezone=True), nullable=False, default=_now, onupdate=_now)
-
-    __table_args__ = (
-        UniqueConstraint("assessment_session_id", "question_id", name="uq_assessment_question_draft"),
-        CheckConstraint("version >= 1", name="ck_assessment_question_draft_version"),
-    )
-
-
 class PlacementDecisionV2(Base):
     """Audited V2 placement by the system or an authorized historical reviewer."""
 
@@ -386,7 +346,7 @@ class V2ReviewRetryTask(Base):
             "CASE WHEN assessment_response_id IS NOT NULL THEN 1 ELSE 0 END) = 1",
             name="ck_v2_retry_exactly_one_owner",
         ),
-        CheckConstraint("request_kind IN ('rerecord','rewrite')", name="ck_v2_retry_kind"),
+        CheckConstraint("request_kind = 'rerecord'", name="ck_v2_retry_kind"),
         CheckConstraint("status IN ('requested','submitted','superseded','resolved')", name="ck_v2_retry_status"),
         Index(
             "uq_v2_retry_active_lesson", "lesson_response_id", unique=True,
