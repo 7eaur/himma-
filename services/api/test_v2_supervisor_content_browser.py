@@ -44,7 +44,7 @@ def test_lesson_bank_includes_intro_and_uses_staff_media_urls(researcher_client)
 def test_inventory_and_preview_are_staff_only_private_and_test_marked(researcher_client):
     inventory = researcher_client.get('/v2/lessons/admin/media-inventory')
     assert inventory.status_code == 200
-    assert len(inventory.json()['items']) == 89
+    assert len(inventory.json()['items']) == 87
     for kind in ('audio', 'image', 'video'):
         asset = next(asset for asset in get_release()['media'] if asset['kind'] == kind)
         response = researcher_client.get(f'/v2/lessons/admin/media/{asset["id"]}')

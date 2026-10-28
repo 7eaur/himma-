@@ -43,7 +43,7 @@ EXPECTED_ROLES = {
 }
 ALLOWED_MEDIA_CONFLICTS = {"label", "review"}
 EXPECTED_LEVELS = {"L1": 6, "L2": 6, "L3": 7}
-EXPECTED_MEDIA_KINDS = {"audio": 47, "image": 23, "video": 19}
+EXPECTED_MEDIA_KINDS = {"audio": 45, "image": 23, "video": 19}
 EXPECTED_SKILLS = {f"S{number}" for number in range(1, 14)}
 EXPECTED_SOURCE_METADATA = {
     "L1_AUTHORING_BANK_DRAFT.json": ("himma-v2-authoring/0.3-draft", "content_draft_not_published"),
@@ -145,8 +145,8 @@ def compile_release(bank_root: Path = BANK_ROOT) -> dict[str, Any]:
     questions = [AuthoringQuestion.model_validate(row) for row in questions_raw]
     media = _merge_media(media_raw)
 
-    if (len(lessons), len(supports), len(questions), len(media)) != (19, 12, 300, 89):
-        raise ContentBankError("expected 19 lessons, 12 supports, 300 questions and 89 media assets")
+    if (len(lessons), len(supports), len(questions), len(media)) != (19, 12, 300, 87):
+        raise ContentBankError("expected 19 lessons, 12 supports, 300 questions and 87 media assets")
 
     level_counts = {level: sum(lesson.level == level for lesson in lessons) for level in EXPECTED_LEVELS}
     media_kind_counts = {kind: sum(item["kind"] == kind for item in media) for kind in EXPECTED_MEDIA_KINDS}

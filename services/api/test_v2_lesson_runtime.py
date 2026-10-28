@@ -191,7 +191,7 @@ def test_fixture_is_real_private_mp4(student_client):
 def test_admin_inventory_reports_source_gaps_not_fixture_readiness(researcher_client):
     response = researcher_client.get("/v2/lessons/admin/media-inventory")
     assert response.status_code == 200
-    assert response.json()["counts"] == {"ready": 87, "pending": 0, "missing": 2, "test_only": 2, "temporary": 19}
+    assert response.json()["counts"] == {"ready": 87, "pending": 0, "missing": 0, "test_only": 0, "temporary": 19}
 
 
 def test_student_preview_is_blocked_in_protected_runtime(student_client, monkeypatch):
@@ -204,10 +204,10 @@ def test_p07_media_contract_keeps_preview_separate_from_approval(researcher_clie
     response = researcher_client.get("/v2/lessons/admin/media-inventory")
     assert response.status_code == 200
     data = response.json()
-    assert len(data["items"]) == 89
-    assert data["counts"] == {"ready": 87, "pending": 0, "missing": 2, "test_only": 2, "temporary": 19}
+    assert len(data["items"]) == 87
+    assert data["counts"] == {"ready": 87, "pending": 0, "missing": 0, "test_only": 0, "temporary": 19}
     assert data["publishable"] is True
-    assert data["media_requirements"] == {"audio": 47, "image": 23, "video": 19}
+    assert data["media_requirements"] == {"audio": 45, "image": 23, "video": 19}
     video = next(x for x in data["items"] if x["asset_id"] == "VID-L1-01")
     assert not video["publication_blocker"] and video["preview_kind"] == "shared_approved_temporary_video" and video["temporary"]
     assert any(r["owner_id"] == "L1-01" for r in video["uses"])

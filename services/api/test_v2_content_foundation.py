@@ -32,9 +32,9 @@ def test_compiler_is_deterministic_and_matches_reviewed_baseline():
     assert first["counts"]["lessons"] == 19
     assert first["counts"]["supports"] == 12
     assert first["counts"]["questions"] == 300
-    assert first["counts"]["media"] == 89
+    assert first["counts"]["media"] == 87
     assert first["counts"]["levels"] == {"L1": 6, "L2": 6, "L3": 7}
-    assert first["counts"]["media_kinds"] == {"audio": 47, "image": 23, "video": 19}
+    assert first["counts"]["media_kinds"] == {"audio": 45, "image": 23, "video": 19}
     assert first["counts"]["skills"] == 13
     assert sum(first["counts"]["interactions"].values()) == 300
     assert sum(first["counts"]["roles"].values()) == 300
@@ -146,12 +146,11 @@ def test_p07_required_media_gate_ignores_unused_bank_assets_without_approving_th
     assert {a["id"] for a in needed}.issubset({a["id"] for a in release["media"]})
     inventory = media_readiness_contract(release, provider=MediaProvider(environment="test", fixture_enabled=True))
     assert inventory["required_assets"] == 73
-    assert inventory["unused_assets"] == 16
+    assert inventory["unused_assets"] == 14
     assert inventory["published_assets"] == 73
     assert inventory["publishable"] is True
     assert inventory["counts"]["temporary"] == 19
-    unused = next(row for row in inventory["items"] if row["asset_id"] == "AUD-L1-03-MA")
-    assert not unused["required_for_runtime"] and not unused["publication_blocker"]
+    assert not {"AUD-L1-03-MA", "AUD-L1-03-SI"} & {row["asset_id"] for row in inventory["items"]}
 
 
 def test_p07_production_resolution_points_to_existing_approved_media_route():

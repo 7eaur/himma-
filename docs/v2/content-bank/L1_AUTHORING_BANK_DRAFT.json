@@ -6293,21 +6293,6 @@
       "source_path": "assets/audio/HIMMA_AUDIO_V2/web_mp3/AUD-L1-03-MU.mp3"
     },
     {
-      "id": "AUD-L1-03-MA",
-      "kind": "audio",
-      "label": "مَ",
-      "v1_asset_id": null,
-      "v1_path": null,
-      "status": "missing_new",
-      "approval": "pending_owner_review",
-      "rights_review_required": false,
-      "type": "audio",
-      "review_state": "awaiting_production",
-      "required_spoken_text": "مَ",
-      "required_by_questions": false,
-      "recording_state": "missing_optional_unused"
-    },
-    {
       "id": "AUD-L1-03-SA",
       "kind": "audio",
       "label": "سَ",
@@ -6322,21 +6307,6 @@
       "required_by_questions": true,
       "recording_state": "missing_required",
       "source_path": "assets/audio/HIMMA_AUDIO_V2/web_mp3/AUD-L1-03-SA.mp3"
-    },
-    {
-      "id": "AUD-L1-03-SI",
-      "kind": "audio",
-      "label": "سِ",
-      "v1_asset_id": null,
-      "v1_path": null,
-      "status": "missing_new",
-      "approval": "pending_owner_review",
-      "rights_review_required": false,
-      "type": "audio",
-      "review_state": "awaiting_production",
-      "required_spoken_text": "سِ",
-      "required_by_questions": false,
-      "recording_state": "missing_optional_unused"
     },
     {
       "id": "AUD-L1-03-NU",
