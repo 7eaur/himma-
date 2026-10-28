@@ -49,7 +49,9 @@ it('remounts identity state when routing to another learner',async()=>{
  await screen.findByRole('heading',{name:'طالب اصطناعي 1'});
  fireEvent.click(screen.getByRole('tab',{name:'الحساب'}));
  fireEvent.click(screen.getByRole('button',{name:'إظهار الرمز'}));await screen.findByText('123456');
- currentId='2';rerender(<Page/>);
+ // A real Next route transition updates both the dynamic param and browser URL.
+ // The old account tab must not leak into the second student's clean route.
+ currentId='2';window.history.replaceState({}, '', '/admin/students/2');rerender(<Page/>);
  await screen.findByRole('heading',{name:'طالب اصطناعي 2'});
  expect(screen.queryByText('123456')).not.toBeInTheDocument();
  expect(await screen.findByTestId('supervisor-v2-overview')).toBeVisible();
