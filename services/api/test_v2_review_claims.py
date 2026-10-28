@@ -7,10 +7,9 @@ import bcrypt
 from conftest import TestingSessionLocal
 from db.learning_models import AssessmentQuestionResponse, StudentJourney, V2ReviewClaim
 from db.models import AssessmentSession, Student, User
-from test_v2_lesson_review import _writing_response
-from test_v2_legacy_writing_fixture import legacy_writing_release
+from test_v2_lesson_review import reading as _reading_response, listened, queued
 from v2_content.importer import register_candidate_release
-from v2_content.repository import get_question
+from v2_content.repository import get_release
 
 
 def _login(client, username: str):
@@ -34,15 +33,8 @@ def _add_second_researcher():
         return second.id
 
 
-def test_two_supervisors_claim_and_release_lesson_without_overriding(student_client):
-    sid, question_id = _writing_response(student_client)
-    with TestingSessionLocal() as db:
-        from db.learning_models import LessonQuestionResponse
-        row = db.query(LessonQuestionResponse).filter(
-            LessonQuestionResponse.lesson_session_id == sid,
-            LessonQuestionResponse.question_id == question_id,
-        ).one()
-        response_id = row.id
+def test_two_supervisors_claim_and_release_lesson_without_overriding(student_client, monkeypatch):
+    _, response_id, _ = _reading_response(student_client, monkeypatch)
     first_id = None
     _add_second_researcher()
     _login(student_client, "researcher1")
@@ -81,9 +73,10 @@ def test_two_supervisors_claim_and_release_lesson_without_overriding(student_cli
         f"/v2/review-claims/admin/lesson/{response_id}/claim",
     )
     assert owned.status_code == 200, owned.text
+    listened(student_client, response_id, queued(student_client, response_id))
     graded = student_client.post(
         f"/v2/review/lessons/{response_id}/decision",
-        json={"is_correct": True, "note": "مطابق لمعيار الكتابة بعد مراجعة الدليل"},
+        json={"is_correct": True, "note": "مطابق لمعيار القراءة بعد الاستماع للدليل"},
     )
     assert graded.status_code == 200, graded.text
     assert student_client.post(
@@ -96,14 +89,8 @@ def test_two_supervisors_claim_and_release_lesson_without_overriding(student_cli
         assert row.expires_at is not None
 
 
-def test_expired_claim_can_be_reassigned_to_new_researcher(student_client):
-    sid, question_id = _writing_response(student_client)
-    with TestingSessionLocal() as db:
-        from db.learning_models import LessonQuestionResponse
-        response_id = db.query(LessonQuestionResponse).filter(
-            LessonQuestionResponse.lesson_session_id == sid,
-            LessonQuestionResponse.question_id == question_id,
-        ).one().id
+def test_expired_claim_can_be_reassigned_to_new_researcher(student_client, monkeypatch):
+    _, response_id, _ = _reading_response(student_client, monkeypatch)
     new_id = _add_second_researcher()
     _login(student_client, "researcher1")
     assert student_client.post(
@@ -130,7 +117,7 @@ def test_expired_claim_can_be_reassigned_to_new_researcher(student_client):
 def test_assessment_claim_prevents_second_supervisor_request(student_client):
     with TestingSessionLocal() as db:
         student = db.query(Student).filter(Student.access_code == "STU001").one()
-        release = register_candidate_release(db, legacy_writing_release("V2-PRE-Q12"))
+        release = register_candidate_release(db)
         db.add(StudentJourney(
             student_id=student.id, content_release_id=release.id,
             placement_state="in_progress",
@@ -142,10 +129,11 @@ def test_assessment_claim_prevents_second_supervisor_request(student_client):
             assessment_attempt_no=1, v2_policy_version="test",
         )
         db.add(session); db.flush()
-        question = get_question("V2-PRE-Q12")
+        question = next(q for q in get_release()["questions"]
+                        if q["role"] == "pretest" and q["interaction"] == "read_aloud")
         response = AssessmentQuestionResponse(
             assessment_session_id=session.id, question_id=question["id"],
-            role="pretest", answer_json={"text_response": "قلم"},
+            role="pretest", answer_json={"audio_storage_key": f"audio/{student.id}/synthetic.webm"},
             submit_key=str(uuid4()), status="pending_review", is_correct=None,
             skill_group=question["skill_group"],
             evidence_type=question["evidence_type"],

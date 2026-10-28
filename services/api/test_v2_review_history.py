@@ -1,46 +1,54 @@
-"""Supervisor history must preserve revisions but never expose storage keys."""
+"""Authenticated, private V2 audio review history across rerecords."""
 from uuid import uuid4
 
 from conftest import TestingSessionLocal
 from db.learning_models import LessonQuestionResponse
-from test_v2_lesson_review import _writing_response, _login_researcher
+from test_v2_lesson_review import reading, login_staff, login_student, retry_upload
 
 
-def test_p08_human_history_is_private_and_preserves_original_rewrite(student_client):
-    sid, question_id = _writing_response(student_client)
-    with TestingSessionLocal() as db:
-        response_id = db.query(LessonQuestionResponse).filter(
-            LessonQuestionResponse.lesson_session_id == sid,
-            LessonQuestionResponse.question_id == question_id,
-        ).one().id
+def test_human_review_history_keeps_original_and_private_audio_revisions(student_client, monkeypatch):
+    _, response_id, old_key = reading(student_client, monkeypatch)
     endpoint = f"/v2/review-history/admin/lesson/{response_id}"
     assert student_client.get(endpoint).status_code in (401, 403)
-    _login_researcher(student_client)
+
+    login_staff(student_client)
     first = student_client.get(endpoint)
     assert first.status_code == 200, first.text
-    assert first.json()["original"]["text_response"] == "القلم"
+    assert first.json()["original"]["submitted_at"]
+    assert "text_response" not in first.json()["original"]
     assert first.json()["retries"] == []
+    assert len(first.json()["recordings"]) == 1
+    assert "storage_key" not in first.text
+    assert old_key not in first.text
+
     asked = student_client.post(f"/v2/retries/admin/lesson/{response_id}/request", json={
-        "reason": "النص الأول غير واضح، نحتاج كتابة نسخة جديدة لتصحيح القراءة",
+        "reason": "التسجيل الأول غير واضح؛ نحتاج إعادة تسجيل القراءة",
     })
     assert asked.status_code == 200, asked.text
     task_id = asked.json()["task_id"]
-    assert student_client.post("/auth/student-login", json={"access_code": "STU001"}).status_code == 200
+    login_student(student_client)
     assert student_client.get(endpoint).status_code in (401, 403)
+    replacement = retry_upload(student_client, monkeypatch, task_id)
     sent = student_client.post(f"/v2/retries/student/tasks/{task_id}/submit", json={
-        "submit_key": str(uuid4()), "text_response": "باب",
+        "submit_key": str(uuid4()), **replacement,
     })
     assert sent.status_code == 200, sent.text
-    _login_researcher(student_client)
+
+    login_staff(student_client)
     history = student_client.get(endpoint)
     assert history.status_code == 200, history.text
     data = history.json()
-    assert data["original"]["text_response"] == "القلم"
-    assert data["retries"][0]["text_response"] == "باب"
+    assert data["interaction"] == "read_aloud"
+    assert data["original"]["submitted_at"]
+    assert data["retries"][0]["kind"] == "rerecord"
     assert data["retries"][0]["status"] == "submitted"
-    assert data["recordings"] == []
+    assert "text_response" not in data["retries"][0]
+    assert len(data["recordings"]) == 2
+    assert any(item["url"] for item in data["recordings"])
     assert "storage_key" not in history.text
     assert "submit_key" not in history.text
+    assert old_key not in history.text
+    assert replacement["audio_storage_key"] not in history.text
     assert student_client.get(
-        f"/v2/review-history/admin/lesson/{response_id}/recordings/123456",
+        f"/v2/review-history/admin/lesson/{response_id}/recordings/123456"
     ).status_code == 404

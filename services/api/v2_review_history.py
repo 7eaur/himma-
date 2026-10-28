@@ -42,7 +42,6 @@ def review_history(
     db: Session = Depends(get_db),
 ):
     row, session, question = _owner(db, kind, response_id)
-    original = ((row.answer_json or {}).get("answer") or {}) if kind == "lesson" else (row.answer_json or {})
     tasks = _retry_query(db, kind, response_id).order_by(V2ReviewRetryTask.id).all()
     audios = _audio_query(db, kind, response_id).order_by(AudioSubmission.id).all()
     if kind == "lesson":
@@ -68,7 +67,6 @@ def review_history(
         "interaction": question["interaction"],
         "status": row.status,
         "original": {
-            "text_response": original.get("text_response") if question["interaction"] == "write_text" else None,
             "submitted_at": _timestamp(row.created_at),
         },
         "retries": [{
@@ -79,11 +77,6 @@ def review_history(
             "requested_at": _timestamp(task.created_at),
             "submitted_at": _timestamp(task.submitted_at),
             "resolved_at": _timestamp(task.resolved_at),
-            "text_response": (
-                task.replacement_json.get("text_response")
-                if question["interaction"] == "write_text" and isinstance(task.replacement_json, dict)
-                else None
-            ),
             "superseded_recording_count": len(
                 (task.replacement_json or {}).get("superseded_staged_audio") or []
             ),

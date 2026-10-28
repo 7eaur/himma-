@@ -9,14 +9,14 @@ interface Entry {
 interface Retry {
   task_id: number; kind: string; status: string; reason: string;
   requested_at: string | null; submitted_at: string | null;
-  text_response: string | null; superseded_recording_count: number;
+  superseded_recording_count: number;
 }
 interface Audio {
   id: number; status: string; file_size: number;
   duration_seconds: number | null; submitted_at: string | null; url: string | null;
 }
 interface History {
-  original: { text_response: string | null; submitted_at: string | null };
+  original: { submitted_at: string | null };
   retries: Retry[]; recordings: Audio[]; decisions: Entry[];
 }
 
@@ -57,15 +57,11 @@ export default function V2EvidenceHistory({ kind, responseId }: { kind: Kind; re
       {history && <>
         <div className="rounded-lg bg-slate-50 p-3">
           <strong>الدليل الأصلي · {dateText(history.original.submitted_at)}</strong>
-          {history.original.text_response !== null &&
-            <p className="mt-1 whitespace-pre-wrap break-words">{history.original.text_response}</p>}
         </div>
         {history.retries.map((item) => <div key={item.task_id} className="rounded-lg border border-amber-200 p-3">
-          <strong>طلب إعادة #{item.task_id} · {item.kind === "rerecord" ? "تسجيل" : "كتابة"} · {item.status}</strong>
+          <strong>طلب إعادة #{item.task_id} · تسجيل · {item.status}</strong>
           <p className="mt-1 whitespace-pre-wrap break-words">السبب: {item.reason}</p>
           <p className="mt-1 text-xs text-slate-600">الطلب: {dateText(item.requested_at)} · الإرسال: {dateText(item.submitted_at)}</p>
-          {item.text_response !== null &&
-            <p className="mt-1 whitespace-pre-wrap break-words">النسخة البديلة: {item.text_response}</p>}
           {item.superseded_recording_count > 0 &&
             <p className="text-xs text-slate-600">تسجيلات مرفوعة استُبدلت قبل الإرسال: {item.superseded_recording_count}</p>}
         </div>)}
