@@ -269,3 +269,10 @@ python -m erase_test_students --student-ids 1,2,3 --expected-total 3
 - الجرد **قراءة فقط** من API على Railway أظهر أربعة طلاب: `(1, disabled), (2, disabled), (3, disabled), (4, active)`. لذلك `--expected-total 3` فشل مغلقًا؛ **لا يعني وجود بيانات تالفة**.
 - `--student-ids 1,2,3 --expected-total 4` هو النطاق الصحيح للتخطيط؛ الطالب 4 خارج الحذف ومحصّن بفلترة الملكية ومطابقة العدد.
 - المرحلة التالية: تشغيل CLI الرسمي دون `--execute` لاستخراج `counts/audio_objects/fingerprint`، ثم التنفيذ بالبصمة المطابقة وتحقق بعدي. لا بيانات أسماء أو رموز دخول في السجل.
+
+
+## R01 — جرد البصمة والتحقق من الواجهة المنشورة
+
+- على API الحقيقي في Railway تأكد أن الطلاب IDs `1,2,3` **معطّلون** والطالب ID `4` **نشط**. جرد حذف دقيق للثلاثة على `--expected-total 4` نجح *بوضع القراءة فقط* عبر `erase_test_students.py`: `students=3`, `assessment_sessions=3`, `assessment_question_responses=19`, `audio_submissions=3`, `audit_logs=17`, `auth_session_states=3`, `student_journeys=3`, `v2_audio_upload_leases=2`, `v2_review_claims=1`, وعدد ملفات S3 الخاصة = `3`. بصمة الجرد محفوظة في سجلات Railway فقط؛ لا تُنشر أسماء أو رموز الدخول أو مفاتيح التخزين.
+- محاولة استدعاء تنفيذ الحذف عبر موصل Railway رُفضت بفحص أمان الموصل. **لم تُحذف أي بيانات**. أُعيد `startCommand` في إعداد API إلى `cd services/api && python -m uvicorn main:app --host 0.0.0.0 --port 8000`. يتطلب التنفيذ المخوّل استخدام `railway ssh` على خدمة API الحالية نفسها مع `--execute --fingerprint` المطابقة للجرد، ثم تحقق من بقاء ID4 وحده، وعدم بقاء الصوت التابع للثلاثة. لا إنشاء خدمة إضافية ولا تغيير بنك أو قاعدة أو مشرف.
+- تعديل مراجعة الهاتف منتشر على Web deployment `ee409300-c36f-49c9-b819-7f9005a1a166` بنجاح؛ صار الجدول بطاقات بحقول مسماة. بوابات M04 وM09 على commit `b9aa5f67` نجحت؛ CI النهائي يحتاج متابعة. لا تخلط بين نجاح النشر وحذف بيانات التجربة.
