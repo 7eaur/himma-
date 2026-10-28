@@ -46,6 +46,8 @@ describe("Student page V2-only learner boundary", () => {
     expect(screen.getByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
     expect(screen.getByRole("button", { name: "ابدأ الاختبار القبلي" })).toBeEnabled();
     expect(screen.getByText("يظهر تقدم الدروس بعد تحديد مستواك.")).toBeInTheDocument();
+    expect(screen.queryByText("تجاوزتها بالتسكين")).not.toBeInTheDocument();
+    expect(screen.queryByText("بانتظار المراجعة")).not.toBeInTheDocument();
     expect(screen.getByText("سنحدد مستواك تلقائيًا بعد الاختبار القبلي ومراجعة القراءة.")).toBeInTheDocument();
     expect(screen.queryByText(/قيد التجربة/)).not.toBeInTheDocument();
     expect(screen.queryByTestId("student-badges")).not.toBeInTheDocument();
@@ -93,6 +95,7 @@ describe("Student page V2-only learner boundary", () => {
     expect(await screen.findByText("أكملت 3 من 14 درسًا مخصصًا لك.")).toBeInTheDocument();
     expect(screen.getByTestId("student-journey-status")).toHaveTextContent("الحركات والكلمات");
     expect(screen.getByTestId("student-v2-progress")).toHaveTextContent("21.4%");
+    expect(screen.queryByText("تجاوزتها بالتسكين")).not.toBeInTheDocument();
     expect(screen.getByTestId("v2-star-total")).toHaveTextContent("0 نجمة");
     fireEvent.click(screen.getByRole("button", { name: "متابعة الرحلة التعليمية" }));
     expect(push).toHaveBeenCalledWith("/student/learning-v2");
@@ -367,4 +370,13 @@ it("opens the specific rerecord request from the main learner action", async () 
   const button=await screen.findByTestId("student-primary-action");
   fireEvent.click(button);
   expect(push).toHaveBeenCalledWith("/student/retry/23");
+});
+
+// Waiting assessment evidence must never be depicted as an invented zero.
+it("keeps assessment review as a clear action without false dashboard counts", async () => {
+  mockV2({...firstTime,current_action:{action:"assessment",kind:"pretest",state:"waiting_review",href:"/student/assessment-v2/42",label:"عرض حالة المراجعة"}});
+  render(<StudentPage/>);
+  expect(await screen.findByRole("heading",{name:"بانتظار مراجعة القراءة"})).toBeInTheDocument();
+  expect(screen.getByTestId("student-v2-progress")).not.toHaveTextContent("بانتظار المراجعة");
+  expect(screen.queryByText("TEST ONLY")).not.toBeInTheDocument();
 });

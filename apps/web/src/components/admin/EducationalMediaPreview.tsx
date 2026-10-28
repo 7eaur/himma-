@@ -10,7 +10,7 @@ export default function EducationalMediaPreview({ asset }: { asset: EducationalM
   const [open, setOpen] = useState(false);
   const [failed, setFailed] = useState(false);
   return <div className="min-w-0 space-y-2">
-    {asset.test_only && <p className="text-xs font-semibold text-amber-800">TEST ONLY · معاينة غير معتمدة للنشر</p>}
+    {asset.test_only && <p className="text-xs font-semibold text-amber-800">معاينة فقط · هذا الملف غير معتمد كأصل تعليمي مستقل</p>}
     {!asset.url ? <p className="text-sm text-muted">ملف المعاينة غير متاح.</p>
       : !open ? <button type="button" onClick={() => setOpen(true)} className="min-h-11 rounded-xl border border-border px-4 py-2 text-sm font-semibold">معاينة {asset.asset_id}</button>
       : failed ? <p role="alert" className="text-sm text-red-700">تعذر تشغيل الوسيط. لا يُستبدل بملف مختلف.</p>

@@ -65,7 +65,7 @@ const levelNames: Record<number, string> = {
 function stage(home: StudentV2Home) {
   const action = home.current_action;
   if (action.action === "rerecord_required")
-    return { title: "المشرف طلب إعادة قراءة", detail: "اقرأ النص نفسه من جديد وسجّل صوتك. إجابتك السابقة محفوظة حتى يُراجع المشرف القراءة الجديدة.", disabled: false };
+    return { title: "لنقرأ مرة أخرى", detail: "طلب المشرف إعادة تسجيل قراءتك. اقرأ النص نفسه، ثم أرسل تسجيلك الجديد.", disabled: false };
   if (action.action === "assessment" && action.state === "placement_pending_review")
     return { title: "نحدد مستواك تلقائيًا", detail: "إجاباتك محفوظة، وستظهر دروسك بعد اكتمال مراجعة القراءة.", disabled: false };
   if (action.action === "assessment" && action.state === "waiting_review")
@@ -217,9 +217,9 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
             <span>•</span>
             <span>مهمة واحدة في كل مرة</span>
           </div>
-          <button type="button" className={styles.button} disabled={starting || info.disabled}
+          <button type="button" className={styles.button} disabled={starting || info.disabled} aria-busy={starting}
             onClick={() => void start()} data-testid="student-primary-action">
-            {starting ? (action.action === "lesson" ? "جارٍ فتح الدرس..." : action.action === "lesson_catalog" ? "جارٍ فتح الدروس..." : "جارٍ فتح الاختبار...") : action.label}
+            {starting ? (action.action === "rerecord_required" ? "جارٍ فتح سؤال القراءة..." : action.action === "lesson" ? "جارٍ فتح الدرس..." : action.action === "lesson_catalog" ? "جارٍ فتح الدروس..." : "جارٍ فتح الاختبار...") : action.label}
           </button>
           {error && <div role="alert" className={styles.error}>{error}</div>}
         </div>
@@ -230,23 +230,23 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
       </section>
 
       <section className={styles.journey} aria-label="تقدم رحلتك في هِمّة" data-testid="student-v2-progress">
-        <div className={styles.journeyHeader}>
-          <div><h3>تقدمك في الدروس</h3>
-            <p>{home.data_status === "partial" ? "تعذر حساب التقدم من إصدار المحتوى المثبت؛ بياناتك محفوظة." :
-              percent === null ? "يظهر تقدم الدروس بعد تحديد مستواك." :
-              `أكملت ${progress.completed_lessons} من ${progress.assigned_lessons} درسًا مخصصًا لك.`}</p>
-          </div>
-          <span>{percent === null ? "لم يُحسب بعد" : `${percent}%`}</span>
-        </div>
-        {percent !== null && <div className="student-progress-track" aria-label={`تقدمك ${percent} بالمئة`}>
-          <span style={{ width: `${Math.max(0, Math.min(100, percent))}%` }} />
-        </div>}
-        <div className="student-progress-facts">
-          <div><span>دروس أُنجزت</span><strong>{home.data_status === "partial" || !placed ? "—" : progress.completed_lessons}</strong></div>
-          <div><span>تجاوزتها بالتسكين</span><strong>{home.data_status === "partial" || !placed ? "—" : progress.skipped_by_placement}</strong></div>
-          <div><span>بانتظار المراجعة</span><strong>{progress.pending_review}</strong></div>
-        </div>
-        <p className="mt-4 text-sm text-muted">ابدأ من خطوتك الحالية، وتقدم درسًا بعد درس.</p>
+        {placed && home.data_status === "ready" && percent !== null
+          ? <>
+              <div className={styles.journeyHeader}>
+                <div><h3>تقدمك في الدروس</h3><p>أكملت {progress.completed_lessons} من {progress.assigned_lessons} درسًا مخصصًا لك.</p></div>
+                <span>{percent}%</span>
+              </div>
+              <div className="student-progress-track" aria-label={`تقدمك ${percent} بالمئة`}>
+                <span style={{ width: `${Math.max(0, Math.min(100, percent))}%` }} />
+              </div>
+            </>
+          : <>
+              <h3>رحلتك في هِمّة</h3>
+              <p className="mt-2 text-sm text-muted">{home.data_status === "partial"
+                ? "تعذر عرض تقدمك الآن. بياناتك محفوظة، وراجع المشرف إذا استمرت المشكلة."
+                : placed ? "سنظهر تقدمك بعد اكتمال بيانات الدروس."
+                : "يظهر تقدم الدروس بعد تحديد مستواك."}</p>
+            </>}
       </section>
 
       <section className={styles.journey} aria-label="مراحل الرحلة">
@@ -269,7 +269,6 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
 
       <V2Rewards data={home.rewards} />
       {action.action !== "rerecord_required" && <StudentRetryTasks dashboard />}
-      {home.test_only && <p className="mt-4 text-xs text-muted">إذا تعذر تشغيل صوت أو صورة، اطلب مساعدة المشرف. تقدمك محفوظ.</p>}
     </main>
   </div>;
 }
