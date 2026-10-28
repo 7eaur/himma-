@@ -121,7 +121,7 @@ test.describe("Himma UX system visual QA regression", () => {
     }
   });
 
-  test("student dashboard reveals cross-session V2 rewrite task only when requested", async ({ page, context, request }) => {
+  test("student dashboard reveals cross-session V2 rerecord task only when requested", async ({ page, context, request }) => {
     test.setTimeout(120000);
     await page.setViewportSize({ width: 390, height: 844 });
     const accessCode = await createStudent(page, request, context, "طالب مراجعة القراءة");
@@ -137,9 +137,9 @@ test.describe("Himma UX system visual QA regression", () => {
         contentType: "application/json",
         body: JSON.stringify({ items: [{
           task_id: 108, kind: "lesson", session_id: 99,
-          question_id: "L2-01-GP-01", request_kind: "rewrite",
-          status: "requested", reason: "أعد كتابة الإجابة بوضوح حتى يتمكن المشرف من مراجعتها",
-          prompt: "اكتب الكلمة المطلوبة مرة أخرى",
+          question_id: "L2-01-GP-01", request_kind: "rerecord",
+          status: "requested", reason: "أعد قراءة الكلمة بصوت واضح للمراجعة",
+          prompt: "اقرأ الكلمة المطلوبة مرة أخرى",
         }] }),
       });
     });
@@ -147,8 +147,9 @@ test.describe("Himma UX system visual QA regression", () => {
     await expect(page.getByTestId("student-home")).toBeVisible();
     const tasks = page.getByTestId("v2-active-retry-tasks");
     await expect(tasks).toBeVisible({ timeout: 15000 });
-    await expect(tasks).toContainText("أعد كتابة الإجابة بوضوح");
-    await expect(tasks.getByLabel("إجابتك الجديدة")).toBeVisible();
+    await expect(tasks).toContainText("أعد قراءة الكلمة بصوت واضح");
+    await expect(tasks.getByRole("button", { name: "تسجيل القراءة من جديد" })).toBeVisible();
+    await expect(tasks.locator("textarea")).toHaveCount(0);
     await expectNoHorizontalOverflow(page);
   });
 
@@ -165,8 +166,8 @@ test.describe("Himma UX system visual QA regression", () => {
       await route.fulfill(connected
         ? { status: 200, contentType: "application/json", body: JSON.stringify({ items: [{
             task_id: 509, kind: "lesson", session_id: 77, question_id: "L2-01-GP-01",
-            request_kind: "rewrite", status: "requested", reason: "أعد الكتابة بعد عودة الاتصال",
-            prompt: "اكتب النص مرة أخرى",
+            request_kind: "rerecord", status: "requested", reason: "أعد القراءة بعد عودة الاتصال",
+            prompt: "اقرأ الكلمة مرة أخرى",
           }] })}
         : { status: 503, contentType: "application/json", body: '{"detail":"network unavailable"}' });
     });
@@ -181,8 +182,9 @@ test.describe("Himma UX system visual QA regression", () => {
     await page.evaluate(() => window.dispatchEvent(new Event("online")));
     const tasks = page.getByTestId("v2-active-retry-tasks");
     await expect(tasks).toBeVisible({ timeout: 15000 });
-    await expect(tasks).toContainText("أعد الكتابة بعد عودة الاتصال");
-    await expect(tasks.getByLabel("إجابتك الجديدة")).toBeVisible();
+    await expect(tasks).toContainText("أعد القراءة بعد عودة الاتصال");
+    await expect(tasks.getByRole("button", { name: "تسجيل القراءة من جديد" })).toBeVisible();
+    await expect(tasks.locator("textarea")).toHaveCount(0);
     await expectNoHorizontalOverflow(page);
   });
 
