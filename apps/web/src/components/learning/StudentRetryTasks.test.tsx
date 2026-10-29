@@ -1,3 +1,5 @@
+import { notifyFeedback } from "@/lib/feedback";
+jest.mock("@/lib/feedback", () => ({ notifyFeedback: jest.fn() }));
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import StudentRetryTasks from "./StudentRetryTasks";
 
@@ -171,4 +173,24 @@ it("locks rerecord actions while the previously staged evidence is being submitt
   await act(async()=>{release({ok:true,json:async()=>({status:"submitted"})});await pending;});
   await waitFor(()=>expect(fetcher.mock.calls.filter(([url])=>url.endsWith("/submit"))).toHaveLength(1));
   expect(fetcher.mock.calls.some(([url])=>url.endsWith("/recording"))).toBe(false);
+});
+
+it("explains the missing rerecording when the student presses send without audio", async () => {
+  (notifyFeedback as jest.Mock).mockClear();
+  const fetcher = jest.fn(async () => ({
+    ok: true, json: async () => ({
+      items: [{ task_id: 88, kind: "lesson", session_id: 10,
+        question_id: "L1-01-GP-03", status: "requested",
+        request_kind: "rerecord", reason: "اقرأ الكلمة مجددًا",
+        prompt: "اقرأ الكلمة", stimulus: { text: "بَابٌ" }, staged_audio: null }],
+      next_offset: null,
+    }),
+  }));
+  global.fetch = fetcher as unknown as typeof fetch;
+  render(<StudentRetryTasks taskId={88} />);
+  const send = await screen.findByRole("button", { name: "إرسال الإجابة الجديدة للمراجعة" });
+  expect(send).toHaveAttribute("aria-disabled", "true");
+  fireEvent.click(send);
+  expect(notifyFeedback).toHaveBeenCalledWith("warning", "سجّل قراءتك أولًا، ثم اضغط إرسال.");
+  expect(fetcher.mock.calls.some(([, options]) => (options as RequestInit | undefined)?.method === "POST")).toBe(false);
 });

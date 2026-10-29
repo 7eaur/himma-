@@ -155,6 +155,10 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
 
   const submit = async () => {
     if (submitPendingRef.current || busy || recording) return;
+    if (!audioBlob && !stagedAudio) {
+      notifyFeedback("warning", "سجّل قراءتك أولًا، ثم اضغط إرسال.");
+      return;
+    }
     submitPendingRef.current = true;
     setBusy(true); setError("");
     try {
@@ -184,8 +188,11 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
       const payload = await response.json().catch(() => null);
       if (!response.ok) throw new Error(payload?.detail || "تعذر إرسال النسخة الجديدة");
       onSaved();
-    } catch (reason) { setError(reason instanceof Error ? reason.message : "تعذر إكمال الإعادة"); }
-    finally { submitPendingRef.current = false; setBusy(false); }
+    } catch (reason) {
+      const message = reason instanceof Error ? reason.message : "تعذر إكمال الإعادة";
+      setError(message);
+      notifyFeedback("error", message);
+    } finally { submitPendingRef.current = false; setBusy(false); }
   };
 
   return <section className="space-y-5 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6" aria-label="إعادة الدليل">
@@ -217,8 +224,8 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
         <p className="text-sm text-slate-700">القراءة الجديدة ستظل بانتظار مراجعة المشرف، ولن تُحتسب نتيجة تلقائية.</p>
       </div>
     {error && <p role="alert" className="text-sm text-rose-700">{error}</p>}
-    <button type="button" disabled={busy || requestingMic || recording || (!audioBlob && !stagedAudio)}
-      onClick={() => void submit()} aria-busy={busy} className="min-h-12 w-full rounded-2xl bg-emerald-700 px-5 py-3 font-bold text-white shadow-md shadow-emerald-200/70 disabled:opacity-40">
+    <button type="button" disabled={busy || requestingMic || recording}
+      aria-disabled={!audioBlob && !stagedAudio} onClick={() => void submit()} aria-busy={busy} className="min-h-12 w-full rounded-2xl bg-emerald-700 px-5 py-3 font-bold text-white shadow-md shadow-emerald-200/70 disabled:opacity-40">
       {busy ? "جاري حفظ الدليل..." : "إرسال الإجابة الجديدة للمراجعة"}</button>
   </section>;
 }
