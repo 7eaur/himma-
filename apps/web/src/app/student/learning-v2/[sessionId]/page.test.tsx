@@ -149,6 +149,8 @@ it("keeps replay reachable after video completion and preserves the practice dra
   global.fetch = fetchMock as typeof fetch;
   render(<V2LessonPage/>);
   const player = await screen.findByTestId("v2-video-player");
+  expect(screen.getByTestId("v2-video-guidance")).toHaveTextContent("شاهد شرح الدرس");
+  expect(screen.getByAltText("شخصية هِمّة تشرح التعليمات")).toBeInTheDocument();
   const video = player.querySelector("video")!;
   Object.defineProperty(video,"duration",{configurable:true,value:6});
   Object.defineProperty(video,"currentTime",{configurable:true,value:6});

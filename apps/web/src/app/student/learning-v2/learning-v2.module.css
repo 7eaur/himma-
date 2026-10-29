@@ -25,3 +25,10 @@
 .introCharacter img{display:block;width:min(100%,180px);height:auto;max-height:215px;object-fit:contain;object-position:bottom}
 @media(max-width:600px){.intro{grid-template-columns:minmax(0,1fr) 105px;column-gap:8px;row-gap:12px;padding:16px;align-items:start}.intro h2{font-size:clamp(1.35rem,5.5vw,1.8rem)}.introDescription{font-size:.9rem;line-height:1.8}.introContent{display:contents}.introContent>.eyebrow,.introContent>h2,.introContent>.introDescription,.introContent>.learningGoal,.introContent>.primary{grid-column:1/-1}.introCharacter{grid-column:2;grid-row:1/4;align-self:center;opacity:.9}.introContent>.eyebrow,.introContent>h2,.introContent>.introDescription{grid-column:1}.introCharacter img{max-height:135px}.learningGoal{margin:4px 0}.intro .primary{width:100%}}
 @media(max-width:360px){.intro{grid-template-columns:minmax(0,1fr) 82px}.introCharacter img{max-height:110px}}
+
+/* Video step: one reassuring instruction with a character; never obscure the player. */
+.videoGuidance{display:flex;gap:14px;align-items:center;margin:12px 0 16px;padding:13px 18px;border:1px solid #d4e8f5;border-radius:18px;background:#f3f9ff}
+.videoGuidance img{flex:0 0 auto;object-fit:contain;object-position:bottom;width:76px;height:90px}
+.videoGuidance h2{font-size:1.1rem;line-height:1.5;margin:0 0 4px;color:#225477}
+.videoGuidance p{font-size:.9rem;line-height:1.8;margin:0;color:#526c81}
+@media(max-width:600px){.videoGuidance{padding:10px 12px;gap:9px;border-radius:15px}.videoGuidance img{width:55px;height:70px}.videoGuidance h2{font-size:1rem}.videoGuidance p{font-size:.8rem;line-height:1.7}}
