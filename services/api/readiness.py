@@ -75,6 +75,17 @@ def _valid_sha256(value: object) -> bool:
 
 
 def _content_ready() -> bool:
+    # Select the same explicit trial policy used by V2 student routes. ENV=trial
+    # alone never bypasses the canonical V1 contract, nor can this enable V2 in
+    # production. D28 approves this bank for the client prototype only.
+    from runtime_flags import trial_v2_preview_allowed
+    if trial_v2_preview_allowed():
+        from v2_content.operational_readiness import content_ready
+        return content_ready()
+    return _canonical_content_ready()
+
+
+def _canonical_content_ready() -> bool:
     """Fail closed unless PostgreSQL is the exact attested canonical projection.
 
     This probe is DB-only: it does not rebuild content or parse repository source
@@ -177,6 +188,14 @@ def _content_ready() -> bool:
 
 
 def _approved_audio_ready() -> bool:
+    from runtime_flags import trial_v2_preview_allowed
+    if trial_v2_preview_allowed():
+        from v2_content.operational_readiness import approved_media_ready
+        return approved_media_ready()
+    return _canonical_approved_audio_ready()
+
+
+def _canonical_approved_audio_ready() -> bool:
     """Verify the complete approved audio package and both binary variants.
 
     This is an operational readiness check, not a student content loader. The

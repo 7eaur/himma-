@@ -23,6 +23,15 @@ _REQUIRED_ENV = {
 }
 
 
+@pytest.fixture(autouse=True)
+def canonical_v1_probe_policy(monkeypatch):
+    """These legacy projection tests exercise V1 even in the V2 M09 job.
+
+    V2 selection and integrity failures have separate operational probe coverage.
+    """
+    monkeypatch.setenv("HIMMA_TRIAL_V2_PREVIEW", "false")
+
+
 def _set_required_env(monkeypatch):
     for name, value in _REQUIRED_ENV.items():
         monkeypatch.setenv(name, value)

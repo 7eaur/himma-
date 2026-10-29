@@ -41,6 +41,8 @@ def approved_asset_path(asset: dict[str, Any]) -> Path | None:
     path = (REPO_ROOT / source).resolve()
     if root not in path.parents or path.suffix.lower() not in _ALLOWED_SUFFIXES[kind] or not path.is_file():
         return None
+    if path.stat().st_size == 0:
+        return None
     if status == "approved_temporary":
         if kind != "video" or not str(asset.get("id", "")).startswith("VID-L") or source != TEMPORARY_VIDEO or asset.get("shared_temporary_video") is not True:
             return None
