@@ -150,7 +150,7 @@ function V2LessonSessionPage({ routeSessionId }: { routeSessionId: string }) {
         <button type="button" className={styles.primary} disabled={saving} onClick={() => lesson.session.stage === "intro" ? void completeIntro() : setReviewView("teaching_video")}>{saving ? "جاري الحفظ..." : lesson.session.stage === "intro" ? lesson.intro.button : "شاهد الدرس"}<ArrowLeft size={18}/></button>
       </div>
       <div className={styles.introCharacter}><Image src="/characters/girl/welcome.png" alt="شخصية هِمّة ترحب بالطالب" width={180} height={215} priority /></div>
-    </section>
+    </section>}
       {displayedStage === "teaching_video" && (lesson.video.url ? <><section className={styles.videoGuidance} data-testid="v2-video-guidance" aria-label="تعليمات مشاهدة الدرس">
         <Image src="/characters/girl/explain.png" alt="شخصية هِمّة تشرح التعليمات" width={84} height={100}/>
         <div><h2>شاهد شرح الدرس</h2><p>شاهد الفيديو، ويمكنك إيقافه أو إكماله من موضعك عند الحاجة. بعد المشاهدة ننتقل إلى التدريب.</p></div>
