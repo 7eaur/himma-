@@ -77,6 +77,14 @@ def test_lesson_reading_review_is_private_requires_playback_and_updates_evidence
     login_staff(student_client)
     item = queued(student_client, rid)
     assert item["interaction"] == "read_aloud" and item["evidence_ready"]
+    # Lesson review must expose the original spoken stimulus to the supervisor.
+    # It cannot silently fall back to a newer authoring release's text.
+    from v2_content.repository import get_pinned_release
+    with TestingSessionLocal() as db:
+        session = db.get(LessonSession, session_id)
+        pinned = get_pinned_release(db, session.content_release_id)
+        original = next(q for q in pinned["questions"] if q["id"] == item["question_id"])
+        assert item["stimulus_text"] == original["stimulus"]["text"]
     assert item["rubric"] is not None and "text_response" not in item
     body = {"is_correct": True}
     assert student_client.post(f"/v2/review/lessons/{rid}/decision", json=body).status_code == 409

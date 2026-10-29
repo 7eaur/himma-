@@ -91,6 +91,9 @@ def _item(
         "student_id": student.id, "student_name": student.name,
         "question_id": row.question_id, "lesson_id": session.lesson_id,
         "interaction": question["interaction"], "prompt": question["prompt"],
+        # Read the original, checksum-pinned reading text, not today's authoring bank.
+        # The supervisor must see the exact word/sentence the learner recorded.
+        "stimulus_text": (question.get("stimulus") or {}).get("text"),
         "reference": question.get("reading_reference") if question["interaction"] == "read_aloud" else None,
         "rubric": (question.get("private_answer") or {}).get("rubric"),
         "audio_url": f"/api/v2/review/lessons/{row.id}/audio" if audio and ready else None,
