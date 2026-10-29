@@ -493,3 +493,26 @@ def test_unplaced_session_never_appears_in_student_catalog_or_resumable_action(s
     assert student_client.get(f"/v2/lessons/sessions/{lesson_id}/interaction").status_code == 409
     assert student_client.get(f"/v2/adaptation/sessions/{lesson_id}/status").status_code == 409
     assert student_client.get(f"/v2/lessons/sessions/{lesson_id}/media/VID-L1-01").status_code == 409
+
+
+def test_pinned_lesson_video_range_and_private_cache_require_student_session(student_client, client):
+    from urllib.parse import urlsplit
+
+    started = _start(student_client)
+    session_id = started["session"]["session_id"]
+    media_url = started["video"]["url"]
+    assert media_url is not None and "?v=" in media_url
+    route = media_url.removeprefix("/api")
+    media_path = urlsplit(route).path
+
+    partial = student_client.get(route, headers={"Range": "bytes=0-31"})
+    assert partial.status_code == 206
+    assert partial.headers["cache-control"] == "private, max-age=86400, immutable"
+    assert partial.headers["accept-ranges"] == "bytes"
+    assert partial.headers["content-range"].startswith("bytes 0-31/")
+    assert len(partial.content) == 32
+    assert "Cookie" in partial.headers["vary"].split(", ")
+    assert student_client.get(media_path).headers["cache-control"] == "private, no-store"
+    assert student_client.get(media_path + "?v=" + "0" * 64).status_code == 404
+    assert client.get(route).status_code == 401
+    assert student_client.get(f"/v2/lessons/sessions/{session_id}/media/VID-L3-07").status_code == 404

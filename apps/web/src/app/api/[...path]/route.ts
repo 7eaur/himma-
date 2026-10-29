@@ -32,7 +32,8 @@ async function proxy(req: NextRequest, { params }: { params: Promise<{ path: str
   if (idempotencyKey) headers["idempotency-key"] = idempotencyKey;
   if (rangeHeader) headers.range = rangeHeader;
   // Restore partial transfers and conditional requests only for approved media.
-  if (/^v2\/content\/media\/[A-Z0-9-]+$/.test(upstreamPath) && req.method === "GET") {
+  if ((/^v2\/content\/media\/[A-Z0-9-]+$/.test(upstreamPath)
+    || /^v2\/lessons\/sessions\/[1-9]\d*\/media\/[A-Z0-9-]+$/.test(upstreamPath)) && req.method === "GET") {
     for (const name of ["if-range", "if-none-match", "if-modified-since"]) {
       const value = req.headers.get(name);
       if (value) headers[name] = value;

@@ -8,7 +8,7 @@ import mimetypes
 from pathlib import Path
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
@@ -19,7 +19,7 @@ from dependencies import get_current_student, get_current_user, get_db
 from runtime_flags import protected_runtime, trial_v2_preview_allowed
 from v2_journey_projection import official_placement_query
 from v2_content.repository import get_pinned_release
-from v2_content.media import APPROVED_STATES, MISSING_STATES, MediaProvider, approved_asset_path
+from v2_content.media import APPROVED_STATES, MISSING_STATES, MediaProvider, approved_asset_path, educational_media_version
 from v2_content.readiness import media_readiness_contract
 from v2_content.projection import student_lesson
 from v2_content.repository import get_lesson, get_media, get_release
@@ -76,7 +76,15 @@ def _session_payload(db: Session, session: LessonSession) -> dict:
         raise HTTPException(status_code=409, detail="وسيط الدرس غير مسجل في الإصدار المثبت")
     resolved = MediaProvider().resolve(asset).as_dict()
     if resolved["state"] == "ready" and not resolved["test_only"]:
-        resolved["url"] = f'/api/v2/lessons/sessions/{session.id}/media/{asset["id"]}'
+        # Preserve session-scoped pinned release authorization with an
+        # immutable fingerprint, rather than returning an unversioned URL.
+        media_path = approved_asset_path(asset)
+        if media_path is None:
+            raise HTTPException(status_code=409, detail="وسيط الإصدار المثبت لم يعد متاحًا")
+        resolved["url"] = (
+            f'/api/v2/lessons/sessions/{session.id}/media/{asset["id"]}'
+            f'?v={educational_media_version(media_path)}'
+        )
     payload = student_lesson(lesson, resolved)
     payload["session"] = {
         "session_id": session.id,
@@ -244,6 +252,7 @@ def lesson_session(
 def session_approved_media(
     session_id: int,
     asset_id: str,
+    v: str | None = Query(default=None, max_length=64),
     student: Student = Depends(_require_preview_student),
     db: Session = Depends(get_db),
 ):
@@ -266,8 +275,14 @@ def session_approved_media(
     path = approved_asset_path(asset) if asset else None
     if path is None:
         raise HTTPException(status_code=404, detail="وسيط الإصدار المثبت غير متاح")
+    policy = "private, no-store"
+    if v is not None:
+        # Only approved lesson videos may be cached in the learner's browser.
+        if (asset.get("kind") or asset.get("type")) != "video" or v != educational_media_version(path):
+            raise HTTPException(status_code=404, detail="نسخة فيديو الدرس غير موجودة")
+        policy = "private, max-age=86400, immutable"
     return FileResponse(path, media_type=mimetypes.guess_type(path.name)[0] or "application/octet-stream",
-                        headers={"Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff"})
+                        headers={"Cache-Control": policy, "Vary": "Cookie", "X-Content-Type-Options": "nosniff"})
 
 
 @router.post("/sessions/{session_id}/events")
