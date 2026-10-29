@@ -32,6 +32,7 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
   const stagedAudio = uploadedAudio ?? task.staged_audio ?? null;
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const submitPendingRef = useRef(false);
   const [error, setError] = useState("");
   const recorderRef = useRef<MediaRecorder | null>(null);
   const mountedRef = useRef(false);
@@ -152,12 +153,15 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
   };
 
   const submit = async () => {
-    if (busy || recording) return;
+    if (submitPendingRef.current || busy || recording) return;
+    submitPendingRef.current = true;
     setBusy(true); setError("");
     try {
       let answer: Record<string, unknown>;
       if (!audioBlob && !stagedAudio) throw new Error("سجل قراءتك أولًا");
-      if (audioBlob) {
+      // If S3 already accepted this exact recording, a failed submit should
+      // retry only the academic POST, never re-upload the child’s voice.
+      if (audioBlob && !uploadedAudio) {
         const form = new FormData();
         form.append("file", audioBlob, audioBlob.type.includes("mp4") ? "v2-retry.m4a" : "v2-retry.webm");
         form.append("duration_seconds", String(Math.max(1, seconds)));
@@ -180,7 +184,7 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
       if (!response.ok) throw new Error(payload?.detail || "تعذر إرسال النسخة الجديدة");
       onSaved();
     } catch (reason) { setError(reason instanceof Error ? reason.message : "تعذر إكمال الإعادة"); }
-    finally { setBusy(false); }
+    finally { submitPendingRef.current = false; setBusy(false); }
   };
 
   return <section className="space-y-3 rounded-2xl border border-amber-300 bg-amber-50/70 p-4" aria-label="إعادة الدليل">
