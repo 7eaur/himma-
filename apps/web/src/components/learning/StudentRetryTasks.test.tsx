@@ -148,3 +148,27 @@ it("reuses an uploaded recording after the academic submit fails and prevents re
     }
   }
 });
+
+it("locks rerecord actions while the previously staged evidence is being submitted", async () => {
+  let release!: (body: {ok:boolean,json:()=>Promise<unknown>}) => void;
+  const pending = new Promise<{ok:boolean,json:()=>Promise<unknown>}>(resolve => {release=resolve;});
+  const staged = {audio_storage_key:"private-synthetic",audio_file_size:23,audio_mime_type:"audio/webm",audio_duration_seconds:2};
+  const fetcher=jest.fn(async (url: string) => {
+    if(url.includes("/student/tasks?")) return {ok:true,json:async()=>({items:[{
+      task_id:91,kind:"lesson",session_id:11,question_id:"L1-01-GP-01",
+      status:"requested",request_kind:"rerecord",reason:"أعد القراءة بوضوح",
+      prompt:"اقرأ الكلمة",stimulus:{text:"بَابٌ"},staged_audio:staged,
+    }],next_offset:null})};
+    if(url.endsWith("/submit")) return pending;
+    throw new Error("Unexpected endpoint "+url);
+  });
+  global.fetch=fetcher as unknown as typeof fetch;
+  render(<StudentRetryTasks taskId={91}/>);
+  const record=await screen.findByRole("button",{name:"تسجيل القراءة من جديد"});
+  fireEvent.click(screen.getByRole("button",{name:"إرسال الإجابة الجديدة للمراجعة"}));
+  expect(record).toBeDisabled();
+  expect(screen.getByRole("button",{name:"جاري حفظ الدليل..."})).toHaveAttribute("aria-busy","true");
+  await act(async()=>{release({ok:true,json:async()=>({status:"submitted"})});await pending;});
+  await waitFor(()=>expect(fetcher.mock.calls.filter(([url])=>url.endsWith("/submit"))).toHaveLength(1));
+  expect(fetcher.mock.calls.some(([url])=>url.endsWith("/recording"))).toBe(false);
+});

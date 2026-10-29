@@ -195,19 +195,19 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
     <div className="space-y-2">
         {!audioBlob
           ? <button type="button" disabled={busy || requestingMic} onClick={recording ? stopRecording : () => void startRecording()}
-              className="inline-flex items-center gap-2 rounded-xl bg-blue-800 px-4 py-2 font-semibold text-white disabled:opacity-50">
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-800 px-4 py-2 font-semibold text-white disabled:opacity-50">
               {recording ? <MicOff size={19}/> : <Mic size={19}/>}
               {requestingMic ? "جارٍ تشغيل الميكروفون..." : recording ? "إيقاف التسجيل" : "تسجيل القراءة من جديد"}</button>
           : <><audio controls src={audioUrl || undefined} className="w-full"/>
-            <button type="button" onClick={() => {
-              setAudioBlob(null);
+            <button type="button" disabled={busy || requestingMic || recording} onClick={() => {
+               setAudioBlob(null);
               setUploadedAudio(null);
               if (audioUrl) URL.revokeObjectURL(audioUrl);
               setAudioUrl(null);
               uploadKey.current = newKey();
               submitKey.current = newKey();
             }}
-              className="inline-flex items-center gap-2 rounded-lg border border-slate-400 px-3 py-2 text-sm"><RotateCcw size={16}/> إعادة المحاولة</button></>}
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-400 px-3 py-2 text-sm disabled:opacity-50"><RotateCcw size={16}/> إعادة المحاولة</button></>}
         {stagedAudio && !audioBlob && <p role="status" className="text-sm text-emerald-700">
           التسجيل السابق محفوظ في الخدمة. يمكنك إرسال النسخة دون رفعها مرة أخرى، أو إعادة التسجيل.
         </p>}
@@ -215,7 +215,7 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
       </div>
     {error && <p role="alert" className="text-sm text-rose-700">{error}</p>}
     <button type="button" disabled={busy || requestingMic || recording || (!audioBlob && !stagedAudio)}
-      onClick={() => void submit()} className="rounded-xl bg-emerald-700 px-5 py-2 font-semibold text-white disabled:opacity-40">
+      onClick={() => void submit()} aria-busy={busy} className="min-h-11 rounded-xl bg-emerald-700 px-5 py-2 font-semibold text-white disabled:opacity-40">
       {busy ? "جاري حفظ الدليل..." : "إرسال الإجابة الجديدة للمراجعة"}</button>
   </section>;
 }
@@ -319,7 +319,7 @@ export default function StudentRetryTasks({ kind, sessionId, taskId, dashboard =
       <h2 className="text-lg font-bold text-slate-900">طلبات إعادة القراءة</h2>
       <p className="text-sm text-slate-600">إذا طلب المشرف إعادة تسجيل قراءة سابقة، يظهر الطلب هنا ولو أكملت الدرس. لا تُحسب نتيجة القراءة قبل مراجعة التسجيل.</p>
     </>}
-    <button type="button" className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm"
+    <button type="button" className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm"
       onClick={() => void load()}><RefreshCw size={15}/> تحديث طلبات المشرف</button>
     {error && <p role="alert" className="text-sm text-rose-700">{error}</p>}
     {sent && <p role="status" className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">وصلت إجابتك الجديدة؛ بانتظار قرار المشرف.</p>}
