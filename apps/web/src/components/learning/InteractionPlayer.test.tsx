@@ -401,7 +401,9 @@ describe("InteractionPlayer", () => {
     fireEvent.click(screen.getByRole("button",{name:"تحقق من الإجابة"}));
     await waitFor(()=>expect(coach).toHaveTextContent("تلميح: استمع إلى أول صوت في الكلمة."));
     expect(coach.querySelector('img')).toHaveAttribute('src',expect.stringContaining('try-again'));
-    expect(screen.getByRole("status")).toHaveTextContent("حاول مرة أخرى");
+    expect(screen.getByRole("status")).toBe(coach);
+    expect(coach).toHaveTextContent("حاول مرة أخرى");
+    expect(screen.queryByText("اقتربت! اقرأ التلميح ثم حاول مرة أخرى.")).not.toBeInTheDocument();
   });
 
   it("shows a supportive instruction without hints for a support check", () => {
@@ -643,4 +645,18 @@ describe("InteractionPlayer", () => {
       expect.objectContaining({ method: "POST" }),
     ));
   });
+});
+
+it("shows one coach message on practice retry, with no duplicate feedback below the answers", async () => {
+  (global.fetch as jest.Mock).mockResolvedValue({ok:true,status:200,json:async()=>({
+    submission:{retry_required:true,status:"graded",correct:false,hint:"أنصت إلى أول حرف.",message:"حاول مرة أخرى"}
+  })});
+  render(<InteractionPlayer sessionId={7} interaction={payload()} onLessonChange={jest.fn()}/>);
+  fireEvent.click(screen.getByRole("button", { name:"اختيار الخيار 1" }));
+  fireEvent.click(screen.getByRole("button", { name:"تحقق من الإجابة" }));
+  const coach = screen.getByTestId("v2-question-coach");
+  await waitFor(() => expect(coach).toHaveTextContent("أنصت إلى أول حرف."));
+  expect(coach).toHaveAttribute("role", "status");
+  expect(screen.getAllByText(/حاول مرة أخرى/)).toHaveLength(1);
+  expect(screen.queryByText("تم الحفظ")).not.toBeInTheDocument();
 });
