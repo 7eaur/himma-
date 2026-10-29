@@ -28,6 +28,7 @@ function VideoPlayerInstance({ src, captionsSrc, startAt = 0, onCheckpoint, onEn
   // An explicit retry must restore this local playback position, not jump
   // back to a stale server checkpoint or start the lesson over.
   const recoveryPosition = useRef<number | null>(null);
+  const appliedStartAt = useRef<number | null>(null);
   // Completion is an idempotent learner action: native duplicate ended events
   // must not silently retry a failed save or re-submit after replay.
   const completionStatus = useRef<"idle" | "saving" | "failed" | "confirmed">("idle");
@@ -61,12 +62,8 @@ function VideoPlayerInstance({ src, captionsSrc, startAt = 0, onCheckpoint, onEn
   };
 
   const resume = () => {
-    const video = videoRef.current;
-    if (video && Number.isFinite(video.duration) && video.duration > 0) {
-      const position = recoveryPosition.current ?? startAt;
-      if (position > 0 && position < video.duration - 1 && Math.abs(video.currentTime - position) > 0.5) video.currentTime = position;
-      recoveryPosition.current = null;
-    }
+    // Seeking is owned by one metadata listener below; React's event handler
+    // must not seek AGAIN to the older server checkpoint after recovery.
     setState((current) => ["blocked", "error", "saving", "save_error", "ended"].includes(current) ? current : "ready");
   };
 
@@ -74,11 +71,13 @@ function VideoPlayerInstance({ src, captionsSrc, startAt = 0, onCheckpoint, onEn
     const video = videoRef.current;
     if (!video) return;
     const restoreSavedPosition = () => {
-      const position = recoveryPosition.current ?? startAt;
-      if (position > 0 && Number.isFinite(video.duration) && position <= video.duration - 1 && Math.abs(video.currentTime - position) > 0.5) {
+      const recovering = recoveryPosition.current !== null;
+      const position = recovering ? recoveryPosition.current : appliedStartAt.current === startAt ? null : startAt;
+      if (position !== null && position > 0 && Number.isFinite(video.duration) && position <= video.duration - 1 && Math.abs(video.currentTime - position) > 0.5) {
         video.currentTime = position;
-        recoveryPosition.current = null;
       }
+      if (recovering) recoveryPosition.current = null;
+      appliedStartAt.current = startAt;
       setState((current) => ["blocked", "error", "saving", "save_error", "ended"].includes(current) ? current : "ready");
     };
     video.addEventListener("loadedmetadata", restoreSavedPosition);

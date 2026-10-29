@@ -329,8 +329,6 @@ describe("VideoPlayer", () => {
     expect(HTMLMediaElement.prototype.load).toHaveBeenCalledTimes(1);
   });
 
-});
-
 // A transient stalled event must never hide native controls or reload automatically.
 it("keeps playback controls available and restores the local position after an explicit stalled retry", () => {
   const onCheckpoint = jest.fn();
@@ -349,4 +347,6 @@ it("keeps playback controls available and restores the local position after an e
   expect(video.currentTime).toBe(21);
   fireEvent.canPlay(video);
   expect(screen.queryByText(/الفيديو يتوقف مؤقتًا/)).not.toBeInTheDocument();
+});
+
 });
