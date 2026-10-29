@@ -31,6 +31,13 @@ async function proxy(req: NextRequest, { params }: { params: Promise<{ path: str
   };
   if (idempotencyKey) headers["idempotency-key"] = idempotencyKey;
   if (rangeHeader) headers.range = rangeHeader;
+  // Restore partial transfers and conditional requests only for approved media.
+  if (/^v2\/content\/media\/[A-Z0-9-]+$/.test(upstreamPath) && req.method === "GET") {
+    for (const name of ["if-range", "if-none-match", "if-modified-since"]) {
+      const value = req.headers.get(name);
+      if (value) headers[name] = value;
+    }
+  }
 
   let upstream: Response;
   try {
@@ -54,7 +61,7 @@ async function proxy(req: NextRequest, { params }: { params: Promise<{ path: str
     "cache-control": cacheControl,
     "x-request-id": upstreamRequestId,
   };
-  for (const name of ["accept-ranges", "content-range", "content-length", "content-disposition", "retry-after", "vary"]) {
+  for (const name of ["accept-ranges", "content-range", "content-length", "content-disposition", "retry-after", "vary", "etag", "last-modified"]) {
     const value = upstream.headers.get(name);
     if (value) responseHeaders[name] = value;
   }

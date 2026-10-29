@@ -94,3 +94,25 @@ def test_owner_approved_shared_video_counts_for_current_release_but_stays_tempor
     assert report["publishable"]
     assert report["published_assets"] == report["required_assets"] == 73
     assert report["counts"]["temporary"] == 19
+
+
+
+def test_fingerprinted_approved_video_supports_authenticated_range_and_private_reuse(student_client, client):
+    from urllib.parse import urlsplit
+
+    asset = next(item for item in compile_release()["media"] if item["kind"] == "video" and item["status"] == "approved_temporary")
+    resolved = MediaProvider().resolve(asset)
+    assert resolved.url is not None and "?v=" in resolved.url
+    path = urlsplit(resolved.url).path.removeprefix("/api")
+
+    partial = student_client.get(path + "?" + urlsplit(resolved.url).query, headers={"Range": "bytes=0-31"})
+    assert partial.status_code == 206
+    assert partial.headers["cache-control"] == "private, max-age=86400, immutable"
+    assert partial.headers["accept-ranges"] == "bytes"
+    assert partial.headers["content-range"].startswith("bytes 0-31/")
+    assert len(partial.content) == 32
+    assert "Cookie" in partial.headers["vary"].split(", ")
+
+    assert student_client.get(path).headers["cache-control"] == "private, no-store"
+    assert student_client.get(path + "?v=" + "0" * 64).status_code == 404
+    assert client.get(path + "?" + urlsplit(resolved.url).query, headers={"Range": "bytes=0-31"}).status_code == 401

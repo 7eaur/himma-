@@ -7,7 +7,7 @@ from dependencies import get_any_authenticated, get_current_user, get_db
 from sqlalchemy.orm import Session
 from db.models import User
 from runtime_flags import protected_runtime, trial_v2_preview_allowed
-from v2_content.media import MediaProvider, approved_asset_path, image_file_version
+from v2_content.media import MediaProvider, approved_asset_path, educational_media_version
 from v2_content.projection import student_manifest, student_question
 from v2_content.repository import get_media, get_question, get_release
 from v2_content.recovery import restore_original_snapshot
@@ -106,9 +106,9 @@ def approved_media_file(asset_id: str, v: str | None = Query(default=None, max_l
         raise HTTPException(status_code=404, detail="ملف الوسيط غير معتمد أو غير موجود")
     policy = "private, no-store"
     if v is not None:
-        if (asset.get("kind") or asset.get("type")) != "image" or v != image_file_version(path):
-            raise HTTPException(status_code=404, detail="نسخة الصورة غير موجودة")
-        # Only reusable educational binaries, never learner audio or responses.
+        if (asset.get("kind") or asset.get("type")) not in {"image", "video"} or v != educational_media_version(path):
+            raise HTTPException(status_code=404, detail="نسخة الوسيط غير موجودة")
+        # Only exact, fingerprinted images/videos: never learner audio or responses.
         # Authentication remains mandatory; shared/CDN caching stays forbidden.
         policy = "private, max-age=86400, immutable"
     import mimetypes

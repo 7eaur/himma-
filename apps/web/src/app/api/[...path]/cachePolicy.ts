@@ -22,7 +22,7 @@ export function responseCacheControl({
   const educationalMediaRead = /^v2\/content\/media\/[A-Z0-9-]+$/.test(upstreamPath)
     && ["GET", "HEAD"].includes(method);
   // The authenticated API issues this exact browser-only policy exclusively
-  // for fingerprinted educational images. No response may enter shared caches.
+  // for fingerprinted educational images and videos. No response may enter shared caches.
   if (educationalMediaRead && ok && !hasSetCookie
     && upstreamCacheControl === "private, max-age=86400, immutable") {
     return upstreamCacheControl;

@@ -53,8 +53,8 @@ def approved_asset_path(asset: dict[str, Any]) -> Path | None:
     return path
 
 
-def image_file_version(path: Path) -> str:
-    """Content-address educational images so browser reuse cannot serve edits."""
+def educational_media_version(path: Path) -> str:
+    """Fingerprint reusable educational images and videos, never learner recordings."""
     stat = path.stat()
     return _file_sha256(path, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns)
 
@@ -95,8 +95,8 @@ class MediaProvider:
         path = approved_asset_path(asset)
         if path is not None:
             url = f"/api/v2/content/media/{asset_id}"
-            if kind == "image":
-                url += f"?v={image_file_version(path)}"
+            if kind in {"image", "video"}:
+                url += f"?v={educational_media_version(path)}"
             return ResolvedMedia(asset_id, kind, "ready", url, False, status == "approved_temporary")
         if self.fixture_enabled and (
             self.environment in {"development", "test", "staging"}
