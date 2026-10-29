@@ -514,5 +514,7 @@ def test_pinned_lesson_video_range_and_private_cache_require_student_session(stu
     assert "Cookie" in partial.headers["vary"].split(", ")
     assert student_client.get(media_path).headers["cache-control"] == "private, no-store"
     assert student_client.get(media_path + "?v=" + "0" * 64).status_code == 404
-    assert client.get(route).status_code == 401
     assert student_client.get(f"/v2/lessons/sessions/{session_id}/media/VID-L3-07").status_code == 404
+    # Exercise 401 after removing the cookie from the shared TestClient.
+    client.cookies.clear()
+    assert client.get(route).status_code == 401

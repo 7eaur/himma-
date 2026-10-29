@@ -115,4 +115,6 @@ def test_fingerprinted_approved_video_supports_authenticated_range_and_private_r
 
     assert student_client.get(path).headers["cache-control"] == "private, no-store"
     assert student_client.get(path + "?v=" + "0" * 64).status_code == 404
+    # student_client and client share the same authenticated TestClient fixture.
+    client.cookies.clear()
     assert client.get(path + "?" + urlsplit(resolved.url).query, headers={"Range": "bytes=0-31"}).status_code == 401
