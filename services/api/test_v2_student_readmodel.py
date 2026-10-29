@@ -451,3 +451,15 @@ def test_inconsistent_placed_journey_asks_staff_review_without_fake_manual_place
     }
     assert "اعتماد التسكين" not in response.text
     assert response.json()["progress"]["completed_lessons"] == 0
+
+
+def test_staff_student_list_does_not_calculate_unused_reward_ledgers(researcher_client, monkeypatch):
+    def forbidden_reward_projection(*_args, **_kwargs):
+        raise AssertionError("student reward ledger must not be read to list staff rows")
+    monkeypatch.setattr("v2_student_readmodel.rewards_projection", forbidden_reward_projection)
+    cohort = researcher_client.get("/v2/student/admin/students/overview?limit=30")
+    assert cohort.status_code == 200, cohort.text
+    assert cohort.json()["items"]
+    dashboard = researcher_client.get("/v2/student/admin/overview")
+    assert dashboard.status_code == 200, dashboard.text
+    assert dashboard.json()["recent_students"]

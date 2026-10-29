@@ -88,8 +88,8 @@ def _preferred_assessment(
     ).first()
 
 
-def build_student_v2_home(db: Session, student: Student) -> dict:
-    """One authorized student projection; safe for learner use and reuse by staff."""
+def build_student_v2_home(db: Session, student: Student, *, include_rewards: bool = True) -> dict:
+    """One authorized projection; omit expensive unrendered rewards in staff lists."""
     journey = db.query(StudentJourney).filter(StudentJourney.student_id == student.id).one_or_none()
     # The latest active attempt is shown, otherwise only the latest official
     # attempt. Each query returns at most one row, regardless of history size.
@@ -170,7 +170,8 @@ def build_student_v2_home(db: Session, student: Student) -> dict:
         } if journey else None),
         "progress": progress,
         "assessments": by_kind,
-        "rewards": rewards_projection(db, student.id, journey.content_release_id if journey else None),
+        **({"rewards": rewards_projection(db, student.id, journey.content_release_id if journey else None)}
+           if include_rewards else {}),
         "data_status": "partial" if (journey or active_assessment or active_lesson) and lessons is None else "ready",
     }
 
@@ -330,7 +331,7 @@ def supervisor_v2_cohort_overview(
     students = query.order_by(Student.id.desc()).offset(offset).limit(limit).all()
     items = []
     for student in students:
-        state = build_student_v2_home(db, student)
+        state = build_student_v2_home(db, student, include_rewards=False)
         items.append({
             "id": student.id,
             "full_name": student.name,
@@ -358,7 +359,7 @@ def supervisor_v2_dashboard(
 
     recent = []
     for student in db.query(Student).order_by(Student.id.desc()).limit(6).all():
-        home = build_student_v2_home(db, student)
+        home = build_student_v2_home(db, student, include_rewards=False)
         recent.append({
             "id": student.id, "full_name": student.name,
             "status": "active" if student.is_active else "inactive",

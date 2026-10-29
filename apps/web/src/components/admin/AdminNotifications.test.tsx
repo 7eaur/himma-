@@ -68,3 +68,35 @@ it("polls only the visible surface, not both desktop and mobile bells", async ()
   if (original) Object.defineProperty(window, "matchMedia", original);
   else Reflect.deleteProperty(window, "matchMedia");
 });
+
+it("stops background staff polling after the server confirms that the user is no longer a supervisor", async () => {
+  const fetcher = jest.fn().mockResolvedValue({ok:false,status:403,json:async()=>({detail:"forbidden"})});
+  global.fetch = fetcher;
+  render(<AdminNotifications />);
+  await waitFor(() => expect(fetcher).toHaveBeenCalledTimes(1));
+  fireEvent.focus(window);
+  fireEvent(document, new Event("visibilitychange"));
+  await Promise.resolve();
+  expect(fetcher).toHaveBeenCalledTimes(1);
+  fireEvent.click(screen.getByRole("button",{name:"الإشعارات"}));
+  expect(await screen.findByRole("alert")).toHaveTextContent("جلسة المشرف");
+  await waitFor(() => expect(fetcher).toHaveBeenCalledTimes(2));
+});
+
+it("opens a saved notification without waiting for a second inbox GET", async () => {
+  let first = true;
+  let completeRead!: () => void;
+  const holdRead = new Promise<void>(resolve => {completeRead=resolve;});
+  const fetcher=jest.fn().mockImplementation((_url:string,options?:RequestInit) => {
+    if(options?.method==="POST") return holdRead.then(()=>({ok:true}));
+    if(first){first=false;return Promise.resolve({ok:true,json:async()=>inbox});}
+    return new Promise(() => {});
+  });
+  global.fetch=fetcher as unknown as typeof fetch;
+  render(<AdminNotifications />);
+  fireEvent.click(screen.getByRole("button",{name:"الإشعارات"}));
+  fireEvent.click(await screen.findByRole("button",{name:/قراءة اصطناعية/}));
+  expect(push).not.toHaveBeenCalled();
+  completeRead();
+  await waitFor(()=>expect(push).toHaveBeenCalledWith("/admin/v2-assessments"));
+});

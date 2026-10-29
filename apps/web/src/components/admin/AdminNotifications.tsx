@@ -24,13 +24,21 @@ export default function AdminNotifications({ surface = "any" }: { surface?: "any
   const mounted = useRef(true);
   const requestId = useRef(0);
   const mutation = useRef(false);
+  // When the browser switches from a supervisor session to a learner session,
+  // do not poll a forbidden staff endpoint every 30 seconds.
+  const authBlocked = useRef(false);
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const refresh = useCallback(async () => {
     const id = ++requestId.current;
     if (mounted.current) setLoading(true);
     try {
+      if (authBlocked.current) return;
       const response = await fetch(`${endpoint}?limit=24`, { cache: "no-store" });
+      if (response.status === 401 || response.status === 403) {
+        authBlocked.current = true;
+        throw new Error("انتهت صلاحية جلسة المشرف. سجّل الدخول بحساب المشرف ثم حدّث الإشعارات.");
+      }
       const payload = await response.json().catch(() => null);
       if (!response.ok || !payload || !Array.isArray(payload.items) || payload.source !== "himma_v2_attention") throw new Error("تعذر تحميل الإشعارات. أعد المحاولة.");
       if (mounted.current && id === requestId.current) { setData(payload); setError(""); }
@@ -53,10 +61,10 @@ export default function AdminNotifications({ surface = "any" }: { surface?: "any
     };
     const sync = () => {
       window.clearInterval(timer);
-      if (active()) {
+      if (active() && !authBlocked.current) {
         void refresh();
         timer = window.setInterval(() => {
-          if (active()) void refresh();
+          if (active() && !authBlocked.current) void refresh();
         }, 30000);
       } else {
         // A delayed completion from a now-hidden surface must not repaint it.
@@ -95,14 +103,21 @@ export default function AdminNotifications({ surface = "any" }: { surface?: "any
         const response = await fetch(item ? `${endpoint}/${encodeURIComponent(item.id)}/read` : `${endpoint}/read-all`, { method: "POST" });
         if (!response.ok) throw new Error("تعذر حفظ حالة القراءة. أعد المحاولة أو حدّث القائمة.");
       }
-      await refresh();
-      if (item && safeDestination(destination)) { setOpen(false); router.push(destination); }
+      if (item && safeDestination(destination)) {
+        // The read marker has been persisted. Do not block navigation behind
+        // an unrelated refresh of the entire inbox.
+        setOpen(false);
+        router.push(destination);
+        void refresh();
+      } else {
+        await refresh();
+      }
     } catch (caught) { if (mounted.current) setError(caught instanceof Error ? caught.message : "تعذر حفظ القراءة"); }
     finally { mutation.current = false; if (mounted.current) setBusy(false); }
   };
   return <div className={styles.root} ref={root}>
     {open && <button className={styles.scrim} aria-label="إغلاق الإشعارات" onClick={() => setOpen(false)} />}
-    <button ref={trigger} className={styles.trigger} aria-label="الإشعارات" aria-expanded={open} onClick={() => { setOpen(value => !value); void refresh(); }}><Bell size={20} aria-hidden="true" />{data.unread_count > 0 && <span className={styles.badge}>{data.unread_count > 99 ? "99+" : data.unread_count}</span>}</button>
+    <button ref={trigger} className={styles.trigger} aria-label="الإشعارات" aria-expanded={open} onClick={() => { setOpen(value => !value); authBlocked.current = false; void refresh(); }}><Bell size={20} aria-hidden="true" />{data.unread_count > 0 && <span className={styles.badge}>{data.unread_count > 99 ? "99+" : data.unread_count}</span>}</button>
     {open && <div className={styles.popover} role="dialog" aria-label="إشعارات المشرف" aria-busy={busy || loading}>
       <div className={styles.header}><strong>إشعارات V2</strong>{data.unread_count > 0 && <button className={styles.markAll} disabled={busy || loading} onClick={() => void saveRead()}>تحديد الكل كمقروء</button>}</div>
       <div className={styles.header}><button className={styles.markAll} disabled={busy || loading} onClick={() => void refresh()}>تحديث</button></div>
