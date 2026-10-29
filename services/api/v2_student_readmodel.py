@@ -158,7 +158,6 @@ def build_student_v2_home(db: Session, student: Student, *, include_rewards: boo
     action = current_action(student=student, db=db)
     return {
         "mode": mode,
-        "test_only": True,
         "student": {"id": student.id, "full_name": student.name, "grade_level": student.grade_level},
         "current_action": action,
         "journey": ({

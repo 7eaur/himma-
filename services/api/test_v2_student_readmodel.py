@@ -10,6 +10,7 @@ def test_legacy_student_v2_home_is_non_mutating_and_never_claims_v1_rewards(stud
     assert result.status_code == 200, result.text
     data = result.json()
     assert data["mode"] == "v2"
+    assert "test_only" not in data
     assert data["journey"] is None
     assert data["progress"]["assigned_lessons"] is None
     assert data["progress"]["display_percent"] is None

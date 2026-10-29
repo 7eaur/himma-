@@ -10,7 +10,6 @@ import styles from "./home.module.css";
 
 export interface StudentV2Home {
   mode: "v2" | "legacy";
-  test_only: boolean;
   student: { id: number; full_name: string; grade_level: number };
   current_action: {
     action: "assessment" | "start_pretest" | "lesson" | "start_posttest" | "waiting_posttest_enable" | "complete" | "lesson_catalog" | "migration_review" | "placement_review" | "rerecord_required";

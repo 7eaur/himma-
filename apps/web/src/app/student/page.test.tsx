@@ -14,7 +14,7 @@ function response(body: unknown, status = 200) {
 }
 
 const firstTime: StudentV2Home = {
-  mode: "v2", test_only: true,
+  mode: "v2",
   student: { id: 1, full_name: "طالب تجريبي", grade_level: 3 },
   current_action: { action: "start_pretest", href: null, label: "ابدأ الاختبار القبلي" },
   journey: null,
@@ -44,6 +44,7 @@ describe("Student page V2-only learner boundary", () => {
     render(<StudentPage />);
     expect(await screen.findByRole("heading", { name: "مرحبًا يا طالب" })).toBeInTheDocument();
     expect(screen.getByTestId("student-home")).toHaveAttribute("data-learning-version", "v2");
+    expect(firstTime).not.toHaveProperty("test_only");
     expect(screen.getByRole("button", { name: "ابدأ الاختبار القبلي" })).toBeEnabled();
     expect(screen.getByText("يظهر تقدم الدروس بعد تحديد مستواك.")).toBeInTheDocument();
     expect(screen.queryByText("تجاوزتها بالتسكين")).not.toBeInTheDocument();
