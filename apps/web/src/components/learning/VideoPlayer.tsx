@@ -25,6 +25,9 @@ export default function VideoPlayer(props: VideoPlayerProps) {
 function VideoPlayerInstance({ src, captionsSrc, startAt = 0, onCheckpoint, onEnded }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const lastCheckpoint = useRef(startAt);
+  // An explicit retry must restore this local playback position, not jump
+  // back to a stale server checkpoint or start the lesson over.
+  const recoveryPosition = useRef<number | null>(null);
   // Completion is an idempotent learner action: native duplicate ended events
   // must not silently retry a failed save or re-submit after replay.
   const completionStatus = useRef<"idle" | "saving" | "failed" | "confirmed">("idle");
@@ -59,7 +62,11 @@ function VideoPlayerInstance({ src, captionsSrc, startAt = 0, onCheckpoint, onEn
 
   const resume = () => {
     const video = videoRef.current;
-    if (video && startAt > 0 && startAt <= video.duration - 1) video.currentTime = startAt;
+    if (video && Number.isFinite(video.duration) && video.duration > 0) {
+      const position = recoveryPosition.current ?? startAt;
+      if (position > 0 && position < video.duration - 1 && Math.abs(video.currentTime - position) > 0.5) video.currentTime = position;
+      recoveryPosition.current = null;
+    }
     setState((current) => ["blocked", "error", "saving", "save_error", "ended"].includes(current) ? current : "ready");
   };
 
@@ -67,7 +74,11 @@ function VideoPlayerInstance({ src, captionsSrc, startAt = 0, onCheckpoint, onEn
     const video = videoRef.current;
     if (!video) return;
     const restoreSavedPosition = () => {
-      if (startAt > 0 && Number.isFinite(video.duration) && startAt <= video.duration - 1) video.currentTime = startAt;
+      const position = recoveryPosition.current ?? startAt;
+      if (position > 0 && Number.isFinite(video.duration) && position <= video.duration - 1 && Math.abs(video.currentTime - position) > 0.5) {
+        video.currentTime = position;
+        recoveryPosition.current = null;
+      }
       setState((current) => ["blocked", "error", "saving", "save_error", "ended"].includes(current) ? current : "ready");
     };
     video.addEventListener("loadedmetadata", restoreSavedPosition);
@@ -82,8 +93,11 @@ function VideoPlayerInstance({ src, captionsSrc, startAt = 0, onCheckpoint, onEn
     if (!videoRef.current) return;
     // A promise from before the retry must not mark the new load as blocked.
     playAttempt.current += 1;
+    const video = videoRef.current;
+    const position = Number.isFinite(video.currentTime) && video.currentTime > 0 ? video.currentTime : lastCheckpoint.current;
+    recoveryPosition.current = position > 0 ? position : null;
     setState("loading");
-    videoRef.current.load();
+    video.load();
   };
 
   const confirmCompletion = async (manualRetry = false) => {
@@ -145,7 +159,7 @@ function VideoPlayerInstance({ src, captionsSrc, startAt = 0, onCheckpoint, onEn
         ref={videoRef}
         className={styles.video}
         src={src}
-        controls={state === "ready"}
+        controls={state === "ready" || state === "buffering"}
         playsInline
         preload="metadata"
         onLoadedMetadata={resume}
@@ -165,9 +179,15 @@ function VideoPlayerInstance({ src, captionsSrc, startAt = 0, onCheckpoint, onEn
         متصفحك لا يدعم تشغيل الفيديو.
       </video>
 
-      {(state === "loading" || state === "buffering") && (
+      {state === "loading" && (
         <div className={styles.status} role="status">
-          <div className={styles.statusCard}><span className={styles.spinner} aria-hidden="true" /><strong>{state === "loading" ? "جاري تجهيز الفيديو" : "الاتصال بطيء قليلًا"}</strong><span>سنكمل من الموضع المحفوظ فور جاهزية الفيديو.</span></div>
+          <div className={styles.statusCard}><span className={styles.spinner} aria-hidden="true" /><strong>جاري تجهيز الفيديو</strong><span>يمكنك البدء عندما يصبح المقطع جاهزًا.</span></div>
+        </div>
+      )}
+      {state === "buffering" && (
+        <div className={styles.bufferNotice} role="status">
+          <span>الفيديو يتوقف مؤقتًا لاستكمال التحميل. يبقى الموضع الحالي محفوظًا داخل المشغّل.</span>
+          <button type="button" className={styles.bufferAction} onClick={retry}><RotateCcw size={16} aria-hidden="true"/> إعادة محاولة التحميل</button>
         </div>
       )}
       {state === "blocked" && (

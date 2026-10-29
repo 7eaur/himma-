@@ -97,8 +97,12 @@ describe("VideoPlayer", () => {
   it("shows recoverable buffering and media error states", async () => {
     render(<VideoPlayer src="/fixture.mp4" onCheckpoint={jest.fn()} onEnded={jest.fn()} />);
     const video = screen.getByText("متصفحك لا يدعم تشغيل الفيديو.").closest("video") as HTMLVideoElement;
+    fireEvent.canPlay(video);
     fireEvent.waiting(video);
-    expect(screen.getByText("الاتصال بطيء قليلًا")).toBeInTheDocument();
+    expect(video).toHaveAttribute("controls");
+    expect(screen.getByText(/الفيديو يتوقف مؤقتًا/)).toBeInTheDocument();
+    expect(screen.queryByText("جاري تجهيز الفيديو")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "إعادة محاولة التحميل" })).toBeInTheDocument();
     fireEvent.error(video);
     expect(screen.getByRole("alert")).toHaveTextContent("تعذر تشغيل الفيديو");
     expect(video).not.toHaveAttribute("controls");
@@ -325,4 +329,24 @@ describe("VideoPlayer", () => {
     expect(HTMLMediaElement.prototype.load).toHaveBeenCalledTimes(1);
   });
 
+});
+
+// A transient stalled event must never hide native controls or reload automatically.
+it("keeps playback controls available and restores the local position after an explicit stalled retry", () => {
+  const onCheckpoint = jest.fn();
+  render(<VideoPlayer src="/fixture.mp4" onCheckpoint={onCheckpoint} onEnded={jest.fn()} />);
+  const video = screen.getByText("متصفحك لا يدعم تشغيل الفيديو.").closest("video") as HTMLVideoElement;
+  Object.defineProperty(video, "duration", { configurable: true, value: 60 });
+  Object.defineProperty(video, "currentTime", { configurable: true, writable: true, value: 21 });
+  fireEvent.canPlay(video);
+  fireEvent.stalled(video);
+  expect(video).toHaveAttribute("controls");
+  expect(HTMLMediaElement.prototype.load).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "إعادة محاولة التحميل" }));
+  expect(HTMLMediaElement.prototype.load).toHaveBeenCalledTimes(1);
+  video.currentTime = 0;
+  fireEvent.loadedMetadata(video);
+  expect(video.currentTime).toBe(21);
+  fireEvent.canPlay(video);
+  expect(screen.queryByText(/الفيديو يتوقف مؤقتًا/)).not.toBeInTheDocument();
 });
