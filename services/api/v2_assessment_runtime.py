@@ -167,7 +167,7 @@ def current_action(student: Student = Depends(_require_preview_student), db: Ses
     if not journey or journey.placement_state in {"not_started", "in_progress"}:
         return {"action": "start_pretest", "href": None, "label": "ابدأ الاختبار القبلي"}
     if journey.placement_state == "placed" and not eligible_lesson:
-        return {"action": "placement_review", "href": None, "label": "بانتظار اعتماد التسكين"}
+        return {"action": "placement_review", "href": None, "label": "بانتظار مراجعة المشرف"}
     if journey.placement_state == "posttest_ready":
         # Read-only projection; the same server-side academic gate authorizes
         # the actual POST. No supervisor switch is needed for a ready learner.

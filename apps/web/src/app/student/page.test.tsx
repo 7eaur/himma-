@@ -380,3 +380,18 @@ it("keeps assessment review as a clear action without false dashboard counts", a
   expect(screen.getByTestId("student-v2-progress")).not.toHaveTextContent("بانتظار المراجعة");
   expect(screen.queryByText("TEST ONLY")).not.toBeInTheDocument();
 });
+
+it("disables a missing-official-placement route instead of letting a child click a dead CTA", async () => {
+  const fetcher = mockV2({...firstTime,
+    journey:{current_level:2,placement_state:"placed",current_lesson_id:"L2-01",content_release_version:"candidate"},
+    current_action:{action:"placement_review",href:null,label:"بانتظار مراجعة المشرف"},
+  });
+  render(<StudentPage/>);
+  expect(await screen.findByRole("heading",{name:"نراجع بيانات رحلتك"})).toBeInTheDocument();
+  const actionButton=screen.getByTestId("student-primary-action");
+  expect(actionButton).toBeDisabled();
+  expect(screen.queryByText("بانتظار اعتماد التسكين")).not.toBeInTheDocument();
+  fireEvent.click(actionButton);
+  expect(fetcher.mock.calls.every(([url]) => url !== "/api/v2/assessments/pretest/start")).toBe(true);
+  expect(push).not.toHaveBeenCalled();
+});

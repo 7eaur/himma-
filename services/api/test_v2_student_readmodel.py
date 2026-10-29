@@ -429,3 +429,25 @@ def test_staff_only_v2_support_timeline_is_bounded_and_scoped_to_pinned_release(
     assert learner.status_code == 200
     assert "adaptation_decisions" not in learner.json()
     assert "support_assignments" not in learner.json()
+
+
+def test_inconsistent_placed_journey_asks_staff_review_without_fake_manual_placement(student_client):
+    # Without a release-aligned official placement, V2 must fail closed.
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        release = register_candidate_release(db)
+        db.add(StudentJourney(
+            student_id=student.id, content_release_id=release.id,
+            current_level=2, current_lesson_id="L2-01", placement_state="placed",
+        ))
+        db.commit()
+    response = student_client.get("/v2/student/home")
+    assert response.status_code == 200, response.text
+    action = response.json()["current_action"]
+    assert action == {
+        "action": "placement_review",
+        "href": None,
+        "label": "بانتظار مراجعة المشرف",
+    }
+    assert "اعتماد التسكين" not in response.text
+    assert response.json()["progress"]["completed_lessons"] == 0

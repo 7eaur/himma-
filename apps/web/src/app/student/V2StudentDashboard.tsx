@@ -72,6 +72,8 @@ function stage(home: StudentV2Home) {
     return { title: "بانتظار مراجعة القراءة", detail: "تم حفظ إجاباتك، وستكمل رحلتك بعد مراجعة المشرف.", disabled: false };
   if (action.action === "lesson" && action.state === "waiting_review")
     return { title: "درسُك ينتظر المراجعة", detail: "قراءتك محفوظة، ولا تحتاج إلى إعادة الدرس من البداية.", disabled: false };
+  if (action.action === "placement_review")
+    return { title: "نراجع بيانات رحلتك", detail: "تقدمك محفوظ. لا يمكن فتح الدروس حتى نتأكد من نتيجة الاختبار القبلي؛ اطلب مساعدة المشرف.", disabled: true };
   if (action.action === "migration_review")
     return { title: "رحلتك جاهزة للمراجعة", detail: "تقدمك محفوظ. يراجع المشرف بيانات رحلتك قبل الخطوة التالية.", disabled: true };
   if (action.action === "waiting_posttest_enable")
