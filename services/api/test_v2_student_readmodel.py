@@ -463,3 +463,50 @@ def test_staff_student_list_does_not_calculate_unused_reward_ledgers(researcher_
     dashboard = researcher_client.get("/v2/student/admin/overview")
     assert dashboard.status_code == 200, dashboard.text
     assert dashboard.json()["recent_students"]
+
+
+def test_staff_dashboard_counts_only_recordings_the_supervisor_can_review(researcher_client):
+    from db.learning_models import AssessmentQuestionResponse, LessonQuestionResponse, V2ReviewRetryTask
+    from db.models import User
+    with TestingSessionLocal() as db:
+        release = register_candidate_release(db)
+        student = db.query(Student).one()
+        reviewer = db.query(User).one()
+        assessment = AssessmentSession(
+            student_id=student.id, session_type="pretest", content_release_id=release.id,
+            status="in_progress", v2_state="waiting_review",
+        )
+        lesson = LessonSession(
+            student_id=student.id, content_release_id=release.id, lesson_id="L1-01",
+            status="waiting_review", stage="waiting_review",
+        )
+        db.add_all([assessment, lesson]); db.flush()
+        response = AssessmentQuestionResponse(
+            assessment_session_id=assessment.id, question_id="synthetic-review",
+            role="pretest", answer_json={"audio_storage_key": "synthetic-private"},
+            submit_key="dashboard-count-assessment", status="pending_review",
+            skill_group="S1", evidence_type="reading",
+        )
+        lesson_response = LessonQuestionResponse(
+            lesson_session_id=lesson.id, question_id="synthetic-lesson", role="independent_check",
+            answer_json={"answer": "private"}, submit_key="dashboard-count-lesson",
+            status="pending_review",
+        )
+        db.add_all([response, lesson_response]); db.flush()
+        task = V2ReviewRetryTask(
+            assessment_response_id=response.id, student_id=student.id, requested_by=reviewer.id,
+            request_kind="rerecord", status="requested",
+            reason="أعد قراءة النص بصوت أوضح",
+        )
+        db.add(task); db.commit()
+    first = researcher_client.get("/v2/student/admin/overview")
+    assert first.status_code == 200, first.text
+    assert first.json()["counts"]["assessment_reviews"] == 0
+    assert first.json()["counts"]["lesson_reviews"] == 1
+    with TestingSessionLocal() as db:
+        db.query(V2ReviewRetryTask).one().status = "submitted"
+        db.commit()
+    after_submission = researcher_client.get("/v2/student/admin/overview")
+    assert after_submission.status_code == 200, after_submission.text
+    assert after_submission.json()["counts"]["assessment_reviews"] == 1
+    assert after_submission.json()["counts"]["lesson_reviews"] == 1

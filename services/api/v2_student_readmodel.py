@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from db.learning_models import AdaptationDecision, AssessmentQuestionResponse, LessonQuestionResponse, LessonSession, PlacementDecisionV2, PrivateContentBankSnapshot, StudentJourney, SupportAssignment
+from db.learning_models import AdaptationDecision, AssessmentQuestionResponse, LessonQuestionResponse, LessonSession, PlacementDecisionV2, PrivateContentBankSnapshot, StudentJourney, SupportAssignment, V2ReviewRetryTask
 from db.models import AssessmentSession, Attempt, ContentRelease, Student, User
 from dependencies import get_current_user, get_db
 from v2_assessment_runtime import current_action
@@ -366,6 +366,16 @@ def supervisor_v2_dashboard(
             "journey": home["journey"], "current_action": home["current_action"],
             "progress": home["progress"], "data_status": home["data_status"],
         })
+    # An unanswered rerecord request is work for the learner, not an
+    # actionable reading review for the supervisor. Match V2 notifications.
+    requested_assessment_ids = db.query(V2ReviewRetryTask.assessment_response_id).filter(
+        V2ReviewRetryTask.status == "requested",
+        V2ReviewRetryTask.assessment_response_id.is_not(None),
+    )
+    requested_lesson_ids = db.query(V2ReviewRetryTask.lesson_response_id).filter(
+        V2ReviewRetryTask.status == "requested",
+        V2ReviewRetryTask.lesson_response_id.is_not(None),
+    )
     return {
         "source": "himma_v2_readmodel",
         "counts": {
@@ -376,8 +386,19 @@ def supervisor_v2_dashboard(
             "completed": journeys("completed"),
             "assessment_reviews": db.query(AssessmentQuestionResponse.id).join(
                 AssessmentSession, AssessmentSession.id == AssessmentQuestionResponse.assessment_session_id,
-            ).filter(AssessmentQuestionResponse.status == "pending_review", AssessmentSession.v2_state.is_not(None)).count(),
-            "lesson_reviews": db.query(LessonQuestionResponse.id).filter(LessonQuestionResponse.status == "pending_review").count(),
+            ).join(Student, Student.id == AssessmentSession.student_id).filter(
+                AssessmentQuestionResponse.status == "pending_review",
+                AssessmentSession.v2_state.is_not(None),
+                Student.is_active.is_(True),
+                ~AssessmentQuestionResponse.id.in_(requested_assessment_ids),
+            ).count(),
+            "lesson_reviews": db.query(LessonQuestionResponse.id).join(
+                LessonSession, LessonSession.id == LessonQuestionResponse.lesson_session_id,
+            ).join(Student, Student.id == LessonSession.student_id).filter(
+                LessonQuestionResponse.status == "pending_review",
+                Student.is_active.is_(True),
+                ~LessonQuestionResponse.id.in_(requested_lesson_ids),
+            ).count(),
             "placements": db.query(AssessmentSession.id).filter(
                 AssessmentSession.session_type == "pretest", AssessmentSession.v2_state == "placement_pending_review",
             ).count(),
