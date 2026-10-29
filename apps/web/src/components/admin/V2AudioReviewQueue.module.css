@@ -15,3 +15,26 @@
 .toolbar input{min-width:0;width:100%}
 .pagination{flex-wrap:wrap;justify-content:center}
 }
+
+/* Review sheet: centered on iPhone with independent scroll, clear actions. */
+.dialog{margin:auto;inset:0;overflow:hidden}
+.dialogHeader h2:focus{outline:none}
+.dialogHeader{align-items:center;background:linear-gradient(135deg,#fff,#f5f9ff)}
+.dialogBody{gap:16px}
+.close{width:42px;height:42px;background:#f4f8fc;color:#20364d;border:1px solid #e1eaf4;transition:background .15s ease}
+.close:hover{background:#e6f0fa}
+.close:focus-visible{outline:2px solid #3b73bb;outline-offset:2px}
+.dialogFooter{position:relative;gap:10px}
+.dialogFooter button.approveButton,.dialogFooter button.retryButton,.dialogFooter button.backButton,.tableScroll button.reviewButton{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:10px 18px;font-weight:800;line-height:1.5;border-radius:14px;border:1px solid transparent;transition:transform .15s ease,box-shadow .15s ease,background .15s ease}
+.dialogFooter button.approveButton{background:#286d50;color:white;border-color:#286d50;box-shadow:0 6px 16px #286d5030}
+.dialogFooter button.approveButton:hover{background:#205b42}
+.dialogFooter button.retryButton{background:#fff8e9;color:#85561b;border-color:#ebc985;box-shadow:0 4px 12px #79500f17}
+.dialogFooter button.retryButton:hover{background:#ffedc8}
+.dialogFooter button.backButton{background:#f2f6fb;color:#24476b;border-color:#d7e3ef}
+.tableScroll button.reviewButton{background:#e9f2ff;color:#245ca3;border-color:#c9dbf6;box-shadow:0 3px 10px #143b7612}
+.tableScroll button.reviewButton:hover{background:#dceaff}
+.dialogFooter button:focus-visible,.tableScroll button.reviewButton:focus-visible{outline:3px solid #8ab8ed;outline-offset:2px}
+.dialogFooter button:disabled{opacity:.6;cursor:wait}
+.dialogFooter button[aria-disabled="true"]{opacity:.82}
+@media(max-width:600px){.dialog{max-height:calc(100dvh - 24px)}.dialogFooter{padding:14px 16px}.dialogFooter button.approveButton,.dialogFooter button.retryButton{flex:1 1 40%;min-width:130px}.dialogHeader h2{font-size:1.05rem}.dialogBody{gap:14px}}
+@media(prefers-reduced-motion:reduce){.dialogFooter button,.tableScroll button.reviewButton,.close{transition:none}}

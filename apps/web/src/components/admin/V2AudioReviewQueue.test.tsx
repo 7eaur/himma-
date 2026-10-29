@@ -1,5 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import V2AudioReviewQueue, { type AudioReviewItem } from "./V2AudioReviewQueue";
+import { notifyFeedback } from "@/lib/feedback";
+jest.mock("@/lib/feedback", () => ({ notifyFeedback: jest.fn() }));
 
 const item: AudioReviewItem = {
   response_id: 21, student_id: 4, student_name: "طالب اصطناعي", question_id: "Q-1",
@@ -38,7 +40,10 @@ it.each(["assessment", "lesson"] as const)("%s opens from a table and accepts on
   expect(within(dialog).getByText("بَاب")).toBeVisible();
   expect(within(dialog).queryByTestId("v2-reading-rubric")).not.toBeInTheDocument();
   const accept = within(dialog).getByRole("button",{name:"القراءة صحيحة"});
-  expect(accept).toBeDisabled();
+  expect(accept).toHaveAttribute("aria-disabled", "true");
+  fireEvent.click(accept);
+  expect(notifyFeedback).toHaveBeenCalledWith("warning", "استمع إلى التسجيل كاملًا أولًا قبل اعتماد القراءة.");
+  expect(fetcher.mock.calls.some(([, options]) => options?.method === "POST")).toBe(false);
   fireEvent.ended(within(dialog).getByLabelText("استمع للتسجيل كاملًا قبل التقييم"));
   await waitFor(()=>expect(accept).toBeEnabled());
   fireEvent.click(accept);
@@ -55,12 +60,14 @@ it.each(["assessment", "lesson"] as const)("%s opens from a table and accepts on
 it("requires a useful retry reason and sends a retry task rather than grading as wrong", async () => {
   const dialog = await open("lesson");
   const retryButton = within(dialog).getByRole("button",{name:"طلب إعادة التسجيل"});
-  expect(retryButton).toBeDisabled();
+  expect(retryButton).toHaveAttribute("aria-disabled", "true");
   fireEvent.ended(within(dialog).getByLabelText("استمع للتسجيل كاملًا قبل التقييم"));
   await waitFor(() => expect(retryButton).toBeEnabled());
   fireEvent.click(retryButton);
   const send = within(dialog).getByRole("button",{name:"إرسال طلب الإعادة"});
-  expect(send).toBeDisabled();
+  expect(send).toHaveAttribute("aria-disabled", "true");
+  fireEvent.click(send);
+  expect(notifyFeedback).toHaveBeenCalledWith("warning", "اكتب ملاحظة واضحة للطالب من 10 أحرف على الأقل.");
   fireEvent.change(within(dialog).getByLabelText("ماذا يحتاج الطالب أن يعيد؟"),{target:{value:"أعد قراءة الكلمة بصوت أوضح"}});
   fireEvent.click(send);
   expect(await screen.findByText("أُرسل طلب إعادة التسجيل إلى الطالب.")).toBeVisible();
@@ -75,7 +82,7 @@ it("keeps a failed save open and validates optional numeric values only when sel
   const accept=within(dialog).getByRole("button",{name:"القراءة صحيحة"});
   await waitFor(()=>expect(accept).toBeEnabled());
   fireEvent.click(within(dialog).getByRole("checkbox"));
-  expect(accept).toBeDisabled();
+  expect(accept).toHaveAttribute("aria-disabled", "true");
   fireEvent.change(within(dialog).getByRole("spinbutton",{name:"عدد الوحدات المطلوبة"}),{target:{value:"3"}});
   fireEvent.click(accept);
   expect(await within(dialog).findByRole("alert")).toHaveTextContent("تغير التسجيل؛ حدّث القائمة");

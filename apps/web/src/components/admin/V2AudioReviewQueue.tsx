@@ -8,6 +8,7 @@ import V2BlockedReviewNotice, { type BlockedV2Review } from "./V2BlockedReviewNo
 import V2ReviewedAudioPlayer from "./V2ReviewedAudioPlayer";
 import V2ReadingRubricEditor, { emptyReadingRubric, rubricValid } from "./V2ReadingRubricEditor";
 import styles from "./V2AudioReviewQueue.module.css";
+import { notifyFeedback } from "@/lib/feedback";
 
 type Kind = "assessment" | "lesson";
 export interface AudioReviewItem {
@@ -39,14 +40,21 @@ function ReviewDialog({ item, kind, onClose, onSaved }: {
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     node?.showModal();
+    node?.querySelector<HTMLElement>("#audio-review-title")?.focus();
     return () => { node?.close(); document.body.style.overflow = previousOverflow; };
   }, []);
   const prefix = kind === "assessment" ? `/api/v2/assessments/admin/responses/${item.response_id}` : `/api/v2/review/lessons/${item.response_id}`;
   const available = item.interaction === "read_aloud" && item.evidence_ready && !!item.audio_url && !!item.audio_submission_id;
   const save = async (requestRetry: boolean) => {
-    if (savingRef.current || busy || (requestRetry
-      ? note.trim().length < 10 || (available && !played)
-      : !available || !played || (withRubric && !rubricValid(rubric)))) return;
+    if (savingRef.current || busy) return;
+    const requirement = requestRetry
+      ? (item.retry_state === "requested" ? "الطالب لديه طلب إعادة بالفعل؛ انتظر وصول التسجيل الجديد."
+        : available && !played ? "استمع إلى التسجيل كاملًا أولًا قبل طلب إعادته."
+        : note.trim().length < 10 ? "اكتب ملاحظة واضحة للطالب من 10 أحرف على الأقل." : "")
+      : !available ? "التسجيل غير متاح للاعتماد. اطلب إعادة التسجيل."
+        : !played ? "استمع إلى التسجيل كاملًا أولًا قبل اعتماد القراءة."
+        : withRubric && !rubricValid(rubric) ? "أكمل حقول التقدير الاختياري أو ألغِ اختياره." : "";
+    if (requirement) { notifyFeedback("warning", requirement); return; }
     savingRef.current = true;
     setBusy(true); setError("");
     try {
@@ -63,7 +71,9 @@ function ReviewDialog({ item, kind, onClose, onSaved }: {
       if (!response.ok) throw new Error(typeof result?.detail === "string" ? result.detail : "تعذر حفظ المراجعة. حاول مرة أخرى.");
       await onSaved(requestRetry ? "أُرسل طلب إعادة التسجيل إلى الطالب." : "اعتُمدت القراءة الصحيحة وحُفظ القرار.");
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "تعذر حفظ المراجعة.");
+      const message = reason instanceof Error ? reason.message : "تعذر حفظ المراجعة.";
+      setError(message);
+      notifyFeedback("error", message);
       setBusy(false);
       savingRef.current = false;
     }
@@ -73,8 +83,8 @@ function ReviewDialog({ item, kind, onClose, onSaved }: {
     onClick={event => { if (event.target === event.currentTarget && !busy) onClose(); }}>
     <div className={styles.dialogContent}>
       <header className={styles.dialogHeader}>
-        <div><h2 id="audio-review-title">مراجعة تسجيل {item.student_name}</h2><p>{activity(item)} · {item.question_id}</p></div>
-        <button type="button" autoFocus className={styles.close} aria-label="إغلاق المراجعة" disabled={busy} onClick={onClose}><X size={22} /></button>
+        <div><h2 id="audio-review-title" tabIndex={-1}>مراجعة تسجيل {item.student_name}</h2><p>{activity(item)} · {item.question_id}</p></div>
+        <button type="button" className={styles.close} aria-label="إغلاق المراجعة" disabled={busy} onClick={onClose}><X size={22} /></button>
       </header>
       <div className={styles.dialogBody}>
         <section className={styles.question}><h3>المطلوب من الطالب</h3><p>{item.prompt}</p>{item.stimulus_text && <p className={styles.stimulus}>{item.stimulus_text}</p>}</section>
@@ -101,11 +111,15 @@ function ReviewDialog({ item, kind, onClose, onSaved }: {
       </div>
       <footer className={styles.dialogFooter}>
         {retry ? <>
-          <button type="button" className="btn-primary" disabled={busy || (available && !played) || note.trim().length < 10} onClick={() => void save(true)}>{busy ? "جارٍ الإرسال..." : "إرسال طلب الإعادة"}</button>
-          <button type="button" className="btn-secondary" disabled={busy} onClick={() => { setRetry(false); setError(""); }}>العودة للاستماع</button>
+          <button type="button" className={styles.approveButton} disabled={busy} aria-disabled={(available && !played) || note.trim().length < 10} onClick={() => void save(true)}>{busy ? "جارٍ الإرسال..." : "إرسال طلب الإعادة"}</button>
+          <button type="button" className={styles.backButton} disabled={busy} onClick={() => { setRetry(false); setError(""); }}>العودة للاستماع</button>
         </> : <>
-          <button type="button" className="btn-primary" disabled={busy || !available || !played || (withRubric && !rubricValid(rubric))} onClick={() => void save(false)}>{busy ? "جارٍ الحفظ..." : "القراءة صحيحة"}</button>
-          <button type="button" className="btn-secondary" disabled={busy || (available && !played) || item.retry_state === "requested"} onClick={() => { setRetry(true); setError(""); }}>طلب إعادة التسجيل</button>
+          <button type="button" className={styles.approveButton} disabled={busy} aria-disabled={!available || !played || (withRubric && !rubricValid(rubric))} onClick={() => void save(false)}>{busy ? "جارٍ الحفظ..." : "القراءة صحيحة"}</button>
+          <button type="button" className={styles.retryButton} disabled={busy} aria-disabled={(available && !played) || item.retry_state === "requested"} onClick={() => {
+            if (item.retry_state === "requested") { notifyFeedback("warning", "الطالب لديه طلب إعادة؛ انتظر تسجيله الجديد."); return; }
+            if (available && !played) { notifyFeedback("warning", "استمع إلى التسجيل كاملًا أولًا قبل طلب إعادته."); return; }
+            setRetry(true); setError("");
+          }}>طلب إعادة التسجيل</button>
           {!played && available && <p>استمع للتسجيل كاملًا لتفعيل اعتماد القراءة.</p>}
         </>}
       </footer>
@@ -121,7 +135,6 @@ export default function V2AudioReviewQueue({ kind }: { kind: Kind }) {
   const [selected, setSelected] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
   const requestId = useRef(0);
   const load = useCallback(async () => {
     const id = ++requestId.current;
@@ -135,7 +148,9 @@ export default function V2AudioReviewQueue({ kind }: { kind: Kind }) {
     } catch (reason) {
       if (id !== requestId.current) return;
       setQueue({ items: [], next_offset: null });
-      setError(reason instanceof Error ? reason.message : "تعذر تحميل قائمة التسجيلات.");
+      const message = reason instanceof Error ? reason.message : "تعذر تحميل قائمة التسجيلات.";
+      setError(message);
+      notifyFeedback("error", message);
     } finally { if (id === requestId.current) setLoading(false); }
   }, [kind, offset, pageSize]);
   useEffect(() => {
@@ -151,9 +166,8 @@ export default function V2AudioReviewQueue({ kind }: { kind: Kind }) {
     <AdminPageHeader eyebrow="مراجعة التسجيلات" icon={ClipboardCheck}
       title={kind === "assessment" ? "الاختبارات ومراجعة القراءة" : "مراجعة قراءات الدروس"}
       description="اختر تسجيلًا من القائمة، واستمع إليه، ثم اعتمد القراءة أو اطلب إعادة التسجيل."
-      actions={<AdminAction icon={RefreshCw} onClick={() => { setMessage(""); void load(); }}>تحديث القائمة</AdminAction>} />
+      actions={<AdminAction icon={RefreshCw} onClick={() => { void load(); }}>تحديث القائمة</AdminAction>} />
     {error && <p role="alert" className="alert-error">{error}</p>}
-    {message && <p role="status" className={styles.success}>{message}</p>}
     {!loading && <V2BlockedReviewNotice items={queue.blocked_items} onRestored={load} />}
     <AdminPanel title="متابعة التسجيلات الصوتية">
       <div className={styles.toolbar}><label htmlFor={`review-search-${kind}`}>بحث في هذه الصفحة</label>
@@ -170,7 +184,7 @@ export default function V2AudioReviewQueue({ kind }: { kind: Kind }) {
           <td data-label="النشاط">{activity(item)}</td><td data-label="المطلوب" className={styles.prompt}>{item.prompt}</td>
           <td data-label="تاريخ التسجيل">{item.submitted_at ? new Date(item.submitted_at).toLocaleDateString("ar") : "—"}</td>
           <td data-label="الحالة">{item.retry_state === "requested" ? "بانتظار إعادة الطالب" : item.retry_state === "submitted" ? "وصلت إعادة التسجيل" : "بانتظار المراجعة"}</td>
-          <td data-label="الإجراء"><button type="button" className="btn-secondary" aria-label={`مراجعة تسجيل ${item.student_name} ${item.question_id}`}
+          <td data-label="الإجراء"><button type="button" className={styles.reviewButton} aria-label={`مراجعة تسجيل ${item.student_name} ${item.question_id}`}
             disabled={item.retry_state === "requested"} onClick={() => setSelected(item.response_id)}>مراجعة</button></td>
         </tr>)}</tbody></table></div>}
       <nav className={styles.pagination} aria-label="صفحات التسجيلات">
@@ -180,6 +194,6 @@ export default function V2AudioReviewQueue({ kind }: { kind: Kind }) {
       </nav>
     </AdminPanel>
     {current && <ReviewDialog key={`${kind}:${current.response_id}`} item={current} kind={kind} onClose={() => setSelected(null)}
-      onSaved={async text => { setMessage(text); await load(); }} />}
+      onSaved={async text => { notifyFeedback("success", text); await load(); }} />}
   </AdminPage>;
 }

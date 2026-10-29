@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Mic, MicOff, RefreshCw, RotateCcw } from "lucide-react";
+import { notifyFeedback } from "@/lib/feedback";
 
 interface RetryItem {
   task_id: number; kind: "lesson" | "assessment"; session_id: number;
@@ -187,15 +188,17 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
     finally { submitPendingRef.current = false; setBusy(false); }
   };
 
-  return <section className="space-y-3 rounded-2xl border border-amber-300 bg-amber-50/70 p-4" aria-label="إعادة الدليل">
-    <div><strong className="text-slate-900">طلب من المشرف: إعادة القراءة</strong>
-      <p className="mt-1 text-sm text-slate-700">{task.prompt}</p>
-      <p data-testid="retry-original-stimulus" className="mt-3 rounded-xl bg-white p-3 text-center text-xl font-bold leading-loose text-slate-950" dir="rtl">{task.stimulus.text}</p>
-      <p className="mt-2 text-sm text-amber-900">ملاحظة المشرف: {task.reason}</p></div>
+  return <section className="space-y-5 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6" aria-label="إعادة الدليل">
+    <header className="space-y-2">
+      <span className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-sm font-bold text-blue-800">نشاط قراءة</span>
+      <h2 className="text-lg font-extrabold text-slate-900">{task.prompt}</h2>
+      <p data-testid="retry-original-stimulus" className="rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-6 text-center text-2xl font-extrabold leading-loose text-slate-900" dir="rtl">{task.stimulus.text}</p>
+      <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm leading-7 text-amber-900"><strong>ملاحظة المشرف:</strong> {task.reason}</p>
+    </header>
     <div className="space-y-2">
         {!audioBlob
           ? <button type="button" disabled={busy || requestingMic} onClick={recording ? stopRecording : () => void startRecording()}
-              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-800 px-4 py-2 font-semibold text-white disabled:opacity-50">
+              className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-blue-700 px-5 py-3 font-bold text-white shadow-md shadow-blue-200/70 transition-colors hover:bg-blue-800 disabled:opacity-50">
               {recording ? <MicOff size={19}/> : <Mic size={19}/>}
               {requestingMic ? "جارٍ تشغيل الميكروفون..." : recording ? "إيقاف التسجيل" : "تسجيل القراءة من جديد"}</button>
           : <><audio controls src={audioUrl || undefined} className="w-full"/>
@@ -207,7 +210,7 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
               uploadKey.current = newKey();
               submitKey.current = newKey();
             }}
-              className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-400 px-3 py-2 text-sm disabled:opacity-50"><RotateCcw size={16}/> إعادة المحاولة</button></>}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-blue-200 bg-white px-4 py-2 text-sm font-bold text-blue-800 shadow-sm disabled:opacity-50"><RotateCcw size={16}/> إعادة المحاولة</button></>}
         {stagedAudio && !audioBlob && <p role="status" className="text-sm text-emerald-700">
           التسجيل السابق محفوظ في الخدمة. يمكنك إرسال النسخة دون رفعها مرة أخرى، أو إعادة التسجيل.
         </p>}
@@ -215,12 +218,12 @@ function RetryCard({ task, onSaved }: { task: RetryItem; onSaved: () => void }) 
       </div>
     {error && <p role="alert" className="text-sm text-rose-700">{error}</p>}
     <button type="button" disabled={busy || requestingMic || recording || (!audioBlob && !stagedAudio)}
-      onClick={() => void submit()} aria-busy={busy} className="min-h-11 rounded-xl bg-emerald-700 px-5 py-2 font-semibold text-white disabled:opacity-40">
+      onClick={() => void submit()} aria-busy={busy} className="min-h-12 w-full rounded-2xl bg-emerald-700 px-5 py-3 font-bold text-white shadow-md shadow-emerald-200/70 disabled:opacity-40">
       {busy ? "جاري حفظ الدليل..." : "إرسال الإجابة الجديدة للمراجعة"}</button>
   </section>;
 }
 
-export default function StudentRetryTasks({ kind, sessionId, taskId, dashboard = false }: { kind?: "lesson" | "assessment"; sessionId?: number; taskId?: number; dashboard?: boolean }) {
+export default function StudentRetryTasks({ kind, sessionId, taskId, dashboard = false, onCompleted }: { kind?: "lesson" | "assessment"; sessionId?: number; taskId?: number; dashboard?: boolean; onCompleted?: () => void }) {
   const [tasks, setTasks] = useState<RetryItem[]>([]);
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
@@ -314,7 +317,7 @@ export default function StudentRetryTasks({ kind, sessionId, taskId, dashboard =
   }
   return <section className={dashboard
     ? "mt-3 space-y-3 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5"
-    : "mt-4 space-y-3"} dir="rtl" data-testid={dashboard ? "v2-active-retry-tasks" : undefined}>
+    : "space-y-3"} dir="rtl" data-testid={dashboard ? "v2-active-retry-tasks" : undefined}>
     {dashboard && <>
       <h2 className="text-lg font-bold text-slate-900">طلبات إعادة القراءة</h2>
       <p className="text-sm text-slate-600">إذا طلب المشرف إعادة تسجيل قراءة سابقة، يظهر الطلب هنا ولو أكملت الدرس. لا تُحسب نتيجة القراءة قبل مراجعة التسجيل.</p>
@@ -324,6 +327,10 @@ export default function StudentRetryTasks({ kind, sessionId, taskId, dashboard =
     {error && <p role="alert" className="text-sm text-rose-700">{error}</p>}
     {sent && <p role="status" className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">وصلت إجابتك الجديدة؛ بانتظار قرار المشرف.</p>}
     {submitted.length > 0 && <p role="status" className="rounded-lg border border-blue-200 p-3 text-sm">لديك {submitted.length} إجابة جديدة وصلت وتنتظر المراجعة.</p>}
-    {requested.map((task) => <RetryCard key={task.task_id} task={task} onSaved={() => { setSent(true); void load(); }}/>)}
+    {requested.map((task) => <RetryCard key={task.task_id} task={task} onSaved={() => {
+      if (taskId !== undefined && onCompleted) { onCompleted(); return; }
+      notifyFeedback("success", "تم إرسال تسجيلك للمشرف.");
+      setSent(true); void load();
+    }}/>)}
   </section>;
 }

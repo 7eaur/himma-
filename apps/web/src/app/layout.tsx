@@ -9,6 +9,7 @@ import "./ux-corrections.css";
 import "./ux-student-surfaces.css";
 import "./student-dashboard-corrections.css";
 import { ScrollAnimator } from "@/components/ScrollAnimator";
+import GlobalFeedback from "@/components/GlobalFeedback";
 
 const studentFont = Tajawal({
   subsets: ["arabic"],
@@ -42,6 +43,7 @@ export default function RootLayout({
     >
       <body>
         <ScrollAnimator />
+        <GlobalFeedback />
         {children}
       </body>
     </html>
