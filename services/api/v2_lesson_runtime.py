@@ -13,10 +13,11 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from db.learning_models import LessonProgressEvent, LessonSession, PlacementDecisionV2, StudentJourney
+from db.learning_models import LessonProgressEvent, LessonSession, StudentJourney
 from db.models import AssessmentSession, ContentRelease, Student, User
 from dependencies import get_current_student, get_current_user, get_db
 from runtime_flags import protected_runtime, trial_v2_preview_allowed
+from v2_journey_projection import official_placement_query
 from v2_content.repository import get_pinned_release
 from v2_content.media import APPROVED_STATES, MISSING_STATES, MediaProvider, approved_asset_path
 from v2_content.readiness import media_readiness_contract
@@ -96,20 +97,7 @@ def _has_official_v2_placement(db: Session, student_id: int, journey: StudentJou
     """Fail closed when a V2 lesson lacks an official, release-aligned pretest."""
     if not journey or journey.status != "active" or journey.placement_state != "placed":
         return False
-    return db.query(PlacementDecisionV2.id).join(
-        AssessmentSession, AssessmentSession.id == PlacementDecisionV2.assessment_session_id,
-    ).filter(
-        PlacementDecisionV2.student_id == student_id,
-        PlacementDecisionV2.content_release_id == journey.content_release_id,
-        PlacementDecisionV2.assigned_level <= journey.current_level,
-        AssessmentSession.student_id == student_id,
-        AssessmentSession.content_release_id == journey.content_release_id,
-        AssessmentSession.session_type == "pretest",
-        AssessmentSession.status == "completed",
-        AssessmentSession.v2_state == "completed",
-        AssessmentSession.official_for_reporting.is_(True),
-        AssessmentSession.assigned_level == PlacementDecisionV2.assigned_level,
-    ).first() is not None
+    return official_placement_query(db, student_id, journey.content_release_id, journey.current_level).first() is not None
 
 
 def _require_official_lesson_session(db: Session, session: LessonSession) -> None:

@@ -12,12 +12,20 @@ from sqlalchemy.orm import Session
 from db.learning_models import AdaptationDecision, AssessmentQuestionResponse, LessonQuestionResponse, LessonSession, PlacementDecisionV2, PrivateContentBankSnapshot, StudentJourney, SupportAssignment, V2ReviewRetryTask
 from db.models import AssessmentSession, Attempt, ContentRelease, Student, User
 from dependencies import get_current_user, get_db
-from v2_assessment_runtime import current_action
+from v2_journey_projection import JourneyFacts, load_journey_facts, next_action
 from v2_lesson_runtime import _require_preview_student
 from v2_content.repository import get_release
 from v2_rewards import rewards_projection
 
 router = APIRouter(prefix="/v2/student", tags=["v2-student-home"])
+
+
+def _initial_level(journey: StudentJourney, lessons: list[dict], placement_level: int | None, completed_ids: set[str]) -> int:
+    if placement_level is not None:
+        return placement_level
+    # Historical preview journeys may predate placement decisions. Completed
+    # lower-level lessons remain learned evidence, never placement skips.
+    return min([journey.current_level] + [int(row["level"][1]) for row in lessons if row["id"] in completed_ids])
 
 
 def _placement_level(db: Session, journey: StudentJourney, lessons: list[dict]) -> int:
@@ -26,35 +34,38 @@ def _placement_level(db: Session, journey: StudentJourney, lessons: list[dict]) 
         PlacementDecisionV2.content_release_id == journey.content_release_id,
     ).order_by(PlacementDecisionV2.id.desc()).first()
     if decision:
-        return decision.assigned_level
-    # Historical preview journeys may predate placement decisions. A completed
-    # lower-level lesson is still learned evidence, never a placement skip.
+        return _initial_level(journey, lessons, decision.assigned_level, set())
     completed = {lesson_id for lesson_id, in db.query(LessonSession.lesson_id).filter(
         LessonSession.student_id == journey.student_id,
         LessonSession.content_release_id == journey.content_release_id,
         LessonSession.status == "completed",
     ).distinct().all()}
-    return min([journey.current_level] + [int(row["level"][1]) for row in lessons if row["id"] in completed])
+    return _initial_level(journey, lessons, None, completed)
+
+
+def _load_release_lessons(db: Session, release_ids: set[int]) -> dict[int, tuple[list[dict] | None, str | None]]:
+    """Fetch lesson metadata once per page, without loading private question banks."""
+    if not release_ids:
+        return {}
+    rows = db.query(
+        ContentRelease.id, ContentRelease.version, ContentRelease.checksum,
+        PrivateContentBankSnapshot.payload_json["lessons"].label("lessons"),
+    ).outerjoin(PrivateContentBankSnapshot, (
+        (PrivateContentBankSnapshot.content_release_id == ContentRelease.id) &
+        (PrivateContentBankSnapshot.checksum == ContentRelease.checksum)
+    )).filter(ContentRelease.id.in_(release_ids)).all()
+    result = {}
+    for row in rows:
+        lessons = row.lessons
+        if not isinstance(lessons, list):
+            current = get_release()
+            lessons = current["lessons"] if current["version"] == row.version and current["checksum"] == row.checksum else None
+        result[row.id] = (lessons, row.version)
+    return result
 
 
 def _release_lessons(db: Session, release_id: int) -> tuple[list[dict] | None, str | None]:
-    row = db.query(ContentRelease).filter(ContentRelease.id == release_id).one_or_none()
-    if row is None:
-        return None, None
-    pinned = db.query(PrivateContentBankSnapshot).filter(
-        PrivateContentBankSnapshot.content_release_id == release_id,
-        PrivateContentBankSnapshot.checksum == row.checksum,
-    ).one_or_none()
-    if pinned and isinstance(pinned.payload_json, dict):
-        lessons = pinned.payload_json.get("lessons")
-        if isinstance(lessons, list):
-            return lessons, row.version
-    # The only permitted fallback is the *same* compiled release checksum.
-    # Never silently measure an old student's progress against a newer bank.
-    current = get_release()
-    if current["version"] == row.version and current["checksum"] == row.checksum:
-        return current["lessons"], row.version
-    return None, row.version
+    return _load_release_lessons(db, {release_id}).get(release_id, (None, None))
 
 
 def _assessment_summary(session: AssessmentSession | None) -> dict | None:
@@ -69,58 +80,43 @@ def _assessment_summary(session: AssessmentSession | None) -> dict | None:
     }
 
 
-def _preferred_assessment(
-    db: Session, student_id: int, kind: str,
-) -> AssessmentSession | None:
-    """Select one active attempt, otherwise one official attempt, without loading history."""
-    base = db.query(AssessmentSession).filter(
-        AssessmentSession.student_id == student_id,
-        AssessmentSession.v2_state.is_not(None),
-        AssessmentSession.session_type == kind,
-    )
-    active = base.filter(AssessmentSession.status == "in_progress").order_by(
-        AssessmentSession.started_at.desc(), AssessmentSession.id.desc(),
-    ).first()
-    if active is not None:
-        return active
-    return base.filter(AssessmentSession.official_for_reporting.is_(True)).order_by(
-        AssessmentSession.started_at.desc(), AssessmentSession.id.desc(),
-    ).first()
+def _projection_release_id(facts: JourneyFacts) -> int | None:
+    if facts.journey:
+        return facts.journey.content_release_id
+    if facts.active_lesson:
+        return facts.active_lesson.content_release_id
+    # Preserve the home summary's pretest-first selection if corrupt data has
+    # more than one active kind; next_action still chooses the latest attempt.
+    for kind in ("pretest", "posttest"):
+        row = facts.assessments.get(kind)
+        if row and row.status == "in_progress":
+            return row.content_release_id
+    return None
 
 
-def build_student_v2_home(db: Session, student: Student, *, include_rewards: bool = True) -> dict:
-    """One authorized projection; omit expensive unrendered rewards in staff lists."""
-    journey = db.query(StudentJourney).filter(StudentJourney.student_id == student.id).one_or_none()
-    # The latest active attempt is shown, otherwise only the latest official
-    # attempt. Each query returns at most one row, regardless of history size.
-    selected_assessments = {
-        kind: _preferred_assessment(db, student.id, kind)
-        for kind in ("pretest", "posttest")
-    }
-    active_assessment = next(
-        (row for row in selected_assessments.values() if row and row.status == "in_progress"),
-        None,
-    )
-    by_kind = {
-        kind: _assessment_summary(row)
-        for kind, row in selected_assessments.items()
-    }
-
-    active_lesson = db.query(LessonSession).filter(
-        LessonSession.student_id == student.id,
-        LessonSession.status.in_(("in_progress", "waiting_review")),
-    ).one_or_none()
+def build_student_v2_home(
+    db: Session, student: Student, *, include_rewards: bool = True,
+    facts: JourneyFacts | None = None,
+    releases: dict[int, tuple[list[dict] | None, str | None]] | None = None,
+) -> dict:
+    """One authorized projection, using request-scoped batch facts for staff lists."""
+    if facts is None:
+        facts = load_journey_facts(db, [student.id])[student.id]
+    if facts.student_id != student.id:
+        raise ValueError("student projection facts belong to a different account")
+    journey, active_lesson = facts.journey, facts.active_lesson
+    active_assessment = facts.active_assessment
+    by_kind = {kind: _assessment_summary(facts.assessments.get(kind)) for kind in ("pretest", "posttest")}
     # All student-facing accounts now use a single V2 shell. Historical V1
     # evidence remains in its own tables; current_action blocks unsafe retakes.
     mode = "v2"
     version = None
     lessons = None
-    if journey:
-        lessons, version = _release_lessons(db, journey.content_release_id)
-    elif active_lesson:
-        lessons, version = _release_lessons(db, active_lesson.content_release_id)
-    elif active_assessment and active_assessment.content_release_id:
-        lessons, version = _release_lessons(db, active_assessment.content_release_id)
+    release_id = _projection_release_id(facts)
+    if release_id is not None:
+        if releases is None:
+            releases = _load_release_lessons(db, {release_id})
+        lessons, version = releases.get(release_id, (None, None))
 
     progress = {
         "completed_lessons": 0,
@@ -131,19 +127,13 @@ def build_student_v2_home(db: Session, student: Student, *, include_rewards: boo
     }
     if journey and lessons is not None:
         placed = journey.placement_state in {"placed", "posttest_ready", "completed"}
-        initial_level = _placement_level(db, journey, lessons)
+        initial_level = _initial_level(journey, lessons, facts.placement_level, facts.completed_ids)
         skipped_ids = {
             row["id"] for row in lessons
             if placed and int(row["level"][1]) < initial_level
         }
         assigned_ids = {row["id"] for row in lessons} - skipped_ids
-        completed_ids = {
-            row.lesson_id for row in db.query(LessonSession).filter(
-                LessonSession.student_id == student.id,
-                LessonSession.content_release_id == journey.content_release_id,
-                LessonSession.status == "completed",
-            ).all()
-        }
+        completed_ids = facts.completed_ids
         done = len(completed_ids & assigned_ids)
         progress = {
             "completed_lessons": done,
@@ -155,7 +145,7 @@ def build_student_v2_home(db: Session, student: Student, *, include_rewards: boo
 
     # A first-time learner starts V2 from an explicit POST. GET never enrolls,
     # duplicates a pretest, or changes any historical V1 records.
-    action = current_action(student=student, db=db)
+    action = next_action(facts)
     return {
         "mode": mode,
         "student": {"id": student.id, "full_name": student.name, "grade_level": student.grade_level},
@@ -308,6 +298,19 @@ def supervisor_student_v2_home(
         "support_assignments": support_rows,
     }
 
+def _staff_home_batch(db: Session, students: list[Student]) -> dict[int, dict]:
+    facts = load_journey_facts(db, [student.id for student in students])
+    releases = _load_release_lessons(db, {
+        release_id for item in facts.values()
+        if (release_id := _projection_release_id(item)) is not None
+    })
+    return {
+        student.id: build_student_v2_home(db, student, include_rewards=False,
+                                        facts=facts[student.id], releases=releases)
+        for student in students
+    }
+
+
 @router.get("/admin/students/overview")
 def supervisor_v2_cohort_overview(
     limit: int = Query(default=30, ge=1, le=50),
@@ -328,9 +331,10 @@ def supervisor_v2_cohort_overview(
         query = query.filter(Student.is_active.is_(False))
     total = query.count()
     students = query.order_by(Student.id.desc()).offset(offset).limit(limit).all()
+    homes = _staff_home_batch(db, students)
     items = []
     for student in students:
-        state = build_student_v2_home(db, student, include_rewards=False)
+        state = homes[student.id]
         items.append({
             "id": student.id,
             "full_name": student.name,
@@ -357,8 +361,10 @@ def supervisor_v2_dashboard(
         return db.query(StudentJourney.id).filter(StudentJourney.placement_state == state).count()
 
     recent = []
-    for student in db.query(Student).order_by(Student.id.desc()).limit(6).all():
-        home = build_student_v2_home(db, student, include_rewards=False)
+    students = db.query(Student).order_by(Student.id.desc()).limit(6).all()
+    homes = _staff_home_batch(db, students)
+    for student in students:
+        home = homes[student.id]
         recent.append({
             "id": student.id, "full_name": student.name,
             "status": "active" if student.is_active else "inactive",

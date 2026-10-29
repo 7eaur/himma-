@@ -24,8 +24,6 @@ from db.learning_models import (
     StudentJourney,
     LessonSession,
     PrivateContentBankSnapshot,
-    LessonQuestionResponse,
-    V2ReviewRetryTask,
 )
 from db.models import AssessmentRetakeAuthorization, AssessmentSession, AudioSubmission, AuditLog, ContentRelease, Student, User
 from dependencies import get_current_user, get_db
@@ -35,7 +33,8 @@ from v2_content.projection import student_question
 from v2_content.repository import get_release, get_pinned_release
 from v2_content.recovery import known_recovery
 from v2_interaction_runtime import AnswerRequest, CHOICE_INTERACTIONS, OPEN_INTERACTIONS, ORDER_INTERACTIONS, _canonical_answer, _ordered_answer_is_correct
-from v2_lesson_runtime import _require_preview_student, _has_official_v2_placement
+from v2_lesson_runtime import _require_preview_student
+from v2_journey_projection import load_journey_facts, next_action
 from v2_retry_state import active_retry
 from v2_review_claims import enforce_review_claim, clear_review_claim
 from v2_audio_rubric import ReadingRubricV2, save_v2_reading_rubric
@@ -51,44 +50,6 @@ from v2_audio_review_evidence import (
 
 router = APIRouter(prefix="/v2/assessments", tags=["v2-assessments"])
 POLICY_VERSION = "himma-v2-assessment/placement-threshold-50-80-v1"
-
-
-def _requested_retry_action(db: Session, student: Student) -> dict[str, Any] | None:
-    """Prioritize an actionable rerecord, without interpreting academic status in JS.
-
-    Resolve the task's original response and student-owned session. A missing
-    relationship must not become a clickable link to another student's evidence.
-    """
-    task = db.query(V2ReviewRetryTask).filter(
-        V2ReviewRetryTask.student_id == student.id,
-        V2ReviewRetryTask.status == "requested",
-    ).order_by(V2ReviewRetryTask.id.asc()).first()
-    if task is None:
-        return None
-    kind = "lesson" if task.lesson_response_id is not None else "assessment"
-    response = (db.query(LessonQuestionResponse).filter(
-        LessonQuestionResponse.id == task.lesson_response_id,
-    ).one_or_none() if kind == "lesson" else db.query(AssessmentQuestionResponse).filter(
-        AssessmentQuestionResponse.id == task.assessment_response_id,
-    ).one_or_none())
-    if response is None or response.status != "pending_review":
-        raise HTTPException(status_code=409, detail="طلب إعادة القراءة بحاجة إلى مراجعة المشرف")
-    session_id = response.lesson_session_id if kind == "lesson" else response.assessment_session_id
-    session = (db.query(LessonSession).filter(LessonSession.id == session_id).one_or_none()
-               if kind == "lesson" else db.query(AssessmentSession).filter(
-                   AssessmentSession.id == session_id,
-               ).one_or_none())
-    if session is None or session.student_id != student.id:
-        raise HTTPException(status_code=409, detail="تعذر ربط طلب القراءة بجلسة الطالب")
-    return {
-        "action": "rerecord_required",
-        "state": "requested",
-        "task_id": task.id,
-        "kind": kind,
-        "session_id": session_id,
-        "href": f"/student/retry/{task.id}",
-        "label": "أعد تسجيل القراءة",
-    }
 
 
 def _recommended_level(score_percent: float | int | None) -> int | None:
@@ -115,66 +76,8 @@ class PlacementRequest(BaseModel):
 
 @router.get("/current-action")
 def current_action(student: Student = Depends(_require_preview_student), db: Session = Depends(get_db)):
-    """One read-only, exhaustive resume decision for the learner dashboard."""
-    retry_action = _requested_retry_action(db, student)
-    if retry_action is not None:
-        return retry_action
-    assessment = db.query(AssessmentSession).filter(
-        AssessmentSession.student_id == student.id,
-        AssessmentSession.status == "in_progress",
-        AssessmentSession.v2_state.is_not(None),
-    ).order_by(AssessmentSession.started_at.desc()).first()
-    if assessment:
-        return {
-            "action": "assessment",
-            "kind": assessment.session_type,
-            "state": assessment.v2_state,
-            "href": f"/student/assessment-v2/{assessment.id}",
-            "label": "متابعة الاختبار" if assessment.v2_state == "answering" else "عرض حالة المراجعة",
-        }
-    # Only an officially placed, release-aligned lesson may appear as resumable.
-    journey = db.query(StudentJourney).filter(StudentJourney.student_id == student.id).one_or_none()
-    eligible_lesson = _has_official_v2_placement(db, student.id, journey)
-    lesson = (db.query(LessonSession).filter(
-        LessonSession.student_id == student.id,
-        LessonSession.content_release_id == journey.content_release_id,
-        LessonSession.status.in_(("in_progress", "waiting_review")),
-    ).one_or_none() if eligible_lesson else None)
-    if lesson:
-        return {"action": "lesson", "state": lesson.stage, "href": f"/student/learning-v2/{lesson.id}", "label": "متابعة الدرس"}
-    if not journey:
-        # An account without a V2 journey is not necessarily a first-time
-        # student. Never turn completed V1 evidence into a fresh V2 attempt.
-        prior = db.query(AssessmentSession).filter(
-            AssessmentSession.student_id == student.id,
-        ).order_by(AssessmentSession.id.desc()).first()
-        if prior:
-            previous_pretest = db.query(AssessmentSession).filter(
-                AssessmentSession.student_id == student.id,
-                AssessmentSession.session_type == "pretest",
-            ).order_by(AssessmentSession.assessment_attempt_no.desc(), AssessmentSession.id.desc()).first()
-            allowed_retake = previous_pretest and db.query(AssessmentRetakeAuthorization.id).filter(
-                AssessmentRetakeAuthorization.student_id == student.id,
-                AssessmentRetakeAuthorization.session_type == "pretest",
-                AssessmentRetakeAuthorization.previous_session_id == previous_pretest.id,
-                AssessmentRetakeAuthorization.status == "pending",
-            ).first()
-            if prior.status == "in_progress" or not allowed_retake:
-                return {
-                    "action": "migration_review", "href": None,
-                    "label": "بانتظار مراجعة المشرف",
-                }
-    if not journey or journey.placement_state in {"not_started", "in_progress"}:
-        return {"action": "start_pretest", "href": None, "label": "ابدأ الاختبار القبلي"}
-    if journey.placement_state == "placed" and not eligible_lesson:
-        return {"action": "placement_review", "href": None, "label": "بانتظار مراجعة المشرف"}
-    if journey.placement_state == "posttest_ready":
-        # Read-only projection; the same server-side academic gate authorizes
-        # the actual POST. No supervisor switch is needed for a ready learner.
-        return {"action": "start_posttest", "href": None, "label": "ابدأ الاختبار البعدي"}
-    if journey.placement_state == "completed":
-        return {"action": "complete", "href": "/student/learning-v2", "label": "اكتملت الرحلة"}
-    return {"action": "lesson_catalog", "href": "/student/learning-v2", "label": "متابعة الرحلة التعليمية"}
+    """One read-only decision shared with learner/staff home projections."""
+    return next_action(load_journey_facts(db, [student.id])[student.id])
 
 
 def _ids(role: str, release: dict[str, Any]) -> list[str]:
