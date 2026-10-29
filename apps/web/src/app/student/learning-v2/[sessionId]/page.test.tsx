@@ -113,6 +113,8 @@ it("shows the lesson introduction in the learner journey before the video", asyn
   })) as typeof fetch;
   render(<V2LessonPage/>);
   expect(await screen.findByText("تمهيد تجريبي")).toBeVisible();
+  expect(screen.getByTestId("v2-lesson-intro")).toHaveAttribute("aria-label", "تمهيد الدرس");
+  expect(screen.getByAltText("شخصية هِمّة ترحب بالطالب")).toBeInTheDocument();
   expect(screen.getByRole("button", {name:/التالي/})).toBeVisible();
   expect(screen.queryByTestId("v2-video-player")).not.toBeInTheDocument();
 });
@@ -161,4 +163,14 @@ it("keeps replay reachable after video completion and preserves the practice dra
   fireEvent.click(screen.getByRole("button",{name:"العودة إلى موضعي المحفوظ"}));
   expect(screen.getByRole("button",{name:"اختيار الخيار 1"})).toHaveAttribute("aria-pressed","true");
   expect(fetchMock.mock.calls.filter(([,init])=>init?.method === "POST")).toHaveLength(1);
+});
+
+it("shows the approved objective in the intro exactly once", async () => {
+  const base = lesson(44, "الحرف وصوته");
+  global.fetch = jest.fn(async () => ok({...base, objective:"أميز صوت الحرف في بداية الكلمة",session:{...base.session,stage:"intro"}})) as typeof fetch;
+  render(<V2LessonPage />);
+  const intro = await screen.findByTestId("v2-lesson-intro");
+  expect(intro).toHaveTextContent("ماذا سنتعلم؟");
+  expect(intro).toHaveTextContent("أميز صوت الحرف في بداية الكلمة");
+  expect(screen.getAllByText("أميز صوت الحرف في بداية الكلمة")).toHaveLength(1);
 });

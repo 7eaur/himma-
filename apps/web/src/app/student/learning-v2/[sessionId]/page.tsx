@@ -125,7 +125,7 @@ function V2LessonSessionPage({ routeSessionId }: { routeSessionId: string }) {
 
   return <div className={styles.page} dir="rtl"><div className={styles.container}>
     <header className={styles.header}><Image src="/brand/logo-gradient.svg" alt="هِمّة" width={126} height={42} priority /><Link href="/student/learning-v2" className={styles.back}><ArrowRight size={17}/> الدروس</Link></header>
-    <main className={styles.lessonCard}><span className={styles.eyebrow}>{lesson.level} · {lesson.lesson_id}</span><h1>{lesson.title}</h1>{lesson.objective && <p>{lesson.objective}</p>}
+    <main className={styles.lessonCard}><span className={styles.eyebrow}>{lesson.level} · {lesson.lesson_id}</span><h1>{lesson.title}</h1>{lesson.objective && displayedStage !== "intro" && <p>{lesson.objective}</p>}
       <ol className={styles.lessonProgress} aria-label="مراحل الدرس">
         {progressStages.map((stage, index) => {
           const canReview = stage.key === "intro" || (stage.key === "teaching_video" && lesson.session.stage !== "intro");
@@ -141,7 +141,16 @@ function V2LessonSessionPage({ routeSessionId }: { routeSessionId: string }) {
       </ol>
       {reviewView && <div className={styles.reviewActions}><button type="button" onClick={() => setReviewView(null)}>العودة إلى موضعي المحفوظ</button></div>}
       {error && <div className={styles.error} role="alert">{error}</div>}
-      {displayedStage === "intro" && <section className={styles.intro}><div><span className={styles.eyebrow}>هيا نبدأ</span><h2>{lesson.intro.title}</h2><p>{lesson.intro.text}</p><button type="button" className={styles.primary} disabled={saving} onClick={() => lesson.session.stage === "intro" ? void completeIntro() : setReviewView("teaching_video")}>{saving ? "جاري الحفظ..." : lesson.session.stage === "intro" ? lesson.intro.button : "شاهد الدرس"}<ArrowLeft size={18}/></button></div><Image src="/characters/girl/welcome.png" alt="شخصية هِمّة ترحب" width={180} height={215}/></section>}
+      {displayedStage === "intro" && <section className={styles.intro} aria-label="تمهيد الدرس" data-testid="v2-lesson-intro">
+      <div className={styles.introContent}>
+        <span className={styles.eyebrow}>نستعد معًا</span>
+        <h2>{lesson.intro.title}</h2>
+        <p className={styles.introDescription}>{lesson.intro.text}</p>
+        {lesson.objective && <div className={styles.learningGoal}><strong>ماذا سنتعلم؟</strong><p>{lesson.objective}</p></div>}
+        <button type="button" className={styles.primary} disabled={saving} onClick={() => lesson.session.stage === "intro" ? void completeIntro() : setReviewView("teaching_video")}>{saving ? "جاري الحفظ..." : lesson.session.stage === "intro" ? lesson.intro.button : "شاهد الدرس"}<ArrowLeft size={18}/></button>
+      </div>
+      <div className={styles.introCharacter}><Image src="/characters/girl/welcome.png" alt="شخصية هِمّة ترحب بالطالب" width={180} height={215} priority /></div>
+    </section>
       {displayedStage === "teaching_video" && (lesson.video.url ? <><VideoPlayer key={`${sessionId}:${lesson.lesson_id}:${lesson.video.asset_id}`} src={lesson.video.url} captionsSrc={captions} startAt={reviewingVideo ? 0 : lesson.session.video_position_seconds} testOnly={lesson.video.test_only} temporary={lesson.video.temporary} onCheckpoint={reviewingVideo ? () => {} : checkpoint} onEnded={ended}/>{reviewingVideo && <div className={styles.continueRow}><p>مشاهدتك محفوظة. يمكنك إعادة الشرح أو متابعة رحلتك.</p><button type="button" className={styles.primary} onClick={() => setReviewView(null)}>{lesson.session.stage === "guided_practice" ? "انتقل إلى التدريب" : "متابعة من موضعي المحفوظ"}<ArrowLeft size={18}/></button></div>}</> : <div className={styles.error} role="alert">فيديو الدرس غير جاهز، ولن تتجاوز هِمّة هذه الخطوة تلقائيًا.</div>)}
       <div hidden={Boolean(reviewView)}>
       {supportStage && lesson.adaptation?.support && <section className={styles.supportIntro} data-testid="v2-support-path"><span className={styles.boundaryTag}>مساعدة قصيرة وليست خفضًا للمستوى</span><h2>{lesson.adaptation.support.title}</h2><p>{lesson.adaptation.message}</p><p>{lesson.session.stage === "additional_check" ? "سنبدأ بسؤالين قصيرين دون فيديو جديد؛ إذا احتجت مساعدة نضيف تدريبًا مناسبًا." : lesson.session.stage === "support_practice" ? "تدرّب خطوة خطوة دون فيديو جديد، ثم تحقق مما تعلمته." : "الآن أجب بنفسك لنرى ما تعلمته من المساعدة."}</p></section>}
