@@ -234,8 +234,13 @@ test("P03/P04 runtime and P05 targeted support remain responsive", async ({ page
   await expect(interaction.getByRole("heading", { name: "استمع ثم اختر الحرف." })).toBeVisible();
   await interaction.getByRole("button", { name: "اختيار الخيار 2" }).click();
   await interaction.getByRole("button", { name: "تحقق من الإجابة" }).click();
-  await expect(interaction.getByText("حاول مرة أخرى", { exact: true })).toBeVisible();
-  await expect(interaction.getByText(/تلميح: استمع إلى بداية كلمة بَاب/)).toBeVisible();
+  // N15 deliberately renders ONE accessible retry message above the question;
+  // the former duplicate below the answers must not return.
+  const coach = interaction.getByTestId("v2-question-coach");
+  await expect(coach).toHaveAttribute("role", "status");
+  await expect(coach).toContainText("حاول مرة أخرى");
+  await expect(coach).toContainText("تلميح: استمع إلى بداية كلمة بَاب");
+  await expect(interaction.getByText("حاول مرة أخرى", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("button", { name: /تجاوز|إكمال الدرس/ })).toHaveCount(0);
 
   await page.setViewportSize({ width: 1440, height: 900 });
