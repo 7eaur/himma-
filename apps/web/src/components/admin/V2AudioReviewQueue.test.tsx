@@ -48,7 +48,7 @@ it.each(["assessment", "lesson"] as const)("%s opens from a table and accepts on
   await waitFor(()=>expect(accept).toHaveAttribute("aria-disabled", "false"));
   fireEvent.click(accept);
   await waitFor(() => expect(notifyFeedback).toHaveBeenCalledWith("success", "اعتُمدت القراءة الصحيحة وحُفظ القرار."));
-  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
   const url = kind === "assessment" ? "/api/v2/assessments/admin/responses/21/review" : "/api/v2/review/lessons/21/decision";
   const body=JSON.parse(fetcher.mock.calls.find(([path])=>path===url)![1].body);
   expect(body.is_correct).toBe(true);
