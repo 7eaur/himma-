@@ -78,10 +78,10 @@ test("student map, placed levels and delayed educational images retain clear mob
   await page.goto("/student/assessment-v2/777",{waitUntil:"domcontentloaded"});
   await expect(page.getByRole("status",{name:"جاري تحميل الصورة"})).toBeVisible();
   for (const index of [2,3,1]) await page.getByRole("button",{name:`اختيار الخيار ${index}`}).click();
-  await expect(page.getByRole("button",{name:"تحقق من الإجابة"})).toBeDisabled();
+  await expect(page.getByRole("button",{name:"حفظ الإجابة والمتابعة"})).toBeDisabled();
   await page.screenshot({path:path.join(DIR,"image-wait-390.png"),fullPage:true});
   releaseImage?.();
   await expect(page.getByRole("status",{name:"جاري تحميل الصورة"})).toHaveCount(0);
-  await expect(page.getByRole("button",{name:"تحقق من الإجابة"})).toBeEnabled();
+  await expect(page.getByRole("button",{name:"حفظ الإجابة والمتابعة"})).toBeEnabled();
   await page.screenshot({path:path.join(DIR,"image-ready-390.png"),fullPage:true});
 });

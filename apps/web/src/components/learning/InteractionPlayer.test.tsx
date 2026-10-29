@@ -262,6 +262,11 @@ describe("InteractionPlayer", () => {
     expect(screen.getByRole("button", { name: "تحقق من الإجابة" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "اختيار الخيار 2" })).toBeDisabled();
     expect(global.fetch).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "إعادة تحميل الصور" }));
+    expect(screen.getByRole("button", { name: "تحقق من الإجابة" })).toBeDisabled();
+    await act(async () => { screen.getAllByAltText("صورة خيار").forEach((img) => fireEvent.load(img)); });
+    expect(screen.getByRole("button", { name: "تحقق من الإجابة" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "اختيار الخيار 1" })).toHaveAttribute("aria-pressed", "true");
   });
 
   it("ignores a replaced audio element's late rejection and error events", async () => {
@@ -435,6 +440,39 @@ describe("InteractionPlayer", () => {
     } finally {
       Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: previousDevices });
       global.MediaRecorder = previousRecorder;
+    }
+  });
+
+  it("pauses the recorded preview during explanation review without discarding or uploading it", async () => {
+    const previousDevices = navigator.mediaDevices; const previousRecorder = global.MediaRecorder;
+    const createURL = URL.createObjectURL; const revokeURL = URL.revokeObjectURL;
+    const stream = {getTracks:()=>[{stop:jest.fn()}]} as unknown as MediaStream;
+    Object.defineProperty(navigator,"mediaDevices",{configurable:true,value:{getUserMedia:jest.fn().mockResolvedValue(stream)}});
+    URL.createObjectURL = jest.fn().mockReturnValue("blob:private-recording");
+    URL.revokeObjectURL = jest.fn();
+    const recorder = {state:"inactive",stream,mimeType:"audio/webm",onstop:null as null|(()=>void),ondataavailable:null as null|((event:BlobEvent)=>void),start:jest.fn(),stop:jest.fn()};
+    recorder.start.mockImplementation(()=>{recorder.state="recording";});
+    recorder.stop.mockImplementation(()=>{recorder.state="inactive";recorder.ondataavailable?.({data:new Blob(["recording"])} as BlobEvent);recorder.onstop?.();});
+    global.MediaRecorder = Object.assign(jest.fn().mockImplementation(()=>recorder),{isTypeSupported:jest.fn().mockReturnValue(false)}) as unknown as typeof MediaRecorder;
+    const interaction = payload({interaction:"read_aloud",options:[]});
+    const changed = jest.fn();
+    try {
+      const view = render(<InteractionPlayer sessionId={7} interaction={interaction} onLessonChange={changed}/>);
+      await act(async()=>{fireEvent.click(screen.getByRole("button",{name:"بدء التسجيل"}));});
+      fireEvent.click(screen.getByRole("button",{name:"إيقاف التسجيل"}));
+      const preview = view.container.querySelector("audio")!;
+      expect(preview).toHaveAttribute("src","blob:private-recording");
+      const pause = jest.spyOn(preview,"pause").mockImplementation(()=>{});
+      await act(async()=>{view.rerender(<InteractionPlayer sessionId={7} interaction={interaction} suspended onLessonChange={changed}/>);});
+      expect(pause).toHaveBeenCalledTimes(1);
+      await act(async()=>{view.rerender(<InteractionPlayer sessionId={7} interaction={interaction} onLessonChange={changed}/>);});
+      expect(view.container.querySelector("audio")).toBe(preview);
+      expect(screen.getByRole("button",{name:"إرسال التسجيل للمراجعة"})).toBeEnabled();
+      expect(global.fetch).not.toHaveBeenCalled();
+      view.unmount();
+    } finally {
+      Object.defineProperty(navigator,"mediaDevices",{configurable:true,value:previousDevices});
+      global.MediaRecorder=previousRecorder; URL.createObjectURL=createURL; URL.revokeObjectURL=revokeURL;
     }
   });
 

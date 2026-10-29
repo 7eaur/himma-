@@ -133,9 +133,10 @@ test("P03/P04 runtime and P05 targeted support remain responsive", async ({ page
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/student/learning-v2");
-  await expect(page.getByRole("heading", { name: "هيا نتعلم القراءة خطوة خطوة" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "خطوة جديدة في رحلة القراءة" })).toBeVisible();
   await expect(page.getByRole("button", { name: "ابدأ الدرس" })).toHaveCount(1);
-  await expect(page.getByRole("button", { name: "غير متاح الآن" })).toHaveCount(2);
+  await expect(page.locator('[data-lesson-state="locked"]')).toHaveCount(2);
+  await expect(page.locator('[data-lesson-state="locked"] button')).toHaveCount(0);
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.screenshot({ path: path.join(SCREENSHOT_DIR, "mobile-390-catalog.png"), fullPage: true });
 

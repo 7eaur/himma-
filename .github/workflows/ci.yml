@@ -338,6 +338,7 @@ jobs:
           tests/e2e/admin-responsive.spec.ts
           tests/e2e/ux-system-visual-qa.spec.ts
           tests/e2e/v2-lesson-runtime.spec.ts
+          tests/e2e/student-learning-notes.spec.ts
           tests/e2e/v2-assessment-visual-baseline.spec.ts
           tests/e2e/v2-reviewed-recordings-visual-baseline.spec.ts
           tests/e2e/v2-student-home-isolation.spec.ts

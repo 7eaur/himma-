@@ -61,6 +61,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   };
   const clearMediaFailure = (id: string) => setFailedMediaIds((current) => current.filter((item) => item !== id));
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const shellRef = useRef<HTMLElement | null>(null);
   const answerKeyRef = useRef(requestKey("answer"));
   const uploadKeyRef = useRef(requestKey("upload"));
   // A lost HTTP acknowledgment may follow a committed answer. Keep the exact
@@ -112,6 +113,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
     micRequestPendingRef.current = false;
     audioRef.current?.pause();
     audioRef.current = null;
+    shellRef.current?.querySelectorAll<HTMLMediaElement>("audio, video").forEach((element) => element.pause());
     let cancelled = false;
     // Publish the external-media cancellation together after native handlers
     // settle. Cancel this notification if the component resumes/unmounts.
@@ -384,7 +386,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   const renderMedia = (reference: MediaRef, option = false) => {
     const asset = media[reference.media_id];
     if (!asset || asset.kind !== reference.kind || asset.state !== "ready" || !asset.url || (reference.kind === "image" && failedMediaIds.includes(reference.media_id))) {
-      return <div className={styles.mediaMissing} role="status">الوسيط غير جاهز{reference.kind === "image" && failedMediaIds.includes(reference.media_id) && <button type="button" className={styles.secondary} onClick={() => clearMediaFailure(reference.media_id)}>إعادة تحميل الصورة</button>}</div>;
+      return <span className={styles.mediaMissing} role="status">الوسيط غير جاهز</span>;
     }
     if (reference.kind === "audio") {
       const active = playingId === reference.media_id;
@@ -414,14 +416,16 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
     : interaction.progress.stage === "additional_check" || interaction.progress.stage === "support_check" ? "تأمل السؤال جيدًا، ثم أجب بنفسك."
     : "اقرأ التعليمات، ثم جرّب بنفسك. يمكنك إعادة الصوت.";
 
-  return <section className={styles.shell} dir="rtl" data-testid="v2-interaction-player" data-interaction={question.interaction}>
+  return <section ref={shellRef} className={styles.shell} dir="rtl" data-testid="v2-interaction-player" data-interaction={question.interaction}>
     <div className={styles.topline}><span>{stageLabel}</span><span>{interaction.progress.index} من {interaction.progress.total}</span></div>
     <aside className={`${styles.coach} ${retryHint ? styles.coachRetry : ""}`} aria-label="رسالة هِمّة" data-testid="v2-question-coach">
       <Image src={coachImage} alt="" width={88} height={108} aria-hidden="true" />
       <p>{coachMessage}</p>
     </aside>
     <h2>{question.prompt}</h2>
-    {missingRequiredMedia && <div className={styles.mediaMissing} role="alert">هذا السؤال يحتاج صورة أو صوتًا غير جاهز الآن. لن تُرسل الإجابة حتى يتوفر الوسيط. إذا تعذر تحميل الصورة فحدّث الصفحة، وللصوت أعد تشغيله.</div>}
+    {missingRequiredMedia && <div className={styles.mediaMissing} role="alert">هذا السؤال يحتاج صورة أو صوتًا غير جاهز الآن. لن تُرسل الإجابة حتى يتوفر الوسيط. للصوت أعد تشغيله.
+      {failedMediaIds.some((id) => media[id]?.kind === "image") && <button type="button" className={styles.secondary} onClick={() => setFailedMediaIds((current) => current.filter((id) => media[id]?.kind !== "image"))}>إعادة تحميل الصور</button>}
+    </div>}
     {missingRequiredOptions && <div className={styles.mediaMissing} role="alert">خيارات هذا السؤال غير مكتملة. لن تُرسل الإجابة حتى تصبح جاهزة.</div>}
     {question.stimulus.text && <div className={styles.stimulusText}>{question.stimulus.text}</div>}
     {question.stimulus.media.length > 0 && <div className={styles.stimulusMedia}>{question.stimulus.media.map((item) => <div key={item.media_id}>{renderMedia(item)}</div>)}</div>}
