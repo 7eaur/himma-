@@ -45,9 +45,9 @@ it.each(["assessment", "lesson"] as const)("%s opens from a table and accepts on
   expect(notifyFeedback).toHaveBeenCalledWith("warning", "استمع إلى التسجيل كاملًا أولًا قبل اعتماد القراءة.");
   expect(fetcher.mock.calls.some(([, options]) => options?.method === "POST")).toBe(false);
   fireEvent.ended(within(dialog).getByLabelText("استمع للتسجيل كاملًا قبل التقييم"));
-  await waitFor(()=>expect(accept).toBeEnabled());
+  await waitFor(()=>expect(accept).toHaveAttribute("aria-disabled", "false"));
   fireEvent.click(accept);
-  expect(await screen.findByText("اعتُمدت القراءة الصحيحة وحُفظ القرار.")).toBeVisible();
+  await waitFor(() => expect(notifyFeedback).toHaveBeenCalledWith("success", "اعتُمدت القراءة الصحيحة وحُفظ القرار."));
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   const url = kind === "assessment" ? "/api/v2/assessments/admin/responses/21/review" : "/api/v2/review/lessons/21/decision";
   const body=JSON.parse(fetcher.mock.calls.find(([path])=>path===url)![1].body);
@@ -62,7 +62,7 @@ it("requires a useful retry reason and sends a retry task rather than grading as
   const retryButton = within(dialog).getByRole("button",{name:"طلب إعادة التسجيل"});
   expect(retryButton).toHaveAttribute("aria-disabled", "true");
   fireEvent.ended(within(dialog).getByLabelText("استمع للتسجيل كاملًا قبل التقييم"));
-  await waitFor(() => expect(retryButton).toBeEnabled());
+  await waitFor(() => expect(retryButton).toHaveAttribute("aria-disabled", "false"));
   fireEvent.click(retryButton);
   const send = within(dialog).getByRole("button",{name:"إرسال طلب الإعادة"});
   expect(send).toHaveAttribute("aria-disabled", "true");
@@ -70,7 +70,7 @@ it("requires a useful retry reason and sends a retry task rather than grading as
   expect(notifyFeedback).toHaveBeenCalledWith("warning", "اكتب ملاحظة واضحة للطالب من 10 أحرف على الأقل.");
   fireEvent.change(within(dialog).getByLabelText("ماذا يحتاج الطالب أن يعيد؟"),{target:{value:"أعد قراءة الكلمة بصوت أوضح"}});
   fireEvent.click(send);
-  expect(await screen.findByText("أُرسل طلب إعادة التسجيل إلى الطالب.")).toBeVisible();
+  await waitFor(() => expect(notifyFeedback).toHaveBeenCalledWith("success", "أُرسل طلب إعادة التسجيل إلى الطالب."));
   expect(fetcher).toHaveBeenCalledWith("/api/v2/retries/admin/lesson/21/request",expect.objectContaining({method:"POST",body:JSON.stringify({reason:"أعد قراءة الكلمة بصوت أوضح"})}));
   expect(fetcher.mock.calls.every(([path])=>!path.endsWith("decision"))).toBe(true);
 });
@@ -80,7 +80,7 @@ it("keeps a failed save open and validates optional numeric values only when sel
   const dialog=await open();
   fireEvent.ended(within(dialog).getByLabelText("استمع للتسجيل كاملًا قبل التقييم"));
   const accept=within(dialog).getByRole("button",{name:"القراءة صحيحة"});
-  await waitFor(()=>expect(accept).toBeEnabled());
+  await waitFor(()=>expect(accept).toHaveAttribute("aria-disabled", "false"));
   fireEvent.click(within(dialog).getByRole("checkbox"));
   expect(accept).toHaveAttribute("aria-disabled", "true");
   fireEvent.change(within(dialog).getByRole("spinbutton",{name:"عدد الوحدات المطلوبة"}),{target:{value:"3"}});
@@ -121,9 +121,9 @@ it("permits a supervised rerecord request when the original audio file is missin
   const reviewButton = await screen.findByRole("button",{name:/مراجعة تسجيل طالب اصطناعي/});
   fireEvent.click(reviewButton);
   const dialog = screen.getByRole("dialog");
-  expect(within(dialog).getByRole("button",{name:"القراءة صحيحة"})).toBeDisabled();
+  expect(within(dialog).getByRole("button",{name:"القراءة صحيحة"})).toHaveAttribute("aria-disabled", "true");
   fireEvent.click(within(dialog).getByRole("button",{name:"طلب إعادة التسجيل"}));
   fireEvent.change(within(dialog).getByLabelText("ماذا يحتاج الطالب أن يعيد؟"),{target:{value:"أعد القراءة لأن الملف الصوتي لم يصل سليمًا"}});
   fireEvent.click(within(dialog).getByRole("button",{name:"إرسال طلب الإعادة"}));
-  expect(await screen.findByText("أُرسل طلب إعادة التسجيل إلى الطالب.")).toBeInTheDocument();
+  await waitFor(() => expect(notifyFeedback).toHaveBeenCalledWith("success", "أُرسل طلب إعادة التسجيل إلى الطالب."));
 });
