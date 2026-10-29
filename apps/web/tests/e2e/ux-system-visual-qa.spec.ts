@@ -139,7 +139,7 @@ test.describe("Himma UX system visual QA regression", () => {
           task_id: 108, kind: "lesson", session_id: 99,
           question_id: "L2-01-GP-01", request_kind: "rerecord",
           status: "requested", reason: "أعد قراءة الكلمة بصوت واضح للمراجعة",
-          prompt: "اقرأ الكلمة المطلوبة مرة أخرى",
+          prompt: "اقرأ الكلمة المطلوبة مرة أخرى", stimulus: { text: "بَابٌ" },
         }] }),
       });
     });
@@ -148,6 +148,7 @@ test.describe("Himma UX system visual QA regression", () => {
     const tasks = page.getByTestId("v2-active-retry-tasks");
     await expect(tasks).toBeVisible({ timeout: 15000 });
     await expect(tasks).toContainText("أعد قراءة الكلمة بصوت واضح");
+    await expect(tasks.getByTestId("retry-original-stimulus")).toHaveText("بَابٌ");
     await expect(tasks.getByRole("button", { name: "تسجيل القراءة من جديد" })).toBeVisible();
     await expect(tasks.locator("textarea")).toHaveCount(0);
     await expectNoHorizontalOverflow(page);
@@ -167,7 +168,7 @@ test.describe("Himma UX system visual QA regression", () => {
         ? { status: 200, contentType: "application/json", body: JSON.stringify({ items: [{
             task_id: 509, kind: "lesson", session_id: 77, question_id: "L2-01-GP-01",
             request_kind: "rerecord", status: "requested", reason: "أعد القراءة بعد عودة الاتصال",
-            prompt: "اقرأ الكلمة مرة أخرى",
+            prompt: "اقرأ الكلمة مرة أخرى", stimulus: { text: "بَابٌ" },
           }] })}
         : { status: 503, contentType: "application/json", body: '{"detail":"network unavailable"}' });
     });
@@ -183,6 +184,7 @@ test.describe("Himma UX system visual QA regression", () => {
     const tasks = page.getByTestId("v2-active-retry-tasks");
     await expect(tasks).toBeVisible({ timeout: 15000 });
     await expect(tasks).toContainText("أعد القراءة بعد عودة الاتصال");
+    await expect(tasks.getByTestId("retry-original-stimulus")).toHaveText("بَابٌ");
     await expect(tasks.getByRole("button", { name: "تسجيل القراءة من جديد" })).toBeVisible();
     await expect(tasks.locator("textarea")).toHaveCount(0);
     await expectNoHorizontalOverflow(page);
@@ -215,7 +217,7 @@ test.describe("Himma UX system visual QA regression", () => {
           question_id: "L1-05-GP-02", request_kind: "rerecord",
           status: completed ? "submitted" : "requested",
           reason: "إعادة القراءة بعد ضعف التسجيل السابق",
-          prompt: "اقرأ المقطع المعروض", staged_audio: completed ? null : staged,
+          prompt: "اقرأ المقطع المعروض", stimulus: { text: "مَا" }, staged_audio: completed ? null : staged,
         }] }),
       });
     });
@@ -235,6 +237,7 @@ test.describe("Himma UX system visual QA regression", () => {
     const tasks = page.getByTestId("v2-active-retry-tasks");
     await expect(tasks).toBeVisible({ timeout: 15000 });
     await expect(tasks).toContainText("التسجيل السابق محفوظ في الخدمة");
+    await expect(tasks.getByTestId("retry-original-stimulus")).toHaveText("مَا");
     const submit = tasks.getByRole("button", { name: "إرسال الإجابة الجديدة للمراجعة" });
     await expect(submit).toBeEnabled();
     await submit.click();
@@ -276,7 +279,7 @@ test.describe("Himma UX system visual QA regression", () => {
       await page.goto("/admin/audio-review?submission_id=99101");
       await expect(page).toHaveURL(/\/admin\/v2-assessments$/);
       await expect(page.getByRole("heading", { name: "الاختبارات ومراجعة القراءة" })).toBeVisible();
-      await expect(page.getByRole("heading", { name: "تسجيلات تحتاج مراجعة" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "متابعة التسجيلات الصوتية" })).toBeVisible();
       await expectNoHorizontalOverflow(page);
       await page.screenshot({ path: path.join(SCREENSHOT_DIR, `${viewport.name}-assessment-review.png`), fullPage: true });
     }

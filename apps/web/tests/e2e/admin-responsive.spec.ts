@@ -211,6 +211,8 @@ test("P09.1-D: supervisor sees official V2 first without V1 stars, and access co
   await page.getByRole("button", { name: "إخفاء الرمز" }).click();
   await expect(page.getByText(code, { exact: true })).toHaveCount(0);
   await page.getByRole("tab", { name: "نظرة عامة" }).click();
+  // Wait for the Router to commit the tab URL before reloading the document.
+  await expect(page).toHaveURL(new RegExp(`/admin/students/${id}$`));
   await expect(page.getByTestId("supervisor-v2-overview")).toBeVisible();
 
   // Simulate an unavailable official V2 read-model. The supervisor must
@@ -339,7 +341,13 @@ for (const width of [390, 1280]) {
         prompt:"اقرأ الكلمة بصوت واضح",stimulus_text:"بَاب",audio_url:"/api/test-only-review-audio",
         audio_submission_id:9876,audio_playback_completed:false,evidence_ready:true,submitted_at:"2026-10-28T10:00:00Z",
       }],next_offset:null}}));
-      await page.route(`**/api/v2/${prefix}/audio-completed`, route => route.fulfill({json:{status:"playback_completed"}}));
+      let playbackAcks = 0;
+      await page.route(`**/api/v2/${prefix}/audio-completed`, route => {
+        playbackAcks += 1;
+        if (kind === "assessment" && playbackAcks === 1)
+          return route.fulfill({status:503,json:{detail:"تعذر تأكيد الاستماع مؤقتًا"}});
+        return route.fulfill({json:{status:"playback_completed"}});
+      });
       await page.route(`**/api/v2/${prefix}/${kind==="assessment"?"review":"decision"}`, route => {
         if (!rejectedOnce) { rejectedOnce=true; return route.fulfill({status:409,json:{detail:"التسجيل تغير؛ أعد المحاولة"}}); }
         decisions.push(route.request().postDataJSON()); saved=true; return route.fulfill({json:{status:"graded"}});
@@ -360,8 +368,23 @@ for (const width of [390, 1280]) {
       await expectNoHorizontalOverflow(page);
       await mkdir(SCREENSHOT_DIR,{recursive:true});
       await page.screenshot({path:path.join(SCREENSHOT_DIR,`review-dialog-${kind}-${width}.png`)});
+      // Both decisions require a real completed playback and its server ACK.
+      // Do not dispatch a synthetic ended event or bypass the disabled button.
+      await expect(dialog.getByRole("button", { name: "طلب إعادة التسجيل" })).toBeDisabled();
+      const completion = page.waitForResponse(response =>
+        response.url().endsWith(`/api/v2/${prefix}/audio-completed`) && response.request().method() === "POST",
+      );
+      await dialog.locator("audio").evaluate(audio => (audio as HTMLAudioElement).play());
+      expect((await completion).status()).toBe(kind === "assessment" ? 503 : 200);
       if (kind === "assessment") {
-        await dialog.locator("audio").evaluate(audio => (audio as HTMLAudioElement).play());
+        await expect(dialog.getByRole("button", { name: "القراءة صحيحة" })).toBeDisabled();
+        await expect(dialog.getByRole("button", { name: "طلب إعادة التسجيل" })).toBeDisabled();
+        // The audio has already ended: retry its ACK without playing it again.
+        await dialog.getByRole("button", { name: "إعادة تأكيد اكتمال الاستماع" }).click();
+      }
+      await expect(dialog.getByText("اكتمل الاستماع. يمكنك الآن اعتماد القراءة.")).toBeVisible();
+      expect(playbackAcks).toBe(kind === "assessment" ? 2 : 1);
+      if (kind === "assessment") {
         const accept=dialog.getByRole("button",{name:"القراءة صحيحة"});
         await expect(accept).toBeEnabled();
         await accept.click();
