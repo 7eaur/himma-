@@ -1,0 +1,6 @@
+.frame{position:relative;display:inline-grid;place-items:center;max-width:100%;vertical-align:middle;line-height:0}
+.frame img{max-width:100%;transition:opacity .16s ease}
+.placeholder{position:absolute;inset:0;display:grid;place-items:center;border-radius:18px;background:rgba(230,240,249,.35);color:rgba(76,118,153,.25);pointer-events:none}
+.placeholder svg{width:52px;height:52px;max-width:50%;max-height:65%;animation:softPulse 1.5s ease-in-out infinite}
+@keyframes softPulse{50%{opacity:.45}}
+@media(prefers-reduced-motion:reduce){.frame img{transition:none}.placeholder svg{animation:none}}

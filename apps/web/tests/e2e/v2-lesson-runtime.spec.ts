@@ -213,6 +213,9 @@ test("P03/P04 runtime and P05 targeted support remain responsive", async ({ page
   await expect(resumedPlayer.getByText("أكملت الشرح")).toHaveCount(0);
   await resumedPlayer.getByRole("button", { name: "إعادة حفظ المشاهدة" }).click();
   const interaction = page.getByTestId("v2-interaction-player");
+  await expect(resumedPlayer.getByRole("button", { name: "شاهد مرة أخرى" })).toBeVisible();
+  await expect(interaction).not.toBeVisible();
+  await page.getByRole("button", { name: "انتقل إلى التدريب" }).click();
   await expect(interaction).toBeVisible();
   expect(completionEventKeys).toHaveLength(2);
   expect(completionEventKeys[0]).toBe(completionEventKeys[1]);

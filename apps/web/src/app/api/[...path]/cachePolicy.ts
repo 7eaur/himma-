@@ -19,6 +19,14 @@ export function responseCacheControl({
   upstreamCacheControl: string | null;
   hasSetCookie: boolean;
 }): string {
+  const educationalMediaRead = /^v2\/content\/media\/[A-Z0-9-]+$/.test(upstreamPath)
+    && ["GET", "HEAD"].includes(method);
+  // The authenticated API issues this exact browser-only policy exclusively
+  // for fingerprinted educational images. No response may enter shared caches.
+  if (educationalMediaRead && ok && !hasSetCookie
+    && upstreamCacheControl === "private, max-age=86400, immutable") {
+    return upstreamCacheControl;
+  }
   const mediaRead = upstreamPath.startsWith(APPROVED_MEDIA_PREFIX) && ["GET", "HEAD"].includes(method);
   if (!mediaRead || !ok || hasSetCookie) return PRIVATE_NO_STORE;
 

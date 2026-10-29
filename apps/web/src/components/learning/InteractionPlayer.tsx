@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import EducationalImage from "./EducationalImage";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Check, Mic, MicOff, Pause, RotateCcw, Volume2, X } from "lucide-react";
 import styles from "./InteractionPlayer.module.css";
@@ -32,13 +33,14 @@ interface Props {
   interaction: InteractionPayload;
   onLessonChange: (lesson: unknown) => void;
   endpointBase?: string;
+  suspended?: boolean;
 }
 
 function requestKey(prefix: string) {
   return `${prefix}:${Date.now()}:${crypto.randomUUID()}`;
 }
 
-export default function InteractionPlayer({ sessionId, interaction, onLessonChange, endpointBase = "/api/v2/lessons" }: Props) {
+export default function InteractionPlayer({ sessionId, interaction, onLessonChange, endpointBase = "/api/v2/lessons", suspended = false }: Props) {
   const { question, media } = interaction;
   const descriptionIdPrefix = useId();
   const [selected, setSelected] = useState<string[]>([]);
@@ -51,7 +53,12 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   // expired signed URL, unsupported audio or a broken image). Never grade
   // a response when its required media cannot actually be used.
   const [failedMediaIds, setFailedMediaIds] = useState<string[]>([]);
-  const markMediaFailure = (id: string) => setFailedMediaIds((current) => current.includes(id) ? current : [...current, id]);
+  const [loadedImageUrls, setLoadedImageUrls] = useState<string[]>([]);
+  const markImageLoaded = (url: string) => setLoadedImageUrls((current) => current.includes(url) ? current : [...current, url]);
+  const markMediaFailure = (id: string) => {
+    setFailedMediaIds((current) => current.includes(id) ? current : [...current, id]);
+    if (media[id]?.kind === "image") setLoadedImageUrls((current) => current.filter((url) => url !== media[id].url));
+  };
   const clearMediaFailure = (id: string) => setFailedMediaIds((current) => current.filter((item) => item !== id));
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const answerKeyRef = useRef(requestKey("answer"));
@@ -97,6 +104,34 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
     if (audioUrl) URL.revokeObjectURL(audioUrl);
   }, [audioUrl]);
 
+  useEffect(() => {
+    if (!suspended) return;
+    // Reviewing the explanation preserves this question's draft, but must
+    // never leave a microphone or an old playback running behind the video.
+    micRequestIdRef.current += 1;
+    micRequestPendingRef.current = false;
+    audioRef.current?.pause();
+    audioRef.current = null;
+    let cancelled = false;
+    // Publish the external-media cancellation together after native handlers
+    // settle. Cancel this notification if the component resumes/unmounts.
+    queueMicrotask(() => {
+      if (cancelled || !mountedRef.current) return;
+      setRequestingMic(false);
+      setPlayingId(null);
+      setAudioState("idle");
+    });
+    const recorder = recorderRef.current;
+    if (recorder?.state === "recording") {
+      try { recorder.stop(); }
+      catch {
+        recorder.stream.getTracks().forEach((track) => track.stop());
+        queueMicrotask(() => { if (!cancelled && mountedRef.current) setRecording(false); });
+      }
+    }
+    return () => { cancelled = true; };
+  }, [suspended]);
+
   const ordered = question.interaction === "sequence" || question.interaction === "build_word";
   const missingRequiredOptions = !OPEN_INTERACTIONS.has(question.interaction) && question.options.length === 0;
   // An empty ordered question previously satisfied 0 === 0 and enabled
@@ -115,12 +150,15 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
     return reference.kind === "video" || !asset || asset.kind !== reference.kind || asset.state !== "ready" || !asset.url || failedMediaIds.includes(reference.media_id);
   }) || (question.interaction === "choose_image" &&
     question.options.some((option) => !option.media.some((item) => item.kind === "image")));
+  const imagesLoading = [...question.stimulus.media, ...question.options.flatMap((option) => option.media)]
+    .some((reference) => reference.kind === "image" && Boolean(media[reference.media_id]?.url)
+      && !loadedImageUrls.includes(media[reference.media_id].url!));
   const ready = useMemo(() => {
-    if (missingRequiredMedia || invalidQuestion) return false;
+    if (missingRequiredMedia || invalidQuestion || imagesLoading) return false;
     if (question.interaction === "read_aloud") return Boolean(audioBlob);
     if (ordered) return selected.length === question.options.length;
     return selected.length === 1;
-  }, [audioBlob, invalidQuestion, missingRequiredMedia, ordered, question.interaction, question.options.length, selected.length]);
+  }, [audioBlob, imagesLoading, invalidQuestion, missingRequiredMedia, ordered, question.interaction, question.options.length, selected.length]);
 
   const playMedia = async (assetId: string) => {
     const asset = media[assetId];
@@ -346,14 +384,14 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   const renderMedia = (reference: MediaRef, option = false) => {
     const asset = media[reference.media_id];
     if (!asset || asset.kind !== reference.kind || asset.state !== "ready" || !asset.url || (reference.kind === "image" && failedMediaIds.includes(reference.media_id))) {
-      return <div className={styles.mediaMissing} role="status">الوسيط غير جاهز</div>;
+      return <div className={styles.mediaMissing} role="status">الوسيط غير جاهز{reference.kind === "image" && failedMediaIds.includes(reference.media_id) && <button type="button" className={styles.secondary} onClick={() => clearMediaFailure(reference.media_id)}>إعادة تحميل الصورة</button>}</div>;
     }
     if (reference.kind === "audio") {
       const active = playingId === reference.media_id;
       const label = active ? "إيقاف الصوت" : option ? "تشغيل صوت هذا الخيار" : "تشغيل صوت السؤال";
       return <button type="button" className={styles.audioButton} onClick={(event) => { event.stopPropagation(); void playMedia(reference.media_id); }} aria-label={label}>{active ? <Pause size={25}/> : <Volume2 size={25}/>}<span>{active && audioState === "loading" ? "جاري التحميل" : active ? "إيقاف" : "استمع"}</span></button>;
     }
-    if (reference.kind === "image") return <Image className={styles.educationImage} src={asset.url} width={300} height={220} unoptimized alt={option ? "صورة خيار" : "صورة السؤال"} onError={() => markMediaFailure(reference.media_id)}/>;
+    if (reference.kind === "image") return <EducationalImage key={asset.url} className={styles.educationImage} src={asset.url} width={300} height={220} alt={option ? "صورة خيار" : "صورة السؤال"} onLoad={() => markImageLoaded(asset.url!)} onError={() => markMediaFailure(reference.media_id)}/>;
     return <div className={styles.mediaMissing} role="alert">الوسيط غير جاهز</div>;
   };
 
@@ -395,7 +433,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
       const imageReady = imageAsset?.kind === "image" && imageAsset.state === "ready" && Boolean(imageAsset.url) && !failedMediaIds.includes(imageRef!.media_id);
       return <button key={id} type="button" disabled={saving || awaitingConfirmation} aria-label={`إزالة العنصر ${index + 1} من الترتيب`} aria-describedby={option?.text ? `${descriptionIdPrefix}-selected-${index}` : undefined} onClick={() => setSelected((current) => current.filter((value) => value !== id))}>
         <b>{index + 1}</b>
-        {imageReady && <Image className={styles.orderPreview} src={imageAsset.url!} width={68} height={52} unoptimized alt={`صورة العنصر ${index + 1}`} onError={() => markMediaFailure(imageRef!.media_id)}/>}
+        {imageReady && <EducationalImage key={imageAsset.url} className={styles.orderPreview} src={imageAsset.url!} width={68} height={52} alt={`صورة العنصر ${index + 1}`} onError={() => markMediaFailure(imageRef!.media_id)}/>}
         {option?.text && <span id={`${descriptionIdPrefix}-selected-${index}`} className={styles.orderText}>{option.text}</span>}
         {!option?.text && !imageReady && <span className={styles.orderText}>عنصر {index + 1}</span>}
         <X size={14} aria-hidden="true"/>

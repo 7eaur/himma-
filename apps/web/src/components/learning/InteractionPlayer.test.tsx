@@ -239,7 +239,7 @@ describe("InteractionPlayer", () => {
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
-  it("blocks submission if a nominally ready image fails to load in the browser", () => {
+  it("blocks submission until images load and again if an image later fails", async () => {
     const question = payload({
       interaction: "choose_image",
       options: [
@@ -254,6 +254,8 @@ describe("InteractionPlayer", () => {
     };
     render(<InteractionPlayer sessionId={7} interaction={question} onLessonChange={jest.fn()}/>);
     fireEvent.click(screen.getByRole("button", { name: "اختيار الخيار 1" }));
+    expect(screen.getByRole("button", { name: "تحقق من الإجابة" })).toBeDisabled();
+    await act(async () => { screen.getAllByAltText("صورة خيار").forEach((img) => fireEvent.load(img)); });
     expect(screen.getByRole("button", { name: "تحقق من الإجابة" })).toBeEnabled();
     fireEvent.error(screen.getAllByAltText("صورة خيار")[0]);
     expect(screen.getByRole("alert")).toHaveTextContent("لن تُرسل الإجابة");

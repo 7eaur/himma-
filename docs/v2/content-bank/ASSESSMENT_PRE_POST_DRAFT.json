@@ -740,7 +740,7 @@
         "text": null,
         "media": [
           {
-            "media_id": "VOC-04",
+            "media_id": "VOC-06",
             "kind": "image"
           }
         ]
@@ -748,17 +748,17 @@
       "options": [
         {
           "id": "tile_01",
-          "text": "م",
+          "text": "س",
           "media": []
         },
         {
           "id": "tile_02",
-          "text": "ق",
+          "text": "ش",
           "media": []
         },
         {
           "id": "tile_03",
-          "text": "ل",
+          "text": "م",
           "media": []
         }
       ],
@@ -769,13 +769,13 @@
           "tile_01"
         ],
         "rubric": null,
-        "target_text": "قلم",
+        "target_text": "شمس",
         "scoring": "ordered_option_ids_exact"
       },
       "reading_reference": null,
       "role_specific_hints_allowed": false,
       "media_ids": [
-        "VOC-04"
+        "VOC-06"
       ],
       "media_status": "pending_owner_review",
       "technical_gaps": [],
@@ -791,7 +791,8 @@
         "answer_initially_visible": false,
         "student_input": "tap_order"
       },
-      "ordering_scoring_policy": "server_exact_order_without_human_review"
+      "ordering_scoring_policy": "server_exact_order_without_human_review",
+      "content_qa_note": "صورة شمس وكلمة مستقلة عن سؤال إكمال قلم السابق؛ يبقى قياس تركيب كلمة من ثلاثة أحرف دون تلميح من إجابة سابقة."
     },
     {
       "id": "V2-PRE-Q13",
@@ -1538,9 +1539,9 @@
       "evidence_type": "event_sequence",
       "role": "pretest",
       "interaction": "sequence",
-      "prompt": "رتب الأحداث كما وردت.",
+      "prompt": "رتّب الأحداث من الأوّل إلى الأخير بحسب وقت حدوثها.",
       "stimulus": {
-        "text": "كتبت هبة اسمها في الدفتر بعدما أخرجته من الحقيبة. وقبل ذلك فتحت الحقيبة.",
+        "text": "كتبت هبة اسمها في الدفتر بعد أن أخرجته من الحقيبة. وكانت قد فتحت الحقيبة قبل إخراج الدفتر.",
         "media": []
       },
       "options": [
@@ -1600,9 +1601,9 @@
       "evidence_type": "event_sequence",
       "role": "pretest",
       "interaction": "sequence",
-      "prompt": "رتب الأحداث بحسب النص.",
+      "prompt": "رتّب الأحداث من الأوّل إلى الأخير بحسب وقت حدوثها.",
       "stimulus": {
-        "text": "ظهرت أوراق صغيرة بعد أن سقى ناصر البذرة. وكان قد زرعها قبل ذلك.",
+        "text": "ظهرت أوراق صغيرة بعد أن سقى ناصر البذرة. وقبل السقي، زرع ناصر البذرة.",
         "media": []
       },
       "options": [
@@ -1810,7 +1811,14 @@
           "c",
           "a"
         ],
-        "rubric": null
+        "rubric": null,
+        "accepted_option_orders": [
+          [
+            "b",
+            "a",
+            "c"
+          ]
+        ]
       },
       "reading_reference": null,
       "role_specific_hints_allowed": false,
@@ -1828,7 +1836,8 @@
         "hint_initially_visible": false,
         "answer_initially_visible": false,
         "student_input": "tap_order"
-      }
+      },
+      "content_qa_note": "يُقبل تقديم الفاعل أو المفعول بعد الفعل: ساعد خالد أخاه، وساعد أخاه خالد. يبقى شرط البدء بالفعل المذكور في السؤال."
     },
     {
       "id": "V2-PRE-Q30",

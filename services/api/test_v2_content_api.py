@@ -18,6 +18,27 @@ def test_candidate_requires_authentication(client):
     assert client.get("/v2/content/candidate/manifest").status_code == 401
 
 
+def test_versioned_educational_image_reuses_only_the_exact_binary(student_client):
+    from urllib.parse import urlsplit
+    resolved = student_client.get("/v2/content/candidate/media/VOC-04").json()
+    url = resolved["url"].removeprefix("/api")
+    assert "?v=" in url
+    image = student_client.get(url)
+    assert image.status_code == 200
+    assert image.headers["cache-control"] == "private, max-age=86400, immutable"
+    assert "Cookie" in image.headers["vary"].split(", ")
+    assert image.headers["content-type"].startswith("image/")
+    assert student_client.get(urlsplit(url).path).headers["cache-control"] == "private, no-store"
+    assert student_client.get(urlsplit(url).path + "?v=" + "0" * 64).status_code == 404
+    assert student_client.get("/v2/content/media/LET-01?v=" + "0" * 64).status_code == 404
+
+
+def test_versioned_educational_image_still_requires_authentication(client):
+    from v2_content.repository import get_media
+    url = MediaProvider().resolve(get_media("VOC-04")).url.removeprefix("/api")
+    assert client.get(url).status_code == 401
+
+
 def test_student_gets_only_safe_candidate_contract(student_client):
     manifest = student_client.get("/v2/content/candidate/manifest")
     assert manifest.status_code == 200

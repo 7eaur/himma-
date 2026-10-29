@@ -32,6 +32,7 @@ def test_active_pretest_home_never_invents_score_or_completed_lesson(student_cli
     assert data["current_action"]["kind"] == "pretest"
     assert data["assessments"]["pretest"]["score_percent"] is None
     assert data["progress"]["completed_lessons"] == 0
+    assert data["levels"] == []
     assert data["progress"]["display_percent"] is None
     assert data["progress"]["skipped_by_placement"] == 0
     assert data["journey"]["placement_state"] == "in_progress"
@@ -66,6 +67,11 @@ def test_pinned_placement_counts_assigned_and_skipped_not_legacy_activities(stud
     data = result.json()
     assert data["journey"]["current_level"] == 2
     assert data["current_action"]["action"] == "lesson_catalog"
+    assert [(row["level"], row["state"], row["completed_lessons"]) for row in data["levels"]] == [
+        (1, "skipped", 0), (2, "current", 0), (3, "locked", 0),
+    ]
+    assert data["levels"][0]["assigned_lessons"] == 0
+    assert data["levels"][0]["display_percent"] is None
     assert data["progress"]["skipped_by_placement"] > 0
     assert data["progress"]["assigned_lessons"] + data["progress"]["skipped_by_placement"] == 19
     assert data["progress"]["display_percent"] == 0.0

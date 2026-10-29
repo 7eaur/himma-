@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import V2LessonPage from "./page";
 
 let mockSessionId = "44";
@@ -130,4 +130,35 @@ it.each(["additional_check", "support_practice", "support_check"] as const)("sho
   expect(screen.getByTestId("v2-interaction-player")).toBeVisible();
   expect(screen.queryByTestId("v2-video-player")).not.toBeInTheDocument();
   expect(screen.getByLabelText("مراحل الدرس").querySelector('[aria-current="step"]')).toHaveTextContent(stage === "additional_check" ? "تحقق قصير" : stage === "support_practice" ? "تدريب التقوية" : "تحقق بعد التقوية");
+});
+
+
+it("keeps replay reachable after video completion and preserves the practice draft while reviewing", async () => {
+  const base = lesson(44, "الحرف وصوته");
+  const practice = {...base, session:{...base.session,stage:"guided_practice"}, interaction:{
+    question:{question_id:"DRAFT-Q",role:"guided_practice",interaction:"choose_one",prompt:"اختر الحرف",stimulus:{text:"ب",media:[]},options:[{id:"a",text:"ب",media:[]},{id:"b",text:"ت",media:[]}]},
+    media:{},progress:{index:2,total:3,stage:"guided_practice"},attempts:0,
+  }};
+  let completed = false;
+  const fetchMock = jest.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+    if (init?.method === "POST") { completed = true; return ok(practice); }
+    return ok(completed ? practice : base);
+  });
+  global.fetch = fetchMock as typeof fetch;
+  render(<V2LessonPage/>);
+  const player = await screen.findByTestId("v2-video-player");
+  const video = player.querySelector("video")!;
+  Object.defineProperty(video,"duration",{configurable:true,value:6});
+  Object.defineProperty(video,"currentTime",{configurable:true,value:6});
+  await act(async () => { fireEvent.ended(video); });
+  expect(screen.getByRole("button",{name:/شاهد مرة أخرى/})).toBeVisible();
+  expect(screen.getByTestId("v2-interaction-player")).not.toBeVisible();
+  fireEvent.click(screen.getByRole("button",{name:"انتقل إلى التدريب"}));
+  expect(screen.getByTestId("v2-interaction-player")).toBeVisible();
+  fireEvent.click(screen.getByRole("button",{name:"اختيار الخيار 1"}));
+  fireEvent.click(screen.getByRole("button",{name:"مراجعة المقدمة"}));
+  expect(screen.getByTestId("v2-interaction-player")).not.toBeVisible();
+  fireEvent.click(screen.getByRole("button",{name:"العودة إلى موضعي المحفوظ"}));
+  expect(screen.getByRole("button",{name:"اختيار الخيار 1"})).toHaveAttribute("aria-pressed","true");
+  expect(fetchMock.mock.calls.filter(([,init])=>init?.method === "POST")).toHaveLength(1);
 });

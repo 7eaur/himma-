@@ -157,9 +157,23 @@ def _interaction_payload(db: Session, session: LessonSession) -> dict[str, Any]:
 
 
 def _ordered_answer_is_correct(question: dict[str, Any], submitted: list[str]) -> bool:
-    """Accept only explicit, privately approved grammatically valid tile orders."""
+    """Compare approved orders by displayed meaning, not identical tile IDs.
+
+    Repeated letters/words are interchangeable only when their exact text and
+    media references match. Diacritics remain meaningful. Every physical tile
+    must still occur exactly once; accepting a duplicate ID is never allowed.
+    """
+    options = {option["id"]: option for option in question["options"]}
+    if len(submitted) != len(options) or len(set(submitted)) != len(submitted) or set(submitted) != set(options):
+        return False
+
+    def meaning(ids):
+        return [(options[key].get("text"), sorted([
+            (ref["kind"], ref["media_id"]) for ref in options[key].get("media", [])
+        ])) for key in ids]
+
     answer = question["private_answer"]
-    return any(submitted == order for order in [
+    return any(meaning(submitted) == meaning(order) for order in [
         answer["correct_option_ids"], *(answer.get("accepted_option_orders") or []),
     ])
 

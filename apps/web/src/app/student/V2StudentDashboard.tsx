@@ -2,8 +2,9 @@
 
 import { useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BookOpenCheck, CheckCircle2, ClipboardList, LogOut, Sparkles } from "lucide-react";
+import { BookOpenCheck, CheckCircle2, ClipboardList, LogOut, Sparkles, Star } from "lucide-react";
 import V2Rewards, { type V2RewardsData } from "@/components/rewards/V2Rewards";
 import StudentRetryTasks from "@/components/learning/StudentRetryTasks";
 import styles from "./home.module.css";
@@ -37,6 +38,7 @@ export interface StudentV2Home {
     pretest: { state: string | null; session_id: number; official: boolean; score_percent: number | null } | null;
     posttest: { state: string | null; session_id: number; official: boolean; score_percent: number | null } | null;
   };
+  levels?: { level: number; state: "skipped" | "completed" | "current" | "locked"; assigned_lessons: number; completed_lessons: number; display_percent: number | null }[];
   rewards: V2RewardsData;
   data_status: "ready" | "partial";
 }
@@ -188,10 +190,10 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
   return <div className={styles.page} dir="rtl" data-testid="student-home" data-learning-version="v2">
     <header className={styles.header}>
       <Image src="/brand/logo-gradient.svg" alt="هِمّة" width={132} height={44} priority />
-      <div className={styles.userChip}>
+      <div className={styles.headerTools}><a href="#student-achievements" className={styles.achievementLink} aria-label="عرض إنجازاتي"><Star size={18} aria-hidden="true"/><strong>{home.rewards?.source === "himma_v2_reward_ledger" && home.rewards.state === "ready" ? home.rewards.total_stars : "—"}</strong><span>نجومي</span></a><div className={styles.userChip}>
         <span className={styles.avatar}>{name.charAt(0)}</span>
         <div><strong>{name}</strong><button type="button" className={styles.logout} onClick={() => void logout()}><LogOut size={14} /> خروج</button></div>
-      </div>
+      </div></div>
     </header>
 
     <main className={styles.container}>
@@ -200,7 +202,7 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
           <span className={styles.eyebrow}><Sparkles size={15} /> رحلة القراءة</span>
           <h1>مرحبًا يا {name}</h1>
           <p>خطوتك التالية واضحة، وهِمّة تحفظ تقدّمك.</p>
-          <div className="student-current-status" data-testid="student-status-summary">
+          <div className={styles.currentStatus} data-testid="student-status-summary">
             <span>أنت الآن في</span>
             <strong data-testid="student-journey-status">{currentLevel ?? "تحديد نقطة البداية"}</strong>
             <small>{placed ? "الدروس تُفتح حسب تقدمك الحقيقي." : "سنحدد مستواك تلقائيًا بعد الاختبار القبلي ومراجعة القراءة."}</small>
@@ -237,7 +239,7 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
                 <div><h3>تقدمك في الدروس</h3><p>أكملت {progress.completed_lessons} من {progress.assigned_lessons} درسًا مخصصًا لك.</p></div>
                 <span>{percent}%</span>
               </div>
-              <div className="student-progress-track" aria-label={`تقدمك ${percent} بالمئة`}>
+              <div className={styles.progressTrack} aria-label={`تقدمك ${percent} بالمئة`}>
                 <span style={{ width: `${Math.max(0, Math.min(100, percent))}%` }} />
               </div>
             </>
@@ -252,23 +254,31 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
 
       <section className={styles.journey} aria-label="مراحل الرحلة">
         <div className={styles.journeyHeader}><div><h3>مراحل رحلة هِمّة</h3><p>اختبار قبلي ← دروس وتمارين وتقوية ← اختبار بعدي</p></div></div>
-        <div className="grid gap-3 sm:grid-cols-3" data-testid="student-journey-steps">
-          <div data-testid="student-journey-step" className="rounded-2xl border border-slate-200 p-4">
-            <ClipboardList size={20} aria-hidden="true" /><strong className="block mt-2">الاختبار القبلي</strong>
-            <span className="block text-sm text-muted mt-1">{home.assessments.pretest?.official ? "نتيجة معتمدة" : "تحديد المستوى بعد مراجعة القراءة"}</span>
+        <div className={styles.journeySteps} data-testid="student-journey-steps">
+          <div data-testid="student-journey-step" className={styles.journeyStep}>
+            <ClipboardList size={20} aria-hidden="true" /><strong className={styles.journeyTitle}>الاختبار القبلي</strong>
+            <span className={styles.journeyDetail}>{home.assessments.pretest?.official ? "نتيجة معتمدة" : "تحديد المستوى بعد مراجعة القراءة"}</span>
           </div>
-          <div data-testid="student-journey-step" className="rounded-2xl border border-slate-200 p-4">
-            <BookOpenCheck size={20} aria-hidden="true" /><strong className="block mt-2">رحلة الدروس</strong>
-            <span className="block text-sm text-muted mt-1">{placed ? currentLevel : "تفتح بعد التسكين"}</span>
+          <div data-testid="student-journey-step" className={styles.journeyStep}>
+            <BookOpenCheck size={20} aria-hidden="true" /><strong className={styles.journeyTitle}>رحلة الدروس</strong>
+            <span className={styles.journeyDetail}>{placed ? currentLevel : "تفتح بعد التسكين"}</span>
           </div>
-          <div data-testid="student-journey-step" className="rounded-2xl border border-slate-200 p-4">
-            <CheckCircle2 size={20} aria-hidden="true" /><strong className="block mt-2">الاختبار البعدي</strong>
-            <span className="block text-sm text-muted mt-1">{home.assessments.posttest?.official ? "نتيجة معتمدة" : "بعد إكمال الدروس المطلوبة"}</span>
+          <div data-testid="student-journey-step" className={styles.journeyStep}>
+            <CheckCircle2 size={20} aria-hidden="true" /><strong className={styles.journeyTitle}>الاختبار البعدي</strong>
+            <span className={styles.journeyDetail}>{home.assessments.posttest?.official ? "نتيجة معتمدة" : "بعد إكمال الدروس المطلوبة"}</span>
           </div>
         </div>
       </section>
 
-      <V2Rewards data={home.rewards} />
+      {placed && home.levels && home.levels.length > 0 && <section className={styles.journey} aria-label="مستويات رحلتي">
+        <div className={styles.journeyHeader}><h3>مستويات رحلتي</h3><Link href="/student/learning-v2">خريطة الدروس</Link></div>
+        <ol className={styles.levelList}>{home.levels.map((level) => <li key={level.level} data-level-state={level.state}>
+          <span className={styles.levelNumber}>{level.level}</span><div><strong>{levelNames[level.level]}</strong><p>{level.state === "skipped" ? "بدأت من مستوى أعلى" : level.state === "completed" ? "أنجزت دروس المستوى" : level.state === "current" ? "مستواك الحالي" : "خطوة قادمة"}</p>
+            {level.state !== "skipped" && <span className={styles.levelCount}>{level.completed_lessons} من {level.assigned_lessons} دروس</span>}
+          </div><span className={styles.levelMarker}>{level.state === "completed" ? <CheckCircle2 size={19}/> : level.state === "current" ? "الآن" : ""}</span>
+        </li>)}</ol>
+      </section>}
+      <div id="student-achievements" className={styles.achievements}><V2Rewards data={home.rewards} /></div>
       {action.action !== "rerecord_required" && <StudentRetryTasks dashboard />}
     </main>
   </div>;

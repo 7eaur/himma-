@@ -54,7 +54,7 @@ async function proxy(req: NextRequest, { params }: { params: Promise<{ path: str
     "cache-control": cacheControl,
     "x-request-id": upstreamRequestId,
   };
-  for (const name of ["accept-ranges", "content-range", "content-length", "content-disposition", "retry-after"]) {
+  for (const name of ["accept-ranges", "content-range", "content-length", "content-disposition", "retry-after", "vary"]) {
     const value = upstream.headers.get(name);
     if (value) responseHeaders[name] = value;
   }

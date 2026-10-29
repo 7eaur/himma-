@@ -7,7 +7,7 @@ from dependencies import get_any_authenticated, get_current_user, get_db
 from sqlalchemy.orm import Session
 from db.models import User
 from runtime_flags import protected_runtime, trial_v2_preview_allowed
-from v2_content.media import MediaProvider, approved_asset_path
+from v2_content.media import MediaProvider, approved_asset_path, image_file_version
 from v2_content.projection import student_manifest, student_question
 from v2_content.repository import get_media, get_question, get_release
 from v2_content.recovery import restore_original_snapshot
@@ -98,12 +98,19 @@ def candidate_media(asset_id: str, _=Depends(_require_candidate_access)):
 
 
 @router.get("/media/{asset_id}")
-def approved_media_file(asset_id: str, _=Depends(_require_candidate_access)):
+def approved_media_file(asset_id: str, v: str | None = Query(default=None, max_length=64), _=Depends(_require_candidate_access)):
     """Serve a verified approved educational asset, never a TEST_ONLY fixture."""
     asset = get_media(asset_id)
     path = approved_asset_path(asset) if asset else None
     if path is None:
         raise HTTPException(status_code=404, detail="ملف الوسيط غير معتمد أو غير موجود")
+    policy = "private, no-store"
+    if v is not None:
+        if (asset.get("kind") or asset.get("type")) != "image" or v != image_file_version(path):
+            raise HTTPException(status_code=404, detail="نسخة الصورة غير موجودة")
+        # Only reusable educational binaries, never learner audio or responses.
+        # Authentication remains mandatory; shared/CDN caching stays forbidden.
+        policy = "private, max-age=86400, immutable"
     import mimetypes
     return FileResponse(path, media_type=mimetypes.guess_type(path.name)[0] or "application/octet-stream",
-                        headers={"Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff"})
+                        headers={"Cache-Control": policy, "Vary": "Cookie", "X-Content-Type-Options": "nosniff"})

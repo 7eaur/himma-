@@ -20,7 +20,7 @@ _ALLOWED_SUFFIXES = {"audio": {".mp3", ".wav", ".ogg", ".m4a"}, "image": {".webp
 TEMPORARY_VIDEO = "assets/video/HIMMA_V2_DEMO/gemini_generated_video_72256b30.mp4"
 
 
-@lru_cache(maxsize=16)
+@lru_cache(maxsize=128)
 def _file_sha256(path: Path, size: int, mtime_ns: int, ctime_ns: int) -> str:
     """Hash a deployed binary once per file version, not once per lesson alias."""
     digest = sha256()
@@ -52,6 +52,11 @@ def approved_asset_path(asset: dict[str, Any]) -> Path | None:
             return None
     return path
 
+
+def image_file_version(path: Path) -> str:
+    """Content-address educational images so browser reuse cannot serve edits."""
+    stat = path.stat()
+    return _file_sha256(path, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns)
 
 
 @dataclass(frozen=True)
@@ -87,8 +92,12 @@ class MediaProvider:
         asset_id = str(asset["id"])
         kind = str(asset.get("kind") or asset.get("type"))
         status = str(asset.get("status") or "missing").lower()
-        if approved_asset_path(asset) is not None:
-            return ResolvedMedia(asset_id, kind, "ready", f"/api/v2/content/media/{asset_id}", False, status == "approved_temporary")
+        path = approved_asset_path(asset)
+        if path is not None:
+            url = f"/api/v2/content/media/{asset_id}"
+            if kind == "image":
+                url += f"?v={image_file_version(path)}"
+            return ResolvedMedia(asset_id, kind, "ready", url, False, status == "approved_temporary")
         if self.fixture_enabled and (
             self.environment in {"development", "test", "staging"}
             or (self.environment == "trial" and trial_v2_preview_allowed())

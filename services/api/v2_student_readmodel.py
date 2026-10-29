@@ -118,6 +118,7 @@ def build_student_v2_home(
             releases = _load_release_lessons(db, {release_id})
         lessons, version = releases.get(release_id, (None, None))
 
+    levels = []
     progress = {
         "completed_lessons": 0,
         "assigned_lessons": None,
@@ -142,6 +143,16 @@ def build_student_v2_home(
             "pending_review": progress["pending_review"],
             "display_percent": round(done / len(assigned_ids) * 100, 1) if placed and assigned_ids else None,
         }
+        if placed:
+            for level in sorted({int(row["level"][1]) for row in lessons}):
+                ids = {row["id"] for row in lessons if int(row["level"][1]) == level}
+                assigned = ids & assigned_ids
+                completed = len(assigned & completed_ids)
+                state = ("skipped" if not assigned else "completed" if completed == len(assigned)
+                         else "current" if level == journey.current_level else "locked")
+                levels.append({"level": level, "state": state, "assigned_lessons": len(assigned),
+                               "completed_lessons": completed,
+                               "display_percent": round(completed / len(assigned) * 100, 1) if assigned else None})
 
     # A first-time learner starts V2 from an explicit POST. GET never enrolls,
     # duplicates a pretest, or changes any historical V1 records.
@@ -158,6 +169,7 @@ def build_student_v2_home(
             "content_release_version": version,
         } if journey else None),
         "progress": progress,
+        "levels": levels,
         "assessments": by_kind,
         **({"rewards": rewards_projection(db, student.id, journey.content_release_id if journey else None)}
            if include_rewards else {}),

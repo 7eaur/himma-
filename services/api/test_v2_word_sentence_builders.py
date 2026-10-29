@@ -1,5 +1,7 @@
 """Regression gate for the 21 owner-approved, automatically graded tile questions."""
 from uuid import uuid4
+from itertools import permutations
+from copy import deepcopy
 
 from conftest import TestingSessionLocal
 from db.learning_models import AssessmentQuestionResponse
@@ -17,6 +19,50 @@ def _all_keys(value):
     elif isinstance(value, list):
         for child in value:
             yield from _all_keys(child)
+
+
+def test_pretest_word_building_does_not_reuse_a_previously_completed_picture_word():
+    """A missing-letter answer must not prime a later picture-word assessment."""
+    completed_picture_ids = set()
+    for question in compile_release()["questions"]:
+        if question["role"] != "pretest":
+            continue
+        image_ids = {ref["media_id"] for ref in question["stimulus"]["media"]
+                     if ref["kind"] == "image"}
+        if question["interaction"] == "build_word":
+            assert not image_ids & completed_picture_ids, question["id"]
+        if question["interaction"] == "choose_one" and "_" in (question["stimulus"].get("text") or ""):
+            completed_picture_ids.update(image_ids)
+
+
+def test_repeated_baa_tiles_accept_both_physical_orders_without_accepting_another_word():
+    question = next(q for q in compile_release()["questions"] if q["id"] == "L2-01-GP-04")
+    accepted = []
+    for order in permutations([o["id"] for o in question["options"]]):
+        text = "".join(next(o["text"] for o in question["options"] if o["id"] == key) for key in order)
+        assert _ordered_answer_is_correct(question, list(order)) == (text == "باب")
+        if text == "باب":
+            accepted.append(order)
+    assert len(accepted) == 2
+    assert not _ordered_answer_is_correct(question, ["tile_02", "tile_03", "tile_02"])
+    distinct = deepcopy(question)
+    distinct["options"][0]["text"] = "بَ"
+    swapped = next(order for order in accepted if list(order) != question["private_answer"]["correct_option_ids"])
+    assert not _ordered_answer_is_correct(distinct, list(swapped))
+
+
+def test_pretest_sentences_accept_only_the_valid_orders_requested_by_the_prompt():
+    release = compile_release()
+    expected = {
+        "V2-PRE-Q29": {"ساعد خالد أخاه", "ساعد أخاه خالد"},
+        "V2-PRE-Q30": {"القمر يضيء في الليل", "القمر في الليل يضيء"},
+    }
+    for question_id, valid_texts in expected.items():
+        question = next(q for q in release["questions"] if q["id"] == question_id)
+        options = {o["id"]: o["text"] for o in question["options"]}
+        actual = {" ".join(options[key] for key in order) for order in permutations(options)
+                  if _ordered_answer_is_correct(question, list(order))}
+        assert actual == valid_texts
 
 
 def test_every_converted_item_has_private_valid_options_and_auto_grading():
