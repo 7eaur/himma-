@@ -84,12 +84,12 @@ it("stops background staff polling after the server confirms that the user is no
 });
 
 it("opens a saved notification without waiting for a second inbox GET", async () => {
-  let first = true;
+  let inboxReads = 0;
   let completeRead!: () => void;
   const holdRead = new Promise<void>(resolve => {completeRead=resolve;});
   const fetcher=jest.fn().mockImplementation((_url:string,options?:RequestInit) => {
     if(options?.method==="POST") return holdRead.then(()=>({ok:true}));
-    if(first){first=false;return Promise.resolve({ok:true,json:async()=>inbox});}
+    if(++inboxReads <= 2) return Promise.resolve({ok:true,json:async()=>inbox});
     return new Promise(() => {});
   });
   global.fetch=fetcher as unknown as typeof fetch;
