@@ -177,7 +177,7 @@ it("locks rerecord actions while the previously staged evidence is being submitt
 
 it("explains the missing rerecording when the student presses send without audio", async () => {
   (notifyFeedback as jest.Mock).mockClear();
-  const fetcher = jest.fn(async () => ({
+  const fetcher = jest.fn(async (_url: string, _options?: RequestInit) => ({
     ok: true, json: async () => ({
       items: [{ task_id: 88, kind: "lesson", session_id: 10,
         question_id: "L1-01-GP-03", status: "requested",
