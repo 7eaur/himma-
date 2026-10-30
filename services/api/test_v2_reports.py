@@ -145,7 +145,7 @@ def test_support_report_requires_independent_mastery_not_merely_resolved_status(
         release = db.query(ContentRelease).filter(ContentRelease.version.is_not(None)).order_by(ContentRelease.id).first()
         assert release is not None
         lesson = LessonSession(student_id=student_id, content_release_id=release.id,
-                               lesson_id="L1-01", stage="outcome", status="completed")
+                               lesson_id="L1-01", stage="complete", status="completed")
         db.add(lesson)
         db.flush()
         for index, reason in enumerate(("support_check_resolved_gap",
