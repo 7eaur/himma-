@@ -93,6 +93,14 @@ function VideoPlayerInstance({ src, captionsSrc, startAt = 0, onCheckpoint, onEn
     // A promise from before the retry must not mark the new load as blocked.
     playAttempt.current += 1;
     const video = videoRef.current;
+    // On weak networks, avoid discarding the downloaded buffer if the
+    // browser can already resume from the current position. Only reload
+    // the media resource after a real error or when no current frame exists.
+    if (state === "buffering" && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+      setState("ready");
+      void play();
+      return;
+    }
     const position = Number.isFinite(video.currentTime) && video.currentTime > 0 ? video.currentTime : lastCheckpoint.current;
     recoveryPosition.current = position > 0 ? position : null;
     setState("loading");
