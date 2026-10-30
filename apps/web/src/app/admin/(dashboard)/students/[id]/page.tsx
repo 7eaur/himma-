@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
@@ -99,6 +99,9 @@ function StudentDetailView({ id }: { id: string }) {
   const urlTab: TabKey = isTabKey(queryTab) ? queryTab : "overview";
   const [activeTab, setActiveTab] = useState<TabKey>(urlTab);
   const [accessCode, setAccessCode] = useState<string | null>(null);
+  // A fresh student code is a credential rotation: never allow rapid taps
+  // to start overlapping generations before React sets the busy state.
+  const codeChangePendingRef = useRef(false);
   const [student, setStudent] = useState<Student | null>(null);
   const [loadedStudentId, setLoadedStudentId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -234,8 +237,9 @@ function StudentDetailView({ id }: { id: string }) {
   };
 
   const changeAccessCode = async (manual: boolean) => {
-    if (!student) return;
+    if (!student || codeChangePendingRef.current || busy) return;
     if (manual && !/^\d{6}$/.test(manualCode)) { setMessage({ kind: "error", text: "الرمز اليدوي يجب أن يتكون من 6 أرقام." }); return; }
+    codeChangePendingRef.current = true;
     setBusy("code"); setMessage({ kind: "success", text: "" });
     try {
       const response = await fetch(`/api/v2/student/admin/students/${student.id}/access-code`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ access_code: manual ? manualCode : null }) });
@@ -243,7 +247,10 @@ function StudentDetailView({ id }: { id: string }) {
       if (!response.ok) throw new Error(apiError(data, "تعذر تحديث رمز الدخول"));
       setStudent(current => current ? {...current, ...data} : current); setAccessCode(null); setManualCode(""); setVisibleCodeForId(null); setMessage({ kind: "success", text: "تم تحديث رمز دخول الطالب." });
     } catch (error) { setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر تحديث رمز الدخول" }); }
-    finally { setBusy(""); }
+    finally {
+      codeChangePendingRef.current = false;
+      setBusy("");
+    }
   };
 
   const getAccessCode = async (): Promise<string> => {
