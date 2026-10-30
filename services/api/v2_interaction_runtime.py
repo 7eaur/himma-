@@ -346,18 +346,40 @@ def submit_answer(
         is_correct = set(canonical["selected_option_ids"]) == set(expected)
 
     guided = session.stage in {"guided_practice", "support_practice"}
-    should_advance = is_open or not guided or bool(is_correct)
+    # Only the targeted support *practice* is bounded. After three incorrect
+    # tries the learner reviews a worked model and moves on to the distinct,
+    # unaided support checks. Wrong practice is NEVER mastery evidence.
+    assisted_advance = session.stage == "support_practice" and is_correct is False and attempt_no >= 3
+    should_advance = is_open or not guided or bool(is_correct) or assisted_advance
     public_result: dict[str, Any] = {
         "question_id": question["id"],
         "status": "pending_review" if is_open else "graded",
         "accepted": True,
-        "retry_required": guided and is_correct is False,
+        "retry_required": guided and is_correct is False and not assisted_advance,
     }
     if guided and is_correct is not None:
         public_result["correct"] = bool(is_correct)
         if not is_correct:
             public_result["hint"] = question.get("hint")
-            public_result["message"] = "اقتربت! اقرأ التلميح ثم حاول مرة أخرى."
+            if session.stage == "support_practice":
+                public_result["help_level"] = min(attempt_no, 3)
+                if attempt_no >= 2:
+                    # A teaching model is allowed only after errors in
+                    # guided support; never in independent/support checks.
+                    # Keep private answer keys out of all student question DTOs.
+                    public_result["model_option_ids"] = list(question["private_answer"]["correct_option_ids"])
+                if assisted_advance:
+                    public_result["assisted_advance"] = True
+                    public_result["message"] = (
+                        "راجع المثال المحلول، ثم نتابع خطوة جديدة. "
+                        "بعد المساعدة ستجيب عن سؤالين وحدك."
+                    )
+                elif attempt_no == 2:
+                    public_result["message"] = "شاهد المثال المحلول ثم جرّب الإجابة بنفسك مرة أخرى."
+                else:
+                    public_result["message"] = "اقتربت! اقرأ التلميح ثم حاول مرة أخرى."
+            else:
+                public_result["message"] = "اقتربت! اقرأ التلميح ثم حاول مرة أخرى."
     elif is_open:
         public_result["message"] = "حُفظت إجابتك وتنتظر مراجعة المشرف."
     else:
