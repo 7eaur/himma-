@@ -5,6 +5,7 @@ import pytest
 from conftest import TestingSessionLocal
 from db.learning_models import (
     AdaptationDecision,
+    LessonQuestionResponse,
     LessonSession,
     PrivateContentBankSnapshot,
     SkillEvidence,
@@ -20,7 +21,7 @@ from v2_adaptation_policy import (
     evaluate_support,
     resolve_focus,
 )
-from v2_adaptation_runtime import _complete_lesson, _open_support
+from v2_adaptation_runtime import _complete_lesson, _open_support, finish_support_check
 from v2_content.compiler import compile_release
 from v2_content.importer import register_candidate_release
 from v2_content.repository import get_question
@@ -195,6 +196,8 @@ def test_repeated_gap_opens_targeted_practice_and_failed_check_continues_without
     assert result["lesson"]["session"]["stage"] == "support_check"
     result = _complete_current_stage(student_client, session_id, [False, True])
     assert result["lesson"]["session"]["stage"] == "outcome"
+    assert result["lesson"]["adaptation"]["mastery_demonstrated"] is False
+    assert "تقوية هذه المهارة" in result["lesson"]["adaptation"]["message"]
     with TestingSessionLocal() as db:
         assignment = db.query(SupportAssignment).one()
         assert assignment.status == "resolved"  # detour ended; mastery was NOT claimed
@@ -279,3 +282,131 @@ def test_different_independent_focus_gaps_are_checked_automatically_in_sequence(
         assert [(a.focus, a.status) for a in assignments] == [
             ("damma", "resolved"), ("kasra", "resolved")]
         assert db.query(StudentJourney).one().current_lesson_id == "L1-04"
+
+
+def _synthetic_support_evidence(db, session, assignment, question_id, *, pending=False, correct=True):
+    """Isolated DB evidence: never generate student audio or touch production data."""
+    from v2_content.repository import get_pinned_release
+    question = next(row for row in get_pinned_release(db, session.content_release_id)["questions"] if row["id"] == question_id)
+    response = LessonQuestionResponse(
+        lesson_session_id=session.id, question_id=question_id, role=question["role"],
+        answer_json={"synthetic_test_evidence": True}, submit_key=str(uuid4()),
+        attempt_no=1, status="pending_review" if pending else "graded",
+        is_correct=None if pending else correct,
+        support_assignment_id=assignment.id, hint_used=False,
+    )
+    db.add(response)
+    db.flush()
+    evidence = SkillEvidence(
+        response_id=response.id, lesson_session_id=session.id, student_id=session.student_id,
+        content_release_id=session.content_release_id, support_assignment_id=assignment.id,
+        question_id=question_id, source_kind="support", role=question["role"],
+        skill_group=question["skill_group"], evidence_type=question["evidence_type"],
+        review_status=response.status, is_correct=response.is_correct,
+        hint_used=False, counts_for_mastery=not pending and question["role"] == "support_check",
+        policy_version=POLICY_VERSION,
+    )
+    db.add(evidence)
+    db.flush()
+    return response, evidence
+
+
+def test_empty_or_partial_support_evidence_cannot_autopass(student_client):
+    from fastapi import HTTPException
+    with pytest.raises(ValueError, match="without any evidence"):
+        evaluate_independent([], {})
+    with pytest.raises(ValueError, match="without any evidence"):
+        evaluate_support([], was_additional_check=False)
+    session_id = _start_at_independent(student_client, lesson_id="L1-04")
+    with TestingSessionLocal() as db:
+        session = db.get(LessonSession, session_id)
+        assignment = _open_support(db, session, PolicyDecision(
+            kind="targeted_support", reason_code="synthetic", evidence_ids=(),
+            support_id="SUP-03", focus="syllable_reading",
+        ))
+        session.stage = "support_check"
+        with pytest.raises(HTTPException) as err:
+            finish_support_check(db, session, assignment)
+        assert err.value.status_code == 409
+        assert session.status == "in_progress"
+
+
+def test_pending_support_practice_reading_blocks_promotion_until_review(student_client):
+    session_id = _start_at_independent(student_client, lesson_id="L1-04")
+    with TestingSessionLocal() as db:
+        session = db.get(LessonSession, session_id)
+        assignment = _open_support(db, session, PolicyDecision(
+            kind="targeted_support", reason_code="synthetic", evidence_ids=(),
+            support_id="SUP-03", focus="syllable_reading",
+        ))
+        session.stage = "support_check"
+        for question_id in assignment.check_question_ids:
+            _synthetic_support_evidence(db, session, assignment, question_id, correct=True)
+        original, proof = _synthetic_support_evidence(
+            db, session, assignment, assignment.practice_question_ids[0], pending=True
+        )
+        decision = finish_support_check(db, session, assignment)
+        assert decision.decision_kind == "waiting_review"
+        assert session.stage == session.status == "waiting_review"
+        assert db.query(StudentJourney).one().current_lesson_id == "L1-04"
+        assignment_id, proof_id, response_id = assignment.id, proof.id, original.id
+        db.commit()
+    with TestingSessionLocal() as db:
+        session = db.get(LessonSession, session_id)
+        assignment = db.get(SupportAssignment, assignment_id)
+        proof = db.get(SkillEvidence, proof_id)
+        original = db.get(LessonQuestionResponse, response_id)
+        original.status = proof.review_status = "graded"
+        original.is_correct = proof.is_correct = True
+        resumed = finish_support_check(db, session, assignment, decision_key="support:after-reviewed-reading")
+        assert resumed.decision_kind == "next_lesson"
+        assert session.stage == "complete" and session.status == "completed"
+        assert db.query(StudentJourney).one().current_lesson_id == "L1-05"
+
+
+def test_reviewed_additional_check_failure_restores_active_support_session(student_client):
+    session_id = _start_at_independent(student_client, lesson_id="L1-04")
+    with TestingSessionLocal() as db:
+        session = db.get(LessonSession, session_id)
+        assignment = _open_support(db, session, PolicyDecision(
+            kind="additional_check", reason_code="synthetic", evidence_ids=(),
+            support_id="SUP-03", focus="syllable_reading",
+        ))
+        session.stage = "additional_check"
+        pending, proof = _synthetic_support_evidence(
+            db, session, assignment, assignment.check_question_ids[0], pending=True
+        )
+        _synthetic_support_evidence(db, session, assignment, assignment.check_question_ids[1], correct=False)
+        first = finish_support_check(db, session, assignment)
+        assert first.decision_kind == "waiting_review"
+        assert session.status == "waiting_review"
+        assignment_id, response_id, proof_id = assignment.id, pending.id, proof.id
+        db.commit()
+    with TestingSessionLocal() as db:
+        session = db.get(LessonSession, session_id)
+        assignment = db.get(SupportAssignment, assignment_id)
+        pending = db.get(LessonQuestionResponse, response_id)
+        proof = db.get(SkillEvidence, proof_id)
+        pending.status = proof.review_status = "graded"
+        pending.is_correct = proof.is_correct = False
+        resumed = finish_support_check(db, session, assignment, decision_key="support:reviewed:check")
+        assert resumed.decision_kind == "targeted_support"
+        assert session.stage == "support_practice" and session.status == "in_progress"
+        assert assignment.mode == "targeted_support" and assignment.status == "active"
+        assert session.step_index == 0
+
+
+def test_support_practice_wrong_answers_do_not_skip_check_or_change_level(student_client):
+    session_id = _start_at_independent(student_client)
+    result = _complete_current_stage(student_client, session_id, [False, False, True, True])
+    assert result["lesson"]["session"]["stage"] == "support_practice"
+    for attempt in range(3):
+        wrong = _submit_current(student_client, session_id, correct=False)
+        assert wrong["submission"]["retry_required"] is True
+        assert wrong["lesson"]["session"]["stage"] == "support_practice"
+        assert wrong["lesson"]["interaction"]["progress"]["index"] == 1
+    accepted = _submit_current(student_client, session_id, correct=True)
+    assert accepted["submission"]["retry_required"] is False
+    assert accepted["lesson"]["interaction"]["progress"]["index"] == 2
+    with TestingSessionLocal() as db:
+        assert db.query(StudentJourney).one().current_level == 1

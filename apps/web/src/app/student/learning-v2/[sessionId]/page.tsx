@@ -20,7 +20,7 @@ interface LessonPayload {
   session: { session_id: number; stage: Stage | "waiting_review"; status: string; video_position_seconds: number; video_duration_seconds: number | null; version: number };
   interaction?: InteractionPayload | null;
   summary?: { submitted: number; pending_review: number };
-  adaptation?: { state: string; message: string; support?: { title: string; focus: string; mode: string } | null } | null;
+  adaptation?: { state: string; message: string; mastery_demonstrated?: boolean | null; support?: { title: string; focus: string; mode: string } | null } | null;
 }
 const STAGES: Array<{ key: Stage; label: string }> = [{key:"intro",label:"المقدمة"},{key:"teaching_video",label:"الدرس"},{key:"guided_practice",label:"التدريب"},{key:"independent_check",label:"الاختبار"}];
 const ACTIVE_LESSON_STAGES = new Set<string>(["intro", "teaching_video", "guided_practice", "independent_check", "additional_check", "support_practice", "support_check", "waiting_review", "supervisor_hold", "outcome"]);
@@ -148,6 +148,7 @@ function V2LessonSessionPage({ routeSessionId }: { routeSessionId: string }) {
   const actualIndex = stageIndex >= 0 ? stageIndex : lesson.session.stage === "waiting_review" ? 3 : STAGES.length;
   const activeIndex = reviewView ? STAGES.findIndex((stage) => stage.key === reviewView) : actualIndex;
   const supportStage = ["additional_check", "support_practice", "support_check"].includes(lesson.session.stage);
+  const unresolvedSupport = lesson.adaptation?.mastery_demonstrated === false;
   const extraStageLabel = lesson.session.stage === "additional_check" ? "تحقق قصير"
     : lesson.session.stage === "support_practice" ? "تدريب التقوية"
     : lesson.session.stage === "support_check" ? "تحقق بعد التقوية"
@@ -196,7 +197,7 @@ function V2LessonSessionPage({ routeSessionId }: { routeSessionId: string }) {
       {(["guided_practice", "independent_check", "additional_check", "support_practice", "support_check"] as string[]).includes(lesson.session.stage) && lesson.interaction && <InteractionPlayer key={lesson.interaction.question.question_id} sessionId={sessionId} interaction={lesson.interaction} suspended={Boolean(reviewView)} onLessonChange={handleLessonChange}/>}
       {lesson.session.stage === "waiting_review" && <section className={styles.practiceBoundary}><Image src="/characters/girl/encourage.png" alt="شخصية هِمّة تشجع" width={150} height={180}/><span className={styles.boundaryTag}>محفوظ بأمان</span><h2><CheckCircle2 size={25} aria-hidden="true"/> إجاباتك تنتظر مراجعة المشرف</h2><p>أكملت أسئلة الدرس، ولديك {lesson.summary?.pending_review ?? 1} إجابة قراءة مسجلة تنتظر المراجعة. لم تُحتسب صحيحة أو خاطئة، وسيحسمها المشرف.</p><StudentRetryTasks kind="lesson" sessionId={sessionId}/><Link href="/student/learning-v2" className={styles.back}>العودة إلى خريطة الدروس</Link></section>}
       {lesson.session.stage === "supervisor_hold" && <section className={styles.practiceBoundary}><Image src="/characters/girl/encourage.png" alt="شخصية هِمّة تشجع" width={150} height={180}/><span className={styles.boundaryTag}>تقدمك محفوظ</span><h2>سيختار المشرف أفضل مساعدة لك</h2><p>{lesson.adaptation?.message ?? "لن نخفض مستواك ولن نكرر المساعدة بلا نهاية."}</p><Link href="/student/learning-v2" className={styles.back}>العودة إلى خريطة الدروس</Link></section>}
-      {lesson.session.stage === "outcome" && <section className={styles.practiceBoundary}><Image src="/characters/girl/success.png" alt="شخصية هِمّة تحتفل" width={150} height={180}/><h2><CheckCircle2 size={25} aria-hidden="true"/> أكملت أسئلة الدرس</h2><p>{lesson.adaptation?.message ?? "أصبحت خطوتك التعليمية التالية جاهزة."}</p><Link href="/student/learning-v2" className={styles.back}>العودة إلى خريطة الدروس</Link></section>}
+      {lesson.session.stage === "outcome" && <section className={styles.practiceBoundary}><Image src={unresolvedSupport ? "/characters/girl/encourage.png" : "/characters/girl/success.png"} alt={unresolvedSupport ? "شخصية هِمّة تشجع الطالب" : "شخصية هِمّة تحتفل"} width={150} height={180}/><h2><CheckCircle2 size={25} aria-hidden="true"/> {unresolvedSupport ? "أكملت محاولة التقوية" : "أكملت أسئلة الدرس"}</h2><p>{lesson.adaptation?.message ?? "أصبحت خطوتك التعليمية التالية جاهزة."}</p><Link href="/student/learning-v2" className={styles.back}>العودة إلى خريطة الدروس</Link></section>}
       </div>
     </main>
   </div></div>;

@@ -219,3 +219,20 @@ it("rejects a cross-session POST acknowledgment and reloads the saved lesson via
   expect(screen.queryByRole("heading", { name: "درس من جلسة أخرى", level: 1 })).not.toBeInTheDocument();
   expect(fetcher.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(1);
 });
+
+it("does not celebrate a failed support check as mastered after a bounded completion", async () => {
+  const base = lesson(44, "الحرف وصوته");
+  global.fetch = jest.fn(async () => ok({
+    ...base,
+    session: { ...base.session, stage: "outcome" },
+    adaptation: {
+      state: "next_lesson", mastery_demonstrated: false,
+      message: "أكملت المساعدة، وسنواصل تقوية هذه المهارة في دروسك القادمة.",
+    },
+  })) as typeof fetch;
+  render(<V2LessonPage />);
+  expect(await screen.findByText("أكملت محاولة التقوية")).toBeVisible();
+  expect(screen.getByText(/سنواصل تقوية هذه المهارة/)).toBeVisible();
+  expect(screen.queryByText("أكملت أسئلة الدرس")).not.toBeInTheDocument();
+  expect(screen.getByAltText("شخصية هِمّة تشجع الطالب")).toBeInTheDocument();
+});

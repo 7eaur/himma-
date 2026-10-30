@@ -68,6 +68,8 @@ def resolve_focus(question: dict[str, Any], *, release: dict[str, Any] | None = 
 
 
 def evaluate_independent(signals: list[EvidenceSignal], questions: dict[str, dict[str, Any]], *, release: dict[str, Any] | None = None) -> PolicyDecision:
+    if not signals:
+        raise ValueError("independent check cannot succeed without any evidence")
     pending = [row for row in signals if row.review_status == "pending_review" or row.is_correct is None]
     if pending:
         return PolicyDecision(
@@ -113,6 +115,8 @@ def evaluate_independent(signals: list[EvidenceSignal], questions: dict[str, dic
 
 
 def evaluate_support(signals: list[EvidenceSignal], *, was_additional_check: bool) -> PolicyDecision:
+    if not signals:
+        raise ValueError("support check cannot succeed without any evidence")
     pending = [row for row in signals if row.review_status == "pending_review" or row.is_correct is None]
     if pending:
         return PolicyDecision(

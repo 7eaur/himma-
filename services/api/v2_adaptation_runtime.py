@@ -226,6 +226,21 @@ def _complete_lesson(db: Session, session: LessonSession, assignment: SupportAss
     reconcile_rewards(db, session.student_id, lesson_session_id=session.id)
 
 
+def _require_complete_check_evidence(rows: list[SkillEvidence], expected: list[str]) -> None:
+    """Do not grade a stage or promote a learner on missing/duplicate check evidence."""
+    observed = [row.question_id for row in rows]
+    if not expected or len(observed) != len(expected) or set(observed) != set(expected):
+        raise HTTPException(status_code=409, detail="أدلة أسئلة التحقق غير مكتملة؛ لا يمكن اعتماد الانتقال")
+
+
+def _pending_lesson_evidence(db: Session, session: LessonSession) -> list[SkillEvidence]:
+    """Reading submitted during guided/support practice remains neutral until staff review."""
+    return db.query(SkillEvidence).filter(
+        SkillEvidence.lesson_session_id == session.id,
+        SkillEvidence.review_status == "pending_review",
+    ).order_by(SkillEvidence.id).all()
+
+
 def finish_independent_check(db: Session, session: LessonSession, *, decision_key: str = "independent:1") -> AdaptationDecision:
     rows = db.query(SkillEvidence).filter(
         SkillEvidence.lesson_session_id == session.id,
@@ -233,14 +248,25 @@ def finish_independent_check(db: Session, session: LessonSession, *, decision_ke
         SkillEvidence.role == "independent_check",
     ).order_by(SkillEvidence.id).all()
     release = get_pinned_release(db, session.content_release_id)
+    lesson = next((row for row in release["lessons"] if row["id"] == session.lesson_id), None)
+    if not lesson:
+        raise HTTPException(status_code=409, detail="الدرس غير موجود في الإصدار المثبت")
+    _require_complete_check_evidence(rows, lesson["check_question_ids"])
     question_index = {row["id"]: row for row in release["questions"]}
     questions = {row.question_id: question_index.get(row.question_id) for row in rows}
     if any(value is None for value in questions.values()):
         raise RuntimeError("independent evidence references missing release questions")
-    try:
-        outcome = evaluate_independent(_signals(rows, session.lesson_id), questions, release=release)  # type: ignore[arg-type]
-    except ValueError as exc:
-        raise HTTPException(status_code=409, detail="بيانات الدعم التعليمي في إصدار الدرس غير مكتملة") from exc
+    pending = _pending_lesson_evidence(db, session)
+    if pending:
+        outcome = PolicyDecision(
+            kind="waiting_review", reason_code="lesson_evidence_pending_human_review",
+            evidence_ids=tuple(row.id for row in pending),
+        )
+    else:
+        try:
+            outcome = evaluate_independent(_signals(rows, session.lesson_id), questions, release=release)  # type: ignore[arg-type]
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail="بيانات الدعم التعليمي في إصدار الدرس غير مكتملة") from exc
     decision = _decision(db, session, decision_key, outcome)
     if outcome.kind == "next_lesson":
         _complete_lesson(db, session)
@@ -309,8 +335,19 @@ def finish_support_check(db: Session, session: LessonSession, assignment: Suppor
         SkillEvidence.support_assignment_id == assignment.id,
         SkillEvidence.role == "support_check",
     ).order_by(SkillEvidence.id).all()
+    _require_complete_check_evidence(rows, list(assignment.check_question_ids or []))
     was_additional = assignment.mode == "additional_check"
-    outcome = evaluate_support(_signals(rows, session.lesson_id), was_additional_check=was_additional)
+    pending = _pending_lesson_evidence(db, session)
+    if pending:
+        outcome = PolicyDecision(
+            kind="waiting_review", reason_code="support_evidence_pending_human_review",
+            evidence_ids=tuple(row.id for row in pending),
+        )
+    else:
+        try:
+            outcome = evaluate_support(_signals(rows, session.lesson_id), was_additional_check=was_additional)
+        except ValueError as exc:
+            raise HTTPException(status_code=409, detail="أدلة تحقق التقوية غير مكتملة") from exc
     decision = _decision(db, session, decision_key or f"support:{assignment.id}:1", outcome, assignment)
     now = datetime.now(timezone.utc)
     if outcome.kind == "next_lesson":
@@ -340,8 +377,10 @@ def finish_support_check(db: Session, session: LessonSession, assignment: Suppor
             _complete_lesson(db, session, assignment)
     elif outcome.kind == "targeted_support" and was_additional:
         assignment.mode = "targeted_support"
+        assignment.status = "active"
         assignment.verification_round = 1
         assignment.updated_at = now
+        session.status = "in_progress"
         session.stage = "support_practice"
         session.step_index = 0
         session.version += 1
@@ -378,6 +417,9 @@ def student_adaptation_payload(db: Session, session: LessonSession) -> dict[str,
         "next_lesson": "أحسنت، أصبحت خطوتك التالية جاهزة.",
     }
     kind = latest.decision_kind if latest else assignment.mode
+    # A completed *attempt* is not necessarily demonstrated mastery. Never
+    # celebrate an unresolved support gap as if the learner had passed.
+    incomplete_mastery = bool(latest and latest.reason_code == "support_gap_unresolved_continue_without_mastery")
     support_title = None
     if assignment:
         release = get_pinned_release(db, session.content_release_id)
@@ -387,7 +429,9 @@ def student_adaptation_payload(db: Session, session: LessonSession) -> dict[str,
         support_title = support["title"]
     return {
         "state": kind,
-        "message": messages.get(kind, "تقدمك محفوظ بأمان."),
+        "message": ("أكملت المساعدة، وسنواصل تقوية هذه المهارة في دروسك القادمة."
+                    if incomplete_mastery else messages.get(kind, "تقدمك محفوظ بأمان.")),
+        "mastery_demonstrated": False if incomplete_mastery else None,
         "support": {
             "support_id": assignment.support_id,
             "title": support_title,
