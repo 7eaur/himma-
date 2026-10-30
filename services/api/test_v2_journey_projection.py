@@ -137,7 +137,8 @@ def test_mixed_cohort_preserves_official_scores_retries_pinned_progress_and_reta
         assert by_name["learning"]["current_action"]["href"] == f"/student/retry/{task_id}"
         assert by_name["learning"]["progress"]["completed_lessons"] == 1
         assert by_name["learning"]["journey"]["current_level"] == 2  # Never Student.current_level.
-        assert by_name["learning"]["progress"]["pending_review"] == 1
+        # Requested rerecord is owned by the child, not actionable staff review.
+        assert by_name["learning"]["progress"]["pending_review"] == 0
         for student in students:
             single = build_student_v2_home(db, student, include_rewards=False)
             assert single["current_action"] == by_name[student.name]["current_action"]
@@ -147,6 +148,7 @@ def test_mixed_cohort_preserves_official_scores_retries_pinned_progress_and_reta
         assert "private-answer" not in str(data) and "private-audio" not in str(data)
         db.get(V2ReviewRetryTask, task_id).status = "submitted"; db.commit()
         facts = load_journey_facts(db, [learning_id])[learning_id]
+        assert facts.pending_review_count == 1
         assert next_action(facts)["action"] == "lesson"
 
 
