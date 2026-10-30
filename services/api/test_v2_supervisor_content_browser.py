@@ -120,3 +120,26 @@ def test_private_content_answers_cannot_be_downloaded_by_child_and_never_cached(
     assert student_client.post("/auth/student-login", json={"access_code": "STU001"}).status_code == 200
     assert student_client.get("/v2/content/admin/review-export.xlsx").status_code == 403
     assert student_client.get("/v2/content/admin/bank").status_code == 403
+
+
+def test_staff_bank_searches_visible_stimulus_and_options_but_not_private_answers(researcher_client, monkeypatch):
+    from copy import deepcopy
+    from urllib.parse import urlencode
+    import v2_content_api
+
+    release = deepcopy(get_release())
+    question = next(row for row in release["questions"] if row["options"] and row.get("stimulus") is not None)
+    marker = "REVIEW-PRIVATE-NO-SEARCH-872"
+    question["private_answer"]["review_hidden_marker"] = marker
+    question["stimulus"]["text"] = "اختبار حروف ظاهرة فريد 872"
+    question["options"][0]["text"] = "خيار ظاهر فريد 872"
+    monkeypatch.setattr(v2_content_api, "get_release", lambda: release)
+    section = question.get("owner_id") or question["role"]
+    for term in ("اختبار حروف ظاهرة فريد 872", "خيار ظاهر فريد 872"):
+        query = urlencode({"section": section, "search": term})
+        response = researcher_client.get(f"/v2/content/admin/bank?{query}")
+        assert response.status_code == 200, response.text
+        assert question["id"] in [item["question"]["question_id"] for item in response.json()["items"]]
+    hidden = researcher_client.get("/v2/content/admin/bank?search=" + marker)
+    assert hidden.status_code == 200
+    assert hidden.json()["total"] == 0
