@@ -47,8 +47,22 @@ def supervisor_content_bank(
     ))
     for row in sections:
         row["question_count"] = sum((q.get("owner_id") or q["role"]) == row["id"] for q in questions)
-    selected = [q for q in questions if (not section or (q.get("owner_id") or q["role"]) == section)
-                and (not search.strip() or search.strip().casefold() in f'{q["id"]} {q["prompt"]}'.casefold())]
+    # Staff searches what a reviewer can see: the visible stimulus and
+    # choices as well as the prompt. Never index private answers or rubrics.
+    needle = search.strip().casefold()
+    def searchable_text(question: dict) -> str:
+        visible = [
+            question["id"], question["prompt"],
+            (question.get("stimulus") or {}).get("text") or "",
+            *[(option.get("text") or "") for option in question.get("options", [])],
+        ]
+        return " ".join(visible).casefold()
+
+    selected = [
+        q for q in questions
+        if (not section or (q.get("owner_id") or q["role"]) == section)
+        and (not needle or needle in searchable_text(q))
+    ]
     items = []
     for question in selected[offset:offset + limit]:
         media_ids = {m["media_id"] for m in question.get("stimulus", {}).get("media", [])}
