@@ -647,7 +647,57 @@ describe("InteractionPlayer", () => {
   });
 });
 
-it("shows one coach message on practice retry, with no duplicate feedback below the answers", async () => {
+it("shows a worked support model on repeat failure and waits for acknowledgement before the next question", async () => {
+  const nextLesson = { session: { stage: "support_check" } };
+  (global.fetch as jest.Mock).mockResolvedValueOnce({
+    ok: true, status: 200,
+    json: async () => ({
+      submission: {
+        status: "graded", retry_required: false, correct: false, assisted_advance: true,
+        help_level: 3, model_option_ids: ["b"],
+        message: "راجع المثال المحلول، ثم نتابع خطوة جديدة.",
+      },
+      lesson: nextLesson,
+    }),
+  });
+  const support = payload();
+  support.progress.stage = "support_practice";
+  const onLessonChange = jest.fn();
+  render(<InteractionPlayer sessionId={7} interaction={support} onLessonChange={onLessonChange}/>);
+  fireEvent.click(screen.getByRole("button", { name: "اختيار الخيار 1" }));
+  fireEvent.click(screen.getByRole("button", { name: "تحقق من الإجابة" }));
+  await waitFor(() => expect(screen.getByRole("button", { name: "فهمت، نكمل" })).toBeInTheDocument());
+  expect(screen.getByLabelText("مثال محلول للتعلّم")).toHaveTextContent("ب");
+  expect(screen.getByTestId("v2-question-coach")).toHaveTextContent("راجع المثال المحلول");
+  expect(onLessonChange).not.toHaveBeenCalled();
+  expect(screen.queryByRole("button", { name: "تحقق من الإجابة" })).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "اختيار الخيار 1" })).toBeDisabled();
+  fireEvent.click(screen.getByRole("button", { name: "فهمت، نكمل" }));
+  expect(onLessonChange).toHaveBeenCalledWith(nextLesson);
+  expect(global.fetch).toHaveBeenCalledTimes(1);
+});
+
+it("does not reveal worked support examples in unaided checks even if feedback includes a model", async () => {
+  (global.fetch as jest.Mock).mockResolvedValue({
+    ok: true, status: 200,
+    json: async () => ({
+      submission: {
+        status: "graded", retry_required: false, correct: false,
+        help_level: 2, model_option_ids: ["b"],
+      },
+      lesson: { session: { stage: "outcome" } },
+    }),
+  });
+  const check = payload({ role: "support_check" });
+  check.progress.stage = "support_check";
+  render(<InteractionPlayer sessionId={7} interaction={check} onLessonChange={jest.fn()}/>);
+  fireEvent.click(screen.getByRole("button", { name: "اختيار الخيار 1" }));
+  fireEvent.click(screen.getByRole("button", { name: "تحقق من الإجابة" }));
+  await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
+  expect(screen.queryByLabelText("مثال محلول للتعلّم")).not.toBeInTheDocument();
+});
+
+  it("shows one coach message on practice retry, with no duplicate feedback below the answers", async () => {
   (global.fetch as jest.Mock).mockResolvedValue({ok:true,status:200,json:async()=>({
     submission:{retry_required:true,status:"graded",correct:false,hint:"أنصت إلى أول حرف.",message:"حاول مرة أخرى"}
   })});
