@@ -451,20 +451,67 @@ def test_reviewed_additional_check_failure_restores_active_support_session(stude
         assert session.step_index == 0
 
 
-def test_support_practice_wrong_answers_do_not_skip_check_or_change_level(student_client):
+def test_support_practice_progressive_help_is_bounded_and_check_remains_unaided(student_client):
     session_id = _start_at_independent(student_client)
     result = _complete_current_stage(student_client, session_id, [False, False, True, True])
     assert result["lesson"]["session"]["stage"] == "support_practice"
-    for attempt in range(3):
-        wrong = _submit_current(student_client, session_id, correct=False)
-        assert wrong["submission"]["retry_required"] is True
-        assert wrong["lesson"]["session"]["stage"] == "support_practice"
-        assert wrong["lesson"]["interaction"]["progress"]["index"] == 1
-    accepted = _submit_current(student_client, session_id, correct=True)
-    assert accepted["submission"]["retry_required"] is False
-    assert accepted["lesson"]["interaction"]["progress"]["index"] == 2
+    first = _submit_current(student_client, session_id, correct=False)
+    assert first["submission"]["retry_required"] is True
+    assert first["submission"]["help_level"] == 1
+    assert "hint" in first["submission"]
+    assert "model_option_ids" not in first["submission"]
+    assert first["lesson"]["interaction"]["progress"]["index"] == 1
+    second = _submit_current(student_client, session_id, correct=False)
+    assert second["submission"]["retry_required"] is True
+    assert second["submission"]["help_level"] == 2
+    assert second["submission"]["model_option_ids"]
+    assert second["lesson"]["interaction"]["progress"]["index"] == 1
+    third = _submit_current(student_client, session_id, correct=False)
+    assert third["submission"]["retry_required"] is False
+    assert third["submission"]["assisted_advance"] is True
+    assert third["submission"]["help_level"] == 3
+    assert third["lesson"]["interaction"]["progress"]["index"] == 2
+    assert third["lesson"]["session"]["stage"] == "support_practice"
+    # Completing the remaining teaching item opens a NEW independent check;
+    # no guided practice mistake or worked model counts as mastery.
+    next_practice = _submit_current(student_client, session_id, correct=True)
+    assert next_practice["lesson"]["session"]["stage"] == "support_check"
     with TestingSessionLocal() as db:
+        lesson = db.get(LessonSession, session_id)
+        evidence = db.query(SkillEvidence).filter(
+            SkillEvidence.lesson_session_id == session_id,
+            SkillEvidence.role == "guided_practice",
+            SkillEvidence.support_assignment_id.is_not(None),
+        ).all()
+        assert len(evidence) == 4
+        assert all(not row.counts_for_mastery for row in evidence)
         assert db.query(StudentJourney).one().current_level == 1
+    wrong_check = _submit_current(student_client, session_id, correct=False)
+    assert "hint" not in wrong_check["submission"]
+    assert "model_option_ids" not in wrong_check["submission"]
+    assert "help_level" not in wrong_check["submission"]
+    assert "assisted_advance" not in wrong_check["submission"]
+    final = _submit_current(student_client, session_id, correct=True)
+    assert final["lesson"]["session"]["stage"] == "outcome"
+    assert final["lesson"]["adaptation"]["mastery_demonstrated"] is False
+    from db.v2_reward_models import V2RewardGrant
+    with TestingSessionLocal() as db:
+        assert not db.query(V2RewardGrant).filter(V2RewardGrant.milestone == "lesson_complete").first()
+
+
+def test_successful_independent_support_checks_after_assistance_demonstrate_mastery(student_client):
+    session_id = _start_at_independent(student_client)
+    _complete_current_stage(student_client, session_id, [False, False, True, True])
+    for _ in range(3):
+        _submit_current(student_client, session_id, correct=False)
+    _submit_current(student_client, session_id, correct=True)
+    first = _submit_current(student_client, session_id, correct=True)
+    assert first["lesson"]["session"]["stage"] == "support_check"
+    passed = _submit_current(student_client, session_id, correct=True)
+    assert passed["lesson"]["session"]["stage"] == "outcome"
+    assert passed["lesson"]["adaptation"]["mastery_demonstrated"] is not False
+    with TestingSessionLocal() as db:
+        assert db.query(StudentJourney).one().current_lesson_id == "L1-02"
 
 
 def test_outcome_reports_unresolved_earlier_focus_even_if_later_focus_passes(student_client):
