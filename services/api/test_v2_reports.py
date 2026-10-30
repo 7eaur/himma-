@@ -183,8 +183,11 @@ def test_support_report_requires_independent_mastery_not_merely_resolved_status(
 
 def test_requested_rerecord_is_not_reported_as_staff_pending_review(researcher_client):
     from db.learning_models import AssessmentQuestionResponse, V2ReviewRetryTask
+    from db.models import User
     with TestingSessionLocal() as db:
         student = db.query(Student).one()
+        reviewer = db.query(User).first()
+        assert reviewer is not None
         session = AssessmentSession(
             student_id=student.id, session_type="pretest", status="in_progress",
             v2_state="waiting_review", official_for_reporting=False,
@@ -198,7 +201,8 @@ def test_requested_rerecord_is_not_reported_as_staff_pending_review(researcher_c
         )
         db.add(response); db.flush()
         retry = V2ReviewRetryTask(
-            student_id=student.id, assessment_response_id=response.id,
+            student_id=student.id, requested_by=reviewer.id,
+            assessment_response_id=response.id,
             status="requested", request_kind="rerecord", reason="قراءة تحتاج إعادة",
         )
         db.add(retry); db.commit()
