@@ -123,7 +123,7 @@ def build_student_v2_home(
         "completed_lessons": 0,
         "assigned_lessons": None,
         "skipped_by_placement": 0,
-        "pending_review": int(bool(active_lesson and active_lesson.status == "waiting_review")),
+        "pending_review": facts.pending_review_count,
         "display_percent": None,
     }
     if journey and lessons is not None:
