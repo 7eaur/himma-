@@ -79,9 +79,30 @@ def _session_payload(db: Session, session: LessonSession) -> dict:
         media_path = approved_asset_path(asset)
         if media_path is None:
             raise HTTPException(status_code=409, detail="وسيط الإصدار المثبت لم يعد متاحًا")
+        digest = educational_media_version(media_path)
+        # The first-release demo video is deliberately shared across lessons.
+        # Session-specific URLs force a fresh browser cache entry on every
+        # lesson although all 19 aliases reference the same approved bytes.
+        # Reuse one canonical, authenticated *asset* URL only if the currently
+        # compiled media bank still approves the EXACT same temporary binary.
+        # Historical pinned banks and future per-lesson videos stay scoped to
+        # their original session when the binary/approval no longer matches.
+        reusable = None
+        if (asset.get("status") == "approved_temporary"
+                and asset.get("shared_temporary_video") is True):
+            candidates = (
+                candidate for candidate in get_release()["media"]
+                if candidate.get("status") == "approved_temporary"
+                and candidate.get("shared_temporary_video") is True
+                and (candidate.get("kind") or candidate.get("type")) == "video"
+                and candidate.get("source_sha256") == digest
+                and approved_asset_path(candidate) == media_path
+            )
+            reusable = min(candidates, key=lambda row: row["id"], default=None)
         resolved["url"] = (
-            f'/api/v2/lessons/sessions/{session.id}/media/{asset["id"]}'
-            f'?v={educational_media_version(media_path)}'
+            f'/api/v2/content/media/{reusable["id"]}?v={digest}'
+            if reusable is not None else
+            f'/api/v2/lessons/sessions/{session.id}/media/{asset["id"]}?v={digest}'
         )
     payload = student_lesson(lesson, resolved)
     payload["session"] = {
