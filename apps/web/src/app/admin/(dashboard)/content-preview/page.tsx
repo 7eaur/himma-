@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BookOpenCheck, Film } from "lucide-react";
+import { BookOpenCheck, FileSpreadsheet, Film } from "lucide-react";
 import { AdminAction, AdminEmptyState, AdminPage, AdminPageHeader, AdminPanel } from "@/components/admin/AdminUI";
 import EducationalMediaPreview, { type EducationalMedia } from "@/components/admin/EducationalMediaPreview";
 
@@ -51,7 +51,7 @@ export default function ContentBankPage() {
   return <AdminPage>
     <AdminPageHeader eyebrow="المحتوى والمعاينة" icon={BookOpenCheck} title="بنك الدروس والأسئلة"
       description="تصفح القبلي والدروس والتدريب والتقوية والبعدي حسب ترتيب تعلم الطالب. الإجابات للمشرف فقط."
-      actions={<AdminAction href="/admin/v2-media" icon={Film}>معاينة الوسائط</AdminAction>} />
+      actions={<><AdminAction href="/api/v2/content/admin/review-export.xlsx" icon={FileSpreadsheet}>ملف مراجعة المحتوى Excel</AdminAction><AdminAction href="/admin/v2-media" icon={Film}>معاينة الوسائط</AdminAction></>} />
     <AdminPanel>
       <div className="mb-4 flex gap-2 overflow-x-auto pb-2" role="group" aria-label="نوع المحتوى التعليمي">
         <button type="button" aria-pressed={activeGroup === "all"}
@@ -75,7 +75,7 @@ export default function ContentBankPage() {
       </div>
       <div className="flex flex-wrap gap-3">
         <label className="flex min-w-0 flex-1 flex-col gap-2"><span>القسم</span><select className="input-field w-full min-w-0" value={section} onChange={e => { setSection(e.target.value); setSelectedQuestionId(null); setOffset(0); }}>
-          <option value="">البنك كاملًا · 300 سؤال</option>
+          <option value="">البنك كاملًا · {bank?.bank_total ?? "—"} سؤال</option>
           {sectionGroups.map(group => {
             const entries = bank?.sections.filter(group.includes) ?? [];
             return entries.length ? <optgroup key={group.key} label={group.label}>{entries.map(row => <option key={row.id} value={row.id}>{row.id} · {row.title} ({row.question_count})</option>)}</optgroup> : null;
