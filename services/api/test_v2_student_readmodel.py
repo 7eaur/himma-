@@ -425,6 +425,7 @@ def test_staff_only_v2_support_timeline_is_bounded_and_scoped_to_pinned_release(
     details = admin_response.json()
     assert len(details["support_assignments"]) == 1
     assert details["support_assignments"][0]["status"] == "resolved"
+    assert details["support_assignments"][0]["needs_followup"] is True
     assert details["adaptation_decisions"][0]["unmastered_gap"] is True
     assert details["adaptation_decisions"][0]["reason_code"] == "support_gap_unresolved_continue_without_mastery"
     assert "access_code" not in admin_response.text
