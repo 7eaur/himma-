@@ -63,3 +63,60 @@ def test_production_preview_never_serves_unapproved_fixture_to_staff(researcher_
     assert response.status_code == 200
     assert response.headers['x-himma-test-only'] == 'false'
     assert researcher_client.get('/v2/lessons/admin/media/AUD-L1-03-MA').status_code == 404
+
+
+def test_private_review_workbook_matches_current_compiled_questions_without_static_stale_copy(researcher_client):
+    from io import BytesIO
+    import json
+    from openpyxl import load_workbook
+    from conftest import TestingSessionLocal
+    from db.models import AuditLog
+
+    release = get_release()
+    response = researcher_client.get("/v2/content/admin/review-export.xlsx")
+    assert response.status_code == 200, response.text[:200]
+    assert response.headers["cache-control"] == "private, no-store"
+    assert response.headers["x-content-type-options"] == "nosniff"
+    assert response.headers["content-type"].startswith(
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    workbook = load_workbook(BytesIO(response.content))
+    sheet = workbook["الأسئلة المعتمدة"]
+    exported = {row[3]: row for row in list(sheet.values)[1:]}
+    assert len(exported) == len(release["questions"]) == 300
+    assert set(exported) == {question["id"] for question in release["questions"]}
+    for question in release["questions"]:
+        row = exported[question["id"]]
+        assert row[8] == question["prompt"]
+        assert row[4] == question["role"]
+        assert row[5] == question["interaction"]
+        assert row[6] == question["skill_group"]
+        assert json.loads(row[10]) == question["options"]
+        expected = [
+            {"id": option_id, "text": next(
+                (opt.get("text") or json.dumps(opt.get("media", []),
+                                                ensure_ascii=False, sort_keys=True, separators=(",", ":")))
+                for opt in question["options"] if opt["id"] == option_id
+            )}
+            for option_id in question["private_answer"].get("correct_option_ids", [])
+        ]
+        assert json.loads(row[11]) == expected
+    assert len(list(workbook["الأقسام والأهداف"].values)) - 1 == 33
+    meta = {row[0]: row[1] for row in workbook["معلومات المراجعة"].values}
+    assert meta["البصمة"] == release["checksum"]
+    assert meta["عدد الأسئلة"] == 300
+    with TestingSessionLocal() as db:
+        assert db.query(AuditLog).filter(AuditLog.action == "v2.content.review_exported").count() == 1
+
+
+def test_private_content_answers_cannot_be_downloaded_by_child_and_never_cached(researcher_client, student_client):
+    assert researcher_client.post("/auth/login", json={
+        "username": "researcher1", "password": "test-only-researcher-password",
+    }).status_code == 200
+    bank = researcher_client.get("/v2/content/admin/bank?section=L1-01")
+    assert bank.status_code == 200
+    assert bank.headers["cache-control"] == "private, no-store"
+    assert bank.headers["x-content-type-options"] == "nosniff"
+    assert student_client.post("/auth/student-login", json={"access_code": "STU001"}).status_code == 200
+    assert student_client.get("/v2/content/admin/review-export.xlsx").status_code == 403
+    assert student_client.get("/v2/content/admin/bank").status_code == 403
