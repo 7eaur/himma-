@@ -28,6 +28,20 @@ def _fixture(db, *, level=1):
     student=db.query(Student).one()
     journey=StudentJourney(student_id=student.id,content_release_id=release.id,current_level=level,current_lesson_id=f'L{level}-01',placement_state='placed')
     db.add(journey);db.flush()
+    official=AssessmentSession(
+        student_id=student.id,content_release_id=release.id,
+        session_type='pretest',status='completed',v2_state='completed',
+        official_for_reporting=True,assigned_level=level,final_score=80,
+        assessment_attempt_no=1,
+    )
+    db.add(official);db.flush()
+    db.add(PlacementDecisionV2(
+        student_id=student.id,content_release_id=release.id,
+        assessment_session_id=official.id,assigned_level=level,
+        reason='V2 test official placement',policy_version='test-placement',
+        decided_by=USER_ID,
+    ))
+    db.flush()
     return student,release,journey
 
 
@@ -46,6 +60,25 @@ def _lesson(db,student,release,lesson_id='L1-01', *, video=True,gp=True,complete
             answer_json={},submit_key=str(uuid4()),status='pending_review' if pending and question['role']=='independent_check' else 'graded',
             is_correct=None if pending and question['role']=='independent_check' else False))
     db.flush();return session
+
+
+def test_without_official_pretest_or_placement_even_completed_rows_award_no_stars(researcher_client):
+    with TestingSessionLocal() as db:
+        student,release,_=_fixture(db)
+        _lesson(db,student,release)
+        decision=db.query(PlacementDecisionV2).filter(
+            PlacementDecisionV2.student_id==student.id,
+        ).one()
+        pre=db.get(AssessmentSession,decision.assessment_session_id)
+        pre.official_for_reporting=False
+        assert reconcile_rewards(db,student.id)=={
+            'state':'placement_unverified','inserted':0,
+        }
+        assert db.query(V2RewardGrant).count()==0
+        pre.official_for_reporting=True
+        pre.assigned_level=3
+        assert reconcile_rewards(db,student.id)['inserted']==0
+        assert db.query(V2RewardGrant).count()==0
 
 
 def test_three_real_milestones_award_once_without_v1_scores_or_accuracy_bonuses(researcher_client):
@@ -162,10 +195,7 @@ def test_duplicate_sessions_and_repeated_submissions_do_not_multiply_rewards(res
 def test_level_badge_requires_every_actual_completed_lesson_and_skips_are_not_awards(researcher_client):
     with TestingSessionLocal() as db:
         student,release,journey=_fixture(db,level=3)
-        pre=AssessmentSession(student_id=student.id,content_release_id=release.id,session_type='pretest',status='completed',v2_state='completed')
-        db.add(pre);db.flush()
-        db.add(PlacementDecisionV2(student_id=student.id,content_release_id=release.id,assessment_session_id=pre.id,
-            assigned_level=3,reason='synthetic',policy_version='synthetic',decided_by=USER_ID))
+        # _fixture provides the matching completed official pretest.
         for lesson in get_release()['lessons']:
             _lesson(db,student,release,lesson['id'])
         result=reconcile_rewards(db,student.id)
