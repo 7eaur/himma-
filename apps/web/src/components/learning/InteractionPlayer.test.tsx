@@ -648,6 +648,8 @@ describe("InteractionPlayer", () => {
 });
 
 it("shows a worked support model on repeat failure and waits for acknowledgement before the next question", async () => {
+  // This regression lives outside the surrounding describe's beforeEach.
+  global.fetch = jest.fn();
   const nextLesson = { session: { stage: "support_check" } };
   (global.fetch as jest.Mock).mockResolvedValueOnce({
     ok: true, status: 200,
@@ -678,6 +680,7 @@ it("shows a worked support model on repeat failure and waits for acknowledgement
 });
 
 it("does not reveal worked support examples in unaided checks even if feedback includes a model", async () => {
+  global.fetch = jest.fn();
   (global.fetch as jest.Mock).mockResolvedValue({
     ok: true, status: 200,
     json: async () => ({
