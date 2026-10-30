@@ -9,8 +9,8 @@ from uuid import uuid4
 sys.path.insert(0,str(Path(__file__).resolve().parents[2]))
 from sqlalchemy.engine import make_url
 from db.database import SessionLocal, SQLALCHEMY_DATABASE_URL
-from db.learning_models import LessonSession, LessonQuestionResponse, StudentJourney
-from db.models import Student
+from db.learning_models import LessonSession, LessonQuestionResponse, PlacementDecisionV2, StudentJourney
+from db.models import AssessmentSession, Student
 from db.v2_reward_models import V2RewardGrant
 from v2_content.importer import register_candidate_release
 from v2_content.repository import get_release
@@ -31,6 +31,22 @@ def main():
         student=Student(name=f'طالب مكافآت V2 اصطناعي {uuid4().hex[:8]}',access_code=code,grade_level=3,current_level=1)
         db.add(student);db.flush()
         db.add(StudentJourney(student_id=student.id,content_release_id=release.id,current_level=1,current_lesson_id='L1-02',placement_state='placed'))
+        # A genuine V2 reward requires a matching completed, official
+        # pretest and system-owned placement. Synthetic session flags alone
+        # must never bypass the production academic evidence predicate.
+        assessment=AssessmentSession(
+            student_id=student.id,content_release_id=release.id,
+            session_type='pretest',status='completed',v2_state='completed',
+            official_for_reporting=True,assigned_level=1,final_score=80,
+            assessment_attempt_no=1,
+        )
+        db.add(assessment);db.flush()
+        db.add(PlacementDecisionV2(
+            student_id=student.id,assessment_session_id=assessment.id,
+            content_release_id=release.id,assigned_level=1,
+            reason='Synthetic official pretest placement for rewards E2E',
+            policy_version='test-only-verified-placement',decided_by=None,
+        ))
         now=datetime.now(timezone.utc)
         lesson=LessonSession(student_id=student.id,content_release_id=release.id,lesson_id='L1-01',stage='complete',status='completed',
             intro_seen=True,video_seen=True,video_completed_at=now,completed_at=now)
