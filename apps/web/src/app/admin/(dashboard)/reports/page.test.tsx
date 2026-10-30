@@ -10,7 +10,7 @@ const report = {
     journey_state: "in_progress", pretest: { score: 0, attempt_no: 1, release_version: "test" }, posttest: null,
     comparison_state: "pending", improvement_points: null, relative_improvement: null,
     progress: { completed_lessons: null, assigned_lessons: null, skipped_by_placement: null, percent: null },
-    support: { total: 0, resolved: 0, waiting: 0, escalated: 0 }, pending_assessment_reviews: 1 }],
+    support: { total: 0, resolved: 0, mastered: 0, needs_followup: 0, waiting: 0, escalated: 0 }, pending_assessment_reviews: 1 }],
 };
 it("shows an official zero independently of an unapproved posttest and uses V2 export links", async () => {
   const fetcher = jest.fn().mockResolvedValue({ ok: true, json: async () => report });
@@ -47,4 +47,17 @@ it("keeps the report short and searches a student without mixing in older rows",
   fireEvent.change(screen.getByRole("textbox", {name: "بحث عن طالب أو معرّف"}), {target: {value: "تقرير 3"}});
   expect(screen.getByTestId("v2-report-table").querySelectorAll("tbody tr")).toHaveLength(1);
   expect(screen.getAllByText("طالب تقرير 3")).toHaveLength(2);
+});
+
+it("does not present ended support as mastered and shows unresolved skills", async () => {
+  const students = [{
+    ...report.students[0],
+    support: {total: 2, resolved: 2, mastered: 1, needs_followup: 1, waiting: 0, escalated: 0},
+  }];
+  global.fetch = jest.fn().mockResolvedValue({ok: true, json: async () => ({...report, students})});
+  render(<ReportsPage/>);
+  const table = await screen.findByTestId("v2-report-table");
+  expect(table).toHaveTextContent("1 / 2");
+  expect(table).toHaveTextContent("1 تحتاج متابعة");
+  expect(table).not.toHaveTextContent("2 / 2");
 });
