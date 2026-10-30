@@ -3,7 +3,7 @@ from uuid import uuid4
 
 import pytest
 from conftest import TestingSessionLocal
-from db.learning_models import LessonProgressEvent, LessonQuestionResponse, LessonSession, PlacementDecisionV2, PrivateContentBankSnapshot, StudentJourney, SupportAssignment
+from db.learning_models import AdaptationDecision, LessonProgressEvent, LessonQuestionResponse, LessonSession, PlacementDecisionV2, PrivateContentBankSnapshot, StudentJourney, SupportAssignment
 from db.models import AuditLog, AssessmentSession, Student, User
 from db.v2_reward_models import V2RewardGrant
 from v2_content.importer import register_candidate_release
@@ -86,10 +86,69 @@ def test_unresolved_support_withholds_completion_without_deducting_earned_stars(
         db.add(support)
         assert reconcile_rewards(db,student.id)['inserted']==2
         support.status='resolved'
+        db.flush()
+        # Ending a support detour is not independent evidence of mastery.
+        assert reconcile_rewards(db,student.id)['inserted']==0
+        db.add(AdaptationDecision(
+            lesson_session_id=session.id,student_id=student.id,
+            content_release_id=release.id,support_assignment_id=support.id,
+            decision_key='support-verified-test',decision_kind='next_lesson',
+            reason_code='support_check_resolved_gap',evidence_ids=[],
+            explanation_json={},policy_version='test-verified-support',
+        ))
         assert reconcile_rewards(db,student.id)['inserted']==1
         support.status='escalated'
         assert reconcile_rewards(db,student.id)['inserted']==0
         assert rewards_projection(db,student.id,release.id)['total_stars']==3
+
+
+def test_closed_but_unmastered_support_never_awards_lesson_star_even_after_reconcile(researcher_client):
+    with TestingSessionLocal() as db:
+        student,release,_=_fixture(db);session=_lesson(db,student,release)
+        support=SupportAssignment(
+            student_id=student.id,content_release_id=release.id,lesson_session_id=session.id,
+            support_id='SUP-01',focus='synthetic-gap',target_skill='S1',
+            source_lesson_id='L1-01',source_level=1,support_level=1,
+            mode='targeted_support',status='resolved',return_to={},policy_version='test',
+        )
+        db.add(support);db.flush()
+        db.add(AdaptationDecision(
+            lesson_session_id=session.id,student_id=student.id,content_release_id=release.id,
+            support_assignment_id=support.id,decision_key='support-unmastered-test',
+            decision_kind='next_lesson',
+            reason_code='support_gap_unresolved_continue_without_mastery',
+            evidence_ids=[],explanation_json={'skill_mastery':'not_demonstrated'},
+            policy_version='test-unmastered-support',
+        ))
+        assert reconcile_rewards(db,student.id)['inserted']==2
+        assert reconcile_rewards(db,student.id)['inserted']==0
+        assert rewards_projection(db,student.id,release.id)['total_stars']==2
+        assert not db.query(V2RewardGrant).filter(
+            V2RewardGrant.milestone=='lesson_complete',
+        ).first()
+
+
+def test_support_with_verified_and_unverified_foci_stays_unrewarded(researcher_client):
+    with TestingSessionLocal() as db:
+        student,release,_=_fixture(db);session=_lesson(db,student,release)
+        for index in (1,2):
+            support=SupportAssignment(
+                student_id=student.id,content_release_id=release.id,lesson_session_id=session.id,
+                support_id='SUP-01',focus=f'skill-{index}',target_skill='S1',
+                source_lesson_id='L1-01',source_level=1,support_level=1,
+                mode='targeted_support',status='resolved',return_to={},policy_version='test',
+            )
+            db.add(support);db.flush()
+            if index==1:
+                db.add(AdaptationDecision(
+                    lesson_session_id=session.id,student_id=student.id,
+                    content_release_id=release.id,support_assignment_id=support.id,
+                    decision_key='first-skill-proven',decision_kind='next_lesson',
+                    reason_code='support_check_resolved_gap',
+                    evidence_ids=[],explanation_json={},policy_version='test',
+                ))
+        assert reconcile_rewards(db,student.id)['inserted']==2
+        assert rewards_projection(db,student.id,release.id)['total_stars']==2
 
 
 def test_duplicate_sessions_and_repeated_submissions_do_not_multiply_rewards(researcher_client):
