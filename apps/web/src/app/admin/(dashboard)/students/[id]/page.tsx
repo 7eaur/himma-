@@ -28,7 +28,7 @@ type V2LessonItem = { lesson_id: string; title: string; level: string;
   state: "skipped" | "completed" | "waiting_review" | "in_progress" | "current" | "not_started"; session_id: number | null };
 type SupervisorV2Home = StudentV2Home & {
   adaptation_decisions?: Array<{id: number; kind: string; reason_code: string; policy_version: string; unmastered_gap: boolean; created_at: string}>;
-  support_assignments?: Array<{id: number; lesson_id: string; target_skill: string; focus: string; mode: string; status: string; created_at: string}>;
+  support_assignments?: Array<{id: number; lesson_id: string; target_skill: string; focus: string; mode: string; status: string; needs_followup: boolean; created_at: string}>;
   lesson_overview?: { state: "ready" | "unavailable" | "awaiting_journey"; content_release_version: string | null; items: V2LessonItem[] };
 };
 
@@ -377,13 +377,15 @@ function StudentDetailView({ id }: { id: string }) {
           </>}
           {activeTab === "adaptation" && <>
             <p className={styles.muted}>الدعم والتكيف يحددهما النظام تلقائيًا. انتهاء نشاط الدعم لا يعني بالضرورة إتقان المهارة.</p>
+            {(v2Home.support_assignments ?? []).some(item => item.needs_followup) && <p className={styles.notice} role="status">توجد مهارات تحتاج متابعة تعليمية. راجع المهارات المحددة أدناه مع الطفل في فرصة تعلم لاحقة. لم يُعلّق تقدمه، ولم تُمنح له نجمة إتقان عنها.</p>}
             {(v2Home.support_assignments ?? []).length === 0
               ? <p className={styles.notice}>لا توجد مهام تقوية مسجلة لهذا الطالب في إصدار المحتوى الحالي.</p>
               : <div className={styles.history}>{v2Home.support_assignments?.map(item => (
                 <div key={item.id} className={styles.historyItem}>
                   <div><strong>{item.lesson_id} · المهارة {item.target_skill}</strong>
-                    <p className={styles.muted}>نوع الدعم: {item.mode === "targeted_support" ? "تقوية موجهة" : "تحقق إضافي"} · التركيز: {item.focus}</p></div>
-                  <span>{item.status === "resolved" ? "انتهى النشاط" : item.status === "waiting_review" ? "بانتظار مراجعة الصوت" : item.status === "active" ? "جارٍ" : "حالة تاريخية"}</span>
+                    <p className={styles.muted}>نوع الدعم: {item.mode === "targeted_support" ? "تقوية موجهة" : "تحقق إضافي"} · التركيز: {item.focus}</p>
+                    {item.needs_followup && <p className={styles.notice}>تحتاج متابعة: لم يُثبت إتقان هذه المهارة بعد التحقق المستقل. راجعها مع الطالب لاحقًا.</p>}</div>
+                  <span>{item.needs_followup ? "تحتاج متابعة تعليمية" : item.status === "resolved" ? "انتهى النشاط" : item.status === "waiting_review" ? "بانتظار مراجعة الصوت" : item.status === "active" ? "جارٍ" : "حالة تاريخية"}</span>
                 </div>
               ))}</div>}
           </>}
