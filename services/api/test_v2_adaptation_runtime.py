@@ -358,6 +358,9 @@ def test_pending_support_practice_reading_blocks_promotion_until_review(student_
         original = db.get(LessonQuestionResponse, response_id)
         original.status = proof.review_status = "graded"
         original.is_correct = proof.is_correct = True
+        # Match the supervisor review endpoint, which flushes before querying pending evidence.
+        # Test sessions intentionally disable autoflush.
+        db.flush()
         resumed = finish_support_check(db, session, assignment, decision_key="support:after-reviewed-reading")
         assert resumed.decision_kind == "next_lesson"
         assert session.stage == "complete" and session.status == "completed"
@@ -389,6 +392,8 @@ def test_reviewed_additional_check_failure_restores_active_support_session(stude
         proof = db.get(SkillEvidence, proof_id)
         pending.status = proof.review_status = "graded"
         pending.is_correct = proof.is_correct = False
+        # Persist the reviewed evidence in this transaction before checking the SQL status filter.
+        db.flush()
         resumed = finish_support_check(db, session, assignment, decision_key="support:reviewed:check")
         assert resumed.decision_kind == "targeted_support"
         assert session.stage == "support_practice" and session.status == "in_progress"
