@@ -518,3 +518,28 @@ def test_pinned_lesson_video_range_and_private_cache_require_student_session(stu
     # Exercise 401 after removing the cookie from the shared TestClient.
     client.cookies.clear()
     assert client.get(route).status_code == 401
+
+
+def test_missing_preview_sound_or_image_never_falls_back_to_unrelated_legacy_media(student_client, monkeypatch):
+    """An absent educational file must fail closed rather than play a different word."""
+    import v2_lesson_runtime
+
+    monkeypatch.setattr(v2_lesson_runtime, "PREVIEW_BINDINGS_FILE", __import__("pathlib").Path("/not-a-binding-file.json"))
+    from v2_lesson_runtime import get_media as original_get_media
+
+    def absent_binary(asset_id):
+        original = original_get_media(asset_id)
+        if asset_id == "LET-01":
+            return dict(original, source_path="assets/audio/HIMMA_AUDIO_V1/web_mp3/absent.mp3",
+                        v1_path=None, path=None)
+        if asset_id == "VOC-04":
+            return dict(original, source_path="assets/education/absent-image.webp",
+                        v1_path=None, path=None)
+        return original
+
+    monkeypatch.setattr(v2_lesson_runtime, "get_media", absent_binary)
+    audio = student_client.get("/v2/lessons/test-fixtures/audio/LET-01")
+    image = student_client.get("/v2/lessons/test-fixtures/image/VOC-04")
+    assert audio.status_code == image.status_code == 503
+    assert "غير متاح" in audio.json()["detail"]
+    assert "غير متاح" in image.json()["detail"]

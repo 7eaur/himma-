@@ -32,8 +32,6 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 DEMO_LESSON_VIDEO = REPO_ROOT / "assets/video/HIMMA_V2_DEMO/gemini_generated_video_72256b30.mp4"
 NEW_V2_AUDIO_ROOT = REPO_ROOT / "assets/audio/HIMMA_AUDIO_V2/web_mp3"
 PREVIEW_BINDINGS_FILE = REPO_ROOT / "services/api/test_fixtures/v2-preview-bindings.json"
-FALLBACK_AUDIO = REPO_ROOT / "assets/audio/HIMMA_AUDIO_V1/web_mp3/LET-01.mp3"
-FALLBACK_IMAGE = REPO_ROOT / "assets/education/generated_vocabulary/webp/hem-gen-voc-001-house-512.webp"
 EXTERNAL_STAGE = {"video": "teaching_video", "complete": "outcome"}
 
 
@@ -447,7 +445,10 @@ def _fixture_source(asset: dict, *, kind: str) -> Path:
             raise HTTPException(status_code=503, detail="صيغة أو مسار الوسيط التعليمي غير آمن")
         if candidate.is_file():
             return candidate
-    return FALLBACK_AUDIO if kind == "audio" else FALLBACK_IMAGE
+    # Never replace a missing reading sound/image with an unrelated legacy
+    # fixture. Incorrect educational media is worse than an explicit error:
+    # the learner could select an answer for the wrong stimulus.
+    raise HTTPException(status_code=503, detail="الوسيط التعليمي المطلوب غير متاح؛ يجب توفير ملفه المعتمد")
 
 
 @router.get("/test-fixtures/audio/{asset_id}")
