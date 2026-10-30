@@ -25,17 +25,25 @@ export default function ContentBankPage() {
   const [bank, setBank] = useState<Bank | null>(null);
   const [section, setSection] = useState("");
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
   const [offset, setOffset] = useState(0);
   const [reload, setReload] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  // The authoring bank is read-only but can include private review keys.
+  // Debounce typing so Arabic input/IME composition does not request and
+  // discard an entire staff-authorized answer page for every keystroke.
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedSearch(search), 300);
+    return () => window.clearTimeout(timer);
+  }, [search]);
   useEffect(() => {
     const controller = new AbortController();
     const load = async () => {
       setLoading(true); setError("");
       try {
-        const response = await fetch(`/api/v2/content/admin/bank?${new URLSearchParams({ section, search, offset: String(offset), limit: "25" })}`, { cache: "no-store", signal: controller.signal });
+        const response = await fetch(`/api/v2/content/admin/bank?${new URLSearchParams({ section, search: debouncedSearch, offset: String(offset), limit: "25" })}`, { cache: "no-store", signal: controller.signal });
         if (!response.ok) throw new Error("تعذر تحميل بنك V2. أعد المحاولة.");
         const data = await response.json() as Bank;
         if (data.mode !== "read_only" || !Array.isArray(data.items) || !Array.isArray(data.sections)) throw new Error("عقد بنك المحتوى غير متطابق.");
@@ -44,7 +52,7 @@ export default function ContentBankPage() {
       finally { if (!controller.signal.aborted) setLoading(false); }
     };
     void load(); return () => controller.abort();
-  }, [section, search, offset, reload]);
+  }, [section, debouncedSearch, offset, reload]);
   const current = bank?.sections.find(row => row.id === section);
   const activeGroup = sectionGroups.find(group => current && group.includes(current))?.key ?? "all";
   const selectedQuestion = bank?.items.find(row => row.question.question_id === selectedQuestionId) ?? bank?.items[0];
@@ -81,7 +89,7 @@ export default function ContentBankPage() {
             return entries.length ? <optgroup key={group.key} label={group.label}>{entries.map(row => <option key={row.id} value={row.id}>{row.id} · {row.title} ({row.question_count})</option>)}</optgroup> : null;
           })}
         </select></label>
-        <label className="flex min-w-0 flex-1 flex-col gap-2"><span>بحث في السؤال أو المعرّف</span><input className="input-field" value={search} onChange={e => { setSearch(e.target.value); setOffset(0); }} /></label>
+        <label className="flex min-w-0 flex-1 flex-col gap-2"><span>بحث في السؤال أو النص أو الخيارات أو المعرّف</span><input className="input-field" value={search} onChange={e => { setSearch(e.target.value); setOffset(0); }} /></label>
       </div>
       {current && <div className="mt-4 rounded-xl bg-bg p-4"><h2 className="font-bold">{current.title}</h2>{current.objective && <p>الهدف: {current.objective}</p>}{current.intro?.text && <p className="mt-2">التمهيد: {current.intro.text}</p>}</div>}
       {loading ? <p role="status" className="py-8">جاري تحميل البنك...</p> : error ? <div role="alert" className="alert-error mt-4">{error} <AdminAction onClick={() => setReload(v => v + 1)}>إعادة المحاولة</AdminAction></div>
