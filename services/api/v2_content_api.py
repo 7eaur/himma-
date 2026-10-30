@@ -21,9 +21,10 @@ router = APIRouter(prefix="/v2/content", tags=["v2-content"])
 
 @router.get("/admin/bank")
 def supervisor_content_bank(
+    response: Response,
     section: str = Query(default="", max_length=30), search: str = Query(default="", max_length=100),
     limit: int = Query(default=25, ge=1, le=50), offset: int = Query(default=0, ge=0),
-    response: Response, _user: User = Depends(get_current_user),
+    _user: User = Depends(get_current_user),
 ):
     """Read-only current authoring bank; private answers require staff authorization."""
     response.headers["Cache-Control"] = "private, no-store"
