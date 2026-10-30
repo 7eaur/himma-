@@ -1,16 +1,19 @@
 """Authenticated, learner-safe preview boundary for the unapproved V2 release."""
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi.responses import FileResponse, StreamingResponse
+from io import BytesIO
+import json
 
 from dependencies import get_any_authenticated, get_current_user, get_db
 from sqlalchemy.orm import Session
-from db.models import User
+from db.models import AuditLog, User
 from runtime_flags import protected_runtime, trial_v2_preview_allowed
 from v2_content.media import MediaProvider, approved_asset_path, educational_media_version
 from v2_content.projection import student_manifest, student_question
 from v2_content.repository import get_media, get_question, get_release
 from v2_content.recovery import restore_original_snapshot
+from v2_content.review_export import build_review_workbook
 
 
 router = APIRouter(prefix="/v2/content", tags=["v2-content"])
@@ -20,9 +23,12 @@ router = APIRouter(prefix="/v2/content", tags=["v2-content"])
 def supervisor_content_bank(
     section: str = Query(default="", max_length=30), search: str = Query(default="", max_length=100),
     limit: int = Query(default=25, ge=1, le=50), offset: int = Query(default=0, ge=0),
-    _user: User = Depends(get_current_user),
+    response: Response, _user: User = Depends(get_current_user),
 ):
     """Read-only current authoring bank; private answers require staff authorization."""
+    response.headers["Cache-Control"] = "private, no-store"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Vary"] = "Cookie"
     release = get_release()
     sections = [{"id": "pretest", "title": "الاختبار القبلي", "kind": "assessment", "intro": None}]
     for lesson in release["lessons"]:
@@ -60,6 +66,37 @@ def supervisor_content_bank(
             "release_state": release["state"], "bank_total": len(questions), "total": len(selected),
             "sections": sections, "items": items, "offset": offset,
             "next_offset": offset + limit if offset + limit < len(selected) else None}
+
+
+
+@router.get("/admin/review-export.xlsx")
+def supervisor_content_review_export(
+    user: User = Depends(get_current_user), db: Session = Depends(get_db),
+):
+    """Download a staff-only workbook built from today's canonical compiled bank.
+
+    The file contains private answer keys; never persist it under public assets
+    or serve it from a learner-visible endpoint.
+    """
+    release = get_release()
+    payload = build_review_workbook(release)
+    db.add(AuditLog(
+        actor_role="researcher", actor_id=user.id,
+        action="v2.content.review_exported",
+        entity_type="v2_content_release", entity_id=release["version"],
+        details=json.dumps({"checksum": release["checksum"], "questions": len(release["questions"])}),
+    ))
+    db.commit()
+    return StreamingResponse(
+        BytesIO(payload),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={
+            "Content-Disposition": 'attachment; filename="himma-v2-content-review.xlsx"',
+            "Cache-Control": "private, no-store",
+            "X-Content-Type-Options": "nosniff",
+            "Vary": "Cookie",
+        },
+    )
 
 
 @router.post("/admin/releases/{release_id}/restore-original-snapshot")
