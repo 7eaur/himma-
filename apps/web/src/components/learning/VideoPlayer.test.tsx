@@ -94,6 +94,22 @@ describe("VideoPlayer", () => {
     expect(onEnded).toHaveBeenNthCalledWith(2, 5.5, 6);
   });
 
+  it("resumes an existing buffered video without throwing away downloaded bytes", async () => {
+    render(<VideoPlayer src="/slow.mp4" onCheckpoint={jest.fn()} onEnded={jest.fn()} />);
+    const video = screen.getByText("متصفحك لا يدعم تشغيل الفيديو.").closest("video") as HTMLVideoElement;
+    setMediaTime(video, 4, 10);
+    Object.defineProperty(video, "readyState", {
+      configurable: true, value: HTMLMediaElement.HAVE_CURRENT_DATA,
+    });
+    fireEvent.canPlay(video);
+    fireEvent.stalled(video);
+    expect(screen.getByText(/الفيديو يتوقف مؤقتًا/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", {name: "إعادة محاولة التحميل"}));
+    await waitFor(() => expect(HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(1));
+    expect(HTMLMediaElement.prototype.load).not.toHaveBeenCalled();
+    expect(video.currentTime).toBe(4);
+  });
+
   it("shows recoverable buffering and media error states", async () => {
     render(<VideoPlayer src="/fixture.mp4" onCheckpoint={jest.fn()} onEnded={jest.fn()} />);
     const video = screen.getByText("متصفحك لا يدعم تشغيل الفيديو.").closest("video") as HTMLVideoElement;
