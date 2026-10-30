@@ -757,10 +757,11 @@ it("uploads Safari MP4 reading audio with the matching MIME and filename", async
       }),
     });
   global.fetch = fetchMock;
+  let unmount: (() => void) | undefined;
   try {
-    render(<InteractionPlayer sessionId={7} interaction={payload({
+    unmount = render(<InteractionPlayer sessionId={7} interaction={payload({
       interaction: "read_aloud", options: [],
-    })} onLessonChange={jest.fn()}/>);
+    })} onLessonChange={jest.fn()}/>).unmount;
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: "بدء التسجيل" }));
       await Promise.resolve();
@@ -777,6 +778,8 @@ it("uploads Safari MP4 reading audio with the matching MIME and filename", async
     expect(audio.name).toBe("v2-reading.m4a");
     expect(JSON.parse(fetchMock.mock.calls[1][1].body).audio_mime_type).toBe("audio/mp4");
   } finally {
+    // The Blob URL cleanup runs during unmount; restore jsdom mocks only after it.
+    unmount?.();
     Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: previousDevices });
     global.MediaRecorder = previousRecorder;
     URL.createObjectURL = oldCreate;
