@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import ContentBankPage from "./page";
 
 const bank = {
@@ -36,4 +36,28 @@ it("keeps a bank source error unavailable and permits retry", async () => {
   expect(screen.queryByTestId("v2-bank-question")).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "إعادة المحاولة" }));
   expect(await screen.findByTestId("v2-bank-question")).toBeInTheDocument();
+});
+
+
+it("debounces consecutive Arabic bank searches instead of requesting private pages per letter", async () => {
+  const fetcher = jest.fn().mockResolvedValue({ok: true, json: async () => bank});
+  global.fetch = fetcher;
+  render(<ContentBankPage/>);
+  await screen.findByTestId("v2-bank-question");
+  jest.useFakeTimers();
+  try {
+    const field = screen.getByRole("textbox", {name: "بحث في السؤال أو النص أو الخيارات أو المعرّف"});
+    fireEvent.change(field, {target: {value: "م"}});
+    fireEvent.change(field, {target: {value: "مد"}});
+    fireEvent.change(field, {target: {value: "مدر"}});
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      jest.advanceTimersByTime(300);
+      await Promise.resolve();
+    });
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(fetcher.mock.calls[1][0]).toContain("search=%D9%85%D8%AF%D8%B1");
+  } finally {
+    jest.useRealTimers();
+  }
 });
