@@ -1,4 +1,4 @@
-import {fireEvent, render, screen, waitFor} from '@testing-library/react';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import Page from './page';
 let currentId = '1';
 const mockPush = jest.fn((href: string) => window.history.pushState({}, '', href));
@@ -85,4 +85,31 @@ it('keeps tabs in sync with in-app route navigation and back/forward history', a
   window.history.pushState({},'', '/admin/students/1?tab=tests');
   rerender(<Page/>);
   await waitFor(()=>expect(screen.getByRole('tab',{name:'الاختبارات'})).toHaveAttribute('aria-selected','true'));
+});
+
+
+it('sends only one access-code rotation for rapid repeated taps', async () => {
+  const fetcher = setup();
+  let finish!: (value: unknown) => void;
+  const delayed = new Promise(resolve => { finish = resolve; });
+  fetcher.mockImplementation((url: string) => {
+    const id = Number(url.match(/students\/(\d+)/)?.[1] || 1);
+    if (url.endsWith('/access-code')) return delayed;
+    return Promise.resolve({ok: true, json: async () => url.endsWith('/home') ? home(id) : account(id)});
+  });
+  render(<Page/>);
+  await screen.findByRole('heading', {name: 'طالب اصطناعي 1'});
+  fireEvent.click(screen.getByRole('tab', {name: 'الحساب'}));
+  const rotate = screen.getByRole('button', {name: 'توليد رمز جديد'});
+  await act(async () => {
+    rotate.click();
+    rotate.click();
+    await Promise.resolve();
+  });
+  expect(fetcher.mock.calls.filter(([url]) => url.endsWith('/access-code'))).toHaveLength(1);
+  await act(async () => {
+    finish({ok: true, json: async () => account(1)});
+    await Promise.resolve();
+  });
+  await screen.findByText('تم تحديث رمز دخول الطالب.');
 });
