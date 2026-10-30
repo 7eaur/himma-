@@ -136,3 +136,72 @@ def test_bundled_arabic_font_works_without_host_font_packages(monkeypatch):
     monkeypatch.setattr(Path, 'is_file', lambda path: str(path) == str(bundled))
     assert _find_report_font() == bundled
     assert bundled.stat().st_size > 100000
+
+
+def test_support_report_requires_independent_mastery_not_merely_resolved_status(researcher_client):
+    from db.learning_models import AdaptationDecision, LessonSession, SupportAssignment
+    student_id = _official_pair()
+    with TestingSessionLocal() as db:
+        release = db.query(ContentRelease).filter(ContentRelease.version.is_not(None)).order_by(ContentRelease.id).first()
+        assert release is not None
+        lesson = LessonSession(student_id=student_id, content_release_id=release.id,
+                               lesson_id="L1-01", stage="outcome", status="completed")
+        db.add(lesson)
+        db.flush()
+        for index, reason in enumerate(("support_check_resolved_gap",
+                                        "support_gap_unresolved_continue_without_mastery"), 1):
+            assignment = SupportAssignment(
+                student_id=student_id, lesson_session_id=lesson.id,
+                content_release_id=release.id, support_id="SUP-L1-01",
+                focus=f"focus-{index}", target_skill="S1",
+                source_lesson_id="L1-01", source_level=1, support_level=1,
+                mode="targeted_support", status="resolved", verification_round=0,
+                practice_question_ids=[], check_question_ids=[],
+                return_to={}, policy_version="synthetic-v2",
+            )
+            db.add(assignment)
+            db.flush()
+            db.add(AdaptationDecision(
+                student_id=student_id, lesson_session_id=lesson.id,
+                content_release_id=release.id, support_assignment_id=assignment.id,
+                decision_key=f"support-test-{index}", decision_kind="next_lesson",
+                reason_code=reason, evidence_ids=[], explanation_json={},
+                policy_version="synthetic-v2",
+            ))
+        db.commit()
+    response = researcher_client.get("/v2/reports/summary")
+    assert response.status_code == 200, response.text
+    support = response.json()["students"][0]["support"]
+    assert support["total"] == 2 and support["resolved"] == 2
+    assert support["mastered"] == 1 and support["needs_followup"] == 1
+    payload = researcher_client.get("/v2/reports/exports/cohort.xlsx")
+    assert payload.status_code == 200, payload.text[:100]
+    sheet = load_workbook(BytesIO(payload.content)).worksheets[0]
+    assert "دعم مثبت الإتقان" in [cell.value for cell in sheet[1]]
+    assert sheet["L2"].value == 1 and sheet["M2"].value == 2
+
+
+def test_requested_rerecord_is_not_reported_as_staff_pending_review(researcher_client):
+    from db.learning_models import AssessmentQuestionResponse, V2ReviewRetryTask
+    with TestingSessionLocal() as db:
+        student = db.query(Student).one()
+        session = AssessmentSession(
+            student_id=student.id, session_type="pretest", status="in_progress",
+            v2_state="waiting_review", official_for_reporting=False,
+        )
+        db.add(session); db.flush()
+        response = AssessmentQuestionResponse(
+            assessment_session_id=session.id, question_id="synthetic-report-read",
+            role="pretest", status="pending_review", is_correct=None,
+            answer_json={}, submit_key="report-retry-only",
+            skill_group="S1", evidence_type="read_aloud",
+        )
+        db.add(response); db.flush()
+        retry = V2ReviewRetryTask(
+            student_id=student.id, assessment_response_id=response.id,
+            status="requested", request_kind="rerecord", reason="قراءة تحتاج إعادة",
+        )
+        db.add(retry); db.commit()
+    report = researcher_client.get("/v2/reports/summary")
+    assert report.status_code == 200, report.text
+    assert report.json()["students"][0]["pending_assessment_reviews"] == 0
