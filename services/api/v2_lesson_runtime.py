@@ -80,7 +80,7 @@ def _session_payload(db: Session, session: LessonSession) -> dict:
         if media_path is None:
             raise HTTPException(status_code=409, detail="وسيط الإصدار المثبت لم يعد متاحًا")
         digest = educational_media_version(media_path)
-        # The first-release demo video is deliberately shared across lessons.
+        # The first-release temporary video is deliberately shared across lessons.
         # Session-specific URLs force a fresh browser cache entry on every
         # lesson although all 19 aliases reference the same approved bytes.
         # Reuse one canonical, authenticated *asset* URL only if the currently
