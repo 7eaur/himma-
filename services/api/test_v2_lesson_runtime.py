@@ -502,6 +502,8 @@ def test_pinned_lesson_video_range_and_private_cache_require_student_session(stu
     session_id = started["session"]["session_id"]
     media_url = started["video"]["url"]
     assert media_url is not None and "?v=" in media_url
+    # The same demo binary used by 19 lessons must have ONE stable URL.
+    assert media_url.startswith("/api/v2/content/media/VID-L1-01?v=")
     route = media_url.removeprefix("/api")
     media_path = urlsplit(route).path
 
@@ -543,3 +545,40 @@ def test_missing_preview_sound_or_image_never_falls_back_to_unrelated_legacy_med
     assert audio.status_code == image.status_code == 503
     assert "غير متاح" in audio.json()["detail"]
     assert "غير متاح" in image.json()["detail"]
+
+
+def test_shared_temporary_lesson_video_reuses_one_url_across_sessions_and_falls_back_for_changed_bank(student_client, monkeypatch):
+    from v2_content.repository import get_release
+    from v2_lesson_runtime import _session_payload
+    import v2_lesson_runtime
+    from copy import deepcopy
+
+    started = _start(student_client)
+    first_url = started["video"]["url"]
+    with TestingSessionLocal() as db:
+        original = db.query(LessonSession).filter(
+            LessonSession.id == started["session"]["session_id"],
+        ).one()
+        second = LessonSession(
+            student_id=original.student_id,
+            content_release_id=original.content_release_id,
+            lesson_id="L1-02",
+            stage="complete", status="completed",
+        )
+        db.add(second)
+        db.flush()
+        second_payload = _session_payload(db, second)
+        assert second_payload["video"]["url"] == first_url
+        assert second_payload["video"]["asset_id"] != started["video"]["asset_id"]
+
+        # If today's compiled release changes the temporary video source,
+        # a student's frozen release must not resolve to the wrong video.
+        current = deepcopy(get_release())
+        for row in current["media"]:
+            if row.get("kind") == "video":
+                row["source_sha256"] = "0" * 64
+        monkeypatch.setattr(v2_lesson_runtime, "get_release", lambda: current)
+        fallback = _session_payload(db, second)
+        assert fallback["video"]["url"].startswith(
+            f'/api/v2/lessons/sessions/{second.id}/media/VID-L1-02?v='
+        )
