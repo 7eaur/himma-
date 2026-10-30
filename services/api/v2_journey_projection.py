@@ -54,7 +54,7 @@ class JourneyFacts:
     pending_review_count: int = 0
 
 
-def _latest(db: Session, model, student_ids, *filters, order, partition=None):
+def _latest(db: Session, model, student_ids, *filters, order, partition=None, review_counts=None):
     ranked = db.query(
         model.id.label("record_id"),
         func.row_number().over(
@@ -62,7 +62,12 @@ def _latest(db: Session, model, student_ids, *filters, order, partition=None):
             order_by=order,
         ).label("position"),
     ).filter(model.student_id.in_(student_ids), *filters).subquery()
-    return db.query(model).join(ranked, model.id == ranked.c.record_id).filter(ranked.c.position == 1).all()
+    query = db.query(model).join(ranked, model.id == ranked.c.record_id).filter(ranked.c.position == 1)
+    if review_counts is not None:
+        return query.outerjoin(review_counts, model.id == review_counts.c.session_id).with_entities(
+            model, func.coalesce(review_counts.c.pending_count, 0),
+        ).all()
+    return query.all()
 
 
 def load_journey_facts(db: Session, student_ids: list[int]) -> dict[int, JourneyFacts]:
@@ -75,8 +80,35 @@ def load_journey_facts(db: Session, student_ids: list[int]) -> dict[int, Journey
     for row in db.query(StudentJourney).filter(StudentJourney.student_id.in_(student_ids)).all():
         facts[row.student_id].journey = row
 
+    # Count actionable reading reviews in the SAME assessment/lesson SELECTs.
+    # This keeps cohort query count bounded even with 50 students and avoids
+    # returning any audio data or entire answer records.
+    requested_assessment_responses = db.query(V2ReviewRetryTask.assessment_response_id).filter(
+        V2ReviewRetryTask.status == "requested",
+        V2ReviewRetryTask.assessment_response_id.is_not(None),
+    )
+    requested_lesson_responses = db.query(V2ReviewRetryTask.lesson_response_id).filter(
+        V2ReviewRetryTask.status == "requested",
+        V2ReviewRetryTask.lesson_response_id.is_not(None),
+    )
+    assessment_review_counts = db.query(
+        AssessmentQuestionResponse.assessment_session_id.label("session_id"),
+        func.count(AssessmentQuestionResponse.id).label("pending_count"),
+    ).filter(
+        AssessmentQuestionResponse.status == "pending_review",
+        ~AssessmentQuestionResponse.id.in_(requested_assessment_responses),
+    ).group_by(AssessmentQuestionResponse.assessment_session_id).subquery()
+    lesson_review_counts = db.query(
+        LessonQuestionResponse.lesson_session_id.label("session_id"),
+        func.count(LessonQuestionResponse.id).label("pending_count"),
+    ).filter(
+        LessonQuestionResponse.status == "pending_review",
+        ~LessonQuestionResponse.id.in_(requested_lesson_responses),
+    ).group_by(LessonQuestionResponse.lesson_session_id).subquery()
+
     # Prefer the active attempt, otherwise the latest official attempt per kind.
-    for row in _latest(
+    assessment_pending_by_id = {}
+    for row, pending_count in _latest(
         db, AssessmentSession, student_ids,
         AssessmentSession.v2_state.is_not(None),
         or_(AssessmentSession.status == "in_progress", AssessmentSession.official_for_reporting.is_(True)),
@@ -84,59 +116,30 @@ def load_journey_facts(db: Session, student_ids: list[int]) -> dict[int, Journey
         partition=(AssessmentSession.student_id, AssessmentSession.session_type),
         order=(case((AssessmentSession.status == "in_progress", 0), else_=1),
                AssessmentSession.started_at.desc(), AssessmentSession.id.desc()),
+        review_counts=assessment_review_counts,
     ):
         facts[row.student_id].assessments[row.session_type] = row
+        assessment_pending_by_id[row.id] = int(pending_count)
     for item in facts.values():
         active = [row for row in item.assessments.values() if row.status == "in_progress"]
         item.active_assessment = max(active, key=lambda row: (row.started_at, row.id)) if active else None
+        if item.active_assessment is not None:
+            item.pending_review_count += assessment_pending_by_id.get(item.active_assessment.id, 0)
 
-    for row in db.query(LessonSession).filter(
+    lesson_pending_by_id = {}
+    for row, pending_count in db.query(
+        LessonSession, func.coalesce(lesson_review_counts.c.pending_count, 0),
+    ).outerjoin(
+        lesson_review_counts, LessonSession.id == lesson_review_counts.c.session_id,
+    ).filter(
         LessonSession.student_id.in_(student_ids),
         LessonSession.status.in_(("in_progress", "waiting_review")),
     ).all():
         facts[row.student_id].active_lesson = row
-
-    # A session's waiting_review flag is not the number of reading items.
-    # Count outstanding review evidence in one bounded query per V2 session
-    # kind for the whole page, without bringing private audio into memory.
-    # Requested re-recordings are the CHILD's next action, not an item ready
-    # for supervisor review. Exclude them from the actionable review count
-    # until the learner submits the replacement take.
-    requested_lesson_responses = db.query(V2ReviewRetryTask.lesson_response_id).filter(
-        V2ReviewRetryTask.status == "requested",
-        V2ReviewRetryTask.lesson_response_id.is_not(None),
-    )
-    requested_assessment_responses = db.query(V2ReviewRetryTask.assessment_response_id).filter(
-        V2ReviewRetryTask.status == "requested",
-        V2ReviewRetryTask.assessment_response_id.is_not(None),
-    )
-    lesson_session_ids = [item.active_lesson.id for item in facts.values() if item.active_lesson]
-    if lesson_session_ids:
-        pending_lessons = db.query(
-            LessonQuestionResponse.lesson_session_id,
-            func.count(LessonQuestionResponse.id),
-        ).filter(
-            LessonQuestionResponse.lesson_session_id.in_(lesson_session_ids),
-            LessonQuestionResponse.status == "pending_review",
-            ~LessonQuestionResponse.id.in_(requested_lesson_responses),
-        ).group_by(LessonQuestionResponse.lesson_session_id).all()
-        lesson_owners = {item.active_lesson.id: item.student_id for item in facts.values() if item.active_lesson}
-        for session_id, count in pending_lessons:
-            facts[lesson_owners[session_id]].pending_review_count += int(count)
-
-    assessment_session_ids = [item.active_assessment.id for item in facts.values() if item.active_assessment]
-    if assessment_session_ids:
-        pending_assessments = db.query(
-            AssessmentQuestionResponse.assessment_session_id,
-            func.count(AssessmentQuestionResponse.id),
-        ).filter(
-            AssessmentQuestionResponse.assessment_session_id.in_(assessment_session_ids),
-            AssessmentQuestionResponse.status == "pending_review",
-            ~AssessmentQuestionResponse.id.in_(requested_assessment_responses),
-        ).group_by(AssessmentQuestionResponse.assessment_session_id).all()
-        assessment_owners = {item.active_assessment.id: item.student_id for item in facts.values() if item.active_assessment}
-        for session_id, count in pending_assessments:
-            facts[assessment_owners[session_id]].pending_review_count += int(count)
+        lesson_pending_by_id[row.id] = int(pending_count)
+    for item in facts.values():
+        if item.active_lesson is not None:
+            item.pending_review_count += lesson_pending_by_id.get(item.active_lesson.id, 0)
 
     eligible = db.query(StudentJourney.student_id).filter(
         StudentJourney.student_id.in_(student_ids),
