@@ -78,6 +78,10 @@ def test_p08_learner_audio_retry_never_overwrites_original_recording(student_cli
     assert action.json()["task_id"] == task_id
     assert action.json()["href"] == f"/student/retry/{task_id}"
     assert action.json()["session_id"] == sid
+    # Re-recording is now the child's action, not an actionable staff review.
+    dashboard = student_client.get("/v2/student/home")
+    assert dashboard.status_code == 200, dashboard.text
+    assert dashboard.json()["progress"]["pending_review"] == 0
     new_key = f"audio/{student_id}/updated.webm"
     # A rerecord request cannot accept a previously uploaded audio key unless
     # the new recording was staged for this specific task.
@@ -99,6 +103,10 @@ def test_p08_learner_audio_retry_never_overwrites_original_recording(student_cli
         "submit_key": str(uuid4()), **staged.json(),
     })
     assert resent.status_code == 200, resent.text
+    # The replacement is actionable for staff only AFTER the child submits.
+    reviewed = student_client.get("/v2/student/home")
+    assert reviewed.status_code == 200, reviewed.text
+    assert reviewed.json()["progress"]["pending_review"] == 1
     # A submitted recording is no longer an outstanding learner task.
     assert student_client.get("/v2/assessments/current-action").json()["action"] != "rerecord_required"
     _researcher(student_client)
