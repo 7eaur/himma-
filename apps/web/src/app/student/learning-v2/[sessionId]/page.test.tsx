@@ -176,3 +176,46 @@ it("shows the approved objective in the intro exactly once", async () => {
   expect(intro).toHaveTextContent("أميز صوت الحرف في بداية الكلمة");
   expect(screen.getAllByText("أميز صوت الحرف في بداية الكلمة")).toHaveLength(1);
 });
+
+it("shows a learner-friendly level rather than internal release/lesson codes", async () => {
+  global.fetch = jest.fn(async () => ok(lesson(44, "الحرف وصوته"))) as typeof fetch;
+  render(<V2LessonPage />);
+  await screen.findByRole("heading", { name: "الحرف وصوته", level: 1 });
+  expect(screen.getByText("المستوى الأول · درس القراءة")).toBeVisible();
+  expect(screen.queryByText("L1 · L1-01")).not.toBeInTheDocument();
+});
+
+it("rejects a cross-session POST acknowledgment and reloads the saved lesson via GET", async () => {
+  const base = lesson(44, "الدرس الأصلي");
+  const practice = {
+    ...base,
+    session: { ...base.session, stage: "guided_practice", version: 4 },
+    interaction: {
+      question: {
+        question_id: "LESSON-Q-1", role: "guided_practice", interaction: "choose_one",
+        prompt: "اختر الصوت المناسب", stimulus: { text: "بَ", media: [] },
+        options: [{ id: "a", text: "بَ", media: [] }, { id: "b", text: "مَ", media: [] }],
+      },
+      media: {}, progress: { index: 1, total: 2, stage: "guided_practice" },
+      attempts: 0,
+    },
+  };
+  let gets = 0;
+  const fetcher = jest.fn(async (_url: RequestInfo | URL, init?: RequestInit) => {
+    if (init?.method === "POST") return ok({
+      submission: { retry_required: false, accepted: true },
+      lesson: { ...lesson(45, "درس من جلسة أخرى"), session: { ...base.session, session_id: 45, version: 5 } },
+    });
+    gets += 1;
+    return ok(practice);
+  });
+  global.fetch = fetcher as typeof fetch;
+  render(<V2LessonPage />);
+  expect(await screen.findByRole("heading", { name: "الدرس الأصلي", level: 1 })).toBeVisible();
+  fireEvent.click(screen.getByRole("button", { name: "اختيار الخيار 1" }));
+  fireEvent.click(screen.getByRole("button", { name: "تحقق من الإجابة" }));
+  await waitFor(() => expect(gets).toBe(2));
+  expect(await screen.findByRole("heading", { name: "الدرس الأصلي", level: 1 })).toBeVisible();
+  expect(screen.queryByRole("heading", { name: "درس من جلسة أخرى", level: 1 })).not.toBeInTheDocument();
+  expect(fetcher.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(1);
+});
