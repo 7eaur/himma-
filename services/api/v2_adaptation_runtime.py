@@ -330,11 +330,24 @@ def _remaining_independent_gaps(db: Session, session: LessonSession) -> list[Pol
 
 
 def finish_support_check(db: Session, session: LessonSession, assignment: SupportAssignment, *, decision_key: str | None = None) -> AdaptationDecision:
-    rows = db.query(SkillEvidence).filter(
-        SkillEvidence.lesson_session_id == session.id,
-        SkillEvidence.support_assignment_id == assignment.id,
-        SkillEvidence.role == "support_check",
-    ).order_by(SkillEvidence.id).all()
+    # An alternate check can fail and lead to targeted practice before the
+    # SAME two questions are presented for verification again. Keep historical
+    # evidence immutable, but evaluate only the current verification round.
+    # Response attempt numbers are scoped to (session, question), and the
+    # assignment is bounded to rounds 0 and 1 by the DB constraint.
+    round_no = int(assignment.verification_round or 0)
+    rows = [
+        evidence for evidence, attempt_no in db.query(
+            SkillEvidence, LessonQuestionResponse.attempt_no,
+        ).join(
+            LessonQuestionResponse, LessonQuestionResponse.id == SkillEvidence.response_id,
+        ).filter(
+            SkillEvidence.lesson_session_id == session.id,
+            SkillEvidence.support_assignment_id == assignment.id,
+            SkillEvidence.role == "support_check",
+        ).order_by(SkillEvidence.id).all()
+        if attempt_no == round_no + 1
+    ]
     _require_complete_check_evidence(rows, list(assignment.check_question_ids or []))
     was_additional = assignment.mode == "additional_check"
     pending = _pending_lesson_evidence(db, session)
@@ -348,7 +361,7 @@ def finish_support_check(db: Session, session: LessonSession, assignment: Suppor
             outcome = evaluate_support(_signals(rows, session.lesson_id), was_additional_check=was_additional)
         except ValueError as exc:
             raise HTTPException(status_code=409, detail="أدلة تحقق التقوية غير مكتملة") from exc
-    decision = _decision(db, session, decision_key or f"support:{assignment.id}:1", outcome, assignment)
+    decision = _decision(db, session, decision_key or f"support:{assignment.id}:{round_no + 1}", outcome, assignment)
     now = datetime.now(timezone.utc)
     if outcome.kind == "next_lesson":
         if outcome.reason_code == "support_gap_unresolved_continue_without_mastery":
