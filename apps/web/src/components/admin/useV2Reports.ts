@@ -7,7 +7,7 @@ export interface V2StudentReport {
   posttest: { score: number; attempt_no: number; release_version: string | null } | null;
   comparison_state: string; improvement_points: number | null; relative_improvement: number | null;
   progress: { completed_lessons: number | null; assigned_lessons: number | null; skipped_by_placement: number | null; percent: number | null };
-  support: { total: number; resolved: number; waiting: number; escalated: number }; pending_assessment_reviews: number;
+  support: { total: number; resolved: number; mastered: number; needs_followup: number; waiting: number; escalated: number }; pending_assessment_reviews: number;
 }
 export interface V2Report {
   source: "himma_v2_persisted_evidence"; students: V2StudentReport[];
