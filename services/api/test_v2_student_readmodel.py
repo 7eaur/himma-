@@ -136,6 +136,8 @@ def test_progress_ignores_duplicate_completed_sessions_and_pending_review(studen
 
 
 def test_pretest_pending_recordings_show_real_count_in_student_and_staff_v2_home(student_client, researcher_client):
+    # Both fixtures share TestClient; explicitly select the role for each step.
+    assert student_client.post("/auth/student-login", json={"access_code": "STU001"}).status_code == 200
     started = student_client.post("/v2/assessments/pretest/start")
     assert started.status_code == 200, started.text
     session_id = started.json()["session"]["session_id"]
@@ -153,6 +155,9 @@ def test_pretest_pending_recordings_show_real_count_in_student_and_staff_v2_home
     own = student_client.get("/v2/student/home")
     assert own.status_code == 200, own.text
     assert own.json()["progress"]["pending_review"] == 3
+    assert researcher_client.post("/auth/login", json={
+        "username": "researcher1", "password": "test-only-researcher-password",
+    }).status_code == 200
     staff = researcher_client.get(f"/v2/student/admin/students/{student_id}/home")
     assert staff.status_code == 200, staff.text
     assert staff.json()["progress"]["pending_review"] == 3
