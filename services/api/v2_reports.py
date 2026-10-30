@@ -15,7 +15,7 @@ from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 from sqlalchemy.orm import Session
 
-from db.learning_models import AssessmentQuestionResponse, LessonSession, PlacementDecisionV2, SkillEvidence, StudentJourney, SupportAssignment
+from db.learning_models import AdaptationDecision, AssessmentQuestionResponse, LessonSession, PlacementDecisionV2, SkillEvidence, StudentJourney, SupportAssignment, V2ReviewRetryTask
 from db.models import AssessmentSession, AuditLog, ContentRelease, Student, User
 from dependencies import get_current_user, get_db
 from reports import _pdf_styles, _rtl
@@ -44,9 +44,32 @@ def build_v2_reports(db: Session) -> dict:
     placements = {}
     for row in db.query(PlacementDecisionV2).order_by(PlacementDecisionV2.id).all():
         placements[row.student_id, row.content_release_id] = row.assigned_level
+    # "resolved" only means that a support detour ended. Academic mastery
+    # must be proven by independent checks and a persisted policy decision.
+    mastered_support_ids = {
+        assignment_id for assignment_id, in db.query(AdaptationDecision.support_assignment_id).filter(
+            AdaptationDecision.reason_code.in_(
+                ("support_check_resolved_gap", "alternate_check_resolved_gap"),
+            ),
+            AdaptationDecision.support_assignment_id.is_not(None),
+        ).all()
+    }
+    unmastered_support_ids = {
+        assignment_id for assignment_id, in db.query(AdaptationDecision.support_assignment_id).filter(
+            AdaptationDecision.reason_code == "support_gap_unresolved_continue_without_mastery",
+            AdaptationDecision.support_assignment_id.is_not(None),
+        ).all()
+    }
+    mastered_support_ids.difference_update(unmastered_support_ids)
     pending = defaultdict(int)
     v2_session_owners = {row.id: row.student_id for row in assessments}
-    for session_id, in db.query(AssessmentQuestionResponse.assessment_session_id).filter(AssessmentQuestionResponse.status == 'pending_review').all():
+    requested_assessment_ids = db.query(V2ReviewRetryTask.assessment_response_id).filter(
+        V2ReviewRetryTask.status == 'requested', V2ReviewRetryTask.assessment_response_id.is_not(None),
+    )
+    for session_id, in db.query(AssessmentQuestionResponse.assessment_session_id).filter(
+        AssessmentQuestionResponse.status == 'pending_review',
+        ~AssessmentQuestionResponse.id.in_(requested_assessment_ids),
+    ).all():
         if session_id in v2_session_owners:
             pending[v2_session_owners[session_id]] += 1
     bank_cache = {}
@@ -94,6 +117,8 @@ def build_v2_reports(db: Session) -> dict:
             'relative_improvement': round(100 * improvement / pre_score, 2) if pair and pre_score else None,
             'progress': {'completed_lessons': completed, 'assigned_lessons': assigned, 'skipped_by_placement': skipped, 'percent': percent},
             'support': {'total': len(support_rows), 'resolved': sum(row.status == 'resolved' for row in support_rows),
+                        'mastered': sum(row.id in mastered_support_ids for row in support_rows),
+                        'needs_followup': sum(row.id in unmastered_support_ids for row in support_rows),
                         'waiting': sum(row.status in {'active','waiting_review'} for row in support_rows), 'escalated': sum(row.status == 'escalated' for row in support_rows)},
             'pending_assessment_reviews': pending[student.id]})
     skill_rows = defaultdict(lambda: {'graded': 0, 'correct': 0})
@@ -123,7 +148,7 @@ def build_v2_reports(db: Session) -> dict:
                     'average_pretest': mean([row['pretest']['score'] for row in rows if row['pretest']]),
                     'average_posttest': mean([row['posttest']['score'] for row in rows if row['posttest']]),
                     'average_improvement_points': mean([row['improvement_points'] for row in rows if row['improvement_points'] is not None])},
-        'methodology': 'V2 official completed pre/post only; same-release pairs; graded eligible lesson evidence; null is not zero; descriptive skills are not a recalculated mastery score.'}
+        'methodology': 'V2 official completed pre/post only; same-release pairs; graded eligible lesson evidence; support mastered only on successful independent-check decisions (not activity closure); unresolved gaps need follow-up; null is not zero.'}
 
 
 @router.get('/summary')
@@ -148,13 +173,13 @@ def xlsx_bytes(report: dict, *, skills: bool = False) -> bytes:
         for row in report['skills']:
             sheet.append([row['student_id'], _safe_cell(names[row['student_id']]), row['phase'], row['skill_group'], row['graded'], row['correct'], row['observed_accuracy_percent']])
     else:
-        sheet.append(['المعرف', 'الطالب', 'المستوى V2', 'القبلي الرسمي', 'البعدي الرسمي', 'التحسن بالنقاط', 'التحسن النسبي %', 'حالة المقارنة', 'دروس مكتملة', 'دروس معينة', 'متجاوزة بالتسكين', 'دعم متحقق', 'دعم كلي', 'قراءات معلقة', 'إصدار القبلي', 'إصدار البعدي'])
+        sheet.append(['المعرف', 'الطالب', 'المستوى V2', 'القبلي الرسمي', 'البعدي الرسمي', 'التحسن بالنقاط', 'التحسن النسبي %', 'حالة المقارنة', 'دروس مكتملة', 'دروس معينة', 'متجاوزة بالتسكين', 'دعم مثبت الإتقان', 'دعم كلي', 'قراءات معلقة', 'إصدار القبلي', 'إصدار البعدي'])
         for row in report['students']:
             sheet.append([row['student_id'], _safe_cell(row['student_name']), row['current_level'],
                 row['pretest']['score'] if row['pretest'] else None, row['posttest']['score'] if row['posttest'] else None,
                 row['improvement_points'], row['relative_improvement'], row['comparison_state'],
                 row['progress']['completed_lessons'], row['progress']['assigned_lessons'], row['progress']['skipped_by_placement'],
-                row['support']['resolved'], row['support']['total'], row['pending_assessment_reviews'],
+                row['support']['mastered'], row['support']['total'], row['pending_assessment_reviews'],
                 row['pretest']['release_version'] if row['pretest'] else None, row['posttest']['release_version'] if row['posttest'] else None])
     for cell in sheet[1]:
         cell.font = Font(bold=True, color='FFFFFF')
@@ -196,7 +221,7 @@ def pdf_bytes(report: dict) -> bytes:
         done, assigned = row['progress']['completed_lessons'], row['progress']['assigned_lessons']
         values = [row['student_name'], row['current_level'], row['pretest']['score'] if row['pretest'] else None,
                   row['posttest']['score'] if row['posttest'] else None, row['improvement_points'],
-                  f'{done}/{assigned}' if assigned is not None else None, f"{row['support']['resolved']}/{row['support']['total']}"]
+                  f'{done}/{assigned}' if assigned is not None else None, f"{row['support']['mastered']}/{row['support']['total']}"]
         table.append([paragraph(value, width=width) for value, width in zip(values, widths)][::-1])
     if len(table) == 1:
         story.append(paragraph('لا توجد حسابات في العينة.', body))
