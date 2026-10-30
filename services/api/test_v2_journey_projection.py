@@ -8,7 +8,7 @@ from db.learning_models import (
 )
 from db.models import AssessmentRetakeAuthorization, AssessmentSession, Student, User
 from v2_content.importer import register_candidate_release
-from v2_journey_projection import load_journey_facts, next_action
+from v2_journey_projection import JourneyFacts, load_journey_facts, next_action
 from v2_student_readmodel import build_student_v2_home, supervisor_v2_cohort_overview
 
 
@@ -185,3 +185,11 @@ def test_loaded_retry_with_foreign_response_is_rejected_before_returning_a_link(
         with pytest.raises(HTTPException) as failure:
             next_action(facts)
         assert failure.value.status_code == 409
+
+def test_completed_journey_offers_no_dead_end_next_action():
+    """A learner who finished the posttest must not be routed into an empty lesson map."""
+    journey = StudentJourney(student_id=51, content_release_id=17,
+                             placement_state="completed", current_level=3)
+    facts = JourneyFacts(student_id=51, journey=journey)
+    action = next_action(facts)
+    assert action == {"action": "complete", "href": None, "label": "اكتملت الرحلة"}

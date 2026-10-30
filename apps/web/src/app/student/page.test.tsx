@@ -396,3 +396,22 @@ it("disables a missing-official-placement route instead of letting a child click
   expect(fetcher.mock.calls.every(([url]) => url !== "/api/v2/assessments/pretest/start")).toBe(true);
   expect(push).not.toHaveBeenCalled();
 });
+
+it("shows a completed journey without a redundant primary button that reopens lessons", async () => {
+  const fetcher = mockV2({
+    ...firstTime,
+    current_action: { action: "complete", href: "/student/learning-v2", label: "اكتملت الرحلة" },
+    journey: { current_level: 3, placement_state: "completed", current_lesson_id: null, content_release_version: "approved" },
+    progress: { completed_lessons: 19, assigned_lessons: 19, skipped_by_placement: 0, pending_review: 0, display_percent: 100 },
+    assessments: {
+      pretest: { session_id: 12, state: "completed", official: true, score_percent: 55 },
+      posttest: { session_id: 18, state: "completed", official: true, score_percent: 95 },
+    },
+  });
+  render(<StudentPage />);
+  expect(await screen.findByRole("heading", { name: "أكملت رحلة هِمّة!" })).toBeVisible();
+  expect(screen.queryByTestId("student-primary-action")).not.toBeInTheDocument();
+  expect(screen.getByTestId("student-journey-steps")).toHaveTextContent("نتيجة معتمدة");
+  expect(push).not.toHaveBeenCalled();
+  expect(fetcher.mock.calls.some(([url]) => url === "/api/rewards")).toBe(false);
+});

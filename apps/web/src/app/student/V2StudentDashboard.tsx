@@ -220,10 +220,10 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
             <span>•</span>
             <span>مهمة واحدة في كل مرة</span>
           </div>
-          <button type="button" className={styles.button} disabled={starting || info.disabled} aria-busy={starting}
+          {action.action !== "complete" && <button type="button" className={styles.button} disabled={starting || info.disabled} aria-busy={starting}
             onClick={() => void start()} data-testid="student-primary-action">
             {starting ? (action.action === "rerecord_required" ? "جارٍ فتح سؤال القراءة..." : action.action === "lesson" ? "جارٍ فتح الدرس..." : action.action === "lesson_catalog" ? "جارٍ فتح الدروس..." : "جارٍ فتح الاختبار...") : action.label}
-          </button>
+          </button>}
           {error && <div role="alert" className={styles.error}>{error}</div>}
         </div>
         <div className={styles.heroVisual}>

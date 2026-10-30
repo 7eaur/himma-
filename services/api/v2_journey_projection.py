@@ -209,5 +209,6 @@ def next_action(facts: JourneyFacts) -> dict[str, Any]:
     if journey.placement_state == "posttest_ready":
         return {"action": "start_posttest", "href": None, "label": "ابدأ الاختبار البعدي"}
     if journey.placement_state == "completed":
-        return {"action": "complete", "href": "/student/learning-v2", "label": "اكتملت الرحلة"}
+        # The journey is finished: there is no next lesson or navigation step.
+        return {"action": "complete", "href": None, "label": "اكتملت الرحلة"}
     return {"action": "lesson_catalog", "href": "/student/learning-v2", "label": "متابعة الرحلة التعليمية"}
