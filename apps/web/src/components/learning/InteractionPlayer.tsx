@@ -258,10 +258,14 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
         recorderRef.current = null;
         const mimeType = recorder.mimeType || chunksRef.current[0]?.type;
         const blob = new Blob(chunksRef.current, { type: mimeType || "" });
-        if (!blob.size || blob.size > 10 * 1024 * 1024) {
-          // Fail locally, before S3 receives invalid/oversize child audio.
+        if (!blob.size) {
+          // Empty captures are not evidence and must never be uploaded or graded.
           setAudioBlob(null);
-          setError("التسجيل فارغ أو تجاوز الحجم المسموح (10 ميجابايت). سجّل قراءة أقصر.");
+          setError("لم يُلتقط صوت في التسجيل. حاول مرة أخرى.");
+        } else if (blob.size > 10 * 1024 * 1024) {
+          // Fail locally, before S3 receives oversize child audio.
+          setAudioBlob(null);
+          setError("تجاوز التسجيل الحجم المسموح (10 ميجابايت). سجّل قراءة أقصر.");
         } else if (!mimeType || !mimeType.startsWith("audio/")) {
           setAudioBlob(null);
           setError("تعذر تحديد صيغة التسجيل. أعد المحاولة من المتصفح.");
