@@ -99,6 +99,17 @@ def load_journey_facts(db: Session, student_ids: list[int]) -> dict[int, Journey
     # A session's waiting_review flag is not the number of reading items.
     # Count outstanding review evidence in one bounded query per V2 session
     # kind for the whole page, without bringing private audio into memory.
+    # Requested re-recordings are the CHILD's next action, not an item ready
+    # for supervisor review. Exclude them from the actionable review count
+    # until the learner submits the replacement take.
+    requested_lesson_responses = db.query(V2ReviewRetryTask.lesson_response_id).filter(
+        V2ReviewRetryTask.status == "requested",
+        V2ReviewRetryTask.lesson_response_id.is_not(None),
+    )
+    requested_assessment_responses = db.query(V2ReviewRetryTask.assessment_response_id).filter(
+        V2ReviewRetryTask.status == "requested",
+        V2ReviewRetryTask.assessment_response_id.is_not(None),
+    )
     lesson_session_ids = [item.active_lesson.id for item in facts.values() if item.active_lesson]
     if lesson_session_ids:
         pending_lessons = db.query(
@@ -107,6 +118,7 @@ def load_journey_facts(db: Session, student_ids: list[int]) -> dict[int, Journey
         ).filter(
             LessonQuestionResponse.lesson_session_id.in_(lesson_session_ids),
             LessonQuestionResponse.status == "pending_review",
+            ~LessonQuestionResponse.id.in_(requested_lesson_responses),
         ).group_by(LessonQuestionResponse.lesson_session_id).all()
         lesson_owners = {item.active_lesson.id: item.student_id for item in facts.values() if item.active_lesson}
         for session_id, count in pending_lessons:
@@ -120,6 +132,7 @@ def load_journey_facts(db: Session, student_ids: list[int]) -> dict[int, Journey
         ).filter(
             AssessmentQuestionResponse.assessment_session_id.in_(assessment_session_ids),
             AssessmentQuestionResponse.status == "pending_review",
+            ~AssessmentQuestionResponse.id.in_(requested_assessment_responses),
         ).group_by(AssessmentQuestionResponse.assessment_session_id).all()
         assessment_owners = {item.active_assessment.id: item.student_id for item in facts.values() if item.active_assessment}
         for session_id, count in pending_assessments:
