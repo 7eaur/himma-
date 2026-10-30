@@ -71,6 +71,9 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   // request until the server confirms it; never apply a changed answer to the
   // next question while the browser still shows the previous question.
   const pendingAnswerRef = useRef<{ submit_key: string; answer: Record<string, unknown> } | null>(null);
+  // React's saving state renders asynchronously. This synchronous lock prevents
+  // two taps from starting two overlapping upload/answer requests.
+  const submitPendingRef = useRef(false);
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -226,7 +229,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   };
 
   const startRecording = async () => {
-    if (saving || awaitingConfirmation || recording || micRequestPendingRef.current) return;
+    if (submitPendingRef.current || saving || awaitingConfirmation || recording || micRequestPendingRef.current) return;
     setError("");
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
       setError("التسجيل غير مدعوم في هذا المتصفح."); return;
@@ -338,7 +341,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   };
 
   const resetRecording = () => {
-    if (saving || awaitingConfirmation) return;
+    if (submitPendingRef.current || saving || awaitingConfirmation) return;
     if (audioUrl) URL.revokeObjectURL(audioUrl);
     // A fresh recording must not reuse the idempotency key of old audio bytes.
     uploadKeyRef.current = requestKey("upload");
@@ -347,7 +350,8 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   };
 
   const submit = async () => {
-    if (!ready || saving || assistedNext !== null || missingRequiredMedia || invalidQuestion) return;
+    if (submitPendingRef.current || !ready || saving || assistedNext !== null || missingRequiredMedia || invalidQuestion) return;
+    submitPendingRef.current = true;
     setSaving(true); setError("");
     try {
       let pending = pendingAnswerRef.current;
@@ -397,7 +401,10 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
     } catch (reason) {
       if (pendingAnswerRef.current) setAwaitingConfirmation(true);
       setError(reason instanceof Error ? reason.message : "تعذر حفظ الإجابة");
-    } finally { setSaving(false); }
+    } finally {
+      submitPendingRef.current = false;
+      setSaving(false);
+    }
   };
 
   const renderMedia = (reference: MediaRef, option = false) => {
