@@ -713,3 +713,73 @@ it("does not reveal worked support examples in unaided checks even if feedback i
   expect(screen.getAllByText(/حاول مرة أخرى/)).toHaveLength(1);
   expect(screen.queryByText("تم الحفظ")).not.toBeInTheDocument();
 });
+
+
+it("uploads Safari MP4 reading audio with the matching MIME and filename", async () => {
+  const previousDevices = navigator.mediaDevices;
+  const previousRecorder = global.MediaRecorder;
+  const oldCreate = URL.createObjectURL;
+  const oldRevoke = URL.revokeObjectURL;
+  const stream = { getTracks: () => [{ stop: jest.fn() }] } as unknown as MediaStream;
+  Object.defineProperty(navigator, "mediaDevices", {
+    configurable: true, value: { getUserMedia: jest.fn().mockResolvedValue(stream) },
+  });
+  URL.createObjectURL = jest.fn().mockReturnValue("blob:safari-voice");
+  URL.revokeObjectURL = jest.fn();
+  const recorder = {
+    stream, state: "inactive", mimeType: "audio/mp4",
+    onstop: null as (() => void) | null,
+    ondataavailable: null as ((event: BlobEvent) => void) | null,
+    onerror: null as ((event: Event) => void) | null,
+    start: jest.fn(),
+    stop: jest.fn(),
+  };
+  recorder.start.mockImplementation(() => { recorder.state = "recording"; });
+  recorder.stop.mockImplementation(() => {
+    recorder.state = "inactive";
+    recorder.ondataavailable?.({ data: new Blob(["reading"], { type: "audio/mp4" }) } as BlobEvent);
+    recorder.onstop?.();
+  });
+  global.MediaRecorder = Object.assign(jest.fn().mockImplementation(() => recorder), {
+    isTypeSupported: jest.fn((mime: string) => mime === "audio/mp4"),
+  }) as unknown as typeof MediaRecorder;
+  const fetchMock = jest.fn()
+    .mockResolvedValueOnce({
+      ok: true, status: 200, json: async () => ({
+        audio_storage_key: "audio/1/safari.audio",
+        audio_file_size: 7, audio_mime_type: "audio/mp4",
+      }),
+    })
+    .mockResolvedValueOnce({
+      ok: true, status: 200, json: async () => ({
+        submission: { retry_required: false, status: "pending_review" },
+        lesson: { session: { stage: "waiting_review" } },
+      }),
+    });
+  global.fetch = fetchMock;
+  try {
+    render(<InteractionPlayer sessionId={7} interaction={payload({
+      interaction: "read_aloud", options: [],
+    })} onLessonChange={jest.fn()}/>);
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "بدء التسجيل" }));
+      await Promise.resolve();
+    });
+    expect(global.MediaRecorder).toHaveBeenCalledWith(stream, { mimeType: "audio/mp4" });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "إيقاف التسجيل" }));
+    });
+    fireEvent.click(screen.getByRole("button", { name: "إرسال التسجيل للمراجعة" }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    const upload = fetchMock.mock.calls[0][1].body as FormData;
+    const audio = upload.get("file") as File;
+    expect(audio.type).toBe("audio/mp4");
+    expect(audio.name).toBe("v2-reading.m4a");
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body).audio_mime_type).toBe("audio/mp4");
+  } finally {
+    Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: previousDevices });
+    global.MediaRecorder = previousRecorder;
+    URL.createObjectURL = oldCreate;
+    URL.revokeObjectURL = oldRevoke;
+  }
+});
