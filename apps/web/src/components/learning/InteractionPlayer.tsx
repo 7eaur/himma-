@@ -26,7 +26,7 @@ export interface InteractionPayload {
   progress: { index: number; total: number; stage: string };
   attempts: number;
 }
-interface SubmissionResult { correct?: boolean; retry_required: boolean; hint?: string | null; message?: string; status: string; }
+interface SubmissionResult { correct?: boolean; retry_required: boolean; hint?: string | null; message?: string; status: string; help_level?: number; model_option_ids?: string[]; assisted_advance?: boolean; }
 
 interface Props {
   sessionId: number;
@@ -46,6 +46,9 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   const [selected, setSelected] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<SubmissionResult | null>(null);
+  // The server has advanced after bounded coaching; let the child review the
+  // model before displaying the next question, without another write request.
+  const [assistedNext, setAssistedNext] = useState<unknown | null>(null);
   const [error, setError] = useState("");
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [audioState, setAudioState] = useState<"idle" | "loading" | "playing">("idle");
@@ -333,7 +336,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   };
 
   const submit = async () => {
-    if (!ready || saving || missingRequiredMedia || invalidQuestion) return;
+    if (!ready || saving || assistedNext !== null || missingRequiredMedia || invalidQuestion) return;
     setSaving(true); setError("");
     try {
       let pending = pendingAnswerRef.current;
@@ -375,7 +378,10 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
       setFeedback(result.submission);
       answerKeyRef.current = requestKey("answer");
       uploadKeyRef.current = requestKey("upload");
-      if (!result.submission.retry_required) onLessonChange(result.lesson ?? result.assessment);
+      if (result.submission.assisted_advance && interaction.progress.stage === "support_practice") {
+        setAssistedNext(result.lesson ?? result.assessment);
+        setSelected([]);
+      } else if (!result.submission.retry_required) onLessonChange(result.lesson ?? result.assessment);
       else setSelected([]);
     } catch (reason) {
       if (pendingAnswerRef.current) setAwaitingConfirmation(true);
@@ -407,11 +413,15 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
     : "اختبار مستقل";
   const guidedStage = interaction.progress.stage === "guided_practice" || interaction.progress.stage === "support_practice";
   const retryFeedback = !isAssessment && Boolean(feedback?.retry_required);
-  // A single, accessible message above the question handles practice retries.
-  // Assessment correctness and hidden hints are NEVER shown here.
+  const assistedFeedback = interaction.progress.stage === "support_practice" && Boolean(feedback?.assisted_advance);
+  // A single, accessible coach message handles practice retries/assistance.
+  // Assessment correctness, teaching models and hidden hints are NEVER shown here.
   const retryHint = guidedStage && retryFeedback && feedback?.hint ? feedback.hint : null;
-  const coachImage = retryFeedback ? "/characters/girl/try-again.png" : "/characters/girl/explain.png";
-  const coachMessage = retryFeedback ? (retryHint ? `حاول مرة أخرى. تلميح: ${retryHint}`
+  const modelIds = interaction.progress.stage === "support_practice" && (feedback?.help_level ?? 0) >= 2
+    ? (feedback?.model_option_ids ?? []) : [];
+  const coachImage = retryFeedback || assistedFeedback ? "/characters/girl/try-again.png" : "/characters/girl/explain.png";
+  const coachMessage = assistedFeedback ? feedback?.message || "راجع المثال ثم نواصل."
+    : retryFeedback ? (retryHint ? `حاول مرة أخرى. تلميح: ${retryHint}`
     : feedback?.message?.trim() || "خذ وقتك، ثم جرّب إجابة أخرى.")
     : isAssessment ? "خذ وقتك، واستمع أو اقرأ السؤال ثم اختر إجابتك."
     : interaction.progress.stage === "support_practice" ? "هذه مساعدة قصيرة. جرّب خطوة خطوة."
@@ -420,7 +430,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
 
   return <section ref={shellRef} className={styles.shell} dir="rtl" data-testid="v2-interaction-player" data-interaction={question.interaction}>
     <div className={styles.topline}><span>{stageLabel}</span><span>{interaction.progress.index} من {interaction.progress.total}</span></div>
-    <aside className={`${styles.coach} ${retryFeedback ? styles.coachRetry : ""}`} role={retryFeedback ? "status" : undefined} aria-label="رسالة هِمّة" data-testid="v2-question-coach">
+    <aside className={`${styles.coach} ${retryFeedback || assistedFeedback ? styles.coachRetry : ""}`} role={retryFeedback || assistedFeedback ? "status" : undefined} aria-label="رسالة هِمّة" data-testid="v2-question-coach">
       <Image src={coachImage} alt="" width={88} height={108} aria-hidden="true" />
       <p>{coachMessage}</p>
     </aside>
@@ -429,6 +439,19 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
       {failedMediaIds.some((id) => media[id]?.kind === "image") && <button type="button" className={styles.secondary} onClick={() => setFailedMediaIds((current) => current.filter((id) => media[id]?.kind !== "image"))}>إعادة تحميل الصور</button>}
     </div>}
     {missingRequiredOptions && <div className={styles.mediaMissing} role="alert">خيارات هذا السؤال غير مكتملة. لن تُرسل الإجابة حتى تصبح جاهزة.</div>}
+    {modelIds.length > 0 && <div className={styles.supportModel} aria-label="مثال محلول للتعلّم">
+      <strong>{ordered ? "انظر إلى الترتيب الصحيح" : "هذا مثال للإجابة الصحيحة"}</strong>
+      <div className={styles.supportModelOptions}>{modelIds.map((id, index) => {
+        const option = question.options.find((item) => item.id === id);
+        if (!option) return null;
+        return <div key={id} className={styles.supportModelOption}>
+          {ordered && <b>{index + 1}</b>}
+          {option.text && <span>{option.text}</span>}
+          {option.media.map((item) => <span key={item.media_id}>{renderMedia(item, true)}</span>)}
+        </div>;
+      })}</div>
+      <small>هذا المثال للتعلّم فقط، وليس نتيجة اختبارك المستقل.</small>
+    </div>}
     {question.stimulus.text && <div className={styles.stimulusText}>{question.stimulus.text}</div>}
     {question.stimulus.media.length > 0 && <div className={styles.stimulusMedia}>{question.stimulus.media.map((item) => <div key={item.media_id}>{renderMedia(item)}</div>)}</div>}
 
@@ -449,7 +472,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
     {!OPEN_INTERACTIONS.has(question.interaction) && <div className={`${styles.options} ${question.interaction === "choose_image" ? styles.imageOptions : ""}`}>{question.options.map((option, optionIndex) => {
       const chosen = selected.includes(option.id);
       const optionDescriptionId = `${descriptionIdPrefix}-option-${optionIndex}`;
-      const disabled = saving || awaitingConfirmation || missingRequiredMedia || invalidQuestion || (ordered && chosen);
+      const disabled = saving || awaitingConfirmation || assistedNext !== null || missingRequiredMedia || invalidQuestion || (ordered && chosen);
       const audioMedia = option.media.filter((item) => item.kind === "audio");
       const visualMedia = option.media.filter((item) => item.kind !== "audio");
       return <div key={option.id} className={`${styles.option} ${chosen ? styles.selected : ""}`}>
@@ -466,7 +489,9 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
 
     {!isAssessment && feedback && !feedback.retry_required && <div className={`${styles.feedback} ${feedback.correct === false ? styles.retry : styles.accepted}`} role="status"><strong>{feedback.correct === true ? "أحسنت!" : feedback.correct === false ? "لم تكتمل الإجابة" : "تم الحفظ"}</strong><span>{feedback.message}</span></div>}
     {error && <div className={styles.error} role="alert">{error}</div>}
-    <button type="button" className={styles.submit} disabled={!ready || saving || recording} onClick={() => void submit()}>{saving ? "جاري الحفظ..." : awaitingConfirmation ? "إعادة محاولة حفظ الإجابة" : question.interaction === "read_aloud" ? "إرسال التسجيل للمراجعة" : isAssessment ? "حفظ الإجابة والمتابعة" : "تحقق من الإجابة"}</button>
+    {assistedNext !== null
+      ? <button type="button" className={styles.submit} onClick={() => { const next = assistedNext; setAssistedNext(null); onLessonChange(next); }}>فهمت، نكمل</button>
+      : <button type="button" className={styles.submit} disabled={!ready || saving || recording} onClick={() => void submit()}>{saving ? "جاري الحفظ..." : awaitingConfirmation ? "إعادة محاولة حفظ الإجابة" : question.interaction === "read_aloud" ? "إرسال التسجيل للمراجعة" : isAssessment ? "حفظ الإجابة والمتابعة" : "تحقق من الإجابة"}</button>}
   </section>;
 }
 
