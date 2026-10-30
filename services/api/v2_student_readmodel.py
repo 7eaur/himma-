@@ -293,6 +293,17 @@ def supervisor_student_v2_home(
             SupportAssignment.student_id == student.id,
             SupportAssignment.content_release_id == release_id,
         ).order_by(SupportAssignment.id.desc()).limit(30).all()
+        # The academic follow-up is keyed to the persisted, immutable failed
+        # check decision, not assignment.status (resolved means activity ended).
+        # Keep this read-only; no holding the child and no fabricated mastery.
+        followup_ids = {
+            assignment_id for assignment_id, in db.query(AdaptationDecision.support_assignment_id).filter(
+                AdaptationDecision.student_id == student.id,
+                AdaptationDecision.content_release_id == release_id,
+                AdaptationDecision.reason_code == "support_gap_unresolved_continue_without_mastery",
+                AdaptationDecision.support_assignment_id.is_not(None),
+            ).all()
+        }
         support_rows = [{
             "id": row.id,
             "lesson_id": row.source_lesson_id,
@@ -300,6 +311,7 @@ def supervisor_student_v2_home(
             "focus": row.focus,
             "mode": row.mode,
             "status": row.status,
+            "needs_followup": row.id in followup_ids,
             "created_at": row.created_at,
         } for row in supports]
     return {
