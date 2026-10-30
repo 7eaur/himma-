@@ -224,6 +224,56 @@ def test_additional_check_failure_expands_to_support_without_second_assignment(s
         assert assignment.verification_round == 1
 
 
+def test_failed_alternate_check_can_complete_targeted_support_with_fresh_verification(student_client):
+    """The second check round reuses question IDs without reusing old answers."""
+    session_id = _start_at_independent(student_client)
+    _complete_current_stage(student_client, session_id, [False, True, True, True])
+    alternate = _complete_current_stage(student_client, session_id, [False, True])
+    assert alternate["lesson"]["session"]["stage"] == "support_practice"
+    practice_total = alternate["lesson"]["interaction"]["progress"]["total"]
+    practised = _complete_current_stage(student_client, session_id, [True] * practice_total)
+    assert practised["lesson"]["session"]["stage"] == "support_check"
+    final = _complete_current_stage(student_client, session_id, [True, True])
+    assert final["lesson"]["session"]["stage"] == "outcome"
+    with TestingSessionLocal() as db:
+        assignment = db.query(SupportAssignment).one()
+        assert assignment.verification_round == 1
+        assert assignment.status == "resolved"
+        evidence = db.query(SkillEvidence).filter(
+            SkillEvidence.support_assignment_id == assignment.id,
+            SkillEvidence.role == "support_check",
+        ).all()
+        assert len(evidence) == 4  # Both rounds retained, only the latest is graded as decisive.
+        decisions = db.query(AdaptationDecision).order_by(AdaptationDecision.id).all()
+        assert [decision.decision_kind for decision in decisions] == [
+            "additional_check", "targeted_support", "next_lesson",
+        ]
+        assert decisions[-1].reason_code == "support_check_resolved_gap"
+        assert len(set(decision.decision_key for decision in decisions)) == 3
+        assert db.query(StudentJourney).one().current_lesson_id == "L1-02"
+
+
+def test_failed_alternate_and_failed_final_check_never_award_false_mastery(student_client):
+    """A failed second round ends only the attempt and preserves missing mastery."""
+    session_id = _start_at_independent(student_client)
+    _complete_current_stage(student_client, session_id, [False, True, True, True])
+    alternate = _complete_current_stage(student_client, session_id, [False, True])
+    assert alternate["lesson"]["session"]["stage"] == "support_practice"
+    count = alternate["lesson"]["interaction"]["progress"]["total"]
+    _complete_current_stage(student_client, session_id, [True] * count)
+    final = _complete_current_stage(student_client, session_id, [False, True])
+    assert final["lesson"]["session"]["stage"] == "outcome"
+    assert final["lesson"]["adaptation"]["mastery_demonstrated"] is False
+    with TestingSessionLocal() as db:
+        decisions = db.query(AdaptationDecision).order_by(AdaptationDecision.id).all()
+        assert decisions[-1].reason_code == "support_gap_unresolved_continue_without_mastery"
+        assert decisions[-1].explanation_json["skill_mastery"] == "not_demonstrated"
+        assert db.query(StudentJourney).one().current_lesson_id == "L1-02"
+    from db.v2_reward_models import V2RewardGrant
+    with TestingSessionLocal() as db:
+        assert not db.query(V2RewardGrant).filter(V2RewardGrant.milestone == "lesson_complete").first()
+
+
 def test_support_policy_is_bounded_and_pending_is_neutral():
     assert evaluate_support([_signal(1, correct=True)], was_additional_check=False).kind == "next_lesson"
     result = evaluate_support([_signal(1, correct=False)], was_additional_check=False)
