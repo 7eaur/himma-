@@ -13,6 +13,7 @@ from db.models import AuditLog, ContentRelease, Student, User
 from db.v2_reward_models import V2RewardGrant
 from dependencies import get_current_user, get_db
 from reward_catalog import badge_entry_for_level, REWARD_CATALOG_VERSION
+from v2_journey_projection import official_placement_query
 
 POLICY = 'himma-v2-effort/1'
 LABELS = {'intro_video':'أكملت التمهيد والفيديو','guided_practice':'أكملت التدريب','lesson_complete':'أكملت الدرس'}
@@ -50,10 +51,23 @@ def reconcile_rewards(db: Session, student_id: int, *, actor_role='student', act
         or not isinstance(bank.get('lessons'),list) or not isinstance(bank.get('questions'),list)):
         return {'state':'bank_unavailable','inserted':0}
     lessons = {row['id']:row for row in bank['lessons']}
-    sessions = db.query(LessonSession).filter(LessonSession.student_id==student_id,LessonSession.content_release_id==release.id).order_by(LessonSession.id).all()
-    placement = db.query(PlacementDecisionV2).filter(PlacementDecisionV2.student_id==student_id,PlacementDecisionV2.content_release_id==release.id).order_by(PlacementDecisionV2.id.desc()).first()
-    starting_level = placement.assigned_level if placement else min([journey.current_level]+[
-        int(lessons[row.lesson_id]['level'][1]) for row in sessions if row.status=='completed' and row.lesson_id in lessons])
+    # A populated journey row alone is not proof that a placement was
+    # authorized. Use the same official completed-pretest predicate as lesson
+    # access to prevent manual reconciliation from granting V2 stars from
+    # synthetic, legacy or incomplete academic histories.
+    verified_decisions = official_placement_query(
+        db, student_id, release.id, journey.current_level,
+    )
+    placement = db.query(PlacementDecisionV2).filter(
+        PlacementDecisionV2.id.in_(verified_decisions),
+    ).order_by(PlacementDecisionV2.id.desc()).first()
+    if placement is None:
+        return {'state':'placement_unverified','inserted':0}
+    starting_level = placement.assigned_level
+    sessions = db.query(LessonSession).filter(
+        LessonSession.student_id==student_id,
+        LessonSession.content_release_id==release.id,
+    ).order_by(LessonSession.id).all()
     rows = defaultdict(list)
     for row in db.query(LessonQuestionResponse).join(LessonSession,LessonSession.id==LessonQuestionResponse.lesson_session_id).filter(
             LessonSession.student_id==student_id,LessonSession.content_release_id==release.id).all():
