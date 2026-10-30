@@ -58,13 +58,38 @@ def reconcile_rewards(db: Session, student_id: int, *, actor_role='student', act
     for row in db.query(LessonQuestionResponse).join(LessonSession,LessonSession.id==LessonQuestionResponse.lesson_session_id).filter(
             LessonSession.student_id==student_id,LessonSession.content_release_id==release.id).all():
         rows[row.lesson_session_id].append(row)
-    unresolved = {session_id for session_id, in db.query(SupportAssignment.lesson_session_id).filter(
-        SupportAssignment.student_id==student_id,SupportAssignment.content_release_id==release.id,SupportAssignment.status!='resolved').all()}
-    unresolved_mastery_sessions = {session_id for session_id, in db.query(AdaptationDecision.lesson_session_id).filter(
+    # "resolved" indicates the detour ended; it is NOT a passing grade.
+    # A restored/older row may be marked resolved without an independently
+    # verified support_check. Never backfill a lesson-completion star from
+    # that administrative state alone.
+    decisions = db.query(
+        AdaptationDecision.lesson_session_id,
+        AdaptationDecision.support_assignment_id,
+        AdaptationDecision.reason_code,
+    ).filter(
         AdaptationDecision.student_id == student_id,
         AdaptationDecision.content_release_id == release.id,
-        AdaptationDecision.reason_code == 'support_gap_unresolved_continue_without_mastery',
-    ).distinct().all()}
+    ).all()
+    verified_supports = {
+        support_id for _session_id, support_id, reason in decisions
+        if support_id is not None and reason in {
+            'support_check_resolved_gap', 'alternate_check_resolved_gap',
+        }
+    }
+    unresolved_mastery_sessions = {
+        session_id for session_id, _support_id, reason in decisions
+        if reason == 'support_gap_unresolved_continue_without_mastery'
+    }
+    unresolved = {
+        session_id for session_id, support_id, status in db.query(
+            SupportAssignment.lesson_session_id, SupportAssignment.id,
+            SupportAssignment.status,
+        ).filter(
+            SupportAssignment.student_id == student_id,
+            SupportAssignment.content_release_id == release.id,
+        ).all()
+        if status != 'resolved' or support_id not in verified_supports
+    }
     questions = defaultdict(lambda: defaultdict(set))
     for question in bank['questions']:
         questions[question.get('owner_id')][question['role']].add(question['id'])
