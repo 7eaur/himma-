@@ -1,6 +1,6 @@
 """P09.1-B source-of-truth projections. No V1 counts or child secrets."""
 from conftest import TestingSessionLocal
-from db.learning_models import AdaptationDecision, LessonSession, PlacementDecisionV2, StudentJourney, SupportAssignment
+from db.learning_models import AdaptationDecision, AssessmentQuestionResponse, LessonQuestionResponse, LessonSession, PlacementDecisionV2, StudentJourney, SupportAssignment
 from db.models import AssessmentSession, Student
 from v2_content.importer import register_candidate_release
 
@@ -113,14 +113,50 @@ def test_progress_ignores_duplicate_completed_sessions_and_pending_review(studen
             LessonSession(student_id=student.id, content_release_id=release.id, lesson_id="L1-03",
                           status="waiting_review", stage="waiting_review"),
         ])
+        db.flush()
+        waiting = db.query(LessonSession).filter(
+            LessonSession.student_id == student.id, LessonSession.lesson_id == "L1-03",
+        ).one()
+        db.add_all([
+            LessonQuestionResponse(
+                lesson_session_id=waiting.id, question_id=f"L1-03-IC-A0{index}",
+                role="independent_check", answer_json={}, submit_key=f"pending-{index}",
+                attempt_no=1, status="pending_review", is_correct=None,
+            ) for index in (1, 2)
+        ])
         db.commit()
     data = student_client.get("/v2/student/home").json()
     assert data["progress"]["completed_lessons"] == 1
     assert data["progress"]["assigned_lessons"] == 19
-    assert data["progress"]["pending_review"] == 1
+    # Two actual reading responses, not a synthetic 1 derived from waiting_review.
+    assert data["progress"]["pending_review"] == 2
     assert data["progress"]["display_percent"] == round(100 / 19, 1)
     assert data["current_action"]["action"] == "lesson"
     assert data["current_action"]["state"] == "waiting_review"
+
+
+def test_pretest_pending_recordings_show_real_count_in_student_and_staff_v2_home(student_client, researcher_client):
+    started = student_client.post("/v2/assessments/pretest/start")
+    assert started.status_code == 200, started.text
+    session_id = started.json()["session"]["session_id"]
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        db.add_all([
+            AssessmentQuestionResponse(
+                assessment_session_id=session_id, question_id=f"P-R-{number}",
+                role="pretest", answer_json={}, submit_key=f"assessment-pending-{number}",
+                status="pending_review", is_correct=None, skill_group="S1", evidence_type="read_aloud",
+            ) for number in (1, 2, 3)
+        ])
+        student_id = student.id
+        db.commit()
+    own = student_client.get("/v2/student/home")
+    assert own.status_code == 200, own.text
+    assert own.json()["progress"]["pending_review"] == 3
+    staff = researcher_client.get(f"/v2/student/admin/students/{student_id}/home")
+    assert staff.status_code == 200, staff.text
+    assert staff.json()["progress"]["pending_review"] == 3
+    assert "access_code" not in staff.text and "private_answer" not in staff.text
 
 
 def test_home_permissions_and_supervisor_projection_are_scoped(student_client, researcher_client):
