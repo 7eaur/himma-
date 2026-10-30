@@ -21,7 +21,7 @@ from v2_adaptation_policy import (
     evaluate_support,
     resolve_focus,
 )
-from v2_adaptation_runtime import _complete_lesson, _open_support, finish_support_check
+from v2_adaptation_runtime import _complete_lesson, _open_support, finish_support_check, student_adaptation_payload
 from v2_content.compiler import compile_release
 from v2_content.importer import register_candidate_release
 from v2_content.repository import get_question
@@ -410,3 +410,26 @@ def test_support_practice_wrong_answers_do_not_skip_check_or_change_level(studen
     assert accepted["lesson"]["interaction"]["progress"]["index"] == 2
     with TestingSessionLocal() as db:
         assert db.query(StudentJourney).one().current_level == 1
+
+
+def test_outcome_reports_unresolved_earlier_focus_even_if_later_focus_passes(student_client):
+    """The final decision alone cannot erase an earlier failed support focus."""
+    session_id = _start_at_independent(student_client)
+    with TestingSessionLocal() as db:
+        session = db.get(LessonSession, session_id)
+        session.stage, session.status = "complete", "completed"
+        for key, reason in (
+            ("first-focus", "support_gap_unresolved_continue_without_mastery"),
+            ("second-focus", "support_check_resolved_gap"),
+        ):
+            db.add(AdaptationDecision(
+                lesson_session_id=session.id, student_id=session.student_id,
+                content_release_id=session.content_release_id, decision_key=key,
+                decision_kind="next_lesson", reason_code=reason,
+                evidence_ids=[], explanation_json={}, policy_version=POLICY_VERSION,
+            ))
+        db.flush()
+        view = student_adaptation_payload(db, session)
+        assert view["state"] == "next_lesson"
+        assert view["mastery_demonstrated"] is False
+        assert "سنواصل تقوية هذه المهارة" in view["message"]

@@ -419,7 +419,12 @@ def student_adaptation_payload(db: Session, session: LessonSession) -> dict[str,
     kind = latest.decision_kind if latest else assignment.mode
     # A completed *attempt* is not necessarily demonstrated mastery. Never
     # celebrate an unresolved support gap as if the learner had passed.
-    incomplete_mastery = bool(latest and latest.reason_code == "support_gap_unresolved_continue_without_mastery")
+    incomplete_mastery = bool(
+        session.stage == "complete" and db.query(AdaptationDecision.id).filter(
+            AdaptationDecision.lesson_session_id == session.id,
+            AdaptationDecision.reason_code == "support_gap_unresolved_continue_without_mastery",
+        ).first()
+    )
     support_title = None
     if assignment:
         release = get_pinned_release(db, session.content_release_id)
