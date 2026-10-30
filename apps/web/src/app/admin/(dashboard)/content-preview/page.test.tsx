@@ -18,6 +18,10 @@ it("loads the V2 bank with section intro and never requests the archive implicit
   expect(screen.getByRole("group", { name: "المستوى الأول" })).toBeInTheDocument();
   expect(screen.getByTestId("v2-bank-question")).toHaveAttribute("open");
   expect(screen.getByRole("combobox", { name: "اختر سؤالًا لعرض تفاصيله" })).toHaveValue("V2-PRE-Q01");
+  expect(screen.getByRole("link", { name: "ملف مراجعة المحتوى Excel" })).toHaveAttribute(
+    "href", "/api/v2/content/admin/review-export.xlsx"
+  );
+  expect(screen.getByRole("option", { name: "البنك كاملًا · 300 سؤال" })).toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: /المستوى الأول/ }));
   expect(await screen.findByText("التمهيد: تمهيد الدرس المعتمد")).toBeInTheDocument();
   await waitFor(() => expect(fetcher.mock.calls.some(([url]) => url.includes("section=L1-01"))).toBe(true));
