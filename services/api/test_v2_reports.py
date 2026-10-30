@@ -139,11 +139,15 @@ def test_bundled_arabic_font_works_without_host_font_packages(monkeypatch):
 
 
 def test_support_report_requires_independent_mastery_not_merely_resolved_status(researcher_client):
-    from db.learning_models import AdaptationDecision, LessonSession, SupportAssignment
+    from db.learning_models import AdaptationDecision, LessonSession, StudentJourney, SupportAssignment
     student_id = _official_pair()
     with TestingSessionLocal() as db:
         release = db.query(ContentRelease).filter(ContentRelease.version.is_not(None)).order_by(ContentRelease.id).first()
         assert release is not None
+        db.add(StudentJourney(
+            student_id=student_id, content_release_id=release.id,
+            placement_state="placed", current_level=1, current_lesson_id="L1-01",
+        ))
         lesson = LessonSession(student_id=student_id, content_release_id=release.id,
                                lesson_id="L1-01", stage="complete", status="completed")
         db.add(lesson)
