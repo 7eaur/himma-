@@ -244,8 +244,11 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
         return;
       }
       chunksRef.current = [];
-      const preferred = "audio/webm;codecs=opus";
-      const recorder = MediaRecorder.isTypeSupported(preferred) ? new MediaRecorder(stream, { mimeType: preferred }) : new MediaRecorder(stream);
+      // Match the recording browser's supported container instead of assuming
+      // WebM (Safari on iPhone commonly produces MP4 audio).
+      const formats = ["audio/webm;codecs=opus", "audio/mp4", "audio/webm"];
+      const supported = formats.find((type) => MediaRecorder.isTypeSupported?.(type));
+      const recorder = supported ? new MediaRecorder(stream, { mimeType: supported }) : new MediaRecorder(stream);
       recorder.ondataavailable = (event) => {
         if (mountedRef.current && recorderRef.current === recorder && event.data.size) chunksRef.current.push(event.data);
       };
@@ -253,11 +256,15 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
         stream?.getTracks().forEach((track) => track.stop());
         if (!mountedRef.current || recorderRef.current !== recorder) return;
         recorderRef.current = null;
-        const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
-        if (!blob.size) {
-          // Empty captures are not evidence and must never be uploaded or graded.
+        const mimeType = recorder.mimeType || chunksRef.current[0]?.type;
+        const blob = new Blob(chunksRef.current, { type: mimeType || "" });
+        if (!blob.size || blob.size > 10 * 1024 * 1024) {
+          // Fail locally, before S3 receives invalid/oversize child audio.
           setAudioBlob(null);
-          setError("لم يُلتقط صوت في التسجيل. حاول مرة أخرى.");
+          setError("التسجيل فارغ أو تجاوز الحجم المسموح (10 ميجابايت). سجّل قراءة أقصر.");
+        } else if (!mimeType || !mimeType.startsWith("audio/")) {
+          setAudioBlob(null);
+          setError("تعذر تحديد صيغة التسجيل. أعد المحاولة من المتصفح.");
         } else {
           setAudioBlob(blob);
           setAudioUrl((current) => { if (current) URL.revokeObjectURL(current); return URL.createObjectURL(blob); });
@@ -345,7 +352,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
         if (question.interaction === "read_aloud") {
           if (!audioBlob) throw new Error("سجل قراءتك أولًا");
           const form = new FormData();
-          form.append("file", audioBlob, "v2-reading.webm");
+          form.append("file", audioBlob, audioBlob.type.includes("mp4") ? "v2-reading.m4a" : "v2-reading.webm");
           const upload = await fetch(`${endpointBase}/sessions/${sessionId}/recording`, {
             method: "POST", headers: { "Idempotency-Key": uploadKeyRef.current }, body: form,
           });
