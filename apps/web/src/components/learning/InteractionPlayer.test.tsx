@@ -786,3 +786,29 @@ it("uploads Safari MP4 reading audio with the matching MIME and filename", async
     URL.revokeObjectURL = oldRevoke;
   }
 });
+
+
+it("accepts one answer POST for rapid repeated taps before React rerenders", async () => {
+  let resolveRequest!: (response: unknown) => void;
+  const inflight = new Promise((resolve) => { resolveRequest = resolve; });
+  const fetchMock = jest.fn().mockReturnValue(inflight);
+  global.fetch = fetchMock;
+  const changed = jest.fn();
+  render(<InteractionPlayer sessionId={7} interaction={payload()} onLessonChange={changed}/>);
+  fireEvent.click(screen.getByRole("button", { name: "اختيار الخيار 1" }));
+  const submit = screen.getByRole("button", { name: "تحقق من الإجابة" });
+  await act(async () => {
+    submit.click();
+    submit.click();
+    await Promise.resolve();
+  });
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+  await act(async () => {
+    resolveRequest({
+      ok: true, status: 200,
+      json: async () => ({ submission: { retry_required: false, status: "graded" }, lesson: { session: {} } }),
+    });
+    await Promise.resolve();
+  });
+  await waitFor(() => expect(changed).toHaveBeenCalledTimes(1));
+});
