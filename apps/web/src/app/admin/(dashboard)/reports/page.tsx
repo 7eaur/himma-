@@ -25,14 +25,14 @@ export default function ReportsPage() {
         <label className="mb-4 block max-w-md text-sm font-semibold">بحث عن طالب أو معرّف
           <input className="input-field mt-2 w-full" value={search} onChange={event => { setSearch(event.target.value); setPage(0); }} />
         </label>
-        {students.length === 0 ? <AdminEmptyState title={data.students.length ? "لا توجد نتائج مطابقة" : "لا توجد حسابات بعد"} /> : <AdminResponsiveTable table={<table className="data-table" data-testid="v2-report-table"><thead><tr><th>الطالب</th><th>القبلي</th><th>البعدي</th><th>التحسن</th><th>الدروس</th><th>الدعم</th><th>التقرير</th></tr></thead><tbody>{visibleStudents.map(row => <tr key={row.student_id}>
+        {students.length === 0 ? <AdminEmptyState title={data.students.length ? "لا توجد نتائج مطابقة" : "لا توجد حسابات بعد"} /> : <AdminResponsiveTable table={<table className="data-table" data-testid="v2-report-table"><thead><tr><th>الطالب</th><th>القبلي</th><th>البعدي</th><th>التحسن</th><th>الدروس</th><th>الدعم المثبت</th><th>التقرير</th></tr></thead><tbody>{visibleStudents.map(row => <tr key={row.student_id}>
           <td><Link className="font-semibold text-primary" href={`/admin/students/${row.student_id}`}>{row.student_name}</Link></td><td>{score(row.pretest?.score)}</td><td>{score(row.posttest?.score)}</td>
           <td>{row.improvement_points == null ? row.comparison_state === "release_mismatch" ? "إصداران مختلفان" : "بانتظار الاعتماد" : `${row.improvement_points} نقطة`}</td>
-          <td>{row.progress.assigned_lessons == null ? "غير معتمد" : `${row.progress.completed_lessons} / ${row.progress.assigned_lessons}`}</td><td>{row.support.resolved} / {row.support.total}</td>
+          <td>{row.progress.assigned_lessons == null ? "غير معتمد" : `${row.progress.completed_lessons} / ${row.progress.assigned_lessons}`}</td><td><span>{row.support.mastered} / {row.support.total}</span>{row.support.needs_followup > 0 && <span className="block text-sm text-amber-800">{row.support.needs_followup} تحتاج متابعة</span>}</td>
           <td><a href={`/api/v2/reports/students/${row.student_id}/export.pdf`} className="font-semibold text-primary">PDF فردي</a></td>
         </tr>)}</tbody></table>} cards={visibleStudents.map(row => <AdminMobileCard key={row.student_id} title={<Link href={`/admin/students/${row.student_id}`}>{row.student_name}</Link>}>
           <span>قبلي: {score(row.pretest?.score)} · بعدي: {score(row.posttest?.score)}</span><span>التحسن: {row.improvement_points == null ? "غير متاح" : `${row.improvement_points} نقطة`}</span>
-          <span>دروس: {row.progress.assigned_lessons == null ? "غير معتمد" : `${row.progress.completed_lessons} / ${row.progress.assigned_lessons}`}</span><span>الدعم: {row.support.resolved} / {row.support.total} · معلّق: {row.pending_assessment_reviews}</span>
+          <span>دروس: {row.progress.assigned_lessons == null ? "غير معتمد" : `${row.progress.completed_lessons} / ${row.progress.assigned_lessons}`}</span><span>الدعم المثبت: {row.support.mastered} / {row.support.total} · تحتاج متابعة: {row.support.needs_followup} · قراءات معلقة: {row.pending_assessment_reviews}</span>
           <AdminAction href={`/api/v2/reports/students/${row.student_id}/export.pdf`}>PDF فردي</AdminAction>
         </AdminMobileCard>)} />}
         {students.length > PAGE_SIZE && <nav aria-label="صفحات نتائج الطلاب" className="mt-4 flex items-center justify-between gap-3 text-sm">
