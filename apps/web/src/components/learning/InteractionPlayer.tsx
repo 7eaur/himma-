@@ -5,6 +5,7 @@ import EducationalImage from "./EducationalImage";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Check, Mic, MicOff, Pause, RotateCcw, Volume2, X } from "lucide-react";
 import styles from "./InteractionPlayer.module.css";
+import { shapeArabicWordTiles } from "./arabicWordTiles";
 
 export type InteractionKind = "choose_one" | "listen_choose_one" | "choose_image" | "sequence" | "build_word" | "read_aloud";
 type MediaKind = "audio" | "image" | "video";
@@ -437,6 +438,15 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   const retryHint = guidedStage && retryFeedback && feedback?.hint ? feedback.hint : null;
   const modelIds = interaction.progress.stage === "support_practice" && (feedback?.help_level ?? 0) >= 2
     ? (feedback?.model_option_ids ?? []) : [];
+  // Shape only the child's chosen order, or a worked model already unlocked
+  // during support. Inferring positions for unselected choices would leak the
+  // correct ordering in pre/posttests and independent checks.
+  const selectedWordForms = question.interaction === "build_word"
+    ? shapeArabicWordTiles(selected.map((id) => question.options.find((option) => option.id === id)?.text ?? ""))
+    : [];
+  const modelWordForms = question.interaction === "build_word"
+    ? shapeArabicWordTiles(modelIds.map((id) => question.options.find((option) => option.id === id)?.text ?? ""))
+    : [];
   const coachImage = retryFeedback || assistedFeedback ? "/characters/girl/try-again.png" : "/characters/girl/explain.png";
   const coachMessage = assistedFeedback ? feedback?.message || "راجع المثال ثم نواصل."
     : retryFeedback ? (retryHint ? `حاول مرة أخرى. تلميح: ${retryHint}`
@@ -464,7 +474,9 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
         if (!option) return null;
         return <div key={id} className={styles.supportModelOption}>
           {ordered && <b>{index + 1}</b>}
-          {option.text && <span>{option.text}</span>}
+          {option.text && (question.interaction === "build_word"
+            ? <><span className={styles.wordTileText} aria-hidden="true">{modelWordForms[index]}</span><span className={styles.screenReaderOnly}>{option.text}</span></>
+            : <span>{option.text}</span>)}
           {option.media.map((item) => <span key={item.media_id}>{renderMedia(item, true)}</span>)}
         </div>;
       })}</div>
@@ -481,7 +493,10 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
       return <button key={id} type="button" disabled={saving || awaitingConfirmation} aria-label={`إزالة العنصر ${index + 1} من الترتيب`} aria-describedby={option?.text ? `${descriptionIdPrefix}-selected-${index}` : undefined} onClick={() => setSelected((current) => current.filter((value) => value !== id))}>
         <b>{index + 1}</b>
         {imageReady && <EducationalImage key={imageAsset.url} className={styles.orderPreview} src={imageAsset.url!} width={68} height={52} alt={`صورة العنصر ${index + 1}`} onError={() => markMediaFailure(imageRef!.media_id)}/>}
-        {option?.text && <span id={`${descriptionIdPrefix}-selected-${index}`} className={styles.orderText}>{option.text}</span>}
+        {option?.text && <span className={styles.orderText}>{question.interaction === "build_word"
+          ? <><span className={styles.wordTileText} aria-hidden="true">{selectedWordForms[index]}</span><span id={`${descriptionIdPrefix}-selected-${index}`} className={styles.screenReaderOnly}>{option.text}</span></>
+          : <span id={`${descriptionIdPrefix}-selected-${index}`}>{option.text}</span>
+        }</span>}
         {!option?.text && !imageReady && <span className={styles.orderText}>عنصر {index + 1}</span>}
         <X size={14} aria-hidden="true"/>
       </button>;
