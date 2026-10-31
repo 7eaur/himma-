@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { mkdir } from "node:fs/promises";
+import { mkdir, readFile } from "node:fs/promises";
 import path from "node:path";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -129,4 +129,73 @@ test("P09.0 V2 pretest states are readable without answer leakage at mobile, tab
       });
     }
   }
+});
+
+
+test("captures the real mobile word-building component with contextual Arabic letters and the approved ball image", async ({ page, request, context }) => {
+  test.setTimeout(150000);
+  if (!SUPERVISOR_PASSWORD) throw new Error("E2E_RESEARCHER_PASSWORD is required");
+  await mkdir(DIR, { recursive: true });
+  const ballBytes = await readFile(path.resolve(
+    process.cwd(), "../../assets/education/assets/vocabulary/webp/hem-voc-10-ball-512.webp",
+  ));
+  const ballImage = `data:image/webp;base64,${ballBytes.toString("base64")}`;
+  const supervisor = await request.post(`${API_URL}/auth/login`, {
+    data: { username: SUPERVISOR_USERNAME, password: SUPERVISOR_PASSWORD },
+  });
+  expect(supervisor.status()).toBe(200);
+  const created = await request.post(`${API_URL}/researcher/students`, {
+    data: { full_name: `طالب اختبار شكل الحروف ${Date.now()}`, grade_level: 3 },
+  });
+  expect(created.status()).toBe(201);
+  const accessCode = (await created.json()).access_code as string;
+  const signedIn = await request.post(`${API_URL}/auth/student-login`, { data: { access_code: accessCode } });
+  expect(signedIn.status()).toBe(200);
+  const token = signedIn.headers()["set-cookie"]?.match(/access_token=([^;]+)/)?.[1];
+  expect(token).toBeTruthy();
+  await context.addCookies([{ name: "access_token", value: token!, domain: "localhost",
+    path: "/", httpOnly: true, secure: false, sameSite: "Lax" }]);
+
+  // Only the session JSON is synthetic; the student page, components, CSS,
+  // Arabic font shaping and the ball artwork are all loaded from the real app.
+  // No private correct order is sent to the browser.
+  const question = {
+    session: { session_id: 777, kind: "pretest", state: "answering",
+      progress: { answered: 11, total: 30 } },
+    interaction: {
+      question: { question_id: "L2-01-IC-A02", role: "pretest", interaction: "build_word",
+        prompt: "انظر إلى الصورة، ثم رتّب الحروف لتكوّن اسمها.",
+        stimulus: { text: null, media: [{ media_id: "VOC-10", kind: "image" }] },
+        options: [
+          { id: "t1", text: "ة", media: [] },
+          { id: "t2", text: "ر", media: [] },
+          { id: "t3", text: "ك", media: [] },
+        ],
+        hint: null,
+      },
+      media: { "VOC-10": { kind: "image", state: "ready", url: ballImage } },
+      progress: { index: 12, total: 30, stage: "pretest" },
+      attempts: 0, draft: null,
+    },
+  };
+  await page.route("**/api/v2/assessments/sessions/777", route => route.fulfill({ json: question }));
+  await page.route(/\/api\/v2\/retries\/student\/tasks\?/, route =>
+    route.fulfill({ json: { items: [], next_offset: null } }),
+  );
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/student/assessment-v2/777");
+  const player = page.getByTestId("v2-interaction-player");
+  await expect(player).toBeVisible();
+  await expect(player.getByAltText("صورة السؤال")).toBeVisible();
+  // Only the learner's chosen order forms connected letters. No answer-key
+  // ordering is available to the pretest screen.
+  await player.getByRole("button", { name: "اختيار الخيار 3" }).click();
+  await player.getByRole("button", { name: "اختيار الخيار 2" }).click();
+  await player.getByRole("button", { name: "اختيار الخيار 1" }).click();
+  await expect(player.locator('[data-word-form="selected"]')).toHaveText(["كـ", "ـر", "ة"]);
+  await expect(player.getByRole("button", { name: "حفظ الإجابة والمتابعة" })).toBeEnabled();
+  await expect(page.getByText(/تلميح:/)).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() =>
+    document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.screenshot({ path: path.join(DIR, "word-build-connected-ball-mobile-390.png"), fullPage: true });
 });
