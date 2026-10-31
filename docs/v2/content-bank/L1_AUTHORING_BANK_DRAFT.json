@@ -2218,7 +2218,7 @@
       "role": "guided_practice",
       "mode": "GP",
       "interaction": "read_aloud",
-      "prompt": "اقرأ المقطع بصوت واضح.",
+      "prompt": "اقرأ الحرف بصوت واضح.",
       "stimulus": {
         "text": "رَ",
         "media": []
@@ -2245,7 +2245,7 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": "اقرأ الحرف مع الفتحة في صوت واحد.",
+      "hint": "انتبه إلى صوت الفتحة مع الحرف.",
       "retry": {
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
@@ -2346,7 +2346,7 @@
       "role": "guided_practice",
       "mode": "GP",
       "interaction": "read_aloud",
-      "prompt": "اقرأ المقطع.",
+      "prompt": "اقرأ الحرف بصوت واضح.",
       "stimulus": {
         "text": "قِ",
         "media": []
@@ -2373,7 +2373,7 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": "اجمع صوت ق والكسرة في مقطع واحد.",
+      "hint": "انتبه إلى صوت الكسرة مع الحرف.",
       "retry": {
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
@@ -2407,7 +2407,7 @@
       "role": "independent_check",
       "mode": "IC",
       "interaction": "read_aloud",
-      "prompt": "اقرأ المقطع.",
+      "prompt": "اقرأ الحرف بصوت واضح.",
       "stimulus": {
         "text": "بُ",
         "media": []
@@ -2525,7 +2525,7 @@
       "role": "independent_check",
       "mode": "IC",
       "interaction": "read_aloud",
-      "prompt": "اقرأ المقطع.",
+      "prompt": "اقرأ الحرف بصوت واضح.",
       "stimulus": {
         "text": "مَ",
         "media": []
@@ -2834,9 +2834,9 @@
       "role": "guided_practice",
       "mode": "GP",
       "interaction": "read_aloud",
-      "prompt": "اجمع المقاطع ثم اقرأ الكلمة بصوت واضح.",
+      "prompt": "اقرأ الكلمة بصوت واضح.",
       "stimulus": {
-        "text": "نَ + زَ + لَ",
+        "text": "نَزَلَ",
         "media": []
       },
       "options": [],
@@ -2861,7 +2861,7 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": "اقرأ الأجزاء ثم قل الكلمة كاملة.",
+      "hint": "انظر إلى الكلمة كاملة وانطقها بوضوح.",
       "retry": {
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
@@ -3013,9 +3013,9 @@
       "role": "independent_check",
       "mode": "IC",
       "interaction": "read_aloud",
-      "prompt": "ادمج المقاطع ثم اقرأ الكلمة بصوت واضح.",
+      "prompt": "اقرأ الكلمة بصوت واضح.",
       "stimulus": {
-        "text": "رَ + كَ + بَ",
+        "text": "رَكَبَ",
         "media": []
       },
       "options": [],
@@ -3157,7 +3157,7 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": "اقرأ شَ ثم بقية الكلمة دون تخمين.",
+      "hint": "انتبه إلى حروف الكلمة كلها.",
       "retry": {
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
@@ -3258,7 +3258,7 @@
       "role": "guided_practice",
       "mode": "GP",
       "interaction": "read_aloud",
-      "prompt": "اقرأ الكلمة.",
+      "prompt": "اقرأ الكلمة بصوت واضح.",
       "stimulus": {
         "text": "عَسَل",
         "media": []
@@ -3286,7 +3286,7 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": "اقرأ الحرف مع حركته ثم اجمع الأصوات.",
+      "hint": "انتبه إلى الحركات أثناء قراءة الكلمة.",
       "retry": {
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
@@ -3399,7 +3399,7 @@
       "role": "independent_check",
       "mode": "IC",
       "interaction": "read_aloud",
-      "prompt": "اقرأ الكلمة.",
+      "prompt": "اقرأ الكلمة بصوت واضح.",
       "stimulus": {
         "text": "نَخْلَة",
         "media": []
@@ -3517,7 +3517,7 @@
       "role": "independent_check",
       "mode": "IC",
       "interaction": "read_aloud",
-      "prompt": "اقرأ الكلمة.",
+      "prompt": "اقرأ الكلمة بصوت واضح.",
       "stimulus": {
         "text": "قَمَر",
         "media": []
@@ -4231,7 +4231,7 @@
       "role": "guided_practice",
       "mode": "GP",
       "interaction": "read_aloud",
-      "prompt": "اقرأ الحرف وحركته معًا.",
+      "prompt": "اقرأ الحرف بصوت واضح.",
       "stimulus": {
         "text": "سُ",
         "media": []
@@ -4258,7 +4258,7 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": "لا تفصل بين الحرف والحركة.",
+      "hint": "انتبه إلى حركة الحرف.",
       "retry": {
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
@@ -4356,7 +4356,7 @@
       "role": "support_check",
       "mode": "IC",
       "interaction": "read_aloud",
-      "prompt": "اقرأ المقطع.",
+      "prompt": "اقرأ الحرف بصوت واضح.",
       "stimulus": {
         "text": "دُ",
         "media": []
@@ -4473,7 +4473,7 @@
       "role": "guided_practice",
       "mode": "GP",
       "interaction": "read_aloud",
-      "prompt": "اقرأ الكلمة.",
+      "prompt": "اقرأ الكلمة بصوت واضح.",
       "stimulus": {
         "text": "قَلَم",
         "media": []
@@ -4500,7 +4500,7 @@
       "missing_media_ids": [],
       "media_qa": "pending_owner_review",
       "status": "authored_draft",
-      "hint": "اقرأ أول جزء ثم الكلمة كلها.",
+      "hint": "انظر إلى حروف الكلمة كلها.",
       "retry": {
         "after_first_error": "show_hint_and_replay_if_available",
         "after_second_error": "show_correct_model_then_fresh_guided_retry",
@@ -4596,7 +4596,7 @@
       "role": "support_check",
       "mode": "IC",
       "interaction": "read_aloud",
-      "prompt": "اقرأ الكلمة.",
+      "prompt": "اقرأ الكلمة بصوت واضح.",
       "stimulus": {
         "text": "بَحْر",
         "media": []
@@ -4652,7 +4652,7 @@
       "role": "support_check",
       "mode": "IC",
       "interaction": "read_aloud",
-      "prompt": "اقرأ الكلمة.",
+      "prompt": "اقرأ الكلمة بصوت واضح.",
       "stimulus": {
         "text": "كُرَة",
         "media": []
@@ -5408,7 +5408,7 @@
       "mode": "GP",
       "role": "guided_practice",
       "interaction": "read_aloud",
-      "prompt": "اقرأ المقطع.",
+      "prompt": "اقرأ الحرف بصوت واضح.",
       "stimulus": {
         "text": "لِ",
         "media": []
@@ -5516,7 +5516,7 @@
       "mode": "IC",
       "role": "support_check",
       "interaction": "read_aloud",
-      "prompt": "اقرأ المقطع.",
+      "prompt": "اقرأ الحرف بصوت واضح.",
       "stimulus": {
         "text": "فِ",
         "media": []
