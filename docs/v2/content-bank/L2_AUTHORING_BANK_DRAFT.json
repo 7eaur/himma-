@@ -1289,7 +1289,7 @@
       "mode": "GP",
       "role": "guided_practice",
       "interaction": "read_aloud",
-      "prompt": "اقرأ الكلمة جزءًا جزءًا ثم كاملة.",
+      "prompt": "اقرأ الكلمة بصوت واضح.",
       "stimulus": {
         "text": "مَكْتَب",
         "media": []
@@ -1316,7 +1316,7 @@
       "reading_reference": "مَكْتَب",
       "technical_gaps": [],
       "status": "draft",
-      "hint": "اقرأ مَكْ ثم تَب، ثم اجمعهما.",
+      "hint": "انظر إلى الكلمة كاملة واقرأها بوضوح.",
       "retry": "hint_on_error_then_one_more_try_no_test_evidence",
       "display_scoring_policy": {
         "display_diacritics_present": true,
@@ -1404,7 +1404,7 @@
       "mode": "GP",
       "role": "guided_practice",
       "interaction": "read_aloud",
-      "prompt": "اقرأ الكلمة من أولها إلى آخرها.",
+      "prompt": "اقرأ الكلمة بصوت واضح.",
       "stimulus": {
         "text": "سَفِينَة",
         "media": []
@@ -1432,7 +1432,7 @@
       "reading_reference": "سَفِينَة",
       "technical_gaps": [],
       "status": "draft",
-      "hint": "اقرأ الكلمة على أجزاء، وانتبه إلى حرف المد.",
+      "hint": "انتبه إلى حرف المد أثناء قراءة الكلمة.",
       "retry": "hint_on_error_then_one_more_try_no_test_evidence",
       "display_scoring_policy": {
         "display_diacritics_present": true,
@@ -1521,7 +1521,7 @@
       "mode": "IC",
       "role": "independent_check",
       "interaction": "read_aloud",
-      "prompt": "اقرأ الكلمة.",
+      "prompt": "اقرأ الكلمة بصوت واضح.",
       "stimulus": {
         "text": "حَقِيبَة",
         "media": []
@@ -1577,7 +1577,7 @@
       "mode": "IC",
       "role": "independent_check",
       "interaction": "read_aloud",
-      "prompt": "اقرأ الكلمة.",
+      "prompt": "اقرأ الكلمة بصوت واضح.",
       "stimulus": {
         "text": "مَزْرَعَة",
         "media": []
@@ -1692,7 +1692,7 @@
       "mode": "IC",
       "role": "independent_check",
       "interaction": "read_aloud",
-      "prompt": "اقرأ الكلمة.",
+      "prompt": "اقرأ الكلمة بصوت واضح.",
       "stimulus": {
         "text": "زَرَافَة",
         "media": []
@@ -1775,7 +1775,7 @@
       "reading_reference": "ذَهَبَ سَامِي إِلَى الْمَدْرَسَةِ.",
       "technical_gaps": [],
       "status": "draft",
-      "hint": "اقرأ كل كلمة، ثم اقرأ الجملة كاملة.",
+      "hint": "اقرأ الجملة كما تراها دون حذف أي كلمة.",
       "retry": "hint_on_error_then_one_more_try_no_test_evidence",
       "display_scoring_policy": {
         "display_diacritics_present": false,
@@ -1805,7 +1805,7 @@
       "mode": "GP",
       "role": "guided_practice",
       "interaction": "read_aloud",
-      "prompt": "اقرأ الجملة وتوقف عند النقطة.",
+      "prompt": "اقرأ الجملة بصوت واضح.",
       "stimulus": {
         "text": "تشرب هند الماء.",
         "media": []
@@ -1920,7 +1920,7 @@
       "mode": "GP",
       "role": "guided_practice",
       "interaction": "read_aloud",
-      "prompt": "اقرأ الجملة قراءة متصلة.",
+      "prompt": "اقرأ الجملة بصوت واضح.",
       "stimulus": {
         "text": "تجري رنا في الحديقة.",
         "media": []
@@ -1947,7 +1947,7 @@
       "reading_reference": "تَجْرِي رَنَا فِي الْحَدِيقَةِ.",
       "technical_gaps": [],
       "status": "draft",
-      "hint": "اقرأ الكلمات أولًا ثم حاول قراءتها متصلة.",
+      "hint": "اقرأ الجملة دون حذف الكلمات أو تغيير ترتيبها.",
       "retry": "hint_on_error_then_one_more_try_no_test_evidence",
       "display_scoring_policy": {
         "display_diacritics_present": false,
@@ -1977,7 +1977,7 @@
       "mode": "IC",
       "role": "independent_check",
       "interaction": "read_aloud",
-      "prompt": "اقرأ الجملة.",
+      "prompt": "اقرأ الجملة بصوت واضح.",
       "stimulus": {
         "text": "جلس نادر تحت الشجرة.",
         "media": []
@@ -2033,7 +2033,7 @@
       "mode": "IC",
       "role": "independent_check",
       "interaction": "read_aloud",
-      "prompt": "اقرأ الجملة.",
+      "prompt": "اقرأ الجملة بصوت واضح.",
       "stimulus": {
         "text": "حملت ليلى حقيبتها.",
         "media": []
@@ -2089,7 +2089,7 @@
       "mode": "IC",
       "role": "independent_check",
       "interaction": "read_aloud",
-      "prompt": "اقرأ الجملة.",
+      "prompt": "اقرأ الجملة بصوت واضح.",
       "stimulus": {
         "text": "يلعب خالد بالكرة.",
         "media": []
@@ -2145,7 +2145,7 @@
       "mode": "IC",
       "role": "independent_check",
       "interaction": "read_aloud",
-      "prompt": "اقرأ الجملة.",
+      "prompt": "اقرأ الجملة بصوت واضح.",
       "stimulus": {
         "text": "كتبت سارة واجبها.",
         "media": []
@@ -3623,7 +3623,7 @@
       "mode": "GP",
       "role": "guided_practice",
       "interaction": "read_aloud",
-      "prompt": "اقرأ هذه الكلمة ببطء ثم كاملة.",
+      "prompt": "اقرأ الكلمة بصوت واضح.",
       "stimulus": {
         "text": "حَدِيقَة",
         "media": []
@@ -3650,7 +3650,7 @@
       "reading_reference": "حَدِيقَة",
       "technical_gaps": [],
       "status": "draft",
-      "hint": "اقرأ حَ ثم دِي ثم قَة.",
+      "hint": "انتبه إلى حروف الكلمة وحركاتها.",
       "retry": "hint_on_error_then_one_more_try_no_test_evidence",
       "display_scoring_policy": {
         "display_diacritics_present": true,
@@ -3733,7 +3733,7 @@
       "mode": "IC",
       "role": "support_check",
       "interaction": "read_aloud",
-      "prompt": "اقرأ الكلمة.",
+      "prompt": "اقرأ الكلمة بصوت واضح.",
       "stimulus": {
         "text": "مَكْتَبَة",
         "media": []
