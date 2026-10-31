@@ -475,7 +475,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
         return <div key={id} className={styles.supportModelOption}>
           {ordered && <b>{index + 1}</b>}
           {option.text && (question.interaction === "build_word"
-            ? <><span className={styles.wordTileText} aria-hidden="true">{modelWordForms[index]}</span><span className={styles.screenReaderOnly}>{option.text}</span></>
+            ? <><span className={styles.wordTileText} aria-hidden="true" data-word-form="model">{modelWordForms[index]}</span><span className={styles.screenReaderOnly}>{option.text}</span></>
             : <span>{option.text}</span>)}
           {option.media.map((item) => <span key={item.media_id}>{renderMedia(item, true)}</span>)}
         </div>;
@@ -494,7 +494,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
         <b>{index + 1}</b>
         {imageReady && <EducationalImage key={imageAsset.url} className={styles.orderPreview} src={imageAsset.url!} width={68} height={52} alt={`صورة العنصر ${index + 1}`} onError={() => markMediaFailure(imageRef!.media_id)}/>}
         {option?.text && <span className={styles.orderText}>{question.interaction === "build_word"
-          ? <><span className={styles.wordTileText} aria-hidden="true">{selectedWordForms[index]}</span><span id={`${descriptionIdPrefix}-selected-${index}`} className={styles.screenReaderOnly}>{option.text}</span></>
+          ? <><span className={styles.wordTileText} aria-hidden="true" data-word-form="selected">{selectedWordForms[index]}</span><span id={`${descriptionIdPrefix}-selected-${index}`} className={styles.screenReaderOnly}>{option.text}</span></>
           : <span id={`${descriptionIdPrefix}-selected-${index}`}>{option.text}</span>
         }</span>}
         {!option?.text && !imageReady && <span className={styles.orderText}>عنصر {index + 1}</span>}
