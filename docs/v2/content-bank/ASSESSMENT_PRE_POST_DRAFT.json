@@ -334,7 +334,7 @@
       "evidence_type": "syllable_reading",
       "role": "pretest",
       "interaction": "read_aloud",
-      "prompt": "اقرأ المقطع.",
+      "prompt": "اقرأ الحرف بصوت واضح.",
       "stimulus": {
         "text": "لَ",
         "media": []
@@ -456,7 +456,7 @@
       "evidence_type": "simple_word_reading",
       "role": "pretest",
       "interaction": "read_aloud",
-      "prompt": "اقرأ الكلمة.",
+      "prompt": "اقرأ الكلمة بصوت واضح.",
       "stimulus": {
         "text": "وَرْدَة",
         "media": []
@@ -935,7 +935,7 @@
       "evidence_type": "long_word_reading",
       "role": "pretest",
       "interaction": "read_aloud",
-      "prompt": "اقرأ الكلمة.",
+      "prompt": "اقرأ الكلمة بصوت واضح.",
       "stimulus": {
         "text": "مَدْرَسَة",
         "media": []
@@ -994,7 +994,7 @@
       "evidence_type": "long_word_reading",
       "role": "pretest",
       "interaction": "read_aloud",
-      "prompt": "اقرأ الكلمة.",
+      "prompt": "اقرأ الكلمة بصوت واضح.",
       "stimulus": {
         "text": "مِفْتَاح",
         "media": []
@@ -1057,7 +1057,7 @@
       "evidence_type": "sentence_reading",
       "role": "pretest",
       "interaction": "read_aloud",
-      "prompt": "اقرأ الجملة.",
+      "prompt": "اقرأ الجملة بصوت واضح.",
       "stimulus": {
         "text": "عاد باسل من المدرسة.",
         "media": []
@@ -1177,7 +1177,7 @@
       "evidence_type": "connected_sentence_reading",
       "role": "pretest",
       "interaction": "read_aloud",
-      "prompt": "اقرأ الجملتين.",
+      "prompt": "اقرأ الجملتين بصوت واضح.",
       "stimulus": {
         "text": "دخل نادر المكتبة. اختار كتابا صغيرا.",
         "media": []
@@ -1236,7 +1236,7 @@
       "evidence_type": "short_text_reading",
       "role": "pretest",
       "interaction": "read_aloud",
-      "prompt": "اقرأ النص القصير.",
+      "prompt": "اقرأ النص بصوت واضح.",
       "stimulus": {
         "text": "في الصباح زارت ريم جدتها. أحضرت لها زهرة. فرحت الجدة بالهدية.",
         "media": []
@@ -2259,7 +2259,7 @@
       "evidence_type": "syllable_reading",
       "role": "posttest",
       "interaction": "read_aloud",
-      "prompt": "اقرأ المقطع.",
+      "prompt": "اقرأ الحرف بصوت واضح.",
       "stimulus": {
         "text": "قُ",
         "media": []
@@ -2382,7 +2382,7 @@
       "evidence_type": "simple_word_reading",
       "role": "posttest",
       "interaction": "read_aloud",
-      "prompt": "اقرأ الكلمة.",
+      "prompt": "اقرأ الكلمة بصوت واضح.",
       "stimulus": {
         "text": "زَهْرَة",
         "media": []
@@ -2855,7 +2855,7 @@
       "evidence_type": "long_word_reading",
       "role": "posttest",
       "interaction": "read_aloud",
-      "prompt": "اقرأ الكلمة.",
+      "prompt": "اقرأ الكلمة بصوت واضح.",
       "stimulus": {
         "text": "حَافِلَة",
         "media": []
@@ -2914,7 +2914,7 @@
       "evidence_type": "long_word_reading",
       "role": "posttest",
       "interaction": "read_aloud",
-      "prompt": "اقرأ الكلمة.",
+      "prompt": "اقرأ الكلمة بصوت واضح.",
       "stimulus": {
         "text": "مِصْبَاح",
         "media": []
@@ -2977,7 +2977,7 @@
       "evidence_type": "sentence_reading",
       "role": "posttest",
       "interaction": "read_aloud",
-      "prompt": "اقرأ الجملة.",
+      "prompt": "اقرأ الجملة بصوت واضح.",
       "stimulus": {
         "text": "زرعت هناء زهرة.",
         "media": []
@@ -3097,7 +3097,7 @@
       "evidence_type": "connected_sentence_reading",
       "role": "posttest",
       "interaction": "read_aloud",
-      "prompt": "اقرأ الجملتين.",
+      "prompt": "اقرأ الجملتين بصوت واضح.",
       "stimulus": {
         "text": "فتح عادل الباب. دخل صديقه مسرورا.",
         "media": []
@@ -3156,7 +3156,7 @@
       "evidence_type": "short_text_reading",
       "role": "posttest",
       "interaction": "read_aloud",
-      "prompt": "اقرأ النص القصير.",
+      "prompt": "اقرأ النص بصوت واضح.",
       "stimulus": {
         "text": "بعد المدرسة زار ماجد الحديقة. شاهد شجرة كبيرة. جلس تحتها يستريح.",
         "media": []
