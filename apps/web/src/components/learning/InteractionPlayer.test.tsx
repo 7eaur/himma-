@@ -90,6 +90,77 @@ describe("InteractionPlayer", () => {
     expect(screen.getByRole("button", { name: "اختيار الخيار 2" })).toBeEnabled();
   });
 
+  it.each([
+    ["guided_practice", "guided_practice"],
+    ["independent_check", "independent_check"],
+    ["support_check", "support_check"],
+    ["pretest", "pretest"],
+    ["posttest", "posttest"],
+  ] as const)("shows joined forms in the child's own word during %s without revealing any answer order", (stage, role) => {
+    const word = payload({
+      interaction: "build_word",
+      role,
+      options: [
+        { id: "ta", text: "ة", media: [] },
+        { id: "r", text: "ر", media: [] },
+        { id: "k", text: "ك", media: [] },
+      ],
+    });
+    word.progress.stage = stage;
+    render(<InteractionPlayer sessionId={7} interaction={word} onLessonChange={jest.fn()}/>);
+    expect(screen.queryByLabelText("مثال محلول للتعلّم")).not.toBeInTheDocument();
+    // Unselected choices do not advertise their true positions or reveal the
+    // correct order in independent/pre-/post-tests.
+    expect(screen.getByRole("button", { name: "اختيار الخيار 1" })).toHaveAccessibleDescription("ة");
+    expect(screen.getByRole("button", { name: "اختيار الخيار 3" })).toHaveAccessibleDescription("ك");
+    expect(document.querySelectorAll('[data-word-form="model"]')).toHaveLength(0);
+    fireEvent.click(screen.getByRole("button", { name: "اختيار الخيار 3" }));
+    fireEvent.click(screen.getByRole("button", { name: "اختيار الخيار 2" }));
+    fireEvent.click(screen.getByRole("button", { name: "اختيار الخيار 1" }));
+    const tray = screen.getByLabelText("الترتيب المختار");
+    const forms = () => Array.from(tray.querySelectorAll('[data-word-form="selected"]'), (node) => node.textContent);
+    expect(forms()).toEqual(["كـ", "ـر", "ة"]);
+    expect(screen.getByRole("button", { name: "إزالة العنصر 2 من الترتيب" })).toHaveAccessibleDescription("ر");
+    fireEvent.click(screen.getByRole("button", { name: "إزالة العنصر 2 من الترتيب" }));
+    expect(forms()).toEqual(["كـ", "ـة"]);
+    expect(screen.getByRole("button", { name: "اختيار الخيار 2" })).toBeEnabled();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it("shapes an already-approved worked support model without changing option IDs or grading", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true, status: 200,
+      json: async () => ({
+        submission: {
+          status: "graded", retry_required: true, correct: false,
+          help_level: 2, model_option_ids: ["k", "r", "ta"],
+          message: "راجع الترتيب الصحيح.",
+        },
+      }),
+    });
+    const support = payload({
+      interaction: "build_word",
+      options: [
+        { id: "ta", text: "ة", media: [] },
+        { id: "k", text: "ك", media: [] },
+        { id: "r", text: "ر", media: [] },
+      ],
+    });
+    support.progress.stage = "support_practice";
+    render(<InteractionPlayer sessionId={7} interaction={support} onLessonChange={jest.fn()}/>);
+    fireEvent.click(screen.getByRole("button", { name: "اختيار الخيار 1" }));
+    fireEvent.click(screen.getByRole("button", { name: "اختيار الخيار 2" }));
+    fireEvent.click(screen.getByRole("button", { name: "اختيار الخيار 3" }));
+    fireEvent.click(screen.getByRole("button", { name: "تحقق من الإجابة" }));
+    await waitFor(() => expect(screen.getByLabelText("مثال محلول للتعلّم")).toBeVisible());
+    expect(Array.from(document.querySelectorAll('[data-word-form="model"]'), (node) => node.textContent))
+      .toEqual(["كـ", "ـر", "ة"]);
+    const submitted = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body);
+    expect(submitted.selected_option_ids).toEqual(["ta", "k", "r"]);
+    expect(submitted).not.toHaveProperty("correct_option_ids");
+    expect(submitted).not.toHaveProperty("text_response");
+  });
+
   it("builds a word from separate repeated letters and submits tile IDs for automatic grading", async () => {
     (global.fetch as jest.Mock).mockResolvedValue({ok:true,json:async()=>({submission:{status:"graded",correct:true,retry_required:false},lesson:{session:{}}})});
     render(<InteractionPlayer sessionId={9} interaction={payload({interaction:"build_word",options:[
