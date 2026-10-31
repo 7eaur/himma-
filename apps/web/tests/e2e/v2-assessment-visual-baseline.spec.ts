@@ -177,6 +177,7 @@ test("captures the real mobile word-building component with contextual Arabic le
       progress: { index: 12, total: 30, stage: "pretest" },
       attempts: 0, draft: null,
     },
+    summary: { pending_review: 0 },
   };
   await page.route("**/api/v2/assessments/sessions/777", route => route.fulfill({ json: question }));
   await page.route(/\/api\/v2\/retries\/student\/tasks\?/, route =>
