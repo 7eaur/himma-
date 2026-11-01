@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { adminConnectionError, readAdminApiError } from "@/lib/adminFeedback";
+import { adminConnectionError, readAdminApiError, safeAdminCaughtError } from "@/lib/adminFeedback";
 import { BookOpenCheck, FileSpreadsheet, Film } from "lucide-react";
 import { AdminAction, AdminEmptyState, AdminPage, AdminPageHeader, AdminPanel, AdminRequestStatus } from "@/components/admin/AdminUI";
 import EducationalMediaPreview, { type EducationalMedia } from "@/components/admin/EducationalMediaPreview";
@@ -50,7 +50,7 @@ export default function ContentBankPage() {
         const data = await response.json() as Bank;
         if (data.mode !== "read_only" || !Array.isArray(data.items) || !Array.isArray(data.sections)) throw new Error("تعذر قراءة بيانات بنك الأسئلة. أعد المحاولة.");
         if (!controller.signal.aborted) setBank(data);
-      } catch (cause) { if (!controller.signal.aborted) { setBank(null); setError(cause instanceof TypeError ? adminConnectionError : cause instanceof Error ? cause.message : adminConnectionError); } }
+      } catch (cause) { if (!controller.signal.aborted) { setBank(null); setError(safeAdminCaughtError(cause, adminConnectionError)); } }
       finally { if (!controller.signal.aborted) setLoading(false); }
     };
     void load(); return () => controller.abort();
