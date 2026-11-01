@@ -74,3 +74,19 @@ test("searches by friendly media type while preserving the file identifier for s
   expect(screen.getByRole("heading", {name: "مقطع صوتي"})).toBeVisible();
   expect(screen.getByText("AUDIO-1")).toBeInTheDocument();
 });
+
+test("rejects malformed media-use metadata with a recoverable error instead of crashing the gallery", async () => {
+  const bad = {...inventory, items: [{...items[0], uses: null}]};
+  global.fetch = jest.fn().mockResolvedValue({ok: true, json: async () => bad});
+  render(<V2MediaInventoryPage />);
+  expect(await screen.findByRole("alert")).toHaveTextContent("تعذر قراءة بيانات الوسائط");
+  expect(screen.queryByTestId("v2-media-card")).not.toBeInTheDocument();
+  expect(screen.getByRole("button", {name: "إعادة المحاولة"})).toBeVisible();
+});
+
+test("does not treat absent media counts as a valid empty collection", async () => {
+  global.fetch = jest.fn().mockResolvedValue({ok: true, json: async () => ({...inventory, counts: null})});
+  render(<V2MediaInventoryPage />);
+  expect(await screen.findByRole("alert")).toHaveTextContent("تعذر قراءة بيانات الوسائط");
+  expect(screen.queryByText("لا توجد وسائط في هذا القسم")).not.toBeInTheDocument();
+});
