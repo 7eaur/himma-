@@ -361,64 +361,6 @@ def _opened_assessment_rerecord_payload(
     return _item_step_payload(item, step)
 
 
-@router.post("/start", response_model=schemas.AssessmentSessionResponse)
-def start_assessment(
-    request: schemas.AssessmentStartRequest,
-    db: Session = Depends(get_db),
-    student: Student = Depends(get_current_student),
-):
-    if not student.is_active:
-        raise HTTPException(status_code=403, detail="حساب الطالب غير نشط")
-
-    active = db.query(AssessmentSession).filter(
-        AssessmentSession.student_id == student.id,
-        AssessmentSession.status == "in_progress",
-    ).first()
-    if active:
-        if active.session_type == request.session_type:
-            return active
-        raise HTTPException(status_code=409, detail="أكمل الجلسة الحالية أولًا")
-
-    completed = db.query(AssessmentSession).filter(
-        AssessmentSession.student_id == student.id,
-        AssessmentSession.session_type == request.session_type,
-        AssessmentSession.status == "completed",
-    ).first()
-    if completed:
-        raise HTTPException(status_code=409, detail="هذا الاختبار مكتمل بالفعل")
-
-    if request.session_type == "posttest":
-        pretest_completed = db.query(AssessmentSession.id).filter(
-            AssessmentSession.student_id == student.id,
-            AssessmentSession.session_type == "pretest",
-            AssessmentSession.status == "completed",
-        ).first()
-        if not pretest_completed:
-            raise HTTPException(status_code=409, detail="أكمل الاختبار القبلي أولًا")
-        if not student.posttest_enabled:
-            raise HTTPException(status_code=403, detail="لم يفتح المشرف الاختبار البعدي بعد")
-
-    new_session = AssessmentSession(
-        student_id=student.id,
-        session_type=request.session_type,
-        status="in_progress",
-    )
-    db.add(new_session)
-    try:
-        db.commit()
-    except IntegrityError:
-        db.rollback()
-        active = db.query(AssessmentSession).filter(
-            AssessmentSession.student_id == student.id,
-            AssessmentSession.status == "in_progress",
-        ).first()
-        if active and active.session_type == request.session_type:
-            return active
-        raise HTTPException(status_code=409, detail="تعذر بدء الاختبار بسبب تعارض في الجلسة")
-    db.refresh(new_session)
-    return new_session
-
-
 @router.get("/active", response_model=Optional[schemas.AssessmentSessionResponse])
 def get_active_session(
     db: Session = Depends(get_db),
