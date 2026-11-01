@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CheckCircle2, Headphones, RefreshCcw } from "lucide-react";
 import { AdminAction, AdminEmptyState, AdminPage, AdminPageHeader, AdminPanel, AdminRequestStatus } from "@/components/admin/AdminUI";
-import { adminConnectionError, adminErrorMessage } from "@/lib/adminFeedback";
+import { adminConnectionError, adminErrorMessage, safeAdminCaughtError } from "@/lib/adminFeedback";
 
 type Reviewed = {
   audio_id: number; response_id: number; student_id: number; student_name: string;
@@ -64,7 +64,7 @@ export default function V2ReviewedRecordings({ embedded = false }: { embedded?: 
       if (requestId !== requestSequence.current) return;
       // Never display an old child's voice after a failed filter or refresh.
       setArchive({ items: [], next_offset: null });
-      setError(cause instanceof TypeError ? adminConnectionError : cause instanceof Error ? cause.message : adminConnectionError);
+      setError(safeAdminCaughtError(cause, adminConnectionError));
     } finally {
       if (requestAbort.current === controller) requestAbort.current = null;
       if (requestId === requestSequence.current) setLoading(false);
