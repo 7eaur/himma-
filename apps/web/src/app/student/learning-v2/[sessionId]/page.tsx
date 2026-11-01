@@ -56,7 +56,7 @@ function isRenderableLessonPayload(value: unknown, sessionId: number): value is 
       !video || typeof video.asset_id !== "string" || typeof video.state !== "string" ||
       typeof video.test_only !== "boolean" ||
       (video.url !== null && (typeof video.url !== "string" ||
-        !(/^(\\/(?!\\/)|https:\/\/)/.test(video.url)))) ||
+        !((video.url.startsWith("/") && !video.url.startsWith("//")) || video.url.startsWith("https://")))) ||
       !data.practice || !Number.isInteger(data.practice.count) ||
       typeof data.practice.first_question_id !== "string" ||
       !data.independent_check || !Number.isInteger(data.independent_check.count) ||
