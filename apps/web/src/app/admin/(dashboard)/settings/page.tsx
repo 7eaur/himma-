@@ -38,7 +38,6 @@ export default function SettingsPage() {
 
   useEffect(() => {
     let cancelled = false;
-    setLoadError("");
     void Promise.all([
       fetch("/api/researcher/account", { cache: "no-store" }),
       fetch("/api/researcher/supervisors", { cache: "no-store" }),
@@ -130,7 +129,7 @@ export default function SettingsPage() {
     <AdminPageHeader icon={ShieldCheck} title="إعدادات المشرف" description="إدارة بيانات الحساب والأمان والمشرفين." />
     <div role="alert" className="alert-error">
       {loadError || "تعذر التحقق من بيانات المشرف."}
-      <AdminAction onClick={() => { setLoading(true); setLoadAttempt(value => value + 1); }}>إعادة المحاولة</AdminAction>
+      <AdminAction onClick={() => { setLoadError(""); setLoading(true); setLoadAttempt(value => value + 1); }}>إعادة المحاولة</AdminAction>
     </div>
   </AdminPage>;
 
