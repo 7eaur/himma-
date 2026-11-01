@@ -9,7 +9,7 @@ import V2ReviewedAudioPlayer from "./V2ReviewedAudioPlayer";
 import V2ReadingRubricEditor, { emptyReadingRubric, rubricValid } from "./V2ReadingRubricEditor";
 import styles from "./V2AudioReviewQueue.module.css";
 import { notifyFeedback } from "@/lib/feedback";
-import { adminConnectionError, adminErrorMessage } from "@/lib/adminFeedback";
+import { adminConnectionError, adminErrorMessage, safeAdminCaughtError } from "@/lib/adminFeedback";
 
 type Kind = "assessment" | "lesson";
 export interface AudioReviewItem {
@@ -72,7 +72,7 @@ function ReviewDialog({ item, kind, onClose, onSaved }: {
       if (!response.ok) throw new Error(adminErrorMessage(response.status, result?.detail, "تعذر حفظ المراجعة. حاول مرة أخرى."));
       await onSaved(requestRetry ? "أُرسل طلب إعادة التسجيل إلى الطالب." : "اعتُمدت القراءة الصحيحة وحُفظ القرار.");
     } catch (reason) {
-      const message = reason instanceof TypeError ? adminConnectionError : reason instanceof Error ? reason.message : "تعذر حفظ المراجعة.";
+      const message = safeAdminCaughtError(reason, "تعذر حفظ المراجعة.");
       setError(message);
       // The open review dialog already shows this error; avoid a duplicate global toast.
       setBusy(false);
@@ -154,7 +154,7 @@ export default function V2AudioReviewQueue({ kind, embedded = false }: { kind: K
     } catch (reason) {
       if (id !== requestId.current) return;
       setQueue({ items: [], next_offset: null });
-      const message = reason instanceof TypeError ? adminConnectionError : reason instanceof Error ? reason.message : "تعذر تحميل قائمة التسجيلات.";
+      const message = safeAdminCaughtError(reason, "تعذر تحميل قائمة التسجيلات.");
       setError(message);
       // Persistent inline error with retry; do not duplicate it in the global toast.
     } finally {
