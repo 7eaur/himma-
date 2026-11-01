@@ -3,12 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ClipboardCheck, RefreshCw, X } from "lucide-react";
-import { AdminAction, AdminEmptyState, AdminPage, AdminPageHeader, AdminPanel } from "./AdminUI";
+import { AdminAction, AdminEmptyState, AdminPage, AdminPageHeader, AdminPanel, AdminRequestStatus } from "./AdminUI";
 import V2BlockedReviewNotice, { type BlockedV2Review } from "./V2BlockedReviewNotice";
 import V2ReviewedAudioPlayer from "./V2ReviewedAudioPlayer";
 import V2ReadingRubricEditor, { emptyReadingRubric, rubricValid } from "./V2ReadingRubricEditor";
 import styles from "./V2AudioReviewQueue.module.css";
 import { notifyFeedback } from "@/lib/feedback";
+import { adminConnectionError, adminErrorMessage } from "@/lib/adminFeedback";
 
 type Kind = "assessment" | "lesson";
 export interface AudioReviewItem {
@@ -68,12 +69,12 @@ function ReviewDialog({ item, kind, onClose, onSaved }: {
         }),
       });
       const result = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(typeof result?.detail === "string" ? result.detail : "تعذر حفظ المراجعة. حاول مرة أخرى.");
+      if (!response.ok) throw new Error(adminErrorMessage(response.status, result?.detail, "تعذر حفظ المراجعة. حاول مرة أخرى."));
       await onSaved(requestRetry ? "أُرسل طلب إعادة التسجيل إلى الطالب." : "اعتُمدت القراءة الصحيحة وحُفظ القرار.");
     } catch (reason) {
-      const message = reason instanceof Error ? reason.message : "تعذر حفظ المراجعة.";
+      const message = reason instanceof TypeError ? adminConnectionError : reason instanceof Error ? reason.message : "تعذر حفظ المراجعة.";
       setError(message);
-      notifyFeedback("error", message);
+      // The open review dialog already shows this error; avoid a duplicate global toast.
       setBusy(false);
       savingRef.current = false;
     }
@@ -92,7 +93,7 @@ function ReviewDialog({ item, kind, onClose, onSaved }: {
           audioSubmissionId={item.audio_submission_id!} completionUrl={`${prefix}/audio-completed`}
           initiallyCompleted={item.audio_playback_completed} onCompletionChange={setPlayed} />
           : <p role="alert" className="alert-error">التسجيل الصوتي غير متاح. لا يمكن اعتماد القراءة؛ اطلب إعادة تسجيل واضحة.</p>}
-        {error && <p role="alert" className="alert-error">{error}</p>}
+        {error && <AdminRequestStatus loading={false} error={error} onRetry={() => { void load(); }} />}
         {retry ? <div className={styles.fields}>
           <label htmlFor="audio-review-note">ماذا يحتاج الطالب أن يعيد؟</label>
           <textarea id="audio-review-note" value={note} onChange={event => setNote(event.target.value)} rows={3} maxLength={2000}
@@ -143,14 +144,15 @@ export default function V2AudioReviewQueue({ kind, embedded = false }: { kind: K
       const endpoint = kind === "assessment" ? "/api/v2/assessments/admin/review-queue" : "/api/v2/review/lesson-queue";
       const response = await fetch(`${endpoint}?limit=${pageSize}&offset=${offset}`, { cache: "no-store" });
       const data = await response.json().catch(() => null);
-      if (!response.ok || !Array.isArray(data?.items)) throw new Error(typeof data?.detail === "string" ? data.detail : "تعذر تحميل قائمة التسجيلات.");
+      if (!response.ok) throw new Error(adminErrorMessage(response.status, data?.detail, "تعذر تحميل قائمة التسجيلات."));
+      if (!Array.isArray(data?.items)) throw new Error("تعذر قراءة بيانات التسجيلات. أعد المحاولة.");
       if (id === requestId.current) setQueue(data);
     } catch (reason) {
       if (id !== requestId.current) return;
       setQueue({ items: [], next_offset: null });
-      const message = reason instanceof Error ? reason.message : "تعذر تحميل قائمة التسجيلات.";
+      const message = reason instanceof TypeError ? adminConnectionError : reason instanceof Error ? reason.message : "تعذر تحميل قائمة التسجيلات.";
       setError(message);
-      notifyFeedback("error", message);
+      // Persistent inline error with retry; do not duplicate it in the global toast.
     } finally { if (id === requestId.current) setLoading(false); }
   }, [kind, offset, pageSize]);
   useEffect(() => {
@@ -168,14 +170,14 @@ export default function V2AudioReviewQueue({ kind, embedded = false }: { kind: K
       description="اختر تسجيلًا من القائمة، واستمع إليه، ثم اعتمد القراءة أو اطلب إعادة التسجيل."
       actions={<AdminAction icon={RefreshCw} onClick={() => { void load(); }}>تحديث القائمة</AdminAction>} />}
     {error && <p role="alert" className="alert-error">{error}</p>}
-    {!loading && <V2BlockedReviewNotice items={queue.blocked_items} onRestored={load} />}
+    {!loading && !error && <V2BlockedReviewNotice items={queue.blocked_items} onRestored={load} />}
     <AdminPanel title="متابعة التسجيلات الصوتية"
       actions={embedded ? <AdminAction icon={RefreshCw} onClick={() => { void load(); }}>تحديث القائمة</AdminAction> : undefined}>
       <div className={styles.toolbar}><label htmlFor={`review-search-${kind}`}>بحث في هذه الصفحة</label>
         <input id={`review-search-${kind}`} className="input-field" value={search} onChange={event => setSearch(event.target.value)} placeholder="اسم الطالب أو النشاط" />
         <span>{loading ? "جارٍ التحميل" : `${readyForReview} جاهز للمراجعة · ${waitingForStudent} بانتظار إعادة الطالب`}</span></div>
       {!loading && audioItems.length !== queue.items.length && <p role="status" className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">هناك {queue.items.length - audioItems.length} إجابات غير صوتية محفوظة؛ لا تظهر في قائمة مراجعة القراءة ولا تُحوَّل إلى تسجيلات.</p>}
-      {loading ? <p role="status">جاري تحميل التسجيلات...</p> : !audioItems.length
+      {loading ? <AdminRequestStatus loading error="" loadingText="جارٍ تحميل التسجيلات..." /> : error ? null : !audioItems.length
         ? <AdminEmptyState title="لا توجد تسجيلات تحتاج مراجعة في هذه الصفحة" description="تظهر هنا تسجيلات القراءة التي تنتظر قرارك." />
         : !items.length ? <AdminEmptyState title="لا توجد نتائج لهذا البحث" description="غيّر البحث أو انتقل إلى صفحة أخرى." />
         : <div className={styles.tableScroll}><table className="data-table" aria-label="تسجيلات تحتاج مراجعة"><thead><tr>
