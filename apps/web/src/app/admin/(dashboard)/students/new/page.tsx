@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { CheckCircle, Copy, KeyRound, UserPlus } from "lucide-react";
 import { AdminAction, AdminPage, AdminPageHeader, AdminPanel } from "@/components/admin/AdminUI";
 import { normalizeStudentAccessCodeInput } from "@/lib/studentAccessCodeInput";
+import { adminConnectionError, adminErrorMessage } from "@/lib/adminFeedback";
 
 export default function NewStudentPage() {
   const [fullName, setFullName] = useState("");
@@ -43,7 +44,7 @@ export default function NewStudentPage() {
       });
       const data = await response.json().catch(() => null);
       if (!response.ok) {
-        setError(typeof data?.detail === "string" ? data.detail : "تعذر إضافة الطالب. تحقق من البيانات وحاول مرة أخرى.");
+        setError(adminErrorMessage(response.status, data?.detail, "تعذر إضافة الطالب. تحقق من البيانات وحاول مرة أخرى."));
         return;
       }
       if (data?.source !== "himma_v2_account" || !/^\d{6}$/.test(data?.access_code || "")) {
@@ -53,7 +54,7 @@ export default function NewStudentPage() {
       setCreatedStudentId(Number.isSafeInteger(data.id) && data.id > 0 ? data.id : null);
       setSuccessCode(data.access_code);
     } catch {
-      setError("تعذر الاتصال بالخادم الآن. حاول مرة أخرى بعد قليل.");
+      setError(adminConnectionError);
     } finally {
       submitPendingRef.current = false;
       setIsLoading(false);
