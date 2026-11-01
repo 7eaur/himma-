@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { KeyRound, ShieldCheck, UserPlus, UsersRound } from "lucide-react";
 import AdminFeedbackToast from "@/components/admin/AdminFeedbackToast";
-import { adminConnectionError, readAdminApiError } from "@/lib/adminFeedback";
+import { adminConnectionError, readAdminApiError, safeAdminCaughtError } from "@/lib/adminFeedback";
 import { AdminAction, AdminPage, AdminPageHeader, AdminPanel, AdminRequestStatus } from "@/components/admin/AdminUI";
 import styles from "./settings.module.css";
 
@@ -58,7 +58,7 @@ export default function SettingsPage() {
         setSupervisors(supervisorsData);
       })
       .catch((error: unknown) => {
-        if (!cancelled) setLoadError(error instanceof TypeError ? adminConnectionError : error instanceof Error ? error.message : adminConnectionError);
+        if (!cancelled) setLoadError(safeAdminCaughtError(error, adminConnectionError));
       })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
@@ -93,7 +93,7 @@ export default function SettingsPage() {
       const updated: Supervisor = await response.json();
       setAccount(updated); setUsername(updated.username); setSupervisors((current) => current.map((supervisor) => supervisor.id === updated.id ? updated : supervisor));
       setMessage({ kind: "success", text: "تم حفظ بيانات المشرف بنجاح." });
-    } catch (error) { setMessage({ kind: "error", text: error instanceof TypeError ? adminConnectionError : error instanceof Error ? error.message : "تعذر حفظ البيانات" }); }
+    } catch (error) { setMessage({ kind: "error", text: safeAdminCaughtError(error, "تعذر حفظ البيانات") }); }
     finally { actionPending.current = false; setBusy(""); }
   };
 
@@ -107,7 +107,7 @@ export default function SettingsPage() {
       const response = await fetch("/api/researcher/account/password", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }) });
       if (!response.ok) throw new Error(await parseError(response, "تعذر تغيير كلمة المرور"));
       setCurrentPassword(""); setNewPassword(""); setConfirmPassword(""); setMessage({ kind: "success", text: "تم تغيير كلمة المرور بنجاح." });
-    } catch (error) { setMessage({ kind: "error", text: error instanceof TypeError ? adminConnectionError : error instanceof Error ? error.message : "تعذر تغيير كلمة المرور" }); }
+    } catch (error) { setMessage({ kind: "error", text: safeAdminCaughtError(error, "تعذر تغيير كلمة المرور") }); }
     finally { actionPending.current = false; setBusy(""); }
   };
 
@@ -121,7 +121,7 @@ export default function SettingsPage() {
       if (!response.ok) throw new Error(await parseError(response, "تعذر إضافة المشرف"));
       const created: Supervisor = await response.json();
       setSupervisors((current) => [...current, created].sort((a, b) => a.id - b.id)); setNewSupervisorName(""); setNewSupervisorPassword(""); setMessage({ kind: "success", text: "تم إنشاء حساب المشرف الجديد." });
-    } catch (error) { setMessage({ kind: "error", text: error instanceof TypeError ? adminConnectionError : error instanceof Error ? error.message : "تعذر إضافة المشرف" }); }
+    } catch (error) { setMessage({ kind: "error", text: safeAdminCaughtError(error, "تعذر إضافة المشرف") }); }
     finally { actionPending.current = false; setBusy(""); }
   };
 
