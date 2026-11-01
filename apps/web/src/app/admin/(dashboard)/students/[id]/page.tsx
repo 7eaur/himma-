@@ -24,7 +24,7 @@ import {
 import V2Rewards from "@/components/rewards/V2Rewards";
 import type { StudentV2Home } from "@/app/student/V2StudentDashboard";
 import { normalizeStudentAccessCodeInput } from "@/lib/studentAccessCodeInput";
-import { adminConnectionError, adminErrorMessage } from "@/lib/adminFeedback";
+import { adminConnectionError, adminErrorMessage, safeAdminCaughtError } from "@/lib/adminFeedback";
 import AdminFeedbackToast from "@/components/admin/AdminFeedbackToast";
 
 type V2LessonItem = { lesson_id: string; title: string; level: string;
@@ -172,7 +172,7 @@ function StudentDetailView({ id }: { id: string }) {
         if (!cancelled) {
           setStudent(null);
           setLoadedStudentId(id);
-          setMessage({ kind: "error", text: error instanceof TypeError ? adminConnectionError : error instanceof Error ? error.message : "تعذر تحميل بيانات الطالب" });
+          setMessage({ kind: "error", text: safeAdminCaughtError(error, "تعذر تحميل بيانات الطالب") });
         }
       })
       .finally(() => { if (!cancelled) setLoading(false); });
@@ -198,7 +198,7 @@ function StudentDetailView({ id }: { id: string }) {
         if (!controller.signal.aborted) {
           setV2Result({
             studentId: id, home: null,
-            error: reason instanceof TypeError ? "تعذر تحميل التقدم الدراسي لهذا الطالب." : reason instanceof Error ? reason.message : "تعذر الاتصال بسجل الطالب.",
+            error: safeAdminCaughtError(reason, "تعذر تحميل التقدم الدراسي لهذا الطالب."),
           });
         }
       }
@@ -230,7 +230,7 @@ function StudentDetailView({ id }: { id: string }) {
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(apiError(data, "تعذر حفظ اسم الطالب", response.status));
       setStudent(current => current ? {...current, ...data} : current); setEditName(data.full_name); setMessage({ kind: "success", text: "تم تحديث اسم الطالب." });
-    } catch (error) { setMessage({ kind: "error", text: error instanceof TypeError ? adminConnectionError : error instanceof Error ? error.message : "تعذر حفظ اسم الطالب" }); }
+    } catch (error) { setMessage({ kind: "error", text: safeAdminCaughtError(error, "تعذر حفظ اسم الطالب") }); }
     finally { mutationPendingRef.current = false; setBusy(""); }
   };
 
@@ -243,7 +243,7 @@ function StudentDetailView({ id }: { id: string }) {
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(apiError(data, "تعذر تحديث حالة الطالب", response.status));
       setStudent(current => current ? {...current, ...data} : current); setMessage({ kind: "success", text: data.status === "active" ? "تم تفعيل حساب الطالب." : "تم إيقاف حساب الطالب." });
-    } catch (error) { setMessage({ kind: "error", text: error instanceof TypeError ? adminConnectionError : error instanceof Error ? error.message : "تعذر تحديث حالة الطالب" }); }
+    } catch (error) { setMessage({ kind: "error", text: safeAdminCaughtError(error, "تعذر تحديث حالة الطالب") }); }
     finally { mutationPendingRef.current = false; setBusy(""); }
   };
 
@@ -257,7 +257,7 @@ function StudentDetailView({ id }: { id: string }) {
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(apiError(data, "تعذر تحديث رمز الدخول", response.status));
       setStudent(current => current ? {...current, ...data} : current); setAccessCode(null); setManualCode(""); setVisibleCodeForId(null); setMessage({ kind: "success", text: "تم تحديث رمز دخول الطالب." });
-    } catch (error) { setMessage({ kind: "error", text: error instanceof TypeError ? adminConnectionError : error instanceof Error ? error.message : "تعذر تحديث رمز الدخول" }); }
+    } catch (error) { setMessage({ kind: "error", text: safeAdminCaughtError(error, "تعذر تحديث رمز الدخول") }); }
     finally {
       codeChangePendingRef.current = false;
       setBusy("");
