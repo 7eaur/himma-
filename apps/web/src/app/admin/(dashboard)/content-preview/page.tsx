@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { BookOpenCheck, FileSpreadsheet, Film } from "lucide-react";
 import { AdminAction, AdminEmptyState, AdminPage, AdminPageHeader, AdminPanel } from "@/components/admin/AdminUI";
 import EducationalMediaPreview, { type EducationalMedia } from "@/components/admin/EducationalMediaPreview";
+import BankAnswerReview from "@/components/admin/BankAnswerReview";
 
 type Section = { id: string; title: string; kind: string; question_count: number; intro: { text?: string } | null; objective?: string };
 type Question = { question_id: string; role: string; interaction: string; prompt: string; skill_group: string;
@@ -44,9 +45,9 @@ export default function ContentBankPage() {
       setLoading(true); setError("");
       try {
         const response = await fetch(`/api/v2/content/admin/bank?${new URLSearchParams({ section, search: debouncedSearch, offset: String(offset), limit: "25" })}`, { cache: "no-store", signal: controller.signal });
-        if (!response.ok) throw new Error("تعذر تحميل بنك V2. أعد المحاولة.");
+        if (!response.ok) throw new Error("تعذر تحميل بنك الأسئلة. أعد المحاولة.");
         const data = await response.json() as Bank;
-        if (data.mode !== "read_only" || !Array.isArray(data.items) || !Array.isArray(data.sections)) throw new Error("عقد بنك المحتوى غير متطابق.");
+        if (data.mode !== "read_only" || !Array.isArray(data.items) || !Array.isArray(data.sections)) throw new Error("تعذر قراءة بيانات بنك الأسئلة. أعد المحاولة.");
         if (!controller.signal.aborted) setBank(data);
       } catch (cause) { if (!controller.signal.aborted) { setBank(null); setError(cause instanceof Error ? cause.message : "تعذر الاتصال بالخادم"); } }
       finally { if (!controller.signal.aborted) setLoading(false); }
@@ -94,8 +95,10 @@ export default function ContentBankPage() {
       {current && <div className="mt-4 rounded-xl bg-bg p-4"><h2 className="font-bold">{current.title}</h2>{current.objective && <p>الهدف: {current.objective}</p>}{current.intro?.text && <p className="mt-2">التمهيد: {current.intro.text}</p>}</div>}
       {loading ? <p role="status" className="py-8">جاري تحميل البنك...</p> : error ? <div role="alert" className="alert-error mt-4">{error} <AdminAction onClick={() => setReload(v => v + 1)}>إعادة المحاولة</AdminAction></div>
         : bank && <>
-          <p className="my-4 break-all text-sm text-muted">{bank.total} سؤالًا مطابقًا من {bank.bank_total} · {bank.release_version}</p>
-          {bank.items.length === 0 ? <AdminEmptyState title="لا توجد أسئلة مطابقة" /> : <div className="space-y-3">
+          <p className="my-4 text-sm text-muted" aria-live="polite">{bank.total} سؤالًا مطابقًا من {bank.bank_total}</p>
+          {bank.items.length === 0 ? <AdminEmptyState title="لا توجد أسئلة مطابقة"
+            description={search.trim() || section ? "يمكنك تغيير البحث أو اختيار قسم آخر." : "لم يُضف محتوى إلى بنك الأسئلة بعد."}
+            action={search.trim() || section ? <AdminAction onClick={() => { setSearch(""); setSection(""); setSelectedQuestionId(null); setOffset(0); }}>مسح البحث والتصفية</AdminAction> : undefined} /> : <div className="space-y-3">
             <label className="grid gap-2 text-sm font-semibold" htmlFor="v2-bank-question-picker">
               اختر سؤالًا لعرض تفاصيله
               <select id="v2-bank-question-picker" value={selectedQuestion?.question.question_id ?? ""}
@@ -115,10 +118,7 @@ export default function ContentBankPage() {
             {question.stimulus.text && <p className="whitespace-pre-wrap">{question.stimulus.text}</p>}
             <ol className="space-y-1 list-decimal list-inside">{question.options.map(option => <li key={option.id}><span className="font-mono text-xs">{option.id}</span> · {option.text || "خيار بصري أو صوتي"}</li>)}</ol>
             {media.map(asset => <EducationalMediaPreview key={asset.asset_id} asset={asset} />)}
-            <details className="rounded-xl bg-bg p-3" data-testid="v2-bank-answer"><summary className="cursor-pointer font-semibold">الإجابة والمرجع للمشرف</summary>
-              <p className="mt-3">الخيارات الصحيحة أو ترتيبها: {(answer.correct_option_ids ?? []).map(id => question.options.find(o => o.id === id)?.text || id).join(" ← ") || "حسب معيار القراءة"}</p>
-              <pre className="mt-2 whitespace-pre-wrap break-words font-sans text-sm">{JSON.stringify({ answer, reading_reference, hint: question.hint }, null, 2)}</pre>
-            </details>
+            <BankAnswerReview answer={answer} options={question.options} readingReference={reading_reference} hint={question.hint} />
             </div>
           </details>)}</div>}
           <nav aria-label="صفحات بنك المحتوى" className="mt-5 flex flex-wrap items-center justify-between gap-3">
