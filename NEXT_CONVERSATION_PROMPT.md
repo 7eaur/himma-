@@ -1,3 +1,9 @@
-# NEXT CONVERSATION PROMPT — منصة هِمّة
+# Continue Himma V2 work — canonical entry
 
-استلم مشروع `7eaur/himma-` من حالته الحية الحالية. ابدأ بـFetch للفرع `stage/02-content`، ثم اقرأ `START_HERE_AR.md` و`docs/handoff/HIMMA_MASTER_HANDOFF_2026-09-21_AR.md` واتبع ترتيب القراءة داخلهما. لا تعتمد على handoffs القديمة، ولا تعِد فتح عمل مغلق بدون regression evidence. أكمل من أول تكليف جديد للمالك، مع اعتبار live code + schema + exact-SHA CI + Railway هي Source of Truth.
+استلم منصة هِمّة من مستودع `7eaur/himma-`، وتحقق من HEAD الفعلي للفرع `v2/01-learning-foundation-20261007`؛ لا تبدأ من الفرع الافتراضي القديم `stage/02-content`.
+
+اقرأ `AGENTS.md` و`START_HERE_AR.md`، ثم الخطة الموحدة `docs/v2/agent-ops/HIMMA_V2_MASTER_STATUS_GAPS_REMAINING_WORK_HANDOFF_20261028_AR.md`، ومصفوفة R12 للطالب، وتقرير تنظيف المستودع `docs/v2/agent-ops/REPOSITORY_CLEANUP_AUDIT_20261102_AR.md`.
+
+نفّذ فحص السبب الجذري والتنظيف التدريجي لنسخة V2 فقط، ولا تُدخل V1 أو ترقّيعات أو بيانات تجريبية. لا تعتبر التوثيق إثباتًا للتشغيل: افحص الشيفرة، ونتائج CI/M04/M09 على SHA نفسه، ثم خدمات Railway Web/API والحالة الفعلية قبل أي ادعاء بنشر أو اكتمال.
+
+هدف التسليم: مسار طالب ومشرف واحد واضح، موارد صوت/فيديو سليمة، رسائل موحدة، تصميم سهل ومتجاوب، ومستودع بدون فروع أو أصول قديمة غير لازمة بعد جرد الاعتماديات. لا تنشئ فرع معاينة أو خدمة إضافية.
