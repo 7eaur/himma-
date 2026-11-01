@@ -53,6 +53,7 @@ export default function V2LearningCatalogPage() {
     let active = true;
     const controller = new AbortController();
     const load = async () => {
+      let redirecting = false;
       setLoading(true);
       setError("");
       setCatalog(null);
@@ -60,6 +61,7 @@ export default function V2LearningCatalogPage() {
         const response = await fetch("/api/v2/lessons/catalog", { cache: "no-store", signal: controller.signal });
         if (!active) return;
         if (response.status === 401 || response.status === 403) {
+          redirecting = true;
           router.replace("/student/login");
           return;
         }
@@ -71,7 +73,7 @@ export default function V2LearningCatalogPage() {
       } catch (reason) {
         if (active) setError(reason instanceof Error ? reason.message : "تعذر الاتصال بالخادم. حاول مرة أخرى.");
       } finally {
-        if (active) setLoading(false);
+        if (active && !redirecting) setLoading(false);
       }
     };
     void load();
