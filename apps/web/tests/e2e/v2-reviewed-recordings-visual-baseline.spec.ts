@@ -153,6 +153,5 @@ test("P09.0 reviewed audio archive visual states have private players and no ove
   await expect(page.getByText("طالب تجريبي آخر", { exact: true })).toBeVisible();
   await expect(page.getByText("مرجع التسجيل")).toHaveCount(1);
   await expect(page.getByText("طالب تجريبي", { exact: true })).toHaveCount(0);
-  await expect(page.getByText("طالب تجريبي", { exact: true })).toHaveCount(0);
   await expect(page.locator("audio")).toHaveCount(1);
 });
