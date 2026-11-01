@@ -30,6 +30,9 @@ export default function SettingsPage() {
   const [busy, setBusy] = useState("");
   const [message, setMessage] = useState<{ kind: "success" | "error"; text: string }>({ kind: "success", text: "" });
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  // React state updates are asynchronous; a ref blocks duplicate mutations immediately.
+  // Use one lock across tabs to prevent overlapping profile, password and supervisor writes.
+  const actionPending = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -75,7 +78,10 @@ export default function SettingsPage() {
   };
 
   const saveProfile = async (event: React.FormEvent) => {
-    event.preventDefault(); setBusy("profile"); setMessage({ kind: "success", text: "" });
+    event.preventDefault();
+    if (actionPending.current) return;
+    actionPending.current = true;
+    setBusy("profile"); setMessage({ kind: "success", text: "" });
     try {
       const response = await fetch("/api/researcher/account", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username }) });
       if (!response.ok) throw new Error(await parseError(response, "تعذر حفظ اسم المشرف"));
@@ -83,30 +89,35 @@ export default function SettingsPage() {
       setAccount(updated); setUsername(updated.username); setSupervisors((current) => current.map((supervisor) => supervisor.id === updated.id ? updated : supervisor));
       setMessage({ kind: "success", text: "تم حفظ بيانات المشرف بنجاح." });
     } catch (error) { setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر حفظ البيانات" }); }
-    finally { setBusy(""); }
+    finally { actionPending.current = false; setBusy(""); }
   };
 
   const changePassword = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (actionPending.current) return;
     if (newPassword !== confirmPassword) { setMessage({ kind: "error", text: "تأكيد كلمة المرور الجديدة غير مطابق." }); return; }
+    actionPending.current = true;
     setBusy("password"); setMessage({ kind: "success", text: "" });
     try {
       const response = await fetch("/api/researcher/account/password", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }) });
       if (!response.ok) throw new Error(await parseError(response, "تعذر تغيير كلمة المرور"));
       setCurrentPassword(""); setNewPassword(""); setConfirmPassword(""); setMessage({ kind: "success", text: "تم تغيير كلمة المرور بنجاح." });
     } catch (error) { setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر تغيير كلمة المرور" }); }
-    finally { setBusy(""); }
+    finally { actionPending.current = false; setBusy(""); }
   };
 
   const addSupervisor = async (event: React.FormEvent) => {
-    event.preventDefault(); setBusy("supervisor"); setMessage({ kind: "success", text: "" });
+    event.preventDefault();
+    if (actionPending.current) return;
+    actionPending.current = true;
+    setBusy("supervisor"); setMessage({ kind: "success", text: "" });
     try {
       const response = await fetch("/api/researcher/supervisors", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: newSupervisorName, password: newSupervisorPassword }) });
       if (!response.ok) throw new Error(await parseError(response, "تعذر إضافة المشرف"));
       const created: Supervisor = await response.json();
       setSupervisors((current) => [...current, created].sort((a, b) => a.id - b.id)); setNewSupervisorName(""); setNewSupervisorPassword(""); setMessage({ kind: "success", text: "تم إنشاء حساب المشرف الجديد." });
     } catch (error) { setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر إضافة المشرف" }); }
-    finally { setBusy(""); }
+    finally { actionPending.current = false; setBusy(""); }
   };
 
   if (loading) return <div className={styles.loading} dir="rtl"><span /><span /><span /></div>;
@@ -153,7 +164,7 @@ export default function SettingsPage() {
           <AdminPanel title="بيانات الحساب" description="اسم الدخول والاسم الظاهر لهذا الحساب." actions={<span className={styles.icon}><ShieldCheck size={21} aria-hidden="true" /></span>}>
             <form onSubmit={saveProfile} className={styles.form}>
               <div className={styles.field}><label htmlFor="account-name">اسم المشرف / اسم المستخدم</label><input id="account-name" className={styles.input} value={username} onChange={(e) => setUsername(e.target.value)} required minLength={2} /></div>
-              <AdminAction type="submit" tone="primary" disabled={busy === "profile" || username.trim() === account?.username}>{busy === "profile" ? "جاري الحفظ..." : "حفظ بيانات الحساب"}</AdminAction>
+              <AdminAction type="submit" tone="primary" disabled={Boolean(busy) || username.trim() === account?.username}>{busy === "profile" ? "جاري الحفظ..." : "حفظ بيانات الحساب"}</AdminAction>
             </form>
           </AdminPanel>
         </div>
@@ -168,7 +179,7 @@ export default function SettingsPage() {
                 <div className={styles.field}><label htmlFor="new-password">كلمة المرور الجديدة</label><input id="new-password" type="password" className={styles.input} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required minLength={8} autoComplete="new-password" /></div>
                 <div className={styles.field}><label htmlFor="confirm-password">تأكيد كلمة المرور</label><input id="confirm-password" type="password" className={styles.input} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required minLength={8} autoComplete="new-password" /></div>
               </div>
-              <AdminAction type="submit" tone="primary" disabled={busy === "password"}>{busy === "password" ? "جاري التغيير..." : "تغيير كلمة المرور"}</AdminAction>
+              <AdminAction type="submit" tone="primary" disabled={Boolean(busy)}>{busy === "password" ? "جاري التغيير..." : "تغيير كلمة المرور"}</AdminAction>
             </form>
           </AdminPanel>
         </div>
@@ -187,7 +198,7 @@ export default function SettingsPage() {
                   <div className={styles.field}><label htmlFor="new-supervisor-name">اسم المستخدم</label><input id="new-supervisor-name" className={styles.input} value={newSupervisorName} onChange={(e) => setNewSupervisorName(e.target.value)} required minLength={2} placeholder="مثال: supervisor2" /></div>
                   <div className={styles.field}><label htmlFor="new-supervisor-password">كلمة المرور المؤقتة</label><input id="new-supervisor-password" type="password" className={styles.input} value={newSupervisorPassword} onChange={(e) => setNewSupervisorPassword(e.target.value)} required minLength={8} autoComplete="new-password" /></div>
                 </div>
-                <AdminAction type="submit" tone="primary" icon={UserPlus} disabled={busy === "supervisor"}>{busy === "supervisor" ? "جاري الإضافة..." : "إضافة المشرف"}</AdminAction>
+                <AdminAction type="submit" tone="primary" icon={UserPlus} disabled={Boolean(busy)}>{busy === "supervisor" ? "جاري الإضافة..." : "إضافة المشرف"}</AdminAction>
               </form>
             </div>
           </AdminPanel>
