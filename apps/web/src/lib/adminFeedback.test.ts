@@ -1,4 +1,4 @@
-import { adminConnectionError, adminErrorMessage, readAdminApiError } from "./adminFeedback";
+import { adminConnectionError, adminErrorMessage, readAdminApiError, safeAdminCaughtError } from "./adminFeedback";
 
 it("preserves short actionable Arabic validation messages without technical content", () => {
   expect(adminErrorMessage(409, "اسم المستخدم مستخدم بالفعل.", "تعذر الحفظ"))
@@ -32,4 +32,15 @@ it("maps common authorization, limit, server and validation errors consistently"
 it("handles malformed HTTP error payloads without displaying raw data", async () => {
   const response = {status: 422, json: async () => ({detail: [{msg: "field required", loc: ["body","name"]}]})} as Response;
   expect(await readAdminApiError(response, "تعذر إضافة الطالب")).toBe("تحقق من البيانات المدخلة ثم أعد المحاولة.");
+});
+
+it("converts parser and unexpected JavaScript diagnostics into usable error messages", () => {
+  expect(safeAdminCaughtError(new SyntaxError("Unexpected token < in JSON at position 0"), "تعذر تحميل التقارير"))
+    .toBe("تعذر تحميل التقارير");
+  expect(safeAdminCaughtError(new Error("خطأ قاعدة البيانات SQL INSERT"), "تعذر حفظ الملف"))
+    .toBe("تعذر حفظ الملف");
+  expect(safeAdminCaughtError(new TypeError("Failed to fetch"), "تعذر التحميل"))
+    .toBe(adminConnectionError);
+  expect(safeAdminCaughtError(new Error("اسم المستخدم مستخدم بالفعل."), "تعذر الحفظ"))
+    .toBe("اسم المستخدم مستخدم بالفعل.");
 });
