@@ -252,7 +252,7 @@ test("W3: current bank and staff media gallery support real browsing and playbac
   const first = page.getByTestId('v2-bank-question').first();
   await expect(first).toContainText('V2-PRE-Q01');
   await first.getByText('الإجابة ومعيار المراجعة', { exact: true }).click();
-  await expect(first.getByText(/الخيارات الصحيحة أو ترتيبها/)).toBeVisible();
+  await expect(first.getByText(/الإجابة الصحيحة:/)).toBeVisible();
   await page.getByRole('combobox', { name: 'القسم', exact: true }).selectOption('L1-01');
   await expect(page.locator('#v2-bank-question-picker option')).toHaveCount(8);
   await expect(page.getByTestId('v2-bank-question')).toHaveCount(1);
