@@ -26,7 +26,7 @@ test("student map, placed levels and delayed educational images retain clear mob
     return bank.lessons.map((lesson: {id:string;title:string;level:string}) => ({lesson_id:lesson.id,title:lesson.title,level:lesson.level}));
   }))).flat() as {lesson_id:string;title:string;level:string}[];
   let placedLevel = 1;
-  await page.route("**/api/v2/lessons/catalog", route => route.fulfill({json:{lessons:authored.map(lesson => {
+  await page.route("**/api/v2/lessons/catalog", route => route.fulfill({json:{mode:"candidate_preview",test_only:true,release_version:"visual-fixture",current_action:"lesson",lessons:authored.map(lesson => {
     const level = Number(lesson.level.slice(1));
     const index = Number(lesson.lesson_id.split("-")[1]);
     const state = level < placedLevel ? "skipped" : level === placedLevel && index === 1 ? "done" : level === placedLevel && index === 2 ? "current" : "locked";
