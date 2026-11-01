@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { CheckCheck, ClipboardCheck, Headphones } from "lucide-react";
+import { AdminPage, AdminPageHeader } from "@/components/admin/AdminUI";
 import V2AssessmentsPage from "../v2-assessments/page";
 import V2LessonReviewPage from "../v2-lesson-review/page";
 import ReviewedRecordingsPage from "../v2-reviewed-recordings/page";
@@ -36,8 +37,9 @@ export default function V2ReviewCenterPage() {
     query.set("tab", value);
     router.push(`${pathname}?${query.toString()}`, { scroll: false });
   };
-  return <div dir="rtl" className="mx-auto w-full max-w-screen-xl min-w-0">
-    <p className="mb-3 px-1 text-sm text-slate-600">استمع لقراءة الطالب، ثم اعتمدها أو اطلب إعادة التسجيل.</p>
+  return <AdminPage>
+    <AdminPageHeader eyebrow="مراجعة الصوت" icon={Headphones} title="مركز مراجعة التسجيلات"
+      description="راجع قراءات الاختبارات والدروس، ثم تابع التسجيلات التي تم تقييمها، من مكان واحد." />
     <nav role="tablist" aria-label="أقسام مراجعة التسجيلات"
       className="mb-4 flex gap-2 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-2">
       {TABS.map((tab, index) => {
@@ -62,8 +64,8 @@ export default function V2ReviewCenterPage() {
       })}
     </nav>
     <div id="review-center-panel" role="tabpanel" aria-labelledby={`review-center-tab-${active}`} tabIndex={0}>
-      {active === "assessments" ? <V2AssessmentsPage /> :
-        active === "lessons" ? <V2LessonReviewPage /> : <ReviewedRecordingsPage />}
+      {active === "assessments" ? <V2AssessmentsPage embedded /> :
+        active === "lessons" ? <V2LessonReviewPage embedded /> : <ReviewedRecordingsPage embedded />}
     </div>
-  </div>;
+  </AdminPage>;
 }
