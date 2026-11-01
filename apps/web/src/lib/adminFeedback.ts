@@ -32,6 +32,12 @@ export const adminConnectionError = "تعذر الاتصال بالخدمة. ت�
  * field names, SQL errors or English parser diagnostics to staff.
  */
 export function safeAdminCaughtError(cause: unknown, fallback: string): string {
-  if (cause instanceof TypeError) return adminConnectionError;
+  if (cause instanceof TypeError) {
+    // Preserve the failed action: "the student's progress did not load"
+    // is more useful than a generic network error shared by every page.
+    const action = fallback.replace(/[.،؛\s]+$/g, "");
+    return fallback === adminConnectionError ? adminConnectionError
+      : `${action}. تحقق من اتصال الإنترنت ثم أعد المحاولة.`;
+  }
   return cause instanceof Error ? adminErrorMessage(400, cause.message, fallback) : fallback;
 }
