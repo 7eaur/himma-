@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Activity, ArrowLeft, BookOpenCheck, Headphones, Plus, ShieldCheck, Users } from "lucide-react";
 import { AdminAction, AdminEmptyState, AdminMobileCard, AdminPage, AdminPageHeader, AdminPanel, AdminResponsiveTable, AdminStat, AdminStatGrid, AdminRequestStatus } from "@/components/admin/AdminUI";
-import { adminConnectionError, readAdminApiError } from "@/lib/adminFeedback";
+import { adminConnectionError, readAdminApiError, safeAdminCaughtError } from "@/lib/adminFeedback";
 import type { StudentV2Home } from "@/app/student/V2StudentDashboard";
 import styles from "./admin.module.css";
 import { v2StudentActionLabel } from "@/lib/v2StudentActionLabel";
@@ -47,7 +47,7 @@ export default function AdminDashboard() {
         if (!controller.signal.aborted) setResult(data);
       } catch (cause) {
         if (!controller.signal.aborted) {
-          setResult(null); setError(cause instanceof TypeError ? adminConnectionError : cause instanceof Error ? cause.message : adminConnectionError);
+          setResult(null); setError(safeAdminCaughtError(cause, adminConnectionError));
         }
       } finally { if (!controller.signal.aborted) setLoading(false); }
     };
