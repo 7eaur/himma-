@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -12,6 +12,7 @@ export default function AdminLogin() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const submittingRef = useRef(false);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -30,6 +31,8 @@ export default function AdminLogin() {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setIsLoading(true);
     setError("");
 
@@ -42,7 +45,7 @@ export default function AdminLogin() {
       const data = await response.json().catch(() => null);
 
       if (!response.ok) {
-        setError(data?.detail || "تعذر تسجيل الدخول. تحقق من البيانات وحاول مرة أخرى.");
+        setError(typeof data?.detail === "string" ? data.detail : "تعذر تسجيل الدخول. تحقق من البيانات وحاول مرة أخرى.");
         return;
       }
 
@@ -51,6 +54,7 @@ export default function AdminLogin() {
     } catch {
       setError("تعذر الاتصال بالخادم الآن. حاول مرة أخرى بعد قليل.");
     } finally {
+      submittingRef.current = false;
       setIsLoading(false);
     }
   };
@@ -86,7 +90,7 @@ export default function AdminLogin() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="admin-login-form">
+          <form onSubmit={handleSubmit} className="admin-login-form" aria-busy={isLoading}>
             <div className="admin-login-field">
               <label htmlFor="supervisor-username">اسم المستخدم</label>
               <div className="relative">
