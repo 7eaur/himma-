@@ -137,12 +137,16 @@ export default function V2AudioReviewQueue({ kind, embedded = false }: { kind: K
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const requestId = useRef(0);
+  const requestAbort = useRef<AbortController | null>(null);
   const load = useCallback(async () => {
+    requestAbort.current?.abort();
+    const controller = new AbortController();
+    requestAbort.current = controller;
     const id = ++requestId.current;
     setLoading(true); setError(""); setSelected(null);
     try {
       const endpoint = kind === "assessment" ? "/api/v2/assessments/admin/review-queue" : "/api/v2/review/lesson-queue";
-      const response = await fetch(`${endpoint}?limit=${pageSize}&offset=${offset}`, { cache: "no-store" });
+      const response = await fetch(`${endpoint}?limit=${pageSize}&offset=${offset}`, { cache: "no-store", signal: controller.signal });
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(adminErrorMessage(response.status, data?.detail, "تعذر تحميل قائمة التسجيلات."));
       if (!Array.isArray(data?.items)) throw new Error("تعذر قراءة بيانات التسجيلات. أعد المحاولة.");
@@ -153,11 +157,14 @@ export default function V2AudioReviewQueue({ kind, embedded = false }: { kind: K
       const message = reason instanceof TypeError ? adminConnectionError : reason instanceof Error ? reason.message : "تعذر تحميل قائمة التسجيلات.";
       setError(message);
       // Persistent inline error with retry; do not duplicate it in the global toast.
-    } finally { if (id === requestId.current) setLoading(false); }
+    } finally {
+      if (requestAbort.current === controller) requestAbort.current = null;
+      if (id === requestId.current) setLoading(false);
+    }
   }, [kind, offset, pageSize]);
   useEffect(() => {
     const timer = window.setTimeout(() => { void load(); }, 0);
-    return () => { window.clearTimeout(timer); requestId.current += 1; };
+    return () => { window.clearTimeout(timer); requestId.current += 1; requestAbort.current?.abort(); };
   }, [load]);
   const audioItems = queue.items.filter(item => item.interaction === "read_aloud");
   const items = audioItems.filter(item => `${item.student_name} ${item.question_id} ${activity(item)}`.includes(search.trim()));
