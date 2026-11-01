@@ -307,7 +307,12 @@ test("W3 notifications default to the durable V2 inbox and keep V1 explicit", as
   await page.getByRole('button', { name: 'الإشعارات', exact: true }).click();
   const v2 = await v2Response;
   expect(v2.status()).toBe(200);
-  expect((await v2.json()).source).toBe('himma_v2_attention');
+  // Playwright may discard a navigated-away response body while the
+  // notification panel is mounting. Use the same authenticated context for
+  // a deterministic source-contract assertion instead of a detached body.
+  const inboxSource = await page.request.get('/api/v2/notifications?limit=24');
+  expect(inboxSource.status()).toBe(200);
+  expect((await inboxSource.json()).source).toBe('himma_v2_attention');
   const dialog = page.getByRole('dialog', { name: 'إشعارات المشرف' });
   await expect(dialog.getByText('إشعارات المشرف', { exact: true })).toBeVisible();
   const dialogBox=await dialog.boundingBox();
