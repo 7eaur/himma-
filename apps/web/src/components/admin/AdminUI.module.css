@@ -68,6 +68,15 @@
   transition: background .16s ease, border-color .16s ease, color .16s ease, transform .16s ease;
 }
 
+.action:disabled,
+.actionDisabled {
+  opacity: .55;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+.actionDisabled:hover { transform: none; }
+
 .primary {
   background: #347fd9;
   color: #fff;
