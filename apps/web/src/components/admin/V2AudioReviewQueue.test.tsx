@@ -39,6 +39,10 @@ async function open(kind: "assessment" | "lesson" = "assessment") {
 it.each(["assessment", "lesson"] as const)("%s opens from a table and accepts only after listening without a lease or mandatory rubric", async kind => {
   const dialog = await open(kind);
   expect(within(dialog).getByText("بَاب")).toBeVisible();
+  expect(within(dialog).getByRole("heading", {name: "مراجعة تسجيل طالب اصطناعي"})).toBeVisible();
+  expect(within(dialog).queryByText("الاختبار القبلي · Q-1")).not.toBeInTheDocument();
+  fireEvent.click(within(dialog).getByText("مرجع السؤال"));
+  expect(within(dialog).getByText("Q-1")).toBeVisible();
   expect(within(dialog).queryByTestId("v2-reading-rubric")).not.toBeInTheDocument();
   const accept = within(dialog).getByRole("button",{name:"القراءة صحيحة"});
   expect(accept).toHaveAttribute("aria-disabled", "true");
