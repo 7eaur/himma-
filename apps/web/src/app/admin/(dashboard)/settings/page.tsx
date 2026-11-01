@@ -207,7 +207,7 @@ export default function SettingsPage() {
               <div className={styles.subhead}><UserPlus size={19} aria-hidden="true" /> إضافة مشرف جديد</div>
               <form onSubmit={addSupervisor} className={styles.form}>
                 <div className={styles.grid2}>
-                  <div className={styles.field}><label htmlFor="new-supervisor-name">اسم المستخدم</label><input id="new-supervisor-name" className={styles.input} value={newSupervisorName} onChange={(e) => setNewSupervisorName(e.target.value)} required minLength={2} placeholder="مثال: supervisor2" /></div>
+                  <div className={styles.field}><label htmlFor="new-supervisor-name">اسم المستخدم</label><input id="new-supervisor-name" className={styles.input} value={newSupervisorName} onChange={(e) => setNewSupervisorName(e.target.value)} required minLength={2} placeholder="أدخل اسم مستخدم جديدًا" /></div>
                   <div className={styles.field}><label htmlFor="new-supervisor-password">كلمة المرور المؤقتة</label><input id="new-supervisor-password" type="password" className={styles.input} value={newSupervisorPassword} onChange={(e) => setNewSupervisorPassword(e.target.value)} required minLength={8} autoComplete="new-password" /></div>
                 </div>
                 <AdminAction type="submit" tone="primary" icon={UserPlus} disabled={Boolean(busy)}>{busy === "supervisor" ? "جاري الإضافة..." : "إضافة المشرف"}</AdminAction>
