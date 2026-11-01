@@ -91,7 +91,7 @@ for (const viewport of [
       if (route === "/admin/content-preview") {
         const firstQuestion = page.getByTestId("v2-bank-question").first();
         await expect(firstQuestion).toBeVisible({ timeout: 25000 });
-        await firstQuestion.getByText("الإجابة والمرجع للمشرف").click();
+        await firstQuestion.getByText("الإجابة ومعيار المراجعة").click();
         await expect(firstQuestion.getByTestId("v2-bank-answer")).toHaveAttribute("open", "");
         await page.getByRole("combobox", { name: "القسم" }).selectOption("L1-01");
         await expect(page.getByText(/التمهيد:/)).toBeVisible();
@@ -251,7 +251,7 @@ test("W3: current bank and staff media gallery support real browsing and playbac
   await page.goto('/admin/content-preview');
   const first = page.getByTestId('v2-bank-question').first();
   await expect(first).toContainText('V2-PRE-Q01');
-  await first.getByText('الإجابة والمرجع للمشرف', { exact: true }).click();
+  await first.getByText('الإجابة ومعيار المراجعة', { exact: true }).click();
   await expect(first.getByText(/الخيارات الصحيحة أو ترتيبها/)).toBeVisible();
   await page.getByRole('combobox', { name: 'القسم', exact: true }).selectOption('L1-01');
   await expect(page.locator('#v2-bank-question-picker option')).toHaveCount(8);
