@@ -100,3 +100,24 @@ it("opens a saved notification without waiting for a second inbox GET", async ()
   completeRead();
   await waitFor(()=>expect(push).toHaveBeenCalledWith("/admin/v2-assessments"));
 });
+
+it("cancels an obsolete in-flight inbox request when the supervisor refreshes", async () => {
+  let firstSignal: AbortSignal | null = null;
+  let count = 0;
+  const fetcher = jest.fn((_url: string, options?: RequestInit) => {
+    count += 1;
+    if (count === 1) {
+      firstSignal = options?.signal as AbortSignal;
+      return new Promise(() => {});
+    }
+    return Promise.resolve({ok:true,json:async()=>inbox});
+  });
+  global.fetch = fetcher as unknown as typeof fetch;
+  render(<AdminNotifications />);
+  await waitFor(() => expect(fetcher).toHaveBeenCalledTimes(1));
+  fireEvent.click(screen.getByRole("button",{name:"الإشعارات"}));
+  await waitFor(() => expect(fetcher).toHaveBeenCalledTimes(2));
+  expect(firstSignal).not.toBeNull();
+  expect((firstSignal as AbortSignal | null)?.aborted).toBe(true);
+  expect(await screen.findByRole("button",{name:/قراءة اصطناعية/})).toBeVisible();
+});
