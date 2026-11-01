@@ -79,8 +79,11 @@ test("P09.0 reviewed audio archive visual states have private players and no ove
         await expect(page.locator("audio")).toHaveCount(0);
       }
       if (state === "reviewed") {
-        await expect(page.getByText("طالب تجريبي · L1-01-IC-A03")).toBeVisible();
-        await expect(page.getByText("طالب تجريبي آخر · V2-PRE-Q11")).toBeVisible();
+        await expect(page.getByText("طالب تجريبي", { exact: true })).toBeVisible();
+        await expect(page.getByText("طالب تجريبي آخر", { exact: true })).toBeVisible();
+        await expect(page.getByText("مرجع التسجيل")).toHaveCount(2);
+        await page.getByText("مرجع التسجيل").first().click();
+        await expect(page.getByText("السؤال: L1-01-IC-A03")).toBeVisible();
         await expect(page.getByText("تم تقييمه بواسطة المشرف")).toHaveCount(2);
         await expect(page.locator("audio")).toHaveCount(2);
         const urls = await page.locator("audio").evaluateAll(nodes =>
@@ -93,9 +96,9 @@ test("P09.0 reviewed audio archive visual states have private players and no ove
         expect(JSON.stringify(urls)).not.toContain("storage_key");
       }
       if (state === "failed") {
-        await expect(page.locator("p[role='alert'].alert-error")).toContainText("تعذر الاتصال بالأرشيف التجريبي");
+        await expect(page.getByRole("alert")).toContainText("تعذر تحميل التسجيلات المقيّمة");
         await expect(page.locator("audio")).toHaveCount(0);
-        await expect(page.getByText("تعذر عرض التسجيلات")).toBeVisible();
+        await expect(page.getByRole("button", { name: "إعادة المحاولة" })).toBeVisible();
       }
       const bounds = await page.evaluate(() => ({
         pageWidth: document.documentElement.scrollWidth,
@@ -116,9 +119,9 @@ test("P09.0 reviewed audio archive visual states have private players and no ove
   await expect(page.locator("audio")).toHaveCount(2);
   mode = "failed";
   await page.getByRole("button", { name: "تحديث" }).click();
-  await expect(page.locator("p[role='alert'].alert-error")).toContainText("تعذر الاتصال بالأرشيف التجريبي");
+  await expect(page.getByRole("alert")).toContainText("تعذر تحميل التسجيلات المقيّمة");
   await expect(page.locator("audio")).toHaveCount(0);
-  await expect(page.getByText("تعذر عرض التسجيلات")).toBeVisible();
+  await expect(page.getByRole("button", { name: "إعادة المحاولة" })).toBeVisible();
 
   // Out-of-order filter responses must not reintroduce an older student's audio.
   // Route handlers deliberately finish in reverse order.
@@ -142,10 +145,16 @@ test("P09.0 reviewed audio archive visual states have private players and no ove
   await page.getByLabel("نوع النشاط").selectOption("lesson");
   await oldStarted;
   await page.getByLabel("نوع النشاط").selectOption("pretest");
-  await expect(page.getByText("طالب تجريبي آخر · V2-PRE-Q11")).toBeVisible();
+  await expect(page.getByText("طالب تجريبي آخر", { exact: true })).toBeVisible();
+        await expect(page.getByText("مرجع التسجيل")).toHaveCount(2);
+        await page.getByText("مرجع التسجيل").first().click();
+        await expect(page.getByText("السؤال: L1-01-IC-A03")).toBeVisible();
   openOld();
   await oldFinished;
-  await expect(page.getByText("طالب تجريبي آخر · V2-PRE-Q11")).toBeVisible();
+  await expect(page.getByText("طالب تجريبي آخر", { exact: true })).toBeVisible();
+        await expect(page.getByText("مرجع التسجيل")).toHaveCount(2);
+        await page.getByText("مرجع التسجيل").first().click();
+        await expect(page.getByText("السؤال: L1-01-IC-A03")).toBeVisible();
   await expect(page.getByText("طالب تجريبي · L1-01-IC-A03")).toHaveCount(0);
   await expect(page.locator("audio")).toHaveCount(1);
 });
