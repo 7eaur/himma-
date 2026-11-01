@@ -23,6 +23,7 @@ export default function AdminNotifications({ surface = "any" }: { surface?: "any
   const [busy, setBusy] = useState(false);
   const mounted = useRef(true);
   const requestId = useRef(0);
+  const requestAbort = useRef<AbortController | null>(null);
   const mutation = useRef(false);
   // When the browser switches from a supervisor session to a learner session,
   // do not poll a forbidden staff endpoint every 30 seconds.
@@ -30,11 +31,15 @@ export default function AdminNotifications({ surface = "any" }: { surface?: "any
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const refresh = useCallback(async () => {
+    // Newer refreshes replace obsolete work instead of downloading two inboxes.
+    requestAbort.current?.abort();
+    const controller = new AbortController();
+    requestAbort.current = controller;
     const id = ++requestId.current;
     if (mounted.current) setLoading(true);
     try {
       if (authBlocked.current) return;
-      const response = await fetch(`${endpoint}?limit=24`, { cache: "no-store" });
+      const response = await fetch(`${endpoint}?limit=24`, { cache: "no-store", signal: controller.signal });
       if (response.status === 401 || response.status === 403) {
         authBlocked.current = true;
         throw new Error("انتهت صلاحية جلسة المشرف. سجّل الدخول بحساب المشرف ثم حدّث الإشعارات.");
@@ -43,8 +48,13 @@ export default function AdminNotifications({ surface = "any" }: { surface?: "any
       if (!response.ok || !payload || !Array.isArray(payload.items) || payload.source !== "himma_v2_attention") throw new Error("تعذر تحميل الإشعارات. أعد المحاولة.");
       if (mounted.current && id === requestId.current) { setData(payload); setError(""); }
     } catch (caught) {
-      if (mounted.current && id === requestId.current) { setData(EMPTY); setError(caught instanceof Error ? caught.message : "تعذر تحميل الإشعارات"); }
-    } finally { if (mounted.current && id === requestId.current) setLoading(false); }
+      if (!controller.signal.aborted && mounted.current && id === requestId.current) {
+        setData(EMPTY); setError(caught instanceof Error ? caught.message : "تعذر تحميل الإشعارات");
+      }
+    } finally {
+      if (requestAbort.current === controller) requestAbort.current = null;
+      if (mounted.current && id === requestId.current) setLoading(false);
+    }
   }, []);
   useEffect(() => {
     mounted.current = true;
@@ -69,6 +79,7 @@ export default function AdminNotifications({ surface = "any" }: { surface?: "any
       } else {
         // A delayed completion from a now-hidden surface must not repaint it.
         requestId.current += 1;
+        requestAbort.current?.abort();
       }
     };
     sync();
@@ -78,6 +89,7 @@ export default function AdminNotifications({ surface = "any" }: { surface?: "any
     return () => {
       mounted.current = false;
       requestId.current += 1;
+      requestAbort.current?.abort();
       window.clearInterval(timer);
       query?.removeEventListener("change", sync);
       document.removeEventListener("visibilitychange", sync);
@@ -98,6 +110,7 @@ export default function AdminNotifications({ surface = "any" }: { surface?: "any
     mutation.current = true; setBusy(true); setError("");
     // Invalidate any older poll before updating the durable read marker.
     requestId.current += 1;
+    requestAbort.current?.abort();
     try {
       if (!item || !item.is_read) {
         const response = await fetch(item ? `${endpoint}/${encodeURIComponent(item.id)}/read` : `${endpoint}/read-all`, { method: "POST" });
