@@ -133,3 +133,19 @@ it("permits a supervised rerecord request when the original audio file is missin
   fireEvent.click(within(dialog).getByRole("button",{name:"إرسال طلب الإعادة"}));
   await waitFor(() => expect(notifyFeedback).toHaveBeenCalledWith("success", "أُرسل طلب إعادة التسجيل إلى الطالب."));
 });
+
+it.each(["assessment", "lesson"] as const)("hides meaningless pagination in an empty %s queue", async kind => {
+  global.fetch = jest.fn(async () => ok({items: [], next_offset: null})) as unknown as typeof fetch;
+  render(<V2AudioReviewQueue kind={kind} />);
+  expect(await screen.findByText("لا توجد تسجيلات تحتاج مراجعة في هذه الصفحة")).toBeVisible();
+  expect(screen.queryByRole("navigation", {name:"صفحات التسجيلات"})).not.toBeInTheDocument();
+});
+
+it("shows queue navigation only when the server confirms another page", async () => {
+  global.fetch = jest.fn(async () => ok({items:[item],next_offset:25})) as unknown as typeof fetch;
+  render(<V2AudioReviewQueue kind="assessment" />);
+  expect(await screen.findByRole("table",{name:"تسجيلات تحتاج مراجعة"})).toBeVisible();
+  const navigation = screen.getByRole("navigation", {name:"صفحات التسجيلات"});
+  expect(within(navigation).getByRole("button",{name:"السابق"})).toBeDisabled();
+  expect(within(navigation).getByRole("button",{name:"التالي"})).toBeEnabled();
+});
