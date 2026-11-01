@@ -169,3 +169,31 @@ it("shows readable academic decision reasons rather than exposing internal reaso
   expect(screen.queryByText("support_gap_unresolved_continue_without_mastery")).not.toBeInTheDocument();
   expect(screen.queryByText(/المعرف #/)).not.toBeInTheDocument();
 });
+
+it("blocks overlapping account writes while saving a student name", async () => {
+  const fetcher = setup();
+  let finish!: (value: unknown) => void;
+  const pending = new Promise(resolve => { finish = resolve; });
+  fetcher.mockImplementation((url:string, options?:RequestInit) => {
+    if (options?.method === "PATCH") return pending;
+    return Promise.resolve({ok:true,json:async()=>url.endsWith("/home")?home(1):account(1)});
+  });
+  render(<Page />);
+  await screen.findByRole("heading",{name:"طالب اصطناعي 1"});
+  fireEvent.click(screen.getByRole("tab",{name:"الحساب"}));
+  fireEvent.change(screen.getByLabelText("اسم الطالب"),{target:{value:"طالب معدل"}});
+  const save=screen.getByRole("button",{name:"حفظ الاسم"});
+  await act(async () => {
+    save.click();
+    save.click();
+    await Promise.resolve();
+  });
+  expect(fetcher.mock.calls.filter(([,options])=>options?.method==="PATCH")).toHaveLength(1);
+  expect(screen.getByRole("button",{name:"توليد رمز جديد"})).toBeDisabled();
+  expect(screen.getByRole("button",{name:"إيقاف الحساب"})).toBeDisabled();
+  await act(async () => {
+    finish({ok:true,json:async()=>({...account(1),full_name:"طالب معدل"})});
+    await Promise.resolve();
+  });
+  expect(await screen.findByText("تم تحديث اسم الطالب.")).toBeVisible();
+});
