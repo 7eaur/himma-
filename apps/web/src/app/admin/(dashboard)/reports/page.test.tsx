@@ -81,3 +81,23 @@ it("validates nested progress and support data before presenting supervisor repo
   expect(isValidV2Report({ ...report, summary: null })).toBe(false);
   expect(isValidV2Report({ ...report, skills: [{ student_id: 1, phase: "pretest" }] })).toBe(false);
 });
+
+it("does not expose export navigation while report evidence is loading or unavailable", async () => {
+  global.fetch = jest.fn().mockResolvedValue({ok: false});
+  render(<ReportsPage />);
+  expect(screen.queryByRole("link", {name: /^Excel$/})).not.toBeInTheDocument();
+  expect(screen.getByText("Excel")).toHaveAttribute("aria-disabled", "true");
+  expect(await screen.findByRole("alert")).toHaveTextContent("تعذر تحميل التقارير");
+  expect(screen.queryByRole("link", {name: "PDF إجمالي"})).not.toBeInTheDocument();
+});
+
+it("allows the supervisor to clear an unmatched student search", async () => {
+  global.fetch = jest.fn().mockResolvedValue({ok: true, json: async () => report});
+  render(<ReportsPage />);
+  expect(await screen.findByTestId("v2-report-table")).toBeInTheDocument();
+  fireEvent.change(screen.getByRole("textbox", {name: "بحث عن طالب أو معرّف"}), {target: {value: "لا يوجد طالب"}});
+  expect(screen.getByText("لا توجد نتائج مطابقة")).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", {name: "مسح البحث"}));
+  expect(screen.getByRole("textbox", {name: "بحث عن طالب أو معرّف"})).toHaveValue("");
+  expect(screen.getByTestId("v2-report-table")).toBeInTheDocument();
+});
