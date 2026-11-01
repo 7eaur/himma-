@@ -13,7 +13,7 @@ function validInbox(value: unknown): value is NotificationPayload {
   if (!value || typeof value !== "object") return false;
   const payload = value as Partial<NotificationPayload>;
   return payload.source === "himma_v2_attention"
-    && Number.isSafeInteger(payload.unread_count) && (payload.unread_count ?? -1) >= 0
+    && typeof payload.unread_count === "number" && Number.isSafeInteger(payload.unread_count) && payload.unread_count >= 0
     && Array.isArray(payload.items) && payload.items.every(item =>
       item !== null && typeof item === "object"
       && (typeof item.id === "string" || Number.isSafeInteger(item.id))
