@@ -121,3 +121,13 @@ it("cancels an obsolete in-flight inbox request when the supervisor refreshes", 
   expect((firstSignal as AbortSignal | null)?.aborted).toBe(true);
   expect(await screen.findByRole("button",{name:/قراءة اصطناعية/})).toBeVisible();
 });
+
+it("shows a clear source error instead of crashing on malformed notification metadata", async () => {
+  global.fetch = jest.fn().mockResolvedValue({ok:true,json:async()=>({
+    source:"himma_v2_attention",unread_count:1,items:[null],
+  })});
+  render(<AdminNotifications />);
+  fireEvent.click(screen.getByRole("button",{name:"الإشعارات"}));
+  expect(await screen.findByRole("alert")).toHaveTextContent("تعذر تحميل الإشعارات");
+  expect(screen.queryByText("لا توجد إشعارات تحتاج انتباهك الآن.")).not.toBeInTheDocument();
+});
