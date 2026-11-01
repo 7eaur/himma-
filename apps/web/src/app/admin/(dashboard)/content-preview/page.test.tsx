@@ -30,7 +30,7 @@ it("loads the V2 bank with section intro and never requests the archive implicit
   expect(screen.queryByText("أرشيف بنك V1")).not.toBeInTheDocument();
 });
 it("keeps a bank source error unavailable and permits retry", async () => {
-  global.fetch = jest.fn().mockResolvedValueOnce({ ok: false }).mockResolvedValueOnce({ ok: true, json: async () => bank });
+  global.fetch = jest.fn().mockResolvedValueOnce({ ok: false, status: 503, json: async () => ({detail:"الخدمة غير متاحة"}) }).mockResolvedValueOnce({ ok: true, json: async () => bank });
   render(<ContentBankPage />);
   expect(await screen.findByRole("alert")).toHaveTextContent("تعذر تحميل بنك الأسئلة");
   expect(screen.queryByTestId("v2-bank-question")).not.toBeInTheDocument();
