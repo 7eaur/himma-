@@ -29,7 +29,7 @@ test("paginates media on mobile-friendly 12-card pages without dropping V2 sourc
   expect(screen.getAllByTestId("v2-media-card")).toHaveLength(1);
   expect(screen.getByText("MEDIA-25")).toBeInTheDocument();
   expect(screen.getByText(/الأصول المطلوبة المتاحة لهذا الإصدار: 25 من 25/)).toBeInTheDocument();
-  fireEvent.change(screen.getByRole("textbox", {name: "بحث بمعرّف الوسيط أو الدرس"}),
+  fireEvent.change(screen.getByRole("textbox", {name: "بحث عن وسيط أو درس أو نوع الملف"}),
     {target: {value: "MEDIA-02"}});
   expect(screen.getAllByTestId("v2-media-card")).toHaveLength(1);
   expect(screen.getByText("MEDIA-02")).toBeInTheDocument();
@@ -47,4 +47,30 @@ test("keeps owner-approved shared lesson videos visible and filterable", async (
   fireEvent.click(screen.getByRole("button", {name: "الفيديو المشترك"}));
   expect(screen.getAllByTestId("v2-media-card")).toHaveLength(1);
   expect(screen.getByText(/فيديو مشترك بين الدروس في الإصدار الأولي/)).toBeInTheDocument();
+});
+
+test("offers a clear reset for empty filters rather than suggesting missing content", async () => {
+  global.fetch = jest.fn().mockResolvedValue({ok: true, json: async () => inventory});
+  render(<V2MediaInventoryPage />);
+  await waitFor(() => expect(screen.getAllByTestId("v2-media-card")).toHaveLength(12));
+  fireEvent.change(screen.getByRole("textbox", {name: "بحث عن وسيط أو درس أو نوع الملف"}), {target: {value: "لا يوجد ملف بهذا الاسم"}});
+  expect(screen.getByText("لا توجد وسائط مطابقة للبحث")).toBeVisible();
+  fireEvent.click(screen.getByRole("button", {name: "مسح البحث والتصفية"}));
+  expect(screen.getAllByTestId("v2-media-card")).toHaveLength(12);
+  expect(screen.getByRole("textbox", {name: "بحث عن وسيط أو درس أو نوع الملف"})).toHaveValue("");
+});
+
+test("searches by friendly media type while preserving the file identifier for staff", async () => {
+  global.fetch = jest.fn().mockResolvedValue({ok: true, json: async () => ({
+    ...inventory, items: [
+      {...items[0], kind: "audio", asset_id: "AUDIO-1"},
+      {...items[1], kind: "image", asset_id: "IMAGE-2"},
+    ],
+  })});
+  render(<V2MediaInventoryPage />);
+  await waitFor(() => expect(screen.getAllByTestId("v2-media-card")).toHaveLength(2));
+  fireEvent.change(screen.getByRole("textbox", {name: "بحث عن وسيط أو درس أو نوع الملف"}), {target: {value: "صوت"}});
+  expect(screen.getAllByTestId("v2-media-card")).toHaveLength(1);
+  expect(screen.getByRole("heading", {name: "مقطع صوتي"})).toBeVisible();
+  expect(screen.getByText("AUDIO-1")).toBeInTheDocument();
 });
