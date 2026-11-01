@@ -38,15 +38,19 @@ export default function V2ReviewedRecordings({ embedded = false }: { embedded?: 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const requestSequence = useRef(0);
+  const requestAbort = useRef<AbortController | null>(null);
 
   const refresh = useCallback(async () => {
+    requestAbort.current?.abort();
+    const controller = new AbortController();
+    requestAbort.current = controller;
     const requestId = ++requestSequence.current;
     setError("");
     setLoading(true);
     try {
       const params = new URLSearchParams({ limit: "20", offset: String(offset), kind });
       if (student && Number(student) > 0) params.set("student_id", String(Number(student)));
-      const response = await fetch(`/api/v2/review/reviewed-recordings?${params.toString()}`, { cache: "no-store" });
+      const response = await fetch(`/api/v2/review/reviewed-recordings?${params.toString()}`, { cache: "no-store", signal: controller.signal });
       const body = await response.json().catch(() => null);
       // Ignore late responses from an older student or activity filter.
       if (requestId !== requestSequence.current) return;
@@ -62,6 +66,7 @@ export default function V2ReviewedRecordings({ embedded = false }: { embedded?: 
       setArchive({ items: [], next_offset: null });
       setError(cause instanceof TypeError ? adminConnectionError : cause instanceof Error ? cause.message : adminConnectionError);
     } finally {
+      if (requestAbort.current === controller) requestAbort.current = null;
       if (requestId === requestSequence.current) setLoading(false);
     }
   }, [kind, offset, student]);
@@ -71,6 +76,7 @@ export default function V2ReviewedRecordings({ embedded = false }: { embedded?: 
     return () => {
       window.clearTimeout(timer);
       requestSequence.current += 1;
+      requestAbort.current?.abort();
     };
   }, [refresh]);
 
