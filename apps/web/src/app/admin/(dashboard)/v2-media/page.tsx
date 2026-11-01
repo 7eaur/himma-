@@ -21,7 +21,9 @@ const record = (value: unknown): value is Record<string, unknown> =>
 const count = (value: unknown) => typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
 const validInventory = (value: unknown): value is Inventory => {
   if (!record(value) || value.mode !== "read_only" || !Array.isArray(value.items)
-    || !record(value.counts) || !["ready", "pending", "missing", "test_only", "temporary"].every(key => count(value.counts[key]))
+    || !record(value.counts)) return false;
+  const counts = value.counts;
+  if (!["ready", "pending", "missing", "test_only", "temporary"].every(key => count(counts[key]))
     || ![value.candidate_files_present, value.published_assets, value.required_assets].every(count)
     || typeof value.publishable !== "boolean") return false;
   return value.items.every(item =>
