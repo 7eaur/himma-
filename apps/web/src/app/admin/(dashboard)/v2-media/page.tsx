@@ -9,6 +9,10 @@ interface MediaItem { asset_id: string; kind: string; state: "ready" | "pending"
 interface Inventory { mode: "read_only"; release_state: string; counts: { ready: number; pending: number; missing: number; test_only: number; temporary: number }; items: MediaItem[]; candidate_files_present: number; published_assets: number; required_assets: number; publishable: boolean; }
 const states = { ready: "جاهز", pending: "بانتظار المراجعة", missing: "مفقود" };
 const kinds: Record<string, string> = { audio: "صوت", video: "فيديو", image: "صورة" };
+const mediaTitles: Record<string, string> = { audio: "مقطع صوتي", video: "مقطع فيديو", image: "صورة تعليمية" };
+const searchableMediaText = (item: MediaItem) =>
+  [item.asset_id, kinds[item.kind] ?? item.kind, mediaTitles[item.kind] ?? "",
+   states[item.state], ...item.uses.map(ref => ref.owner_id)].join(" ").toLocaleLowerCase("ar");
 const MEDIA_PAGE_SIZE = 12;
 
 export default function V2MediaInventoryPage() {
@@ -37,7 +41,10 @@ export default function V2MediaInventoryPage() {
   }, [reload]);
   const items = useMemo(() => inventory?.items.filter(item => (filter === "all" || (filter === "temporary" ? item.temporary : item.state === filter))
     && (kind === "all" || item.kind === kind)
-    && (!search.trim() || `${item.asset_id} ${item.uses.map(ref => ref.owner_id).join(" ")}`.toLowerCase().includes(search.trim().toLowerCase()))) ?? [], [filter, kind, search, inventory]);
+    && (!search.trim() || searchableMediaText(item).includes(search.trim().toLocaleLowerCase("ar")))) ?? [], [filter, kind, search, inventory]);
+  const sharedVideos = inventory?.items.filter(item => item.temporary && item.kind === "video").length ?? 0;
+  const filtersActive = Boolean(search.trim()) || kind !== "all" || filter !== "all";
+  const clearFilters = () => { setSearch(""); setKind("all"); setFilter("all"); setPage(0); };
   const pageCount = Math.max(1, Math.ceil(items.length / MEDIA_PAGE_SIZE));
   const effectivePage = Math.min(page, pageCount - 1);
   const visibleItems = items.slice(effectivePage * MEDIA_PAGE_SIZE, (effectivePage + 1) * MEDIA_PAGE_SIZE);
@@ -49,16 +56,21 @@ export default function V2MediaInventoryPage() {
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">{(["ready", "temporary", "missing", "test_only"] as const).map(key => <article key={key} className="rounded-2xl border border-border bg-white p-4">
           <span className="text-sm text-muted">{key === "test_only" ? "وسائط للمعاينة فقط" : key === "temporary" ? "فيديوهات مشتركة" : states[key]}</span><strong className="mt-2 block text-3xl text-navy">{inventory.counts[key]}</strong>
         </article>)}</div>
-        <p className="mt-4 text-sm text-muted">الأصول المطلوبة المتاحة لهذا الإصدار: {inventory.published_assets} من {inventory.required_assets}، منها {inventory.counts.temporary} فيديو مشترك مُدرج للإصدار الأولي. الملفات الموجودة في البنك: {inventory.candidate_files_present} من {inventory.items.length}. {inventory.publishable ? "يبقى فحص التشغيل والقبول النهائي." : "بعض الأصول المطلوبة غير جاهزة."}</p>
+        <p className="mt-4 text-sm text-muted">الأصول المطلوبة المتاحة لهذا الإصدار: {inventory.published_assets} من {inventory.required_assets}، منها {sharedVideos} فيديو مشترك مُدرج للإصدار الأولي. الملفات الموجودة في البنك: {inventory.candidate_files_present} من {inventory.items.length}. {inventory.publishable ? "يبقى فحص التشغيل والقبول النهائي." : "بعض الأصول المطلوبة غير جاهزة."}</p>
         <AdminPanel>
           <div className="flex flex-wrap items-end gap-3">
-            <label className="flex min-w-0 flex-1 flex-col gap-2"><span>بحث بمعرّف الوسيط أو الدرس</span><input className="input-field" value={search} onChange={e => { setSearch(e.target.value); setPage(0); }} /></label>
+            <label className="flex min-w-0 flex-1 flex-col gap-2"><span>بحث عن وسيط أو درس أو نوع الملف</span><input className="input-field" value={search} onChange={e => { setSearch(e.target.value); setPage(0); }} /></label>
             <label className="flex flex-col gap-2"><span>نوع الوسيط</span><select className="input-field" value={kind} onChange={e => { setKind(e.target.value); setPage(0); }}><option value="all">جميع الأنواع</option><option value="audio">الصوت</option><option value="video">الفيديو</option><option value="image">الصور</option></select></label>
           </div>
           <div className="my-4 flex flex-wrap gap-2" aria-label="تصفية الوسائط">{(["all", "ready", "temporary", "pending", "missing"] as const).map(value => <button key={value} type="button" aria-pressed={filter === value} onClick={() => { setFilter(value); setPage(0); }} className={`min-h-11 rounded-xl border px-4 py-2 text-sm font-semibold ${filter === value ? "border-primary text-primary" : "border-border"}`}>{value === "all" ? "الكل" : value === "temporary" ? "الفيديو المشترك" : states[value]}</button>)}</div>
-          <p className="mb-4 text-sm text-muted">{items.length} أصلًا مطابقًا من {inventory.items.length}</p>
-          {items.length === 0 ? <AdminEmptyState title="لا توجد أصول مطابقة" /> : <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3" data-testid="v2-media-gallery">{visibleItems.map(item => <article key={item.asset_id} className="min-w-0 space-y-3 rounded-2xl border border-border p-4" data-testid="v2-media-card">
-            <h2 className="break-all font-mono font-bold text-navy">{item.asset_id}</h2>
+          <p className="mb-4 text-sm text-muted" aria-live="polite">{items.length} أصلًا مطابقًا من {inventory.items.length}</p>
+          {items.length === 0 ? <AdminEmptyState
+            title={filtersActive ? "لا توجد وسائط مطابقة للبحث" : "لا توجد وسائط في هذا القسم"}
+            description={filtersActive ? "جرّب تغيير كلمة البحث أو مسح عوامل التصفية." : "لم تُسجل ملفات في بنك الوسائط بعد."}
+            action={filtersActive ? <AdminAction onClick={clearFilters}>مسح البحث والتصفية</AdminAction> : undefined}
+          /> : <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3" data-testid="v2-media-gallery">{visibleItems.map(item => <article key={item.asset_id} className="min-w-0 space-y-3 rounded-2xl border border-border p-4" data-testid="v2-media-card">
+            <h2 className="font-bold text-navy">{mediaTitles[item.kind] ?? "وسيط تعليمي"}</h2>
+            <p className="break-all text-xs text-muted">معرّف الملف: <span dir="ltr">{item.asset_id}</span></p>
             <p className="text-sm">{kinds[item.kind] ?? item.kind} · {states[item.state]}</p>
             <p className="text-sm text-muted">{item.temporary ? "فيديو مشترك بين الدروس في الإصدار الأولي؛ يمكن استبداله لاحقًا بملف خاص بالدرس" : item.candidate_present ? "ملف موجود" : "الملف غير متوفر"}{item.publication_blocker ? " · غير معتمد للاستخدام" : ""}</p>
             {item.preview_kind.startsWith("generic_") || item.preview_kind === "shared_test_only_video" ? <p className="text-xs text-amber-800">معاينة مشتركة؛ لا تثبت جاهزية ملف مستقل لهذا الدرس.</p> : null}
