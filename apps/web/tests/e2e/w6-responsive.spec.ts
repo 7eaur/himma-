@@ -61,6 +61,24 @@ async function capture(page: Page, viewport: string, surface: string) {
   });
 }
 
+test("W6 student login stays clear at 320px and accepts Arabic-Indic digits", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 720 });
+  await page.goto("/student/login");
+  await expect(page.getByRole("heading", { name: "مرحبًا يا بطل!" })).toBeVisible();
+  const code = page.getByTestId("input-access-code");
+  await expect(code).toHaveValue("");
+  await expect(code).not.toHaveAttribute("placeholder", /[0-9٠-٩۰-۹]{6}/);
+  await expect(page.getByText("ستجد الرمز عند المشرف المسؤول عن حسابك.")).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+  await code.fill("١٢٣٤٥٦");
+  await expect(code).toHaveValue("123456");
+  await expect(page.getByTestId("student-login-submit")).toBeEnabled();
+  await code.fill("۱۲۳٤56");
+  await expect(code).toHaveValue("123456");
+  await code.fill("۱۲٣");
+  await expect(page.getByTestId("student-login-submit")).toBeDisabled();
+});
+
 test("W6 Student critical surfaces stay usable from 320px through desktop", async ({ page, context, request }) => {
   test.setTimeout(120000);
   const student = await createStudent(page, request, context);
