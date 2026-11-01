@@ -8,9 +8,9 @@ jest.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(window.location.search),
 }));
 
-jest.mock("../v2-assessments/page", () => function AssessmentReview() { return <div>طابور الاختبارات</div>; });
-jest.mock("../v2-lesson-review/page", () => function LessonReview() { return <div>طابور الدروس</div>; });
-jest.mock("../v2-reviewed-recordings/page", () => function ReviewedArchive() { return <div>الأرشيف المقيّم</div>; });
+jest.mock("../v2-assessments/page", () => function AssessmentReview({ embedded }: { embedded?: boolean }) { return <div>{!embedded && <h1>عنوان الاختبارات المستقل</h1>}طابور الاختبارات</div>; });
+jest.mock("../v2-lesson-review/page", () => function LessonReview({ embedded }: { embedded?: boolean }) { return <div>{!embedded && <h1>عنوان الدروس المستقل</h1>}طابور الدروس</div>; });
+jest.mock("../v2-reviewed-recordings/page", () => function ReviewedArchive({ embedded }: { embedded?: boolean }) { return <div>{!embedded && <h1>عنوان الأرشيف المستقل</h1>}الأرشيف المقيّم</div>; });
 
 afterEach(() => { push.mockClear(); });
 beforeEach(() => { window.history.replaceState({}, "", "/admin/v2-review-center"); });
@@ -42,5 +42,18 @@ test("restores the requested review tab after Next navigation or browser Back", 
   expect(screen.getByText("طابور الدروس")).toBeInTheDocument();
   window.history.replaceState({}, "", "/admin/v2-review-center?tab=reviewed");
   view.rerender(<V2ReviewCenterPage />);
+  expect(screen.getByText("الأرشيف المقيّم")).toBeInTheDocument();
+});
+
+test("shows one supervisor review heading across all tabs without removing their content", () => {
+  render(<V2ReviewCenterPage />);
+  const title = () => screen.getAllByRole("heading", { level: 1 });
+  expect(title()).toHaveLength(1);
+  expect(title()[0]).toHaveTextContent("مركز مراجعة التسجيلات");
+  fireEvent.click(screen.getByRole("tab", {name: "قراءات الدروس"}));
+  expect(title()).toHaveLength(1);
+  expect(screen.getByText("طابور الدروس")).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("tab", {name: "تم تقييمها"}));
+  expect(title()).toHaveLength(1);
   expect(screen.getByText("الأرشيف المقيّم")).toBeInTheDocument();
 });
