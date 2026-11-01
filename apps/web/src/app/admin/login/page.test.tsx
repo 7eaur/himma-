@@ -57,3 +57,17 @@ it("shows a safe Arabic message when the server returns a validation object", as
   expect(await screen.findByRole("alert")).toHaveTextContent("تعذر تسجيل الدخول");
   expect(mockReplace).not.toHaveBeenCalled();
 });
+
+it("explains invalid supervisor credentials without exposing backend diagnostic text", async () => {
+  const fetcher = jest.fn(async (url:string) => url === "/api/auth/me"
+    ? {ok:false,status:401,json:async()=>null}
+    : {ok:false,status:401,json:async()=>({detail:"Database Error: credentials invalid"})});
+  global.fetch = fetcher as unknown as typeof fetch;
+  render(<AdminLogin />);
+  fireEvent.change(screen.getByLabelText("اسم المستخدم"), {target:{value:"staff"}});
+  fireEvent.change(screen.getByLabelText("كلمة المرور"), {target:{value:"wrong"}});
+  fireEvent.click(screen.getByRole("button", {name:"دخول لوحة المشرف"}));
+  expect(await screen.findByRole("alert")).toHaveTextContent("اسم المستخدم أو كلمة المرور غير صحيحة.");
+  expect(screen.queryByText(/Database Error/)).not.toBeInTheDocument();
+  expect(mockReplace).not.toHaveBeenCalled();
+});
