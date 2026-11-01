@@ -149,8 +149,18 @@ export default function V2AudioReviewQueue({ kind, embedded = false }: { kind: K
       const response = await fetch(`${endpoint}?limit=${pageSize}&offset=${offset}`, { cache: "no-store", signal: controller.signal });
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(adminErrorMessage(response.status, data?.detail, "تعذر تحميل قائمة التسجيلات."));
-      if (!Array.isArray(data?.items)) throw new Error("تعذر قراءة بيانات التسجيلات. أعد المحاولة.");
-      if (id === requestId.current) setQueue(data);
+      // A 200 response is not evidence of a usable queue unless its records and
+      // pagination are structurally safe. Never display it as an empty review list.
+      const validQueue = data && Array.isArray(data.items)
+        && data.items.every((item: unknown) => item !== null && typeof item === "object"
+          && typeof (item as Partial<AudioReviewItem>).interaction === "string"
+          && typeof (item as Partial<AudioReviewItem>).student_name === "string"
+          && Number.isSafeInteger((item as Partial<AudioReviewItem>).response_id))
+        && (data.next_offset === null
+          || (Number.isSafeInteger(data.next_offset) && data.next_offset > offset))
+        && (data.blocked_items == null || Array.isArray(data.blocked_items));
+      if (!validQueue) throw new Error("تعذر قراءة بيانات التسجيلات. أعد المحاولة.");
+      if (id === requestId.current) setQueue(data as Queue);
     } catch (reason) {
       if (id !== requestId.current) return;
       setQueue({ items: [], next_offset: null });
