@@ -15,6 +15,41 @@ export interface V2Report {
   summary: { students: number; official_pretests: number; official_posttests: number; paired: number; average_pretest: number | null; average_posttest: number | null; average_improvement_points: number | null };
   methodology: string;
 }
+// Fail closed when the staff reporting endpoint returns a partial or stale
+// payload. Without shape guards an HTTP 200 can crash the report UI while
+// rendering summary/support/progress fields or silently hide skills.
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+const isFiniteCount = (value: unknown) =>
+  typeof value === "number" && Number.isFinite(value) && value >= 0;
+const isOptionalNumber = (value: unknown) =>
+  value === null || (typeof value === "number" && Number.isFinite(value));
+
+export function isValidV2Report(value: unknown): value is V2Report {
+  if (!isObject(value) || value.source !== "himma_v2_persisted_evidence"
+    || !isObject(value.summary) || !Array.isArray(value.students) || !Array.isArray(value.skills)) return false;
+  const summary = value.summary;
+  if (!["students", "official_pretests", "official_posttests", "paired"].every(key => isFiniteCount(summary[key]))
+    || !["average_pretest", "average_posttest", "average_improvement_points"].every(key => isOptionalNumber(summary[key]))) return false;
+  for (const row of value.students) {
+    if (!isObject(row) || !Number.isSafeInteger(row.student_id) || typeof row.student_name !== "string"
+      || !isObject(row.progress) || !isObject(row.support)
+      || !isOptionalNumber(row.improvement_points)
+      || !isOptionalNumber(row.progress.assigned_lessons)
+      || !isFiniteCount(row.progress.completed_lessons)
+      || !["total", "mastered", "needs_followup"].every(key => isFiniteCount(row.support[key]))) {
+      // completed_lessons may be null while placement is not yet confirmed.
+      if (!(isObject(row) && isObject(row.progress) && row.progress.completed_lessons === null
+        && !Number.isNaN(row.student_id) && typeof row.student_name === "string"
+        && isObject(row.support) && !["total","mastered","needs_followup"].some(key => !isFiniteCount(row.support[key]))
+        && isOptionalNumber(row.progress.assigned_lessons) && isOptionalNumber(row.improvement_points))) return false;
+    }
+  }
+  return value.skills.every(row => isObject(row) && Number.isSafeInteger(row.student_id)
+    && typeof row.phase === "string" && typeof row.skill_group === "string"
+    && isFiniteCount(row.graded) && isFiniteCount(row.correct)
+    && isFiniteCount(row.observed_accuracy_percent));
+}
 export function useV2Reports() {
   const [data, setData] = useState<V2Report | null>(null);
   const [loading, setLoading] = useState(true);
@@ -26,9 +61,9 @@ export function useV2Reports() {
       setLoading(true); setError("");
       try {
         const response = await fetch("/api/v2/reports/summary", { cache: "no-store", signal: controller.signal });
-        if (!response.ok) throw new Error("تعذر تحميل تقارير V2. أعد المحاولة.");
-        const result = await response.json() as V2Report;
-        if (result.source !== "himma_v2_persisted_evidence" || !Array.isArray(result.students) || !Array.isArray(result.skills)) throw new Error("مصدر التقرير غير متطابق مع V2.");
+        if (!response.ok) throw new Error("تعذر تحميل التقارير. أعد المحاولة.");
+        const result: unknown = await response.json();
+        if (!isValidV2Report(result)) throw new Error("بيانات التقارير غير مكتملة. أعد المحاولة، وإن استمرت المشكلة تواصل مع مسؤول النظام.");
         if (!controller.signal.aborted) setData(result);
       } catch (cause) { if (!controller.signal.aborted) { setData(null); setError(cause instanceof Error ? cause.message : "تعذر تحميل التقرير"); } }
       finally { if (!controller.signal.aborted) setLoading(false); }
