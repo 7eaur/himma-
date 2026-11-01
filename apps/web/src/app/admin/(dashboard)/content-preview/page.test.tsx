@@ -32,7 +32,7 @@ it("loads the V2 bank with section intro and never requests the archive implicit
 it("keeps a bank source error unavailable and permits retry", async () => {
   global.fetch = jest.fn().mockResolvedValueOnce({ ok: false }).mockResolvedValueOnce({ ok: true, json: async () => bank });
   render(<ContentBankPage />);
-  expect(await screen.findByRole("alert")).toHaveTextContent("تعذر تحميل بنك V2");
+  expect(await screen.findByRole("alert")).toHaveTextContent("تعذر تحميل بنك الأسئلة");
   expect(screen.queryByTestId("v2-bank-question")).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "إعادة المحاولة" }));
   expect(await screen.findByTestId("v2-bank-question")).toBeInTheDocument();
@@ -60,4 +60,29 @@ it("debounces consecutive Arabic bank searches instead of requesting private pag
   } finally {
     jest.useRealTimers();
   }
+});
+
+it("shows a reviewer-readable answer instead of raw private JSON payloads", async () => {
+  global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => bank });
+  render(<ContentBankPage />);
+  const question = await screen.findByTestId("v2-bank-question");
+  fireEvent.click(screen.getByText("الإجابة ومعيار المراجعة"));
+  expect(question).toHaveTextContent("الإجابة الصحيحة: ج");
+  expect(question.querySelector("pre")).toBeNull();
+  expect(question).not.toHaveTextContent('"correct_option_ids"');
+});
+
+it("lets a supervisor clear an empty content search instead of displaying an unhelpful blank page", async () => {
+  const fetcher = jest.fn().mockResolvedValue({ ok: true, json: async () => bank });
+  global.fetch = fetcher;
+  render(<ContentBankPage />);
+  await screen.findByTestId("v2-bank-question");
+  fireEvent.change(screen.getByRole("textbox", {name: "بحث في السؤال أو النص أو الخيارات أو المعرّف"}), {
+    target: {value: "كلمة غير موجودة"},
+  });
+  // The reset action is only displayed when the server returns no matching items.
+  fetcher.mockResolvedValue({ok: true, json: async () => ({...bank, total: 0, items: []})});
+  await waitFor(() => expect(screen.getByText("لا توجد أسئلة مطابقة")).toBeInTheDocument());
+  fireEvent.click(screen.getByRole("button", {name: "مسح البحث والتصفية"}));
+  expect(screen.getByRole("textbox", {name: "بحث في السؤال أو النص أو الخيارات أو المعرّف"})).toHaveValue("");
 });
