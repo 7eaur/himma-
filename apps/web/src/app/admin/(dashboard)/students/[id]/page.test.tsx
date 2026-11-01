@@ -121,7 +121,7 @@ it("accepts Arabic-keyboard digits when changing the student's access code", asy
   const manual=screen.getByLabelText("رمز يدوي من 6 أرقام");
   fireEvent.change(manual, {target:{value:"١۲٣۴٥۶"}});
   expect(manual).toHaveValue("123456");
-  fireEvent.click(screen.getByRole("button", {name:"حفظ", exact:true}));
+  fireEvent.click(screen.getByRole("button", {name:/^حفظ$/}));
   await screen.findByText("تم تحديث رمز دخول الطالب.");
   const posts=fetcher.mock.calls.filter(([url])=>url.endsWith("/access-code"));
   expect(posts).toHaveLength(1);
