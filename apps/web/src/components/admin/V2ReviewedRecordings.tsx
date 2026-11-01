@@ -130,13 +130,13 @@ export default function V2ReviewedRecordings({ embedded = false }: { embedded?: 
           </details>}
           <audio controls preload="none" className="w-full" src={item.audio_url} aria-label={`استمع لتسجيل ${item.student_name} للسؤال ${item.question_id}`} />
         </article>)}</div>}
-      <div className="mt-4 flex items-center justify-between gap-2">
+      {!loading && !error && (archive.items.length > 0 || offset > 0) && <div className="mt-4 flex items-center justify-between gap-2">
         <button type="button" className="rounded-xl border px-4 py-2 disabled:opacity-40" disabled={offset === 0 || loading}
           onClick={() => setOffset(Math.max(0, offset - 20))}>السابق</button>
         <span className="text-sm text-muted">{archive.items.length ? `عرض ${offset + 1} إلى ${offset + archive.items.length}` : "—"}</span>
         <button type="button" className="rounded-xl border px-4 py-2 disabled:opacity-40" disabled={archive.next_offset === null || loading}
           onClick={() => setOffset(archive.next_offset || 0)}>التالي</button>
-      </div>
+      </div>}
     </AdminPanel>
   </AdminPage>;
 }
