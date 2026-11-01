@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import V2Rewards from "@/components/rewards/V2Rewards";
 import type { StudentV2Home } from "@/app/student/V2StudentDashboard";
+import { normalizeStudentAccessCodeInput } from "@/lib/studentAccessCodeInput";
 
 type V2LessonItem = { lesson_id: string; title: string; level: string;
   state: "skipped" | "completed" | "waiting_review" | "in_progress" | "current" | "not_started"; session_id: number | null };
@@ -402,7 +403,17 @@ function StudentDetailView({ id }: { id: string }) {
               : <div className={styles.history}>{v2Home.adaptation_decisions?.map(item => (
                 <div className={styles.historyItem} key={item.id}>
                   <div><strong>{item.kind === "next_lesson" ? "متابعة المسار" : item.kind === "targeted_support" ? "دعم موجه" : item.kind === "additional_check" ? "تحقق إضافي" : item.kind === "waiting_review" ? "بانتظار مراجعة الصوت" : "قرار سابق"}</strong>
-                    <p className={styles.muted}>{item.reason_code}{item.unmastered_gap ? " · المهارة لم يُثبت إتقانها" : ""}</p></div>
+                    <p className={styles.muted}>{item.unmastered_gap
+                      ? "هذه المهارة تحتاج إلى متابعة؛ لم يثبت إتقانها بعد."
+                      : item.kind === "next_lesson"
+                        ? "انتقل الطالب إلى الدرس التالي بعد استيفاء شروط التعلم."
+                        : item.kind === "targeted_support"
+                          ? "وُجّه الطالب إلى تدريب يساعده على إتقان المهارة."
+                          : item.kind === "additional_check"
+                            ? "خضع الطالب لتحقق إضافي للتأكد من التعلم."
+                            : item.kind === "waiting_review"
+                              ? "تنتظر القراءة مراجعة المشرف."
+                              : "قرار تعليمي محفوظ في سجل الطالب."}</p></div>
                   <small>{new Date(item.created_at).toLocaleDateString("ar")}</small>
                 </div>
               ))}</div>}
@@ -421,7 +432,7 @@ function StudentDetailView({ id }: { id: string }) {
         <div className={styles.codeBox} style={{ marginTop: 16 }}><div><span className={styles.muted}>رمز الدخول الحالي</span><strong className={styles.code} dir="ltr">{codeVisible ? accessCode : "••••••"}</strong></div><button type="button" className={styles.secondary} aria-pressed={codeVisible} disabled={Boolean(busy)} onClick={() => void revealAccessCode()}>{codeVisible ? "إخفاء الرمز" : "إظهار الرمز"}</button><button className={styles.secondary} disabled={Boolean(busy)} onClick={() => void copyAccessCode()}>{copied ? <Check size={17} aria-hidden="true" /> : <Copy size={17} aria-hidden="true" />}{copied ? "تم النسخ" : "نسخ الرمز"}</button></div>
         <div className={styles.grid2}>
           <button className={styles.secondary} onClick={() => void changeAccessCode(false)} disabled={busy === "code"}><RefreshCw size={17} aria-hidden="true" /> توليد رمز جديد</button>
-          <div className={styles.formGrid}><div className={styles.field}><label htmlFor="manual-code">رمز يدوي من 6 أرقام</label><input id="manual-code" className={styles.input} inputMode="numeric" maxLength={6} value={manualCode} onChange={(event) => setManualCode(event.target.value.replace(/\D/g, "").slice(0,6))} placeholder="123456" dir="ltr" /></div><button className={styles.primary} onClick={() => void changeAccessCode(true)} disabled={busy === "code" || manualCode.length !== 6}>حفظ</button></div>
+          <div className={styles.formGrid}><div className={styles.field}><label htmlFor="manual-code">رمز يدوي من 6 أرقام</label><input id="manual-code" className={styles.input} inputMode="numeric" maxLength={6} value={manualCode} onChange={(event) => setManualCode(normalizeStudentAccessCodeInput(event.target.value))} placeholder="123456" dir="ltr" /></div><button className={styles.primary} onClick={() => void changeAccessCode(true)} disabled={busy === "code" || manualCode.length !== 6}>حفظ</button></div>
         </div>
       </section>
     );
@@ -434,7 +445,7 @@ function StudentDetailView({ id }: { id: string }) {
         <div className={styles.identity}>
           <Link href="/admin/students" className={styles.back} aria-label="العودة إلى الطلاب"><ArrowRight size={22} aria-hidden="true" /></Link>
           <div className={styles.avatar}><User size={25} aria-hidden="true" /></div>
-          <div className={styles.identityText}><small>ملف الطالب</small><h1>{student.full_name}</h1><p>الصف الثالث الابتدائي · المعرف #{student.id}</p></div>
+          <div className={styles.identityText}><small>ملف الطالب</small><h1>{student.full_name}</h1><p>الصف الثالث الابتدائي</p></div>
         </div>
         <button className={`${styles.statusButton} ${student.status === "active" ? styles.statusButtonActive : styles.statusButtonInactive}`} onClick={() => void toggleStudentStatus()} disabled={busy === "status"}><Power size={17} aria-hidden="true" />{busy === "status" ? "جاري الحفظ..." : student.status === "active" ? "إيقاف الحساب" : "تفعيل الحساب"}</button>
       </header>
