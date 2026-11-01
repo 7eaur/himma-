@@ -25,6 +25,6 @@ it.each([
   expect(screen.queryByRole("button", { name: /اعتماد/ })).not.toBeInTheDocument();
   failed = true;
   fireEvent.click(screen.getByRole("button", { name: /تحديث/ }));
-  expect(await screen.findByRole("alert")).toHaveTextContent("تعذر الاتصال");
+  expect(await screen.findByRole("alert")).toHaveTextContent("تعذر تحميل قائمة التسجيلات");
   expect(screen.queryByTestId("v2-blocked-reviews")).not.toBeInTheDocument();
 });
