@@ -302,7 +302,7 @@ test("W3 notifications default to the durable V2 inbox and keep V1 explicit", as
   expect(v2.status()).toBe(200);
   expect((await v2.json()).source).toBe('himma_v2_attention');
   const dialog = page.getByRole('dialog', { name: 'إشعارات المشرف' });
-  await expect(dialog.getByText('إشعارات V2', { exact: true })).toBeVisible();
+  await expect(dialog.getByText('إشعارات المشرف', { exact: true })).toBeVisible();
   const dialogBox=await dialog.boundingBox();
   expect(dialogBox?.x).toBeGreaterThanOrEqual(0);
   expect((dialogBox?.x??0)+(dialogBox?.width??0)).toBeLessThanOrEqual(page.viewportSize()!.width);
@@ -311,7 +311,7 @@ test("W3 notifications default to the durable V2 inbox and keep V1 explicit", as
   const refreshed = page.waitForResponse(response => response.url().includes('/v2/notifications?limit=24') && response.request().method() === 'GET');
   await refreshButton.click();
   expect((await refreshed).status()).toBe(200);
-  await expect(dialog.getByText('إشعارات V2', { exact: true })).toBeVisible();
+  await expect(dialog.getByText('إشعارات المشرف', { exact: true })).toBeVisible();
   await expect(dialog.getByText('أرشيف إشعارات V1', { exact: true })).toHaveCount(0);
   await page.keyboard.press('Escape');
   await expect(dialog).not.toBeVisible();
