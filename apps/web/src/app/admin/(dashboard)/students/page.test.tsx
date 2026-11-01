@@ -36,3 +36,29 @@ it("debounces name search instead of refetching the whole cohort for every chara
   await waitFor(() => expect(calls).toHaveBeenCalledTimes(2));
   expect(String(calls.mock.calls[1][0])).toContain("search=%D8%B7%D8%A7%D9%84%D8%A8");
 });
+
+it("offers clearing the active filters instead of suggesting a duplicate new student", async () => {
+  const fetcher = jest.fn(async (url: string) => ({
+    ok: true,
+    json: async () => ({
+      source: "himma_v2_readmodel", total: url.includes("search=") && url.includes("search=%D9%84%D8%A7") ? 0 : 1,
+      offset: 0, limit: 30, items: url.includes("search=%D9%84%D8%A7") ? [] : [{
+        id: 1, full_name: "طالب موجود", status: "active", grade_level: 3,
+        created_at: "2026-10-30T00:00:00Z", journey: null,
+        progress: { completed_lessons: 0, assigned_lessons: null,
+          skipped_by_placement: 0, pending_review: 0, display_percent: null },
+        current_action: { action: "assessment", label: "الاختبار القبلي" },
+        data_status: "ready",
+      }],
+    }),
+  }));
+  global.fetch = fetcher as unknown as typeof fetch;
+  render(<StudentsPage />);
+  expect(await screen.findAllByText("طالب موجود")).toHaveLength(2);
+  fireEvent.change(screen.getByPlaceholderText("ابحث باسم الطالب"), { target: { value: "لا" } });
+  expect(await screen.findByText("لا يوجد طلاب يطابقون البحث")).toBeInTheDocument();
+  expect(screen.queryByRole("link", { name: "إضافة أول طالب" })).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "مسح البحث والتصفية" }));
+  expect(screen.getByPlaceholderText("ابحث باسم الطالب")).toHaveValue("");
+  await waitFor(() => expect(screen.queryByText("لا يوجد طلاب يطابقون البحث")).not.toBeInTheDocument());
+});
