@@ -119,8 +119,13 @@ export default function AdminNotifications({ surface = "any" }: { surface?: "any
     {open && <button className={styles.scrim} aria-label="إغلاق الإشعارات" onClick={() => setOpen(false)} />}
     <button ref={trigger} className={styles.trigger} aria-label="الإشعارات" aria-expanded={open} onClick={() => { setOpen(value => !value); authBlocked.current = false; void refresh(); }}><Bell size={20} aria-hidden="true" />{data.unread_count > 0 && <span className={styles.badge}>{data.unread_count > 99 ? "99+" : data.unread_count}</span>}</button>
     {open && <div className={styles.popover} role="dialog" aria-label="إشعارات المشرف" aria-busy={busy || loading}>
-      <div className={styles.header}><strong>إشعارات V2</strong>{data.unread_count > 0 && <button className={styles.markAll} disabled={busy || loading} onClick={() => void saveRead()}>تحديد الكل كمقروء</button>}</div>
-      <div className={styles.header}><button className={styles.markAll} disabled={busy || loading} onClick={() => void refresh()}>تحديث</button></div>
+      <div className={styles.header}>
+        <strong>إشعارات المشرف</strong>
+        <div className={styles.actions}>
+          <button className={styles.markAll} disabled={busy || loading} onClick={() => void refresh()}>تحديث</button>
+          {data.unread_count > 0 && <button className={styles.markAll} disabled={busy || loading} onClick={() => void saveRead()}>تحديد الكل كمقروء</button>}
+        </div>
+      </div>
       {error && <div role="alert" className={styles.error}>{error}</div>}
       <div className={styles.list}>{loading ? <div role="status" className={styles.empty}>جاري تحميل الإشعارات...</div> : error && data.items.length === 0 ? null : data.items.length === 0 ? <div className={styles.empty}>لا توجد إشعارات تحتاج انتباهك الآن.</div> : data.items.map(item => <button key={item.id} disabled={busy} className={`${styles.item} ${item.is_read ? "" : styles.unread}`} onClick={() => void saveRead(item)}><span className={styles.itemTop}><span className={styles.itemTitle}>{item.title}</span>{!item.is_read && <span className={styles.dot} />}</span><span className={styles.message}>{item.message}</span><span className={styles.time}>{relativeTime(item.created_at)}</span></button>)}</div>
     </div>}
