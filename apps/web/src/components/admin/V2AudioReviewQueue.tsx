@@ -180,9 +180,9 @@ export default function V2AudioReviewQueue({ kind, embedded = false }: { kind: K
     {!loading && !error && <V2BlockedReviewNotice items={queue.blocked_items} onRestored={load} />}
     <AdminPanel title="متابعة التسجيلات الصوتية"
       actions={embedded ? <AdminAction icon={RefreshCw} onClick={() => { void load(); }}>تحديث القائمة</AdminAction> : undefined}>
-      <div className={styles.toolbar}><label htmlFor={`review-search-${kind}`}>بحث في هذه الصفحة</label>
+      {!loading && !error && audioItems.length > 0 && <div className={styles.toolbar}><label htmlFor={`review-search-${kind}`}>بحث في هذه الصفحة</label>
         <input id={`review-search-${kind}`} className="input-field" value={search} onChange={event => setSearch(event.target.value)} placeholder="اسم الطالب أو النشاط" />
-        <span>{loading ? "جارٍ التحميل" : `${readyForReview} جاهز للمراجعة · ${waitingForStudent} بانتظار إعادة الطالب`}</span></div>
+        <span>{`${readyForReview} جاهز للمراجعة · ${waitingForStudent} بانتظار إعادة الطالب`}</span></div>}
       {!loading && audioItems.length !== queue.items.length && <p role="status" className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">هناك {queue.items.length - audioItems.length} نشاطًا لا يتطلب تسجيلًا صوتيًا؛ لا يحتاج إلى مراجعة قراءة.</p>}
       {loading ? <AdminRequestStatus loading error="" loadingText="جارٍ تحميل التسجيلات..." /> : error ? null : !audioItems.length
         ? <AdminEmptyState title="لا توجد تسجيلات تحتاج مراجعة في هذه الصفحة" description="تظهر هنا تسجيلات القراءة التي تنتظر قرارك." />
