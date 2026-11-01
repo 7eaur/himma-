@@ -28,7 +28,7 @@ it("renders only validated lesson rows and starts the real current lesson", asyn
     : response(catalog));
   global.fetch = fetcher as unknown as typeof fetch;
   render(<V2LearningCatalogPage />);
-  expect(await screen.findByRole("heading", { name: "الحروف والأصوات" })).toBeVisible();
+  expect(await screen.findByRole("heading", { name: "الحروف والأصوات", level: 2 })).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: "ابدأ الدرس" }));
   await waitFor(() => expect(mockRouter.push).toHaveBeenCalledWith("/student/learning-v2/44"));
   expect(fetcher).toHaveBeenCalledWith("/api/v2/lessons/L1-01/start", {method:"POST"});
