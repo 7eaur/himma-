@@ -93,7 +93,7 @@ test("P03/P04 runtime and P05 targeted support remain responsive", async ({ page
         body: videoBytes,
       });
     }
-    if (url.pathname.endsWith("/catalog")) return route.fulfill({ json: { mode: "candidate_preview", test_only: true, release_version: "candidate", lessons } });
+    if (url.pathname.endsWith("/catalog")) return route.fulfill({ json: { mode: "candidate_preview", test_only: true, release_version: "candidate", current_action: "lesson", lessons } });
     if (url.pathname.endsWith("/L1-01/start")) return route.fulfill({ json: payload(stage, savedPosition) });
     if (url.pathname.endsWith("/sessions/44/interaction") && route.request().method() === "GET") return route.fulfill({ json: payload(stage, savedPosition) });
     if (url.pathname.endsWith("/sessions/44/events")) {
