@@ -36,12 +36,15 @@ export function isValidV2Report(value: unknown): value is V2Report {
     || !["average_pretest", "average_posttest", "average_improvement_points"].every(key => isOptionalNumber(summary[key]))) return false;
   const validStudents = value.students.every(row => {
     if (!isObject(row) || !isObject(row.progress) || !isObject(row.support)) return false;
+    // Preserve narrowed objects across the callback boundary in TS strict mode.
+    const progress = row.progress;
+    const support = row.support;
     return Number.isSafeInteger(row.student_id) && typeof row.student_name === "string"
       && isScore(row.pretest) && isScore(row.posttest)
       && isOptionalNumber(row.improvement_points)
-      && isOptionalCount(row.progress.assigned_lessons)
-      && isOptionalCount(row.progress.completed_lessons)
-      && ["total", "mastered", "needs_followup"].every(key => isFiniteCount(row.support[key]));
+      && isOptionalCount(progress.assigned_lessons)
+      && isOptionalCount(progress.completed_lessons)
+      && ["total", "mastered", "needs_followup"].every(key => isFiniteCount(support[key]));
   });
   if (!validStudents) return false;
   return value.skills.every(row => isObject(row) && Number.isSafeInteger(row.student_id)
