@@ -1,9 +1,8 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import V2LearningCatalogPage from "./page";
 
-const push = jest.fn();
-const replace = jest.fn();
-jest.mock("next/navigation", () => ({ useRouter: () => ({ push, replace }) }));
+const mockRouter = { push: jest.fn(), replace: jest.fn() };
+jest.mock("next/navigation", () => ({ useRouter: () => mockRouter }));
 
 const lesson = {
   lesson_id: "L1-01", title: "الحروف والأصوات", level: "L1", state: "current",
@@ -31,7 +30,7 @@ it("renders only validated lesson rows and starts the real current lesson", asyn
   render(<V2LearningCatalogPage />);
   expect(await screen.findByRole("heading", { name: "الحروف والأصوات" })).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: "ابدأ الدرس" }));
-  await waitFor(() => expect(push).toHaveBeenCalledWith("/student/learning-v2/44"));
+  await waitFor(() => expect(mockRouter.push).toHaveBeenCalledWith("/student/learning-v2/44"));
   expect(fetcher).toHaveBeenCalledWith("/api/v2/lessons/L1-01/start", {method:"POST"});
 });
 
@@ -68,6 +67,13 @@ it("does not reveal backend details on a failed list or a failed lesson start", 
   expect(screen.queryByText(/SQL ERROR/)).not.toBeInTheDocument();
 });
 
+it("sanitizes unexpected JavaScript or network exceptions in the student view", async () => {
+  global.fetch = jest.fn(async () => { throw new Error("TypeError: internal production SQL connection failed"); }) as unknown as typeof fetch;
+  render(<V2LearningCatalogPage />);
+  expect(await screen.findByRole("alert")).toHaveTextContent("تعذر الاتصال بخريطة الدروس");
+  expect(screen.queryByText(/production SQL/)).not.toBeInTheDocument();
+});
+
 it("does not expose technical API details when the catalog fetch fails", async () => {
   global.fetch = jest.fn(async () => response({detail:"Traceback database SQL secret"},503)) as unknown as typeof fetch;
   render(<V2LearningCatalogPage />);
@@ -78,7 +84,7 @@ it("does not expose technical API details when the catalog fetch fails", async (
 it("redirects an expired session without showing a false lesson map", async () => {
   global.fetch = jest.fn(async () => response({detail:"expired"},401)) as unknown as typeof fetch;
   render(<V2LearningCatalogPage />);
-  await waitFor(() => expect(replace).toHaveBeenCalledWith("/student/login"));
+  await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith("/student/login"));
   expect(screen.queryByText("الحروف والأصوات")).not.toBeInTheDocument();
   expect(screen.queryByRole("heading",{name:"تعذر عرض دروسك"})).not.toBeInTheDocument();
 });
@@ -92,7 +98,7 @@ it("does not follow an untrusted session id in lesson start acknowledgements", a
   await screen.findByRole("heading",{name:"الحروف والأصوات",level:2});
   fireEvent.click(screen.getByRole("button",{name:"ابدأ الدرس"}));
   expect(await screen.findByRole("alert")).toHaveTextContent("تعذر التحقق من جلسة الدرس");
-  expect(push).not.toHaveBeenCalled();
+  expect(mockRouter.push).not.toHaveBeenCalled();
 });
 
 it("resumes a server-confirmed existing session without creating another", async () => {
@@ -101,6 +107,6 @@ it("resumes a server-confirmed existing session without creating another", async
   render(<V2LearningCatalogPage />);
   expect(await screen.findByRole("button",{name:"متابعة الدرس"})).toBeVisible();
   fireEvent.click(screen.getByRole("button",{name:"متابعة الدرس"}));
-  expect(push).toHaveBeenCalledWith("/student/learning-v2/21");
+  expect(mockRouter.push).toHaveBeenCalledWith("/student/learning-v2/21");
   expect(fetcher).toHaveBeenCalledTimes(1);
 });
