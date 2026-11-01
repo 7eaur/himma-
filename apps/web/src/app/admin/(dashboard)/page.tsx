@@ -37,10 +37,10 @@ export default function AdminDashboard() {
       setLoading(true); setError("");
       try {
         const response = await fetch("/api/v2/student/admin/overview", { cache: "no-store", signal: controller.signal });
-        if (!response.ok) throw new Error("تعذر تحميل لوحة V2. أعد المحاولة.");
+        if (!response.ok) throw new Error("تعذر تحميل لوحة المتابعة. أعد المحاولة.");
         const data = await response.json() as Overview;
         if (data.source !== "himma_v2_readmodel" || !data.counts || !Array.isArray(data.recent_students))
-          throw new Error("مصدر لوحة المتابعة غير متطابق مع V2.");
+          throw new Error("تعذر التحقق من بيانات المتابعة الحالية. أعد المحاولة.");
         if (!controller.signal.aborted) setResult(data);
       } catch (cause) {
         if (!controller.signal.aborted) {
@@ -52,10 +52,10 @@ export default function AdminDashboard() {
   }, [reload]);
   const counts = result?.counts;
   const attention = [
-    { href: "/admin/v2-assessments", label: "قراءات الاختبارات", value: counts?.assessment_reviews, icon: Headphones },
-    { href: "/admin/v2-lesson-review", label: "قراءات الدروس", value: counts?.lesson_reviews, icon: BookOpenCheck },
+    { href: "/admin/v2-review-center?tab=assessments", label: "قراءات الاختبارات", value: counts?.assessment_reviews, icon: Headphones },
+    { href: "/admin/v2-review-center?tab=lessons", label: "قراءات الدروس", value: counts?.lesson_reviews, icon: BookOpenCheck },
     { href: "/admin/students", label: "جاهزون للاختبار البعدي", value: counts?.ready_for_posttest, icon: ShieldCheck },
-  ];
+  ].filter(item => (item.value ?? 0) > 0);
   return <AdminPage>
     <AdminPageHeader eyebrow="مركز متابعة هِمّة" icon={ShieldCheck} title="مرحبًا، إليك متابعة الطلاب"
       description="التسكين والدروس والمراجعات من رحلة الطالب. افتح ملفه لمتابعة حالته أو إدارة حسابه."
@@ -69,8 +69,9 @@ export default function AdminDashboard() {
           <AdminStat icon={BookOpenCheck} value={counts.learning} label="في رحلة الدروس" />
           <AdminStat icon={ShieldCheck} value={counts.completed} label="أكملوا الرحلة" />
         </AdminStatGrid>
-        <AdminPanel title="ما الذي يحتاج متابعتك؟" description="عدد القراءات ينتظر القرار؛ لا يُحسب نجاحًا أو إخفاقًا قبل المراجعة.">
+        <AdminPanel title="ما الذي يحتاج متابعتك؟" description="تظهر هنا الحالات التي تحتاج إجراء منك، وتختفي بعد اكتمالها.">
           <div className={styles.actionGrid} data-testid="admin-attention-summary">
+            {attention.length === 0 && <AdminEmptyState title="لا توجد مراجعات تحتاج إلى إجراء الآن" description="ستظهر هنا التسجيلات والاختبارات التي تحتاج متابعتك." />}
             {attention.map(item => { const Icon = item.icon; return <Link key={item.label} href={item.href} className={`${styles.actionCard} ${item.value ? styles.priorityCard : ""}`}>
               <span className={styles.actionIcon}><Icon size={22} aria-hidden="true" /></span>
               <span className={styles.actionBody}><strong>{item.value} · {item.label}</strong><small>فتح المتابعة واتخاذ الإجراء المناسب</small></span>
