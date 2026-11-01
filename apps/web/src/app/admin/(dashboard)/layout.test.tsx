@@ -52,3 +52,28 @@ it('navigates away only after logout is acknowledged', async () => {
   await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/admin/login'));
   expect(mockRefresh).toHaveBeenCalled();
 });
+
+it('keeps protected content hidden and allows retry on transient auth network errors', async () => {
+  mockReplace.mockClear();
+  let calls = 0;
+  global.fetch = jest.fn().mockImplementation(() => {
+    calls += 1;
+    return calls === 1 ? Promise.reject(new TypeError("network failed"))
+      : Promise.resolve({ok:true,status:200,json:async()=>({role:"researcher",display_name:"مشرف اختبار"})});
+  });
+  render(<AdminDashboardLayout><div>محتوى محمي</div></AdminDashboardLayout>);
+  expect(await screen.findByRole("alert")).toHaveTextContent("تعذر التحقق من الاتصال");
+  expect(screen.queryByText("محتوى محمي")).not.toBeInTheDocument();
+  expect(mockReplace).not.toHaveBeenCalledWith("/admin/login");
+  fireEvent.click(screen.getByRole("button",{name:"إعادة المحاولة"}));
+  expect(await screen.findByText("محتوى محمي")).toBeVisible();
+  expect(calls).toBe(2);
+});
+
+it('redirects an explicitly expired supervisor session without showing protected content', async () => {
+  mockReplace.mockClear();
+  global.fetch = jest.fn().mockResolvedValue({ok:false,status:401});
+  render(<AdminDashboardLayout><div>محتوى محمي</div></AdminDashboardLayout>);
+  await waitFor(()=>expect(mockReplace).toHaveBeenCalledWith("/admin/login"));
+  expect(screen.queryByText("محتوى محمي")).not.toBeInTheDocument();
+});
