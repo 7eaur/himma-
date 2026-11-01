@@ -20,11 +20,11 @@ it("paginates dense skill evidence without rendering every card at once", async 
   global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => report });
   render(<SkillReportsPage />);
   await waitFor(() => expect(screen.getAllByRole("article")).toHaveLength(24));
-  expect(screen.getByText("مهارة رقم 1", {exact: false})).toBeInTheDocument();
-  expect(screen.queryByText("مهارة رقم 30", {exact: false})).not.toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: /مهارة رقم 1$/ })).toBeInTheDocument();
+  expect(screen.queryByRole("heading", { name: /مهارة رقم 30$/ })).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "التالي" }));
   expect(screen.getAllByRole("article")).toHaveLength(6);
-  expect(screen.getByText("مهارة رقم 30", {exact: false})).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: /مهارة رقم 30$/ })).toBeInTheDocument();
 });
 
 it("resets pagination when the supervisor changes the evidence phase", async () => {
