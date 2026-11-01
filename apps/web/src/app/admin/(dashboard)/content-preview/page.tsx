@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { adminConnectionError, readAdminApiError } from "@/lib/adminFeedback";
 import { BookOpenCheck, FileSpreadsheet, Film } from "lucide-react";
 import { AdminAction, AdminEmptyState, AdminPage, AdminPageHeader, AdminPanel, AdminRequestStatus } from "@/components/admin/AdminUI";
 import EducationalMediaPreview, { type EducationalMedia } from "@/components/admin/EducationalMediaPreview";
@@ -45,11 +46,11 @@ export default function ContentBankPage() {
       setLoading(true); setError("");
       try {
         const response = await fetch(`/api/v2/content/admin/bank?${new URLSearchParams({ section, search: debouncedSearch, offset: String(offset), limit: "25" })}`, { cache: "no-store", signal: controller.signal });
-        if (!response.ok) throw new Error("تعذر تحميل بنك الأسئلة. أعد المحاولة.");
+        if (!response.ok) throw new Error(await readAdminApiError(response, "تعذر تحميل بنك الأسئلة. أعد المحاولة."));
         const data = await response.json() as Bank;
         if (data.mode !== "read_only" || !Array.isArray(data.items) || !Array.isArray(data.sections)) throw new Error("تعذر قراءة بيانات بنك الأسئلة. أعد المحاولة.");
         if (!controller.signal.aborted) setBank(data);
-      } catch (cause) { if (!controller.signal.aborted) { setBank(null); setError(cause instanceof Error ? cause.message : "تعذر الاتصال بالخادم"); } }
+      } catch (cause) { if (!controller.signal.aborted) { setBank(null); setError(cause instanceof TypeError ? adminConnectionError : cause instanceof Error ? cause.message : adminConnectionError); } }
       finally { if (!controller.signal.aborted) setLoading(false); }
     };
     void load(); return () => controller.abort();
