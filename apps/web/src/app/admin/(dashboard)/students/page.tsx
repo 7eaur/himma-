@@ -5,9 +5,10 @@ import Link from "next/link";
 import { Eye, Search, UserPlus, Users } from "lucide-react";
 import {
   AdminAction, AdminEmptyState, AdminMobileCard, AdminPage, AdminPageHeader,
-  AdminPanel, AdminResponsiveTable, AdminToolbar,
+  AdminPanel, AdminResponsiveTable, AdminToolbar, AdminRequestStatus,
 } from "@/components/admin/AdminUI";
 import { v2StudentActionLabel } from "@/lib/v2StudentActionLabel";
+import { adminConnectionError, readAdminApiError } from "@/lib/adminFeedback";
 
 type StudentListItem = {
   id: number;
@@ -71,7 +72,7 @@ export default function StudentsPage() {
         const response = await fetch(`/api/v2/student/admin/students/overview?${params}`, {
           cache: "no-store", signal: controller.signal,
         });
-        if (!response.ok) throw new Error("تعذر تحميل تقدم الطلاب.");
+        if (!response.ok) throw new Error(await readAdminApiError(response, "تعذر تحميل بيانات الطلاب. أعد المحاولة."));
         const payload = await response.json() as Cohort;
         if (payload.source !== "himma_v2_readmodel" || !Array.isArray(payload.items))
           throw new Error("تعذر التحقق من بيانات الطلاب الحالية. حاول مرة أخرى.");
@@ -79,7 +80,7 @@ export default function StudentsPage() {
       } catch (reason) {
         if (!controller.signal.aborted) {
           setData(null);
-          setError(reason instanceof Error ? reason.message : "تعذر الاتصال بالخادم.");
+          setError(reason instanceof TypeError ? adminConnectionError : reason instanceof Error ? reason.message : adminConnectionError);
         }
       } finally {
         if (!controller.signal.aborted) setLoading(false);
@@ -115,10 +116,10 @@ export default function StudentsPage() {
         <span className="rounded-xl bg-white border border-border px-4 min-h-11 flex items-center justify-center text-sm text-muted whitespace-nowrap">{loading ? "جارٍ التحميل" : `${count} طالب`}</span>
       </AdminToolbar>
       {updatingSearch && <p role="status" className="mt-2 text-sm text-muted">جارٍ تحديث البحث…</p>}
-      {error && <div className="alert-error mt-3" role="alert">{error} <button type="button" className="underline font-semibold" onClick={() => setReload(value => value + 1)}>إعادة المحاولة</button></div>}
+      {error && <AdminRequestStatus loading={false} error={error} onRetry={() => setReload(value => value + 1)} />}
       <div className="h-3" aria-hidden="true" />
       {loading && !data
-        ? <div className="flex flex-col items-center justify-center gap-3 py-14"><div className="spinner w-9 h-9" /><p className="text-muted">جاري تحميل بيانات الطلاب...</p></div>
+        ? <AdminRequestStatus loading error="" loadingText="جارٍ تحميل بيانات الطلاب..." />
         : !data ? null
         : count === 0 ? <AdminEmptyState
             title={filtersActive ? "لا يوجد طلاب يطابقون البحث" : "لا يوجد طلاب حتى الآن"}
