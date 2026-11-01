@@ -25,7 +25,7 @@ const kinds = [
   { value: "posttest", label: "الاختبار البعدي" },
 ] as const;
 
-export default function ReviewedRecordingsPage() {
+export default function ReviewedRecordingsPage({ embedded = false }: { embedded?: boolean } = {}) {
   const [archive, setArchive] = useState<Archive>({ items: [], next_offset: null });
   const [kind, setKind] = useState("all");
   const [offset, setOffset] = useState(0);
@@ -74,11 +74,12 @@ export default function ReviewedRecordingsPage() {
   }, [refresh]);
 
   return <AdminPage>
-    <AdminPageHeader eyebrow="مراجعة الصوت" title="التسجيلات التي اكتمل تقييمها"
+    {!embedded && <AdminPageHeader eyebrow="مراجعة الصوت" title="التسجيلات التي اكتمل تقييمها"
       icon={Headphones}
       description="آخر تسجيل مُعتمد لكل سؤال قراءة، منفصل عن طابور انتظار المراجعة. تقييم الصوت المعروض حاليًا من المشرف، وليس من الذكاء الاصطناعي."
-      actions={<AdminAction icon={RefreshCcw} onClick={() => void refresh()}>تحديث</AdminAction>} />
-    <AdminPanel title="البحث والتصفية" description="لا تظهر التسجيلات المعلقة أو المحاولات الصوتية المستبدلة.">
+      actions={<AdminAction icon={RefreshCcw} onClick={() => void refresh()}>تحديث</AdminAction>} />}
+    <AdminPanel title="البحث والتصفية" description="لا تظهر التسجيلات المعلقة أو المحاولات الصوتية المستبدلة."
+      actions={embedded ? <AdminAction icon={RefreshCcw} onClick={() => void refresh()}>تحديث</AdminAction> : undefined}>
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="grid gap-1 text-sm font-semibold">نوع النشاط
           <select className="rounded-xl border border-slate-300 p-3" value={kind}
