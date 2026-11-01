@@ -71,3 +71,20 @@ it('handles an unverified creation response without suggesting an unsafe duplica
   expect(await screen.findByRole('alert')).toHaveTextContent('تحقق من قائمة الطلاب قبل محاولة إضافته');
   expect(screen.queryByTestId('student-created-state')).not.toBeInTheDocument();
 });
+
+it.each([
+  ["١٢٣٤٥٦", "123456"],
+  ["۱۲۳۴۵۶", "123456"],
+])("accepts Arabic keyboard numerals in manual access codes: %s", async (entered, expected) => {
+  const fetcher=jest.fn().mockResolvedValue({ok:true,json:async()=>({source:"himma_v2_account",id:42,access_code:expected})});
+  global.fetch=fetcher;
+  render(<Page/>);
+  fireEvent.change(screen.getByLabelText("اسم الطالب"), {target:{value:"طالب اصطناعي"}});
+  fireEvent.click(screen.getByRole("button",{name:"إدخال يدوي"}));
+  fireEvent.change(screen.getByLabelText("اكتب 6 أرقام"), {target:{value:entered}});
+  expect(screen.getByLabelText("اكتب 6 أرقام")).toHaveValue(expected);
+  fireEvent.click(screen.getByRole("button",{name:"إضافة الطالب"}));
+  await screen.findByTestId("student-created-state");
+  const call = (fetcher.mock.calls as unknown as Array<[string, { body: string }]>)[0];
+  expect(JSON.parse(call[1].body).access_code).toBe(expected);
+});
