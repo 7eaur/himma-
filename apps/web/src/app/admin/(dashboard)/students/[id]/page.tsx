@@ -124,12 +124,17 @@ function StudentDetailView({ id }: { id: string }) {
   const [lastUrlTab, setLastUrlTab] = useState(urlTab);
   if (lastUrlTab !== urlTab) {
     setLastUrlTab(urlTab);
-    accountTabCurrentRef.current = urlTab === "account";
     setVisibleCodeForId(null);
     setAccessCode(null);
     setCopied(false);
     setActiveTab(urlTab);
   }
+
+  useEffect(() => {
+    // URL-driven tab switches (including browser Back) must invalidate late
+    // credential reveals without reading or writing refs during render.
+    accountTabCurrentRef.current = urlTab === "account";
+  }, [urlTab]);
 
   const selectTab = (tab: TabKey) => {
     accountTabCurrentRef.current = tab === "account";
