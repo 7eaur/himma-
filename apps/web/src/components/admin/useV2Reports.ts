@@ -24,6 +24,9 @@ const isFiniteCount = (value: unknown) =>
   typeof value === "number" && Number.isFinite(value) && value >= 0;
 const isOptionalNumber = (value: unknown) =>
   value === null || (typeof value === "number" && Number.isFinite(value));
+const isOptionalCount = (value: unknown) => value === null || isFiniteCount(value);
+const isScore = (value: unknown) => value === null
+  || (isObject(value) && typeof value.score === "number" && Number.isFinite(value.score));
 
 export function isValidV2Report(value: unknown): value is V2Report {
   if (!isObject(value) || value.source !== "himma_v2_persisted_evidence"
@@ -31,20 +34,16 @@ export function isValidV2Report(value: unknown): value is V2Report {
   const summary = value.summary;
   if (!["students", "official_pretests", "official_posttests", "paired"].every(key => isFiniteCount(summary[key]))
     || !["average_pretest", "average_posttest", "average_improvement_points"].every(key => isOptionalNumber(summary[key]))) return false;
-  for (const row of value.students) {
-    if (!isObject(row) || !Number.isSafeInteger(row.student_id) || typeof row.student_name !== "string"
-      || !isObject(row.progress) || !isObject(row.support)
-      || !isOptionalNumber(row.improvement_points)
-      || !isOptionalNumber(row.progress.assigned_lessons)
-      || !isFiniteCount(row.progress.completed_lessons)
-      || !["total", "mastered", "needs_followup"].every(key => isFiniteCount(row.support[key]))) {
-      // completed_lessons may be null while placement is not yet confirmed.
-      if (!(isObject(row) && isObject(row.progress) && row.progress.completed_lessons === null
-        && !Number.isNaN(row.student_id) && typeof row.student_name === "string"
-        && isObject(row.support) && !["total","mastered","needs_followup"].some(key => !isFiniteCount(row.support[key]))
-        && isOptionalNumber(row.progress.assigned_lessons) && isOptionalNumber(row.improvement_points))) return false;
-    }
-  }
+  const validStudents = value.students.every(row => {
+    if (!isObject(row) || !isObject(row.progress) || !isObject(row.support)) return false;
+    return Number.isSafeInteger(row.student_id) && typeof row.student_name === "string"
+      && isScore(row.pretest) && isScore(row.posttest)
+      && isOptionalNumber(row.improvement_points)
+      && isOptionalCount(row.progress.assigned_lessons)
+      && isOptionalCount(row.progress.completed_lessons)
+      && ["total", "mastered", "needs_followup"].every(key => isFiniteCount(row.support[key]));
+  });
+  if (!validStudents) return false;
   return value.skills.every(row => isObject(row) && Number.isSafeInteger(row.student_id)
     && typeof row.phase === "string" && typeof row.skill_group === "string"
     && isFiniteCount(row.graded) && isFiniteCount(row.correct)
