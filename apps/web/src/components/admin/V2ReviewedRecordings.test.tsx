@@ -35,3 +35,11 @@ it("never reveals raw server diagnostics for a failed recording request", async 
   expect(alert).not.toHaveTextContent("SQL");
   expect(screen.queryByText("طالب اصطناعي")).not.toBeInTheDocument();
 });
+
+it("omits navigation controls when no evaluated recordings exist", async () => {
+  global.fetch = jest.fn().mockResolvedValue({ok: true, json: async () => ({items: [], next_offset: null})});
+  render(<V2ReviewedRecordings />);
+  expect(await screen.findByText("لا توجد تسجيلات مقيّمة لهذه التصفية")).toBeVisible();
+  expect(screen.queryByRole("button", {name:"التالي"})).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", {name:"السابق"})).not.toBeInTheDocument();
+});
