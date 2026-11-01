@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { adminConnectionError, readAdminApiError } from "@/lib/adminFeedback";
 
 export interface V2StudentReport {
   student_id: number; student_name: string; current_level: number | null; journey_state: string;
@@ -63,11 +64,11 @@ export function useV2Reports() {
       setLoading(true); setError("");
       try {
         const response = await fetch("/api/v2/reports/summary", { cache: "no-store", signal: controller.signal });
-        if (!response.ok) throw new Error("تعذر تحميل التقارير. أعد المحاولة.");
+        if (!response.ok) throw new Error(await readAdminApiError(response, "تعذر تحميل التقارير. أعد المحاولة."));
         const result: unknown = await response.json();
         if (!isValidV2Report(result)) throw new Error("بيانات التقارير غير مكتملة. أعد المحاولة، وإن استمرت المشكلة تواصل مع مسؤول النظام.");
         if (!controller.signal.aborted) setData(result);
-      } catch (cause) { if (!controller.signal.aborted) { setData(null); setError(cause instanceof Error ? cause.message : "تعذر تحميل التقرير"); } }
+      } catch (cause) { if (!controller.signal.aborted) { setData(null); setError(cause instanceof TypeError ? adminConnectionError : cause instanceof Error ? cause.message : adminConnectionError); } }
       finally { if (!controller.signal.aborted) setLoading(false); }
     };
     void load(); return () => controller.abort();
