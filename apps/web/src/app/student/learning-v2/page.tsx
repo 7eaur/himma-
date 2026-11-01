@@ -9,7 +9,34 @@ import styles from "./learning-v2.module.css";
 
 type LessonState = "current" | "locked" | "done" | "skipped";
 interface LessonRow { lesson_id: string; title: string; level: "L1" | "L2" | "L3"; state: LessonState; preview_enabled: boolean; session_id: number | null; }
-interface Catalog { test_only: true; release_version: string; lessons: LessonRow[]; }
+interface Catalog { mode: "candidate_preview"; test_only: true; release_version: string; current_action: "lesson" | "placement_required"; lessons: LessonRow[]; }
+
+const safeSessionId = (value: unknown): value is number => Number.isSafeInteger(value) && (value as number) > 0;
+function validCatalog(value: unknown): value is Catalog {
+  if (!value || typeof value !== "object") return false;
+  const data = value as Partial<Catalog>;
+  if (data.mode !== "candidate_preview" || data.test_only !== true ||
+      typeof data.release_version !== "string" || !data.release_version.trim() ||
+      !["lesson", "placement_required"].includes(data.current_action ?? "") ||
+      !Array.isArray(data.lessons) || data.lessons.length === 0) return false;
+  const ids = new Set<string>();
+  let currentCount = 0;
+  return data.lessons.every((entry: unknown) => {
+    if (!entry || typeof entry !== "object") return false;
+    const lesson = entry as Partial<LessonRow>;
+    if (typeof lesson.lesson_id !== "string" || !/^L[1-3]-[0-9]{2,}$/.test(lesson.lesson_id) ||
+        ids.has(lesson.lesson_id) || typeof lesson.title !== "string" || !lesson.title.trim() ||
+        !["L1", "L2", "L3"].includes(lesson.level ?? "") ||
+        lesson.lesson_id.slice(0, 2) !== lesson.level ||
+        !["current", "locked", "done", "skipped"].includes(lesson.state ?? "") ||
+        typeof lesson.preview_enabled !== "boolean" ||
+        (lesson.preview_enabled && lesson.state !== "current") ||
+        (lesson.session_id != null && (!safeSessionId(lesson.session_id) || lesson.state !== "current"))) return false;
+    ids.add(lesson.lesson_id);
+    if (lesson.state === "current") currentCount++;
+    return currentCount <= 1;
+  });
+}
 
 const LEVEL_LABELS = { L1: "المستوى الأول — الاستعداد للقراءة", L2: "المستوى الثاني — بناء الكلمة", L3: "المستوى الثالث — الطلاقة والفهم" };
 const STATE_LABELS: Record<LessonState, string> = { current: "الحالي", locked: "مغلق", done: "مكتمل", skipped: "تجاوزته حسب مستواك" };
@@ -20,15 +47,36 @@ export default function V2LearningCatalogPage() {
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [reload, setReload] = useState(0);
 
   useEffect(() => {
-    void fetch("/api/v2/lessons/catalog", { cache: "no-store" }).then(async (response) => {
-      const data = await response.json().catch(() => null);
-      if (response.status === 401 || response.status === 403) { router.replace("/student/login"); return; }
-      if (!response.ok) throw new Error(data?.detail || "تعذر فتح الدروس الآن. حاول مرة أخرى لاحقًا.");
-      setCatalog(data);
-    }).catch((reason) => setError(reason instanceof Error ? reason.message : "تعذر تحميل الدروس")).finally(() => setLoading(false));
-  }, [router]);
+    let active = true;
+    const controller = new AbortController();
+    const load = async () => {
+      setLoading(true);
+      setError("");
+      setCatalog(null);
+      try {
+        const response = await fetch("/api/v2/lessons/catalog", { cache: "no-store", signal: controller.signal });
+        if (!active) return;
+        if (response.status === 401 || response.status === 403) {
+          router.replace("/student/login");
+          return;
+        }
+        if (!response.ok) throw new Error("تعذر تحميل دروسك الآن. تحقق من الاتصال ثم حاول مرة أخرى.");
+        const data: unknown = await response.json().catch(() => null);
+        if (!active) return;
+        if (!validCatalog(data)) throw new Error("تعذر التحقق من بيانات الدروس. أعد المحاولة أو اطلب مساعدة المشرف.");
+        setCatalog(data);
+      } catch (reason) {
+        if (active) setError(reason instanceof Error ? reason.message : "تعذر الاتصال بالخادم. حاول مرة أخرى.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+    void load();
+    return () => { active = false; controller.abort(); };
+  }, [router, reload]);
 
   const grouped = useMemo(() => ({
     L1: catalog?.lessons.filter((lesson) => lesson.level === "L1") ?? [],
@@ -41,19 +89,41 @@ export default function V2LearningCatalogPage() {
   const awaitingPlacement = catalog?.lessons.length ? catalog.lessons.every((lesson) => lesson.state === "locked") : false;
 
   const start = async (lesson: LessonRow) => {
-    if (!lesson.preview_enabled || starting) return;
-    if (lesson.session_id) { router.push(`/student/learning-v2/${lesson.session_id}`); return; }
+    if (!lesson.preview_enabled || lesson.state !== "current" || starting) return;
+    if (safeSessionId(lesson.session_id)) { router.push(`/student/learning-v2/${lesson.session_id}`); return; }
     setStarting(lesson.lesson_id); setError("");
     try {
       const response = await fetch(`/api/v2/lessons/${lesson.lesson_id}/start`, { method: "POST" });
+      if (response.status === 401 || response.status === 403) {
+        router.replace("/student/login");
+        return;
+      }
       const data = await response.json().catch(() => null);
-      if (response.status === 409 && data?.detail?.session_id) { router.push(`/student/learning-v2/${data.detail.session_id}`); return; }
-      if (!response.ok) throw new Error(typeof data?.detail === "string" ? data.detail : "تعذر بدء الدرس");
+      if (response.status === 409 && safeSessionId(data?.detail?.session_id)) {
+        router.push(`/student/learning-v2/${data.detail.session_id}`);
+        return;
+      }
+      if (!response.ok) throw new Error(response.status === 409
+        ? "لديك خطوة أخرى قيد التنفيذ. عد إلى رحلتك أو اطلب مساعدة المشرف."
+        : "تعذر بدء الدرس الآن. أعد المحاولة.");
+      if (!safeSessionId(data?.session?.session_id)) throw new Error("تعذر التحقق من جلسة الدرس. أعد المحاولة.");
       router.push(`/student/learning-v2/${data.session.session_id}`);
-    } catch (reason) { setError(reason instanceof Error ? reason.message : "تعذر بدء الدرس"); setStarting(null); }
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "تعذر الاتصال بالخادم.");
+      setStarting(null);
+    }
   };
 
   if (loading) return <div className={styles.page} dir="rtl"><div className={styles.loading}><div><div className={styles.spinner} /><p>جاري تجهيز مسار الدروس...</p></div></div></div>;
+
+  if (!catalog) return <main className={styles.page} dir="rtl"><div className={styles.container}>
+    <header className={styles.header}><Image src="/brand/logo-gradient.svg" alt="هِمّة" width={126} height={42} priority /><Link href="/student" className={styles.back}><ArrowRight size={17} /> لوحة الطالب</Link></header>
+    <section className={styles.prePlacement} role="alert">
+      <h1>تعذر عرض دروسك</h1>
+      <p>{error || "تعذر التحقق من خريطة دروسك."}</p>
+      <button type="button" className={styles.start} onClick={() => setReload(value => value + 1)}>إعادة المحاولة</button>
+    </section>
+  </div></main>;
 
   return <div className={styles.page} dir="rtl"><div className={styles.container}>
     <header className={styles.header}><Image src="/brand/logo-gradient.svg" alt="هِمّة" width={126} height={42} priority /><Link href="/student" className={styles.back}><ArrowRight size={17} /> لوحة الطالب</Link></header>
