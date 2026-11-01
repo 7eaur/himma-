@@ -7,6 +7,14 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, KeyRound } from "lucide-react";
 import styles from "./login.module.css";
 
+// The six-digit code is issued by the supervisor. Arabic and Persian numerals
+// should work just like Western digits without changing the server contract.
+const normalizeAccessCode = (value: string) => value
+  .replace(/[٠-٩]/g, digit => String(digit.charCodeAt(0) - 0x0660))
+  .replace(/[۰-۹]/g, digit => String(digit.charCodeAt(0) - 0x06f0))
+  .replace(/[^0-9]/g, "")
+  .slice(0, 6);
+
 export default function StudentLogin() {
   const router = useRouter();
   const [accessCode, setAccessCode] = useState("");
@@ -105,7 +113,7 @@ export default function StudentLogin() {
               className={`student-login-code-input ${styles.codeInput}`}
               data-testid="input-access-code"
               value={accessCode}
-              onChange={(event) => setAccessCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
+              onChange={(event) => setAccessCode(normalizeAccessCode(event.target.value))}
               pattern="[0-9]{6}"
               maxLength={6}
               required
