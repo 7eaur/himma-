@@ -139,6 +139,8 @@ it.each(["assessment", "lesson"] as const)("hides meaningless pagination in an e
   render(<V2AudioReviewQueue kind={kind} />);
   expect(await screen.findByText("لا توجد تسجيلات تحتاج مراجعة في هذه الصفحة")).toBeVisible();
   expect(screen.queryByRole("navigation", {name:"صفحات التسجيلات"})).not.toBeInTheDocument();
+  expect(screen.queryByLabelText("بحث في هذه الصفحة")).not.toBeInTheDocument();
+  expect(screen.queryByText(/0 جاهز للمراجعة/)).not.toBeInTheDocument();
 });
 
 it("shows queue navigation only when the server confirms another page", async () => {
