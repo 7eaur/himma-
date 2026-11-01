@@ -3,15 +3,7 @@
 import { useRef, useState } from "react";
 import { CheckCircle, Copy, KeyRound, UserPlus } from "lucide-react";
 import { AdminAction, AdminPage, AdminPageHeader, AdminPanel } from "@/components/admin/AdminUI";
-
-/** Accept the numerals commonly entered with Arabic mobile keyboards. */
-function normalizeStudentAccessCode(value: string): string {
-  return value
-    .replace(/[٠-٩]/g, digit => String(digit.charCodeAt(0) - 0x0660))
-    .replace(/[۰-۹]/g, digit => String(digit.charCodeAt(0) - 0x06f0))
-    .replace(/[^0-9]/g, "")
-    .slice(0, 6);
-}
+import { normalizeStudentAccessCodeInput } from "@/lib/studentAccessCodeInput";
 
 export default function NewStudentPage() {
   const [fullName, setFullName] = useState("");
@@ -201,7 +193,7 @@ export default function NewStudentPage() {
                   pattern="[0-9]{6}"
                   maxLength={6}
                   value={manualCode}
-                  onChange={(event) => setManualCode(normalizeStudentAccessCode(event.target.value))}
+                  onChange={(event) => setManualCode(normalizeStudentAccessCodeInput(event.target.value))}
                   placeholder="٦ أرقام"
                   dir="ltr"
                   aria-describedby="manual-code-help"
