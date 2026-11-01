@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Activity, ArrowLeft, BookOpenCheck, Headphones, Plus, ShieldCheck, Users } from "lucide-react";
-import { AdminAction, AdminEmptyState, AdminMobileCard, AdminPage, AdminPageHeader, AdminPanel, AdminResponsiveTable, AdminStat, AdminStatGrid } from "@/components/admin/AdminUI";
+import { AdminAction, AdminEmptyState, AdminMobileCard, AdminPage, AdminPageHeader, AdminPanel, AdminResponsiveTable, AdminStat, AdminStatGrid, AdminRequestStatus } from "@/components/admin/AdminUI";
+import { adminConnectionError, readAdminApiError } from "@/lib/adminFeedback";
 import type { StudentV2Home } from "@/app/student/V2StudentDashboard";
 import styles from "./admin.module.css";
 import { v2StudentActionLabel } from "@/lib/v2StudentActionLabel";
@@ -37,14 +38,16 @@ export default function AdminDashboard() {
       setLoading(true); setError("");
       try {
         const response = await fetch("/api/v2/student/admin/overview", { cache: "no-store", signal: controller.signal });
-        if (!response.ok) throw new Error("تعذر تحميل لوحة المتابعة. أعد المحاولة.");
+        if (!response.ok) throw new Error(await readAdminApiError(response, "تعذر تحميل لوحة المتابعة. أعد المحاولة."));
         const data = await response.json() as Overview;
-        if (data.source !== "himma_v2_readmodel" || !data.counts || !Array.isArray(data.recent_students))
+        if (data.source !== "himma_v2_readmodel" || !data.counts || !Array.isArray(data.recent_students)
+          || !["students", "active_accounts", "learning", "ready_for_posttest", "completed", "assessment_reviews", "lesson_reviews", "placements"].every(key =>
+            Number.isSafeInteger(data.counts[key as keyof Overview["counts"]]) && data.counts[key as keyof Overview["counts"]] >= 0))
           throw new Error("تعذر التحقق من بيانات المتابعة الحالية. أعد المحاولة.");
         if (!controller.signal.aborted) setResult(data);
       } catch (cause) {
         if (!controller.signal.aborted) {
-          setResult(null); setError(cause instanceof Error ? cause.message : "تعذر الاتصال بالخادم.");
+          setResult(null); setError(cause instanceof TypeError ? adminConnectionError : cause instanceof Error ? cause.message : adminConnectionError);
         }
       } finally { if (!controller.signal.aborted) setLoading(false); }
     };
@@ -60,9 +63,8 @@ export default function AdminDashboard() {
     <AdminPageHeader eyebrow="مركز متابعة هِمّة" icon={ShieldCheck} title="مرحبًا، إليك متابعة الطلاب"
       description="التسكين والدروس والمراجعات من رحلة الطالب. افتح ملفه لمتابعة حالته أو إدارة حسابه."
       actions={<AdminAction href="/admin/students/new" tone="primary" icon={Plus}>إضافة طالب</AdminAction>} />
-    {loading ? <p role="status" className="py-8 text-muted">جاري تحميل المتابعة...</p>
-      : error ? <div className="alert-error" role="alert">{error} <AdminAction onClick={() => setReload(value => value + 1)}>إعادة المحاولة</AdminAction></div>
-      : result && counts ? <>
+    <AdminRequestStatus loading={loading} error={error} onRetry={() => setReload(value => value + 1)} loadingText="جارٍ تحميل المتابعة..." />
+    {!loading && !error && result && counts ? <>
         <AdminStatGrid>
           <AdminStat icon={Users} value={counts.students} label="إجمالي الطلاب" />
           <AdminStat icon={Activity} value={counts.active_accounts} label="حسابات نشطة" />
