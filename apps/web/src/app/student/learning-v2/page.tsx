@@ -12,6 +12,15 @@ interface LessonRow { lesson_id: string; title: string; level: "L1" | "L2" | "L3
 interface Catalog { mode: "candidate_preview"; test_only: true; release_version: string; current_action: "lesson" | "placement_required"; lessons: LessonRow[]; }
 
 const safeSessionId = (value: unknown): value is number => Number.isSafeInteger(value) && (value as number) > 0;
+const safeCatalogErrors = new Set([
+  "تعذر تحميل دروسك الآن. تحقق من الاتصال ثم حاول مرة أخرى.",
+  "تعذر التحقق من بيانات الدروس. أعد المحاولة أو اطلب مساعدة المشرف.",
+]);
+const safeStartErrors = new Set([
+  "لديك خطوة أخرى قيد التنفيذ. عد إلى رحلتك أو اطلب مساعدة المشرف.",
+  "تعذر بدء الدرس الآن. أعد المحاولة.",
+  "تعذر التحقق من جلسة الدرس. أعد المحاولة.",
+]);
 function validCatalog(value: unknown): value is Catalog {
   if (!value || typeof value !== "object") return false;
   const data = value as Partial<Catalog>;
@@ -71,7 +80,8 @@ export default function V2LearningCatalogPage() {
         if (!validCatalog(data)) throw new Error("تعذر التحقق من بيانات الدروس. أعد المحاولة أو اطلب مساعدة المشرف.");
         setCatalog(data);
       } catch (reason) {
-        if (active) setError(reason instanceof Error ? reason.message : "تعذر الاتصال بالخادم. حاول مرة أخرى.");
+        if (active) setError(reason instanceof Error && safeCatalogErrors.has(reason.message)
+          ? reason.message : "تعذر الاتصال بخريطة الدروس. أعد المحاولة.");
       } finally {
         if (active && !redirecting) setLoading(false);
       }
@@ -111,7 +121,8 @@ export default function V2LearningCatalogPage() {
       if (!safeSessionId(data?.session?.session_id)) throw new Error("تعذر التحقق من جلسة الدرس. أعد المحاولة.");
       router.push(`/student/learning-v2/${data.session.session_id}`);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "تعذر الاتصال بالخادم.");
+      setError(reason instanceof Error && safeStartErrors.has(reason.message)
+        ? reason.message : "تعذر الاتصال بالخادم. أعد المحاولة.");
       setStarting(null);
     }
   };
