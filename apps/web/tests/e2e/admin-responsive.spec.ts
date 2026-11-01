@@ -124,7 +124,7 @@ test("P09.0 V2 supervisor pages keep a desktop visual baseline", async ({ page }
   await page.setViewportSize({ width: 1440, height: 900 });
   await login(page);
   const routes = [
-    { route: "/admin/v2-review-center", heading: "الاختبارات ومراجعة القراءة" },
+    { route: "/admin/v2-review-center", heading: "مركز مراجعة التسجيلات" },
     { route: "/admin/v2-assessments", heading: "الاختبارات ومراجعة القراءة" },
     { route: "/admin/v2-lesson-review", heading: "مراجعة قراءات الدروس" },
     { route: "/admin/v2-media", heading: "الوسائط التعليمية" },
@@ -141,6 +141,15 @@ test("P09.0 V2 supervisor pages keep a desktop visual baseline", async ({ page }
       await expect(page).toHaveURL(/\/admin\/settings$/);
     }
     await expect(page.getByRole("heading", { level: 1, name: heading, exact: true })).toBeVisible();
+    if (route === "/admin/v2-review-center") {
+      await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+      await page.getByRole("tab", { name: "قراءات الدروس" }).click();
+      await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+      await expect(page.getByRole("button", { name: "تحديث القائمة" })).toBeVisible();
+      await page.getByRole("tab", { name: "تم تقييمها" }).click();
+      await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+      await expect(page.getByRole("button", { name: "تحديث" })).toBeVisible();
+    }
     if (route === "/admin/content-preview") {
       await expect(page.getByTestId("v2-bank-question").first()).toBeVisible({ timeout: 25000 });
     }
