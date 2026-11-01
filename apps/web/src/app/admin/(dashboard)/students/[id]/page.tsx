@@ -441,7 +441,7 @@ function StudentDetailView({ id }: { id: string }) {
                   <small>{new Date(item.created_at).toLocaleDateString("ar")}</small>
                 </div>
               ))}</div>}
-            <p className={styles.muted}>آخر 30 قرارًا من محرك التكيف V2 فقط. لا يتضمن هذا العرض سجلات الحساب الأمنية.</p>
+            <p className={styles.muted}>آخر 30 قرارًا تعليميًا محفوظًا. لا يتضمن العرض سجلات الحساب الأمنية.</p>
           </>}
         </>}
       </section>
