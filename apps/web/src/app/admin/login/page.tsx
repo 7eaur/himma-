@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, LockKeyhole, ShieldCheck, UserRound } from "lucide-react";
+import { adminConnectionError, adminErrorMessage } from "@/lib/adminFeedback";
 
 export default function AdminLogin() {
   const router = useRouter();
@@ -45,14 +46,16 @@ export default function AdminLogin() {
       const data = await response.json().catch(() => null);
 
       if (!response.ok) {
-        setError(typeof data?.detail === "string" ? data.detail : "تعذر تسجيل الدخول. تحقق من البيانات وحاول مرة أخرى.");
+        setError(response.status === 401
+          ? "اسم المستخدم أو كلمة المرور غير صحيحة."
+          : adminErrorMessage(response.status, data?.detail, "تعذر تسجيل الدخول. تحقق من البيانات وحاول مرة أخرى."));
         return;
       }
 
       router.replace("/admin");
       router.refresh();
     } catch {
-      setError("تعذر الاتصال بالخادم الآن. حاول مرة أخرى بعد قليل.");
+      setError(adminConnectionError);
     } finally {
       submittingRef.current = false;
       setIsLoading(false);
