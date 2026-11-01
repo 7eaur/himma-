@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CheckCircle2, Headphones, RefreshCcw } from "lucide-react";
-import { AdminAction, AdminEmptyState, AdminPage, AdminPageHeader, AdminPanel } from "@/components/admin/AdminUI";
+import { AdminAction, AdminEmptyState, AdminPage, AdminPageHeader, AdminPanel, AdminRequestStatus } from "@/components/admin/AdminUI";
+import { adminConnectionError, adminErrorMessage } from "@/lib/adminFeedback";
 
 type Reviewed = {
   audio_id: number; response_id: number; student_id: number; student_name: string;
@@ -49,17 +50,17 @@ export default function V2ReviewedRecordings({ embedded = false }: { embedded?: 
       const body = await response.json().catch(() => null);
       // Ignore late responses from an older student or activity filter.
       if (requestId !== requestSequence.current) return;
-      if (!response.ok) throw new Error(body?.detail || "تعذر تحميل التسجيلات المنتهية");
+      if (!response.ok) throw new Error(adminErrorMessage(response.status, body?.detail, "تعذر تحميل التسجيلات المقيّمة."));
       if (!body || !Array.isArray(body.items) ||
           (body.next_offset !== null && (!Number.isSafeInteger(body.next_offset) || body.next_offset < 0))) {
-        throw new Error("استجابة التسجيلات المقيّمة غير صالحة");
+        throw new Error("تعذر قراءة بيانات التسجيلات. أعد المحاولة.");
       }
       setArchive(body as Archive);
     } catch (cause) {
       if (requestId !== requestSequence.current) return;
       // Never display an old child's voice after a failed filter or refresh.
       setArchive({ items: [], next_offset: null });
-      setError(cause instanceof Error ? cause.message : "تعذر تحميل التسجيلات");
+      setError(cause instanceof TypeError ? adminConnectionError : cause instanceof Error ? cause.message : adminConnectionError);
     } finally {
       if (requestId === requestSequence.current) setLoading(false);
     }
@@ -94,14 +95,14 @@ export default function V2ReviewedRecordings({ embedded = false }: { embedded?: 
       </div>
     </AdminPanel>
     <AdminPanel title="التسجيلات المقيّمة" description="آخر تسجيل معتمد لكل نشاط، مع حفظ الخصوصية ودون رابط تخزين مباشر.">
-      {error && <p role="alert" className="alert-error">{error}</p>}
-      {loading ? <p role="status">جاري جلب التسجيلات...</p>
-        : error ? <AdminEmptyState title="تعذر عرض التسجيلات" description="لم نعرض بيانات مخزنة قديمة. اختر تحديث لإعادة المحاولة." />
+      <AdminRequestStatus loading={loading} error={error} onRetry={() => { void refresh(); }} loadingText="جارٍ تحميل التسجيلات..." />
+      {loading || error ? null
         : archive.items.length === 0 ? <AdminEmptyState title="لا توجد تسجيلات مقيّمة لهذه التصفية" description="ستظهر هنا بعد اعتماد تقييم المشرف للصوت." />
         : <div className="space-y-3">{archive.items.map(item => <article key={item.audio_id} className="space-y-3 rounded-2xl border border-slate-200 p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div><strong className="text-navy">{item.student_name} · {item.question_id}</strong>
-              <p className="text-sm text-muted">طالب #{item.student_id} · {item.kind === "lesson" ? `درس ${item.lesson_id || "—"}` : item.kind === "pretest" ? "اختبار قبلي" : "اختبار بعدي"}</p>
+            <div><strong className="text-navy">{item.student_name}</strong>
+              <p className="text-sm text-muted">{item.kind === "lesson" ? `درس ${item.lesson_id || "—"}` : item.kind === "pretest" ? "اختبار قبلي" : "اختبار بعدي"}</p>
+              <details className="mt-1 text-xs text-muted"><summary className="cursor-pointer">مرجع التسجيل</summary><p>السؤال: {item.question_id}</p></details>
             </div>
             <span className="inline-flex items-center gap-1 text-sm font-semibold text-slate-700"><CheckCircle2 size={17} aria-hidden="true" /> تم تقييمه بواسطة المشرف</span>
           </div>
