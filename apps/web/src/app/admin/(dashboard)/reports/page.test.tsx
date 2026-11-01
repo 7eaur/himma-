@@ -25,7 +25,7 @@ it("shows an official zero independently of an unapproved posttest and uses V2 e
   expect(screen.queryByText("أرشيف تقارير V1")).not.toBeInTheDocument();
 });
 it("keeps a skills source failure unavailable without loading V1 evidence", async () => {
-  const fetcher = jest.fn().mockResolvedValue({ ok: false });
+  const fetcher = jest.fn().mockResolvedValue({ ok: false, status: 503, json: async () => ({detail: "الخدمة غير متاحة"}) });
   global.fetch = fetcher;
   render(<SkillReportsPage />);
   expect(await screen.findByRole("alert")).toHaveTextContent("تعذر تحميل التقارير");
@@ -83,7 +83,7 @@ it("validates nested progress and support data before presenting supervisor repo
 });
 
 it("does not expose export navigation while report evidence is loading or unavailable", async () => {
-  global.fetch = jest.fn().mockResolvedValue({ok: false});
+  global.fetch = jest.fn().mockResolvedValue({ok: false, status: 503, json: async () => ({detail: "الخدمة غير متاحة"})});
   render(<ReportsPage />);
   expect(screen.queryByRole("link", {name: /^Excel$/})).not.toBeInTheDocument();
   expect(screen.getByText("Excel")).toHaveAttribute("aria-disabled", "true");
