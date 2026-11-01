@@ -27,6 +27,8 @@ export default function SettingsPage() {
   const [newSupervisorName, setNewSupervisorName] = useState("");
   const [newSupervisorPassword, setNewSupervisorPassword] = useState("");
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [busy, setBusy] = useState("");
   const [message, setMessage] = useState<{ kind: "success" | "error"; text: string }>({ kind: "success", text: "" });
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
@@ -36,6 +38,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     let cancelled = false;
+    setLoadError("");
     void Promise.all([
       fetch("/api/researcher/account", { cache: "no-store" }),
       fetch("/api/researcher/supervisors", { cache: "no-store" }),
@@ -50,11 +53,11 @@ export default function SettingsPage() {
         setSupervisors(supervisorsData);
       })
       .catch((error: unknown) => {
-        if (!cancelled) setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر تحميل الإعدادات" });
+        if (!cancelled) setLoadError(error instanceof Error ? error.message : "تعذر تحميل الإعدادات");
       })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, []);
+  }, [loadAttempt]);
 
   const parseError = async (response: Response, fallback: string) => {
     const data = await response.json().catch(() => null);
@@ -120,7 +123,16 @@ export default function SettingsPage() {
     finally { actionPending.current = false; setBusy(""); }
   };
 
-  if (loading) return <div className={styles.loading} dir="rtl"><span /><span /><span /></div>;
+  if (loading) return <div className={styles.loading} role="status" aria-label="جاري تحميل إعدادات المشرف" dir="rtl"><span /><span /><span /></div>;
+  // Do not show empty editable forms or a misleading "0 supervisors" when the
+  // authoritative account request failed. Retry the read before any write.
+  if (loadError || !account) return <AdminPage className={styles.pageNarrow}>
+    <AdminPageHeader icon={ShieldCheck} title="إعدادات المشرف" description="إدارة بيانات الحساب والأمان والمشرفين." />
+    <div role="alert" className="alert-error">
+      {loadError || "تعذر التحقق من بيانات المشرف."}
+      <AdminAction onClick={() => { setLoading(true); setLoadAttempt(value => value + 1); }}>إعادة المحاولة</AdminAction>
+    </div>
+  </AdminPage>;
 
   const tabs: Array<{ key: SettingsTab; label: string; icon: typeof ShieldCheck }> = [
     { key: "account", label: "الحساب", icon: ShieldCheck },
