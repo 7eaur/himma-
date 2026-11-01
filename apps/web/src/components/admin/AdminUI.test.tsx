@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react";
-import { AdminAction } from "./AdminUI";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { AdminAction, AdminRequestStatus } from "./AdminUI";
 
 it("does not navigate or export when an action link is disabled", () => {
   render(<>
@@ -21,4 +21,18 @@ it("keeps authorized local export and internal navigation links functional", () 
   </>);
   expect(screen.getByRole("link", {name: "تصدير"})).toHaveAttribute("href", "/api/v2/reports/exports/cohort.xlsx");
   expect(screen.getByRole("link", {name: "الطلاب"})).toHaveAttribute("href", "/admin/students");
+});
+
+it("shows a single readable load status or recoverable error, never a fake empty data panel", () => {
+  const retry = jest.fn();
+  const {rerender} = render(<AdminRequestStatus loading error="" onRetry={retry} loadingText="جارٍ تحميل الطلاب..." />);
+  expect(screen.getByRole("status")).toHaveTextContent("جارٍ تحميل الطلاب...");
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  rerender(<AdminRequestStatus loading={false} error="تعذر تحميل الطلاب" onRetry={retry} />);
+  expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  expect(screen.getByRole("alert")).toHaveTextContent("تعذر تحميل الطلاب");
+  fireEvent.click(screen.getByRole("button",{name:"إعادة المحاولة"}));
+  expect(retry).toHaveBeenCalledTimes(1);
+  rerender(<AdminRequestStatus loading={false} error="" onRetry={retry} />);
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 });
