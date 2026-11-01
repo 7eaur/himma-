@@ -60,6 +60,21 @@ test("student map, placed levels and delayed educational images retain clear mob
       await page.goto("/student");
       await expect(page.getByRole("region",{name:"مستويات رحلتي"})).toBeVisible();
       await expect(page.getByRole("link",{name:"عرض إنجازاتي"})).toBeVisible();
+      // An actual child must be able to sign out on a 320px phone without
+      // accidentally tapping the adjacent achievements control.
+      const logout = page.getByRole("button", { name: /خروج/ });
+      const logoutBox = await logout.boundingBox();
+      const achievementsBox = await page.getByRole("link", { name: "عرض إنجازاتي" }).boundingBox();
+      expect(logoutBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+      expect(logoutBox?.width ?? 0).toBeGreaterThanOrEqual(44);
+      expect(achievementsBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+      expect(logoutBox).toBeTruthy();
+      expect(achievementsBox).toBeTruthy();
+      if (logoutBox && achievementsBox) {
+        const overlapWidth = Math.max(0, Math.min(logoutBox.x+logoutBox.width, achievementsBox.x+achievementsBox.width) - Math.max(logoutBox.x,achievementsBox.x));
+        const overlapHeight = Math.max(0, Math.min(logoutBox.y+logoutBox.height, achievementsBox.y+achievementsBox.height) - Math.max(logoutBox.y,achievementsBox.y));
+        expect(overlapWidth * overlapHeight).toBe(0);
+      }
       await expect(page.locator('[data-level-state="skipped"]')).toHaveCount(placedLevel-1);
       await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
       await page.screenshot({path:path.join(DIR,`dashboard-L${placedLevel}-${width}.png`),fullPage:true});
