@@ -4,9 +4,9 @@ import { useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { CheckCheck, ClipboardCheck, Headphones } from "lucide-react";
 import { AdminPage, AdminPageHeader } from "@/components/admin/AdminUI";
-import V2AssessmentsPage from "../v2-assessments/page";
-import V2LessonReviewPage from "../v2-lesson-review/page";
-import ReviewedRecordingsPage from "../v2-reviewed-recordings/page";
+import V2AudioReviewQueue from "@/components/admin/V2AudioReviewQueue";
+
+import V2ReviewedRecordings from "@/components/admin/V2ReviewedRecordings";
 
 type ReviewTab = "assessments" | "lessons" | "reviewed";
 const TABS: Array<{key: ReviewTab; label: string; icon: typeof Headphones}> = [
@@ -64,8 +64,8 @@ export default function V2ReviewCenterPage() {
       })}
     </nav>
     <div id="review-center-panel" role="tabpanel" aria-labelledby={`review-center-tab-${active}`} tabIndex={0}>
-      {active === "assessments" ? <V2AssessmentsPage embedded /> :
-        active === "lessons" ? <V2LessonReviewPage embedded /> : <ReviewedRecordingsPage embedded />}
+      {active === "assessments" ? <V2AudioReviewQueue kind="assessment" embedded /> :
+        active === "lessons" ? <V2AudioReviewQueue kind="lesson" embedded /> : <V2ReviewedRecordings embedded />}
     </div>
   </AdminPage>;
 }
