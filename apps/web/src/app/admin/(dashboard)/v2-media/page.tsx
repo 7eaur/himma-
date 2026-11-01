@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { adminConnectionError, readAdminApiError } from "@/lib/adminFeedback";
+import { adminConnectionError, readAdminApiError, safeAdminCaughtError } from "@/lib/adminFeedback";
 import { Film } from "lucide-react";
 import { AdminAction, AdminEmptyState, AdminPage, AdminPageHeader, AdminPanel, AdminRequestStatus } from "@/components/admin/AdminUI";
 import EducationalMediaPreview from "@/components/admin/EducationalMediaPreview";
@@ -58,7 +58,7 @@ export default function V2MediaInventoryPage() {
         const data: unknown = await response.json();
         if (!validInventory(data)) throw new Error("تعذر قراءة بيانات الوسائط. أعد المحاولة.");
         if (!controller.signal.aborted) setInventory(data);
-      } catch (cause) { if (!controller.signal.aborted) { setInventory(null); setError(cause instanceof TypeError ? adminConnectionError : cause instanceof Error ? cause.message : adminConnectionError); } }
+      } catch (cause) { if (!controller.signal.aborted) { setInventory(null); setError(safeAdminCaughtError(cause, adminConnectionError)); } }
       finally { if (!controller.signal.aborted) setLoading(false); }
     };
     void load(); return () => controller.abort();
