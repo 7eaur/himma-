@@ -12,7 +12,7 @@ export default function SkillReportsPage() {
   const [student, setStudent] = useState("");
   const [phase, setPhase] = useState("");
   const [page, setPage] = useState(0);
-  const studentNames = useMemo(() => new Map(data?.students.map(row => [row.student_id, row.student_name]) ?? []), [data]);
+  const studentNames = useMemo(() => new Map<number, string>(data?.students.map(row => [row.student_id, row.student_name] as const) ?? []), [data]);
   const items = useMemo(() => data?.skills.filter(row =>
     (!student || row.student_id === Number(student)) && (!phase || row.phase === phase)
   ) ?? [], [data, student, phase]);
