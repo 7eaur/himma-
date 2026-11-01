@@ -9,7 +9,7 @@ import V2ReviewedAudioPlayer from "./V2ReviewedAudioPlayer";
 import V2ReadingRubricEditor, { emptyReadingRubric, rubricValid } from "./V2ReadingRubricEditor";
 import styles from "./V2AudioReviewQueue.module.css";
 import { notifyFeedback } from "@/lib/feedback";
-import { adminConnectionError, adminErrorMessage, safeAdminCaughtError } from "@/lib/adminFeedback";
+import { adminErrorMessage, safeAdminCaughtError } from "@/lib/adminFeedback";
 
 type Kind = "assessment" | "lesson";
 export interface AudioReviewItem {
