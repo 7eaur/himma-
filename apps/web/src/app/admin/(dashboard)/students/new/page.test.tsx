@@ -9,6 +9,7 @@ it('creates a V2 learner and displays the issued code only after a validated res
   fireEvent.click(screen.getByRole('button',{name:'إضافة الطالب'}));
   await screen.findByTestId('student-created-state');
   expect(screen.getByTestId('student-access-code')).toHaveTextContent('529374');
+  expect(screen.getByRole('link', {name: 'فتح ملف الطالب'})).toHaveAttribute('href','/admin/students/42');
   expect(fetcher).toHaveBeenCalledWith('/api/v2/student/admin/students',expect.objectContaining({method:'POST'}));
 });
 
