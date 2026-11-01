@@ -151,3 +151,12 @@ it("shows queue navigation only when the server confirms another page", async ()
   expect(within(navigation).getByRole("button",{name:"السابق"})).toBeDisabled();
   expect(within(navigation).getByRole("button",{name:"التالي"})).toBeEnabled();
 });
+
+it("does not present malformed HTTP 200 review rows as an empty queue", async () => {
+  global.fetch = jest.fn(async () => ok({items:[null], next_offset:null})) as unknown as typeof fetch;
+  render(<V2AudioReviewQueue kind="assessment" />);
+  const error = await screen.findByRole("alert");
+  expect(error).toHaveTextContent("تعذر قراءة بيانات التسجيلات");
+  expect(screen.queryByText("لا توجد تسجيلات تحتاج مراجعة في هذه الصفحة")).not.toBeInTheDocument();
+  expect(screen.queryByRole("navigation", {name:"صفحات التسجيلات"})).not.toBeInTheDocument();
+});
