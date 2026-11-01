@@ -84,11 +84,11 @@ function ReviewDialog({ item, kind, onClose, onSaved }: {
     onClick={event => { if (event.target === event.currentTarget && !busy) onClose(); }}>
     <div className={styles.dialogContent}>
       <header className={styles.dialogHeader}>
-        <div><h2 id="audio-review-title" tabIndex={-1}>مراجعة تسجيل {item.student_name}</h2><p>{activity(item)} · {item.question_id}</p></div>
+        <div><h2 id="audio-review-title" tabIndex={-1}>مراجعة تسجيل {item.student_name}</h2><p>{activity(item)}</p></div>
         <button type="button" className={styles.close} aria-label="إغلاق المراجعة" disabled={busy} onClick={onClose}><X size={22} /></button>
       </header>
       <div className={styles.dialogBody}>
-        <section className={styles.question}><h3>المطلوب من الطالب</h3><p>{item.prompt}</p>{item.stimulus_text && <p className={styles.stimulus}>{item.stimulus_text}</p>}</section>
+        <section className={styles.question}><h3>المطلوب من الطالب</h3><p>{item.prompt}</p>{item.stimulus_text && <p className={styles.stimulus}>{item.stimulus_text}</p>}<details className="mt-2 text-sm text-muted"><summary className="cursor-pointer">مرجع السؤال</summary><p className="mt-1 break-all">{item.question_id}</p></details></section>
         {available ? <V2ReviewedAudioPlayer id={`review-audio-${item.response_id}`} src={item.audio_url!}
           audioSubmissionId={item.audio_submission_id!} completionUrl={`${prefix}/audio-completed`}
           initiallyCompleted={item.audio_playback_completed} onCompletionChange={setPlayed} />
