@@ -27,3 +27,11 @@ export async function readAdminApiError(response: Response, fallback: string): P
 }
 
 export const adminConnectionError = "تعذر الاتصال بالخدمة. تحقق من اتصال الإنترنت ثم أعد المحاولة.";
+
+/** Normalize network/JSON/unexpected failures without exposing stack traces,
+ * field names, SQL errors or English parser diagnostics to staff.
+ */
+export function safeAdminCaughtError(cause: unknown, fallback: string): string {
+  if (cause instanceof TypeError) return adminConnectionError;
+  return cause instanceof Error ? adminErrorMessage(400, cause.message, fallback) : fallback;
+}
