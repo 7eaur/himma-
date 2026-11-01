@@ -24,6 +24,8 @@ import {
 import V2Rewards from "@/components/rewards/V2Rewards";
 import type { StudentV2Home } from "@/app/student/V2StudentDashboard";
 import { normalizeStudentAccessCodeInput } from "@/lib/studentAccessCodeInput";
+import { adminConnectionError, adminErrorMessage } from "@/lib/adminFeedback";
+import AdminFeedbackToast from "@/components/admin/AdminFeedbackToast";
 
 type V2LessonItem = { lesson_id: string; title: string; level: string;
   state: "skipped" | "completed" | "waiting_review" | "in_progress" | "current" | "not_started"; session_id: number | null };
@@ -75,13 +77,10 @@ const tabDescription: Record<Exclude<TabKey, "account">, string> = {
   history: "آخر قرارات التكيف الموثقة لهذا الطالب.",
 };
 
-function apiError(data: unknown, fallback: string) {
-  if (typeof data === "object" && data !== null && "detail" in data) {
-    const detail = (data as { detail?: unknown }).detail;
-    if (typeof detail === "string") return detail;
-    if (Array.isArray(detail) && typeof detail[0]?.msg === "string") return detail[0].msg;
-  }
-  return fallback;
+function apiError(data: unknown, fallback: string, status = 400) {
+  const detail = data && typeof data === "object" && "detail" in data
+    ? (data as {detail?: unknown}).detail : null;
+  return adminErrorMessage(status, detail, fallback);
 }
 
 export default function StudentDetailPage() {
@@ -157,7 +156,7 @@ function StudentDetailView({ id }: { id: string }) {
       .then(async studentResponse => {
         if (!studentResponse.ok) {
           const body = await studentResponse.json().catch(() => null);
-          throw new Error(apiError(body, studentResponse.status === 404 ? "لم يتم العثور على الطالب" : "تعذر تحميل بيانات الطالب"));
+          throw new Error(apiError(body, studentResponse.status === 404 ? "لم يتم العثور على الطالب" : "تعذر تحميل بيانات الطالب", studentResponse.status));
         }
         const studentData: Student & {source: string} = await studentResponse.json();
         if (studentData.source !== "himma_v2_account") throw new Error("مصدر الحساب غير متطابق مع V2.");
@@ -172,7 +171,7 @@ function StudentDetailView({ id }: { id: string }) {
         if (!cancelled) {
           setStudent(null);
           setLoadedStudentId(id);
-          setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر تحميل بيانات الطالب" });
+          setMessage({ kind: "error", text: error instanceof TypeError ? adminConnectionError : error instanceof Error ? error.message : "تعذر تحميل بيانات الطالب" });
         }
       })
       .finally(() => { if (!cancelled) setLoading(false); });
@@ -227,9 +226,9 @@ function StudentDetailView({ id }: { id: string }) {
     try {
       const response = await fetch(`/api/v2/student/admin/students/${student.id}/account`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ full_name: editName }) });
       const data = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(apiError(data, "تعذر حفظ اسم الطالب"));
+      if (!response.ok) throw new Error(apiError(data, "تعذر حفظ اسم الطالب", response.status));
       setStudent(current => current ? {...current, ...data} : current); setEditName(data.full_name); setMessage({ kind: "success", text: "تم تحديث اسم الطالب." });
-    } catch (error) { setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر حفظ اسم الطالب" }); }
+    } catch (error) { setMessage({ kind: "error", text: error instanceof TypeError ? adminConnectionError : error instanceof Error ? error.message : "تعذر حفظ اسم الطالب" }); }
     finally { setBusy(""); }
   };
 
@@ -239,9 +238,9 @@ function StudentDetailView({ id }: { id: string }) {
     try {
       const response = await fetch(`/api/v2/student/admin/students/${student.id}/account`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ is_active: student.status !== "active" }) });
       const data = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(apiError(data, "تعذر تحديث حالة الطالب"));
+      if (!response.ok) throw new Error(apiError(data, "تعذر تحديث حالة الطالب", response.status));
       setStudent(current => current ? {...current, ...data} : current); setMessage({ kind: "success", text: data.status === "active" ? "تم تفعيل حساب الطالب." : "تم إيقاف حساب الطالب." });
-    } catch (error) { setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر تحديث حالة الطالب" }); }
+    } catch (error) { setMessage({ kind: "error", text: error instanceof TypeError ? adminConnectionError : error instanceof Error ? error.message : "تعذر تحديث حالة الطالب" }); }
     finally { setBusy(""); }
   };
 
@@ -253,9 +252,9 @@ function StudentDetailView({ id }: { id: string }) {
     try {
       const response = await fetch(`/api/v2/student/admin/students/${student.id}/access-code`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ access_code: manual ? manualCode : null }) });
       const data = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(apiError(data, "تعذر تحديث رمز الدخول"));
+      if (!response.ok) throw new Error(apiError(data, "تعذر تحديث رمز الدخول", response.status));
       setStudent(current => current ? {...current, ...data} : current); setAccessCode(null); setManualCode(""); setVisibleCodeForId(null); setMessage({ kind: "success", text: "تم تحديث رمز دخول الطالب." });
-    } catch (error) { setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر تحديث رمز الدخول" }); }
+    } catch (error) { setMessage({ kind: "error", text: error instanceof TypeError ? adminConnectionError : error instanceof Error ? error.message : "تعذر تحديث رمز الدخول" }); }
     finally {
       codeChangePendingRef.current = false;
       setBusy("");
@@ -302,7 +301,7 @@ function StudentDetailView({ id }: { id: string }) {
     try {
       const response=await fetch(`/api/v2/rewards/admin/students/${id}/reconcile`,{method:"POST"});
       const body=await response.json().catch(()=>null);
-      if (!response.ok) throw new Error(apiError(body,"تعذر مزامنة الاستحقاقات"));
+      if (!response.ok) throw new Error(apiError(body,"تعذر مزامنة الاستحقاقات", response.status));
       setV2Reload(value=>value+1);setMessage({kind:"success",text:`تم التحقق من الاستحقاقات. منح جديدة: ${body.inserted}.`});
     } catch(error) {setMessage({kind:"error",text:error instanceof Error?error.message:"تعذر مزامنة الاستحقاقات"});}
     finally{setBusy("");}
@@ -471,7 +470,7 @@ function StudentDetailView({ id }: { id: string }) {
         <button className={`${styles.statusButton} ${student.status === "active" ? styles.statusButtonActive : styles.statusButtonInactive}`} onClick={() => void toggleStudentStatus()} disabled={busy === "status"}><Power size={17} aria-hidden="true" />{busy === "status" ? "جاري الحفظ..." : student.status === "active" ? "إيقاف الحساب" : "تفعيل الحساب"}</button>
       </header>
 
-      {message.text && <div className={styles.message}><div className={message.kind === "success" ? "alert-success" : "alert-error"}>{message.text}</div></div>}
+      <AdminFeedbackToast feedback={message} onDismiss={() => setMessage({kind: "success", text: ""})} />
 
       <section className={styles.summary} aria-label="ملخص الطالب">
         <div className={styles.summaryCard}><span className={styles.summaryIcon}><User size={20} aria-hidden="true" /></span><div><strong>{student.status === "active" ? "حساب نشط" : "حساب موقوف"}</strong><span>حالة الطالب</span></div></div>
