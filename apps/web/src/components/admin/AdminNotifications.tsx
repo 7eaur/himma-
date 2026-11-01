@@ -9,6 +9,18 @@ interface NotificationItem { id: number | string; type: string; title: string; m
 interface NotificationPayload { source?: string; unread_count: number; items: NotificationItem[]; }
 const EMPTY: NotificationPayload = { unread_count: 0, items: [] };
 const endpoint = "/api/v2/notifications";
+function validInbox(value: unknown): value is NotificationPayload {
+  if (!value || typeof value !== "object") return false;
+  const payload = value as Partial<NotificationPayload>;
+  return payload.source === "himma_v2_attention"
+    && Number.isSafeInteger(payload.unread_count) && (payload.unread_count ?? -1) >= 0
+    && Array.isArray(payload.items) && payload.items.every(item =>
+      item !== null && typeof item === "object"
+      && (typeof item.id === "string" || Number.isSafeInteger(item.id))
+      && typeof item.title === "string" && typeof item.message === "string"
+      && typeof item.href === "string" && typeof item.is_read === "boolean"
+      && typeof item.created_at === "string");
+}
 function relativeTime(value: string) { const stamp = Date.parse(value); if (!Number.isFinite(stamp)) return ""; const minutes = Math.max(0, Math.floor((Date.now() - stamp) / 60000)); if (minutes < 1) return "الآن"; if (minutes < 60) return `منذ ${minutes} د`; const hours = Math.floor(minutes / 60); if (hours < 24) return `منذ ${hours} س`; return `منذ ${Math.floor(hours / 24)} ي`; }
 function safeDestination(value: unknown): value is string {
   return typeof value === "string" && /^\/admin\/(?:v2-assessments|v2-lesson-review|v2-reviewed-recordings|students\/\d+)(?:\?[a-zA-Z0-9_=&%-]*)?$/.test(value);
@@ -45,7 +57,7 @@ export default function AdminNotifications({ surface = "any" }: { surface?: "any
         throw new Error("انتهت صلاحية جلسة المشرف. سجّل الدخول بحساب المشرف ثم حدّث الإشعارات.");
       }
       const payload = await response.json().catch(() => null);
-      if (!response.ok || !payload || !Array.isArray(payload.items) || payload.source !== "himma_v2_attention") throw new Error("تعذر تحميل الإشعارات. أعد المحاولة.");
+      if (!response.ok || !validInbox(payload)) throw new Error("تعذر تحميل الإشعارات. أعد المحاولة.");
       if (mounted.current && id === requestId.current) { setData(payload); setError(""); }
     } catch (caught) {
       if (!controller.signal.aborted && mounted.current && id === requestId.current) {
