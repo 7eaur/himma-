@@ -40,7 +40,8 @@ it("converts parser and unexpected JavaScript diagnostics into usable error mess
   expect(safeAdminCaughtError(new Error("خطأ قاعدة البيانات SQL INSERT"), "تعذر حفظ الملف"))
     .toBe("تعذر حفظ الملف");
   expect(safeAdminCaughtError(new TypeError("Failed to fetch"), "تعذر التحميل"))
-    .toBe(adminConnectionError);
+    .toBe("تعذر التحميل. تحقق من اتصال الإنترنت ثم أعد المحاولة.");
+  expect(safeAdminCaughtError(new TypeError("Failed to fetch"), adminConnectionError)).toBe(adminConnectionError);
   expect(safeAdminCaughtError(new Error("اسم المستخدم مستخدم بالفعل."), "تعذر الحفظ"))
     .toBe("اسم المستخدم مستخدم بالفعل.");
 });
