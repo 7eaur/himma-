@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { CheckCircle, Copy, KeyRound, UserPlus } from "lucide-react";
 import { AdminAction, AdminPage, AdminPageHeader, AdminPanel } from "@/components/admin/AdminUI";
 
@@ -12,14 +12,19 @@ export default function NewStudentPage() {
   const [error, setError] = useState("");
   const [successCode, setSuccessCode] = useState("");
   const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState("");
+  const submitPendingRef = useRef(false);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (submitPendingRef.current || successCode) return;
+    submitPendingRef.current = true;
     setIsLoading(true);
     setError("");
 
     if (codeMode === "manual" && !/^\d{6}$/.test(manualCode)) {
       setError("رمز الدخول اليدوي يجب أن يتكون من 6 أرقام.");
+      submitPendingRef.current = false;
       setIsLoading(false);
       return;
     }
@@ -36,29 +41,38 @@ export default function NewStudentPage() {
       });
       const data = await response.json().catch(() => null);
       if (!response.ok) {
-        setError(data?.detail || "تعذر إضافة الطالب. تحقق من البيانات وحاول مرة أخرى.");
+        setError(typeof data?.detail === "string" ? data.detail : "تعذر إضافة الطالب. تحقق من البيانات وحاول مرة أخرى.");
         return;
       }
       if (data?.source !== "himma_v2_account" || !/^\d{6}$/.test(data?.access_code || "")) {
-        setError("تعذر التحقق من حساب هِمّة V2 الجديد.");
+        setError("لم نستلم رمز دخول صالحًا من الخادم. تحقق من قائمة الطلاب قبل محاولة إضافته مرة أخرى، حتى لا تنشئ حسابًا مكررًا.");
         return;
       }
       setSuccessCode(data.access_code);
     } catch {
       setError("تعذر الاتصال بالخادم الآن. حاول مرة أخرى بعد قليل.");
     } finally {
+      submitPendingRef.current = false;
       setIsLoading(false);
     }
   };
 
   const copyToClipboard = async () => {
-    await navigator.clipboard.writeText(successCode);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 2000);
+    setCopyError("");
+    try {
+      await navigator.clipboard.writeText(successCode);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setCopied(false);
+      setCopyError("لم نتمكن من نسخ الرمز تلقائيًا. يمكنك تحديد الرمز الظاهر ونسخه يدويًا.");
+    }
   };
 
   const reset = () => {
     setSuccessCode("");
+    setCopied(false);
+    setCopyError("");
     setFullName("");
     setManualCode("");
     setCodeMode("auto");
@@ -80,11 +94,13 @@ export default function NewStudentPage() {
             <div className="bg-bg p-5 sm:p-6 rounded-xl border border-border mb-7 max-w-sm mx-auto">
               <p className="text-sm text-muted mb-2">رمز دخول الطالب</p>
               <div className="flex items-center justify-center gap-3 flex-wrap" dir="ltr">
-                <span className="text-3xl sm:text-4xl font-mono font-bold text-primary tracking-widest" data-testid="student-access-code">{successCode}</span>
+                <span className="text-3xl sm:text-4xl font-mono font-bold text-primary tracking-widest select-text" data-testid="student-access-code">{successCode}</span>
                 <button onClick={() => void copyToClipboard()} className="p-2 text-muted hover:text-primary hover:bg-white rounded-md" aria-label="نسخ رمز الدخول">
                   {copied ? <CheckCircle size={20} className="text-green" /> : <Copy size={20} />}
                 </button>
               </div>
+              {copied && <p className="mt-2 text-sm text-green" role="status">تم نسخ رمز الدخول.</p>}
+              {copyError && <p className="mt-2 text-sm text-danger" role="alert">{copyError}</p>}
             </div>
             <div className="flex justify-center gap-3 flex-wrap">
               <AdminAction onClick={reset}>إضافة طالب آخر</AdminAction>
@@ -102,7 +118,7 @@ export default function NewStudentPage() {
         eyebrow="إدارة الطلاب"
         icon={UserPlus}
         title="إضافة طالب جديد"
-        description="أدخل اسم الطالب ثم اختر طريقة إنشاء رمز الدخول. الصف الثالث مثبت لعينة الدراسة."
+        description="أدخل اسم الطالب واختر طريقة إنشاء رمز الدخول. جميع الطلاب ضمن الصف الثالث الابتدائي."
         actions={<AdminAction href="/admin/students">العودة إلى الطلاب</AdminAction>}
       />
 
@@ -125,12 +141,6 @@ export default function NewStudentPage() {
               autoComplete="off"
             />
             <p className="text-sm text-muted mt-2">استخدم الاسم أو الاسم المستعار المعتمد في الدراسة.</p>
-          </div>
-
-          <div>
-            <span className="block text-navy font-medium mb-2">الصف الدراسي</span>
-            <div className="input-field bg-bg text-muted" aria-label="الصف الثالث الابتدائي">الصف الثالث الابتدائي</div>
-            <p className="text-sm text-muted mt-2">هذا الحقل ثابت حسب نطاق الدراسة الحالي.</p>
           </div>
 
           <fieldset className="border border-border rounded-xl p-4 sm:p-5 bg-bg/60">
@@ -164,7 +174,7 @@ export default function NewStudentPage() {
                 <KeyRound size={20} className="text-primary mt-0.5 shrink-0" aria-hidden="true" />
                 <div>
                   <strong className="text-navy text-sm">سيُنشأ الرمز عند حفظ الطالب</strong>
-                  <p className="text-sm text-muted mt-1 leading-6">بعد الإضافة سيظهر لك الرمز الحقيقي الذي أنشأه النظام لتنسخه وتسلمه للطالب. لا نعرض رقمًا تجريبيًا قد يختلف عن الرمز الفعلي.</p>
+                  <p className="text-sm text-muted mt-1 leading-6">سيظهر الرمز بعد حفظ الطالب لتنسخه وتسلمه له.</p>
                 </div>
               </div>
             ) : (
@@ -178,7 +188,7 @@ export default function NewStudentPage() {
                   maxLength={6}
                   value={manualCode}
                   onChange={(event) => setManualCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
-                  placeholder="123456"
+                  placeholder="٦ أرقام"
                   dir="ltr"
                   aria-describedby="manual-code-help"
                 />
