@@ -6,6 +6,21 @@ import styles from "./AdminUI.module.css";
 export function AdminPage({ children, className = "" }: { children: ReactNode; className?: string }) { return <div className={`${styles.page} ${className}`.trim()} dir="rtl">{children}</div>; }
 export function AdminPageHeader({ eyebrow, icon: Icon, title, description, actions }: { eyebrow?: string; icon?: LucideIcon; title: string; description?: string; actions?: ReactNode }) { return <header className={styles.pageHeader}><div className={styles.headingBlock}>{eyebrow && <div className={styles.eyebrow}>{Icon && <Icon size={16} aria-hidden="true" />}{eyebrow}</div>}<h1 className={styles.title}>{title}</h1>{description && <p className={styles.description}>{description}</p>}</div>{actions && <div className={styles.actions}>{actions}</div>}</header>; }
 export function AdminAction({ href, children, icon: Icon, tone = "secondary", disabled = false, onClick, type = "button" }: { href?: string; children: ReactNode; icon?: LucideIcon; tone?: "primary" | "secondary" | "danger" | "ghost"; disabled?: boolean; onClick?: () => void; type?: "button" | "submit" }) { const className = `${styles.action} ${styles[tone]}`; const content = <>{Icon && <Icon size={17} aria-hidden="true" />}{children}</>; if (disabled && href) return <span className={`${className} ${styles.actionDisabled}`} aria-disabled="true">{content}</span>; if (href?.startsWith("/api/")) return <a href={href} className={className}>{content}</a>; if (href) return <Link href={href} className={className}>{content}</Link>; return <button type={type} className={className} disabled={disabled} onClick={onClick}>{content}</button>; }
+/** A single, accessible pattern for supervisor read-only requests.
+ * Errors remain visible until retry; only real data should render as empty.
+ */
+export function AdminRequestStatus({ loading, error, onRetry, loadingText = "جارٍ تحميل البيانات..." }: {
+  loading: boolean; error: string; onRetry?: () => void; loadingText?: string;
+}) {
+  if (loading) return <div className={styles.requestLoading} role="status" aria-busy="true">
+    <span className={styles.requestSpinner} aria-hidden="true" />{loadingText}
+  </div>;
+  if (error) return <div className={styles.requestError} role="alert">
+    <span>{error}</span>
+    {onRetry && <AdminAction onClick={onRetry}>إعادة المحاولة</AdminAction>}
+  </div>;
+  return null;
+}
 export function AdminPanel({ title, description, actions, children, className = "" }: { title?: string; description?: string; actions?: ReactNode; children: ReactNode; className?: string }) { return <section className={`${styles.panel} ${className}`.trim()}>{(title || description || actions) && <div className={styles.panelHeader}><div>{title && <h2 className={styles.panelTitle}>{title}</h2>}{description && <p className={styles.panelDescription}>{description}</p>}</div>{actions}</div>}{children}</section>; }
 export function AdminToolbar({ children }: { children: ReactNode }) { return <div className={styles.toolbar}>{children}</div>; }
 export function AdminStatGrid({ children }: { children: ReactNode }) { return <div className={styles.statGrid}>{children}</div>; }
