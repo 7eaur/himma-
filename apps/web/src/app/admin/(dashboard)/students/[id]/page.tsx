@@ -24,7 +24,7 @@ import {
 import V2Rewards from "@/components/rewards/V2Rewards";
 import type { StudentV2Home } from "@/app/student/V2StudentDashboard";
 import { normalizeStudentAccessCodeInput } from "@/lib/studentAccessCodeInput";
-import { adminConnectionError, adminErrorMessage, safeAdminCaughtError } from "@/lib/adminFeedback";
+import { adminErrorMessage, safeAdminCaughtError } from "@/lib/adminFeedback";
 import AdminFeedbackToast from "@/components/admin/AdminFeedbackToast";
 
 type V2LessonItem = { lesson_id: string; title: string; level: string;
