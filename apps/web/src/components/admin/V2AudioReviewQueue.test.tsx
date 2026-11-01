@@ -14,6 +14,7 @@ let saved: boolean;
 let failSave: boolean;
 let fetcher: jest.Mock;
 beforeEach(() => {
+  jest.clearAllMocks();
   saved = false; failSave = false;
   HTMLDialogElement.prototype.showModal = function () { this.setAttribute("open", ""); };
   HTMLDialogElement.prototype.close = function () { this.removeAttribute("open"); };
@@ -86,6 +87,7 @@ it("keeps a failed save open and validates optional numeric values only when sel
   fireEvent.change(within(dialog).getByRole("spinbutton",{name:"عدد الوحدات المطلوبة"}),{target:{value:"3"}});
   fireEvent.click(accept);
   expect(await within(dialog).findByRole("alert")).toHaveTextContent("تغير التسجيل؛ حدّث القائمة");
+  expect(notifyFeedback).not.toHaveBeenCalledWith("error", expect.any(String));
   expect(screen.getByRole("dialog")).toBeVisible();
   expect(JSON.parse(fetcher.mock.calls.find(([path])=>path.endsWith("/review"))![1].body).rubric.target_units).toBe(3);
 });
