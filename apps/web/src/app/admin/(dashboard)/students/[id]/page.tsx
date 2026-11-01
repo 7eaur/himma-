@@ -99,6 +99,7 @@ function StudentDetailView({ id }: { id: string }) {
   const queryTab = searchParams.get("tab");
   const urlTab: TabKey = isTabKey(queryTab) ? queryTab : "overview";
   const [activeTab, setActiveTab] = useState<TabKey>(urlTab);
+  const accountTabCurrentRef = useRef(urlTab === "account");
   const [accessCode, setAccessCode] = useState<string | null>(null);
   // A fresh student code is a credential rotation: never allow rapid taps
   // to start overlapping generations before React sets the busy state.
@@ -123,6 +124,7 @@ function StudentDetailView({ id }: { id: string }) {
   const [lastUrlTab, setLastUrlTab] = useState(urlTab);
   if (lastUrlTab !== urlTab) {
     setLastUrlTab(urlTab);
+    accountTabCurrentRef.current = urlTab === "account";
     setVisibleCodeForId(null);
     setAccessCode(null);
     setCopied(false);
@@ -130,6 +132,7 @@ function StudentDetailView({ id }: { id: string }) {
   }
 
   const selectTab = (tab: TabKey) => {
+    accountTabCurrentRef.current = tab === "account";
     setVisibleCodeForId(null);
     setAccessCode(null);
     setCopied(false);
@@ -255,23 +258,36 @@ function StudentDetailView({ id }: { id: string }) {
   };
 
   const getAccessCode = async (): Promise<string> => {
-    if (accessCode) return accessCode;
+    if (codeVisible && accessCode) return accessCode;
     const response = await fetch(`/api/v2/student/admin/students/${id}/access-code/reveal`, {method: "POST", cache: "no-store"});
     const body = await response.json().catch(() => null);
     if (!response.ok || String(body?.student_id) !== id || typeof body?.access_code !== "string") throw new Error("تعذر إظهار رمز الدخول.");
-    setAccessCode(body.access_code);
+    // Never retain a sensitive code from a copy-only action in React state.
     return body.access_code;
   };
   const revealAccessCode = async () => {
     if (codeVisible) { setVisibleCodeForId(null); setAccessCode(null); return; }
     setBusy("reveal");
-    try { await getAccessCode(); setVisibleCodeForId(id); }
+    try {
+      const code = await getAccessCode();
+      if (!accountTabCurrentRef.current) return;
+      setAccessCode(code);
+      setVisibleCodeForId(id);
+    }
     catch (error) { setMessage({kind: "error", text: error instanceof Error ? error.message : "تعذر إظهار الرمز"}); }
     finally { setBusy(""); }
   };
   const copyAccessCode = async () => {
     setBusy("copy");
-    try { await navigator.clipboard.writeText(await getAccessCode()); setCopied(true); window.setTimeout(() => setCopied(false), 1500); }
+    try {
+      const code = await getAccessCode();
+      if (!accountTabCurrentRef.current) return;
+      await navigator.clipboard.writeText(code);
+      if (accountTabCurrentRef.current) {
+        setCopied(true);
+        window.setTimeout(() => setCopied(false), 1500);
+      }
+    }
     catch { setMessage({kind:"error",text:"تعذر نسخ الرمز. أظهر الرمز وأعد المحاولة."}); }
     finally { setBusy(""); }
   };
