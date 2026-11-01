@@ -20,3 +20,53 @@ it('rejects an unverified creation response without displaying a code', async()=
   await waitFor(()=>expect(screen.getByRole('alert')).toHaveTextContent('تعذر التحقق من حساب هِمّة V2 الجديد.'));
   expect(screen.queryByTestId('student-access-code')).not.toBeInTheDocument();
 });
+
+it('does not create duplicate students on two immediate form submissions', async () => {
+  let finish!: (value: unknown) => void;
+  const pending = new Promise(resolve => { finish = resolve; });
+  const fetcher = jest.fn().mockReturnValue(pending);
+  global.fetch = fetcher;
+  render(<Page />);
+  fireEvent.change(screen.getByLabelText('اسم الطالب'), { target: { value: 'طالب اصطناعي' } });
+  const form = screen.getByTestId('create-student-form');
+  fireEvent.submit(form);
+  fireEvent.submit(form);
+  expect(fetcher).toHaveBeenCalledTimes(1);
+  finish({ ok: true, json: async () => ({ source: 'himma_v2_account', id: 42, access_code: '529374' }) });
+  expect(await screen.findByTestId('student-created-state')).toBeInTheDocument();
+});
+
+it('does not claim a student code was copied when browser clipboard permission fails', async () => {
+  global.fetch = jest.fn().mockResolvedValue({
+    ok: true, json: async () => ({ source: 'himma_v2_account', id: 42, access_code: '529374' }),
+  });
+  const original = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+  Object.defineProperty(navigator, 'clipboard', {
+    configurable: true,
+    value: { writeText: jest.fn().mockRejectedValue(new Error('not allowed')) },
+  });
+  try {
+    render(<Page />);
+    fireEvent.change(screen.getByLabelText('اسم الطالب'), { target: { value: 'طالب اصطناعي' } });
+    fireEvent.click(screen.getByRole('button', { name: 'إضافة الطالب' }));
+    await screen.findByTestId('student-access-code');
+    fireEvent.click(screen.getByRole('button', { name: 'نسخ رمز الدخول' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('نسخه يدويًا');
+    expect(screen.queryByText('تم نسخ رمز الدخول.')).not.toBeInTheDocument();
+    expect(screen.getByTestId('student-access-code')).toHaveTextContent('529374');
+  } finally {
+    if (original) Object.defineProperty(navigator, 'clipboard', original);
+    else Reflect.deleteProperty(navigator, 'clipboard');
+  }
+});
+
+it('handles an unverified creation response without suggesting an unsafe duplicate submission', async () => {
+  global.fetch = jest.fn().mockResolvedValue({
+    ok: true, json: async () => ({ source: 'himma_v2_account', id: 42 }),
+  });
+  render(<Page />);
+  fireEvent.change(screen.getByLabelText('اسم الطالب'), { target: { value: 'طالب اصطناعي' } });
+  fireEvent.click(screen.getByRole('button', { name: 'إضافة الطالب' }));
+  expect(await screen.findByRole('alert')).toHaveTextContent('تحقق من قائمة الطلاب قبل محاولة إضافته');
+  expect(screen.queryByTestId('student-created-state')).not.toBeInTheDocument();
+});
