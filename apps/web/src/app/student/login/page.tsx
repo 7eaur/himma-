@@ -106,7 +106,6 @@ export default function StudentLogin() {
               data-testid="input-access-code"
               value={accessCode}
               onChange={(event) => setAccessCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
-              placeholder="123456"
               pattern="[0-9]{6}"
               maxLength={6}
               required
