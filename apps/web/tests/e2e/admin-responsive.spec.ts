@@ -46,6 +46,7 @@ const ROUTES = [
   "/admin/skill-reports",
   "/admin/settings",
   "/admin/account",
+  "/admin/v2-review-center",
   "/admin/v2-assessments",
   "/admin/v2-lesson-review",
   "/admin/v2-media",
@@ -84,6 +85,12 @@ for (const viewport of [
       }
       if (route === "/admin/v2-media") {
         await expect(page.getByText(/الأصول المطلوبة المتاحة لهذا الإصدار/)).toBeVisible({ timeout: 15000 });
+      }
+      if (route === "/admin/v2-review-center") {
+        await expect(page.getByRole("heading", {name:"مركز مراجعة التسجيلات"})).toBeVisible();
+        await expect(page.getByRole("tab", {name:"قراءات الاختبارات"})).toHaveAttribute("aria-selected", "true");
+        await expect(page.getByRole("tab", {name:"قراءات الدروس"})).toBeVisible();
+        await expect(page.getByRole("tab", {name:"تم تقييمها"})).toBeVisible();
       }
       await expectNoHorizontalOverflow(page);
       await capture(page, viewport.name, route);
