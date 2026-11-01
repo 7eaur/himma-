@@ -1,38 +1,18 @@
-# إصدار وحالة مستودع هِمّة
+# Himma — current version and release reference
 
-**Updated:** 2026-09-19
+**Updated: 2026-11-02 — V2 repository alignment**
 
-لا توجد سياسة SemVer إنتاجية معتمدة للمشروع، لذلك لا نخترع رقم إصدار جديد.
+This file is a navigation reference, **not** a certification that the newest GitHub commit is deployed.
 
-Current release label:
-CURRENT-PRODUCTION-2026-09-19
+- **Active V2 development/delivery branch:** `v2/01-learning-foundation-20261007`.
+- **Current GitHub default branch at audit time:** `stage/02-content` (old V1 baseline; it must be switched to V2 through repository settings after branch/release dependency checks).
+- **Product direction:** V2-only learner and supervisor flows, with safe compatibility guards until verified removal.
+- **Version numbering:** No new SemVer release number is claimed or invented.
+- **Live release status:** Check Railway Web and API deployments against the exact code SHA and successful GitHub CI/M04/M09 before declaring any new V2 release deployed.
 
-Official branch:
-stage/02-content
+For the actual latest release/acceptance state use:
+- `docs/v2/agent-ops/HIMMA_V2_MASTER_STATUS_GAPS_REMAINING_WORK_HANDOFF_20261028_AR.md`
+- `docs/v2/agent-ops/HIMMA_V2_R12_STUDENT_PAGE_BY_PAGE_UX_MATRIX_AR.md`
+- `docs/v2/agent-ops/REPOSITORY_CLEANUP_AUDIT_20261102_AR.md`
 
-Latest verified functional SHA:
-512f0a550eb098f0ce904ec4ed526d9e28098a6a
-
-Latest verified operational/gate SHA:
-81006dcf09a544b1b54f42de4a0a57c1deb44bfd
-
-Exact operational gates:
-- QG #945 / Run 35410973050 = GREEN.
-- M04 #362 / Run 35410973052 = GREEN.
-- M09 #227 / Run 35410973045 = GREEN.
-
-Production activation for the operational SHA:
-- Railway API deployment 85e73822-a71b-4c2e-afef-ec08a4c6bc1b = SUCCESS.
-- Railway Web deployment d5a7f586-c93c-4a50-8faf-1e1d42cbeae1 = SUCCESS.
-- /ready = 200.
-
-State:
-CLOSED / PRODUCTION GREEN
-
-Canonical runtime:
-125 items / 44 skills
-
-Audio:
-54 approved static IDs / 108 binaries; Human Supervisor Review authoritative; Production ASR external/deferred.
-
-A later documentation-only closure commit may become the live branch HEAD. It does not replace the functional SHA or the operational/gate evidence above.
+**Historical V1 release labels, September SHAs, and 2026-09-19 deployment claims previously shown here are no longer the active product status.** Their original records remain available in Git history.
