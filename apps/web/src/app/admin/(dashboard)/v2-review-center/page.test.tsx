@@ -8,9 +8,12 @@ jest.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(window.location.search),
 }));
 
-jest.mock("../v2-assessments/page", () => function AssessmentReview({ embedded }: { embedded?: boolean }) { return <div>{!embedded && <h1>عنوان الاختبارات المستقل</h1>}طابور الاختبارات</div>; });
-jest.mock("../v2-lesson-review/page", () => function LessonReview({ embedded }: { embedded?: boolean }) { return <div>{!embedded && <h1>عنوان الدروس المستقل</h1>}طابور الدروس</div>; });
-jest.mock("../v2-reviewed-recordings/page", () => function ReviewedArchive({ embedded }: { embedded?: boolean }) { return <div>{!embedded && <h1>عنوان الأرشيف المستقل</h1>}الأرشيف المقيّم</div>; });
+jest.mock("@/components/admin/V2AudioReviewQueue", () => function AudioQueue({ kind, embedded }: { kind: "assessment" | "lesson"; embedded?: boolean }) {
+  return <div>{!embedded && <h1>عنوان مستقل</h1>}{kind === "assessment" ? "طابور الاختبارات" : "طابور الدروس"}</div>;
+});
+jest.mock("@/components/admin/V2ReviewedRecordings", () => function ReviewedArchive({ embedded }: { embedded?: boolean }) {
+  return <div>{!embedded && <h1>عنوان الأرشيف المستقل</h1>}الأرشيف المقيّم</div>;
+});
 
 afterEach(() => { push.mockClear(); });
 beforeEach(() => { window.history.replaceState({}, "", "/admin/v2-review-center"); });
