@@ -1,27 +1,25 @@
-# Agent entry point — Himma
+# Himma V2 — instructions for project agents
 
-Before any project action, start with exactly:
+> Active development and delivery branch: `v2/01-learning-foundation-20261007`.
+> The GitHub default branch `stage/02-content` is historical and MUST NOT be treated as the active V2 code or production source.
 
-1. START_HERE_AR.md
-2. fetch live stage/02-content HEAD
-3. docs/ops/STATUS.md
-4. docs/ops/progress.json
-5. docs/specs/SOURCE_OF_TRUTH.md
-6. docs/specs/SYSTEM_SPEC.md
-7. .agents/rules/00-himma-core.md
-8. .agents/rules/10-delivery-protocol.md
-9. .agents/rules/20-security-quality.md
-10. follow the additional reading order listed in START_HERE_AR.md only as needed
+## Start here
+1. Read `START_HERE_AR.md`.
+2. Read the live HEAD and relevant source code on the V2 branch; do not use stale handoff snapshots as a substitute.
+3. Read `docs/v2/agent-ops/HIMMA_V2_MASTER_STATUS_GAPS_REMAINING_WORK_HANDOFF_20261028_AR.md`.
+4. For current student acceptance, read `docs/v2/agent-ops/HIMMA_V2_R12_STUDENT_PAGE_BY_PAGE_UX_MATRIX_AR.md`.
+5. For repository cleanup, read `docs/v2/agent-ops/REPOSITORY_CLEANUP_AUDIT_20261102_AR.md`.
+6. Verify GitHub CI/M04/M09 on the exact functional SHA and check the actual Web/API production source and state on Railway before claiming release parity.
 
-Do not start from an old continuity handoff, audit checkpoint, recovery status, or dated UX handoff. Those are historical evidence unless docs/ops/DOCUMENTATION_INDEX.md marks them Current.
+## Non-negotiable rules
+- V2 is the only intended student/admin product. V1 source, routes, media, and data compatibility must be audited before deletion.
+- Preserve student data, recordings, safe migration guards, and approved media; never treat a directory or file named V1 as automatically unused.
+- No ad-hoc preview branch, additional Railway service, production test student, or unapproved migration. No force-push.
+- Keep scheduled A/B/C agents disabled (see `docs/v2/agent-ops/CONTROL.json`); manual user-initiated work is permitted.
+- Prefer root-cause fixes, stable UX, RTL/mobile support, clear Arabic feedback, and safe error handling.
+- Never claim tests passed, production was deployed, or cleanup is complete without direct evidence.
+- `reference/` and historical Git commits are evidence, not an alternative runtime or active delivery plan.
+- Do not merge older PRs/branches into V2 without checking current code, data contracts, and test coverage.
 
-Always:
-- compare live HEAD with the documented functional SHA;
-- distinguish docs-only descendants from functional changes;
-- verify current GitHub Actions before claims;
-- verify Railway for production claims;
-- preserve closed work unless regression evidence exists;
-- keep reference/ read-only;
-- never weaken tests to satisfy stale historical expectations.
-
-Production ASR/provider branches are outside the current delivery and must not be merged without a separate owner assignment.
+## Source-of-truth priority
+Running source and migrations + live production settings > exact-SHA test evidence > latest V2 handoff > historical documentation.
