@@ -236,3 +236,45 @@ it("does not celebrate a failed support check as mastered after a bounded comple
   expect(screen.queryByText("أكملت أسئلة الدرس")).not.toBeInTheDocument();
   expect(screen.getByAltText("شخصية هِمّة تشجع الطالب")).toBeInTheDocument();
 });
+
+it("hides server diagnostics and offers retry if the lesson GET fails", async () => {
+  let attempts = 0;
+  global.fetch = jest.fn(async () => {
+    attempts++;
+    return attempts === 1
+      ? { ok: false, status: 500, json: async () => ({ detail: "SQL integrity failure: private stack" }) } as Response
+      : ok(lesson(44, "الدرس المستعاد"));
+  }) as typeof fetch;
+  render(<V2LessonPage />);
+  const alert = await screen.findByRole("alert");
+  expect(alert).toHaveTextContent("تعذر استعادة الدرس");
+  expect(alert).not.toHaveTextContent("SQL");
+  fireEvent.click(screen.getByRole("button", { name: "إعادة المحاولة" }));
+  expect(await screen.findByRole("heading", { name: "الدرس المستعاد", level: 1 })).toBeVisible();
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+});
+
+it("rejects an incomplete successful lesson response and can retry without a fake question", async () => {
+  const valid = lesson(44, "الدرس الصحيح");
+  global.fetch = jest.fn().mockResolvedValueOnce(ok({
+    ...valid, session: { ...valid.session, stage: "guided_practice" }, interaction: null,
+  })).mockResolvedValueOnce(ok(valid)) as typeof fetch;
+  render(<V2LessonPage />);
+  expect(await screen.findByRole("alert")).toHaveTextContent("تعذر التحقق من بيانات الدرس");
+  expect(screen.queryByTestId("v2-interaction-player")).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "إعادة المحاولة" }));
+  expect(await screen.findByRole("heading", { name: "الدرس الصحيح", level: 1 })).toBeVisible();
+});
+
+it("never displays raw API details after a failed introduction save", async () => {
+  const base = lesson(44, "التمهيد");
+  global.fetch = jest.fn(async (_url: RequestInfo | URL, init?: RequestInit) =>
+    init?.method === "POST"
+      ? { ok: false, status: 500, json: async () => ({ detail: "production SQL connection string" }) } as Response
+      : ok({ ...base, session: { ...base.session, stage: "intro" } })) as typeof fetch;
+  render(<V2LessonPage />);
+  await screen.findByTestId("v2-lesson-intro");
+  fireEvent.click(screen.getByRole("button", { name: /التالي/ }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("تعذر حفظ تقدم الدرس");
+  expect(screen.getByRole("alert")).not.toHaveTextContent("SQL");
+});

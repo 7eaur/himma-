@@ -25,17 +25,73 @@ interface LessonPayload {
 const STAGES: Array<{ key: Stage; label: string }> = [{key:"intro",label:"المقدمة"},{key:"teaching_video",label:"الدرس"},{key:"guided_practice",label:"التدريب"},{key:"independent_check",label:"الاختبار"}];
 const ACTIVE_LESSON_STAGES = new Set<string>(["intro", "teaching_video", "guided_practice", "independent_check", "additional_check", "support_practice", "support_check", "waiting_review", "supervisor_hold", "outcome"]);
 
+const QUESTION_STAGES = new Set(["guided_practice", "independent_check", "additional_check", "support_practice", "support_check"]);
+const safeLessonMessages = new Set([
+  "استجابة جلسة الدرس غير متطابقة",
+  "استجابة حفظ جلسة الدرس غير متطابقة",
+  "تعذر التحقق من بيانات الدرس. أعد المحاولة.",
+  "جلسة الدرس غير متاحة لهذا الحساب. عد إلى خريطة الدروس.",
+  "تعذر استعادة الدرس. تحقق من الاتصال ثم حاول مرة أخرى.",
+  "تعذر حفظ تقدم الدرس. تحقق من الاتصال ثم حاول مرة أخرى.",
+  "انتهت جلسة الطالب. سجل الدخول مرة أخرى.",
+]);
+function learnerError(reason: unknown, fallback: string): string {
+  return reason instanceof Error && safeLessonMessages.has(reason.message) ? reason.message : fallback;
+}
+
+// An HTTP 200 is not enough: the lesson contains nested media and interaction
+// objects dereferenced during rendering. Reject incomplete or cross-session
+// payloads rather than rendering a fake step or crashing the child's page.
+function isRenderableLessonPayload(value: unknown, sessionId: number): value is LessonPayload {
+  if (!value || typeof value !== "object") return false;
+  const data = value as Partial<LessonPayload>;
+  const session = data.session;
+  const video = data.video;
+  const intro = data.intro;
+  if (typeof data.lesson_id !== "string" || !data.lesson_id.trim() ||
+      typeof data.title !== "string" || !data.title.trim() ||
+      !["L1", "L2", "L3"].includes(data.level ?? "") ||
+      (data.objective != null && typeof data.objective !== "string") ||
+      !intro || typeof intro.title !== "string" || typeof intro.text !== "string" || typeof intro.button !== "string" ||
+      !video || typeof video.asset_id !== "string" || typeof video.state !== "string" ||
+      typeof video.test_only !== "boolean" ||
+      (video.url !== null && (typeof video.url !== "string" ||
+        !(/^(\\/(?!\\/)|https:\/\/)/.test(video.url)))) ||
+      !data.practice || !Number.isInteger(data.practice.count) ||
+      typeof data.practice.first_question_id !== "string" ||
+      !data.independent_check || !Number.isInteger(data.independent_check.count) ||
+      !session || session.session_id !== sessionId ||
+      !ACTIVE_LESSON_STAGES.has(session.stage) ||
+      typeof session.status !== "string" ||
+      !Number.isSafeInteger(session.version) || session.version < 0 ||
+      !Number.isFinite(session.video_position_seconds) || session.video_position_seconds < 0 ||
+      (session.video_duration_seconds !== null &&
+        (!Number.isFinite(session.video_duration_seconds) || session.video_duration_seconds < 0))) return false;
+
+  if (!QUESTION_STAGES.has(session.stage)) return true;
+  const interaction = data.interaction;
+  const question = interaction?.question;
+  if (!question || typeof question.question_id !== "string" || !question.question_id ||
+      typeof question.prompt !== "string" ||
+      !["choose_one", "listen_choose_one", "choose_image", "sequence", "build_word", "read_aloud"].includes(question.interaction) ||
+      !question.stimulus || !Array.isArray(question.stimulus.media) ||
+      !Array.isArray(question.options) || !question.options.every(option =>
+        !!option && typeof option.id === "string" && Array.isArray(option.media)) ||
+      !interaction.media || typeof interaction.media !== "object" || Array.isArray(interaction.media) ||
+      !interaction.progress || !Number.isInteger(interaction.progress.index) ||
+      !Number.isInteger(interaction.progress.total) ||
+      interaction.progress.index < 1 || interaction.progress.index > interaction.progress.total ||
+      interaction.progress.stage !== session.stage ||
+      !Number.isInteger(interaction.attempts) || interaction.attempts < 0) return false;
+  return true;
+}
+
+
 /** POST /answers is not the authority for a different/stale learner session. */
 function matchesCurrentLesson(value: unknown, current: LessonPayload, sessionId: number): value is LessonPayload {
-  if (!value || typeof value !== "object") return false;
-  const update = value as Partial<LessonPayload>;
-  return update.lesson_id === current.lesson_id &&
-    Number(update.session?.session_id) === sessionId &&
-    ACTIVE_LESSON_STAGES.has(String(update.session?.stage)) &&
-    Number.isSafeInteger(update.session?.version) &&
-    Number(update.session?.version) >= current.session.version &&
-    typeof update.title === "string" &&
-    Boolean(update.intro) && Boolean(update.video);
+  if (!isRenderableLessonPayload(value, sessionId)) return false;
+  return value.lesson_id === current.lesson_id &&
+    value.session.version >= current.session.version;
 }
 
 function learnerLevelLabel(level: string): string {
@@ -65,6 +121,7 @@ function V2LessonSessionPage({ routeSessionId }: { routeSessionId: string }) {
   const completionKey = useRef<string | null>(null);
   const completionConfirmed = useRef(false);
   const active = useRef(false);
+  const redirecting = useRef(false);
   const sessionId = Number(routeSessionId);
   const invalidSessionId = !Number.isInteger(sessionId) || sessionId < 1;
 
@@ -80,39 +137,55 @@ function V2LessonSessionPage({ routeSessionId }: { routeSessionId: string }) {
       // A response from a route that has already unmounted must not redirect
       // the new lesson to login or overwrite its error/loading state.
       if (!active.current) return;
-      if (response.status === 401 || response.status === 403) { router.replace("/student/login"); return; }
-      if (!response.ok) throw new Error(data?.detail || "تعذر استعادة الدرس");
+      if (response.status === 401 || response.status === 403) {
+        redirecting.current = true;
+        router.replace("/student/login");
+        return;
+      }
+      if (!response.ok) throw new Error(response.status === 404
+        ? "جلسة الدرس غير متاحة لهذا الحساب. عد إلى خريطة الدروس."
+        : "تعذر استعادة الدرس. تحقق من الاتصال ثم حاول مرة أخرى.");
       if (Number(data?.session?.session_id) !== sessionId) throw new Error("استجابة جلسة الدرس غير متطابقة");
+      if (!isRenderableLessonPayload(data, sessionId)) throw new Error("تعذر التحقق من بيانات الدرس. أعد المحاولة.");
       setError("");
-      setLesson(data as LessonPayload);
+      setLesson(data);
     });
   }, [invalidSessionId, router, sessionId]);
 
   useEffect(() => {
-    void loadLesson().catch((reason) => setError(reason instanceof Error ? reason.message : "تعذر استعادة الدرس")).finally(() => setLoading(false));
+    void loadLesson().catch((reason) => {
+      if (active.current) setError(learnerError(reason, "تعذر استعادة الدرس. تحقق من الاتصال ثم حاول مرة أخرى."));
+    }).finally(() => { if (active.current && !redirecting.current) setLoading(false); });
   }, [loadLesson]);
 
   const sendEvent = useCallback(async (event_type: "intro_complete" | "video_progress" | "video_ended", position_seconds?: number, duration_seconds?: number, stableEventKey?: string) => {
     const response = await fetch(`/api/v2/lessons/sessions/${sessionId}/events`, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ event_key:stableEventKey ?? eventKey(event_type), event_type, position_seconds, duration_seconds }), keepalive:event_type === "video_progress" });
     const data = await response.json().catch(() => null);
     if (!active.current) return;
-    if (!response.ok) throw new Error(data?.detail || "تعذر حفظ تقدم الدرس");
-    // Checkpoints persist the playback position, but must not replace the
-    // rendered lesson. An older checkpoint response can arrive after
-    // video_ended and otherwise regress the child from practice to video.
-    // Re-rendering on each checkpoint can also seek the player backwards.
+    if (response.status === 401 || response.status === 403) {
+      redirecting.current = true;
+      router.replace("/student/login");
+      throw new Error("انتهت جلسة الطالب. سجل الدخول مرة أخرى.");
+    }
+    if (!response.ok) throw new Error("تعذر حفظ تقدم الدرس. تحقق من الاتصال ثم حاول مرة أخرى.");
+    // A checkpoint must not replace a newer academic step.
     if (event_type === "video_progress") return;
+    if (Number(data?.session?.session_id) !== sessionId ||
+        !ACTIVE_LESSON_STAGES.has(String(data?.session?.stage)) ||
+        !Number.isSafeInteger(data?.session?.version)) {
+      throw new Error("استجابة حفظ جلسة الدرس غير متطابقة");
+    }
+    // The event endpoint returns the session shell, not necessarily the next
+    // interactive question. Always reconcile through the authoritative GET.
+    await loadLesson();
     if (event_type === "intro_complete") setReviewView(null);
-    if (Number(data?.session?.session_id) !== sessionId) throw new Error("استجابة حفظ جلسة الدرس غير متطابقة");
     if (event_type === "video_ended") {
       completionConfirmed.current = true;
       setError("");
     }
-    if (["guided_practice", "independent_check", "waiting_review", "outcome"].includes(data?.session?.stage)) await loadLesson();
-    else setLesson(data);
-  }, [loadLesson, sessionId]);
+  }, [loadLesson, router, sessionId]);
 
-  const completeIntro = async () => { setSaving(true); setError(""); try { await sendEvent("intro_complete"); } catch (reason) { if (active.current) setError(reason instanceof Error ? reason.message : "تعذر فتح الفيديو"); } finally { if (active.current) setSaving(false); } };
+  const completeIntro = async () => { setSaving(true); setError(""); try { await sendEvent("intro_complete"); } catch (reason) { if (active.current) setError(learnerError(reason, "تعذر فتح الفيديو. تحقق من الاتصال ثم حاول مرة أخرى.")); } finally { if (active.current) setSaving(false); } };
   const handleLessonChange = (updated: unknown) => {
     if (!lesson || !matchesCurrentLesson(updated, lesson, sessionId)) {
       // A successful POST may already have committed the answer. Never repeat
@@ -121,7 +194,7 @@ function V2LessonSessionPage({ routeSessionId }: { routeSessionId: string }) {
       setError("نتحقق من الإجابة المحفوظة، وسنستعيد موضعك.");
       setLoading(true);
       void loadLesson().catch((reason) => {
-        if (active.current) setError(reason instanceof Error ? reason.message : "تعذر استعادة الدرس");
+        if (active.current) setError(learnerError(reason, "تعذر استعادة الدرس. تحقق من الاتصال ثم حاول مرة أخرى."));
       }).finally(() => { if (active.current) setLoading(false); });
       return;
     }
@@ -143,7 +216,15 @@ function V2LessonSessionPage({ routeSessionId }: { routeSessionId: string }) {
 
   if (invalidSessionId) return <div className={styles.page} dir="rtl"><div className={styles.container}><div className={styles.error} role="alert">رابط جلسة الدرس غير صالح</div><Link href="/student/learning-v2" className={styles.back}><ArrowRight size={17}/> العودة إلى الدروس</Link></div></div>;
   if (loading) return <div className={styles.page} dir="rtl"><div className={styles.loading}><div><div className={styles.spinner} /><p>نستعيد موضعك المحفوظ...</p></div></div></div>;
-  if (!lesson) return <div className={styles.page} dir="rtl"><div className={styles.container}><div className={styles.error} role="alert">{error || "تعذر فتح الدرس"}</div><Link href="/student/learning-v2" className={styles.back}><ArrowRight size={17}/> العودة إلى الدروس</Link></div></div>;
+  if (!lesson) return <div className={styles.page} dir="rtl"><div className={styles.container}><div className={styles.error} role="alert">{error || "تعذر فتح الدرس"}</div>
+    <button type="button" className={styles.primary} onClick={() => {
+      setLoading(true);
+      setError("");
+      void loadLesson().catch(reason => {
+        if (active.current) setError(learnerError(reason, "تعذر استعادة الدرس. تحقق من الاتصال ثم حاول مرة أخرى."));
+      }).finally(() => { if (active.current && !redirecting.current) setLoading(false); });
+    }}>إعادة المحاولة</button>
+    <Link href="/student/learning-v2" className={styles.back}><ArrowRight size={17}/> العودة إلى الدروس</Link></div></div>;
   const stageIndex = STAGES.findIndex((stage) => stage.key === lesson.session.stage);
   const actualIndex = stageIndex >= 0 ? stageIndex : lesson.session.stage === "waiting_review" ? 3 : STAGES.length;
   const activeIndex = reviewView ? STAGES.findIndex((stage) => stage.key === reviewView) : actualIndex;
