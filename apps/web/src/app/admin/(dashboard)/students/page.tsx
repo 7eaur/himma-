@@ -8,7 +8,7 @@ import {
   AdminPanel, AdminResponsiveTable, AdminToolbar, AdminRequestStatus,
 } from "@/components/admin/AdminUI";
 import { v2StudentActionLabel } from "@/lib/v2StudentActionLabel";
-import { adminConnectionError, readAdminApiError } from "@/lib/adminFeedback";
+import { adminConnectionError, readAdminApiError, safeAdminCaughtError } from "@/lib/adminFeedback";
 
 type StudentListItem = {
   id: number;
@@ -80,7 +80,7 @@ export default function StudentsPage() {
       } catch (reason) {
         if (!controller.signal.aborted) {
           setData(null);
-          setError(reason instanceof TypeError ? adminConnectionError : reason instanceof Error ? reason.message : adminConnectionError);
+          setError(safeAdminCaughtError(reason, adminConnectionError));
         }
       } finally {
         if (!controller.signal.aborted) setLoading(false);
