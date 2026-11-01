@@ -69,3 +69,22 @@ it("submits a profile change only once under rapid repeat submission", async () 
   pending.resolve({ ok: true, json: async () => ({ ...account, username: "supervisorUpdated" }) });
   await waitFor(() => expect(screen.getByText("تم حفظ بيانات المشرف بنجاح.")).toBeVisible());
 });
+
+it("does not present empty supervisor data as real settings after a failed read, and retries safely", async () => {
+  let failed = true;
+  const fetcher = jest.fn((url: string) => Promise.resolve(
+    url === "/api/researcher/account"
+      ? failed ? { ok: false } : { ok: true, json: async () => account }
+      : { ok: true, json: async () => [account] },
+  ));
+  global.fetch = fetcher as unknown as typeof fetch;
+  render(<SettingsPage />);
+  expect(await screen.findByRole("alert")).toHaveTextContent("تعذر تحميل إعدادات الحساب");
+  expect(screen.queryByText("0 مشرف")).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "إضافة المشرف" })).not.toBeInTheDocument();
+  failed = false;
+  fireEvent.click(screen.getByRole("button", { name: "إعادة المحاولة" }));
+  expect(await screen.findByRole("tab", { name: "المشرفون" })).toBeVisible();
+  expect(await screen.findByDisplayValue("supervisor1")).toBeInTheDocument();
+  expect(fetcher.mock.calls.filter(([url]) => url === "/api/researcher/account")).toHaveLength(2);
+});
