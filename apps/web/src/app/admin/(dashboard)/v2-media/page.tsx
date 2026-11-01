@@ -14,6 +14,27 @@ const searchableMediaText = (item: MediaItem) =>
   [item.asset_id, kinds[item.kind] ?? item.kind, mediaTitles[item.kind] ?? "",
    states[item.state], ...item.uses.map(ref => ref.owner_id)].join(" ").toLocaleLowerCase("ar");
 const MEDIA_PAGE_SIZE = 12;
+// The gallery reads nested metadata immediately. Reject partial 200 responses
+// instead of crashing (or representing an unavailable file as absent).
+const record = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+const count = (value: unknown) => typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
+const validInventory = (value: unknown): value is Inventory => {
+  if (!record(value) || value.mode !== "read_only" || !Array.isArray(value.items)
+    || !record(value.counts) || !["ready", "pending", "missing", "test_only", "temporary"].every(key => count(value.counts[key]))
+    || ![value.candidate_files_present, value.published_assets, value.required_assets].every(count)
+    || typeof value.publishable !== "boolean") return false;
+  return value.items.every(item =>
+    record(item) && typeof item.asset_id === "string" && typeof item.kind === "string"
+    && ["ready", "pending", "missing"].includes(String(item.state))
+    && typeof item.temporary === "boolean" && typeof item.test_only === "boolean"
+    && typeof item.candidate_present === "boolean" && typeof item.publication_blocker === "boolean"
+    && typeof item.preview_kind === "string"
+    && (item.preview_url === null || typeof item.preview_url === "string")
+    && Array.isArray(item.uses) && item.uses.every(usage =>
+      record(usage) && typeof usage.owner_id === "string" && typeof usage.role === "string")
+  );
+};
 
 export default function V2MediaInventoryPage() {
   const [inventory, setInventory] = useState<Inventory | null>(null);
@@ -31,8 +52,8 @@ export default function V2MediaInventoryPage() {
       try {
         const response = await fetch("/api/v2/lessons/admin/media-inventory", { cache: "no-store", signal: controller.signal });
         if (!response.ok) throw new Error("تعذر تحميل سجل الوسائط");
-        const data = await response.json() as Inventory;
-        if (data.mode !== "read_only" || !Array.isArray(data.items)) throw new Error("عقد الوسائط غير متطابق");
+        const data: unknown = await response.json();
+        if (!validInventory(data)) throw new Error("تعذر قراءة بيانات الوسائط. أعد المحاولة.");
         if (!controller.signal.aborted) setInventory(data);
       } catch (cause) { if (!controller.signal.aborted) { setInventory(null); setError(cause instanceof Error ? cause.message : "تعذر تحميل الوسائط"); } }
       finally { if (!controller.signal.aborted) setLoading(false); }
