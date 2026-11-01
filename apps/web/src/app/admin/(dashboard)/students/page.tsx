@@ -74,7 +74,7 @@ export default function StudentsPage() {
         if (!response.ok) throw new Error("تعذر تحميل تقدم الطلاب.");
         const payload = await response.json() as Cohort;
         if (payload.source !== "himma_v2_readmodel" || !Array.isArray(payload.items))
-          throw new Error("مصدر بيانات الطلاب غير متطابق مع V2.");
+          throw new Error("تعذر التحقق من بيانات الطلاب الحالية. حاول مرة أخرى.");
         if (!controller.signal.aborted) setData(payload);
       } catch (reason) {
         if (!controller.signal.aborted) {
@@ -91,6 +91,8 @@ export default function StudentsPage() {
 
   const items = data?.items ?? [];
   const count = data?.total ?? 0;
+  const filtersActive = search.trim().length > 0 || status !== "all";
+  const clearFilters = () => { setSearch(""); setDebouncedSearch(""); setStatus("all"); setOffset(0); };
 
   return <AdminPage>
     <AdminPageHeader eyebrow="إدارة الطلاب" icon={Users} title="الطلاب"
@@ -114,11 +116,17 @@ export default function StudentsPage() {
       </AdminToolbar>
       {updatingSearch && <p role="status" className="mt-2 text-sm text-muted">جارٍ تحديث البحث…</p>}
       {error && <div className="alert-error mt-3" role="alert">{error} <button type="button" className="underline font-semibold" onClick={() => setReload(value => value + 1)}>إعادة المحاولة</button></div>}
-      <div style={{ height: 14 }} />
+      <div className="h-3" aria-hidden="true" />
       {loading && !data
         ? <div className="flex flex-col items-center justify-center gap-3 py-14"><div className="spinner w-9 h-9" /><p className="text-muted">جاري تحميل بيانات الطلاب...</p></div>
         : !data ? null
-        : count === 0 ? <AdminEmptyState title="لا توجد نتائج" description="لا يوجد طالب مطابق لهذه التصفية، أو لم تُضف العينة بعد." action={<AdminAction href="/admin/students/new" tone="primary" icon={UserPlus}>إضافة طالب</AdminAction>} />
+        : count === 0 ? <AdminEmptyState
+            title={filtersActive ? "لا يوجد طلاب يطابقون البحث" : "لا يوجد طلاب حتى الآن"}
+            description={filtersActive ? "جرّب تعديل البحث أو حالة الحساب لعرض بقية الطلاب." : "أضف أول طالب لبدء متابعة رحلته التعليمية."}
+            action={filtersActive
+              ? <button type="button" className="btn-secondary" onClick={clearFilters}>مسح البحث والتصفية</button>
+              : <AdminAction href="/admin/students/new" tone="primary" icon={UserPlus}>إضافة أول طالب</AdminAction>}
+          />
         : <AdminResponsiveTable
           table={<table className="data-table"><thead><tr>
             <th>الطالب</th><th>الحساب</th><th>المستوى</th><th>التقدم</th><th>الخطوة التالية</th><th>الملف</th>
