@@ -103,6 +103,7 @@ function StudentDetailView({ id }: { id: string }) {
   // A fresh student code is a credential rotation: never allow rapid taps
   // to start overlapping generations before React sets the busy state.
   const codeChangePendingRef = useRef(false);
+  const mutationPendingRef = useRef(false);
   const [student, setStudent] = useState<Student | null>(null);
   const [loadedStudentId, setLoadedStudentId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -221,7 +222,8 @@ function StudentDetailView({ id }: { id: string }) {
   };
 
   const saveStudentName = async () => {
-    if (!student || editName.trim() === student.full_name) return;
+    if (!student || busy || mutationPendingRef.current || codeChangePendingRef.current || editName.trim() === student.full_name) return;
+    mutationPendingRef.current = true;
     setBusy("name"); setMessage({ kind: "success", text: "" });
     try {
       const response = await fetch(`/api/v2/student/admin/students/${student.id}/account`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ full_name: editName }) });
@@ -229,11 +231,12 @@ function StudentDetailView({ id }: { id: string }) {
       if (!response.ok) throw new Error(apiError(data, "تعذر حفظ اسم الطالب", response.status));
       setStudent(current => current ? {...current, ...data} : current); setEditName(data.full_name); setMessage({ kind: "success", text: "تم تحديث اسم الطالب." });
     } catch (error) { setMessage({ kind: "error", text: error instanceof TypeError ? adminConnectionError : error instanceof Error ? error.message : "تعذر حفظ اسم الطالب" }); }
-    finally { setBusy(""); }
+    finally { mutationPendingRef.current = false; setBusy(""); }
   };
 
   const toggleStudentStatus = async () => {
-    if (!student) return;
+    if (!student || busy || mutationPendingRef.current || codeChangePendingRef.current) return;
+    mutationPendingRef.current = true;
     setBusy("status"); setMessage({ kind: "success", text: "" });
     try {
       const response = await fetch(`/api/v2/student/admin/students/${student.id}/account`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ is_active: student.status !== "active" }) });
@@ -241,11 +244,11 @@ function StudentDetailView({ id }: { id: string }) {
       if (!response.ok) throw new Error(apiError(data, "تعذر تحديث حالة الطالب", response.status));
       setStudent(current => current ? {...current, ...data} : current); setMessage({ kind: "success", text: data.status === "active" ? "تم تفعيل حساب الطالب." : "تم إيقاف حساب الطالب." });
     } catch (error) { setMessage({ kind: "error", text: error instanceof TypeError ? adminConnectionError : error instanceof Error ? error.message : "تعذر تحديث حالة الطالب" }); }
-    finally { setBusy(""); }
+    finally { mutationPendingRef.current = false; setBusy(""); }
   };
 
   const changeAccessCode = async (manual: boolean) => {
-    if (!student || codeChangePendingRef.current || busy) return;
+    if (!student || codeChangePendingRef.current || mutationPendingRef.current || busy) return;
     if (manual && !/^\d{6}$/.test(manualCode)) { setMessage({ kind: "error", text: "الرمز اليدوي يجب أن يتكون من 6 أرقام." }); return; }
     codeChangePendingRef.current = true;
     setBusy("code"); setMessage({ kind: "success", text: "" });
@@ -296,7 +299,8 @@ function StudentDetailView({ id }: { id: string }) {
     finally { setBusy(""); }
   };
   const reconcileV2Rewards = async () => {
-    if (busy) return;
+    if (busy || mutationPendingRef.current || codeChangePendingRef.current) return;
+    mutationPendingRef.current = true;
     setBusy("rewards-v2");
     try {
       const response=await fetch(`/api/v2/rewards/admin/students/${id}/reconcile`,{method:"POST"});
@@ -304,7 +308,7 @@ function StudentDetailView({ id }: { id: string }) {
       if (!response.ok) throw new Error(apiError(body,"تعذر مزامنة الاستحقاقات", response.status));
       setV2Reload(value=>value+1);setMessage({kind:"success",text:`تم التحقق من الاستحقاقات. منح جديدة: ${body.inserted}.`});
     } catch(error) {setMessage({kind:"error",text:error instanceof Error?error.message:"تعذر مزامنة الاستحقاقات"});}
-    finally{setBusy("");}
+    finally{mutationPendingRef.current = false; setBusy("");}
   };
 
 
