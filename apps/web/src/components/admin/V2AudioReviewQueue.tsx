@@ -197,11 +197,11 @@ export default function V2AudioReviewQueue({ kind, embedded = false }: { kind: K
           <td data-label="الإجراء"><button type="button" className={styles.reviewButton} aria-label={`مراجعة تسجيل ${item.student_name} ${item.question_id}`}
             disabled={item.retry_state === "requested"} onClick={() => setSelected(item.response_id)}>مراجعة</button></td>
         </tr>)}</tbody></table></div>}
-      <nav className={styles.pagination} aria-label="صفحات التسجيلات">
-        <button type="button" className="btn-secondary" disabled={loading || offset === 0} onClick={() => setOffset(Math.max(0, offset - pageSize))}>السابق</button>
+      {!loading && !error && (offset > 0 || queue.next_offset !== null) && <nav className={styles.pagination} aria-label="صفحات التسجيلات">
+        <button type="button" className="btn-secondary" disabled={offset === 0} onClick={() => setOffset(Math.max(0, offset - pageSize))}>السابق</button>
         <span>الصفحة {Math.floor(offset / pageSize) + 1}</span>
-        <button type="button" className="btn-secondary" disabled={loading || queue.next_offset === null} onClick={() => setOffset(queue.next_offset ?? offset)}>التالي</button>
-      </nav>
+        <button type="button" className="btn-secondary" disabled={queue.next_offset === null} onClick={() => setOffset(queue.next_offset ?? offset)}>التالي</button>
+      </nav>}
     </AdminPanel>
     {current && <ReviewDialog key={`${kind}:${current.response_id}`} item={current} kind={kind} onClose={() => setSelected(null)}
       onSaved={async text => { notifyFeedback("success", text); await load(); }} />}
