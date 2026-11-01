@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Film } from "lucide-react";
-import { AdminAction, AdminEmptyState, AdminPage, AdminPageHeader, AdminPanel } from "@/components/admin/AdminUI";
+import { AdminAction, AdminEmptyState, AdminPage, AdminPageHeader, AdminPanel, AdminRequestStatus } from "@/components/admin/AdminUI";
 import EducationalMediaPreview from "@/components/admin/EducationalMediaPreview";
 
 interface MediaItem { asset_id: string; kind: string; state: "ready" | "pending" | "missing"; runtime_state: string; test_only: boolean; temporary: boolean; source_status: string; candidate_present: boolean; preview_url: string | null; preview_kind: string; publication_blocker: boolean; uses: { owner_id: string; role: string }[]; }
@@ -74,8 +74,8 @@ export default function V2MediaInventoryPage() {
   return <AdminPage>
     <AdminPageHeader eyebrow="المحتوى والوسائط" icon={Film} title="الوسائط التعليمية"
       description="معرض الأصول التعليمية والصوت والصورة والفيديو. التشغيل للمعاينة فقط، ولا يمنح اعتمادًا أو يغير تقدم الطالب." />
-    {loading ? <p role="status" className="py-8">جاري تحميل الوسائط...</p> : error ? <div role="alert" className="alert-error">{error} <AdminAction onClick={() => setReload(v => v + 1)}>إعادة المحاولة</AdminAction></div>
-      : inventory && <>
+    <AdminRequestStatus loading={loading} error={error} onRetry={() => setReload(v => v + 1)} loadingText="جارٍ تحميل الوسائط..." />
+      {!loading && !error && inventory && <>
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">{(["ready", "temporary", "missing", "test_only"] as const).map(key => <article key={key} className="rounded-2xl border border-border bg-white p-4">
           <span className="text-sm text-muted">{key === "test_only" ? "وسائط للمعاينة فقط" : key === "temporary" ? "فيديوهات مشتركة" : states[key]}</span><strong className="mt-2 block text-3xl text-navy">{inventory.counts[key]}</strong>
         </article>)}</div>
