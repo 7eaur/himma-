@@ -234,6 +234,15 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
 
+      - name: Upload R11 supervisor UX screenshots for mobile and desktop audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: himma-r11-supervisor-ux-screenshots
+          path: apps/web/playwright-report/screenshots/admin-responsive/
+          if-no-files-found: warn
+          retention-days: 7
+
       - name: Backup and restore PostgreSQL into an isolated database
         run: |
           bash scripts/ops/backup_postgres.sh /tmp/himma-postgres.dump
