@@ -111,6 +111,53 @@
   color: #647b8e;
 }
 
+
+/* Shared read-state pattern; loading never masquerades as empty data. */
+.requestLoading {
+  min-height: 84px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border: 1px solid #dce8f2;
+  border-radius: 14px;
+  background: #fff;
+  color: #48677f;
+  font-weight: 700;
+  text-align: center;
+}
+.requestSpinner {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 3px solid #dce8f2;
+  border-top-color: #347fd9;
+  animation: adminRequestSpin .7s linear infinite;
+}
+.requestError {
+  min-width: 0;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  border: 1px solid #efbcc5;
+  border-radius: 14px;
+  background: #fff4f6;
+  color: #8f2c40;
+  font-size: .9rem;
+  line-height: 1.7;
+}
+@keyframes adminRequestSpin { to { transform: rotate(360deg); } }
+@media (max-width: 640px) {
+  .requestError { align-items: stretch; flex-direction: column; }
+  .requestError > .action { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .requestSpinner { animation: none; } }
+
 .panel {
   padding: 18px;
   border: 1px solid #dce8f2;
