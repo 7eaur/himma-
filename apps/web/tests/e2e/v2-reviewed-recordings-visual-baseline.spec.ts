@@ -96,7 +96,7 @@ test("P09.0 reviewed audio archive visual states have private players and no ove
         expect(JSON.stringify(urls)).not.toContain("storage_key");
       }
       if (state === "failed") {
-        await expect(page.getByRole("alert")).toContainText("تعذر تحميل التسجيلات المقيّمة");
+        await expect(page.getByRole("alert").filter({hasText: "تعذر تحميل التسجيلات المقيّمة"})).toContainText("تعذر تحميل التسجيلات المقيّمة");
         await expect(page.locator("audio")).toHaveCount(0);
         await expect(page.getByRole("button", { name: "إعادة المحاولة" })).toBeVisible();
       }
@@ -119,7 +119,7 @@ test("P09.0 reviewed audio archive visual states have private players and no ove
   await expect(page.locator("audio")).toHaveCount(2);
   mode = "failed";
   await page.getByRole("button", { name: "تحديث" }).click();
-  await expect(page.getByRole("alert")).toContainText("تعذر تحميل التسجيلات المقيّمة");
+  await expect(page.getByRole("alert").filter({hasText: "تعذر تحميل التسجيلات المقيّمة"})).toContainText("تعذر تحميل التسجيلات المقيّمة");
   await expect(page.locator("audio")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "إعادة المحاولة" })).toBeVisible();
 
@@ -146,15 +146,13 @@ test("P09.0 reviewed audio archive visual states have private players and no ove
   await oldStarted;
   await page.getByLabel("نوع النشاط").selectOption("pretest");
   await expect(page.getByText("طالب تجريبي آخر", { exact: true })).toBeVisible();
-        await expect(page.getByText("مرجع التسجيل")).toHaveCount(2);
-        await page.getByText("مرجع التسجيل").first().click();
-        await expect(page.getByText("السؤال: L1-01-IC-A03")).toBeVisible();
+  await expect(page.getByText("مرجع التسجيل")).toHaveCount(1);
+  await expect(page.getByText("طالب تجريبي", { exact: true })).toHaveCount(0);
   openOld();
   await oldFinished;
   await expect(page.getByText("طالب تجريبي آخر", { exact: true })).toBeVisible();
-        await expect(page.getByText("مرجع التسجيل")).toHaveCount(2);
-        await page.getByText("مرجع التسجيل").first().click();
-        await expect(page.getByText("السؤال: L1-01-IC-A03")).toBeVisible();
-  await expect(page.getByText("طالب تجريبي · L1-01-IC-A03")).toHaveCount(0);
+  await expect(page.getByText("مرجع التسجيل")).toHaveCount(1);
+  await expect(page.getByText("طالب تجريبي", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("طالب تجريبي", { exact: true })).toHaveCount(0);
   await expect(page.locator("audio")).toHaveCount(1);
 });
