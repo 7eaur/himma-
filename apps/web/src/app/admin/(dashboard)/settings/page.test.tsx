@@ -59,7 +59,7 @@ it("submits a profile change only once under rapid repeat submission", async () 
   const pending = defer<unknown>();
   const fetcher = mockSettingsFetch(() => pending.promise);
   render(<SettingsPage />);
-  const name = screen.getByLabelText("اسم المشرف / اسم المستخدم");
+  const name = await screen.findByLabelText("اسم المشرف / اسم المستخدم");
   await waitFor(() => expect(name).toHaveValue("supervisor1"));
   fireEvent.change(name, { target: { value: "supervisorUpdated" } });
   const form = screen.getByRole("button", { name: "حفظ بيانات الحساب" }).closest("form")!;
