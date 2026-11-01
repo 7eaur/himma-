@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import ReportsPage from "./page";
 import SkillReportsPage from "../skill-reports/page";
+import { isValidV2Report } from "@/components/admin/useV2Reports";
 
 const report = {
   source: "himma_v2_persisted_evidence", methodology: "synthetic", skills: [],
@@ -27,7 +28,7 @@ it("keeps a skills source failure unavailable without loading V1 evidence", asyn
   const fetcher = jest.fn().mockResolvedValue({ ok: false });
   global.fetch = fetcher;
   render(<SkillReportsPage />);
-  expect(await screen.findByRole("alert")).toHaveTextContent("تعذر تحميل تقارير V2");
+  expect(await screen.findByRole("alert")).toHaveTextContent("تعذر تحميل التقارير");
   expect(fetcher.mock.calls.every(([url]) => url === "/api/v2/reports/summary")).toBe(true);
   expect(screen.queryByText("لا توجد أدلة مقيمة مطابقة")).not.toBeInTheDocument();
   expect(screen.queryByText("أرشيف مهارات V1")).not.toBeInTheDocument();
@@ -60,4 +61,23 @@ it("does not present ended support as mastered and shows unresolved skills", asy
   expect(table).toHaveTextContent("1 / 2");
   expect(table).toHaveTextContent("1 تحتاج متابعة");
   expect(table).not.toHaveTextContent("2 / 2");
+});
+
+it("rejects a successful HTTP response with an incomplete report instead of crashing on summary fields", async () => {
+  global.fetch = jest.fn().mockResolvedValue({
+    ok: true,
+    json: async () => ({ source: "himma_v2_persisted_evidence", students: [], skills: [] }),
+  });
+  render(<ReportsPage />);
+  const error = await screen.findByRole("alert");
+  expect(error).toHaveTextContent("بيانات التقارير غير مكتملة");
+  expect(screen.queryByTestId("v2-report-table")).not.toBeInTheDocument();
+});
+
+it("validates nested progress and support data before presenting supervisor reports", () => {
+  expect(isValidV2Report(report)).toBe(true);
+  expect(isValidV2Report({ ...report, students: [{ ...report.students[0], support: null }] })).toBe(false);
+  expect(isValidV2Report({ ...report, students: [{ ...report.students[0], progress: { assigned_lessons: null } }] })).toBe(false);
+  expect(isValidV2Report({ ...report, summary: null })).toBe(false);
+  expect(isValidV2Report({ ...report, skills: [{ student_id: 1, phase: "pretest" }] })).toBe(false);
 });
