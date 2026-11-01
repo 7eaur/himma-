@@ -113,3 +113,59 @@ it('sends only one access-code rotation for rapid repeated taps', async () => {
   });
   await screen.findByText('تم تحديث رمز دخول الطالب.');
 });
+
+it("accepts Arabic-keyboard digits when changing the student's access code", async () => {
+  const fetcher=setup(); render(<Page/>);
+  await screen.findByRole("heading", {name:"طالب اصطناعي 1"});
+  fireEvent.click(screen.getByRole("tab", {name:"الحساب"}));
+  const manual=screen.getByLabelText("رمز يدوي من 6 أرقام");
+  fireEvent.change(manual, {target:{value:"١۲٣۴٥۶"}});
+  expect(manual).toHaveValue("123456");
+  fireEvent.click(screen.getByRole("button", {name:"حفظ", exact:true}));
+  await screen.findByText("تم تحديث رمز دخول الطالب.");
+  const posts=fetcher.mock.calls.filter(([url])=>url.endsWith("/access-code"));
+  expect(posts).toHaveLength(1);
+  expect(JSON.parse(posts[0][1].body).access_code).toBe("123456");
+});
+
+it("does not reveal an old credential after leaving its tab during an in-flight reveal", async () => {
+  const fetcher=setup();
+  let finish!: (value: unknown) => void;
+  const pending=new Promise(resolve=>{finish=resolve;});
+  fetcher.mockImplementation((url: string) => {
+    if (url.endsWith("/reveal")) return pending;
+    return Promise.resolve({ok:true,json:async()=>url.endsWith("/home")?home(1):account(1)});
+  });
+  render(<Page/>);
+  await screen.findByRole("heading", {name:"طالب اصطناعي 1"});
+  fireEvent.click(screen.getByRole("tab", {name:"الحساب"}));
+  fireEvent.click(screen.getByRole("button", {name:"إظهار الرمز"}));
+  fireEvent.click(screen.getByRole("tab", {name:"نظرة عامة"}));
+  await act(async()=>{
+    finish({ok:true,json:async()=>({student_id:1,access_code:"907654"})});
+    await Promise.resolve();
+  });
+  fireEvent.click(screen.getByRole("tab", {name:"الحساب"}));
+  expect(screen.queryByText("907654")).not.toBeInTheDocument();
+  expect(screen.getByRole("button", {name:"إظهار الرمز"})).toHaveAttribute("aria-pressed","false");
+});
+
+it("shows readable academic decision reasons rather than exposing internal reason codes", async () => {
+  const fetcher=setup();
+  fetcher.mockImplementation((url: string) => Promise.resolve({
+    ok:true,json:async()=>url.endsWith("/home")?{
+      ...home(1),
+      adaptation_decisions:[{
+        id:1,kind:"targeted_support",
+        reason_code:"support_gap_unresolved_continue_without_mastery",
+        unmastered_gap:true,policy_version:"test",created_at:"2026-11-01T00:00:00Z",
+      }],
+    }:account(1),
+  }));
+  render(<Page/>);
+  await screen.findByRole("heading", {name:"طالب اصطناعي 1"});
+  fireEvent.click(screen.getByRole("tab", {name:"سجل المتابعة"}));
+  expect(screen.getByText("هذه المهارة تحتاج إلى متابعة؛ لم يثبت إتقانها بعد.")).toBeInTheDocument();
+  expect(screen.queryByText("support_gap_unresolved_continue_without_mastery")).not.toBeInTheDocument();
+  expect(screen.queryByText(/المعرف #/)).not.toBeInTheDocument();
+});
