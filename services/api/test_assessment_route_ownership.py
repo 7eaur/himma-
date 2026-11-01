@@ -1,4 +1,6 @@
+from assessment import router as assessment_router
 from assessment_completion import router as completion_router
+from main import app
 from assessment_retake import router as retake_router
 
 
@@ -10,3 +12,10 @@ def test_critical_assessment_routes_have_one_owner():
     assert _owners(retake_router, "/assessment/start", "POST") == ["assessment_retake"]
     assert _owners(retake_router, "/assessment/session/{session_id}/finish", "POST") == []
     assert _owners(completion_router, "/assessment/session/{session_id}/finish", "POST") == ["assessment_completion"]
+
+
+def test_application_assessment_start_has_one_owner():
+    # Retake policy owns the public route. Do not re-register the old direct
+    # assessment handler: the first matching FastAPI route would mask it.
+    assert _owners(assessment_router, "/assessment/start", "POST") == []
+    assert _owners(app, "/assessment/start", "POST") == ["assessment_retake"]
