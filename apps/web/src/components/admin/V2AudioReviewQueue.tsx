@@ -127,7 +127,7 @@ function ReviewDialog({ item, kind, onClose, onSaved }: {
   </dialog>;
 }
 
-export default function V2AudioReviewQueue({ kind }: { kind: Kind }) {
+export default function V2AudioReviewQueue({ kind, embedded = false }: { kind: Kind; embedded?: boolean }) {
   const pageSize = kind === "assessment" ? 25 : 20;
   const [queue, setQueue] = useState<Queue>({ items: [], next_offset: null });
   const [offset, setOffset] = useState(0);
@@ -163,13 +163,14 @@ export default function V2AudioReviewQueue({ kind }: { kind: Kind }) {
   const waitingForStudent = audioItems.length - readyForReview;
   const current = queue.items.find(item => item.response_id === selected);
   return <AdminPage>
-    <AdminPageHeader eyebrow="مراجعة التسجيلات" icon={ClipboardCheck}
+    {!embedded && <AdminPageHeader eyebrow="مراجعة التسجيلات" icon={ClipboardCheck}
       title={kind === "assessment" ? "الاختبارات ومراجعة القراءة" : "مراجعة قراءات الدروس"}
       description="اختر تسجيلًا من القائمة، واستمع إليه، ثم اعتمد القراءة أو اطلب إعادة التسجيل."
-      actions={<AdminAction icon={RefreshCw} onClick={() => { void load(); }}>تحديث القائمة</AdminAction>} />
+      actions={<AdminAction icon={RefreshCw} onClick={() => { void load(); }}>تحديث القائمة</AdminAction>} />}
     {error && <p role="alert" className="alert-error">{error}</p>}
     {!loading && <V2BlockedReviewNotice items={queue.blocked_items} onRestored={load} />}
-    <AdminPanel title="متابعة التسجيلات الصوتية">
+    <AdminPanel title="متابعة التسجيلات الصوتية"
+      actions={embedded ? <AdminAction icon={RefreshCw} onClick={() => { void load(); }}>تحديث القائمة</AdminAction> : undefined}>
       <div className={styles.toolbar}><label htmlFor={`review-search-${kind}`}>بحث في هذه الصفحة</label>
         <input id={`review-search-${kind}`} className="input-field" value={search} onChange={event => setSearch(event.target.value)} placeholder="اسم الطالب أو النشاط" />
         <span>{loading ? "جارٍ التحميل" : `${readyForReview} جاهز للمراجعة · ${waitingForStudent} بانتظار إعادة الطالب`}</span></div>
