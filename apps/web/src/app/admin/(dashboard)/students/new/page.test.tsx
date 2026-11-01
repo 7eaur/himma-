@@ -18,7 +18,7 @@ it('rejects an unverified creation response without displaying a code', async()=
   render(<Page/>);
   fireEvent.change(screen.getByLabelText('اسم الطالب'),{target:{value:'طالب اصطناعي'}});
   fireEvent.click(screen.getByRole('button',{name:'إضافة الطالب'}));
-  await waitFor(()=>expect(screen.getByRole('alert')).toHaveTextContent('تعذر التحقق من حساب هِمّة V2 الجديد.'));
+  await waitFor(()=>expect(screen.getByRole('alert')).toHaveTextContent('تحقق من قائمة الطلاب قبل محاولة إضافته مرة أخرى'));
   expect(screen.queryByTestId('student-access-code')).not.toBeInTheDocument();
 });
 
