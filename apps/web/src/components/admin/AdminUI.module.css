@@ -305,6 +305,7 @@
 }
 
 @media (max-width: 640px) {
+  .empty { min-height: 124px; padding: 18px 12px; }
   .page { gap: 13px; }
 
   .pageHeader {
