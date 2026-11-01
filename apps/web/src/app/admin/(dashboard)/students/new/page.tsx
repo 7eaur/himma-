@@ -11,6 +11,7 @@ export default function NewStudentPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [successCode, setSuccessCode] = useState("");
+  const [createdStudentId, setCreatedStudentId] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
   const [copyError, setCopyError] = useState("");
   const submitPendingRef = useRef(false);
@@ -48,6 +49,7 @@ export default function NewStudentPage() {
         setError("لم نستلم رمز دخول صالحًا من الخادم. تحقق من قائمة الطلاب قبل محاولة إضافته مرة أخرى، حتى لا تنشئ حسابًا مكررًا.");
         return;
       }
+      setCreatedStudentId(Number.isSafeInteger(data.id) && data.id > 0 ? data.id : null);
       setSuccessCode(data.access_code);
     } catch {
       setError("تعذر الاتصال بالخادم الآن. حاول مرة أخرى بعد قليل.");
@@ -71,6 +73,7 @@ export default function NewStudentPage() {
 
   const reset = () => {
     setSuccessCode("");
+    setCreatedStudentId(null);
     setCopied(false);
     setCopyError("");
     setFullName("");
@@ -104,7 +107,9 @@ export default function NewStudentPage() {
             </div>
             <div className="flex justify-center gap-3 flex-wrap">
               <AdminAction onClick={reset}>إضافة طالب آخر</AdminAction>
-              <AdminAction href="/admin/students" tone="primary">العودة إلى الطلاب</AdminAction>
+              <AdminAction href={createdStudentId ? `/admin/students/${createdStudentId}` : "/admin/students"} tone="primary">
+                {createdStudentId ? "فتح ملف الطالب" : "العودة إلى الطلاب"}
+              </AdminAction>
             </div>
           </div>
         </AdminPanel>
