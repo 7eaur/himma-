@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { BookOpenCheck, FileSpreadsheet, Film } from "lucide-react";
-import { AdminAction, AdminEmptyState, AdminPage, AdminPageHeader, AdminPanel } from "@/components/admin/AdminUI";
+import { AdminAction, AdminEmptyState, AdminPage, AdminPageHeader, AdminPanel, AdminRequestStatus } from "@/components/admin/AdminUI";
 import EducationalMediaPreview, { type EducationalMedia } from "@/components/admin/EducationalMediaPreview";
 import BankAnswerReview from "@/components/admin/BankAnswerReview";
 
@@ -93,8 +93,8 @@ export default function ContentBankPage() {
         <label className="flex min-w-0 flex-1 flex-col gap-2"><span>بحث في السؤال أو النص أو الخيارات أو المعرّف</span><input className="input-field" value={search} onChange={e => { setSearch(e.target.value); setOffset(0); }} /></label>
       </div>
       {current && <div className="mt-4 rounded-xl bg-bg p-4"><h2 className="font-bold">{current.title}</h2>{current.objective && <p>الهدف: {current.objective}</p>}{current.intro?.text && <p className="mt-2">التمهيد: {current.intro.text}</p>}</div>}
-      {loading ? <p role="status" className="py-8">جاري تحميل البنك...</p> : error ? <div role="alert" className="alert-error mt-4">{error} <AdminAction onClick={() => setReload(v => v + 1)}>إعادة المحاولة</AdminAction></div>
-        : bank && <>
+      <AdminRequestStatus loading={loading} error={error} onRetry={() => setReload(v => v + 1)} loadingText="جارٍ تحميل بنك الدروس والأسئلة..." />
+        {!loading && !error && bank && <>
           <p className="my-4 text-sm text-muted" aria-live="polite">{bank.total} سؤالًا مطابقًا من {bank.bank_total}</p>
           {bank.items.length === 0 ? <AdminEmptyState title="لا توجد أسئلة مطابقة"
             description={search.trim() || section ? "يمكنك تغيير البحث أو اختيار قسم آخر." : "لم يُضف محتوى إلى بنك الأسئلة بعد."}
