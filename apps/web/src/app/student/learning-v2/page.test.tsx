@@ -45,7 +45,7 @@ it("fails closed on malformed successful catalog and recovers on retry without f
   expect(screen.queryByText("0 دروس")).not.toBeInTheDocument();
   expect(screen.queryByText("الحروف والأصوات")).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", {name:"إعادة المحاولة"}));
-  expect(await screen.findByRole("heading", {name:"الحروف والأصوات"})).toBeVisible();
+  expect(await screen.findByRole("heading", {name:"الحروف والأصوات",level:2})).toBeVisible();
   expect(fetcher).toHaveBeenCalledTimes(2);
 });
 
@@ -62,7 +62,7 @@ it("does not reveal backend details on a failed list or a failed lesson start", 
     .mockResolvedValueOnce(response({detail:"SQL ERROR: confidential database location"},503));
   global.fetch = fetcher;
   render(<V2LearningCatalogPage />);
-  await screen.findByRole("heading",{name:"الحروف والأصوات"});
+  await screen.findByRole("heading",{name:"الحروف والأصوات",level:2});
   fireEvent.click(screen.getByRole("button",{name:"ابدأ الدرس"}));
   expect(await screen.findByRole("alert")).toHaveTextContent("تعذر بدء الدرس الآن");
   expect(screen.queryByText(/SQL ERROR/)).not.toBeInTheDocument();
@@ -89,7 +89,7 @@ it("does not follow an untrusted session id in lesson start acknowledgements", a
     .mockResolvedValueOnce(response({session:{session_id:"//external"}}));
   global.fetch = fetcher;
   render(<V2LearningCatalogPage />);
-  await screen.findByRole("heading",{name:"الحروف والأصوات"});
+  await screen.findByRole("heading",{name:"الحروف والأصوات",level:2});
   fireEvent.click(screen.getByRole("button",{name:"ابدأ الدرس"}));
   expect(await screen.findByRole("alert")).toHaveTextContent("تعذر التحقق من جلسة الدرس");
   expect(push).not.toHaveBeenCalled();
