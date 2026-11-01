@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { BarChart3, Download } from "lucide-react";
-import { AdminAction, AdminEmptyState, AdminPage, AdminPageHeader, AdminPanel } from "@/components/admin/AdminUI";
+import { AdminAction, AdminEmptyState, AdminPage, AdminPageHeader, AdminPanel, AdminRequestStatus } from "@/components/admin/AdminUI";
 import { useV2Reports } from "@/components/admin/useV2Reports";
 
 const phases: Record<string, string> = { pretest: "قبلي رسمي", posttest: "بعدي رسمي", learning: "دليل تعلم مصحح" };
@@ -25,7 +25,8 @@ export default function SkillReportsPage() {
     <AdminPageHeader eyebrow="أدلة المهارات" icon={BarChart3} title="ملخص المهارات"
       description="نتائج الأدلة المقيمة من الاختبارات الرسمية والدروس. لا تُعد الإجابات المعلقة إخفاقًا أو نجاحًا، ولا تعني النسبة إثبات الإتقان."
       actions={<AdminAction href="/api/v2/reports/exports/skills.xlsx" icon={Download}>تصدير Excel</AdminAction>} />
-    {loading ? <p role="status">جاري تجهيز ملخص المهارات...</p> : error ? <div role="alert" className="alert-error">{error}<AdminAction onClick={refresh}>إعادة المحاولة</AdminAction></div> : data && <AdminPanel>
+    <AdminRequestStatus loading={loading} error={error} onRetry={refresh} loadingText="جارٍ تجهيز ملخص المهارات..." />
+    {!loading && !error && data && <AdminPanel>
       <div className="mb-5 flex flex-wrap gap-3">
         <label className="min-w-0 flex-1">الطالب
           <select className="input-field mt-2 w-full" value={student} onChange={e => { setStudent(e.target.value); setPage(0); }}>
