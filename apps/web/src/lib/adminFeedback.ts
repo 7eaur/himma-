@@ -9,7 +9,7 @@ export function adminErrorMessage(status: number, detail: unknown, fallback: str
   if (status === 401) return "انتهت جلسة المشرف. سجّل الدخول مرة أخرى ثم أعد المحاولة.";
   if (status === 403) return "ليس لديك صلاحية لتنفيذ هذا الإجراء.";
   if (status === 429) return "تكررت المحاولات خلال وقت قصير. حاول مجددًا بعد قليل.";
-  if (status >= 500) return "الخدمة غير متاحة مؤقتًا. أعد المحاولة بعد قليل.";
+  if (status >= 500) return `${fallback.replace(/[.،؛\s]+$/g, "")}. الخدمة غير متاحة مؤقتًا؛ أعد المحاولة بعد قليل.`;
   if (typeof detail === "string") {
     const text = detail.trim();
     if (text && text.length <= 180 && arabic.test(text) && !technical.test(text)
