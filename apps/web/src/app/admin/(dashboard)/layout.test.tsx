@@ -3,9 +3,10 @@ import AdminDashboardLayout from './layout';
 
 const mockReplace = jest.fn();
 const mockRefresh = jest.fn();
+const mockRouter = {replace: mockReplace, refresh: mockRefresh};
 jest.mock('next/navigation', () => ({
   usePathname: () => '/admin/students/12',
-  useRouter: () => ({replace: mockReplace, refresh: mockRefresh}),
+  useRouter: () => mockRouter,
 }));
 jest.mock('@/components/admin/AdminNotifications', () => function MockNotifications() {return <span>إشعارات V2</span>;});
 jest.mock('@/hooks/useAccessibleDialog', () => ({useAccessibleDialog: () => undefined}));
