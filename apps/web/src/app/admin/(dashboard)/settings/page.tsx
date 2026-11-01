@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { KeyRound, ShieldCheck, UserPlus, UsersRound } from "lucide-react";
 import AdminFeedbackToast from "@/components/admin/AdminFeedbackToast";
-import { AdminAction, AdminPage, AdminPageHeader, AdminPanel } from "@/components/admin/AdminUI";
+import { adminConnectionError, readAdminApiError } from "@/lib/adminFeedback";
+import { AdminAction, AdminPage, AdminPageHeader, AdminPanel, AdminRequestStatus } from "@/components/admin/AdminUI";
 import styles from "./settings.module.css";
 
 interface Supervisor {
@@ -46,22 +47,24 @@ export default function SettingsPage() {
         if (!accountResponse.ok || !supervisorsResponse.ok) throw new Error("تعذر تحميل إعدادات الحساب");
         const accountData: Supervisor = await accountResponse.json();
         const supervisorsData: Supervisor[] = await supervisorsResponse.json();
+        if (!accountData || !Number.isSafeInteger(accountData.id) || typeof accountData.username !== "string"
+          || !Array.isArray(supervisorsData) || !supervisorsData.every(row => row && Number.isSafeInteger(row.id)
+            && typeof row.username === "string" && typeof row.is_active === "boolean")) {
+          throw new Error("تعذر التحقق من بيانات الحساب. أعد المحاولة.");
+        }
         if (cancelled) return;
         setAccount(accountData);
         setUsername(accountData.username);
         setSupervisors(supervisorsData);
       })
       .catch((error: unknown) => {
-        if (!cancelled) setLoadError(error instanceof Error ? error.message : "تعذر تحميل الإعدادات");
+        if (!cancelled) setLoadError(error instanceof TypeError ? adminConnectionError : error instanceof Error ? error.message : adminConnectionError);
       })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [loadAttempt]);
 
-  const parseError = async (response: Response, fallback: string) => {
-    const data = await response.json().catch(() => null);
-    return typeof data?.detail === "string" ? data.detail : fallback;
-  };
+  const parseError = readAdminApiError;
 
   const selectTab = (tab: SettingsTab, focus = false) => {
     setActiveTab(tab);
@@ -90,7 +93,7 @@ export default function SettingsPage() {
       const updated: Supervisor = await response.json();
       setAccount(updated); setUsername(updated.username); setSupervisors((current) => current.map((supervisor) => supervisor.id === updated.id ? updated : supervisor));
       setMessage({ kind: "success", text: "تم حفظ بيانات المشرف بنجاح." });
-    } catch (error) { setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر حفظ البيانات" }); }
+    } catch (error) { setMessage({ kind: "error", text: error instanceof TypeError ? adminConnectionError : error instanceof Error ? error.message : "تعذر حفظ البيانات" }); }
     finally { actionPending.current = false; setBusy(""); }
   };
 
@@ -104,7 +107,7 @@ export default function SettingsPage() {
       const response = await fetch("/api/researcher/account/password", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }) });
       if (!response.ok) throw new Error(await parseError(response, "تعذر تغيير كلمة المرور"));
       setCurrentPassword(""); setNewPassword(""); setConfirmPassword(""); setMessage({ kind: "success", text: "تم تغيير كلمة المرور بنجاح." });
-    } catch (error) { setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر تغيير كلمة المرور" }); }
+    } catch (error) { setMessage({ kind: "error", text: error instanceof TypeError ? adminConnectionError : error instanceof Error ? error.message : "تعذر تغيير كلمة المرور" }); }
     finally { actionPending.current = false; setBusy(""); }
   };
 
@@ -118,7 +121,7 @@ export default function SettingsPage() {
       if (!response.ok) throw new Error(await parseError(response, "تعذر إضافة المشرف"));
       const created: Supervisor = await response.json();
       setSupervisors((current) => [...current, created].sort((a, b) => a.id - b.id)); setNewSupervisorName(""); setNewSupervisorPassword(""); setMessage({ kind: "success", text: "تم إنشاء حساب المشرف الجديد." });
-    } catch (error) { setMessage({ kind: "error", text: error instanceof Error ? error.message : "تعذر إضافة المشرف" }); }
+    } catch (error) { setMessage({ kind: "error", text: error instanceof TypeError ? adminConnectionError : error instanceof Error ? error.message : "تعذر إضافة المشرف" }); }
     finally { actionPending.current = false; setBusy(""); }
   };
 
@@ -127,10 +130,8 @@ export default function SettingsPage() {
   // authoritative account request failed. Retry the read before any write.
   if (loadError || !account) return <AdminPage className={styles.pageNarrow}>
     <AdminPageHeader icon={ShieldCheck} title="إعدادات المشرف" description="إدارة بيانات الحساب والأمان والمشرفين." />
-    <div role="alert" className="alert-error">
-      {loadError || "تعذر التحقق من بيانات المشرف."}
-      <AdminAction onClick={() => { setLoadError(""); setLoading(true); setLoadAttempt(value => value + 1); }}>إعادة المحاولة</AdminAction>
-    </div>
+    <AdminRequestStatus loading={false} error={loadError || "تعذر التحقق من بيانات المشرف."}
+      onRetry={() => { setLoadError(""); setLoading(true); setLoadAttempt(value => value + 1); }} />
   </AdminPage>;
 
   const tabs: Array<{ key: SettingsTab; label: string; icon: typeof ShieldCheck }> = [
