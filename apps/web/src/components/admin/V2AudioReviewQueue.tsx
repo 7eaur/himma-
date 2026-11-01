@@ -93,7 +93,7 @@ function ReviewDialog({ item, kind, onClose, onSaved }: {
           audioSubmissionId={item.audio_submission_id!} completionUrl={`${prefix}/audio-completed`}
           initiallyCompleted={item.audio_playback_completed} onCompletionChange={setPlayed} />
           : <p role="alert" className="alert-error">التسجيل الصوتي غير متاح. لا يمكن اعتماد القراءة؛ اطلب إعادة تسجيل واضحة.</p>}
-        {error && <AdminRequestStatus loading={false} error={error} onRetry={() => { void load(); }} />}
+        {error && <p role="alert" className="alert-error">{error}</p>}
         {retry ? <div className={styles.fields}>
           <label htmlFor="audio-review-note">ماذا يحتاج الطالب أن يعيد؟</label>
           <textarea id="audio-review-note" value={note} onChange={event => setNote(event.target.value)} rows={3} maxLength={2000}
@@ -176,7 +176,7 @@ export default function V2AudioReviewQueue({ kind, embedded = false }: { kind: K
       title={kind === "assessment" ? "الاختبارات ومراجعة القراءة" : "مراجعة قراءات الدروس"}
       description="اختر تسجيلًا من القائمة، واستمع إليه، ثم اعتمد القراءة أو اطلب إعادة التسجيل."
       actions={<AdminAction icon={RefreshCw} onClick={() => { void load(); }}>تحديث القائمة</AdminAction>} />}
-    {error && <p role="alert" className="alert-error">{error}</p>}
+    {error && <AdminRequestStatus loading={false} error={error} onRetry={() => { void load(); }} />}
     {!loading && !error && <V2BlockedReviewNotice items={queue.blocked_items} onRestored={load} />}
     <AdminPanel title="متابعة التسجيلات الصوتية"
       actions={embedded ? <AdminAction icon={RefreshCw} onClick={() => { void load(); }}>تحديث القائمة</AdminAction> : undefined}>
