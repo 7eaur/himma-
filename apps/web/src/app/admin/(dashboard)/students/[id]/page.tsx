@@ -451,12 +451,12 @@ function StudentDetailView({ id }: { id: string }) {
         <div className={styles.panelHeader}><div><h2>الحساب والدخول</h2><p>اسم الطالب ورمز الدخول وحالة الحساب.</p></div><LockKeyhole size={20} aria-hidden="true" /></div>
         <div className={styles.formGrid}>
           <div className={styles.field}><label htmlFor="student-name">اسم الطالب</label><input id="student-name" className={styles.input} value={editName} onChange={(event) => setEditName(event.target.value)} minLength={2} maxLength={80} /></div>
-          <button className={styles.primary} onClick={() => void saveStudentName()} disabled={busy === "name" || editName.trim() === student.full_name}><Save size={17} aria-hidden="true" />{busy === "name" ? "جاري الحفظ..." : "حفظ الاسم"}</button>
+          <button className={styles.primary} onClick={() => void saveStudentName()} disabled={Boolean(busy) || editName.trim() === student.full_name}><Save size={17} aria-hidden="true" />{busy === "name" ? "جاري الحفظ..." : "حفظ الاسم"}</button>
         </div>
         <div className={styles.codeBox} style={{ marginTop: 16 }}><div><span className={styles.muted}>رمز الدخول الحالي</span><strong className={styles.code} dir="ltr">{codeVisible ? accessCode : "••••••"}</strong></div><button type="button" className={styles.secondary} aria-pressed={codeVisible} disabled={Boolean(busy)} onClick={() => void revealAccessCode()}>{codeVisible ? "إخفاء الرمز" : "إظهار الرمز"}</button><button className={styles.secondary} disabled={Boolean(busy)} onClick={() => void copyAccessCode()}>{copied ? <Check size={17} aria-hidden="true" /> : <Copy size={17} aria-hidden="true" />}{copied ? "تم النسخ" : "نسخ الرمز"}</button></div>
         <div className={styles.grid2}>
-          <button className={styles.secondary} onClick={() => void changeAccessCode(false)} disabled={busy === "code"}><RefreshCw size={17} aria-hidden="true" /> توليد رمز جديد</button>
-          <div className={styles.formGrid}><div className={styles.field}><label htmlFor="manual-code">رمز يدوي من 6 أرقام</label><input id="manual-code" className={styles.input} inputMode="numeric" maxLength={6} value={manualCode} onChange={(event) => setManualCode(normalizeStudentAccessCodeInput(event.target.value))} placeholder="123456" dir="ltr" /></div><button className={styles.primary} onClick={() => void changeAccessCode(true)} disabled={busy === "code" || manualCode.length !== 6}>حفظ</button></div>
+          <button className={styles.secondary} onClick={() => void changeAccessCode(false)} disabled={Boolean(busy)}><RefreshCw size={17} aria-hidden="true" /> توليد رمز جديد</button>
+          <div className={styles.formGrid}><div className={styles.field}><label htmlFor="manual-code">رمز يدوي من 6 أرقام</label><input id="manual-code" className={styles.input} inputMode="numeric" maxLength={6} value={manualCode} onChange={(event) => setManualCode(normalizeStudentAccessCodeInput(event.target.value))} placeholder="123456" dir="ltr" /></div><button className={styles.primary} onClick={() => void changeAccessCode(true)} disabled={Boolean(busy) || manualCode.length !== 6}>حفظ</button></div>
         </div>
       </section>
     );
@@ -471,7 +471,7 @@ function StudentDetailView({ id }: { id: string }) {
           <div className={styles.avatar}><User size={25} aria-hidden="true" /></div>
           <div className={styles.identityText}><small>ملف الطالب</small><h1>{student.full_name}</h1><p>الصف الثالث الابتدائي</p></div>
         </div>
-        <button className={`${styles.statusButton} ${student.status === "active" ? styles.statusButtonActive : styles.statusButtonInactive}`} onClick={() => void toggleStudentStatus()} disabled={busy === "status"}><Power size={17} aria-hidden="true" />{busy === "status" ? "جاري الحفظ..." : student.status === "active" ? "إيقاف الحساب" : "تفعيل الحساب"}</button>
+        <button className={`${styles.statusButton} ${student.status === "active" ? styles.statusButtonActive : styles.statusButtonInactive}`} onClick={() => void toggleStudentStatus()} disabled={Boolean(busy)}><Power size={17} aria-hidden="true" />{busy === "status" ? "جاري الحفظ..." : student.status === "active" ? "إيقاف الحساب" : "تفعيل الحساب"}</button>
       </header>
 
       <AdminFeedbackToast feedback={message} onDismiss={() => setMessage({kind: "success", text: ""})} />
