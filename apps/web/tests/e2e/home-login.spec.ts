@@ -47,19 +47,30 @@ test.describe("Login Page — Admin", () => {
 });
 
 test.describe("Login Page — Student", () => {
-  test("renders student code input", async ({ page }) => {
+  test("shows the official six-digit code field without a pretend sample code", async ({ page }) => {
     await page.goto("/student/login");
 
-    await expect(page.getByRole("heading", { name: "دخول الطالب" })).toBeVisible();
-    await expect(page.getByTestId("input-access-code")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "مرحبًا يا بطل!" })).toBeVisible();
+    const code = page.getByTestId("input-access-code");
+    await expect(code).toBeVisible();
+    await expect(code).toHaveValue("");
+    await expect(code).not.toHaveAttribute("placeholder", /[0-9٠-٩۰-۹]{6}/);
+    await expect(page.getByText("ستجد الرمز عند المشرف المسؤول عن حسابك.")).toBeVisible();
+    await expect(page.getByTestId("student-login-submit")).toBeDisabled();
   });
 
-  test("access code input converts to uppercase", async ({ page }) => {
+  test("accepts Arabic and Persian numerals as an ordinary six-digit code", async ({ page }) => {
     await page.goto("/student/login");
+    const code = page.getByTestId("input-access-code");
+    await code.fill("١٢٣٤٥٦");
+    await expect(code).toHaveValue("123456");
+    await expect(page.getByTestId("student-login-submit")).toBeEnabled();
 
-    const codeInput = page.getByTestId("input-access-code");
-    await codeInput.fill("stu-1234");
-    const val = await codeInput.inputValue();
-    expect(val).toBe("STU-1234");
+    await code.fill("۱۲۳۴۵۶");
+    await expect(code).toHaveValue("123456");
+
+    await code.fill("abc١٢");
+    await expect(code).toHaveValue("12");
+    await expect(page.getByTestId("student-login-submit")).toBeDisabled();
   });
 });
