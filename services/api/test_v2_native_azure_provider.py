@@ -204,3 +204,20 @@ def test_pronunciation_assessment_uses_reference_and_ar_sa():
     assert len(seen) == 1
     assert "language=ar-SA" in str(seen[0].url)
     assert result.transcript == "راء"
+
+
+def test_internal_worker_fails_closed_when_feature_disabled_or_secret_missing(monkeypatch):
+    from v2_reading_engine.runtime import native_runtime_configuration
+    monkeypatch.delenv("HIMMA_V2_NATIVE_READING_ENABLED", raising=False)
+    assert native_runtime_configuration() is None
+    monkeypatch.setenv("HIMMA_V2_NATIVE_READING_ENABLED", "1")
+    monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
+    with pytest.raises(ValueError, match="PostgreSQL"):
+        native_runtime_configuration()
+    monkeypatch.setenv("DATABASE_URL", "postgresql://redacted/internal")
+    monkeypatch.delenv("HIMMA_AZURE_SPEECH_API_KEY", raising=False)
+    with pytest.raises(ValueError, match="configuration is incomplete"):
+        native_runtime_configuration()
+    monkeypatch.setenv("HIMMA_V2_NATIVE_READING_ENABLED", "true")
+    with pytest.raises(ValueError, match="must be 0 or 1"):
+        native_runtime_configuration()

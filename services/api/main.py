@@ -124,7 +124,7 @@ app.include_router(v2_rewards_router)
 app.include_router(v2_retry_router)
 app.include_router(v2_review_claims_router)
 app.include_router(v2_review_history_router)
-app.include_router(v2_reading_router)  # Native read-only status, no review decisions
+app.include_router(v2_reading_router)  # Native learner status and staff read-only results
 
 
 @app.get("/health")
@@ -179,3 +179,23 @@ async def stop_audio_retention_sweeper() -> None:
         with suppress(asyncio.CancelledError):
             await task
 
+
+
+# The native speech model runs only in THIS API service. A missing Azure key
+# cannot silently fall back to manual grading, nor can the branch start a
+# second hosted worker. Keep disabled until the complete release is accepted.
+@app.on_event("startup")
+async def start_native_reading_engine() -> None:
+    from v2_reading_engine.runtime import native_runtime_configuration, run_native_reading_forever
+    config = native_runtime_configuration()
+    if config is not None:
+        app.state.native_reading_task = asyncio.create_task(run_native_reading_forever(config))
+
+
+@app.on_event("shutdown")
+async def stop_native_reading_engine() -> None:
+    task = getattr(app.state, "native_reading_task", None)
+    if task:
+        task.cancel()
+        with suppress(asyncio.CancelledError):
+            await task
