@@ -200,3 +200,66 @@ def test_original_snapshot_survives_current_bank_change_for_lesson_interaction(s
     resumed = student_client.get(f"/v2/lessons/sessions/{session_id}/interaction")
     assert resumed.status_code == 200, resumed.text
     assert resumed.json()["interaction"]["question"]["question_id"] == original
+
+
+def test_native_reading_grade_advances_lesson_atomically_without_staff(student_client, monkeypatch):
+    from datetime import datetime, timedelta, timezone
+    from decimal import Decimal
+    from db.v2_reading_models import V2ReadingJob
+    from db.learning_models import SkillEvidence
+    from v2_reading_engine.job_store import claim_reading, record_evidence
+    from v2_reading_engine.policy import ReadingDecision
+    from v2_reading_engine.academic_apply import apply_evaluation
+    from v2_reading_engine.academic_journey import continue_native_academic_journey
+
+    session_id = _start_at_questions(student_client, "L1-05", 3)
+    monkeypatch.setattr(
+        "v2_interaction_runtime.storage.upload_audio",
+        lambda _file, student_id, _key: (f"audio/{student_id}/native-graded.webm", 2048, "digest"),
+    )
+    monkeypatch.setattr("v2_interaction_runtime.storage.verify_audio", lambda *args, **kwargs: None)
+    upload = student_client.post(
+        f"/v2/lessons/sessions/{session_id}/recording",
+        headers={"Idempotency-Key": str(uuid4())},
+        files={"file": ("reading.webm", b"audio-bytes", "audio/webm")},
+    )
+    assert upload.status_code == 200, upload.text
+    accepted = student_client.post(
+        f"/v2/lessons/sessions/{session_id}/answers",
+        json={"submit_key": str(uuid4()), **upload.json(), "audio_duration_seconds": 3},
+    )
+    assert accepted.status_code == 200, accepted.text
+    job_id = accepted.json()["submission"]["reading_job_id"]
+
+    with TestingSessionLocal() as db:
+        job = db.query(V2ReadingJob).filter(V2ReadingJob.id == job_id).one()
+        now = datetime.now(timezone.utc)
+        claimed = claim_reading(db, worker_id="test-azure", now=now)
+        assert claimed.id == job_id
+        grade = ReadingDecision(
+            status="correct", reference=job.reference_text,
+            fraction=Decimal(1), passed_for_progress=True, hint=None,
+            reason="validated_recording_contract",
+        )
+        record_evidence(db, job_id=job_id, worker_id="test-azure",
+            expected_version=job.version, decision=grade,
+            provider_name="azure", provider_request_id="test-id",
+            transcript=job.reference_text, now=now + timedelta(seconds=1),
+        )
+        assert apply_evaluation(
+            db, job_id=job_id, continue_academic_journey=continue_native_academic_journey,
+        )
+        db.commit()
+
+    updated = student_client.get(f"/v2/lessons/sessions/{session_id}/interaction")
+    assert updated.status_code == 200, updated.text
+    assert updated.json()["interaction"]["reading_job_id"] is None
+    assert updated.json()["interaction"]["progress"]["stage"] == "independent_check"
+    with TestingSessionLocal() as db:
+        answer = db.query(LessonQuestionResponse).one()
+        assert answer.status == "graded" and answer.is_correct is True
+        assert answer.question_score_fraction == Decimal(1)
+        proof = db.query(SkillEvidence).one()
+        assert proof.review_status == "graded" and proof.is_correct is True
+        assert db.query(V2ReadingJob).filter(V2ReadingJob.id == job_id).one().status == "applied"
+

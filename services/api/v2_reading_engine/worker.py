@@ -11,7 +11,9 @@ import asyncio
 from dataclasses import dataclass
 from typing import Callable
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
+from db.v2_reading_models import V2ReadingJob
 
 from db.models import AudioSubmission
 from v2_reading_engine.azure_provider import AzureSpeechProvider, SpeechEvidence
@@ -65,12 +67,40 @@ async def run_one(
     *,
     worker_id: str,
     audio_loader: Callable[[WorkItem], bytes] = load_private_audio,
+    finalize_academic: bool = False,
 ) -> str:
     """Process at most one job; return a simple operational status.
 
-    Academic grading is intentionally NOT committed in this phase. It occurs
-    only after all V2 consumers switch to the new result in the final cutover.
+    The release-runner may enable finalize_academic ONLY after V2 consumers
+    have switched to the native journey. In contract tests it remains disabled.
     """
+    if finalize_academic:
+        # Resume a previously persisted evidence_ready item before consuming
+        # another Azure request. The grade and academic progression are atomic.
+        with session_factory() as db:
+            try:
+                from v2_reading_engine.academic_apply import apply_evaluation
+                from v2_reading_engine.academic_journey import continue_native_academic_journey
+                pending = db.scalar(
+                    select(V2ReadingJob.id)
+                    .where(V2ReadingJob.is_current.is_(True),
+                           V2ReadingJob.status == "evidence_ready")
+                    .order_by(V2ReadingJob.created_at, V2ReadingJob.id)
+                    .with_for_update(skip_locked=True).limit(1)
+                )
+                if pending is not None:
+                    apply_evaluation(
+                        db, job_id=pending,
+                        continue_academic_journey=continue_native_academic_journey,
+                    )
+                    db.commit()
+                    return "applied"
+            except Exception:
+                db.rollback()
+                # Do not fake a success or mark a child wrong. Operational
+                # recovery retries this durable evidence in the next cycle.
+                return "academic_deferred"
+
     with session_factory() as db:
         job = claim_reading(db, worker_id=worker_id, lease_seconds=300)
         if job is None:
@@ -123,16 +153,28 @@ async def run_one(
     )
     with session_factory() as db:
         try:
-            record_evidence(
+            evidence = record_evidence(
                 db, job_id=work.id, worker_id=worker_id,
                 expected_version=work.version, decision=decision,
                 provider_name="azure_speech", provider_request_id=result.request_id,
                 transcript=result.transcript,
             )
+            if finalize_academic and evidence is not None:
+                from v2_reading_engine.academic_apply import apply_evaluation
+                from v2_reading_engine.academic_journey import continue_native_academic_journey
+                apply_evaluation(
+                    db, job_id=work.id,
+                    continue_academic_journey=continue_native_academic_journey,
+                )
             db.commit()
         except ReadingConflict:
             db.rollback()
             return "superseded"
+        except Exception:
+            db.rollback()
+            return "academic_deferred"
+    if finalize_academic and decision.status != "retry_audio":
+        return "applied"
     return "evidence_ready" if decision.status != "retry_audio" else "retry_audio"
 
 

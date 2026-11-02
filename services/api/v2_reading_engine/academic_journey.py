@@ -53,7 +53,10 @@ def continue_native_academic_journey(
         evidence.hint_used = True
         # Approved support has a bounded worked-example path after three
         # inaccurate academic *attempts*. Unrecognized audio is not an attempt.
-        if session.stage != "support_practice" or response.attempt_no < 3:
+        # Guided training gives one hint and one additional attempt.
+        # Focused support retains its approved three-attempt teaching path.
+        retry_limit = 3 if session.stage == "support_practice" else 2
+        if response.attempt_no < retry_limit:
             reconcile_rewards(db, session.student_id, lesson_session_id=session.id)
             return
 

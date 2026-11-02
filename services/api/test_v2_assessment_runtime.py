@@ -798,3 +798,30 @@ def test_pretest_reading_submission_stays_on_question_until_auto_grade(student_c
         assert answer.question_score_fraction is None
         assert db.query(AssessmentSession).filter(
             AssessmentSession.id == session_id).one().v2_question_index == 5
+        from datetime import datetime, timedelta, timezone
+        from decimal import Decimal
+        from v2_reading_engine.job_store import claim_reading, record_evidence
+        from v2_reading_engine.policy import ReadingDecision
+        from v2_reading_engine.academic_apply import apply_evaluation
+        from v2_reading_engine.academic_journey import continue_native_academic_journey
+        now = datetime.now(timezone.utc)
+        assert claim_reading(db, worker_id="test-worker", now=now).id == job_id
+        verified = ReadingDecision(
+            status="correct", reference=jobs[0].reference_text,
+            fraction=Decimal(1), passed_for_progress=True, hint=None,
+            reason="verified_voice_test",
+        )
+        record_evidence(db, job_id=job_id, worker_id="test-worker",
+            expected_version=jobs[0].version, decision=verified,
+            provider_name="azure", provider_request_id="test",
+            transcript=jobs[0].reference_text, now=now + timedelta(seconds=1),
+        )
+        assert apply_evaluation(
+            db, job_id=job_id,
+            continue_academic_journey=continue_native_academic_journey,
+        )
+        db.commit()
+    next_question = student_client.get(f"/v2/assessments/sessions/{session_id}")
+    assert next_question.status_code == 200, next_question.text
+    assert next_question.json()["interaction"]["question"]["question_id"] == "V2-PRE-Q07"
+    assert next_question.json()["session"]["progress"]["answered"] == 6
