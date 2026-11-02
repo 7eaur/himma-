@@ -101,7 +101,7 @@ def test_webm_uses_fast_transcription_with_optional_reference_hint():
     assert "transcriptions:transcribe" in str(seen[0].url)
     body = seen[0].read().decode("utf-8", errors="replace")
     assert '"locales": ["ar-OM"]' in body
-    assert "دخل نادر المكتبة" in body
+    assert json.dumps("دخل نادر المكتبة", ensure_ascii=True)[1:-1] in body
 
 
 def test_short_no_match_falls_back_to_fast_for_letter_chinese():
