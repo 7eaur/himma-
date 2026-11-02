@@ -254,6 +254,7 @@ def record_evidence(
             "request_id": provider_request_id[:200] if provider_request_id else None,
             "transcript": transcript[:4000] if transcript else None,
             "reason": decision.reason,
+            "training_hint": decision.hint if job.learning_mode == "training" else None,
             "reading_kind": job.reading_kind,
             "content_release_id": job.content_release_id,
             "question_id": job.question_id,

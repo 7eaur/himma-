@@ -42,6 +42,7 @@ from v2_rewards import router as v2_rewards_router
 from v2_retry_runtime import router as v2_retry_router
 from v2_review_claims import router as v2_review_claims_router
 from v2_review_history import router as v2_review_history_router
+from v2_reading_api import router as v2_reading_router
 from observability import request_correlation_middleware
 from readiness import readiness_report
 from runtime_flags import runtime_security_ready, validate_runtime_safety
@@ -50,8 +51,8 @@ import db.learning_models  # noqa: F401 — registers V2 session tables in Base.
 
 
 # Runtime configuration still fails closed for unsafe provider/test settings.
-# Student audio has no bypass path: submitted recordings are reviewed by the
-# supervisor until the approved automatic speech model is integrated.
+# Native speech read-model is read-only in this feature branch; no grading
+# occurs before the complete academic workflow replaces manual review.
 validate_runtime_safety()
 
 app = FastAPI(
@@ -123,6 +124,7 @@ app.include_router(v2_rewards_router)
 app.include_router(v2_retry_router)
 app.include_router(v2_review_claims_router)
 app.include_router(v2_review_history_router)
+app.include_router(v2_reading_router)  # Native read-only status, no review decisions
 
 
 @app.get("/health")
