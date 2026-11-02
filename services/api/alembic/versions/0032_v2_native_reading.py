@@ -69,7 +69,7 @@ def upgrade():
         sa.CheckConstraint("learning_mode IN ('training','assessment')",
                            name="ck_v2_reading_jobs_mode"),
         sa.CheckConstraint(
-            "status IN ('queued','processing','retry_wait','retry_audio','evidence_ready','service_unavailable','superseded')",
+            "status IN ('queued','processing','retry_wait','retry_audio','evidence_ready','service_unavailable','superseded','applied')",
             name="ck_v2_reading_jobs_status"),
         sa.CheckConstraint("attempt_count >= 0 AND max_attempts BETWEEN 1 AND 10",
                            name="ck_v2_reading_jobs_attempts"),
