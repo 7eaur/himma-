@@ -101,6 +101,7 @@ class LessonQuestionResponse(Base):
     attempt_no = Column(Integer, nullable=False, default=1, server_default="1")
     status = Column(String(32), nullable=False, default="submitted", server_default="submitted")
     is_correct = Column(Boolean, nullable=True)
+    question_score_fraction = Column(Numeric(6, 5), nullable=True)
     hint_used = Column(Boolean, nullable=False, default=False, server_default="false")
     created_at = Column(DateTime(timezone=True), nullable=False, default=_now)
     reviewed_at = Column(DateTime(timezone=True), nullable=True)
@@ -110,6 +111,7 @@ class LessonQuestionResponse(Base):
         CheckConstraint("role IN ('guided_practice','independent_check','support_check')", name="ck_lesson_responses_role"),
         CheckConstraint("status IN ('submitted','pending_review','graded')", name="ck_lesson_responses_status"),
         CheckConstraint("attempt_no >= 1", name="ck_lesson_responses_attempt"),
+        CheckConstraint("question_score_fraction IS NULL OR (question_score_fraction BETWEEN 0 AND 1)", name="ck_lesson_responses_fraction"),
         UniqueConstraint("lesson_session_id", "question_id", "attempt_no", name="uq_lesson_response_question_attempt"),
         UniqueConstraint("lesson_session_id", "submit_key", name="uq_lesson_response_submit_key"),
     )
@@ -234,6 +236,7 @@ class AssessmentQuestionResponse(Base):
     submit_key = Column(String(100), nullable=False)
     status = Column(String(32), nullable=False)
     is_correct = Column(Boolean, nullable=True)
+    question_score_fraction = Column(Numeric(6, 5), nullable=True)
     skill_group = Column(String(10), nullable=False)
     evidence_type = Column(String(80), nullable=False)
     created_at = Column(DateTime(timezone=True), nullable=False, default=_now)
@@ -243,6 +246,7 @@ class AssessmentQuestionResponse(Base):
 
     __table_args__ = (
         CheckConstraint("role IN ('pretest','posttest')", name="ck_assessment_responses_role"),
+        CheckConstraint("question_score_fraction IS NULL OR (question_score_fraction BETWEEN 0 AND 1)", name="ck_assessment_responses_fraction"),
         CheckConstraint("status IN ('pending_review','graded')", name="ck_assessment_responses_status"),
         UniqueConstraint("assessment_session_id", "question_id", name="uq_assessment_response_question"),
         UniqueConstraint("assessment_session_id", "submit_key", name="uq_assessment_response_submit"),
