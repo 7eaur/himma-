@@ -54,20 +54,26 @@ export default function V2ReadingResults() {
   const [refreshKey, setRefreshKey] = useState(0);
   const requestId = useRef(0);
 
-  const refresh = useCallback(() => setRefreshKey(key => key + 1), []);
+  const refresh = useCallback(() => {
+    setPage(INITIAL);
+    setLoading(true);
+    setRefreshKey(key => key + 1);
+  }, []);
   const changeFilter = (next: ReadingFilter) => {
     setFilter(next);
     setOffset(0);
     setPage(INITIAL);
+    setLoading(true);
   };
 
   useEffect(() => {
     const controller = new AbortController();
     const token = ++requestId.current;
-    setLoading(true);
-    setError("");
-    setPage(INITIAL); // Never leave a previous student's recording after filter changes.
     const timer = window.setTimeout(async () => {
+      // Scheduled state update: effect only manages the external request.
+      setLoading(true);
+      setError("");
+      setPage(INITIAL);
       const query = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String(offset) });
       if (filter !== "all") query.set("state", filter);
       if (search.trim()) query.set("search", search.trim());
@@ -115,7 +121,12 @@ export default function V2ReadingResults() {
           <span className="relative">
             <Search size={17} aria-hidden="true" className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500" />
             <input type="search" value={search} maxLength={80}
-              onChange={event => { setSearch(event.target.value); setOffset(0); }}
+              onChange={event => {
+                setSearch(event.target.value);
+                setOffset(0);
+                setPage(INITIAL);
+                setLoading(true);
+              }}
               placeholder="ابحث باسم الطالب أو رقم السؤال"
               className="min-h-11 w-full rounded-xl border border-slate-300 bg-white py-2 pl-3 pr-10 outline-offset-2 focus-visible:outline-teal-700" />
           </span>
@@ -167,11 +178,19 @@ export default function V2ReadingResults() {
       </div>}
       {!loading && !error && (offset > 0 || page.next_offset !== null) &&
         <nav aria-label="صفحات نتائج القراءة" className="mt-4 flex items-center justify-between gap-3">
-          <button type="button" disabled={offset === 0} onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
+          <button type="button" disabled={offset === 0} onClick={() => {
+              setOffset(Math.max(0, offset - PAGE_SIZE));
+              setPage(INITIAL);
+              setLoading(true);
+            }}
             className="min-h-11 rounded-xl border border-slate-300 px-4 disabled:opacity-40">السابق</button>
           <span className="text-sm text-slate-600">صفحة {Math.floor(offset / PAGE_SIZE) + 1}</span>
           <button type="button" disabled={page.next_offset === null}
-            onClick={() => setOffset(page.next_offset ?? offset)}
+            onClick={() => {
+              setOffset(page.next_offset ?? offset);
+              setPage(INITIAL);
+              setLoading(true);
+            }}
             className="min-h-11 rounded-xl border border-slate-300 px-4 disabled:opacity-40">التالي</button>
         </nav>}
     </AdminPanel>
