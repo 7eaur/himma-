@@ -112,3 +112,92 @@ def test_unavailable_storage_retry_keeps_academic_grade_unmodified(db):
     assert outcome == "retry_wait"
     assert db.get(V2ReadingJob, job.id).last_error_code == "audio_store_unavailable"
     assert db.query(V2ReadingEvaluation).count() == 0
+
+
+def test_azure_evidence_survives_academic_failure_without_second_provider_call(db, monkeypatch):
+    """The original audio is transcribed ONCE even when lesson/placement fails."""
+    from sqlalchemy.orm import sessionmaker
+    from v2_reading_engine import academic_journey
+    from v2_reading_engine.worker import run_one
+
+    student, release, response, audio = new_v2_assessment(db)
+    job = enqueue_assessment(db, student, release, response, audio)
+    job_id = job.id
+    response_id = response.id
+    db.commit()
+
+    provider = Provider(transcript="لا", usable=True)
+    factory = sessionmaker(bind=db.bind, expire_on_commit=False)
+    attempts = []
+
+    def broken_journey(transaction, answer, session):
+        attempts.append("failed")
+        raise RuntimeError("simulated failed placement")
+
+    monkeypatch.setattr(
+        academic_journey, "continue_native_academic_journey", broken_journey,
+    )
+    outcome = asyncio.run(run_one(
+        factory, provider, worker_id="recovery-worker",
+        audio_loader=lambda _: b"recording" * 300, finalize_academic=True,
+    ))
+    assert outcome == "academic_deferred"
+    db.expire_all()
+    assert db.get(V2ReadingJob, job_id).status == "evidence_ready"
+    assert db.query(V2ReadingEvaluation).filter(
+        V2ReadingEvaluation.job_id == job_id).count() == 1
+    assert db.get(type(response), response_id).is_correct is None
+    assert len(provider.calls) == 1
+
+    monkeypatch.setattr(
+        academic_journey, "continue_native_academic_journey",
+        lambda transaction, answer, session: attempts.append("recovered"),
+    )
+    resumed = asyncio.run(run_one(
+        factory, provider, worker_id="recovery-worker-2",
+        audio_loader=lambda _: (_ for _ in ()).throw(
+            AssertionError("Azure audio must not be loaded twice")),
+        finalize_academic=True,
+    ))
+    db.expire_all()
+    assert resumed == "applied"
+    assert attempts == ["failed", "recovered"]
+    assert db.get(V2ReadingJob, job_id).status == "applied"
+    assert db.get(type(response), response_id).is_correct is True
+    assert db.query(V2ReadingEvaluation).filter(
+        V2ReadingEvaluation.job_id == job_id).count() == 1
+    assert len(provider.calls) == 1
+
+
+def test_failed_academic_replay_preserves_current_evidence_for_future_recovery(db, monkeypatch):
+    """A failed replay must not write partial grades or duplicate provider usage."""
+    from sqlalchemy.orm import sessionmaker
+    from v2_reading_engine import academic_journey
+    from v2_reading_engine.worker import run_one
+
+    student, release, response, audio = new_v2_assessment(db)
+    job = enqueue_assessment(db, student, release, response, audio)
+    job_id = job.id
+    db.commit()
+    provider = Provider(transcript="لا")
+    factory = sessionmaker(bind=db.bind, expire_on_commit=False)
+
+    def broken(*_):
+        raise RuntimeError("deliberate placement conflict")
+
+    monkeypatch.setattr(
+        academic_journey, "continue_native_academic_journey", broken,
+    )
+    for _ in range(2):
+        result = asyncio.run(run_one(
+            factory, provider, worker_id="failing-worker",
+            audio_loader=lambda _: b"audio" * 800,
+            finalize_academic=True,
+        ))
+        assert result == "academic_deferred"
+    db.expire_all()
+    assert db.get(V2ReadingJob, job_id).status == "evidence_ready"
+    assert db.query(V2ReadingEvaluation).count() == 1
+    assert response.question_score_fraction is None
+    assert len(provider.calls) == 1
+
