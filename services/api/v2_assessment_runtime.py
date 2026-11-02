@@ -38,6 +38,7 @@ from v2_journey_projection import load_journey_facts, next_action
 from v2_retry_state import active_retry
 from v2_review_claims import enforce_review_claim, clear_review_claim
 from v2_audio_rubric import ReadingRubricV2, save_v2_reading_rubric
+from v2_reading_engine.assessment_scores import summarize_assessment
 from v2_audio_retention import (
     schedule_superseded_audio, run_retention_after_commit,
     audio_upload_binding, track_new_audio_upload, mark_audio_submitted,
@@ -142,24 +143,7 @@ def _result(db: Session, session: AssessmentSession) -> dict[str, Any]:
 
 
 def _result_from_rows(rows: list[AssessmentQuestionResponse]) -> dict[str, Any]:
-    pending = sum(row.status == "pending_review" for row in rows)
-    skill: dict[str, dict[str, int]] = defaultdict(lambda: {"graded": 0, "correct": 0, "pending": 0})
-    for row in rows:
-        bucket = skill[row.skill_group]
-        if row.status == "pending_review":
-            bucket["pending"] += 1
-        else:
-            bucket["graded"] += 1
-            bucket["correct"] += int(row.is_correct is True)
-    correct = sum(row.is_correct is True for row in rows)
-    return {
-        "answered": len(rows),
-        "total": 30,
-        "pending_review": pending,
-        "correct": correct if not pending and len(rows) == 30 else None,
-        "score_percent": round(correct / 30 * 100, 2) if not pending and len(rows) == 30 else None,
-        "skills": dict(sorted(skill.items())),
-    }
+    return summarize_assessment(rows)
 
 
 def _payload(db: Session, session: AssessmentSession) -> dict[str, Any]:
