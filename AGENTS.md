@@ -1,5 +1,9 @@
 # Himma V2 — instructions for project agents
 
+
+> **Branch-specific owner authorization (2026-11-02):** You are on `feature/v2-native-speech-engine-rebuild-20261102`, a dedicated feature-rebuild branch created by explicit owner request, **not** an ad-hoc preview environment. This branch's SINGLE canonical task and handoff is [`docs/v2/agent-ops/HIMMA_V2_NATIVE_SPEECH_ENGINE_MASTER_HANDOFF_20261102_AR.md`](docs/v2/agent-ops/HIMMA_V2_NATIVE_SPEECH_ENGINE_MASTER_HANDOFF_20261102_AR.md). Read it BEFORE changing any reading/review code. Rebuild the voice evaluation and staff review flows completely **inside this original repository**, using existing Railway Web/API/DB/storage; preserve production and student records until full acceptance, and do not deploy partial phases.
+
+
 > Active development and delivery branch: `v2/01-learning-foundation-20261007`.
 > The GitHub default branch `stage/02-content` is historical and MUST NOT be treated as the active V2 code or production source.
 
