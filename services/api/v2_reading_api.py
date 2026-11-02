@@ -37,10 +37,11 @@ def staff_results(
     limit: int = Query(default=30, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
     state: str | None = Query(default=None, pattern="^(processing|completed|needs_attention)$"),
+    search: str | None = Query(default=None, max_length=80),
     _staff: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    return supervisor_reading_results(db, limit=limit, offset=offset, state=state)
+    return supervisor_reading_results(db, limit=limit, offset=offset, state=state, search=search)
 
 
 @router.get("/admin/jobs/{job_id}/audio")

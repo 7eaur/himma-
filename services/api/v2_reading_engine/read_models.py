@@ -6,7 +6,7 @@ The administrative view is read-only and never grants or changes grades.
 from __future__ import annotations
 
 from decimal import Decimal
-from sqlalchemy import select, func
+from sqlalchemy import select, func, or_
 from sqlalchemy.orm import Session
 
 from db.models import Student, AudioSubmission
@@ -66,6 +66,7 @@ def student_reading_status(db: Session, *, job_id: int, student_id: int) -> dict
 def supervisor_reading_results(
     db: Session, *, limit: int = 30, offset: int = 0,
     state: str | None = None,
+    search: str | None = None,
 ) -> dict:
     if not 1 <= limit <= 100 or offset < 0:
         raise ValueError("Invalid pagination")
@@ -79,8 +80,24 @@ def supervisor_reading_results(
     where = [V2ReadingJob.is_current.is_(True)]
     if state is not None:
         where.append(V2ReadingJob.status.in_(state_aliases[state]))
+    if search:
+        term = search.strip()
+        if len(term) > 80:
+            raise ValueError("Reading search exceeds 80 characters")
+        if term:
+            escaped = term.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+            pattern = f"%{escaped}%"
+            where.append(or_(
+                Student.name.ilike(pattern, escape="\\"),
+                V2ReadingJob.question_id.ilike(pattern, escape="\\"),
+            ))
 
-    count = db.scalar(select(func.count(V2ReadingJob.id)).where(*where)) or 0
+    count = db.scalar(
+        select(func.count(V2ReadingJob.id))
+        .select_from(V2ReadingJob)
+        .join(Student, Student.id == V2ReadingJob.student_id)
+        .where(*where)
+    ) or 0
     rows = db.execute(
         select(V2ReadingJob, Student, V2ReadingEvaluation)
         .join(Student, Student.id == V2ReadingJob.student_id)

@@ -143,3 +143,16 @@ def test_staff_filter_pagination_input_rejected(db):
         supervisor_reading_results(db, offset=-1)
     with pytest.raises(ValueError):
         supervisor_reading_results(db, state="unknown")
+
+
+def test_supervisor_search_matches_student_name_or_question_with_pagination(db):
+    student, release, response, audio, job = seeded(db)
+    by_name = supervisor_reading_results(db, search="Learner")
+    assert by_name["total"] == 1
+    assert by_name["items"][0]["student_id"] == student.id
+    by_question = supervisor_reading_results(db, search="V2-PRE-Q06")
+    assert by_question["total"] == 1
+    assert supervisor_reading_results(db, search="not-an-existing-student")["total"] == 0
+    assert supervisor_reading_results(db, search="%")["total"] == 0
+    with pytest.raises(ValueError):
+        supervisor_reading_results(db, search="a" * 81)
