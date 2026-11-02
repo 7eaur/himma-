@@ -35,8 +35,11 @@ def test_every_approved_alias_including_chinese_returns_original():
             assert safe["status"] == "correct"
             assert "alias" not in safe and "asr" not in safe
             assert "azure" not in str(safe).lower()
-            if candidate != ref:
-                assert candidate not in safe["message"]
+            assert safe == {
+                "status": "correct",
+                "message": "أحسنت! قراءتك صحيحة، هيا نكمل.",
+                "reference": ref,
+            }
 
 
 @pytest.mark.parametrize("question_id,reference,bad", [
