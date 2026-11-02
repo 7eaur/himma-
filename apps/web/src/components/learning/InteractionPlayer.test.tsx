@@ -918,5 +918,3 @@ it("accepts one answer POST for rapid repeated taps before React rerenders", asy
     expect(screen.getByText("ما فهمت قراءتك بوضوح. جرّب التسجيل مرة ثانية.")).toBeInTheDocument();
     expect(screen.queryByText(/Azure|مراجعة المشرف|التفريغ/)).not.toBeInTheDocument();
   });
-
-});
