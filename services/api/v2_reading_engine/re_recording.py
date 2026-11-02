@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 from db.learning_models import AssessmentQuestionResponse, LessonQuestionResponse
 from db.models import AudioSubmission
 from db.v2_reading_models import V2ReadingJob
-from v2_audio_retention import audio_upload_binding, mark_audio_submitted
+from v2_audio_leases import audio_upload_binding, mark_audio_submitted
 
 from .job_store import ReadingConflict
 from .pinned_reference import enqueue_pinned_reading

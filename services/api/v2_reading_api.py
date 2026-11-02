@@ -14,7 +14,7 @@ import uuid
 from sqlalchemy import select
 from db.models import AudioSubmission, AudioUploadLease
 from db.v2_reading_models import V2ReadingJob
-from v2_audio_retention import audio_upload_binding, track_new_audio_upload
+from v2_audio_leases import audio_upload_binding, track_new_audio_upload
 from v2_reading_engine.re_recording import attach_retry_take, retry_is_allowed
 from db.models import Student, User
 from dependencies import get_current_student, get_current_user, get_db

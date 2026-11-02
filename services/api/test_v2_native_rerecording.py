@@ -6,7 +6,7 @@ import pytest
 from db.models import AudioSubmission
 from db.v2_reading_models import V2ReadingEvaluation, V2ReadingJob
 from test_v2_reading_job_store import db, enqueue_assessment, new_v2_assessment
-from v2_audio_retention import audio_upload_binding, track_new_audio_upload
+from v2_audio_leases import audio_upload_binding, track_new_audio_upload
 from v2_reading_engine import pinned_reference as pinned
 from v2_reading_engine.job_store import (
     ReadingConflict, claim_reading, record_evidence,
