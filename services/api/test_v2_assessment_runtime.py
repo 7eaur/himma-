@@ -740,3 +740,61 @@ def test_missing_or_invalid_result_cannot_produce_placement_recommendation():
         _recommended_level(100.01)
     with pytest.raises(ValueError):
         _recommended_level(-0.01)
+
+
+def test_pretest_reading_submission_stays_on_question_until_auto_grade(student_client, monkeypatch):
+    """A voice upload must not advance placement before native speech evidence."""
+    from db.v2_reading_models import V2ReadingJob
+    start = student_client.post("/v2/assessments/pretest/start").json()
+    session_id = start["session"]["session_id"]
+    for _ in range(5):
+        current = student_client.get(f"/v2/assessments/sessions/{session_id}").json()
+        question = get_question(current["interaction"]["question"]["question_id"])
+        assert question["interaction"] != "read_aloud"
+        sent = student_client.post(
+            f"/v2/assessments/sessions/{session_id}/answers",
+            json={"submit_key": str(uuid4()),
+                  "selected_option_ids": question["private_answer"]["correct_option_ids"]},
+        )
+        assert sent.status_code == 200, sent.text
+    before = student_client.get(f"/v2/assessments/sessions/{session_id}").json()
+    assert before["interaction"]["question"]["question_id"] == "V2-PRE-Q06"
+    monkeypatch.setattr("v2_assessment_runtime.storage.upload_audio",
+                        lambda _file, student_id, _key: (f"audio/{student_id}/pre-voice.webm", 4096, "digest"))
+    monkeypatch.setattr("v2_interaction_runtime.storage.verify_audio", lambda *args, **kwargs: None)
+    uploaded = student_client.post(
+        f"/v2/assessments/sessions/{session_id}/recording",
+        headers={"Idempotency-Key": str(uuid4())},
+        files={"file": ("read.webm", b"recorded-child-audio", "audio/webm")},
+    )
+    assert uploaded.status_code == 200, uploaded.text
+    key = str(uuid4())
+    payload = {"submit_key": key, **uploaded.json(), "audio_duration_seconds": 3}
+    url = f"/v2/assessments/sessions/{session_id}/answers"
+    response = student_client.post(url, json=payload)
+    assert response.status_code == 200, response.text
+    result = response.json()
+    assert result["submission"]["status"] == "processing"
+    job_id = result["submission"]["reading_job_id"]
+    assert job_id > 0
+    assert result["assessment"]["interaction"]["reading_job_id"] == job_id
+    assert result["assessment"]["interaction"]["question"]["question_id"] == "V2-PRE-Q06"
+    assert result["assessment"]["session"]["progress"]["answered"] == 6
+    assert "مراجعة" not in response.text
+    repeat = student_client.post(url, json=payload)
+    assert repeat.status_code == 200, repeat.text
+    assert repeat.json()["submission"]["reading_job_id"] == job_id
+    latest = student_client.get(f"/v2/assessments/sessions/{session_id}")
+    assert latest.json()["interaction"]["reading_job_id"] == job_id
+    with TestingSessionLocal() as db:
+        jobs = db.query(V2ReadingJob).all()
+        assert len(jobs) == 1
+        assert jobs[0].id == job_id
+        assert jobs[0].reference_text == "لَ"
+        assert jobs[0].status == "queued"
+        answer = db.query(AssessmentQuestionResponse).filter(
+            AssessmentQuestionResponse.question_id == "V2-PRE-Q06").one()
+        assert answer.is_correct is None
+        assert answer.question_score_fraction is None
+        assert db.query(AssessmentSession).filter(
+            AssessmentSession.id == session_id).one().v2_question_index == 5

@@ -172,7 +172,13 @@ def test_reading_upload_reuses_private_storage_and_is_academically_neutral(stude
         },
     )
     assert submitted.status_code == 200
-    assert submitted.json()["submission"]["status"] == "pending_review"
+    assert submitted.json()["submission"]["status"] == "processing"
+    assert submitted.json()["submission"]["reading_job_id"] > 0
+    assert "المشرف" not in submitted.text
+    restored = student_client.get(f"/v2/lessons/sessions/{session_id}/interaction")
+    assert restored.status_code == 200
+    assert restored.json()["interaction"]["reading_job_id"] == submitted.json()["submission"]["reading_job_id"]
+    assert restored.json()["interaction"]["progress"]["index"] == 4
     with TestingSessionLocal() as db:
         response = db.query(LessonQuestionResponse).one()
         recording = db.query(AudioSubmission).one()

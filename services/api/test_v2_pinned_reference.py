@@ -127,3 +127,25 @@ def test_displayed_unvowelled_text_never_overrides_private_reference(monkeypatch
         db, content_release_id=1, question_id="L2-04-GP-01")
     assert result.reference == question_row["reading_reference"]
     assert result.kind == "sentence"
+
+
+def test_canonical_submission_bridge_is_idempotent_and_resumable(monkeypatch, db):
+    from v2_reading_engine.submission_bridge import create_reading_job, pending_reading_job_id
+    student, release, response, audio = new_v2_assessment(db)
+    monkeypatch.setattr(pinned, "_load_pinned_release",
+                        lambda *_: {"questions": [question()]})
+    first = create_reading_job(
+        db, student_id=student.id, audio_submission_id=audio.id,
+        content_release_id=release.id, question_id=response.question_id,
+    )
+    second = create_reading_job(
+        db, student_id=student.id, audio_submission_id=audio.id,
+        content_release_id=release.id, question_id=response.question_id,
+    )
+    assert first == second
+    assert pending_reading_job_id(
+        db, assessment_response_id=response.id, question_id=response.question_id,
+    ) == first
+    assert pending_reading_job_id(
+        db, assessment_response_id=response.id, question_id="SOME-OTHER-QUESTION",
+    ) is None

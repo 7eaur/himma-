@@ -39,6 +39,7 @@ from v2_retry_state import active_retry
 from v2_review_claims import enforce_review_claim, clear_review_claim
 from v2_audio_rubric import ReadingRubricV2, save_v2_reading_rubric
 from v2_reading_engine.assessment_scores import summarize_assessment
+from v2_reading_engine.submission_bridge import create_reading_job, pending_reading_job_id
 from v2_audio_retention import (
     schedule_superseded_audio, run_retention_after_commit,
     audio_upload_binding, track_new_audio_upload, mark_audio_submitted,
@@ -163,11 +164,23 @@ def _payload(db: Session, session: AssessmentSession) -> dict[str, Any]:
     }
     if session.v2_state == "answering":
         question = _current(db, session)
+        reading_job_id = None
+        if question["interaction"] == "read_aloud":
+            pending = db.query(AssessmentQuestionResponse).filter(
+                AssessmentQuestionResponse.assessment_session_id == session.id,
+                AssessmentQuestionResponse.question_id == question["id"],
+                AssessmentQuestionResponse.status == "pending_review",
+            ).one_or_none()
+            if pending:
+                reading_job_id = pending_reading_job_id(
+                    db, assessment_response_id=pending.id, question_id=question["id"],
+                )
         payload["interaction"] = {
             "question": student_question(question),
             "media": _media(question, _session_release(db, session)),
             "progress": {"index": session.v2_question_index + 1, "total": 30, "stage": session.session_type},
             "attempts": 0,
+            "reading_job_id": reading_job_id,
         }
     if session.v2_state == "completed" and session.session_type == "posttest":
         payload["outcome"] = session.v2_result_json
@@ -445,7 +458,18 @@ def answer(session_id: int, body: AnswerRequest, student: Student = Depends(_req
         candidate = next((q for q in release["questions"] if q["id"] == existing.question_id), None)
         if not candidate or existing.answer_json != _canonical_answer(candidate, body, student.id):
             raise HTTPException(status_code=409, detail="مفتاح الإرسال استُخدم لإجابة مختلفة")
-        return {"status": "replayed", "submission": {"status": existing.status, "accepted": True}, "assessment": _payload(db, session)}
+        job_id = (pending_reading_job_id(
+            db, assessment_response_id=existing.id, question_id=existing.question_id,
+        ) if candidate["interaction"] == "read_aloud" else None)
+        return {
+            "status": "replayed",
+            "submission": {
+                "status": "processing" if job_id else existing.status,
+                "accepted": True, "retry_required": False,
+                **({"reading_job_id": job_id} if job_id else {}),
+            },
+            "assessment": _payload(db, session),
+        }
     if session.v2_state != "answering":
         raise HTTPException(status_code=409, detail="الجلسة لا تقبل إجابات الآن")
     question = _current(db, session)
@@ -458,6 +482,13 @@ def answer(session_id: int, body: AnswerRequest, student: Student = Depends(_req
         correct = _ordered_answer_is_correct(question, canonical["selected_option_ids"])
     else:
         correct = set(canonical["selected_option_ids"]) == set(expected)
+    # A submitted reading cannot be replaced with another academic answer.
+    # Only a provider-unrecognized recording can be retaken via /v2/reading.
+    if is_open and db.query(AssessmentQuestionResponse.id).filter(
+        AssessmentQuestionResponse.assessment_session_id == session.id,
+        AssessmentQuestionResponse.question_id == question["id"],
+    ).first():
+        raise HTTPException(status_code=409, detail="جاري التحقق من قراءتك؛ حدّث السؤال")
     response = AssessmentQuestionResponse(
         assessment_session_id=session.id, question_id=question["id"], role=session.session_type,
         answer_json=canonical, submit_key=body.submit_key, status="pending_review" if is_open else "graded",
@@ -474,18 +505,32 @@ def answer(session_id: int, body: AnswerRequest, student: Student = Depends(_req
             )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail="ملف التسجيل المؤقت لم يعد صالحًا للإرسال") from exc
-        db.add(AudioSubmission(
+        audio = AudioSubmission(
             response_id=None, lesson_response_id=None, assessment_response_id=response.id,
             storage_key=canonical["audio_storage_key"], file_size=canonical["audio_file_size"],
             mime_type=canonical["audio_mime_type"], duration_seconds=canonical["audio_duration_seconds"], status="pending_review",
-        ))
-    session.v2_question_index += 1
+        )
+        db.add(audio)
+        db.flush()
+        reading_job_id = create_reading_job(
+            db, student_id=student.id, audio_submission_id=audio.id,
+            content_release_id=session.content_release_id, question_id=question["id"],
+        )
+    else:
+        reading_job_id = None
+    if not is_open:
+        session.v2_question_index += 1
     session.updated_at = datetime.now(timezone.utc)
     _finish_if_ready(db, session)
     db.commit(); db.refresh(session)
     return {
         "status": "ok",
-        "submission": {"status": response.status, "accepted": True, "retry_required": False, "message": "تم حفظ إجابتك." if not is_open else "حُفظت إجابتك وتنتظر مراجعة المشرف."},
+        "submission": {
+            "status": "processing" if is_open else response.status,
+            "accepted": True, "retry_required": False,
+            "message": "نستمع إلى قراءتك..." if is_open else "تم حفظ إجابتك.",
+            **({"reading_job_id": reading_job_id} if reading_job_id else {}),
+        },
         "assessment": _payload(db, session),
     }
 
