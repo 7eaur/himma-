@@ -7,7 +7,6 @@ import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
 import VideoPlayer from "@/components/learning/VideoPlayer";
 import InteractionPlayer, { type InteractionPayload } from "@/components/learning/InteractionPlayer";
-import StudentRetryTasks from "@/components/learning/StudentRetryTasks";
 import styles from "../learning-v2.module.css";
 
 type Stage = "intro" | "teaching_video" | "guided_practice" | "independent_check" | "additional_check" | "support_practice" | "support_check" | "supervisor_hold" | "outcome";
@@ -233,8 +232,8 @@ function V2LessonSessionPage({ routeSessionId }: { routeSessionId: string }) {
   const extraStageLabel = lesson.session.stage === "additional_check" ? "تحقق قصير"
     : lesson.session.stage === "support_practice" ? "تدريب التقوية"
     : lesson.session.stage === "support_check" ? "تحقق بعد التقوية"
-    : lesson.session.stage === "waiting_review" ? "مراجعة القراءة"
-    : lesson.session.stage === "supervisor_hold" ? "مساعدة المشرف" : "اكتمل الدرس";
+    : lesson.session.stage === "waiting_review" ? "التحقق من القراءة"
+    : lesson.session.stage === "supervisor_hold" ? "مساعدة إضافية" : "اكتمل الدرس";
   const progressStages = supportStage || lesson.session.stage === "supervisor_hold"
     ? [...STAGES, { key: lesson.session.stage as Stage, label: extraStageLabel }] : STAGES;
   const captions = lesson.video.test_only ? `${lesson.video.url}/captions` : undefined;
@@ -276,8 +275,8 @@ function V2LessonSessionPage({ routeSessionId }: { routeSessionId: string }) {
       <div hidden={Boolean(reviewView)}>
       {supportStage && lesson.adaptation?.support && <section className={styles.supportIntro} data-testid="v2-support-path"><span className={styles.boundaryTag}>مساعدة قصيرة وليست خفضًا للمستوى</span><h2>{lesson.adaptation.support.title}</h2><p>{lesson.adaptation.message}</p><p>{lesson.session.stage === "additional_check" ? "سنبدأ بسؤالين قصيرين دون فيديو جديد؛ إذا احتجت مساعدة نضيف تدريبًا مناسبًا." : lesson.session.stage === "support_practice" ? "تدرّب خطوة خطوة دون فيديو جديد، ثم تحقق مما تعلمته." : "الآن أجب بنفسك لنرى ما تعلمته من المساعدة."}</p></section>}
       {(["guided_practice", "independent_check", "additional_check", "support_practice", "support_check"] as string[]).includes(lesson.session.stage) && lesson.interaction && <InteractionPlayer key={lesson.interaction.question.question_id} sessionId={sessionId} interaction={lesson.interaction} suspended={Boolean(reviewView)} onLessonChange={handleLessonChange}/>}
-      {lesson.session.stage === "waiting_review" && <section className={styles.practiceBoundary}><Image src="/characters/girl/encourage.png" alt="شخصية هِمّة تشجع" width={150} height={180}/><span className={styles.boundaryTag}>محفوظ بأمان</span><h2><CheckCircle2 size={25} aria-hidden="true"/> إجاباتك تنتظر مراجعة المشرف</h2><p>أكملت أسئلة الدرس، ولديك {lesson.summary?.pending_review ?? 1} إجابة قراءة مسجلة تنتظر المراجعة. لم تُحتسب صحيحة أو خاطئة، وسيحسمها المشرف.</p><StudentRetryTasks kind="lesson" sessionId={sessionId}/><Link href="/student/learning-v2" className={styles.back}>العودة إلى خريطة الدروس</Link></section>}
-      {lesson.session.stage === "supervisor_hold" && <section className={styles.practiceBoundary}><Image src="/characters/girl/encourage.png" alt="شخصية هِمّة تشجع" width={150} height={180}/><span className={styles.boundaryTag}>تقدمك محفوظ</span><h2>سيختار المشرف أفضل مساعدة لك</h2><p>{lesson.adaptation?.message ?? "لن نخفض مستواك ولن نكرر المساعدة بلا نهاية."}</p><Link href="/student/learning-v2" className={styles.back}>العودة إلى خريطة الدروس</Link></section>}
+      {lesson.session.stage === "waiting_review" && <section className={styles.practiceBoundary}><Image src="/characters/girl/encourage.png" alt="شخصية هِمّة تشجع" width={150} height={180}/><span className={styles.boundaryTag}>تقدمك محفوظ</span><h2><CheckCircle2 size={25} aria-hidden="true"/> نتحقق من قراءتك</h2><p>إجاباتك مسجلة، وسيظهر تقدمك بمجرد اكتمال التحقق. الصوت غير الواضح لا يُحسب خطأً.</p><button type="button" className={styles.primary} onClick={() => { void loadLesson().catch(() => setError("تعذر تحديث الدرس، حاول مرة أخرى.")); }}>تحديث التقدم</button><Link href="/student/learning-v2" className={styles.back}>العودة إلى خريطة الدروس</Link></section>
+      {lesson.session.stage === "supervisor_hold" && <section className={styles.practiceBoundary}><Image src="/characters/girl/encourage.png" alt="شخصية هِمّة تشجع" width={150} height={180}/><span className={styles.boundaryTag}>تقدمك محفوظ</span><h2>نجهز الخطوة المناسبة لك</h2><p>{lesson.adaptation?.message ?? "لن نخفض مستواك ولن نكرر المساعدة بلا نهاية."}</p><Link href="/student/learning-v2" className={styles.back}>العودة إلى خريطة الدروس</Link></section>}
       {lesson.session.stage === "outcome" && <section className={styles.practiceBoundary}><Image src={unresolvedSupport ? "/characters/girl/encourage.png" : "/characters/girl/success.png"} alt={unresolvedSupport ? "شخصية هِمّة تشجع الطالب" : "شخصية هِمّة تحتفل"} width={150} height={180}/><h2><CheckCircle2 size={25} aria-hidden="true"/> {unresolvedSupport ? "أكملت محاولة التقوية" : "أكملت أسئلة الدرس"}</h2><p>{lesson.adaptation?.message ?? "أصبحت خطوتك التعليمية التالية جاهزة."}</p><Link href="/student/learning-v2" className={styles.back}>العودة إلى خريطة الدروس</Link></section>}
       </div>
     </main>

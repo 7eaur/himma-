@@ -155,7 +155,9 @@ def _payload(db: Session, session: AssessmentSession) -> dict[str, Any]:
             "kind": session.session_type,
             "state": session.v2_state,
             "status": session.status,
-            "progress": {"answered": result["answered"], "total": 30},
+            # UI progress describes confirmed advance, never ungraded audio.
+            # Counting stored-but-unverified voice makes index/answered drift.
+            "progress": {"answered": session.v2_question_index if session.v2_state == "answering" else result["answered"], "total": 30},
             "release_id": session.content_release_id,
             "attempt_no": session.assessment_attempt_no,
         },

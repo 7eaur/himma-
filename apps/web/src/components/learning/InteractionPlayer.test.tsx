@@ -882,4 +882,40 @@ it("accepts one answer POST for rapid repeated taps before React rerenders", asy
     await Promise.resolve();
   });
   await waitFor(() => expect(changed).toHaveBeenCalledTimes(1));
+
+  it("restores a pending reading after refresh without showing supervisor review", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true, status: 200,
+      json: async () => ({
+        state: "processing", message: "نستمع إلى قراءتك...",
+        retry_required: false,
+      }),
+    });
+    const reading = payload({ interaction: "read_aloud", options: [] });
+    reading.reading_job_id = 55;
+    render(<InteractionPlayer sessionId={7} interaction={reading} onLessonChange={jest.fn()}/>);
+    expect(screen.queryByRole("button", { name: "بدء التسجيل" })).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("نستمع إلى قراءتك...");
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledWith(
+      "/api/v2/reading/jobs/55", expect.objectContaining({ cache: "no-store" }),
+    ));
+    expect(screen.queryByText(/مراجعة المشرف|المزود|Azure/)).not.toBeInTheDocument();
+  });
+
+  it("asks for a new recording when the provider cannot understand speech", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true, status: 200,
+      json: async () => ({
+        state: "retry_audio", message: "ما فهمت قراءتك بوضوح. جرّب التسجيل مرة ثانية.",
+        retry_required: true,
+      }),
+    });
+    const reading = payload({ interaction: "read_aloud", options: [] });
+    reading.reading_job_id = 66;
+    render(<InteractionPlayer sessionId={7} interaction={reading} onLessonChange={jest.fn()}/>);
+    expect(await screen.findByRole("button", { name: "بدء التسجيل" })).toBeEnabled();
+    expect(screen.getByText("ما فهمت قراءتك بوضوح. جرّب التسجيل مرة ثانية.")).toBeInTheDocument();
+    expect(screen.queryByText(/Azure|مراجعة المشرف|التفريغ/)).not.toBeInTheDocument();
+  });
+
 });

@@ -779,7 +779,7 @@ def test_pretest_reading_submission_stays_on_question_until_auto_grade(student_c
     assert job_id > 0
     assert result["assessment"]["interaction"]["reading_job_id"] == job_id
     assert result["assessment"]["interaction"]["question"]["question_id"] == "V2-PRE-Q06"
-    assert result["assessment"]["session"]["progress"]["answered"] == 6
+    assert result["assessment"]["session"]["progress"]["answered"] == 5  # pending voice never advances
     assert "مراجعة" not in response.text
     repeat = student_client.post(url, json=payload)
     assert repeat.status_code == 200, repeat.text
