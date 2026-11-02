@@ -225,3 +225,18 @@ def test_success_without_re_record_never_deletes_only_graded_voice(db):
     apply_evaluation(db, job_id=job.id, continue_academic_journey=lambda *_: None)
     assert audio.status == "graded"
     assert db.query(AudioPurgeTask).count() == 0
+
+
+def test_webm_opus_mime_keeps_browser_format_without_changing_audio_owner(db, monkeypatch):
+    student, release, response, audio, first = original_needs_retry(db)
+    approved(monkeypatch)
+    key = f"audio/{student.id}/webm-with-codec.audio"
+    stage(db, student=student, job=first, key=key)
+    job = attach_retry_take(
+        db, student_id=student.id, job_id=first.id,
+        storage_key=key, file_size=4300, mime_type="audio/webm;codecs=opus",
+        duration_seconds=2.3,
+    )
+    new_audio = db.get(AudioSubmission, job.audio_submission_id)
+    assert new_audio.mime_type == "audio/webm;codecs=opus"
+    assert job.assessment_response_id == response.id

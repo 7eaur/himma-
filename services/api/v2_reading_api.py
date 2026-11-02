@@ -83,7 +83,8 @@ def rerecord_unclear_reading(
     are staged first so a failed DB claim can be cleaned by normal retention.
     """
     allowed = {"audio/wav", "audio/webm", "audio/mp4", "audio/ogg", "audio/mpeg"}
-    if file.content_type not in allowed:
+    mime = (file.content_type or "").split(";", 1)[0].strip().lower()
+    if mime not in allowed:
         raise HTTPException(status_code=400, detail="صيغة التسجيل غير مدعومة. أعد التسجيل.")
     operation = f"v2-reading-retry:{job_id}:{idempotency_key}"
     deterministic_id = uuid.uuid5(
