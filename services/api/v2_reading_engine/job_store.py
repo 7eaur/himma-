@@ -36,6 +36,12 @@ def _now() -> datetime:
     return datetime.now(timezone.utc)
 
 
+def _utc(value: datetime) -> datetime:
+    """Normalize DB datetimes to UTC, including SQLite test timestamps."""
+    return (value.replace(tzinfo=timezone.utc) if value.tzinfo is None
+            else value.astimezone(timezone.utc))
+
+
 def _owner_context(db: Session, audio: AudioSubmission):
     if audio.lesson_response_id is not None:
         response = db.get(LessonQuestionResponse, audio.lesson_response_id)
@@ -179,7 +185,7 @@ def _locked_worker_job(
         V2ReadingJob.id == job_id).with_for_update())
     if (job is None or not job.is_current or job.status != "processing"
             or job.lease_owner != worker_id or job.version != expected_version
-            or job.lease_expires_at is None or job.lease_expires_at <= now):
+            or job.lease_expires_at is None or _utc(job.lease_expires_at) <= _utc(now)):
         raise ReadingConflict("Stale or unauthorized reading worker result")
     return job
 
