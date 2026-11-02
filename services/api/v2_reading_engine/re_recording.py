@@ -123,4 +123,11 @@ def attach_retry_take(
     if (job.id == original.id or job.reference_sha256 != original.reference_sha256
             or job.learning_mode != original.learning_mode):
         raise ReadingConflict("The original pinned reading policy has changed")
+    previous_audio = db.get(AudioSubmission, original.audio_submission_id, with_for_update=True)
+    if previous_audio is None or previous_audio.status not in ("pending_review", "rerecord_required"):
+        raise ReadingConflict("Previous audio cannot safely be superseded")
+    # Preserve bytes until the new take is conclusively graded; only then
+    # schedule the old recording for post-commit deletion.
+    previous_audio.status = "rerecord_required"
+    db.flush()
     return job

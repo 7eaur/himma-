@@ -3,11 +3,12 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from db.models import AudioSubmission
+from db.models import AudioSubmission, AudioPurgeTask
 from db.v2_reading_models import V2ReadingEvaluation, V2ReadingJob
 from test_v2_reading_job_store import db, enqueue_assessment, new_v2_assessment
 from v2_audio_leases import audio_upload_binding, track_new_audio_upload
 from v2_reading_engine import pinned_reference as pinned
+from v2_reading_engine.academic_apply import apply_evaluation
 from v2_reading_engine.job_store import (
     ReadingConflict, claim_reading, record_evidence,
 )
@@ -67,6 +68,8 @@ def test_replacing_unclear_audio_keeps_same_academic_answer_and_no_zero(db, monk
     assert retry.question_id == first.question_id
     assert retry.reference_sha256 == first.reference_sha256
     assert not first.is_current and first.status == "superseded"
+    assert audio.status == "rerecord_required"
+    assert db.query(AudioPurgeTask).count() == 0  # Do not delete without a winning grade.
     assert retry.is_current and retry.status == "queued"
     assert db.query(V2ReadingJob).filter(V2ReadingJob.is_current.is_(True)).count() == 1
     assert db.query(V2ReadingEvaluation).count() == 0
@@ -160,3 +163,65 @@ def test_unusable_retry_metadata_is_rejected(db, monkeypatch, length, mime, seco
             db, student_id=student.id, job_id=first.id,
             storage_key=f"audio/{student.id}/new.audio",
             file_size=length, mime_type=mime, duration_seconds=seconds)
+
+def test_successful_retake_keeps_only_latest_voice_after_academic_commit(db, monkeypatch):
+    student, release, response, old_audio, first = original_needs_retry(db)
+    approved(monkeypatch)
+    key = f"audio/{student.id}/final.audio"
+    stage(db, student=student, job=first, key=key)
+    later = attach_retry_take(
+        db, student_id=student.id, job_id=first.id,
+        storage_key=key, file_size=4000, mime_type="audio/webm",
+        duration_seconds=2.8,
+    )
+    assert old_audio.status == "rerecord_required"
+    assert db.query(AudioPurgeTask).count() == 0
+
+    now = datetime.now(timezone.utc)
+    job = claim_reading(db, worker_id="provider", now=now)
+    assert job.id == later.id
+    decision = evaluate_reading(
+        kind="letter", mode="assessment", reference="لَ",
+        transcript="لا", question_id=response.question_id,
+        audio_valid=True, provider_usable=True,
+    )
+    record_evidence(
+        db, job_id=later.id, worker_id="provider", expected_version=later.version,
+        decision=decision, provider_name="azure", provider_request_id="req-1",
+        transcript="لا", now=now + timedelta(seconds=2),
+    )
+    assert apply_evaluation(
+        db, job_id=later.id, continue_academic_journey=lambda *_: None,
+    )
+    db.flush()
+    winning = db.get(AudioSubmission, later.audio_submission_id)
+    assert winning.status == "graded"
+    assert old_audio.status == "retention_pending"
+    purge = db.query(AudioPurgeTask).one()
+    assert purge.storage_key == old_audio.storage_key
+    assert purge.student_id == student.id
+    assert purge.status == "queued"
+    assert response.is_correct is True
+    assert response.question_score_fraction == 1
+    assert db.query(V2ReadingEvaluation).count() == 1
+
+
+def test_success_without_re_record_never_deletes_only_graded_voice(db):
+    # The older official evaluator's only surviving recording must be safe.
+    student, release, response, audio = new_v2_assessment(db)
+    job = enqueue_assessment(db, student, release, response, audio)
+    now = datetime.now(timezone.utc)
+    claim_reading(db, worker_id="provider", now=now)
+    decision = evaluate_reading(
+        kind="letter", mode="assessment", reference="لَ",
+        transcript="لا", question_id=response.question_id,
+        audio_valid=True, provider_usable=True,
+    )
+    record_evidence(
+        db, job_id=job.id, worker_id="provider", expected_version=job.version,
+        decision=decision, provider_name="azure", provider_request_id="req-1",
+        transcript="لا", now=now + timedelta(seconds=2),
+    )
+    apply_evaluation(db, job_id=job.id, continue_academic_journey=lambda *_: None)
+    assert audio.status == "graded"
+    assert db.query(AudioPurgeTask).count() == 0

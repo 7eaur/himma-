@@ -21,6 +21,7 @@ from db.learning_models import (
 from db.models import AssessmentSession, AudioSubmission, AuditLog
 from db.v2_reading_models import V2ReadingEvaluation, V2ReadingJob
 from .job_store import ReadingConflict
+from v2_audio_retention_policy import schedule_superseded_audio
 
 
 def apply_evaluation(
@@ -128,5 +129,13 @@ def apply_evaluation(
     # Mandatory: continue lesson/support or assessment/placement atomically.
     # Any exception forces the caller to roll back this entire transaction.
     continue_academic_journey(db, response, session)
+    # Schedule privacy cleanup in the SAME academic transaction. The purge
+    # worker deletes bytes only after commit and never deletes a pending take.
+    schedule_superseded_audio(
+        db, student_id=job.student_id, question_id=job.question_id,
+        winning_audio_id=audio.id,
+        kind=("lesson" if job.lesson_response_id is not None
+              else session.session_type),
+    )
     db.flush()
     return True
