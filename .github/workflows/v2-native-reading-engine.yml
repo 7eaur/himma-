@@ -11,6 +11,7 @@ on:
       - 'services/api/test_v2_reading_job_store.py'
       - 'services/api/test_v2_assessment_fractional_scores.py'
       - 'services/api/test_v2_academic_apply.py'
+      - 'services/api/test_v2_pinned_reference.py'
       - 'services/api/v2_assessment_runtime.py'
       - 'services/api/test_v2_native_reading_worker.py'
       - 'services/api/db/v2_reading_models.py'
@@ -36,4 +37,4 @@ jobs:
       - name: Verify owner alias, vowel, scoring, retry, and safe student contracts
         working-directory: services/api
         # Contract tests intentionally do not load the application's DB/storage conftest.
-        run: python -m pytest --noconftest -q test_v2_native_reading_engine.py test_v2_native_azure_provider.py test_v2_reading_job_store.py test_v2_native_reading_worker.py test_v2_assessment_fractional_scores.py test_v2_academic_apply.py
+        run: python -m pytest --noconftest -q test_v2_native_reading_engine.py test_v2_native_azure_provider.py test_v2_reading_job_store.py test_v2_native_reading_worker.py test_v2_assessment_fractional_scores.py test_v2_academic_apply.py test_v2_pinned_reference.py
