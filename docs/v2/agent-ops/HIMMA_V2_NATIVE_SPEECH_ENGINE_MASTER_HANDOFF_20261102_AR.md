@@ -453,3 +453,110 @@
 **متى ندمج؟** بعد تنفيذ جميع P0–P6، النجاح الدقيق لاختبارات البدائل والدرجات والمراحل والأجهزة والخصوصية، ومراجعة قبول النموذج، ثم نشر نهائي واحد على نفس Web/API في Railway.  
 
 **ما الذي لم يُنفذ حتى تاريخ هذه الوثيقة؟** كود المحرك ودمجه بملف البدائل، وترحيل البيانات، وإزالة المراجعة اليدوية من المسار الحي، وواجهات النتيجة الجديدة، واختبارات التطبيق والنشر. المنجز فعليًا حتى الآن: الفرع، هذا الملف ومراجع البدء إليه، و**بيانات البدائل الـ31 داخل المستودع الأصلي** فقط.
+
+
+---
+
+## 18 — مرجع المختبر التنفيذي التفصيلي ونقل إعداد Azure بأمان (تحقق مباشر 2026-11-02)
+
+> **هذا القسم جزء إلزامي من التسليم.** يجب على المستلم قراءة كود المختبر نفسه عند بناء محرك هِمّة، وليس الاكتفاء بملف بدائل الحروف. المختبر مرجع هندسي **للفهم ونقل المنطق الذي نحتاجه فقط**، ولا يبقى تبعية تشغيلية أو استضافة ثانية.
+
+### 18.1 — هوية المرجع المثبتة ومكان المصدر
+
+- المستودع المرجعي التجريبي: [`7eaur/himma-lab`](https://github.com/7eaur/himma-lab).
+- الفرع: `experiment/simplified-speech-lab-20260921`.
+- **SHA المختبر المثبت للقراءة:** `1463159825073ecc7a85601dee1a6ed9b5b57d7e`؛ يرجع إليه المبرمج عند مقارنة النتائج حتى لو تقدم HEAD لاحقًا.
+- المصدر الدقيق: `https://github.com/7eaur/himma-lab/tree/1463159825073ecc7a85601dee1a6ed9b5b57d7e`.
+- مشروع Vercel التجريبي القائم — **مرجع للتحقق من إعدادات التشغيل فقط**: project ID `prj_NGvUk0GDppThltTNgsSyECRIr3qp` داخل الفريق `team_GMTdfNaLP5Pp44BeNBPag27t`.
+- **نقطة الحقيقة للإنتاج:** هذا الفرع من `7eaur/himma-`، وليس رابط المختبر العام. لا تستدعِ API المختبر من Web/API هِمّة، ولا تستعمل قاعدة Supabase التجريبية أو تخزين Vercel في مسار الطلاب.
+- لا تندمج تغييرات المستودع التجريبي تلقائيًا؛ انتقِ الوظائف بعد اختبارات وعقد خاص بـFastAPI وPostgreSQL القائمين.
+
+### 18.2 — خريطة الملفات الحقيقية: ماذا نأخذ وماذا لا نأخذ؟
+
+| ملف المختبر عند SHA أعلاه | المنطق/العقد المكتشف فيه | كيفية توظيفه في هِمّة الأصلية |
+|---|---|---|
+| `.env.example` | أسماء Azure وسياق Supabase؛ **لا يحتوي قيمة سرية** | مرجع أسماء الإعدادات فقط، لا تنسخ Supabase key/URL |
+| `lib/azure.ts` | `transcribeAzure`، صيغة ASR `ar-OM`، Short Audio أساسي ثم Fast Transcription احتياطي، كشف لغة التفريغ والتفاصيل والأخطاء | **انقل المنطق إلى Provider Adapter أصيل داخل `services/api/v2_reading_engine` ببايثون**، مع timeout وإعادة تقنية موثوقة وحماية أخطاء |
+| `lib/azure-pronunciation.ts` | `assessAzurePronunciation`، المرجع الصوتي و`Pronunciation-Assessment` عبر `ar-SA`، درجات Accuracy/Fluency/Completeness/Pronunciation | انقل ما يلزم كمصدر أدلة؛ لا تنقل درجاته بصفتها معيار نجاح تلقائيًا للحركات، واختبر دعم locale والفونيمات فعليًا |
+| `lib/audio-quality.ts` + `lib/client-audio-quality.ts` | تحقق WAV PCM16، الصمت، القصر، المؤشرات الشديدة الضعف | صياغة تحقق ملائمة لـWebM/MP4/WAV في تسجيل V2 الحالي، لا تُدخل افتراض WAV فقط في الواجهة المنتجة |
+| `lib/pcm-wav-recorder.ts` | تسجيل mono PCM16 WAV بعيّنة 16 kHz من AudioContext | **مرجع تنسيق صوت لا قالب واجهة**؛ لا تستبدل MediaRecorder الطالب عشوائيًا ولا تعتمد `ScriptProcessorNode` كحل نهائي دون فحص Safari/Android والتوافق والأداء؛ نفذ تحويلًا/تنسيقًا مناسبًا ضمن مسار الإنتاج |
+| `lib/analysis.ts` | `alignWords`، `analyzeReading`، تطبيع عربي ومقارنة C/D/S/I | إعادة بناء Alignment/التلميحات داخل Python؛ **لا تعتمد سياسة درجات المختبر القديمة**، بل صيغة N/C/D/S/I والحد >85 المذكور في القسم 05 |
+| `lib/targeted-letter-alias.ts` | مطابقة حرف/بديل بنطاق ضيق، تطبيع الترميز والترقيم، منع حذف الحركات المخالفة، Latin case-insensitive، الصينية | اعتماد دالة مطابقة أصلية باختبارات، مع **سياسة النجاح المعتمدة من المالك** و`normalized_target` بدل إظهار البديل |
+| `data/himma-v2-voice-cases.json` | 62 حالة من بنك V2، نسخة مصدر ثابتة | اختبارات عقد المحتوى فقط؛ في التنفيذ الفعلي المرجع هو content snapshot المثبّت لجلسة الطالب |
+| `data/himma-v2-targeted-letter-asr-aliases.json` | 10 حروف/31 احتمالًا، مصادر احتمالات عربية/لاتينية/صينية | **نُقلت بالفعل** إلى `services/api/v2_reading_engine/data/approved_letter_aliases_v1_2.json` داخل هذا الفرع؛ لا حاجة لقراءة مختبر وقت التشغيل |
+| `lib/speech-experiment.ts` | يحدد `targeted_pronunciation` و`lexical` و`fluency` و`decisionPreview` | الاستفادة من تصنيف المهمة فقط؛ **لا تنقل قرار `retry_required` لكل حرف** بعد تغيير السياسة بالاتفاق الجديد |
+| `app/api/speech-test/analyze/route.ts` | تدفق التحقق/رفع الصوت/ASR/PA/تحليل/حفظ/رد JSON | **مرجع تسلسلي** لإعادة بناء API V2؛ لا تنقل Next API أو روابط `speech-test` لمنتج FastAPI |
+| `app/api/speech-test/cases/route.ts`, `status/route.ts`, `feedback/route.ts` | قائمة الحالات، صحة الإعدادات، ردود المقارنة البشرية | تُترجم إلى API/Read models منتجة لا تعرض بيانات فنية للطفل؛ مراجعة نموذجية للباحث فقط |
+| `lib/supabase.ts` + `supabase/migrations/005..009` | حفظ صوت ونتائج وتجارب ومعايير مراجعة منفصلة `child/provider/model` | مرجع **أشكال بيانات البحث** فقط؛ نفذ PostgreSQL models/migrations أصلية ولا تنقل Supabase credentials/tables حرفيًا |
+| `scripts/test-targeted-letter-aliases.mjs`, `test-speech-feedback.mjs`, `test-audio-quality.mjs` | حالات إيجابية وسلبية للبدائل وملاحظات الباحث وجودة الصوت | إعادة إنتاج اختبارات مقابلة في `services/api/tests` وE2E هِمّة، مع تغطية البعد الأكاديمي والدرجات الجزئية |
+| `app/speech-test/page.tsx` | واجهة الباحث وسجلات الأدلة والنتائج الخام | **لا تنقل واجهة المختبر إلى الطالب**؛ يحتفظ هِمّة بقالب الطالب الحالي وتُبنى لوحة مشرف جديدة وفق القسمين 07 و08 |
+
+### 18.3 — التسلسل الفعلي في المختبر: الفارق بينه وبين المطلوب
+
+مسار POST الحالي في المختبر:
+1. الطلب يحمل `participantCode` و`testKey` وWAV ومؤشر المدة؛ يتحقق من رمز الباحث وحالة السؤال.
+2. `analyzePcm16Wav` يرفض الملف الفني غير المناسب؛ يتجه إلى Supabase Storage الخاص بالتجارب.
+3. `transcribeAzure(audio, testCase.text, {allowNonArabicTranscript: targeted_pronunciation})` يستدعي Azure ASR `ar-OM`.
+4. عند تفعيل تقييم النطق لسؤال يستدعي `assessAzurePronunciation(audio, readingReference)` بلهجة/locale `ar-SA`.
+5. `decisionPreview` يقارن كلمات المرجع ويدقق في البدائل، و`speech_experiment_runs` يحفظ النص والبديل ودرجة المزود وسبب القرار وبيانات الجودة.
+6. إرجاع `runId` والبيانات للباحث، ويمكنه منفصلًا تقييم صحة نطق الطفل ودقة تفريغ Azure وملاءمة قرار النموذج.
+
+**الاختلاف الذي لا يجوز نسخه:** المختبر عند SHA المرجعي **`academicEffect:none`** ويُلزم الحروف بـ`retry_required` حتى عند التطابق، بخلاف السياسة الجديدة التي اعتمد فيها المالك المطابقة الدقيقة للأصل أو البديل على تسجيل صالح بوصفها نجاحًا أكاديميًا، مع اختبار صارم للبدائل قبل إطلاق الدرجات. وكذلك المختبر ليس نظام 30 سؤالًا بدرجة جزئية/تسكين/تقوية/مكافآت؛ هذه تُبنى من عقود V2 الأصلية، لا تُستنتج من تجربة المختبر.
+
+### 18.4 — طريقة Azure الحالية بدقة
+
+- `lib/azure.ts`: **Short Audio REST** على `https://<region>.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?language=ar-OM&format=detailed` بصوت WAV PCM16 mono 16 kHz، ومفتاح API ضمن header `Ocp-Apim-Subscription-Key`.
+- **Fallback** عند عدم وجود تفريغ مقبول إلى `<HIMMA_AZURE_SPEECH_ENDPOINT>/speechtotext/transcriptions:transcribe?api-version=2025-10-15`، مع `locales: ["ar-OM"]` وphrase hint اختياري يتم التحكم به بالبيئة؛ توثيق نسخ Azure APIs الفعلية عند البناء مهم لتفادي إصدارات متقادمة.
+- أصوات الحروف قد تُفرّغ إلى العربية أو اللاتينية أو الصينية؛ المختبر يسمح بتفريغ غير عربي عند `targeted_pronunciation` فقط. **هِمّة يجب أن تقبل غير العربي فقط إن طابق بديلًا معتمدًا حرفيًا وللسؤال المحدد**؛ لا قبول لرموز صينية مجهولة ولا وضع «كل غير العربي صحيح».
+- `lib/azure-pronunciation.ts`: REST Conversation Recognition مع `Pronunciation-Assessment` base64 يحتوي `ReferenceText` و`GradingSystem=HundredMark` و`Granularity=Phoneme` و`Dimension=Comprehensive` و`EnableMiscue=true`. `ar-SA` افتراضي ما لم تضبط متغيرات النطق.
+- `HIMMA_AZURE_SPEECH_REGION` إذا لم تُحدد يمكن استنتاجها من `HIMMA_AZURE_SPEECH_ENDPOINT` بالشكل الإقليمي المدعوم. لا تخلط endpoint الخاص بـFast Transcription مع endpoint الخاص بـShort Audio أو Pronunciation.
+- `HIMMA_AZURE_SPEECH_TIMEOUT_SECONDS` تتحكم في مهلة Fast Transcription، والافتراضي في الكود 45 ثانية. مهلات الاتصال والنفقات ومتطلبات Azure regional endpoints يجب التحقق منها عند نقل المحول، بدل نسخ زمن أو مسار غير مناسبين للإنتاج.
+
+### 18.5 — **مرجع المفتاح السري وأماكن ضبطه، دون كشفه**
+
+**تم التحقق من إعدادات المختبر في Vercel عبر قراءة أسماء متغيراته فقط `decrypt=false`، ولم تُقرأ قيمة أي مفتاح ولم تُنسخ ولم تُرفَع إلى Git.**
+
+- مصدر بيانات الدخول الفعلي حاليًا: مشروع Vercel `prj_NGvUk0GDppThltTNgsSyECRIr3qp`، قائمة **Environment Variables** للـPreview/Production.
+- **اسم المفتاح الموجود فعلًا:** `HIMMA_AZURE_SPEECH_API_KEY`، نوعه `sensitive`، ومُعرف في مشروع المختبر بوجهتي `production` و`preview`. **هذا تحقق بوجود الإعداد، لا بصحة قيمة المفتاح أو صلاحيات Azure أو إمكان فك تشفيره.**
+- اسم endpoint الموجود فعلًا: `HIMMA_AZURE_SPEECH_ENDPOINT` (نوع `sensitive`).
+- أسماء البيئة الأخرى المسجلة في Vercel: `HIMMA_AZURE_SPEECH_REFERENCE_HINT` و`HIMMA_AZURE_SPEECH_TIMEOUT_SECONDS`. `HIMMA_AZURE_SPEECH_REGION` و`HIMMA_AZURE_PRONUNCIATION_ENDPOINT` و`HIMMA_AZURE_PRONUNCIATION_LOCALE` **ليست متغيرات مسجلة في قائمة Vercel التي فُحصت**؛ كود المختبر يستنتج المنطقة ويختار افتراضي `ar-SA` ما لم يوجد إعداد.
+- **تحقق Railway الأصلي:** في خدمة `himma-` (API)، بيئة production، لم يظهر `HIMMA_AZURE_SPEECH_API_KEY` ولا أسماء `HIMMA_AZURE_*` ضمن قائمة المتغيرات الحالية؛ ظهرت مفاتيح تخزين S3 فقط ضمن المرشح المتعلق بالصوت والتخزين. القيم لم تُكشف عند الاستعلام.
+- **المقصود بنقل المفتاح:** بعد إنجاز المحرك في الفرع وقبل اختبارات تفعيل Azure/الإطلاق، يستخدم المشغّل المخول **نفس مورد Azure المصرح به أو يصدر مفتاحًا جديدًا مخصصًا لهِمّة الأصلية**. يتم ضبط `HIMMA_AZURE_SPEECH_API_KEY` و`HIMMA_AZURE_SPEECH_ENDPOINT` وأي Region/Locale مطلوبين في **Environment Variables الخاصة بخدمة API الأصلية `himma-` على Railway**؛ يقرأها Backend من `os.environ`/إدارة الأسرار الخاصة بالخدمة.
+- **لا تضف المفتاح مطلقًا إلى `.env.example` بقيمة، أو docs، أو JSON/Markdown، أو GitHub issue/CI/log، أو `NEXT_PUBLIC_*`، أو واجهة الطالب.** `.env.example` يعرض **اسمًا فارغًا** فقط. لا تمرر المفتاح إلى Web Next.js أصلًا، ولا تعرضه في response. التبادل داخل Backend فقط.
+- لا تحاول «نقله» بسلسلة نسخ في ملف نصي أو ملف توثيق. إذا كانت قيمة Vercel غير متاحة/محجوبة، يجب استعمال إعادة إصدار Azure من المالك/المخول بدل التخمين أو قراءة أسرار الإنتاج بطرق جانبية.
+- **لا تضبط متغيرات Railway production الآن لمجرد إعداد الخطة**: قد يؤدي تغيّر البيئة إلى redeploy مبكر أو تفعيل اتصال مزود قبل اختبار الدمج. عملية ضبطها جزء من بوابة القبول/التفعيل بعد اكتمال P1–P6 مع وجود اختبارات قنوات آمنة وخط تراجع.
+- أضف فحص **configured true/false** ومصادقة اختبار طلب Azure حقيقي في بيئة مخولة مع عدم إرجاع نص المفتاح، ثم تحقق من الإقليم والـquota والفوترة واتفاق معالجة صوت طفل قبل تفعيل اعتماد الدرجات.
+- افصل credentials الخاصة بـ`SUPABASE_SERVICE_ROLE_KEY` و`NEXT_PUBLIC_SUPABASE_URL` و`ADMIN_DASHBOARD_TOKEN`؛ **لا تنقلها إلى هِمّة الأصلية**؛ التخزين والهوية والمراجعة في مشروع Railway/PostgreSQL الحاليين.
+- بعد نجاح النقل والتحقق، أوقف اعتماد الإنتاج على المختبر، ويمكن تدوير مفتاح Azure المشترك لاحقًا بطريقة منسقة لا تعطل التجارب القائمة.
+
+### 18.6 — خريطة النقل الفنية ومراحل التحقق
+
+**في P0**:
+- [ ] تأكيد SHA المختبر `14631598...` والأصول المستخدمة أعلاه وبناء خريطة call graph دقيقة لـ`transcribeAzure` و`assessAzurePronunciation` و`decisionPreview`.
+- [ ] مقارنة عقد الصوت في V2 (MediaRecorder WebM/MP4) مع شرط Azure Short Audio الذي يتوقع WAV mono16k؛ حسم التحويل الصحيح دون تكسير iOS/Safari.
+- [ ] جرد المخزن والـjobs والواجهات والمدفوعات القديمة قبل حذفها؛ عدم نسخ جداول Supabase.
+
+**في P1**:
+- [ ] تنفيذ `AzureSpeechProvider` في Python داخل `services/api/v2_reading_engine`، مع معالجة Short Audio وFast fallback وأخطاء المزود وPronunciation بشكل منفصل، واختبارات mocks للمزود بدل اتصالات Azure حقيقية داخل CI.
+- [ ] توصيل قائمة الـ31 الموجودة بالفرع بمفتاح السؤال/الهدف وتطبيع آمن واختبارات سلبية/إيجابية؛ لا قبول حرف صيني مجهول أو نطق خاطئ بسبب normalization فضفاض.
+- [ ] إعادة بناء مطابقة الكلمات ودرجات جمل وفق >85 والتلميحات من خريطة الكلمات لا من تخمين لغوي.
+- [ ] استخدام إعدادات سرية **محلية/اختبارية مصرح بها** لحين اكتمال الفرع، مع عدم كشف Azure key في ملفات أو CI.
+
+**في P2–P5**:
+- [ ] نقل الحفظ من Supabase lab إلى جداول V2 الأصلية وS3 الخاص، مع stable ids/unique constraints/jobs.
+- [ ] دمج الأنشطة والاختبارات والتقوية والتسكين والأرشيف والمشرف الأصليين وإزالة انتظار واعتماد المشرف النشط؛ لا يبقى `speech-test` route في رحلة الطفل.
+- [ ] رد طالب آمن مثل `{status: "correct" | "incorrect" | "retry_audio" | "processing", message, hint?}` مع عدم إرسال Azure raw/aliases/provider details؛ الاحتفاظ بالمعلومات التقنية فقط في DB مقيدة.
+- [ ] إنشاء مركز متابعة صوتي جديد في Admin V2 دون نقل صفحات الباحث التجريبي.
+
+**في P6/P7**:
+- [ ] تحقق end-to-end من نتائج Azure الحقيقية على صوت مأذون، بما فيها مدّ مقابل حركة، ولاتيني/صيني من البدائل، والصمت/نصوص الهذيان؛ إذا ظهرت false accepts لا ندعي دقة أكاديمية.
+- [ ] التحقق من وجود إعداد Azure في Railway API بعد ضبطه بالأمان، مع عدم طباعة أسرار، وفشل مغلق إذا غاب؛ رصد الخدمة والحدود والمهل والكلفة.
+- [ ] إثبات عدم وجود `himma-lab` أو URL Vercel/Supabase أو `NEXT_PUBLIC` key في imports/network calls الخاصة بالإنتاج.
+- [ ] تحديث **هذا الملف الرئيسي نفسه** بموضع الكود النهائي والملفات المحذوفة وMigration/CI/SHA/Deploy وأدلة القبول.
+
+### 18.7 — قرار الصدق بشأن ما تم فعليًا حتى الآن
+
+**مؤكد الآن:** فُحص كود المختبر وملفات الربط والمطابقة والتسجيل والتحليل، وتأكد وجود **اسم مفتاح Azure** وإعداد endpoint في Vercel دون كشف قيمتهما؛ تأكد غياب اسم المفتاح من متغيرات خدمة API الأصلية في Railway؛ نُقلت قائمة البدائل الـ31 إلى ملف داخل المستودع الأصلي ووُثّق المصدر والهيكل هنا.
+
+**لم يحدث الآن:** لا قراءة/نسخ لقيمة المفتاح السري من Vercel، ولا إعداد له في Railway، ولا إنشاء Azure resource أو محول Python، ولا تغيير لنشر هِمّة الأصلي. لذلك لا تُكتب «المفاتيح نُقلت» أو «المحرك يعمل» إلا بعد تحقق حقيقي ضمن بوابات الإطلاق.
+
