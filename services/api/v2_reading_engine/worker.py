@@ -159,22 +159,34 @@ async def run_one(
                 provider_name="azure_speech", provider_request_id=result.request_id,
                 transcript=result.transcript,
             )
-            if finalize_academic and evidence is not None:
-                from v2_reading_engine.academic_apply import apply_evaluation
-                from v2_reading_engine.academic_journey import continue_native_academic_journey
-                apply_evaluation(
-                    db, job_id=work.id,
-                    continue_academic_journey=continue_native_academic_journey,
-                )
+            # Persist immutable provider evidence BEFORE attempting to advance
+            # the learner. An interrupted academic transition must never
+            # trigger a second paid transcription for the same recording.
             db.commit()
         except ReadingConflict:
             db.rollback()
             return "superseded"
         except Exception:
             db.rollback()
-            return "academic_deferred"
-    if finalize_academic and decision.status != "retry_audio":
-        return "applied"
+            return "evidence_deferred"
+
+    if finalize_academic and evidence is not None:
+        with session_factory() as db:
+            try:
+                from v2_reading_engine.academic_apply import apply_evaluation
+                from v2_reading_engine.academic_journey import continue_native_academic_journey
+                apply_evaluation(
+                    db, job_id=work.id,
+                    continue_academic_journey=continue_native_academic_journey,
+                )
+                db.commit()
+                return "applied"
+            except ReadingConflict:
+                db.rollback()
+                return "academic_deferred"
+            except Exception:
+                db.rollback()
+                return "academic_deferred"
     return "evidence_ready" if decision.status != "retry_audio" else "retry_audio"
 
 
