@@ -540,7 +540,7 @@ describe("InteractionPlayer", () => {
       expect(pause).toHaveBeenCalledTimes(1);
       await act(async()=>{view.rerender(<InteractionPlayer sessionId={7} interaction={interaction} onLessonChange={changed}/>);});
       expect(view.container.querySelector("audio")).toBe(preview);
-      expect(screen.getByRole("button",{name:"إرسال التسجيل للمراجعة"})).toBeEnabled();
+      expect(screen.getByRole("button",{name:"تحقق من قراءتي"})).toBeEnabled();
       expect(global.fetch).not.toHaveBeenCalled();
       view.unmount();
     } finally {
@@ -586,7 +586,7 @@ describe("InteractionPlayer", () => {
       });
       expect(stopTrack).toHaveBeenCalled();
       expect(screen.getByRole("alert")).toHaveTextContent("لم يُلتقط صوت");
-      expect(screen.getByRole("button", { name: "إرسال التسجيل للمراجعة" })).toBeDisabled();
+      expect(screen.getByRole("button", { name: "تحقق من قراءتي" })).toBeDisabled();
       expect(global.fetch).not.toHaveBeenCalled();
     } finally {
       Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: previousDevices });
@@ -631,7 +631,7 @@ describe("InteractionPlayer", () => {
       expect(recorder.stop).toHaveBeenCalledTimes(1);
       expect(screen.getByRole("alert")).toHaveTextContent("تعذر تسجيل الصوت");
       expect(screen.getByRole("button", { name: "بدء التسجيل" })).toBeEnabled();
-      expect(screen.getByRole("button", { name: "إرسال التسجيل للمراجعة" })).toBeDisabled();
+      expect(screen.getByRole("button", { name: "تحقق من قراءتي" })).toBeDisabled();
       expect(global.fetch).not.toHaveBeenCalled();
     } finally {
       Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: previousDevices });
@@ -679,7 +679,7 @@ describe("InteractionPlayer", () => {
       expect(recorder.ondataavailable).toBeNull();
       await act(async () => { lateStop?.(); });
       expect(screen.getByRole("alert")).toHaveTextContent("تعذر إنهاء التسجيل");
-      expect(screen.getByRole("button", { name: "إرسال التسجيل للمراجعة" })).toBeDisabled();
+      expect(screen.getByRole("button", { name: "تحقق من قراءتي" })).toBeDisabled();
       expect(screen.getByRole("button", { name: "بدء التسجيل" })).toBeEnabled();
       expect(global.fetch).not.toHaveBeenCalled();
     } finally {
@@ -841,7 +841,7 @@ it("uploads Safari MP4 reading audio with the matching MIME and filename", async
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: "إيقاف التسجيل" }));
     });
-    fireEvent.click(screen.getByRole("button", { name: "إرسال التسجيل للمراجعة" }));
+    fireEvent.click(screen.getByRole("button", { name: "تحقق من قراءتي" }));
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
     const upload = fetchMock.mock.calls[0][1].body as FormData;
     const audio = upload.get("file") as File;
@@ -882,6 +882,7 @@ it("accepts one answer POST for rapid repeated taps before React rerenders", asy
     await Promise.resolve();
   });
   await waitFor(() => expect(changed).toHaveBeenCalledTimes(1));
+});
 
   it("restores a pending reading after refresh without showing supervisor review", async () => {
     (global.fetch as jest.Mock).mockResolvedValue({
