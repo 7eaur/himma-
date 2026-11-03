@@ -98,7 +98,7 @@ class MediaProvider:
         path = approved_asset_path(asset)
         if path is not None:
             url = f"/api/v2/content/media/{asset_id}"
-            if kind in {"image", "video"}:
+            if kind in {"image", "video", "audio"}:
                 url += f"?v={educational_media_version(path)}"
             return ResolvedMedia(asset_id, kind, "ready", url, False,
                                  status == "approved_temporary" and lesson_video_replacement(asset) is None)

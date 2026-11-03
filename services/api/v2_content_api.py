@@ -158,9 +158,9 @@ def approved_media_file(asset_id: str, v: str | None = Query(default=None, max_l
         raise HTTPException(status_code=404, detail="ملف الوسيط غير معتمد أو غير موجود")
     policy = "private, no-store"
     if v is not None:
-        if (asset.get("kind") or asset.get("type")) not in {"image", "video"} or v != educational_media_version(path):
+        if (asset.get("kind") or asset.get("type")) not in {"image", "video", "audio"} or v != educational_media_version(path):
             raise HTTPException(status_code=404, detail="نسخة الوسيط غير موجودة")
-        # Only exact, fingerprinted images/videos: never learner audio or responses.
+        # Only immutable, checksum-pinned educational assets, never student recordings or responses.
         # Authentication remains mandatory; shared/CDN caching stays forbidden.
         policy = "private, max-age=86400, immutable"
     import mimetypes
