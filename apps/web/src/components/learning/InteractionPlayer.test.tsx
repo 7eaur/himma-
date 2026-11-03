@@ -963,3 +963,48 @@ it("never shows a native reading model in an independent assessment", async () =
   expect(screen.queryByLabelText("مثال قراءة للتعلّم")).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "فهمت، نكمل" })).not.toBeInTheDocument();
 });
+
+
+
+it("a provider outage pauses polling and lets the child recheck the same saved audio", async () => {
+  const states: string[] = [];
+  let reads = 0;
+  const next = { interaction: { question: { question_id: "Q-2" } } };
+  const fetchMock = jest.fn(async (input: string, init?: RequestInit) => {
+    if (input === "/api/v2/reading/jobs/78" && (!init || init.method !== "POST")) {
+      reads += 1;
+      return { ok: true, json: async () => reads === 1
+        ? { state: "unavailable", retry_required: false,
+            message: "تعذر التحقق الآن. تسجيلك محفوظ؛ حاول المتابعة بعد قليل." }
+        : { state: "completed", retry_required: false,
+            message: "تم تسجيل قراءتك." } };
+    }
+    if (input === "/api/v2/reading/jobs/78/retry-analysis") {
+      states.push(init?.method || "missing");
+      return { ok: true, json: async () => ({ job_id: 78, state: "processing" }) };
+    }
+    if (input === "/api/v2/assessments/sessions/7") {
+      return { ok: true, json: async () => next };
+    }
+    throw new Error(`unexpected request: ${input}`);
+  });
+  global.fetch = fetchMock as unknown as typeof fetch;
+  const reading = payload({ interaction: "read_aloud", role: "pretest", options: [] });
+  reading.progress.stage = "pretest";
+  reading.reading_job_id = 78;
+  const change = jest.fn();
+  render(<InteractionPlayer sessionId={7} endpointBase="/api/v2/assessments"
+    interaction={reading} onLessonChange={change} />);
+  const retry = await screen.findByRole("button", {
+    name: "إعادة التحقق من التسجيل المحفوظ",
+  });
+  expect(retry).toBeEnabled();
+  expect(reads).toBe(1);
+  expect(screen.queryByRole("button", { name: "بدء التسجيل" })).not.toBeInTheDocument();
+  expect(fetchMock.mock.calls.every(([url]) => !String(url).includes("/recording"))).toBe(true);
+  fireEvent.click(retry);
+  await waitFor(() => expect(change).toHaveBeenCalledWith(next));
+  expect(states).toEqual(["POST"]);
+  expect(reads).toBe(2);
+  expect(fetchMock.mock.calls.every(([url]) => !String(url).includes("/rerecord"))).toBe(true);
+});

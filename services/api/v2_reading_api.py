@@ -18,7 +18,7 @@ from v2_audio_leases import audio_upload_binding, track_new_audio_upload
 from v2_reading_engine.re_recording import attach_retry_take, retry_is_allowed
 from db.models import Student, User
 from dependencies import get_current_student, get_current_user, get_db
-from v2_reading_engine.job_store import ReadingConflict
+from v2_reading_engine.job_store import ReadingConflict, retry_saved_audio_after_outage
 from v2_reading_engine.read_models import (
     student_reading_status, supervisor_reading_results, supervisor_audio_binding,
 )
@@ -37,6 +37,27 @@ def student_result(
         return student_reading_status(db, job_id=job_id, student_id=student.id)
     except ReadingConflict as exc:
         raise HTTPException(status_code=404, detail="نتيجة القراءة غير متاحة") from exc
+
+
+@router.post("/jobs/{job_id}/retry-analysis")
+def retry_saved_reading_analysis(
+    job_id: int,
+    student: Student = Depends(get_current_student),
+    db: Session = Depends(get_db),
+):
+    """Retry private stored bytes, without another microphone capture."""
+    try:
+        job = retry_saved_audio_after_outage(
+            db, student_id=student.id, job_id=job_id,
+        )
+        db.commit()
+    except ReadingConflict as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=409, detail="التسجيل محفوظ. أعد التحقق بعد قليل.",
+        ) from exc
+    return {"job_id": job.id, "state": "processing",
+            "message": "نستمع إلى تسجيلك المحفوظ مرة أخرى..."}
 
 
 @router.get("/admin/results")

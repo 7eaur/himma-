@@ -93,6 +93,9 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   const [nativeJobId, setNativeJobId] = useState<number | null>(interaction.reading_job_id ?? null);
   const [unclearRetryId, setUnclearRetryId] = useState<number | null>(null);
   const [nativeMessage, setNativeMessage] = useState(interaction.reading_job_id ? "نستمع إلى قراءتك..." : "");
+  const [nativePaused, setNativePaused] = useState(false);
+  const [nativeRetryBusy, setNativeRetryBusy] = useState(false);
+  const [nativePollRevision, setNativePollRevision] = useState(0);
   const nativeProcessing = question.interaction === "read_aloud" && nativeJobId !== null && nativeJobId > 0;
 
   useEffect(() => {
@@ -378,6 +381,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
           throw new Error("تعذر حفظ القراءة الجديدة. حاول مرة أخرى.");
         }
         setNativeJobId(result.job_id);
+        setNativePaused(false);
         setNativeMessage(result.message || "نستمع إلى قراءتك...");
         setUnclearRetryId(null);
         setFeedback(null);
@@ -431,6 +435,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
           Number.isSafeInteger(result.submission?.reading_job_id) &&
           result.submission.reading_job_id > 0) {
         setNativeJobId(result.submission.reading_job_id);
+        setNativePaused(false);
         setNativeMessage("نستمع إلى قراءتك...");
         setFeedback(null);
         setAudioBlob(null);
@@ -456,6 +461,27 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   };
 
 
+  // Provider outages must not trigger a new recording or unbounded polling.
+  // A learner can explicitly retry analysis of the already stored bytes only.
+  const recheckSavedReading = async () => {
+    if (!nativePaused || !nativeJobId || nativeRetryBusy) return;
+    setNativeRetryBusy(true);
+    setError("");
+    try {
+      const response = await fetch(`/api/v2/reading/jobs/${nativeJobId}/retry-analysis`, {
+        method: "POST",
+      });
+      if (!response.ok) throw new Error("التسجيل محفوظ. حاول إعادة التحقق بعد قليل.");
+      setNativePaused(false);
+      setNativeMessage("نستمع إلى تسجيلك المحفوظ مرة أخرى...");
+      setNativePollRevision(previous => previous + 1);
+    } catch {
+      setError("التسجيل محفوظ. حاول إعادة التحقق بعد قليل.");
+    } finally {
+      setNativeRetryBusy(false);
+    }
+  };
+
   // Provider evaluation is a recoverable, server-owned job. Poll only this
   // learner's current job; reconnecting never creates a second attempt.
   useEffect(() => {
@@ -471,9 +497,16 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
         if (!response.ok) throw new Error("تعذر التحقق من القراءة. حاول تحديث الصفحة.");
         const result: NativeReadingResult = await response.json();
         if (stopped || controller.signal.aborted) return;
-        if (result.state === "processing" || result.state === "unavailable") {
+        if (result.state === "unavailable") {
           setNativeMessage(result.message);
-          timer = window.setTimeout(() => void poll(), result.state === "unavailable" ? 12000 : 2200);
+          setNativePaused(true);
+          // Provider exhausted automatic retries: wait for a clear learner
+          // action rather than polling a terminal status indefinitely.
+          return;
+        }
+        if (result.state === "processing") {
+          setNativeMessage(result.message);
+          timer = window.setTimeout(() => void poll(), 2200);
           return;
         }
         if (result.state === "retry_audio") {
@@ -553,7 +586,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
       controller.abort();
       if (timer !== undefined) window.clearTimeout(timer);
     };
-  }, [nativeJobId, endpointBase, sessionId, question.interaction, question.question_id, interaction.progress.stage, onLessonChange]);
+  }, [nativeJobId, nativePollRevision, endpointBase, sessionId, question.interaction, question.question_id, interaction.progress.stage, onLessonChange]);
 
   const renderMedia = (reference: MediaRef, option = false) => {
     const asset = media[reference.media_id];
@@ -672,7 +705,13 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
       </div>;
     })}</div>}
 
-    {question.interaction === "read_aloud" && nativeMessage && <div className={styles.feedback} role="status"><span>{nativeMessage}</span></div>}
+    {question.interaction === "read_aloud" && nativeMessage && <div className={styles.feedback} role="status">
+      <span>{nativeMessage}</span>
+      {nativePaused && <button type="button" className={styles.secondary}
+        disabled={nativeRetryBusy} onClick={() => void recheckSavedReading()}>
+        {nativeRetryBusy ? "جارٍ إعادة التحقق..." : "إعادة التحقق من التسجيل المحفوظ"}
+      </button>}
+    </div>}
     {question.interaction === "read_aloud" && !nativeProcessing && assistedNext === null && <div className={styles.recorder}>{!audioBlob ? <><button type="button" className={`${styles.recordButton} ${recording ? styles.recording : ""}`} onClick={recording ? stopRecording : () => void startRecording()} disabled={saving || awaitingConfirmation || requestingMic || nativeProcessing} aria-label={requestingMic ? "جاري تفعيل الميكروفون" : recording ? "إيقاف التسجيل" : "بدء التسجيل"}>{recording ? <MicOff size={28}/> : <Mic size={28}/>}</button><p>{requestingMic ? "جاري طلب إذن الميكروفون..." : recording ? `جاري التسجيل… ${recordingSeconds} ث` : "اضغط ثم اقرأ بصوت واضح"}</p></> : <>{audioUrl && <audio controls src={audioUrl}/>}<button type="button" className={styles.secondary} disabled={saving || awaitingConfirmation} onClick={resetRecording}><RotateCcw size={16}/> إعادة التسجيل</button><p>استمع إلى قراءتك، ثم أرسلها للتحقق.</p></>}</div>}
 
     {!isAssessment && feedback && !feedback.retry_required && !assistedFeedback && <div className={`${styles.feedback} ${feedback.correct === false ? styles.retry : styles.accepted}`} role="status"><strong>{feedback.correct === true ? "أحسنت!" : feedback.correct === false ? "لم تكتمل الإجابة" : "تم الحفظ"}</strong><span>{feedback.message}</span></div>}

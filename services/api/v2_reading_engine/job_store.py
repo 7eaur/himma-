@@ -132,6 +132,61 @@ def enqueue_reading(
     return job
 
 
+def retry_saved_audio_after_outage(
+    db: Session, *, student_id: int, job_id: int,
+    now: datetime | None = None, cooldown_seconds: int = 60,
+) -> V2ReadingJob:
+    """Recover the SAME recording after a provider outage, never a new attempt.
+
+    The learner cannot force a second analysis before the original lease
+    exhausts its retries. The cooldown prevents provider request spamming.
+    """
+    if not 30 <= cooldown_seconds <= 3600:
+        raise ValueError("Invalid recovery cooldown")
+    now = now or _now()
+    job = db.scalar(select(V2ReadingJob).where(
+        V2ReadingJob.id == job_id,
+        V2ReadingJob.student_id == student_id,
+        V2ReadingJob.is_current.is_(True),
+    ).with_for_update())
+    if job is None or job.status != "service_unavailable":
+        raise ReadingConflict("Reading is not awaiting provider recovery")
+    if (_utc(now) - _utc(job.updated_at)).total_seconds() < cooldown_seconds:
+        raise ReadingConflict("Provider retry cooldown is active")
+    if db.scalar(select(V2ReadingEvaluation.id).where(
+        V2ReadingEvaluation.job_id == job.id,
+    )) is not None:
+        raise ReadingConflict("Reading evaluation has already been saved")
+    audio = db.get(AudioSubmission, job.audio_submission_id, with_for_update=True)
+    if (audio is None or audio.status in {"purged", "retention_pending"}
+            or audio.file_size <= 0
+            or not audio.storage_key.startswith(f"audio/{student_id}/")
+            or (job.assessment_response_id is not None and
+                audio.assessment_response_id != job.assessment_response_id)
+            or (job.lesson_response_id is not None and
+                audio.lesson_response_id != job.lesson_response_id)):
+        raise ReadingConflict("Original private recording is not available")
+    owner_type = (AssessmentQuestionResponse if job.assessment_response_id is not None
+                  else LessonQuestionResponse)
+    owner_id = (job.assessment_response_id if job.assessment_response_id is not None
+                else job.lesson_response_id)
+    response = db.get(owner_type, owner_id, with_for_update=True)
+    if (response is None or response.status != "pending_review"
+            or response.is_correct is not None
+            or response.question_score_fraction is not None):
+        raise ReadingConflict("Academic answer is no longer awaiting this recording")
+    job.status = "queued"
+    job.attempt_count = 0
+    job.next_attempt_at = None
+    job.lease_owner = None
+    job.lease_expires_at = None
+    job.last_error_code = None
+    job.version += 1
+    job.updated_at = now
+    db.flush()
+    return job
+
+
 def claim_reading(
     db: Session, *, worker_id: str, now: datetime | None = None,
     lease_seconds: int = 90,

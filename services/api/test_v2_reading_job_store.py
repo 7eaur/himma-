@@ -238,3 +238,70 @@ def test_old_fraction_nullable_and_unchanged(db):
     job = enqueue_assessment(db, student, release, response, audio)
     db.flush()
     assert job.id is not None
+
+
+
+def test_provider_outage_reuses_saved_audio_after_cooldown_without_new_grade(db):
+    from v2_reading_engine.job_store import retry_saved_audio_after_outage
+    student, release, response, audio = new_v2_assessment(db)
+    job = enqueue_assessment(db, student, release, response, audio)
+    now = datetime.now(timezone.utc)
+    for _ in range(3):
+        work = claim_reading(db, worker_id="outage-worker", now=now)
+        provider_failure(
+            db, job_id=work.id, worker_id="outage-worker",
+            expected_version=work.version, error_code="provider_timeout",
+            now=now + timedelta(seconds=1),
+        )
+        now += timedelta(seconds=40)
+    assert job.status == "service_unavailable"
+    with pytest.raises(ReadingConflict, match="cooldown"):
+        retry_saved_audio_after_outage(
+            db, student_id=student.id, job_id=job.id, now=now,
+        )
+    with pytest.raises(ReadingConflict):
+        retry_saved_audio_after_outage(
+            db, student_id=student.id + 1, job_id=job.id,
+            now=now + timedelta(minutes=2),
+        )
+    before = (audio.id, audio.storage_key, response.id, response.is_correct,
+              response.question_score_fraction)
+    resumed = retry_saved_audio_after_outage(
+        db, student_id=student.id, job_id=job.id,
+        now=now + timedelta(minutes=2),
+    )
+    assert resumed.id == job.id and resumed.status == "queued"
+    assert resumed.attempt_count == 0 and resumed.lease_owner is None
+    assert resumed.is_current
+    assert (audio.id, audio.storage_key, response.id, response.is_correct,
+            response.question_score_fraction) == before
+    with pytest.raises(ReadingConflict):
+        retry_saved_audio_after_outage(
+            db, student_id=student.id, job_id=job.id,
+            now=now + timedelta(minutes=3),
+        )
+    claimed = claim_reading(db, worker_id="recovery-worker",
+                            now=now + timedelta(minutes=3))
+    assert claimed.id == job.id and claimed.attempt_count == 1
+    assert db.query(V2ReadingEvaluation).count() == 0
+
+
+def test_outage_recheck_never_uses_purged_audio_or_overwrites_finished_grade(db):
+    from v2_reading_engine.job_store import retry_saved_audio_after_outage
+    student, release, response, audio = new_v2_assessment(db)
+    job = enqueue_assessment(db, student, release, response, audio)
+    when = datetime.now(timezone.utc)
+    job.status = "service_unavailable"
+    job.updated_at = when - timedelta(minutes=3)
+    audio.status = "purged"
+    with pytest.raises(ReadingConflict, match="not available"):
+        retry_saved_audio_after_outage(
+            db, student_id=student.id, job_id=job.id, now=when,
+        )
+    audio.status = "pending_review"
+    response.status = "graded"
+    response.is_correct = False
+    with pytest.raises(ReadingConflict, match="no longer awaiting"):
+        retry_saved_audio_after_outage(
+            db, student_id=student.id, job_id=job.id, now=when,
+        )

@@ -111,6 +111,7 @@ jobs:
 
   backend:
     runs-on: ubuntu-24.04
+    timeout-minutes: 45
     defaults:
       run:
         working-directory: services/api
@@ -152,7 +153,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install dependencies
-        run: pip install -r requirements.txt pytest httpx
+        run: pip install -r requirements.txt pytest httpx pytest-timeout==2.4.0
       - name: Validate legacy catalog and canonical release
         run: |
           python ../../packages/content/scripts/validate_catalog.py
@@ -169,7 +170,7 @@ jobs:
       - name: Verify canonical seed idempotency on PostgreSQL
         run: python verify_canonical_seed_idempotency.py
       - name: Run backend tests
-        run: pytest -v --tb=short
+        run: pytest -v --tb=short --timeout=120 --timeout-method=thread --durations=15
 
   frontend:
     runs-on: ubuntu-24.04
