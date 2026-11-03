@@ -5,7 +5,7 @@ import "./question-system.css";
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      {children}
+      <div className="student-page-enter">{children}</div>
       <StudentExperienceEffects />
     </>
   );

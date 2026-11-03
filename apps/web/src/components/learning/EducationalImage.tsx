@@ -29,7 +29,7 @@ export default function EducationalImage({ src, alt, width, height, className, o
       </svg>
     </span>}
     <Image src={src} alt={alt} width={width} height={height} unoptimized
-      loading="eager" decoding="async" className={className}
+      loading="lazy" decoding="async" className={className}
       style={{ opacity: loaded ? 1 : 0 }}
       onLoad={() => { setLoaded(true); onLoad?.(); }} onError={onError}/>
   </span>;

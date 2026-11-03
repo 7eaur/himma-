@@ -1763,3 +1763,16 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   .assessment-option { font-size:1rem; }
   .recording-prompt { font-size:1.2rem; }
 }
+
+
+/* Shared lightweight interaction language; no layout-shifting animations. */
+@media (prefers-reduced-motion: no-preference) {
+  .admin-page-enter, .student-page-enter { animation: himma-page-enter 180ms ease-out both; }
+  button:not(:disabled), a, [role="button"] { transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, opacity 160ms ease, box-shadow 160ms ease; }
+  button:not(:disabled):active, [role="button"]:active { opacity: .84; }
+  @keyframes himma-page-enter { from { opacity: .82; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-page-enter, .student-page-enter { animation: none !important; }
+  html { scroll-behavior: auto; }
+}
