@@ -52,3 +52,26 @@ test("failed refresh removes the previous child's data instead of showing stale 
   expect(screen.queryByText("طالب تجريبي")).not.toBeInTheDocument();
   expect(screen.queryByLabelText("تسجيل قراءة طالب تجريبي")).not.toBeInTheDocument();
 });
+
+
+test("inline retry after a provider error recovers only fresh authorized results", async () => {
+  let state: "ok" | "unavailable" | "empty" = "ok";
+  global.fetch = jest.fn(async () => state === "unavailable"
+    ? { ok: false, status: 503, json: async () => ({ detail: "الخدمة غير متاحة" }) }
+    : { ok: true, status: 200, json: async () => (
+        state === "empty" ? { items: [], total: 0, next_offset: null } : page
+      ) },
+  ) as unknown as typeof fetch;
+  render(<V2ReadingResults />);
+  await screen.findByText("طالب تجريبي");
+  state = "unavailable";
+  fireEvent.click(screen.getByRole("button", { name: "تحديث النتائج" }));
+  const alert = await screen.findByRole("alert");
+  expect(alert).toHaveTextContent("الخدمة غير متاحة");
+  expect(screen.queryByText("طالب تجريبي")).not.toBeInTheDocument();
+  expect(screen.queryByLabelText("تسجيل قراءة طالب تجريبي")).not.toBeInTheDocument();
+  state = "empty";
+  fireEvent.click(screen.getByRole("button", { name: "إعادة المحاولة" }));
+  expect(await screen.findByText("لا توجد نتائج لهذه التصفية")).toBeInTheDocument();
+  await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
+});

@@ -46,11 +46,16 @@ test("old reviewed-recordings bookmark opens one native reading result list", as
     expect(overflow.scroll, JSON.stringify(overflow)).toBeLessThanOrEqual(overflow.viewport + 1);
     mode = "error";
     await page.getByRole("button", { name: "تحديث النتائج" }).click();
-    await expect(page.getByRole("alert")).toBeVisible();
+    // Require the exact source error, not any unrelated page-level alert.
+    // Refresh uses the always-visible header action; the transient inline
+    // retry button is covered by an isolated component test. This removes a
+    // race between error recovery and repeated viewport navigation.
+    await expect(page.getByRole("alert").filter({ hasText: "الخدمة غير متاحة" })).toBeVisible();
     await expect(page.getByText("طالب قراءة")).toHaveCount(0);
     await expect(page.locator("audio")).toHaveCount(0);
     mode = "empty";
-    await page.getByRole("button", { name: "إعادة المحاولة" }).click();
+    await page.getByRole("button", { name: "تحديث النتائج" }).click();
     await expect(page.getByText("لا توجد نتائج لهذه التصفية")).toBeVisible();
+    await expect(page.getByRole("alert")).toHaveCount(0);
   }
 });
