@@ -127,8 +127,21 @@ app.include_router(v2_review_history_router)
 app.include_router(v2_reading_router)  # Native learner status and staff read-only results
 
 
+def _native_worker_running() -> bool:
+    """Runtime liveness probe without touching Azure, DB or secret values."""
+    if os.getenv("HIMMA_V2_NATIVE_READING_ENABLED", "0").strip() != "1":
+        return True
+    task = getattr(app.state, "native_reading_task", None)
+    return task is not None and not task.done()
+
+
 @app.get("/health")
-def health_check():
+def health_check(response: Response):
+    # Railway currently probes /health, not /ready. When native reading is
+    # enabled, a crashed task must not appear to be a healthy grading API.
+    if not _native_worker_running():
+        response.status_code = 503
+        return {"status": "not_ready", "service": "himma-api"}
     return {"status": "ok", "service": "himma-api"}
 
 
@@ -150,8 +163,7 @@ def readiness_check(response: Response):
     # evidence that the in-process worker is running. Do not route students
     # to an API that can enqueue recordings but cannot process them.
     if os.getenv("HIMMA_V2_NATIVE_READING_ENABLED", "0").strip() == "1":
-        task = getattr(app.state, "native_reading_task", None)
-        worker_ok = task is not None and not task.done()
+        worker_ok = _native_worker_running()
         report = dict(report)
         checks = dict(report.get("checks") or {})
         checks["native_reading_worker"] = "ok" if worker_ok else "unavailable"

@@ -246,3 +246,37 @@ def test_readiness_refuses_traffic_if_enabled_native_worker_has_exited(monkeypat
     assert response.status_code == 503
     assert result["checks"]["native_reading_worker"] == "unavailable"
     assert "key" not in str(result).lower()
+
+
+
+def test_railway_health_detects_crashed_enabled_reading_worker(monkeypatch):
+    """Railway uses /health, so /ready alone cannot protect native grading."""
+    from types import SimpleNamespace
+    from fastapi import Response
+
+    monkeypatch.setenv("HIMMA_V2_NATIVE_READING_ENABLED", "1")
+    monkeypatch.delattr(main.app.state, "native_reading_task", raising=False)
+    response = Response()
+    assert main.health_check(response) == {
+        "status": "not_ready", "service": "himma-api",
+    }
+    assert response.status_code == 503
+
+    monkeypatch.setattr(main.app.state, "native_reading_task",
+                        SimpleNamespace(done=lambda: False), raising=False)
+    response = Response()
+    assert main.health_check(response)["status"] == "ok"
+    assert response.status_code == 200
+
+    monkeypatch.setattr(main.app.state, "native_reading_task",
+                        SimpleNamespace(done=lambda: True), raising=False)
+    response = Response()
+    assert main.health_check(response)["status"] == "not_ready"
+    assert response.status_code == 503
+
+    # The currently deployed API is still flag-off. Preserve its existing
+    # health status and do not depend on any native worker task.
+    monkeypatch.setenv("HIMMA_V2_NATIVE_READING_ENABLED", "0")
+    response = Response()
+    assert main.health_check(response)["status"] == "ok"
+    assert response.status_code == 200
