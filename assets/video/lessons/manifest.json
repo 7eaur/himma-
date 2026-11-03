@@ -14,6 +14,20 @@
       "source_sha256": "4f5240d29099bbc0d772500586c83a5134a4338e5f3543b03ca74325be520bca",
       "status": "approved",
       "approval": "owner_supplied_20261103"
+    },
+    "VID-L1-03": {
+      "lesson_id": "L1-03",
+      "source_path": "assets/video/lessons/HIMMA_L1-03_480p.mp4",
+      "source_sha256": "70922d0b81bfd6e8b145c35713110ab5cd242278b6243bd13091e2f9c9635d09",
+      "status": "approved",
+      "approval": "owner_supplied_20261103"
+    },
+    "VID-L1-04": {
+      "lesson_id": "L1-04",
+      "source_path": "assets/video/lessons/HIMMA_L1-04_480p.mp4",
+      "source_sha256": "1f1429ac5a141445ae0e6d086f62b6e7b656e416ecd4567e5bbded2431662897",
+      "status": "approved",
+      "approval": "owner_supplied_20261103"
     }
   }
 }
