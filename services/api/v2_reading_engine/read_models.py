@@ -117,15 +117,16 @@ def supervisor_reading_results(
         .where(*where)
     ) or 0
     rows = db.execute(
-        select(V2ReadingJob, Student, V2ReadingEvaluation)
+        select(V2ReadingJob, Student, V2ReadingEvaluation, AudioSubmission)
         .join(Student, Student.id == V2ReadingJob.student_id)
         .outerjoin(V2ReadingEvaluation, V2ReadingEvaluation.job_id == V2ReadingJob.id)
+        .outerjoin(AudioSubmission, AudioSubmission.id == V2ReadingJob.audio_submission_id)
         .where(*where)
         .order_by(V2ReadingJob.created_at.desc(), V2ReadingJob.id.desc())
         .offset(offset).limit(limit)
     ).all()
     output = []
-    for job, student, evaluation in rows:
+    for job, student, evaluation, audio in rows:
         if job.status == "applied":
             label = "صحيحة" if evaluation and evaluation.passed_for_progress else "تحتاج تقوية"
         elif job.status == "retry_audio":
@@ -147,7 +148,7 @@ def supervisor_reading_results(
             if job.status == "applied" and evaluation and job.reading_kind in {"sentence", "text"}
             else None,
             "created_at": job.created_at.isoformat() if job.created_at else None,
-            "has_audio": True,
+            "has_audio": _audio_available(job, audio),
         })
     return {
         "items": output,
@@ -156,14 +157,23 @@ def supervisor_reading_results(
     }
 
 
+def _audio_available(job: V2ReadingJob, audio: AudioSubmission | None) -> bool:
+    """Do not offer a player for a deleted, superseded or mismatched take."""
+    return bool(
+        audio is not None
+        and audio.status not in {"purged", "retention_pending"}
+        and audio.file_size > 0
+        and audio.storage_key.startswith(f"audio/{job.student_id}/")
+        and (job.assessment_response_id is None
+             or audio.assessment_response_id == job.assessment_response_id)
+        and (job.lesson_response_id is None
+             or audio.lesson_response_id == job.lesson_response_id)
+    )
+
+
 def supervisor_audio_binding(db: Session, *, job_id: int) -> tuple[str, int]:
     job = _current_job(db, job_id)
     audio = db.get(AudioSubmission, job.audio_submission_id)
-    if (audio is None
-            or not audio.storage_key.startswith(f"audio/{job.student_id}/")
-            or (job.assessment_response_id is not None
-                and audio.assessment_response_id != job.assessment_response_id)
-            or (job.lesson_response_id is not None
-                and audio.lesson_response_id != job.lesson_response_id)):
+    if not _audio_available(job, audio):
         raise ReadingConflict("Private reading recording does not match job")
     return audio.storage_key, job.student_id

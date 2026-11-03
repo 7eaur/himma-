@@ -241,3 +241,26 @@ def test_final_incorrect_focused_support_audio_displays_reading_model_only_after
 
     for item in (second, third, ordinary):
         assert "transcript" not in item and "matched_alias" not in item
+
+
+
+@pytest.mark.parametrize("status", ["retention_pending", "purged"])
+def test_staff_results_hide_audio_player_after_retention_status(db, status):
+    student, release, response, audio, job = seeded(db)
+    assert supervisor_reading_results(db)["items"][0]["has_audio"] is True
+    audio.status = status
+    result = supervisor_reading_results(db)
+    assert result["total"] == 1
+    assert result["items"][0]["has_audio"] is False
+    with pytest.raises(ReadingConflict):
+        supervisor_audio_binding(db, job_id=job.id)
+
+
+def test_staff_does_not_offer_audio_if_private_student_binding_is_corrupted(db):
+    student, release, response, audio, job = seeded(db)
+    audio.storage_key = "audio/foreign-child/secret.wav"
+    result = supervisor_reading_results(db)
+    assert result["total"] == 1
+    assert result["items"][0]["has_audio"] is False
+    with pytest.raises(ReadingConflict):
+        supervisor_audio_binding(db, job_id=job.id)
