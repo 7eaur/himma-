@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { BarChart3, BookOpenCheck, ClipboardList, Film, LayoutDashboard, LogOut, Menu, Mic, Settings, UserPlus, Users, X } from "lucide-react";
 import AdminNotifications from "@/components/admin/AdminNotifications";
+import PlatformState from "@/components/PlatformState";
 import { useAccessibleDialog } from "@/hooks/useAccessibleDialog";
 import styles from "./dashboard-layout.module.css";
 
@@ -93,13 +94,7 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
       setLogoutBusy(false);
     }
   };
-  if (authState !== "ready") return <div className={styles.guard} dir="rtl" data-testid="admin-auth-guard">
-    <Image src="/brand/logo-navy.svg" alt="هِمّة" width={130} height={46} priority />
-    {authState === "error" ? <>
-      <p role="alert" className={styles.guardError}>تعذر التحقق من الاتصال. بيانات لوحة المشرف محمية ولم تُعرض.</p>
-      <button type="button" className="btn-primary" onClick={() => { setAuthState("checking"); setAuthAttempt(value => value + 1); }}>إعادة المحاولة</button>
-    </> : <><div className="spinner w-12 h-12 border-4" /><p role="status">جارٍ التحقق من جلسة المشرف...</p></>}
-  </div>;
+  if (authState !== "ready") return <div data-testid="admin-auth-guard"><PlatformState mode={authState === "error" ? "error" : "loading"} title={authState === "error" ? "تعذر التحقق من جلسة المشرف" : "جارٍ التحقق من جلسة المشرف"} description={authState === "error" ? "تعذر الاتصال حاليًا. بيانات لوحة المشرف محمية، ويمكنك إعادة المحاولة." : "نتحقق من صلاحية الدخول قبل عرض بيانات لوحة المشرف."} onAction={authState === "error" ? () => { setAuthState("checking"); setAuthAttempt(value => value + 1); } : undefined} /></div>;
   const sidebarProps = { pathname, supervisorName, onNavigate: closeMobileMenu, onLogout: handleLogout, logoutBusy };
   return <div className={`admin-dashboard-shell ${styles.dashboardShell}`} dir="rtl"><aside className={styles.sidebarDesktop}><SidebarContent {...sidebarProps} showNotifications /></aside>{mobileMenuOpen && <div className={styles.mobileOverlay}><button className={styles.mobileBackdrop} onClick={closeMobileMenu} aria-label="إغلاق القائمة" tabIndex={-1} /><div ref={mobileDialogRef} className={styles.mobilePanel} role="dialog" aria-modal="true" aria-label="قائمة لوحة المشرف" tabIndex={-1}><button onClick={closeMobileMenu} className={styles.mobileClose} aria-label="إغلاق القائمة"><X size={24} /></button><SidebarContent {...sidebarProps} showNotifications={false} /></div></div>}<main className={styles.content}><div className={styles.mobileBar}><button ref={menuTriggerRef} onClick={() => setMobileMenuOpen(true)} className={styles.menuButton} aria-label="فتح القائمة" aria-haspopup="dialog" aria-expanded={mobileMenuOpen}><Menu size={23} /></button><Image src="/brand/logo-navy.svg" alt="هِمّة" width={92} height={30} /><span className={styles.mobileBarText}>الإدارة</span><AdminNotifications surface="mobile" /></div>{logoutError && <div role="alert" className={styles.logoutError}><span>{logoutError}</span><button type="button" onClick={() => void handleLogout()} disabled={logoutBusy}>إعادة محاولة الخروج</button></div>}{children}</main></div>;
 }
