@@ -2,6 +2,7 @@
 
 import os
 import sys
+from functools import lru_cache
 
 # Isolate tests from any developer or production database configuration.
 # PostgreSQL integration can be requested explicitly with HIMMA_TEST_DATABASE_URL.
@@ -44,6 +45,15 @@ def override_get_db():
 app.dependency_overrides[get_db] = override_get_db
 
 
+@lru_cache(maxsize=1)
+def _test_researcher_hash() -> str:
+    # A real bcrypt hash is sufficient for all test sessions. Recreating a
+    # fresh expensive salt for hundreds of fixtures hides test regressions.
+    return bcrypt.hashpw(
+        b"test-only-researcher-password", bcrypt.gensalt(),
+    ).decode("utf-8")
+
+
 @pytest.fixture(autouse=True)
 def setup_database(request):
     """Seed test data before each test.
@@ -61,7 +71,7 @@ def setup_database(request):
 
     db = TestingSessionLocal()
     if not db.query(User).filter(User.username == "researcher1").first():
-        hashed = bcrypt.hashpw(b"test-only-researcher-password", bcrypt.gensalt()).decode("utf-8")
+        hashed = _test_researcher_hash()
         db.add(User(
             username="researcher1",
             password_hash=hashed,

@@ -9,6 +9,8 @@ import logging
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session
+from v2_audio_leases import audio_upload_binding, track_new_audio_upload, mark_audio_submitted
+from v2_audio_retention_policy import schedule_superseded_audio, schedule_superseded_staged_audio
 
 import storage
 from db.database import SessionLocal
@@ -18,64 +20,6 @@ from db.learning_models import (
 from db.models import AudioPurgeTask, AudioSubmission, AudioUploadLease, AssessmentSession
 
 logger = logging.getLogger(__name__)
-
-
-def _enqueue(db: Session, student_id: int, key: str) -> None:
-    if not key.startswith(f"audio/{student_id}/"):
-        raise ValueError("Attempted to purge audio with invalid student ownership")
-    existing = db.query(AudioPurgeTask).filter(AudioPurgeTask.storage_key == key).one_or_none()
-    if existing is None:
-        db.add(AudioPurgeTask(student_id=student_id, storage_key=key, status="queued"))
-        db.flush()  # Deduplicate keys even when the Session disables autoflush.
-
-
-def schedule_superseded_audio(
-    db: Session, *, student_id: int, question_id: str,
-    winning_audio_id: int, kind: str, extra_staged_keys: tuple[str, ...] = (),
-) -> None:
-    """Queue only old material belonging to this student's SAME question.
-
-    Called inside the human-review transaction after new audio was verified.
-    Repeated review calls cannot queue a winning or pending recording.
-    """
-    if kind == "lesson":
-        older = (
-            db.query(AudioSubmission)
-            .join(LessonQuestionResponse, AudioSubmission.lesson_response_id == LessonQuestionResponse.id)
-            .join(LessonSession, LessonQuestionResponse.lesson_session_id == LessonSession.id)
-            .filter(LessonSession.student_id == student_id, LessonQuestionResponse.question_id == question_id)
-        )
-    elif kind in ("pretest", "posttest"):
-        older = (
-            db.query(AudioSubmission)
-            .join(AssessmentQuestionResponse, AudioSubmission.assessment_response_id == AssessmentQuestionResponse.id)
-            .join(AssessmentSession, AssessmentQuestionResponse.assessment_session_id == AssessmentSession.id)
-            .filter(AssessmentSession.student_id == student_id, AssessmentQuestionResponse.question_id == question_id)
-        )
-    else:
-        raise ValueError("Unknown V2 audio context")
-
-    rows = older.order_by(AudioSubmission.id.desc()).all()
-    accepted = [row for row in rows if row.status == "graded"]
-    if not accepted or all(row.id != winning_audio_id for row in accepted):
-        raise ValueError("Cannot prune audio without an accepted winning take")
-    # The latest REVIEWED recorded take wins. A later review of an old take
-    # cannot delete an already finalized, newer recording.
-    latest = max(accepted, key=lambda row: row.id)
-    for row in rows:
-        if row.id == latest.id or row.status not in ("graded", "rerecord_required", "retention_pending"):
-            continue
-        _enqueue(db, student_id, row.storage_key)
-        row.status = "retention_pending"
-    for key in extra_staged_keys:
-        if key != latest.storage_key:
-            _enqueue(db, student_id, key)
-
-
-def schedule_superseded_staged_audio(db: Session, *, student_id: int, keys: tuple[str, ...]) -> None:
-    """Old unsubmitted re-recordings can be purged after the next take is staged."""
-    for key in keys:
-        _enqueue(db, student_id, key)
 
 
 def process_queued_audio_purges(limit: int = 30) -> dict[str, int]:
@@ -126,57 +70,6 @@ def process_queued_audio_purges(limit: int = 30) -> dict[str, int]:
             db.commit()
             processed += 1
     return {"deleted": processed, "deferred": failed}
-
-
-def audio_upload_binding(kind: str, container_id: int, question_id: str) -> str:
-    """Return a stable, non-secret scope for one upload/answer workflow."""
-    if kind not in {"lesson", "assessment", "retry"}:
-        raise ValueError("Unsupported audio upload context")
-    if container_id <= 0 or not question_id or ":" in question_id:
-        raise ValueError("Invalid audio upload context")
-    binding_key = f"{kind}:{container_id}:{question_id}"
-    if len(binding_key) > 255:
-        raise ValueError("Audio upload context is too long")
-    return binding_key
-
-
-def track_new_audio_upload(
-    db: Session, *, student_id: int, storage_key: str, binding_key: str,
-) -> None:
-    """Register S3 content as unsubmitted until an answer transaction accepts it."""
-    if not storage_key.startswith(f"audio/{student_id}/"):
-        raise ValueError("Audio upload student mismatch")
-    if not binding_key:
-        raise ValueError("Audio upload context is required")
-    lease = db.query(AudioUploadLease).filter(AudioUploadLease.storage_key == storage_key).one_or_none()
-    if lease is not None:
-        if lease.student_id != student_id or lease.state not in ("temporary", "submitted"):
-            raise ValueError("Audio upload no longer available or owned by another student")
-        if lease.binding_key != binding_key:
-            raise ValueError("Audio upload is bound to a different question")
-        return
-    db.add(AudioUploadLease(
-        student_id=student_id,
-        storage_key=storage_key,
-        binding_key=binding_key,
-        state="temporary",
-    ))
-    db.flush()
-
-
-def mark_audio_submitted(
-    db: Session, *, student_id: int, storage_key: str, binding_key: str,
-) -> None:
-    """Accept only the upload created for this exact workflow and question."""
-    lease = db.query(AudioUploadLease).filter(AudioUploadLease.storage_key == storage_key).with_for_update().one_or_none()
-    if lease is None:
-        raise ValueError("Audio upload lease is missing")
-    if lease.student_id != student_id or lease.state not in ("temporary", "submitted"):
-        raise ValueError("This audio upload is no longer available")
-    if lease.binding_key != binding_key:
-        raise ValueError("Audio upload is bound to a different question")
-    lease.state = "submitted"
-    lease.submitted_at = datetime.now(timezone.utc)
 
 
 def process_abandoned_uploads(*, age_hours: int = 24, limit: int = 30) -> dict[str, int]:

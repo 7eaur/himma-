@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 from db.learning_models import AssessmentQuestionResponse, LessonQuestionResponse, V2ReviewClaim
 from db.models import AuditLog, User
 from dependencies import get_current_user, get_db
+from v2_reading_engine.legacy_review_guard import reject_legacy_review_for_native
 
 router = APIRouter(prefix="/v2/review-claims", tags=["v2-review-claims"])
 CLAIM_MINUTES = 10
@@ -48,6 +49,7 @@ def _response(db: Session, kind: Literal["lesson", "assessment"], response_id: i
         raise HTTPException(status_code=404, detail="إجابة المراجعة غير موجودة")
     if row.status != "pending_review":
         raise HTTPException(status_code=409, detail="هذه الإجابة لم تعد تنتظر مراجعة")
+    reject_legacy_review_for_native(db, kind=kind, response_id=row.id)
     return row
 
 

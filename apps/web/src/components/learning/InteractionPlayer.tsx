@@ -26,8 +26,10 @@ export interface InteractionPayload {
   media: Record<string, ResolvedMedia>;
   progress: { index: number; total: number; stage: string };
   attempts: number;
+  reading_job_id?: number | null;
 }
-interface SubmissionResult { correct?: boolean; retry_required: boolean; hint?: string | null; message?: string; status: string; help_level?: number; model_option_ids?: string[]; assisted_advance?: boolean; }
+interface SubmissionResult { correct?: boolean; retry_required: boolean; hint?: string | null; message?: string; status: string; help_level?: number; model_option_ids?: string[]; model_text?: string; assisted_advance?: boolean; reading_job_id?: number; }
+interface NativeReadingResult { state: "processing" | "retry_audio" | "unavailable" | "completed" | "correct" | "incorrect"; message: string; retry_required: boolean; hint?: string; assisted_advance?: boolean; model_text?: string; }
 
 interface Props {
   sessionId: number;
@@ -86,6 +88,15 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  // A refreshed browser receives the persisted job from the owned V2 session.
+  // Zero is an explicit terminal marker so the prior props cannot repoll it.
+  const [nativeJobId, setNativeJobId] = useState<number | null>(interaction.reading_job_id ?? null);
+  const [unclearRetryId, setUnclearRetryId] = useState<number | null>(null);
+  const [nativeMessage, setNativeMessage] = useState(interaction.reading_job_id ? "نستمع إلى قراءتك..." : "");
+  const [nativePaused, setNativePaused] = useState(false);
+  const [nativeRetryBusy, setNativeRetryBusy] = useState(false);
+  const [nativePollRevision, setNativePollRevision] = useState(0);
+  const nativeProcessing = question.interaction === "read_aloud" && nativeJobId !== null && nativeJobId > 0;
 
   useEffect(() => {
     mountedRef.current = true;
@@ -163,11 +174,11 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
     .some((reference) => reference.kind === "image" && Boolean(media[reference.media_id]?.url)
       && !loadedImageUrls.includes(media[reference.media_id].url!));
   const ready = useMemo(() => {
-    if (missingRequiredMedia || invalidQuestion || imagesLoading) return false;
+    if (nativeProcessing || missingRequiredMedia || invalidQuestion || imagesLoading) return false;
     if (question.interaction === "read_aloud") return Boolean(audioBlob);
     if (ordered) return selected.length === question.options.length;
     return selected.length === 1;
-  }, [audioBlob, imagesLoading, invalidQuestion, missingRequiredMedia, ordered, question.interaction, question.options.length, selected.length]);
+  }, [audioBlob, imagesLoading, invalidQuestion, missingRequiredMedia, nativeProcessing, ordered, question.interaction, question.options.length, selected.length]);
 
   const playMedia = async (assetId: string) => {
     const asset = media[assetId];
@@ -230,7 +241,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   };
 
   const startRecording = async () => {
-    if (submitPendingRef.current || saving || awaitingConfirmation || recording || micRequestPendingRef.current) return;
+    if (nativeProcessing || submitPendingRef.current || saving || awaitingConfirmation || recording || micRequestPendingRef.current) return;
     setError("");
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
       setError("التسجيل غير مدعوم في هذا المتصفح."); return;
@@ -342,7 +353,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   };
 
   const resetRecording = () => {
-    if (submitPendingRef.current || saving || awaitingConfirmation) return;
+    if (nativeProcessing || submitPendingRef.current || saving || awaitingConfirmation) return;
     if (audioUrl) URL.revokeObjectURL(audioUrl);
     // A fresh recording must not reuse the idempotency key of old audio bytes.
     uploadKeyRef.current = requestKey("upload");
@@ -351,11 +362,39 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   };
 
   const submit = async () => {
-    if (submitPendingRef.current || !ready || saving || assistedNext !== null || missingRequiredMedia || invalidQuestion) return;
+    if (nativeProcessing || submitPendingRef.current || !ready || saving || assistedNext !== null || missingRequiredMedia || invalidQuestion) return;
     submitPendingRef.current = true;
     setSaving(true); setError("");
     try {
       let pending = pendingAnswerRef.current;
+      if (question.interaction === "read_aloud" && unclearRetryId !== null && !pendingAnswerRef.current) {
+        if (!audioBlob) throw new Error("سجل قراءتك أولًا");
+        const form = new FormData();
+        form.append("file", audioBlob, audioBlob.type.includes("mp4") ? "reading.m4a" : "reading.webm");
+        form.append("duration_seconds", String(Math.max(1, recordingSeconds)));
+        const response = await fetch(`/api/v2/reading/jobs/${unclearRetryId}/rerecord`, {
+          method: "POST", headers: { "Idempotency-Key": uploadKeyRef.current },
+          body: form,
+        });
+        const result = await response.json().catch(() => null);
+        if (!response.ok || !Number.isSafeInteger(result?.job_id) || result.job_id < 1) {
+          throw new Error("تعذر حفظ القراءة الجديدة. حاول مرة أخرى.");
+        }
+        setNativeJobId(result.job_id);
+        setNativePaused(false);
+        setNativeMessage(result.message || "نستمع إلى قراءتك...");
+        setUnclearRetryId(null);
+        setFeedback(null);
+        setAudioBlob(null);
+        setAudioUrl(current => {
+          if (current) URL.revokeObjectURL(current);
+          return null;
+        });
+        uploadKeyRef.current = requestKey("upload");
+        answerKeyRef.current = requestKey("answer");
+        return;
+      }
+
       if (!pending) {
         let answer: Record<string, unknown>;
         if (question.interaction === "read_aloud") {
@@ -392,12 +431,25 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
       pendingAnswerRef.current = null;
       setAwaitingConfirmation(false);
       setFeedback(result.submission);
+      if (question.interaction === "read_aloud" &&
+          Number.isSafeInteger(result.submission?.reading_job_id) &&
+          result.submission.reading_job_id > 0) {
+        setNativeJobId(result.submission.reading_job_id);
+        setNativePaused(false);
+        setNativeMessage("نستمع إلى قراءتك...");
+        setFeedback(null);
+        setAudioBlob(null);
+        setAudioUrl(current => {
+          if (current) URL.revokeObjectURL(current);
+          return null;
+        });
+      }
       answerKeyRef.current = requestKey("answer");
       uploadKeyRef.current = requestKey("upload");
       if (result.submission.assisted_advance && interaction.progress.stage === "support_practice") {
         setAssistedNext(result.lesson ?? result.assessment);
         setSelected([]);
-      } else if (!result.submission.retry_required) onLessonChange(result.lesson ?? result.assessment);
+      } else if (!result.submission.reading_job_id && !result.submission.retry_required) onLessonChange(result.lesson ?? result.assessment);
       else setSelected([]);
     } catch (reason) {
       if (pendingAnswerRef.current) setAwaitingConfirmation(true);
@@ -407,6 +459,134 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
       setSaving(false);
     }
   };
+
+
+  // Provider outages must not trigger a new recording or unbounded polling.
+  // A learner can explicitly retry analysis of the already stored bytes only.
+  const recheckSavedReading = async () => {
+    if (!nativePaused || !nativeJobId || nativeRetryBusy) return;
+    setNativeRetryBusy(true);
+    setError("");
+    try {
+      const response = await fetch(`/api/v2/reading/jobs/${nativeJobId}/retry-analysis`, {
+        method: "POST",
+      });
+      if (!response.ok) throw new Error("التسجيل محفوظ. حاول إعادة التحقق بعد قليل.");
+      setNativePaused(false);
+      setNativeMessage("نستمع إلى تسجيلك المحفوظ مرة أخرى...");
+      setNativePollRevision(previous => previous + 1);
+    } catch {
+      setError("التسجيل محفوظ. حاول إعادة التحقق بعد قليل.");
+    } finally {
+      setNativeRetryBusy(false);
+    }
+  };
+
+  // Provider evaluation is a recoverable, server-owned job. Poll only this
+  // learner's current job; reconnecting never creates a second attempt.
+  useEffect(() => {
+    if (question.interaction !== "read_aloud" || !nativeJobId || nativeJobId < 1) return;
+    const controller = new AbortController();
+    let timer: number | undefined;
+    let stopped = false;
+    const poll = async () => {
+      try {
+        const response = await fetch(`/api/v2/reading/jobs/${nativeJobId}`, {
+          cache: "no-store", signal: controller.signal,
+        });
+        if (!response.ok) throw new Error("تعذر التحقق من القراءة. حاول تحديث الصفحة.");
+        const result: NativeReadingResult = await response.json();
+        if (stopped || controller.signal.aborted) return;
+        if (result.state === "unavailable") {
+          setNativeMessage(result.message);
+          setNativePaused(true);
+          // Provider exhausted automatic retries: wait for a clear learner
+          // action rather than polling a terminal status indefinitely.
+          return;
+        }
+        if (result.state === "processing") {
+          setNativeMessage(result.message);
+          timer = window.setTimeout(() => void poll(), 2200);
+          return;
+        }
+        if (result.state === "retry_audio") {
+          setNativeJobId(0);
+          setUnclearRetryId(nativeJobId);
+          setNativeMessage(result.message);
+          setAudioBlob(null);
+          setAudioUrl(current => {
+            if (current) URL.revokeObjectURL(current);
+            return null;
+          });
+          answerKeyRef.current = requestKey("answer");
+          uploadKeyRef.current = requestKey("upload");
+          return;
+        }
+        // A completed grade may have advanced a lesson or an assessment.
+        // Fetch its official session instead of inferring advancement here.
+        const state = await fetch(`${endpointBase}/sessions/${sessionId}${endpointBase.includes("lessons") ? "/interaction" : ""}`, {
+          cache: "no-store", signal: controller.signal,
+        });
+        if (!state.ok) throw new Error("حُفظت قراءتك، لكن تعذر استعادة السؤال التالي.");
+        const next = await state.json();
+        if (stopped || controller.signal.aborted) return;
+        setNativeJobId(0);
+        setNativeMessage("");
+        if (result.state === "incorrect" && result.assisted_advance &&
+            interaction.progress.stage === "support_practice" &&
+            typeof result.model_text === "string" && result.model_text.trim()) {
+          // The server already advanced after the third incorrect focused-
+          // support attempt. Show the worked reading first, just as the
+          // existing choice activities do, without a second academic POST.
+          setAssistedNext(next);
+          setFeedback({
+            status: "graded", retry_required: false, correct: false,
+            assisted_advance: true, model_text: result.model_text,
+            message: result.message,
+          });
+          setUnclearRetryId(null);
+          setAudioBlob(null);
+          setAudioUrl(current => {
+            if (current) URL.revokeObjectURL(current);
+            return null;
+          });
+          uploadKeyRef.current = requestKey("upload");
+          answerKeyRef.current = requestKey("answer");
+          return;
+        }
+        if (result.state === "incorrect" &&
+            next?.interaction?.question?.question_id === question.question_id &&
+            next?.interaction?.progress?.stage === interaction.progress.stage) {
+          // Training mistake: keep the same question and show only the
+          // educational hint. No review panel, ASR transcript, or numeric grade.
+          setFeedback({
+            status: "graded", retry_required: true, correct: false,
+            hint: result.hint ?? null, message: result.message,
+          });
+          setUnclearRetryId(null);
+          setAudioBlob(null);
+          setAudioUrl(current => {
+            if (current) URL.revokeObjectURL(current);
+            return null;
+          });
+          uploadKeyRef.current = requestKey("upload");
+          answerKeyRef.current = requestKey("answer");
+          return;
+        }
+        onLessonChange(next);
+      } catch {
+        if (stopped || controller.signal.aborted) return;
+        setNativeMessage("تعذر الاتصال الآن. قراءتك محفوظة وسنحاول التحقق مجددًا.");
+        timer = window.setTimeout(() => void poll(), 6500);
+      }
+    };
+    timer = window.setTimeout(() => void poll(), 200);
+    return () => {
+      stopped = true;
+      controller.abort();
+      if (timer !== undefined) window.clearTimeout(timer);
+    };
+  }, [nativeJobId, nativePollRevision, endpointBase, sessionId, question.interaction, question.question_id, interaction.progress.stage, onLessonChange]);
 
   const renderMedia = (reference: MediaRef, option = false) => {
     const asset = media[reference.media_id];
@@ -467,6 +647,13 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
       {failedMediaIds.some((id) => media[id]?.kind === "image") && <button type="button" className={styles.secondary} onClick={() => setFailedMediaIds((current) => current.filter((id) => media[id]?.kind !== "image"))}>إعادة تحميل الصور</button>}
     </div>}
     {missingRequiredOptions && <div className={styles.mediaMissing} role="alert">خيارات هذا السؤال غير مكتملة. لن تُرسل الإجابة حتى تصبح جاهزة.</div>}
+    {assistedFeedback && question.interaction === "read_aloud" && feedback?.model_text && (
+      <div className={styles.supportModel} aria-label="مثال قراءة للتعلّم">
+        <strong>مثال القراءة</strong>
+        <p dir="rtl">{feedback.model_text}</p>
+        <small>اقرأ المثال بهدوء، ثم نتابع إلى السؤال التالي.</small>
+      </div>
+    )}
     {modelIds.length > 0 && <div className={styles.supportModel} aria-label="مثال محلول للتعلّم">
       <strong>{ordered ? "انظر إلى الترتيب الصحيح" : "هذا مثال للإجابة الصحيحة"}</strong>
       <div className={styles.supportModelOptions}>{modelIds.map((id, index) => {
@@ -518,13 +705,20 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
       </div>;
     })}</div>}
 
-    {question.interaction === "read_aloud" && <div className={styles.recorder}>{!audioBlob ? <><button type="button" className={`${styles.recordButton} ${recording ? styles.recording : ""}`} onClick={recording ? stopRecording : () => void startRecording()} disabled={saving || awaitingConfirmation || requestingMic} aria-label={requestingMic ? "جاري تفعيل الميكروفون" : recording ? "إيقاف التسجيل" : "بدء التسجيل"}>{recording ? <MicOff size={28}/> : <Mic size={28}/>}</button><p>{requestingMic ? "جاري طلب إذن الميكروفون..." : recording ? `جاري التسجيل… ${recordingSeconds} ث` : "اضغط ثم اقرأ بصوت واضح"}</p></> : <>{audioUrl && <audio controls src={audioUrl}/>}<button type="button" className={styles.secondary} disabled={saving || awaitingConfirmation} onClick={resetRecording}><RotateCcw size={16}/> إعادة التسجيل</button><p>سيبقى التقييم معلقًا حتى يراجعه المشرف.</p></>}</div>}
+    {question.interaction === "read_aloud" && nativeMessage && <div className={styles.feedback} role="status">
+      <span>{nativeMessage}</span>
+      {nativePaused && <button type="button" className={styles.secondary}
+        disabled={nativeRetryBusy} onClick={() => void recheckSavedReading()}>
+        {nativeRetryBusy ? "جارٍ إعادة التحقق..." : "إعادة التحقق من التسجيل المحفوظ"}
+      </button>}
+    </div>}
+    {question.interaction === "read_aloud" && !nativeProcessing && assistedNext === null && <div className={styles.recorder}>{!audioBlob ? <><button type="button" className={`${styles.recordButton} ${recording ? styles.recording : ""}`} onClick={recording ? stopRecording : () => void startRecording()} disabled={saving || awaitingConfirmation || requestingMic || nativeProcessing} aria-label={requestingMic ? "جاري تفعيل الميكروفون" : recording ? "إيقاف التسجيل" : "بدء التسجيل"}>{recording ? <MicOff size={28}/> : <Mic size={28}/>}</button><p>{requestingMic ? "جاري طلب إذن الميكروفون..." : recording ? `جاري التسجيل… ${recordingSeconds} ث` : "اضغط ثم اقرأ بصوت واضح"}</p></> : <>{audioUrl && <audio controls src={audioUrl}/>}<button type="button" className={styles.secondary} disabled={saving || awaitingConfirmation} onClick={resetRecording}><RotateCcw size={16}/> إعادة التسجيل</button><p>استمع إلى قراءتك، ثم أرسلها للتحقق.</p></>}</div>}
 
     {!isAssessment && feedback && !feedback.retry_required && !assistedFeedback && <div className={`${styles.feedback} ${feedback.correct === false ? styles.retry : styles.accepted}`} role="status"><strong>{feedback.correct === true ? "أحسنت!" : feedback.correct === false ? "لم تكتمل الإجابة" : "تم الحفظ"}</strong><span>{feedback.message}</span></div>}
     {error && <div className={styles.error} role="alert">{error}</div>}
     {assistedNext !== null
       ? <button type="button" className={styles.submit} onClick={() => { const next = assistedNext; setAssistedNext(null); onLessonChange(next); }}>فهمت، نكمل</button>
-      : <button type="button" className={styles.submit} disabled={!ready || saving || recording} onClick={() => void submit()}>{saving ? "جاري الحفظ..." : awaitingConfirmation ? "إعادة محاولة حفظ الإجابة" : question.interaction === "read_aloud" ? "إرسال التسجيل للمراجعة" : isAssessment ? "حفظ الإجابة والمتابعة" : "تحقق من الإجابة"}</button>}
+      : <button type="button" className={styles.submit} disabled={!ready || saving || recording} onClick={() => void submit()}>{saving ? "جاري الحفظ..." : awaitingConfirmation ? "إعادة محاولة حفظ الإجابة" : question.interaction === "read_aloud" ? "تحقق من قراءتي" : isAssessment ? "حفظ الإجابة والمتابعة" : "تحقق من الإجابة"}</button>}
   </section>;
 }
 

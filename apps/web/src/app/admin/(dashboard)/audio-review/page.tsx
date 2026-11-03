@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
-// Old bookmarks may use this path. Review decisions now belong to the
-// assessment and lesson queues, which use the active learning release.
+// Old bookmarks remain reachable, but only the V2 native reading-results
+// surface is active. The obsolete assessment tab no longer exists.
 export default function AudioReviewRedirect() {
-  redirect("/admin/v2-review-center?tab=assessments");
+  redirect("/admin/v2-review-center");
 }

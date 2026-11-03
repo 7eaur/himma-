@@ -540,7 +540,7 @@ describe("InteractionPlayer", () => {
       expect(pause).toHaveBeenCalledTimes(1);
       await act(async()=>{view.rerender(<InteractionPlayer sessionId={7} interaction={interaction} onLessonChange={changed}/>);});
       expect(view.container.querySelector("audio")).toBe(preview);
-      expect(screen.getByRole("button",{name:"إرسال التسجيل للمراجعة"})).toBeEnabled();
+      expect(screen.getByRole("button",{name:"تحقق من قراءتي"})).toBeEnabled();
       expect(global.fetch).not.toHaveBeenCalled();
       view.unmount();
     } finally {
@@ -586,7 +586,7 @@ describe("InteractionPlayer", () => {
       });
       expect(stopTrack).toHaveBeenCalled();
       expect(screen.getByRole("alert")).toHaveTextContent("لم يُلتقط صوت");
-      expect(screen.getByRole("button", { name: "إرسال التسجيل للمراجعة" })).toBeDisabled();
+      expect(screen.getByRole("button", { name: "تحقق من قراءتي" })).toBeDisabled();
       expect(global.fetch).not.toHaveBeenCalled();
     } finally {
       Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: previousDevices });
@@ -631,7 +631,7 @@ describe("InteractionPlayer", () => {
       expect(recorder.stop).toHaveBeenCalledTimes(1);
       expect(screen.getByRole("alert")).toHaveTextContent("تعذر تسجيل الصوت");
       expect(screen.getByRole("button", { name: "بدء التسجيل" })).toBeEnabled();
-      expect(screen.getByRole("button", { name: "إرسال التسجيل للمراجعة" })).toBeDisabled();
+      expect(screen.getByRole("button", { name: "تحقق من قراءتي" })).toBeDisabled();
       expect(global.fetch).not.toHaveBeenCalled();
     } finally {
       Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: previousDevices });
@@ -679,7 +679,7 @@ describe("InteractionPlayer", () => {
       expect(recorder.ondataavailable).toBeNull();
       await act(async () => { lateStop?.(); });
       expect(screen.getByRole("alert")).toHaveTextContent("تعذر إنهاء التسجيل");
-      expect(screen.getByRole("button", { name: "إرسال التسجيل للمراجعة" })).toBeDisabled();
+      expect(screen.getByRole("button", { name: "تحقق من قراءتي" })).toBeDisabled();
       expect(screen.getByRole("button", { name: "بدء التسجيل" })).toBeEnabled();
       expect(global.fetch).not.toHaveBeenCalled();
     } finally {
@@ -841,7 +841,7 @@ it("uploads Safari MP4 reading audio with the matching MIME and filename", async
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: "إيقاف التسجيل" }));
     });
-    fireEvent.click(screen.getByRole("button", { name: "إرسال التسجيل للمراجعة" }));
+    fireEvent.click(screen.getByRole("button", { name: "تحقق من قراءتي" }));
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
     const upload = fetchMock.mock.calls[0][1].body as FormData;
     const audio = upload.get("file") as File;
@@ -882,4 +882,129 @@ it("accepts one answer POST for rapid repeated taps before React rerenders", asy
     await Promise.resolve();
   });
   await waitFor(() => expect(changed).toHaveBeenCalledTimes(1));
+});
+
+  it("restores a pending reading after refresh without showing supervisor review", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true, status: 200,
+      json: async () => ({
+        state: "processing", message: "نستمع إلى قراءتك...",
+        retry_required: false,
+      }),
+    });
+    const reading = payload({ interaction: "read_aloud", options: [] });
+    reading.reading_job_id = 55;
+    render(<InteractionPlayer sessionId={7} interaction={reading} onLessonChange={jest.fn()}/>);
+    expect(screen.queryByRole("button", { name: "بدء التسجيل" })).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("نستمع إلى قراءتك...");
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledWith(
+      "/api/v2/reading/jobs/55", expect.objectContaining({ cache: "no-store" }),
+    ));
+    expect(screen.queryByText(/مراجعة المشرف|المزود|Azure/)).not.toBeInTheDocument();
+  });
+
+  it("asks for a new recording when the provider cannot understand speech", async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true, status: 200,
+      json: async () => ({
+        state: "retry_audio", message: "ما فهمت قراءتك بوضوح. جرّب التسجيل مرة ثانية.",
+        retry_required: true,
+      }),
+    });
+    const reading = payload({ interaction: "read_aloud", options: [] });
+    reading.reading_job_id = 66;
+    render(<InteractionPlayer sessionId={7} interaction={reading} onLessonChange={jest.fn()}/>);
+    expect(await screen.findByRole("button", { name: "بدء التسجيل" })).toBeEnabled();
+    expect(screen.getByText("ما فهمت قراءتك بوضوح. جرّب التسجيل مرة ثانية.")).toBeInTheDocument();
+    expect(screen.queryByText(/Azure|مراجعة المشرف|التفريغ/)).not.toBeInTheDocument();
+  });
+
+
+
+it("shows the native focused-support reading model after the third wrong grade before advancing", async () => {
+  const later = { interaction: { question: { question_id: "SUP-03-SC-01" } }, session: { stage: "support_check" } };
+  const fetchMock = jest.fn()
+    .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({
+      state: "incorrect", message: "اقرأ المثال، ثم نتابع خطوة جديدة.",
+      retry_required: false, assisted_advance: true, model_text: "سُ",
+    }) })
+    .mockResolvedValueOnce({ ok: true, status: 200, json: async () => later });
+  global.fetch = fetchMock;
+  const reading = payload({ interaction: "read_aloud", options: [], stimulus: { text: "سُ", media: [] } });
+  reading.progress.stage = "support_practice";
+  reading.reading_job_id = 77;
+  const changed = jest.fn();
+  render(<InteractionPlayer sessionId={7} interaction={reading} onLessonChange={changed}/>);
+  const continueButton = await screen.findByRole("button", { name: "فهمت، نكمل" });
+  expect(screen.getByLabelText("مثال قراءة للتعلّم")).toHaveTextContent("سُ");
+  expect(screen.getByTestId("v2-question-coach")).toHaveTextContent("اقرأ المثال");
+  expect(screen.queryByRole("button", { name: "بدء التسجيل" })).not.toBeInTheDocument();
+  expect(changed).not.toHaveBeenCalled();
+  expect(fetchMock).toHaveBeenNthCalledWith(1, "/api/v2/reading/jobs/77", expect.anything());
+  fireEvent.click(continueButton);
+  expect(changed).toHaveBeenCalledWith(later);
+  expect(fetchMock).toHaveBeenCalledTimes(2);
+});
+
+it("never shows a native reading model in an independent assessment", async () => {
+  const later = { interaction: { question: { question_id: "Q-NEXT" } } };
+  global.fetch = jest.fn()
+    .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({
+      state: "completed", retry_required: false, message: "تم تسجيل قراءتك.",
+      assisted_advance: true, model_text: "سُ",
+    }) })
+    .mockResolvedValueOnce({ ok: true, status: 200, json: async () => later });
+  const reading = payload({ interaction: "read_aloud", role: "pretest", options: [] });
+  reading.progress.stage = "pretest";
+  reading.reading_job_id = 78;
+  const changed = jest.fn();
+  render(<InteractionPlayer sessionId={7} interaction={reading} onLessonChange={changed}/>);
+  await waitFor(() => expect(changed).toHaveBeenCalledWith(later));
+  expect(screen.queryByLabelText("مثال قراءة للتعلّم")).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "فهمت، نكمل" })).not.toBeInTheDocument();
+});
+
+
+
+it("a provider outage pauses polling and lets the child recheck the same saved audio", async () => {
+  const states: string[] = [];
+  let reads = 0;
+  const next = { interaction: { question: { question_id: "Q-2" } } };
+  const fetchMock = jest.fn(async (input: string, init?: RequestInit) => {
+    if (input === "/api/v2/reading/jobs/78" && (!init || init.method !== "POST")) {
+      reads += 1;
+      return { ok: true, json: async () => reads === 1
+        ? { state: "unavailable", retry_required: false,
+            message: "تعذر التحقق الآن. تسجيلك محفوظ؛ حاول المتابعة بعد قليل." }
+        : { state: "completed", retry_required: false,
+            message: "تم تسجيل قراءتك." } };
+    }
+    if (input === "/api/v2/reading/jobs/78/retry-analysis") {
+      states.push(init?.method || "missing");
+      return { ok: true, json: async () => ({ job_id: 78, state: "processing" }) };
+    }
+    if (input === "/api/v2/assessments/sessions/7") {
+      return { ok: true, json: async () => next };
+    }
+    throw new Error(`unexpected request: ${input}`);
+  });
+  global.fetch = fetchMock as unknown as typeof fetch;
+  const reading = payload({ interaction: "read_aloud", role: "pretest", options: [] });
+  reading.progress.stage = "pretest";
+  reading.reading_job_id = 78;
+  const change = jest.fn();
+  render(<InteractionPlayer sessionId={7} endpointBase="/api/v2/assessments"
+    interaction={reading} onLessonChange={change} />);
+  const retry = await screen.findByRole("button", {
+    name: "إعادة التحقق من التسجيل المحفوظ",
+  });
+  expect(retry).toBeEnabled();
+  expect(reads).toBe(1);
+  expect(screen.queryByRole("button", { name: "بدء التسجيل" })).not.toBeInTheDocument();
+  expect(fetchMock.mock.calls.every(([url]) => !String(url).includes("/recording"))).toBe(true);
+  fireEvent.click(retry);
+  await waitFor(() => expect(change).toHaveBeenCalledWith(next));
+  expect(states).toEqual(["POST"]);
+  expect(reads).toBe(2);
+  expect(fetchMock.mock.calls.every(([url]) => !String(url).includes("/rerecord"))).toBe(true);
 });

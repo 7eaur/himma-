@@ -212,3 +212,71 @@ def test_ready_endpoint_returns_200_or_503_from_readiness_state(client, monkeypa
     assert response.status_code == 503
     assert response.json()["checks"]["content"] == "unavailable"
     assert response.json()["checks"]["security_mode"] == "ok"
+
+
+
+def test_readiness_refuses_traffic_if_enabled_native_worker_has_exited(monkeypatch):
+    """Valid Azure credentials are insufficient if the API worker has stopped."""
+    from fastapi import Response
+    from types import SimpleNamespace
+
+    monkeypatch.setenv("HIMMA_V2_NATIVE_READING_ENABLED", "1")
+    monkeypatch.setattr(main, "runtime_security_ready", lambda: True)
+    monkeypatch.setattr(main, "readiness_report", lambda: {
+        "status": "ready", "service": "himma-api",
+        "checks": {"database": "ok", "storage": "ok", "redis": "ok"},
+    })
+    # Patch the app once: Starlette State raises KeyError during repeated
+    # monkeypatch teardown when an originally absent attribute is restored.
+    monkeypatch.setattr(main, "app", SimpleNamespace(state=SimpleNamespace()))
+    response = Response()
+    result = main.readiness_check(response)
+    assert response.status_code == 503
+    assert result["checks"]["native_reading_worker"] == "unavailable"
+
+    main.app.state.native_reading_task = SimpleNamespace(done=lambda: False)
+    response = Response()
+    result = main.readiness_check(response)
+    assert response.status_code == 200
+    assert result["checks"]["native_reading_worker"] == "ok"
+
+    main.app.state.native_reading_task = SimpleNamespace(done=lambda: True)
+    response = Response()
+    result = main.readiness_check(response)
+    assert response.status_code == 503
+    assert result["checks"]["native_reading_worker"] == "unavailable"
+    assert "key" not in str(result).lower()
+
+
+
+def test_railway_health_detects_crashed_enabled_reading_worker(monkeypatch):
+    """Railway uses /health, so /ready alone cannot protect native grading."""
+    from types import SimpleNamespace
+    from fastapi import Response
+
+    monkeypatch.setenv("HIMMA_V2_NATIVE_READING_ENABLED", "1")
+    # Patch the app once: Starlette State raises KeyError during repeated
+    # monkeypatch teardown when an originally absent attribute is restored.
+    monkeypatch.setattr(main, "app", SimpleNamespace(state=SimpleNamespace()))
+    response = Response()
+    assert main.health_check(response) == {
+        "status": "not_ready", "service": "himma-api",
+    }
+    assert response.status_code == 503
+
+    main.app.state.native_reading_task = SimpleNamespace(done=lambda: False)
+    response = Response()
+    assert main.health_check(response)["status"] == "ok"
+    assert response.status_code == 200
+
+    main.app.state.native_reading_task = SimpleNamespace(done=lambda: True)
+    response = Response()
+    assert main.health_check(response)["status"] == "not_ready"
+    assert response.status_code == 503
+
+    # The currently deployed API is still flag-off. Preserve its existing
+    # health status and do not depend on any native worker task.
+    monkeypatch.setenv("HIMMA_V2_NATIVE_READING_ENABLED", "0")
+    response = Response()
+    assert main.health_check(response)["status"] == "ok"
+    assert response.status_code == 200

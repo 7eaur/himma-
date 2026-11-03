@@ -740,3 +740,231 @@ def test_missing_or_invalid_result_cannot_produce_placement_recommendation():
         _recommended_level(100.01)
     with pytest.raises(ValueError):
         _recommended_level(-0.01)
+
+
+def test_pretest_reading_submission_stays_on_question_until_auto_grade(student_client, monkeypatch):
+    """A configured native worker must hold placement until its evidence."""
+    from db.v2_reading_models import V2ReadingJob
+    from v2_reading_engine import runtime
+    # Exercise the configured single-worker path; never require real keys or
+    # PostgreSQL for an isolated submission/academic integration test.
+    # The disabled-worker path is covered by the human-review regression tests.
+    monkeypatch.setattr(runtime, "native_runtime_configuration", lambda: object())
+    start = student_client.post("/v2/assessments/pretest/start").json()
+    session_id = start["session"]["session_id"]
+    for _ in range(5):
+        current = student_client.get(f"/v2/assessments/sessions/{session_id}").json()
+        question = get_question(current["interaction"]["question"]["question_id"])
+        assert question["interaction"] != "read_aloud"
+        sent = student_client.post(
+            f"/v2/assessments/sessions/{session_id}/answers",
+            json={"submit_key": str(uuid4()),
+                  "selected_option_ids": question["private_answer"]["correct_option_ids"]},
+        )
+        assert sent.status_code == 200, sent.text
+    before = student_client.get(f"/v2/assessments/sessions/{session_id}").json()
+    assert before["interaction"]["question"]["question_id"] == "V2-PRE-Q06"
+    monkeypatch.setattr("v2_assessment_runtime.storage.upload_audio",
+                        lambda _file, student_id, _key: (f"audio/{student_id}/pre-voice.webm", 4096, "digest"))
+    monkeypatch.setattr("v2_interaction_runtime.storage.verify_audio", lambda *args, **kwargs: None)
+    uploaded = student_client.post(
+        f"/v2/assessments/sessions/{session_id}/recording",
+        headers={"Idempotency-Key": str(uuid4())},
+        files={"file": ("read.webm", b"recorded-child-audio", "audio/webm")},
+    )
+    assert uploaded.status_code == 200, uploaded.text
+    key = str(uuid4())
+    payload = {"submit_key": key, **uploaded.json(), "audio_duration_seconds": 3}
+    url = f"/v2/assessments/sessions/{session_id}/answers"
+    response = student_client.post(url, json=payload)
+    assert response.status_code == 200, response.text
+    result = response.json()
+    assert result["submission"]["status"] == "processing"
+    job_id = result["submission"]["reading_job_id"]
+    assert job_id > 0
+    assert result["assessment"]["interaction"]["reading_job_id"] == job_id
+    assert result["assessment"]["interaction"]["question"]["question_id"] == "V2-PRE-Q06"
+    assert result["assessment"]["session"]["progress"]["answered"] == 5  # pending voice never advances
+    assert "مراجعة" not in response.text
+    repeat = student_client.post(url, json=payload)
+    assert repeat.status_code == 200, repeat.text
+    assert repeat.json()["submission"]["reading_job_id"] == job_id
+    latest = student_client.get(f"/v2/assessments/sessions/{session_id}")
+    assert latest.json()["interaction"]["reading_job_id"] == job_id
+    with TestingSessionLocal() as db:
+        jobs = db.query(V2ReadingJob).all()
+        assert len(jobs) == 1
+        assert jobs[0].id == job_id
+        assert jobs[0].reference_text == "لَ"
+        assert jobs[0].status == "queued"
+        answer = db.query(AssessmentQuestionResponse).filter(
+            AssessmentQuestionResponse.question_id == "V2-PRE-Q06").one()
+        assert answer.is_correct is None
+        assert answer.question_score_fraction is None
+        assert db.query(AssessmentSession).filter(
+            AssessmentSession.id == session_id).one().v2_question_index == 5
+        from datetime import datetime, timedelta, timezone
+        from decimal import Decimal
+        from v2_reading_engine.job_store import claim_reading, record_evidence
+        from v2_reading_engine.policy import ReadingDecision
+        from v2_reading_engine.academic_apply import apply_evaluation
+        from v2_reading_engine.academic_journey import continue_native_academic_journey
+        now = datetime.now(timezone.utc)
+        assert claim_reading(db, worker_id="test-worker", now=now).id == job_id
+        verified = ReadingDecision(
+            status="correct", reference=jobs[0].reference_text,
+            fraction=Decimal(1), passed_for_progress=True, hint=None,
+            reason="verified_voice_test",
+        )
+        record_evidence(db, job_id=job_id, worker_id="test-worker",
+            expected_version=jobs[0].version, decision=verified,
+            provider_name="azure", provider_request_id="test",
+            transcript=jobs[0].reference_text, now=now + timedelta(seconds=1),
+        )
+        assert apply_evaluation(
+            db, job_id=job_id,
+            continue_academic_journey=continue_native_academic_journey,
+        )
+        db.commit()
+    next_question = student_client.get(f"/v2/assessments/sessions/{session_id}")
+    assert next_question.status_code == 200, next_question.text
+    assert next_question.json()["interaction"]["question"]["question_id"] == "V2-PRE-Q07"
+    assert next_question.json()["session"]["progress"]["answered"] == 6
+
+
+
+def test_native_v2_voice_fraction_reaches_real_30_question_automatic_placement(student_client):
+    """Apply one live-structure voice result, finish the pinned 30, place once.
+
+    No human review call, Azure request, S3 network or student data involved.
+    A partly correct passage must affect placement by its actual fraction,
+    not by treating its >85% pass flag as a full point.
+    """
+    from datetime import datetime, timedelta, timezone
+    from decimal import Decimal
+
+    from v2_reading_engine.academic_apply import apply_evaluation
+    from v2_reading_engine.academic_journey import continue_native_academic_journey
+    from v2_reading_engine.job_store import enqueue_reading, claim_reading, record_evidence
+    from v2_reading_engine.policy import evaluate_reading
+    from v2_assessment_runtime import _finish_if_ready
+    from v2_reading_engine.assessment_scores import summarize_assessment
+
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        release = register_candidate_release(db)
+        journey = StudentJourney(
+            student_id=student.id, content_release_id=release.id,
+            current_level=1, placement_state="in_progress", status="active",
+        )
+        db.add(journey)
+        session = AssessmentSession(
+            student_id=student.id, content_release_id=release.id,
+            session_type="pretest", status="in_progress", v2_state="answering",
+            v2_question_index=19, assessment_attempt_no=1,
+            v2_policy_version="test-native-reading-fraction",
+        )
+        db.add(session)
+        db.flush()
+
+        questions = [q for q in get_release()["questions"] if q["role"] == "pretest"]
+        assert len(questions) == 30
+        voice = questions[19]
+        assert voice["id"] == "V2-PRE-Q20" and voice["interaction"] == "read_aloud"
+
+        def graded_answer(question, correct):
+            response = AssessmentQuestionResponse(
+                assessment_session_id=session.id, question_id=question["id"],
+                role="pretest", answer_json={"test": True}, submit_key=str(uuid4()),
+                status="graded", is_correct=correct,
+                skill_group=question["skill_group"],
+                evidence_type=question["evidence_type"],
+            )
+            db.add(response)
+            return response
+
+        for idx, question in enumerate(questions[:19]):
+            graded_answer(question, idx < 14)
+        db.flush()
+
+        reference = voice["reading_reference"]
+        response = AssessmentQuestionResponse(
+            assessment_session_id=session.id, question_id=voice["id"],
+            role="pretest", answer_json={"audio": "private"},
+            submit_key=str(uuid4()), status="pending_review", is_correct=None,
+            skill_group=voice["skill_group"], evidence_type=voice["evidence_type"],
+        )
+        db.add(response)
+        db.flush()
+        audio = AudioSubmission(
+            assessment_response_id=response.id,
+            storage_key=f"audio/{student.id}/native-passage.webm",
+            file_size=3600, mime_type="audio/webm", status="pending_review",
+        )
+        db.add(audio)
+        db.flush()
+        job = enqueue_reading(
+            db, student_id=student.id, audio_submission_id=audio.id,
+            content_release_id=release.id, question_id=voice["id"],
+            reference_text=reference, reading_kind="text",
+            learning_mode="assessment",
+        )
+        now = datetime.now(timezone.utc)
+        claim_reading(db, worker_id="synthetic-azure", now=now)
+        transcript = " ".join(reference.split()[:-1])  # One missing word.
+        decision = evaluate_reading(
+            kind="text", mode="assessment", question_id=voice["id"],
+            reference=reference, transcript=transcript,
+            audio_valid=True, provider_usable=True,
+        )
+        assert decision.status == "correct"
+        assert Decimal("0.85") < decision.fraction < Decimal("1")
+        record_evidence(
+            db, job_id=job.id, worker_id="synthetic-azure",
+            expected_version=job.version, decision=decision,
+            provider_name="azure-contract", provider_request_id="synthetic",
+            transcript=transcript, now=now + timedelta(seconds=1),
+        )
+        assert db.query(PlacementDecisionV2).count() == 0
+        assert apply_evaluation(
+            db, job_id=job.id,
+            continue_academic_journey=continue_native_academic_journey,
+        )
+        assert session.v2_question_index == 20
+        assert response.status == "graded"
+        assert response.is_correct is True
+        assert response.question_score_fraction == decision.fraction
+        assert job.status == "applied"
+        assert db.query(PlacementDecisionV2).count() == 0
+        assert apply_evaluation(
+            db, job_id=job.id,
+            continue_academic_journey=continue_native_academic_journey,
+        ) is False
+
+        for question in questions[20:]:
+            graded_answer(question, False)
+        db.flush()
+        session.v2_question_index = 30
+        total = summarize_assessment(db.query(AssessmentQuestionResponse).filter(
+            AssessmentQuestionResponse.assessment_session_id == session.id,
+        ).all())
+        assert total["correct"] == 15
+        assert total["score_percent"] < 50  # 14 + one partial != 15 full points.
+        _finish_if_ready(db, session)
+        db.flush()
+        assert session.status == "completed"
+        assert session.v2_state == "completed"
+        assert session.assigned_level == 1
+        assert abs(session.final_score - total["score_percent"]) < 0.0001
+        assert session.official_for_reporting is True
+        assert journey.placement_state == "placed"
+        assert journey.current_level == 1
+        assert db.query(PlacementDecisionV2).count() == 1
+        assert db.query(AuditLog).filter(
+            AuditLog.action == "v2_automatic_placement",
+        ).count() == 1
+        db.commit()
+
+        db.refresh(job)
+        assert db.query(PlacementDecisionV2).count() == 1
+        assert job.status == "applied"

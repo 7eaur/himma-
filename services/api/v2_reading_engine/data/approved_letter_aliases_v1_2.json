@@ -1,0 +1,214 @@
+{
+  "schemaVersion": "himma-v2-owner-approved-letter-aliases/1.2",
+  "contentVersion": "himma-v2-62@4e6bf86528d17b8a1c81339cbe55634032cec5e3",
+  "status": "owner_approved_pending_native_engine_integration",
+  "approvedBy": "project_owner",
+  "acceptedMeaning": "An exact transcript match for this question's approved canonical letter or alias is accepted as a correct reading by the future V2 engine when recording is valid and provider recognition is usable. It is not live until the rebuilt engine is validated and deployed.",
+  "runtimeDependency": "local_himma_repository_only",
+  "matchScope": "exact_question_and_letter",
+  "studentDisplay": "original_reference_only",
+  "studentTechnicalEvidence": false,
+  "rules": {
+    "vowelNormalization": "Do not strip target's haraka or substitute a different letter/question.",
+    "punctuation": "Strip safe trailing Arabic/Latin/Chinese punctuation only.",
+    "latinCaseInsensitive": true,
+    "arbitraryChineseTextMatches": false,
+    "onNoProviderRecognition": "retry_audio_without_academic_penalty",
+    "onValidApprovedAliasMatch": "correct_100_percent",
+    "mustPassNegativePronunciationTestsBeforeProduction": true
+  },
+  "provenance": {
+    "importedFrom": "7eaur/himma-lab / data/himma-v2-targeted-letter-asr-aliases.json @ 1463159825073ecc7a85601dee1a6ed9b5b57d7e",
+    "importedForResearchTraceOnly": true,
+    "noRuntimeLinkToLab": true,
+    "chinesePinyinEvidenceCaution": "Chinese tones and syllables are not Arabic short vowels. Owner-approved spellings require negative acoustic tests before academic go-live."
+  },
+  "cases": {
+    "V2-PRE-Q06": {
+      "reference": "لَ",
+      "variants": [
+        {
+          "text": "لا",
+          "kind": "long_vowel_spelling"
+        },
+        {
+          "text": "la",
+          "kind": "latin_transliteration"
+        },
+        {
+          "text": "啦",
+          "kind": "chinese_phonetic_hypothesis",
+          "pinyin": "la",
+          "evidenceSource": "pinyin_candidate"
+        }
+      ]
+    },
+    "L1-04-GP-02": {
+      "reference": "رَ",
+      "variants": [
+        {
+          "text": "ر",
+          "kind": "bare_letter"
+        },
+        {
+          "text": "را",
+          "kind": "long_vowel_spelling"
+        },
+        {
+          "text": "ra",
+          "kind": "latin_transliteration"
+        },
+        {
+          "text": "راء",
+          "kind": "arabic_letter_name_spelling",
+          "evidenceSource": "observed_human_correct"
+        }
+      ]
+    },
+    "L1-04-GP-04": {
+      "reference": "قِ",
+      "variants": [
+        {
+          "text": "قي",
+          "kind": "long_vowel_spelling"
+        },
+        {
+          "text": "qi",
+          "kind": "latin_transliteration"
+        }
+      ]
+    },
+    "L1-04-IC-A01": {
+      "reference": "بُ",
+      "variants": [
+        {
+          "text": "بو",
+          "kind": "long_vowel_spelling"
+        },
+        {
+          "text": "bu",
+          "kind": "latin_transliteration"
+        },
+        {
+          "text": "不",
+          "kind": "chinese_phonetic_hypothesis",
+          "pinyin": "bù",
+          "evidenceSource": "pinyin_candidate"
+        }
+      ]
+    },
+    "L1-04-IC-A03": {
+      "reference": "مَ",
+      "variants": [
+        {
+          "text": "ما",
+          "kind": "long_vowel_spelling"
+        },
+        {
+          "text": "ma",
+          "kind": "latin_transliteration"
+        },
+        {
+          "text": "ماء",
+          "kind": "arabic_letter_name_spelling",
+          "evidenceSource": "observed_human_correct"
+        },
+        {
+          "text": "吗",
+          "kind": "chinese_phonetic_hypothesis",
+          "pinyin": "ma",
+          "evidenceSource": "pinyin_candidate"
+        }
+      ]
+    },
+    "SUP-03-GP-01": {
+      "reference": "سُ",
+      "variants": [
+        {
+          "text": "سو",
+          "kind": "long_vowel_spelling"
+        },
+        {
+          "text": "su",
+          "kind": "latin_transliteration"
+        },
+        {
+          "text": "So",
+          "kind": "latin_transliteration"
+        },
+        {
+          "text": "苏",
+          "kind": "chinese_phonetic_hypothesis",
+          "pinyin": "sū",
+          "evidenceSource": "pinyin_candidate"
+        }
+      ]
+    },
+    "SUP-03-SC-01": {
+      "reference": "دُ",
+      "variants": [
+        {
+          "text": "دو",
+          "kind": "long_vowel_spelling"
+        },
+        {
+          "text": "du",
+          "kind": "latin_transliteration"
+        },
+        {
+          "text": "do",
+          "kind": "latin_transliteration"
+        }
+      ]
+    },
+    "SUP-03-GP-03": {
+      "reference": "لِ",
+      "variants": [
+        {
+          "text": "لي",
+          "kind": "long_vowel_spelling"
+        },
+        {
+          "text": "li",
+          "kind": "latin_transliteration"
+        },
+        {
+          "text": "例",
+          "kind": "chinese_phonetic_hypothesis",
+          "pinyin": "lì",
+          "evidenceSource": "observed_human_correct"
+        }
+      ]
+    },
+    "SUP-03-SC-03": {
+      "reference": "فِ",
+      "variants": [
+        {
+          "text": "في",
+          "kind": "long_vowel_spelling"
+        },
+        {
+          "text": "fi",
+          "kind": "latin_transliteration"
+        }
+      ]
+    },
+    "V2-POST-Q06": {
+      "reference": "قُ",
+      "variants": [
+        {
+          "text": "قو",
+          "kind": "long_vowel_spelling"
+        },
+        {
+          "text": "qu",
+          "kind": "latin_transliteration"
+        },
+        {
+          "text": "qo",
+          "kind": "latin_transliteration"
+        }
+      ]
+    }
+  }
+}

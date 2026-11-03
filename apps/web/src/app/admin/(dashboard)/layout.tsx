@@ -12,7 +12,7 @@ import styles from "./dashboard-layout.module.css";
 const navSections = [
   { label: "الرئيسية", items: [{ href: "/admin", label: "نظرة عامة", icon: LayoutDashboard }] },
   { label: "الطلاب", items: [{ href: "/admin/students", label: "جميع الطلاب", icon: Users }, { href: "/admin/students/new", label: "إضافة طالب", icon: UserPlus }] },
-  { label: "مراجعة الصوت", items: [{ href: "/admin/v2-review-center", label: "مركز مراجعة التسجيلات", icon: Mic }] },
+  { label: "القراءة الصوتية", items: [{ href: "/admin/v2-review-center", label: "متابعة القراءة الصوتية", icon: Mic }] },
   { label: "المحتوى التعليمي", items: [{ href: "/admin/content-preview", label: "بنك الدروس والأسئلة", icon: BookOpenCheck }, { href: "/admin/v2-media", label: "الوسائط", icon: Film }] },
   { label: "النتائج والتقارير", items: [{ href: "/admin/reports", label: "التقارير", icon: BarChart3 }, { href: "/admin/skill-reports", label: "ملخص المهارات", icon: ClipboardList }] },
   { label: "إدارة المنصة", items: [{ href: "/admin/settings", label: "الإعدادات والمشرفون", icon: Settings }] },

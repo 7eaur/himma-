@@ -42,6 +42,7 @@ from v2_rewards import router as v2_rewards_router
 from v2_retry_runtime import router as v2_retry_router
 from v2_review_claims import router as v2_review_claims_router
 from v2_review_history import router as v2_review_history_router
+from v2_reading_api import router as v2_reading_router
 from observability import request_correlation_middleware
 from readiness import readiness_report
 from runtime_flags import runtime_security_ready, validate_runtime_safety
@@ -49,9 +50,9 @@ import notification_events  # noqa: F401 — registers transactional notificatio
 import db.learning_models  # noqa: F401 — registers V2 session tables in Base.metadata
 
 
-# Runtime configuration still fails closed for unsafe provider/test settings.
-# Student audio has no bypass path: submitted recordings are reviewed by the
-# supervisor until the approved automatic speech model is integrated.
+# Runtime configuration fails closed for unsafe provider/test settings.
+# V2 native speech grades only when explicitly enabled and the existing
+# PostgreSQL/Azure backend is configured. The fallback remains isolated.
 validate_runtime_safety()
 
 app = FastAPI(
@@ -123,10 +124,24 @@ app.include_router(v2_rewards_router)
 app.include_router(v2_retry_router)
 app.include_router(v2_review_claims_router)
 app.include_router(v2_review_history_router)
+app.include_router(v2_reading_router)  # Native learner status and staff read-only results
+
+
+def _native_worker_running() -> bool:
+    """Runtime liveness probe without touching Azure, DB or secret values."""
+    if os.getenv("HIMMA_V2_NATIVE_READING_ENABLED", "0").strip() != "1":
+        return True
+    task = getattr(app.state, "native_reading_task", None)
+    return task is not None and not task.done()
 
 
 @app.get("/health")
-def health_check():
+def health_check(response: Response):
+    # Railway currently probes /health, not /ready. When native reading is
+    # enabled, a crashed task must not appear to be a healthy grading API.
+    if not _native_worker_running():
+        response.status_code = 503
+        return {"status": "not_ready", "service": "himma-api"}
     return {"status": "ok", "service": "himma-api"}
 
 
@@ -144,6 +159,17 @@ def readiness_check(response: Response):
         checks["security_mode"] = "ok"
         report = dict(report)
         report["checks"] = checks
+    # When native grading is opted in, an Azure configuration alone is not
+    # evidence that the in-process worker is running. Do not route students
+    # to an API that can enqueue recordings but cannot process them.
+    if os.getenv("HIMMA_V2_NATIVE_READING_ENABLED", "0").strip() == "1":
+        worker_ok = _native_worker_running()
+        report = dict(report)
+        checks = dict(report.get("checks") or {})
+        checks["native_reading_worker"] = "ok" if worker_ok else "unavailable"
+        report["checks"] = checks
+        if not worker_ok:
+            report["status"] = "not_ready"
     if report["status"] != "ready":
         response.status_code = 503
     return report
@@ -177,3 +203,23 @@ async def stop_audio_retention_sweeper() -> None:
         with suppress(asyncio.CancelledError):
             await task
 
+
+
+# The native speech model runs only in THIS API service. A missing Azure key
+# cannot silently fall back to manual grading, nor can the branch start a
+# second hosted worker. Keep disabled until the complete release is accepted.
+@app.on_event("startup")
+async def start_native_reading_engine() -> None:
+    from v2_reading_engine.runtime import native_runtime_configuration, run_native_reading_forever
+    config = native_runtime_configuration()
+    if config is not None:
+        app.state.native_reading_task = asyncio.create_task(run_native_reading_forever(config))
+
+
+@app.on_event("shutdown")
+async def stop_native_reading_engine() -> None:
+    task = getattr(app.state, "native_reading_task", None)
+    if task:
+        task.cancel()
+        with suppress(asyncio.CancelledError):
+            await task

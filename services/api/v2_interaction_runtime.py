@@ -23,6 +23,9 @@ from v2_content.media import MediaProvider
 from v2_content.projection import student_question
 from v2_content.repository import get_pinned_release
 from v2_audio_retention import audio_upload_binding, track_new_audio_upload, mark_audio_submitted
+from v2_reading_engine.submission_bridge import (
+    create_reading_job, native_submissions_enabled, pending_reading_job_id,
+)
 from v2_lesson_runtime import _require_preview_student, _require_official_lesson_session, _session_or_404, _session_payload
 from v2_adaptation_runtime import (
     active_support_assignment,
@@ -140,6 +143,14 @@ def _interaction_payload(db: Session, session: LessonSession) -> dict[str, Any]:
     question = _current_question(db, session)
     question_ids = _question_ids(db, session)
     projected = student_question(question)
+    pending = db.query(LessonQuestionResponse).filter(
+        LessonQuestionResponse.lesson_session_id == session.id,
+        LessonQuestionResponse.question_id == question["id"],
+        LessonQuestionResponse.status == "pending_review",
+    ).order_by(LessonQuestionResponse.id.desc()).first() if question["interaction"] == "read_aloud" else None
+    reading_job_id = pending_reading_job_id(
+        db, lesson_response_id=pending.id, question_id=question["id"],
+    ) if pending else None
     base["interaction"] = {
         "question": projected,
         "media": _resolved_media(db, session, question),
@@ -152,6 +163,7 @@ def _interaction_payload(db: Session, session: LessonSession) -> dict[str, Any]:
             LessonQuestionResponse.lesson_session_id == session.id,
             LessonQuestionResponse.question_id == question["id"],
         ).count(),
+        "reading_job_id": reading_job_id,
     }
     return base
 
@@ -331,6 +343,12 @@ def submit_answer(
     assignment = active_support_assignment(db, session.id)
     question = _current_question(db, session)
     canonical = _canonical_answer(question, body, student.id)
+    if question["interaction"] == "read_aloud" and db.query(LessonQuestionResponse.id).filter(
+        LessonQuestionResponse.lesson_session_id == session.id,
+        LessonQuestionResponse.question_id == question["id"],
+        LessonQuestionResponse.status == "pending_review",
+    ).first():
+        raise HTTPException(status_code=409, detail="جاري التحقق من قراءتك؛ حدّث السؤال")
     attempts = db.query(LessonQuestionResponse).filter(
         LessonQuestionResponse.lesson_session_id == session.id,
         LessonQuestionResponse.question_id == question["id"],
@@ -350,7 +368,7 @@ def submit_answer(
     # tries the learner reviews a worked model and moves on to the distinct,
     # unaided support checks. Wrong practice is NEVER mastery evidence.
     assisted_advance = session.stage == "support_practice" and is_correct is False and attempt_no >= 3
-    should_advance = is_open or not guided or bool(is_correct) or assisted_advance
+    should_advance = (not is_open) and (not guided or bool(is_correct) or assisted_advance)
     public_result: dict[str, Any] = {
         "question_id": question["id"],
         "status": "pending_review" if is_open else "graded",
@@ -381,7 +399,8 @@ def submit_answer(
             else:
                 public_result["message"] = "اقتربت! اقرأ التلميح ثم حاول مرة أخرى."
     elif is_open:
-        public_result["message"] = "حُفظت إجابتك وتنتظر مراجعة المشرف."
+        public_result["status"] = "processing"
+        public_result["message"] = "نستمع إلى قراءتك..."
     else:
         public_result["message"] = "تم حفظ إجابتك."
 
@@ -410,7 +429,7 @@ def submit_answer(
             )
         except ValueError as exc:
             raise HTTPException(status_code=409, detail="ملف التسجيل المؤقت لم يعد صالحًا للإرسال") from exc
-        db.add(AudioSubmission(
+        audio = AudioSubmission(
             response_id=None,
             lesson_response_id=response.id,
             storage_key=canonical["audio_storage_key"],
@@ -418,7 +437,22 @@ def submit_answer(
             mime_type=canonical["audio_mime_type"],
             duration_seconds=canonical["audio_duration_seconds"],
             status="pending_review",
-        ))
+        )
+        db.add(audio)
+        db.flush()
+        # Do not enqueue an unprocessable job when the native worker is off:
+        # existing pending submissions remain with their pre-cutover owner.
+        job_id = (
+            create_reading_job(
+                db, student_id=student.id, audio_submission_id=audio.id,
+                content_release_id=session.content_release_id,
+                question_id=question["id"],
+            )
+            if native_submissions_enabled() else None
+        )
+        if job_id is not None:
+            public_result["reading_job_id"] = job_id
+            response.answer_json = {"answer": canonical, "public_result": dict(public_result)}
     if should_advance:
         _advance(
             session,

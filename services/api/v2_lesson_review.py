@@ -29,6 +29,8 @@ from v2_content.repository import get_pinned_release
 from v2_assessment_runtime import _session_release, blocked_review_item
 from v2_retry_state import active_retry
 from v2_review_claims import enforce_review_claim, clear_review_claim
+from v2_reading_engine.legacy_review_guard import reject_legacy_review_for_native
+from db.v2_reading_models import V2ReadingJob
 from v2_audio_rubric import ReadingRubricV2, save_v2_reading_rubric
 from v2_audio_retention import schedule_superseded_audio, run_retention_after_commit
 from v2_audio_review_evidence import (
@@ -115,6 +117,10 @@ def lesson_queue(
         LessonSession, LessonSession.id == LessonQuestionResponse.lesson_session_id
     ).join(Student, Student.id == LessonSession.student_id).filter(
         LessonQuestionResponse.status == "pending_review",
+        # The automatic V2 reading engine, not this legacy queue, owns jobs.
+        ~db.query(V2ReadingJob.id).filter(
+            V2ReadingJob.lesson_response_id == LessonQuestionResponse.id
+        ).exists(),
     ).order_by(LessonQuestionResponse.created_at, LessonQuestionResponse.id).offset(offset).limit(limit + 1).all()
     page = rows[:limit]
     response_ids = [row.id for row, _, _ in page]
@@ -230,6 +236,7 @@ def decide_lesson(
     ).with_for_update().one_or_none()
     if not row:
         raise HTTPException(status_code=404, detail="إجابة الدرس غير موجودة")
+    reject_legacy_review_for_native(db, kind="lesson", response_id=row.id)
     if row.status != "pending_review":
         raise HTTPException(status_code=409, detail="تمت مراجعة الإجابة؛ لا يقبل القرار المكرر")
     session = db.query(LessonSession).filter(LessonSession.id == row.lesson_session_id).with_for_update().one()
