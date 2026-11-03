@@ -37,6 +37,27 @@ function VideoPlayerInstance({ src, captionsSrc, startAt = 0, onCheckpoint, onEn
   // Only the newest explicit play request may change the playback state.
   const playAttempt = useRef(0);
   const [state, setState] = useState<PlayerState>("loading");
+  const lastProgressAt = useRef(0);
+  const bufferingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clearBufferingTimer = () => {
+    if (bufferingTimer.current !== null) clearTimeout(bufferingTimer.current);
+    bufferingTimer.current = null;
+  };
+  useEffect(() => () => clearTimeout(bufferingTimer.current ?? undefined), []);
+  // A stalled event does not prove playback stopped: Safari often emits it
+  // while already-decoded frames continue playing on a slow connection.
+  const considerBuffering = () => {
+    clearBufferingTimer();
+    const video = videoRef.current;
+    if (!video || video.paused || video.ended) return;
+    const progressSnapshot = lastProgressAt.current;
+    bufferingTimer.current = setTimeout(() => {
+      const current = videoRef.current;
+      if (!current || current.paused || current.ended || lastProgressAt.current !== progressSnapshot) return;
+      if (current.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) return;
+      setState((value) => value === "ready" || value === "loading" ? "buffering" : value);
+    }, 1200);
+  };
 
   const play = async () => {
     const attempt = ++playAttempt.current;
@@ -54,6 +75,11 @@ function VideoPlayerInstance({ src, captionsSrc, startAt = 0, onCheckpoint, onEn
 
   const checkpoint = () => {
     const video = videoRef.current;
+    if (video) {
+      lastProgressAt.current += 1;
+      clearBufferingTimer();
+      setState((current) => current === "buffering" ? "ready" : current);
+    }
     if (!video || !Number.isFinite(video.duration) || video.duration <= 0) return;
     if (Math.abs(video.currentTime - lastCheckpoint.current) >= 5) {
       lastCheckpoint.current = video.currentTime;
@@ -93,6 +119,7 @@ function VideoPlayerInstance({ src, captionsSrc, startAt = 0, onCheckpoint, onEn
     // A promise from before the retry must not mark the new load as blocked.
     playAttempt.current += 1;
     const video = videoRef.current;
+    clearBufferingTimer();
     // On weak networks, avoid discarding the downloaded buffer if the
     // browser can already resume from the current position. Only reload
     // the media resource after a real error or when no current frame exists.
@@ -170,13 +197,14 @@ function VideoPlayerInstance({ src, captionsSrc, startAt = 0, onCheckpoint, onEn
         playsInline
         preload="metadata"
         onLoadedMetadata={resume}
-        onCanPlay={() => setState((current) => ["blocked", "ended", "error", "saving", "save_error"].includes(current) ? current : "ready")}
-        onWaiting={() => setState((current) => ["blocked", "ended", "error", "saving", "save_error"].includes(current) ? current : "buffering")}
-        onStalled={() => setState((current) => ["blocked", "ended", "error", "saving", "save_error"].includes(current) ? current : "buffering")}
-        onPlaying={() => setState((current) => ["blocked", "error", "saving", "save_error", "ended"].includes(current) ? current : "ready")}
+        onCanPlay={() => { clearBufferingTimer(); setState((current) => ["blocked", "ended", "error", "saving", "save_error"].includes(current) ? current : "ready"); }}
+        onWaiting={considerBuffering}
+        onStalled={considerBuffering}
+        onPlaying={() => { clearBufferingTimer(); setState((current) => ["blocked", "error", "saving", "save_error", "ended"].includes(current) ? current : "ready"); }}
         onTimeUpdate={checkpoint}
         onPause={checkpoint}
         onError={() => {
+          clearBufferingTimer();
           playAttempt.current += 1;
           setState((current) => ["saving", "save_error", "ended"].includes(current) ? current : "error");
         }}
