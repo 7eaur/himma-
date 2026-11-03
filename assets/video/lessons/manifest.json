@@ -140,6 +140,14 @@
       "status": "approved",
       "approval": "owner_supplied_20261103",
       "upload_filename": "HIMMA_L1-18_480p.mp4"
+    },
+    "VID-L3-07": {
+      "lesson_id": "L3-07",
+      "source_path": "assets/video/lessons/HIMMA_L3-07_480p.mp4",
+      "source_sha256": "f5668232496b09571a79d4a89b7af63d7b9378af0d3f06967ec08667f13d8d06",
+      "status": "approved",
+      "approval": "owner_supplied_20261103",
+      "upload_filename": "HIMMA_L1-19_480p.mp4"
     }
   }
 }
