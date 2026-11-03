@@ -11,3 +11,6 @@
 .button:focus-visible { outline: 3px solid #9fc7f5; outline-offset: 3px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .spinner { animation: none; border-top-color: #347fd9; } }
+
+.actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.actions .button { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
