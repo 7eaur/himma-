@@ -23,7 +23,9 @@ from v2_content.media import MediaProvider
 from v2_content.projection import student_question
 from v2_content.repository import get_pinned_release
 from v2_audio_retention import audio_upload_binding, track_new_audio_upload, mark_audio_submitted
-from v2_reading_engine.submission_bridge import create_reading_job, pending_reading_job_id
+from v2_reading_engine.submission_bridge import (
+    create_reading_job, native_submissions_enabled, pending_reading_job_id,
+)
 from v2_lesson_runtime import _require_preview_student, _require_official_lesson_session, _session_or_404, _session_payload
 from v2_adaptation_runtime import (
     active_support_assignment,
@@ -438,12 +440,19 @@ def submit_answer(
         )
         db.add(audio)
         db.flush()
-        job_id = create_reading_job(
-            db, student_id=student.id, audio_submission_id=audio.id,
-            content_release_id=session.content_release_id, question_id=question["id"],
+        # Do not enqueue an unprocessable job when the native worker is off:
+        # existing pending submissions remain with their pre-cutover owner.
+        job_id = (
+            create_reading_job(
+                db, student_id=student.id, audio_submission_id=audio.id,
+                content_release_id=session.content_release_id,
+                question_id=question["id"],
+            )
+            if native_submissions_enabled() else None
         )
-        public_result["reading_job_id"] = job_id
-        response.answer_json = {"answer": canonical, "public_result": dict(public_result)}
+        if job_id is not None:
+            public_result["reading_job_id"] = job_id
+            response.answer_json = {"answer": canonical, "public_result": dict(public_result)}
     if should_advance:
         _advance(
             session,

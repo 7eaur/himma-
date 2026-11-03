@@ -41,7 +41,9 @@ from v2_audio_rubric import ReadingRubricV2, save_v2_reading_rubric
 from v2_reading_engine.assessment_scores import summarize_assessment
 from v2_reading_engine.legacy_review_guard import reject_legacy_review_for_native
 from db.v2_reading_models import V2ReadingJob
-from v2_reading_engine.submission_bridge import create_reading_job, pending_reading_job_id
+from v2_reading_engine.submission_bridge import (
+    create_reading_job, native_submissions_enabled, pending_reading_job_id,
+)
 from v2_audio_retention import (
     schedule_superseded_audio, run_retention_after_commit,
     audio_upload_binding, track_new_audio_upload, mark_audio_submitted,
@@ -516,9 +518,14 @@ def answer(session_id: int, body: AnswerRequest, student: Student = Depends(_req
         )
         db.add(audio)
         db.flush()
-        reading_job_id = create_reading_job(
-            db, student_id=student.id, audio_submission_id=audio.id,
-            content_release_id=session.content_release_id, question_id=question["id"],
+        reading_job_id = (
+            create_reading_job(
+                db, student_id=student.id,
+                audio_submission_id=audio.id,
+                content_release_id=session.content_release_id,
+                question_id=question["id"],
+            )
+            if native_submissions_enabled() else None
         )
     else:
         reading_job_id = None

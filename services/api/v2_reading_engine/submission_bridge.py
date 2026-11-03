@@ -13,6 +13,17 @@ from db.v2_reading_models import V2ReadingJob
 from .pinned_reference import enqueue_pinned_reading
 
 
+def native_submissions_enabled() -> bool:
+    """Use exactly the worker's existing fail-closed production feature gate.
+
+    A disabled/unconfigured native engine must never create orphan jobs that
+    cannot be processed and that hide legacy still-pending reviews. Once
+    enabled, every new V2 reading uses the native automatic path exclusively.
+    """
+    from .runtime import native_runtime_configuration
+    return native_runtime_configuration() is not None
+
+
 def create_reading_job(
     db: Session, *, student_id: int, audio_submission_id: int,
     content_release_id: int, question_id: str,
