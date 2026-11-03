@@ -112,3 +112,11 @@ def test_historical_lesson_queue_excludes_native_job_without_losing_it(db):
     assert result["blocked_items"] == []
     assert job.status == "queued"
     assert response.is_correct is None
+
+
+def test_disabled_worker_cannot_queue_reanalysis_of_old_audio(student_client, monkeypatch):
+    from v2_reading_engine import runtime
+    monkeypatch.setattr(runtime, "native_runtime_configuration", lambda: None)
+    response = student_client.post("/v2/reading/jobs/9876/retry-analysis")
+    assert response.status_code == 503
+    assert "محفوظ" in response.json()["detail"]
