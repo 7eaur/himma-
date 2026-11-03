@@ -1,5 +1,6 @@
 """Owner-approved media replacements without rewriting frozen academic banks.
 
+Numbered uploads are promoted into assets/video/lessons before deployment.
 Only the exact temporary video contract may be superseded. Missing or altered
 approved replacements fail closed; they never fall back to the retired shared clip.
 """
