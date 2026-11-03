@@ -211,7 +211,7 @@ def test_p07_media_contract_keeps_preview_separate_from_approval(researcher_clie
     assert data["publishable"] is True
     assert data["media_requirements"] == {"audio": 45, "image": 23, "video": 19}
     video = next(x for x in data["items"] if x["asset_id"] == "VID-L3-07")
-    assert not video["publication_blocker"] and video["preview_kind"] == "shared_approved_temporary_video" and video["temporary"]
+    assert not video["publication_blocker"] and video["preview_kind"] == "approved_lesson_video" and not video["temporary"]
     assert any(r["owner_id"] == "L3-07" for r in video["uses"])
     audio = next(x for x in data["items"] if x["asset_id"] == "AUD-L1-L")
     assert not audio["publication_blocker"] and audio["uses"]
@@ -549,8 +549,7 @@ def test_missing_preview_sound_or_image_never_falls_back_to_unrelated_legacy_med
     assert "غير متاح" in image.json()["detail"]
 
 
-def test_shared_temporary_lesson_video_reuses_one_url_across_sessions_and_falls_back_for_changed_bank(student_client, monkeypatch):
-    monkeypatch.setattr("v2_content.lesson_videos.approved_lesson_videos", lambda: {})
+def test_pinned_lessons_keep_distinct_video_bindings_when_current_bank_changes(student_client, monkeypatch):
     from v2_content.repository import get_release
     from v2_lesson_runtime import _session_payload
     import v2_lesson_runtime
@@ -571,7 +570,8 @@ def test_shared_temporary_lesson_video_reuses_one_url_across_sessions_and_falls_
         db.add(second)
         db.flush()
         second_payload = _session_payload(db, second)
-        assert second_payload["video"]["url"] == first_url
+        assert second_payload["video"]["url"] != first_url
+        assert second_payload["video"]["url"].split("?v=")[1] != first_url.split("?v=")[1]
         assert second_payload["video"]["asset_id"] != started["video"]["asset_id"]
 
         # If today's compiled release changes the temporary video source,

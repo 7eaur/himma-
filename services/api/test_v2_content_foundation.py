@@ -182,26 +182,25 @@ def test_p07_approved_media_endpoint_never_serves_unapproved_or_missing_assets(s
     assert student_client.get("/v2/content/media/LET-01").status_code == 404
 
 
-def test_owner_approved_temporary_video_is_bounded_to_exact_binary(monkeypatch):
-    monkeypatch.setattr("v2_content.lesson_videos.approved_lesson_videos", lambda: {})
+def test_replacement_is_ready_and_old_temporary_contract_remains_bounded():
     from v2_content.media import approved_asset_path
     asset = next(row for row in compile_release()["media"] if row["id"] == "VID-L1-01")
     assert approved_asset_path(asset) is not None
     resolved = MediaProvider(environment="production", fixture_enabled=False).resolve(asset)
-    assert resolved.state == "ready" and resolved.temporary and not resolved.test_only
-    assert resolved.as_dict()["temporary"] is True
+    assert resolved.state == "ready" and not resolved.temporary and not resolved.test_only
+    assert resolved.as_dict()["temporary"] is False
     assert approved_asset_path(dict(asset, source_sha256="0" * 64)) is None
     assert approved_asset_path(dict(asset, shared_temporary_video=False)) is None
     assert approved_asset_path(dict(asset, kind="audio")) is None
     assert approved_asset_path(dict(asset, source_path="assets/video/other.mp4")) is None
 
 
-def test_shared_temporary_video_is_hashed_once_for_all_lesson_aliases(monkeypatch):
-    monkeypatch.setattr("v2_content.lesson_videos.approved_lesson_videos", lambda: {})
+def test_individual_videos_have_distinct_verified_files():
     from v2_content.media import _file_sha256, approved_asset_path
     videos = [row for row in compile_release()["media"] if row["kind"] == "video"]
     assert len(videos) == 19
     _file_sha256.cache_clear()
     assert all(approved_asset_path(row) is not None for row in videos)
     cache = _file_sha256.cache_info()
-    assert cache.misses == 1 and cache.hits == 18
+    assert cache.misses == 19
+    assert len({approved_asset_path(row) for row in videos}) == 19

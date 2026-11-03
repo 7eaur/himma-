@@ -66,10 +66,10 @@ def test_candidate_media_has_no_unreferenced_missing_audio_and_preserves_approve
     for retired in ("AUD-L1-03-MA", "AUD-L1-03-SI"):
         assert student_client.get(f"/v2/content/candidate/media/{retired}").status_code == 404
 
-    temporary = next(asset for asset in media if MediaProvider().resolve(asset).temporary)
+    temporary = next(asset for asset in media if asset["kind"] == "video")
     candidate = student_client.get(f'/v2/content/candidate/media/{temporary["id"]}')
     assert candidate.status_code == 200
-    assert candidate.json()["temporary"] is True
+    assert candidate.json()["temporary"] is False
     assert candidate.json()["test_only"] is False
     assert candidate.json()["url"].startswith("/api/v2/content/media/")
 
@@ -86,12 +86,13 @@ def test_missing_candidate_resources_are_404(student_client):
     assert student_client.get("/v2/content/candidate/media/nope").status_code == 404
 
 
-def test_owner_approved_shared_video_counts_for_current_release_but_stays_temporary():
+def test_owner_approved_individual_videos_replace_every_shared_alias():
     bank = compile_release()
     report = media_readiness_contract(bank, provider=MediaProvider(environment="test"))
     videos = [item for item in report["items"]
-              if item["kind"] == "video" and item["temporary"] and item["required_for_runtime"]]
-    assert len(videos) == 19 - len(approved_lesson_videos())
+              if item["kind"] == "video" and item["required_for_runtime"]]
+    assert len(videos) == 19
+    assert all(not item["temporary"] for item in videos)
     assert all(not item["publication_blocker"] and not item["academic_qa_pending"] for item in videos)
     assert report["publishable"]
     assert report["published_assets"] == report["required_assets"] == 73

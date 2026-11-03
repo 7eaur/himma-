@@ -29,7 +29,6 @@ router = APIRouter(prefix="/v2/lessons", tags=["v2-lessons"])
 FIXTURE_VIDEO = Path(__file__).resolve().parent / "test_fixtures" / "himma-v2-video-test-only.mp4"
 FIXTURE_CAPTIONS = Path(__file__).resolve().parent / "test_fixtures" / "himma-v2-video-test-only.vtt"
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DEMO_LESSON_VIDEO = REPO_ROOT / "assets/video/HIMMA_V2_DEMO/gemini_generated_video_72256b30.mp4"
 NEW_V2_AUDIO_ROOT = REPO_ROOT / "assets/audio/HIMMA_AUDIO_V2/web_mp3"
 PREVIEW_BINDINGS_FILE = REPO_ROOT / "services/api/test_fixtures/v2-preview-bindings.json"
 EXTERNAL_STAGE = {"video": "teaching_video", "complete": "outcome"}
@@ -80,30 +79,9 @@ def _session_payload(db: Session, session: LessonSession) -> dict:
         if media_path is None:
             raise HTTPException(status_code=409, detail="وسيط الإصدار المثبت لم يعد متاحًا")
         digest = educational_media_version(media_path)
-        # The first-release temporary video is deliberately shared across lessons.
-        # Session-specific URLs force a fresh browser cache entry on every
-        # lesson although all 19 aliases reference the same approved bytes.
-        # Reuse one canonical, authenticated *asset* URL only if the currently
-        # compiled media bank still approves the EXACT same temporary binary.
-        # Historical pinned banks and future per-lesson videos stay scoped to
-        # their original session when the binary/approval no longer matches.
-        reusable = None
-        if (resolved["temporary"]
-                and asset.get("shared_temporary_video") is True):
-            candidates = (
-                candidate for candidate in get_release()["media"]
-                if candidate.get("status") == "approved_temporary"
-                and candidate.get("shared_temporary_video") is True
-                and (candidate.get("kind") or candidate.get("type")) == "video"
-                and candidate.get("source_sha256") == digest
-                and approved_asset_path(candidate) == media_path
-            )
-            reusable = min(candidates, key=lambda row: row["id"], default=None)
-        resolved["url"] = (
-            f'/api/v2/content/media/{reusable["id"]}?v={digest}'
-            if reusable is not None else
-            f'/api/v2/lessons/sessions/{session.id}/media/{asset["id"]}?v={digest}'
-        )
+        # Keep the student's frozen lesson authorization; media-only approved
+        # replacements never rewrite questions, results or the release checksum.
+        resolved["url"] = f'/api/v2/lessons/sessions/{session.id}/media/{asset["id"]}?v={digest}'
     payload = student_lesson(lesson, resolved)
     payload["session"] = {
         "session_id": session.id,
@@ -415,8 +393,8 @@ def test_video_fixture(
     asset = get_media(asset_id)
     if not asset or (asset.get("kind") or asset.get("type")) != "video":
         raise HTTPException(status_code=404, detail="فيديو المعاينة غير موجود")
-    # Temporary lesson preview shared by all 19 IDs; the source video IDs stay unchanged.
-    video_file = _bound_preview_source(asset_id, "video") or (DEMO_LESSON_VIDEO if DEMO_LESSON_VIDEO.is_file() else FIXTURE_VIDEO)
+    # Preview uses the same approved lesson bytes, with a test-only fallback.
+    video_file = _bound_preview_source(asset_id, "video") or approved_asset_path(asset) or FIXTURE_VIDEO
     if not video_file.is_file():
         raise HTTPException(status_code=503, detail="فيديو المعاينة غير جاهز")
     return FileResponse(
@@ -529,7 +507,7 @@ def supervisor_educational_media(asset_id: str, _user: User = Depends(get_curren
     path = approved_asset_path(asset)
     if path is None and resolved.test_only:
         if resolved.kind == "video":
-            path = _bound_preview_source(asset_id, "video") or (DEMO_LESSON_VIDEO if DEMO_LESSON_VIDEO.is_file() else FIXTURE_VIDEO)
+            path = _bound_preview_source(asset_id, "video") or approved_asset_path(asset) or FIXTURE_VIDEO
         elif resolved.kind in {"audio", "image"}:
             path = _fixture_source(asset, kind=resolved.kind)
     if path is None or not path.is_file():
