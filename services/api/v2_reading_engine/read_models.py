@@ -10,6 +10,7 @@ from sqlalchemy import select, func, or_
 from sqlalchemy.orm import Session
 
 from db.models import Student, AudioSubmission
+from db.learning_models import LessonQuestionResponse
 from db.v2_reading_models import V2ReadingJob, V2ReadingEvaluation
 from .job_store import ReadingConflict
 
@@ -55,13 +56,28 @@ def student_reading_status(db: Session, *, job_id: int, student_id: int) -> dict
         if result.passed_for_progress:
             return {"state": "correct", "message": GOOD, "retry_required": False}
         hint = result.evidence_json.get("training_hint")
-        # An incorrect recognized reading is an ACADEMIC training attempt.
-        # "retry_required" is reserved for truly unrecognized audio only.
-        return {
+        # A graded training mistake is not an unrecognized recording.
+        output = {
             "state": "incorrect", "message": TRY_AGAIN,
             "hint": hint if isinstance(hint, str) and 0 < len(hint) <= 250 else TRY_AGAIN,
             "retry_required": False,
         }
+        # Only the final incorrect attempt of a FOCUSED SUPPORT practice
+        # may reveal the existing reference as a worked reading model.
+        # Never expose this in pre/posttests, unaided support checks or ordinary
+        # guided lessons, even if the browser asks for a different job ID.
+        if job.lesson_response_id is not None:
+            answer = db.get(LessonQuestionResponse, job.lesson_response_id)
+            if (answer is not None and answer.role == "guided_practice"
+                    and answer.support_assignment_id is not None
+                    and answer.attempt_no >= 3 and answer.is_correct is False
+                    and answer.status == "graded"):
+                output.update({
+                    "assisted_advance": True,
+                    "model_text": job.reference_text,
+                    "message": "اقرأ المثال، ثم نتابع خطوة جديدة.",
+                })
+        return output
     return {"state": "processing", "message": PROCESSING, "retry_required": False}
 
 

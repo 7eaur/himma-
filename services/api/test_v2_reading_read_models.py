@@ -157,3 +157,87 @@ def test_supervisor_search_matches_student_name_or_question_with_pagination(db):
     assert supervisor_reading_results(db, search="%")["total"] == 0
     with pytest.raises(ValueError):
         supervisor_reading_results(db, search="a" * 81)
+
+
+
+def test_final_incorrect_focused_support_audio_displays_reading_model_only_after_three(db):
+    """Only fully graded focused support, not normal lessons or tests, may show it."""
+    from db.learning_models import LessonSession, LessonQuestionResponse, SupportAssignment
+    from db.models import AudioSubmission
+    from v2_reading_engine.job_store import enqueue_reading
+    student, release, _answer, _audio = new_v2_assessment(db)
+    lesson = LessonSession(
+        student_id=student.id, content_release_id=release.id,
+        lesson_id="L1-04", stage="support_check", status="in_progress",
+        step_index=0,
+    )
+    db.add(lesson)
+    db.flush()
+    assignment = SupportAssignment(
+        lesson_session_id=lesson.id, student_id=student.id,
+        content_release_id=release.id, support_id="SUP-03",
+        focus="letters", target_skill="S3",
+        source_lesson_id="L1-04", source_level=1, support_level=1,
+        mode="targeted_support", status="active",
+        verification_round=0, practice_question_ids=["SUP-03-GP-01"],
+        check_question_ids=["SUP-03-SC-01"],
+        return_to={"lesson_id": "L1-04"}, policy_version="test",
+    )
+    db.add(assignment)
+    db.flush()
+
+    def make_result(*, attempt_no: int, use_support: bool):
+        response = LessonQuestionResponse(
+            lesson_session_id=lesson.id,
+            question_id="SUP-03-GP-01" if use_support else "L1-04-GP-02",
+            role="guided_practice", answer_json={},
+            submit_key=f"take-{attempt_no}-{use_support}",
+            attempt_no=attempt_no, status="graded", is_correct=False,
+            support_assignment_id=assignment.id if use_support else None,
+        )
+        db.add(response)
+        db.flush()
+        audio = AudioSubmission(
+            lesson_response_id=response.id,
+            storage_key=f"audio/{student.id}/take-{response.id}.wav",
+            file_size=3000, mime_type="audio/wav", status="graded",
+        )
+        db.add(audio)
+        db.flush()
+        job = enqueue_reading(
+            db, student_id=student.id, audio_submission_id=audio.id,
+            content_release_id=release.id, question_id=response.question_id,
+            reference_text="سُ" if use_support else "رَ",
+            reading_kind="letter", learning_mode="training",
+        )
+        job.status = "applied"
+        db.add(V2ReadingEvaluation(
+            job_id=job.id, audio_submission_id=audio.id,
+            decision="incorrect", score_fraction=Decimal("0"),
+            passed_for_progress=False, evidence_json={
+                "training_hint": "اقرأ الحرف مرة أخرى.",
+                "transcript": "مختلف",
+            },
+        ))
+        db.flush()
+        return student_reading_status(db, job_id=job.id, student_id=student.id)
+
+    second = make_result(attempt_no=2, use_support=True)
+    assert second["state"] == "incorrect"
+    assert second["retry_required"] is False
+    assert "model_text" not in second and "assisted_advance" not in second
+
+    third = make_result(attempt_no=3, use_support=True)
+    assert third["state"] == "incorrect"
+    assert third["assisted_advance"] is True
+    assert third["model_text"] == "سُ"
+    assert third["retry_required"] is False
+    assert "transcript" not in third
+    assert "provider" not in third
+
+    ordinary = make_result(attempt_no=3, use_support=False)
+    assert ordinary["state"] == "incorrect"
+    assert "model_text" not in ordinary and "assisted_advance" not in ordinary
+
+    for item in (second, third, ordinary):
+        assert "transcript" not in item and "matched_alias" not in item

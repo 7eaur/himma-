@@ -918,3 +918,48 @@ it("accepts one answer POST for rapid repeated taps before React rerenders", asy
     expect(screen.getByText("ما فهمت قراءتك بوضوح. جرّب التسجيل مرة ثانية.")).toBeInTheDocument();
     expect(screen.queryByText(/Azure|مراجعة المشرف|التفريغ/)).not.toBeInTheDocument();
   });
+
+
+
+it("shows the native focused-support reading model after the third wrong grade before advancing", async () => {
+  const later = { interaction: { question: { question_id: "SUP-03-SC-01" } }, session: { stage: "support_check" } };
+  const fetchMock = jest.fn()
+    .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({
+      state: "incorrect", message: "اقرأ المثال، ثم نتابع خطوة جديدة.",
+      retry_required: false, assisted_advance: true, model_text: "سُ",
+    }) })
+    .mockResolvedValueOnce({ ok: true, status: 200, json: async () => later });
+  global.fetch = fetchMock;
+  const reading = payload({ interaction: "read_aloud", options: [], stimulus: { text: "سُ", media: [] } });
+  reading.progress.stage = "support_practice";
+  reading.reading_job_id = 77;
+  const changed = jest.fn();
+  render(<InteractionPlayer sessionId={7} interaction={reading} onLessonChange={changed}/>);
+  const continueButton = await screen.findByRole("button", { name: "فهمت، نكمل" });
+  expect(screen.getByLabelText("مثال قراءة للتعلّم")).toHaveTextContent("سُ");
+  expect(screen.getByTestId("v2-question-coach")).toHaveTextContent("اقرأ المثال");
+  expect(screen.queryByRole("button", { name: "بدء التسجيل" })).not.toBeInTheDocument();
+  expect(changed).not.toHaveBeenCalled();
+  expect(fetchMock).toHaveBeenNthCalledWith(1, "/api/v2/reading/jobs/77", expect.anything());
+  fireEvent.click(continueButton);
+  expect(changed).toHaveBeenCalledWith(later);
+  expect(fetchMock).toHaveBeenCalledTimes(2);
+});
+
+it("never shows a native reading model in an independent assessment", async () => {
+  const later = { interaction: { question: { question_id: "Q-NEXT" } } };
+  global.fetch = jest.fn()
+    .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({
+      state: "completed", retry_required: false, message: "تم تسجيل قراءتك.",
+      assisted_advance: true, model_text: "سُ",
+    }) })
+    .mockResolvedValueOnce({ ok: true, status: 200, json: async () => later });
+  const reading = payload({ interaction: "read_aloud", role: "pretest", options: [] });
+  reading.progress.stage = "pretest";
+  reading.reading_job_id = 78;
+  const changed = jest.fn();
+  render(<InteractionPlayer sessionId={7} interaction={reading} onLessonChange={changed}/>);
+  await waitFor(() => expect(changed).toHaveBeenCalledWith(later));
+  expect(screen.queryByLabelText("مثال قراءة للتعلّم")).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "فهمت، نكمل" })).not.toBeInTheDocument();
+});

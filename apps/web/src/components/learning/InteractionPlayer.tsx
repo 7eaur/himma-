@@ -28,8 +28,8 @@ export interface InteractionPayload {
   attempts: number;
   reading_job_id?: number | null;
 }
-interface SubmissionResult { correct?: boolean; retry_required: boolean; hint?: string | null; message?: string; status: string; help_level?: number; model_option_ids?: string[]; assisted_advance?: boolean; reading_job_id?: number; }
-interface NativeReadingResult { state: "processing" | "retry_audio" | "unavailable" | "completed" | "correct" | "incorrect"; message: string; retry_required: boolean; hint?: string; }
+interface SubmissionResult { correct?: boolean; retry_required: boolean; hint?: string | null; message?: string; status: string; help_level?: number; model_option_ids?: string[]; model_text?: string; assisted_advance?: boolean; reading_job_id?: number; }
+interface NativeReadingResult { state: "processing" | "retry_audio" | "unavailable" | "completed" | "correct" | "incorrect"; message: string; retry_required: boolean; hint?: string; assisted_advance?: boolean; model_text?: string; }
 
 interface Props {
   sessionId: number;
@@ -499,6 +499,28 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
         if (stopped || controller.signal.aborted) return;
         setNativeJobId(0);
         setNativeMessage("");
+        if (result.state === "incorrect" && result.assisted_advance &&
+            interaction.progress.stage === "support_practice" &&
+            typeof result.model_text === "string" && result.model_text.trim()) {
+          // The server already advanced after the third incorrect focused-
+          // support attempt. Show the worked reading first, just as the
+          // existing choice activities do, without a second academic POST.
+          setAssistedNext(next);
+          setFeedback({
+            status: "graded", retry_required: false, correct: false,
+            assisted_advance: true, model_text: result.model_text,
+            message: result.message,
+          });
+          setUnclearRetryId(null);
+          setAudioBlob(null);
+          setAudioUrl(current => {
+            if (current) URL.revokeObjectURL(current);
+            return null;
+          });
+          uploadKeyRef.current = requestKey("upload");
+          answerKeyRef.current = requestKey("answer");
+          return;
+        }
         if (result.state === "incorrect" &&
             next?.interaction?.question?.question_id === question.question_id &&
             next?.interaction?.progress?.stage === interaction.progress.stage) {
@@ -592,6 +614,13 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
       {failedMediaIds.some((id) => media[id]?.kind === "image") && <button type="button" className={styles.secondary} onClick={() => setFailedMediaIds((current) => current.filter((id) => media[id]?.kind !== "image"))}>إعادة تحميل الصور</button>}
     </div>}
     {missingRequiredOptions && <div className={styles.mediaMissing} role="alert">خيارات هذا السؤال غير مكتملة. لن تُرسل الإجابة حتى تصبح جاهزة.</div>}
+    {assistedFeedback && question.interaction === "read_aloud" && feedback?.model_text && (
+      <div className={styles.supportModel} aria-label="مثال قراءة للتعلّم">
+        <strong>مثال القراءة</strong>
+        <p dir="rtl">{feedback.model_text}</p>
+        <small>اقرأ المثال بهدوء، ثم نتابع إلى السؤال التالي.</small>
+      </div>
+    )}
     {modelIds.length > 0 && <div className={styles.supportModel} aria-label="مثال محلول للتعلّم">
       <strong>{ordered ? "انظر إلى الترتيب الصحيح" : "هذا مثال للإجابة الصحيحة"}</strong>
       <div className={styles.supportModelOptions}>{modelIds.map((id, index) => {
@@ -644,7 +673,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
     })}</div>}
 
     {question.interaction === "read_aloud" && nativeMessage && <div className={styles.feedback} role="status"><span>{nativeMessage}</span></div>}
-    {question.interaction === "read_aloud" && !nativeProcessing && <div className={styles.recorder}>{!audioBlob ? <><button type="button" className={`${styles.recordButton} ${recording ? styles.recording : ""}`} onClick={recording ? stopRecording : () => void startRecording()} disabled={saving || awaitingConfirmation || requestingMic || nativeProcessing} aria-label={requestingMic ? "جاري تفعيل الميكروفون" : recording ? "إيقاف التسجيل" : "بدء التسجيل"}>{recording ? <MicOff size={28}/> : <Mic size={28}/>}</button><p>{requestingMic ? "جاري طلب إذن الميكروفون..." : recording ? `جاري التسجيل… ${recordingSeconds} ث` : "اضغط ثم اقرأ بصوت واضح"}</p></> : <>{audioUrl && <audio controls src={audioUrl}/>}<button type="button" className={styles.secondary} disabled={saving || awaitingConfirmation} onClick={resetRecording}><RotateCcw size={16}/> إعادة التسجيل</button><p>استمع إلى قراءتك، ثم أرسلها للتحقق.</p></>}</div>}
+    {question.interaction === "read_aloud" && !nativeProcessing && assistedNext === null && <div className={styles.recorder}>{!audioBlob ? <><button type="button" className={`${styles.recordButton} ${recording ? styles.recording : ""}`} onClick={recording ? stopRecording : () => void startRecording()} disabled={saving || awaitingConfirmation || requestingMic || nativeProcessing} aria-label={requestingMic ? "جاري تفعيل الميكروفون" : recording ? "إيقاف التسجيل" : "بدء التسجيل"}>{recording ? <MicOff size={28}/> : <Mic size={28}/>}</button><p>{requestingMic ? "جاري طلب إذن الميكروفون..." : recording ? `جاري التسجيل… ${recordingSeconds} ث` : "اضغط ثم اقرأ بصوت واضح"}</p></> : <>{audioUrl && <audio controls src={audioUrl}/>}<button type="button" className={styles.secondary} disabled={saving || awaitingConfirmation} onClick={resetRecording}><RotateCcw size={16}/> إعادة التسجيل</button><p>استمع إلى قراءتك، ثم أرسلها للتحقق.</p></>}</div>}
 
     {!isAssessment && feedback && !feedback.retry_required && !assistedFeedback && <div className={`${styles.feedback} ${feedback.correct === false ? styles.retry : styles.accepted}`} role="status"><strong>{feedback.correct === true ? "أحسنت!" : feedback.correct === false ? "لم تكتمل الإجابة" : "تم الحفظ"}</strong><span>{feedback.message}</span></div>}
     {error && <div className={styles.error} role="alert">{error}</div>}
