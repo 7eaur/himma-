@@ -1,0 +1,19 @@
+{
+  "schema": "himma-approved-lesson-videos/1",
+  "videos": {
+    "VID-L1-01": {
+      "lesson_id": "L1-01",
+      "source_path": "assets/video/lessons/HIMMA_L1-01_480p.mp4",
+      "source_sha256": "b3c19f060579588240669104d21deb9d4abcb0ca4787466633880088e6f6088c",
+      "status": "approved",
+      "approval": "owner_supplied_20261103"
+    },
+    "VID-L1-02": {
+      "lesson_id": "L1-02",
+      "source_path": "assets/video/lessons/HIMMA_L1-02_480p.mp4",
+      "source_sha256": "4f5240d29099bbc0d772500586c83a5134a4338e5f3543b03ca74325be520bca",
+      "status": "approved",
+      "approval": "owner_supplied_20261103"
+    }
+  }
+}

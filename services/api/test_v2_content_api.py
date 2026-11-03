@@ -1,3 +1,5 @@
+from v2_content.lesson_videos import approved_lesson_videos
+
 from v2_content.compiler import compile_release
 from v2_content.contracts import PRIVATE_KEYS
 from v2_content.readiness import media_readiness_contract
@@ -64,7 +66,7 @@ def test_candidate_media_has_no_unreferenced_missing_audio_and_preserves_approve
     for retired in ("AUD-L1-03-MA", "AUD-L1-03-SI"):
         assert student_client.get(f"/v2/content/candidate/media/{retired}").status_code == 404
 
-    temporary = next(asset for asset in media if asset["status"] == "approved_temporary")
+    temporary = next(asset for asset in media if MediaProvider().resolve(asset).temporary)
     candidate = student_client.get(f'/v2/content/candidate/media/{temporary["id"]}')
     assert candidate.status_code == 200
     assert candidate.json()["temporary"] is True
@@ -89,11 +91,11 @@ def test_owner_approved_shared_video_counts_for_current_release_but_stays_tempor
     report = media_readiness_contract(bank, provider=MediaProvider(environment="test"))
     videos = [item for item in report["items"]
               if item["kind"] == "video" and item["temporary"] and item["required_for_runtime"]]
-    assert len(videos) == 19
+    assert len(videos) == 19 - len(approved_lesson_videos())
     assert all(not item["publication_blocker"] and not item["academic_qa_pending"] for item in videos)
     assert report["publishable"]
     assert report["published_assets"] == report["required_assets"] == 73
-    assert report["counts"]["temporary"] == 19
+    assert report["counts"]["temporary"] == 19 - len(approved_lesson_videos())
 
 
 

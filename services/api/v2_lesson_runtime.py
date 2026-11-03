@@ -88,7 +88,7 @@ def _session_payload(db: Session, session: LessonSession) -> dict:
         # Historical pinned banks and future per-lesson videos stay scoped to
         # their original session when the binary/approval no longer matches.
         reusable = None
-        if (asset.get("status") == "approved_temporary"
+        if (resolved["temporary"]
                 and asset.get("shared_temporary_video") is True):
             candidates = (
                 candidate for candidate in get_release()["media"]

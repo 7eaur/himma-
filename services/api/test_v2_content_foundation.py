@@ -1,3 +1,5 @@
+from v2_content.lesson_videos import approved_lesson_videos
+
 import json
 import shutil
 
@@ -149,7 +151,7 @@ def test_p07_required_media_gate_ignores_unused_bank_assets_without_approving_th
     assert inventory["unused_assets"] == 14
     assert inventory["published_assets"] == 73
     assert inventory["publishable"] is True
-    assert inventory["counts"]["temporary"] == 19
+    assert inventory["counts"]["temporary"] == 19 - len(approved_lesson_videos())
     assert not {"AUD-L1-03-MA", "AUD-L1-03-SI"} & {row["asset_id"] for row in inventory["items"]}
 
 
@@ -180,7 +182,8 @@ def test_p07_approved_media_endpoint_never_serves_unapproved_or_missing_assets(s
     assert student_client.get("/v2/content/media/LET-01").status_code == 404
 
 
-def test_owner_approved_temporary_video_is_bounded_to_exact_binary():
+def test_owner_approved_temporary_video_is_bounded_to_exact_binary(monkeypatch):
+    monkeypatch.setattr("v2_content.lesson_videos.approved_lesson_videos", lambda: {})
     from v2_content.media import approved_asset_path
     asset = next(row for row in compile_release()["media"] if row["id"] == "VID-L1-01")
     assert approved_asset_path(asset) is not None
@@ -193,7 +196,8 @@ def test_owner_approved_temporary_video_is_bounded_to_exact_binary():
     assert approved_asset_path(dict(asset, source_path="assets/video/other.mp4")) is None
 
 
-def test_shared_temporary_video_is_hashed_once_for_all_lesson_aliases():
+def test_shared_temporary_video_is_hashed_once_for_all_lesson_aliases(monkeypatch):
+    monkeypatch.setattr("v2_content.lesson_videos.approved_lesson_videos", lambda: {})
     from v2_content.media import _file_sha256, approved_asset_path
     videos = [row for row in compile_release()["media"] if row["kind"] == "video"]
     assert len(videos) == 19

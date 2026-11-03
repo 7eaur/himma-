@@ -1,3 +1,5 @@
+from v2_content.lesson_videos import approved_lesson_videos
+
 from uuid import uuid4
 
 from conftest import TestingSessionLocal
@@ -191,7 +193,7 @@ def test_fixture_is_real_private_mp4(student_client):
 def test_admin_inventory_reports_source_gaps_not_fixture_readiness(researcher_client):
     response = researcher_client.get("/v2/lessons/admin/media-inventory")
     assert response.status_code == 200
-    assert response.json()["counts"] == {"ready": 87, "pending": 0, "missing": 0, "test_only": 0, "temporary": 19}
+    assert response.json()["counts"] == {"ready": 87, "pending": 0, "missing": 0, "test_only": 0, "temporary": 19 - len(approved_lesson_videos())}
 
 
 def test_student_preview_is_blocked_in_protected_runtime(student_client, monkeypatch):
@@ -205,12 +207,12 @@ def test_p07_media_contract_keeps_preview_separate_from_approval(researcher_clie
     assert response.status_code == 200
     data = response.json()
     assert len(data["items"]) == 87
-    assert data["counts"] == {"ready": 87, "pending": 0, "missing": 0, "test_only": 0, "temporary": 19}
+    assert data["counts"] == {"ready": 87, "pending": 0, "missing": 0, "test_only": 0, "temporary": 19 - len(approved_lesson_videos())}
     assert data["publishable"] is True
     assert data["media_requirements"] == {"audio": 45, "image": 23, "video": 19}
-    video = next(x for x in data["items"] if x["asset_id"] == "VID-L1-01")
+    video = next(x for x in data["items"] if x["asset_id"] == "VID-L3-07")
     assert not video["publication_blocker"] and video["preview_kind"] == "shared_approved_temporary_video" and video["temporary"]
-    assert any(r["owner_id"] == "L1-01" for r in video["uses"])
+    assert any(r["owner_id"] == "L3-07" for r in video["uses"])
     audio = next(x for x in data["items"] if x["asset_id"] == "AUD-L1-L")
     assert not audio["publication_blocker"] and audio["uses"]
     assert "private_answer" not in response.text
@@ -502,8 +504,8 @@ def test_pinned_lesson_video_range_and_private_cache_require_student_session(stu
     session_id = started["session"]["session_id"]
     media_url = started["video"]["url"]
     assert media_url is not None and "?v=" in media_url
-    # The same demo binary used by 19 lessons must have ONE stable URL.
-    assert media_url.startswith("/api/v2/content/media/VID-L1-01?v=")
+    # The new lesson video remains authorized by its original pinned session.
+    assert media_url.startswith(f"/api/v2/lessons/sessions/{session_id}/media/VID-L1-01?v=")
     route = media_url.removeprefix("/api")
     media_path = urlsplit(route).path
 
@@ -548,6 +550,7 @@ def test_missing_preview_sound_or_image_never_falls_back_to_unrelated_legacy_med
 
 
 def test_shared_temporary_lesson_video_reuses_one_url_across_sessions_and_falls_back_for_changed_bank(student_client, monkeypatch):
+    monkeypatch.setattr("v2_content.lesson_videos.approved_lesson_videos", lambda: {})
     from v2_content.repository import get_release
     from v2_lesson_runtime import _session_payload
     import v2_lesson_runtime

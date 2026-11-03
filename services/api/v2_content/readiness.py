@@ -70,7 +70,7 @@ def media_readiness_contract(release: dict[str, Any], *, provider: MediaProvider
         counts["test_only"] += int(resolved.test_only)
         counts["temporary"] += int(resolved.temporary)
         by_kind[kind] += 1
-        candidate = _candidate_path(asset)
+        candidate = approved_file or _candidate_path(asset)
         present += int(candidate is not None)
         active = bool(usages.get(str(asset["id"])))
         required_total += int(active)
@@ -81,6 +81,8 @@ def media_readiness_contract(release: dict[str, Any], *, provider: MediaProvider
                               and not asset.get("rights_review_required"))
         if resolved.temporary:
             preview_kind = "shared_approved_temporary_video"
+        elif kind == "video" and approved_file is not None:
+            preview_kind = "approved_lesson_video"
         elif kind == "video" and resolved.test_only:
             preview_kind = "shared_test_only_video"
         elif kind == "audio" and str(asset["id"]).startswith("AUD-") and candidate is not None:

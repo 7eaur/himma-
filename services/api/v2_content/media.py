@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from .compiler import REPO_ROOT
+from .lesson_videos import lesson_video_replacement
 
 from runtime_flags import trial_v2_preview_allowed
 
@@ -32,6 +33,12 @@ def _file_sha256(path: Path, size: int, mtime_ns: int, ctime_ns: int) -> str:
 
 def approved_asset_path(asset: dict[str, Any]) -> Path | None:
     """Return only approved, present and safely rooted educational binaries."""
+    replacement = lesson_video_replacement(asset)
+    if replacement is not None:
+        path = approved_asset_path(replacement)
+        if path is None or educational_media_version(path) != replacement["source_sha256"]:
+            return None
+        return path
     status = str(asset.get("status") or "").lower()
     kind = str(asset.get("kind") or asset.get("type") or "")
     source = asset.get("source_path") or asset.get("v1_path")
@@ -97,7 +104,8 @@ class MediaProvider:
             url = f"/api/v2/content/media/{asset_id}"
             if kind in {"image", "video"}:
                 url += f"?v={educational_media_version(path)}"
-            return ResolvedMedia(asset_id, kind, "ready", url, False, status == "approved_temporary")
+            return ResolvedMedia(asset_id, kind, "ready", url, False,
+                                 status == "approved_temporary" and lesson_video_replacement(asset) is None)
         if self.fixture_enabled and (
             self.environment in {"development", "test", "staging"}
             or (self.environment == "trial" and trial_v2_preview_allowed())
