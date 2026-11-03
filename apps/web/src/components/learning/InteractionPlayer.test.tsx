@@ -903,7 +903,7 @@ it("accepts one answer POST for rapid repeated taps before React rerenders", asy
     expect(screen.queryByText(/مراجعة المشرف|المزود|Azure/)).not.toBeInTheDocument();
   });
 
-  it("asks for a new recording when the provider cannot understand speech", async () => {
+  it.each(["guided_practice", "pretest", "posttest"] as const)("shows unclear-speech retry at the character in %s", async (stage) => {
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true, status: 200,
       json: async () => ({
@@ -912,10 +912,14 @@ it("accepts one answer POST for rapid repeated taps before React rerenders", asy
       }),
     });
     const reading = payload({ interaction: "read_aloud", options: [] });
+    reading.progress.stage = stage;
+    reading.question.role = stage;
     reading.reading_job_id = 66;
     render(<InteractionPlayer sessionId={7} interaction={reading} onLessonChange={jest.fn()}/>);
     expect(await screen.findByRole("button", { name: "بدء التسجيل" })).toBeEnabled();
-    expect(screen.getByText("ما فهمت قراءتك بوضوح. جرّب التسجيل مرة ثانية.")).toBeInTheDocument();
+    expect(screen.getByTestId("v2-question-coach")).toHaveTextContent("ما فهمت قراءتك بوضوح. جرّب التسجيل مرة ثانية.");
+    expect(screen.getByTestId("v2-question-coach")).toHaveAttribute("role", "status");
+    expect(screen.getAllByText("ما فهمت قراءتك بوضوح. جرّب التسجيل مرة ثانية.")).toHaveLength(1);
     expect(screen.queryByText(/Azure|مراجعة المشرف|التفريغ/)).not.toBeInTheDocument();
   });
 

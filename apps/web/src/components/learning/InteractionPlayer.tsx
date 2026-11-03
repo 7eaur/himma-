@@ -611,6 +611,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
     : interaction.progress.stage === "posttest" ? "الاختبار البعدي"
     : "اختبار مستقل";
   const guidedStage = interaction.progress.stage === "guided_practice" || interaction.progress.stage === "support_practice";
+  const unclearFeedback = question.interaction === "read_aloud" && unclearRetryId !== null && !nativeProcessing && Boolean(nativeMessage);
   const retryFeedback = !isAssessment && Boolean(feedback?.retry_required);
   const assistedFeedback = interaction.progress.stage === "support_practice" && Boolean(feedback?.assisted_advance);
   // A single, accessible coach message handles practice retries/assistance.
@@ -627,8 +628,9 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
   const modelWordForms = question.interaction === "build_word"
     ? shapeArabicWordTiles(modelIds.map((id) => question.options.find((option) => option.id === id)?.text ?? ""))
     : [];
-  const coachImage = retryFeedback || assistedFeedback ? "/characters/girl/try-again.png" : "/characters/girl/explain.png";
-  const coachMessage = assistedFeedback ? feedback?.message || "راجع المثال ثم نواصل."
+  const coachRetry = retryFeedback || assistedFeedback || unclearFeedback;
+  const coachImage = coachRetry ? "/characters/girl/try-again.png" : "/characters/girl/explain.png";
+  const coachMessage = unclearFeedback ? nativeMessage : assistedFeedback ? feedback?.message || "راجع المثال ثم نواصل."
     : retryFeedback ? (retryHint ? `حاول مرة أخرى. تلميح: ${retryHint}`
     : feedback?.message?.trim() || "خذ وقتك، ثم جرّب إجابة أخرى.")
     : isAssessment ? "خذ وقتك، واستمع أو اقرأ السؤال ثم اختر إجابتك."
@@ -638,7 +640,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
 
   return <section ref={shellRef} className={styles.shell} dir="rtl" data-testid="v2-interaction-player" data-interaction={question.interaction}>
     <div className={styles.topline}><span>{stageLabel}</span><span>{interaction.progress.index} من {interaction.progress.total}</span></div>
-    <aside className={`${styles.coach} ${retryFeedback || assistedFeedback ? styles.coachRetry : ""}`} role={retryFeedback || assistedFeedback ? "status" : undefined} aria-label="رسالة هِمّة" data-testid="v2-question-coach">
+    <aside className={`${styles.coach} ${coachRetry ? styles.coachRetry : ""}`} role={coachRetry ? "status" : undefined} aria-label="رسالة هِمّة" data-testid="v2-question-coach">
       <Image src={coachImage} alt="" width={88} height={108} aria-hidden="true" />
       <p>{coachMessage}</p>
     </aside>
@@ -705,7 +707,7 @@ export default function InteractionPlayer({ sessionId, interaction, onLessonChan
       </div>;
     })}</div>}
 
-    {question.interaction === "read_aloud" && nativeMessage && <div className={styles.feedback} role="status">
+    {question.interaction === "read_aloud" && nativeMessage && !unclearFeedback && <div className={styles.feedback} role="status">
       <span>{nativeMessage}</span>
       {nativePaused && <button type="button" className={styles.secondary}
         disabled={nativeRetryBusy} onClick={() => void recheckSavedReading()}>
