@@ -202,16 +202,11 @@ def test_guided_reading_wrong_second_attempt_stays_on_same_question(monkeypatch,
     db.flush()
 
     advances = []
-    monkeypatch.setattr(v2_interaction_runtime, "_current_question",
-                        lambda *_: {"id": response.question_id})
-    monkeypatch.setattr(v2_interaction_runtime, "_advance",
-                        lambda *_args, **_kwargs: advances.append("advanced"))
-    monkeypatch.setattr(v2_interaction_runtime, "_question_ids",
-                        lambda *_: [response.question_id])
-    monkeypatch.setattr(v2_adaptation_runtime, "active_support_assignment",
-                        lambda *_: None)
-    monkeypatch.setattr(v2_rewards, "reconcile_rewards",
-                        lambda *_args, **_kwargs: None)
+    v2_interaction_runtime._current_question = lambda *_: {"id": response.question_id}
+    v2_interaction_runtime._advance = lambda *_args, **_kwargs: advances.append("advanced")
+    v2_interaction_runtime._question_ids = lambda *_: [response.question_id]
+    v2_adaptation_runtime.active_support_assignment = lambda *_: None
+    v2_rewards.reconcile_rewards = lambda *_args, **_kwargs: None
 
     continue_native_academic_journey(db, response, lesson)
     assert advances == []
