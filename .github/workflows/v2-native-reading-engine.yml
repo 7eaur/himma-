@@ -23,6 +23,7 @@ on:
       - 'services/api/v2_reading_engine/submission_bridge.py'
       - 'services/api/test_v2_pinned_reference.py'
       - 'services/api/test_v2_native_submissions_gate.py'
+      - 'services/api/test_v2_native_cutover_audit.py'
       - 'services/api/test_v2_interaction_runtime.py'
       - 'services/api/test_v2_assessment_runtime.py'
       - 'services/api/test_v2_native_reading_worker.py'
@@ -49,4 +50,4 @@ jobs:
       - name: Verify owner alias, vowel, scoring, retry, and safe student contracts
         working-directory: services/api
         # Contract tests intentionally do not load the application's DB/storage conftest.
-        run: python -m pytest --noconftest -q test_v2_native_reading_engine.py test_v2_native_reading_62_content_contract.py test_v2_native_azure_provider.py test_v2_reading_job_store.py test_v2_native_reading_worker.py test_v2_assessment_fractional_scores.py test_v2_academic_apply.py test_v2_pinned_reference.py test_v2_native_submissions_gate.py test_v2_reading_read_models.py test_v2_native_rerecording.py
+        run: python -m pytest --noconftest -q test_v2_native_reading_engine.py test_v2_native_reading_62_content_contract.py test_v2_native_azure_provider.py test_v2_reading_job_store.py test_v2_native_reading_worker.py test_v2_assessment_fractional_scores.py test_v2_academic_apply.py test_v2_pinned_reference.py test_v2_native_submissions_gate.py test_v2_native_cutover_audit.py test_v2_reading_read_models.py test_v2_native_rerecording.py
