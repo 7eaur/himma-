@@ -1,7 +1,6 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import V2ReviewedRecordings from "@/components/admin/V2ReviewedRecordings";
-
-export default function ReviewedRecordingsPage() {
-  return <V2ReviewedRecordings />;
+// Keep historical staff bookmarks working, without a second human-review UI.
+export default function LegacyReadingReviewRedirect() {
+  redirect("/admin/v2-review-center");
 }

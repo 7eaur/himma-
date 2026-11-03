@@ -1,7 +1,6 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import V2AudioReviewQueue from "@/components/admin/V2AudioReviewQueue";
-
-export default function V2AssessmentsPage() {
-  return <V2AudioReviewQueue kind="assessment" />;
+// Keep historical staff bookmarks working, without a second human-review UI.
+export default function LegacyReadingReviewRedirect() {
+  redirect("/admin/v2-review-center");
 }

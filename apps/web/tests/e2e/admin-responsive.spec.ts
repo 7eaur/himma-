@@ -133,10 +133,10 @@ test("P09.0 V2 supervisor pages keep a desktop visual baseline", async ({ page }
   await login(page);
   const routes = [
     { route: "/admin/v2-review-center", heading: "متابعة القراءة الصوتية" },
-    { route: "/admin/v2-assessments", heading: "الاختبارات ومراجعة القراءة" },
-    { route: "/admin/v2-lesson-review", heading: "مراجعة قراءات الدروس" },
+    { route: "/admin/v2-assessments", heading: "متابعة القراءة الصوتية" },
+    { route: "/admin/v2-lesson-review", heading: "متابعة القراءة الصوتية" },
     { route: "/admin/v2-media", heading: "الوسائط التعليمية" },
-    { route: "/admin/v2-reviewed-recordings", heading: "التسجيلات التي اكتمل تقييمها" },
+    { route: "/admin/v2-reviewed-recordings", heading: "متابعة القراءة الصوتية" },
     { route: "/admin/students", heading: "الطلاب" },
     { route: "/admin/content-preview", heading: "بنك الدروس والأسئلة" },
     { route: "/admin/account", heading: "إعدادات المشرف" },
@@ -147,6 +147,9 @@ test("P09.0 V2 supervisor pages keep a desktop visual baseline", async ({ page }
     if (route === "/admin/account") {
       // Intentional legacy redirect; never mistake it for a distinct account UI.
       await expect(page).toHaveURL(/\/admin\/settings$/);
+    }
+    if (["/admin/v2-assessments", "/admin/v2-lesson-review", "/admin/v2-reviewed-recordings"].includes(route)) {
+      await expect(page).toHaveURL(/\/admin\/v2-review-center$/);
     }
     await expect(page.getByRole("heading", { level: 1, name: heading, exact: true })).toBeVisible();
     if (route === "/admin/v2-review-center") {
@@ -332,104 +335,49 @@ test("W3 notifications default to the durable V2 inbox and keep V1 explicit", as
   await expect(page.getByRole('button', { name: 'الإشعارات', exact: true })).toBeFocused();
 });
 
-// Synthetic local audio: no child recording or production decision is used.
-function reviewTestAudio() {
-  const samples = 2000;
-  const wav = Buffer.alloc(44 + samples * 2);
-  wav.write("RIFF", 0); wav.writeUInt32LE(wav.length - 8, 4); wav.write("WAVEfmt ", 8);
-  wav.writeUInt32LE(16, 16); wav.writeUInt16LE(1, 20); wav.writeUInt16LE(1, 22);
-  wav.writeUInt32LE(8000, 24); wav.writeUInt32LE(16000, 28);
-  wav.writeUInt16LE(2, 32); wav.writeUInt16LE(16, 34);
-  wav.write("data", 36); wav.writeUInt32LE(samples * 2, 40);
-  return wav;
-}
 
 for (const width of [390, 1280]) {
-  test(`V2 review table and dialog accept audio or request a revision at ${width}px`, async ({ page }) => {
-    await page.setViewportSize({width, height:900});
+  test(`legacy review bookmarks only show read-only native results at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
     await login(page);
-    let saved = false;
-    let rejectedOnce = false;
-    const decisions: Array<Record<string, unknown>> = [];
-    const claims: string[] = [];
-    page.on("request", request => { if (request.url().includes("review-claims")) claims.push(request.url()); });
-    await page.route("**/api/test-only-review-audio", route => route.fulfill({contentType:"audio/wav",body:reviewTestAudio()}));
-    for (const kind of ["assessment", "lesson"] as const) {
-      saved = false;
-      const queuePath = kind === "assessment" ? "assessments/admin/review-queue" : "review/lesson-queue";
-      const prefix = kind === "assessment" ? "assessments/admin/responses/9876" : "review/lessons/9876";
-      await page.route(`**/api/v2/${queuePath}?**`, route => route.fulfill({json:{items:saved?[]:[{
-        response_id:9876,student_id:9876,student_name:"طالب مراجعة اصطناعي",question_id:"TEST-READ",
-        kind:"pretest",lesson_id:kind==="lesson"?"L1-01":undefined,interaction:"read_aloud",
-        prompt:"اقرأ الكلمة بصوت واضح",stimulus_text:"بَاب",audio_url:"/api/test-only-review-audio",
-        audio_submission_id:9876,audio_playback_completed:false,evidence_ready:true,submitted_at:"2026-10-28T10:00:00Z",
-      }],next_offset:null}}));
-      let playbackAcks = 0;
-      await page.route(`**/api/v2/${prefix}/audio-completed`, route => {
-        playbackAcks += 1;
-        if (kind === "assessment" && playbackAcks === 1)
-          return route.fulfill({status:503,json:{detail:"تعذر تأكيد الاستماع مؤقتًا"}});
-        return route.fulfill({json:{status:"playback_completed"}});
-      });
-      await page.route(`**/api/v2/${prefix}/${kind==="assessment"?"review":"decision"}`, route => {
-        if (!rejectedOnce) { rejectedOnce=true; return route.fulfill({status:409,json:{detail:"التسجيل تغير؛ أعد المحاولة"}}); }
-        decisions.push(route.request().postDataJSON()); saved=true; return route.fulfill({json:{status:"graded"}});
-      });
-      await page.route(`**/api/v2/retries/admin/${kind}/9876/request`, route => {
-        decisions.push(route.request().postDataJSON()); saved=true; return route.fulfill({json:{status:"requested"}});
-      });
-      await page.goto(kind==="assessment"?"/admin/v2-assessments":"/admin/v2-lesson-review");
-      await expect(page.getByRole("table",{name:"تسجيلات تحتاج مراجعة"})).toBeVisible();
+    const calls: string[] = [];
+    page.on("request", request => {
+      if (request.method() !== "GET" && /\/api\/v2\/(assessments\/admin|review|retries|review-claims)/.test(request.url())) {
+        calls.push(`${request.method()} ${request.url()}`);
+      }
+    });
+    await page.route("**/api/v2/reading/admin/results?*", route => route.fulfill({
+      json: {
+        items: [{
+          job_id: 9876, student_id: 9876, student_name: "طالب فحص القراءة",
+          question_id: "TEST-READ", reference: "باب", kind: "word",
+          session_kind: "lesson", result: "صحيحة", score_percent: null,
+          created_at: "2026-10-28T10:00:00Z", has_audio: true,
+        }], total: 1, next_offset: null,
+      },
+    }));
+    for (const old of [
+      "/admin/v2-assessments", "/admin/v2-lesson-review",
+      "/admin/v2-reviewed-recordings",
+    ]) {
+      await page.goto(old);
+      await expect(page).toHaveURL(/\/admin\/v2-review-center$/);
+      await expect(page.getByRole("heading", { name: "متابعة القراءة الصوتية" })).toBeVisible();
+      await expect(page.getByText("طالب فحص القراءة")).toBeVisible();
+      await expect(page.getByText("باب", { exact: true })).toBeVisible();
+      await expect(page.getByRole("button", { name: "تحديث النتائج" })).toBeVisible();
       await expect(page.getByRole("dialog")).toHaveCount(0);
-      await page.getByRole("button",{name:/مراجعة تسجيل طالب مراجعة اصطناعي/}).click();
-      const dialog = page.getByRole("dialog",{name:"مراجعة تسجيل طالب مراجعة اصطناعي"});
-      await expect(dialog).toBeVisible();
-      await expect(dialog.getByRole("button",{name:"القراءة صحيحة"})).toBeDisabled();
-      await expect(dialog.getByTestId("v2-reading-rubric")).toHaveCount(0);
-      const box = await dialog.boundingBox();
-      expect(box!.x).toBeGreaterThanOrEqual(0); expect(box!.x+box!.width).toBeLessThanOrEqual(width+1);
-      await expectNoHorizontalOverflow(page);
-      await mkdir(SCREENSHOT_DIR,{recursive:true});
-      await page.screenshot({path:path.join(SCREENSHOT_DIR,`review-dialog-${kind}-${width}.png`)});
-      // Both decisions require a real completed playback and its server ACK.
-      // Do not dispatch a synthetic ended event or bypass the disabled button.
-      await expect(dialog.getByRole("button", { name: "طلب إعادة التسجيل" })).toBeDisabled();
-      const completion = page.waitForResponse(response =>
-        response.url().endsWith(`/api/v2/${prefix}/audio-completed`) && response.request().method() === "POST",
+      await expect(page.getByRole("button", { name: "القراءة صحيحة" })).toHaveCount(0);
+      await expect(page.getByRole("button", { name: "طلب إعادة التسجيل" })).toHaveCount(0);
+      await expect(page.getByLabel("تسجيل قراءة طالب فحص القراءة")).toHaveAttribute(
+        "src", "/api/v2/reading/admin/jobs/9876/audio",
       );
-      await dialog.locator("audio").evaluate(audio => (audio as HTMLAudioElement).play());
-      expect((await completion).status()).toBe(kind === "assessment" ? 503 : 200);
-      if (kind === "assessment") {
-        await expect(dialog.getByRole("button", { name: "القراءة صحيحة" })).toBeDisabled();
-        await expect(dialog.getByRole("button", { name: "طلب إعادة التسجيل" })).toBeDisabled();
-        // The audio has already ended: retry its ACK without playing it again.
-        await dialog.getByRole("button", { name: "إعادة تأكيد اكتمال الاستماع" }).click();
-      }
-      await expect(dialog.getByText("اكتمل الاستماع. يمكنك الآن اعتماد القراءة.")).toBeVisible();
-      expect(playbackAcks).toBe(kind === "assessment" ? 2 : 1);
-      if (kind === "assessment") {
-        const accept=dialog.getByRole("button",{name:"القراءة صحيحة"});
-        await expect(accept).toBeEnabled();
-        await accept.click();
-        await expect(dialog.getByRole("alert")).toContainText("التسجيل تغير");
-        await expect(dialog).toBeVisible();
-        await accept.click();
-        await expect(page.getByText("اعتُمدت القراءة الصحيحة وحُفظ القرار.")).toBeVisible();
-      } else {
-        await dialog.getByRole("button",{name:"طلب إعادة التسجيل"}).click();
-        const send=dialog.getByRole("button",{name:"إرسال طلب الإعادة"});
-        await expect(send).toBeDisabled();
-        await dialog.getByLabel("ماذا يحتاج الطالب أن يعيد؟").fill("أعد قراءة الكلمة بصوت واضح");
-        await send.click();
-        await expect(page.getByText("أُرسل طلب إعادة التسجيل إلى الطالب.")).toBeVisible();
-      }
-      await expect(dialog).toHaveCount(0);
-      await expect(page.getByText("لا توجد تسجيلات تحتاج مراجعة في هذه الصفحة")).toBeVisible();
+      await expectNoHorizontalOverflow(page);
+      await mkdir(SCREENSHOT_DIR, { recursive: true });
+      await page.screenshot({
+        path: path.join(SCREENSHOT_DIR, `native-read-only-${width}-${old.slice(7)}.png`),
+      });
     }
-    expect(claims).toEqual([]);
-    expect(decisions).toEqual([
-      expect.objectContaining({is_correct:true}), {reason:"أعد قراءة الكلمة بصوت واضح"},
-    ]);
-    expect(decisions[0]).not.toHaveProperty("rubric");
+    expect(calls).toEqual([]);
   });
 }
