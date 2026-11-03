@@ -19,6 +19,7 @@ from v2_reading_engine.re_recording import attach_retry_take, retry_is_allowed
 from db.models import Student, User
 from dependencies import get_current_student, get_current_user, get_db
 from v2_reading_engine.job_store import ReadingConflict, retry_saved_audio_after_outage
+from v2_reading_engine.submission_bridge import native_submissions_enabled
 from v2_reading_engine.read_models import (
     student_reading_status, supervisor_reading_results, supervisor_audio_binding,
 )
@@ -46,6 +47,11 @@ def retry_saved_reading_analysis(
     db: Session = Depends(get_db),
 ):
     """Retry private stored bytes, without another microphone capture."""
+    if not native_submissions_enabled():
+        raise HTTPException(
+            status_code=503,
+            detail="التحقق الصوتي غير متاح الآن. تسجيلك محفوظ.",
+        )
     try:
         job = retry_saved_audio_after_outage(
             db, student_id=student.id, job_id=job_id,

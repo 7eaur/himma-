@@ -48,12 +48,22 @@ def native_cutover_audit(db: Session) -> dict[str, int | bool]:
             )),
         )
     ) or 0
+    # A zero historical backlog alone is NOT permission to delete the legacy
+    # review API. Until Azure + PostgreSQL are configured and the live worker
+    # is enabled, the next reading would otherwise become unreviewable.
+    from .runtime import native_runtime_configuration
+    try:
+        native_worker_ready = native_runtime_configuration() is not None
+    except (ValueError, RuntimeError):
+        native_worker_ready = False
+
     return {
+        "native_worker_ready": native_worker_ready,
         "legacy_lesson_pending": int(pending_lesson),
         "legacy_assessment_pending": int(pending_assessment),
         "active_manual_retry_tasks": int(active_staff_retry),
         "native_jobs_waiting": int(pending_native),
-        "can_retire_manual_routes": not bool(
+        "can_retire_manual_routes": native_worker_ready and not bool(
             pending_lesson or pending_assessment or active_staff_retry
         ),
     }

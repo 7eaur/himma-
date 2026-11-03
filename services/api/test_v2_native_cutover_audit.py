@@ -5,7 +5,9 @@ from test_v2_reading_job_store import db, enqueue_assessment, new_v2_assessment
 from v2_reading_engine.cutover_audit import native_cutover_audit
 
 
-def test_existing_unbound_student_audio_blocks_staff_review_route_removal(db):
+def test_existing_unbound_student_audio_blocks_staff_review_route_removal(db, monkeypatch):
+    from v2_reading_engine import runtime
+    monkeypatch.setattr(runtime, "native_runtime_configuration", lambda: object())
     student, release, response, audio = new_v2_assessment(db)
     before = native_cutover_audit(db)
     assert before["legacy_assessment_pending"] == 1
@@ -20,7 +22,9 @@ def test_existing_unbound_student_audio_blocks_staff_review_route_removal(db):
     assert response.status == "pending_review" and job.status == "queued"
 
 
-def test_staff_requested_rerecord_blocks_cutover_even_when_voice_job_exists(db):
+def test_staff_requested_rerecord_blocks_cutover_even_when_voice_job_exists(db, monkeypatch):
+    from v2_reading_engine import runtime
+    monkeypatch.setattr(runtime, "native_runtime_configuration", lambda: object())
     student, release, response, audio = new_v2_assessment(db)
     enqueue_assessment(db, student, release, response, audio)
     reviewer = User(username="native-cutover-operator", password_hash="test-only")
@@ -48,3 +52,18 @@ def test_native_cutover_audit_is_read_only_and_returns_no_student_information(db
     serialized = repr(first)
     assert student.name not in serialized
     assert audio.storage_key not in serialized
+
+
+
+def test_zero_manual_backlog_never_authorizes_removal_with_native_worker_disabled(db, monkeypatch):
+    from v2_reading_engine import runtime
+    monkeypatch.setattr(runtime, "native_runtime_configuration", lambda: None)
+    student, release, response, audio = new_v2_assessment(db)
+    enqueue_assessment(db, student, release, response, audio)
+    report = native_cutover_audit(db)
+    assert report["legacy_lesson_pending"] == 0
+    assert report["legacy_assessment_pending"] == 0
+    assert report["active_manual_retry_tasks"] == 0
+    assert report["native_jobs_waiting"] == 1
+    assert report["native_worker_ready"] is False
+    assert report["can_retire_manual_routes"] is False
