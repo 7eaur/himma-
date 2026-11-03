@@ -495,7 +495,7 @@ def media_inventory(
 
 
 @router.get("/admin/media/{asset_id}")
-def supervisor_educational_media(asset_id: str, _user: User = Depends(get_current_user)):
+def supervisor_educational_media(asset_id: str, v: str | None = Query(default=None, max_length=64), _user: User = Depends(get_current_user)):
     """Staff educational preview only; never a child's private recording."""
     from v2_content.media import approved_asset_path
     asset = get_media(asset_id)
@@ -512,6 +512,11 @@ def supervisor_educational_media(asset_id: str, _user: User = Depends(get_curren
             path = _fixture_source(asset, kind=resolved.kind)
     if path is None or not path.is_file():
         raise HTTPException(status_code=404, detail="ملف المعاينة غير موجود")
+    policy = "private, no-store"
+    if v is not None:
+        if resolved.test_only or v != educational_media_version(path):
+            raise HTTPException(status_code=404, detail="نسخة الوسيط غير موجودة")
+        policy = "private, max-age=86400, immutable"
     return FileResponse(path, media_type=mimetypes.guess_type(path.name)[0] or "application/octet-stream",
-                        headers={"Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff",
+                        headers={"Cache-Control": policy, "Vary": "Cookie", "X-Content-Type-Options": "nosniff",
                                  "X-Himma-Test-Only": str(resolved.test_only).lower()})

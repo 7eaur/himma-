@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from .compiler import REPO_ROOT
-from .media import APPROVED_STATES, MISSING_STATES, MediaProvider, approved_asset_path
+from .media import APPROVED_STATES, MISSING_STATES, MediaProvider, approved_asset_path, educational_media_version
 
 
 def usage_map(release: dict[str, Any]) -> dict[str, list[dict[str, str]]]:
@@ -91,7 +91,9 @@ def media_readiness_contract(release: dict[str, Any], *, provider: MediaProvider
             preview_kind = f"generic_test_only_{kind}" if resolved.test_only else "no_preview"
         items.append({
             "asset_id": str(asset["id"]), "kind": kind,
-            "preview_url": f'/api/v2/lessons/admin/media/{asset["id"]}' if resolved.state == "ready" else None,
+            "preview_url": (f'/api/v2/lessons/admin/media/{asset["id"]}?v={educational_media_version(approved_file)}'
+                            if resolved.state == "ready" and approved_file is not None and not resolved.test_only
+                            else f'/api/v2/lessons/admin/media/{asset["id"]}' if resolved.state == "ready" else None),
             "state": state, "runtime_state": resolved.state, "test_only": resolved.test_only, "temporary": resolved.temporary,
             "source_status": source, "candidate_present": candidate is not None,
             "candidate_path": str(candidate.relative_to(REPO_ROOT)) if candidate else None,
