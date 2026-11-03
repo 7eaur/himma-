@@ -51,12 +51,12 @@ def continue_native_academic_journey(
         if evidence is None:
             raise ReadingConflict("Missing V2 skill evidence")
         evidence.hint_used = True
-        # Approved support has a bounded worked-example path after three
-        # inaccurate academic *attempts*. Unrecognized audio is not an attempt.
-        # Guided training gives one hint and one additional attempt.
-        # Focused support retains its approved three-attempt teaching path.
-        retry_limit = 3 if session.stage == "support_practice" else 2
-        if response.attempt_no < retry_limit:
+        # Ordinary guided reading behaves like every other guided activity:
+        # show a hint and keep the same question until it is correct.
+        # Only focused support has the existing 3-attempt assisted progression.
+        # Unrecognized audio never consumes an academic attempt.
+        if (session.stage == "guided_practice"
+                or (session.stage == "support_practice" and response.attempt_no < 3)):
             reconcile_rewards(db, session.student_id, lesson_session_id=session.id)
             return
 

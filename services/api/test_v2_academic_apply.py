@@ -157,3 +157,57 @@ def test_lesson_proof_grade_is_derived_from_same_reading_evaluation(db):
     assert proof.is_correct is True
     assert proof.counts_for_mastery is False
     assert lesson.step_index == 1
+
+
+
+def test_guided_reading_wrong_second_attempt_stays_on_same_question(monkeypatch, db):
+    """A native reading error must not skip a guided step after two misses."""
+    from v2_reading_engine.academic_journey import continue_native_academic_journey
+    import v2_interaction_runtime
+    import v2_adaptation_runtime
+    import v2_rewards
+
+    student, release, _assessment_answer, _audio = new_v2_assessment(db)
+    lesson = LessonSession(
+        student_id=student.id, content_release_id=release.id,
+        lesson_id="L1-04", stage="guided_practice",
+        status="in_progress", step_index=0,
+    )
+    db.add(lesson)
+    db.flush()
+    response = LessonQuestionResponse(
+        lesson_session_id=lesson.id, question_id="L1-04-GP-02",
+        role="guided_practice", answer_json={}, submit_key="wrong-second-try",
+        attempt_no=2, status="graded", is_correct=False,
+    )
+    db.add(response)
+    db.flush()
+    proof = SkillEvidence(
+        response_id=response.id, lesson_session_id=lesson.id,
+        student_id=student.id, content_release_id=release.id,
+        question_id=response.question_id, source_kind="lesson",
+        role="guided_practice", skill_group="letters",
+        evidence_type="read_aloud", review_status="graded",
+        is_correct=False, counts_for_mastery=False,
+        hint_used=False, policy_version="himma-v2-native-reading/2",
+    )
+    db.add(proof)
+    db.flush()
+
+    advances = []
+    monkeypatch.setattr(v2_interaction_runtime, "_current_question",
+                        lambda *_: {"id": response.question_id})
+    monkeypatch.setattr(v2_interaction_runtime, "_advance",
+                        lambda *_args, **_kwargs: advances.append("advanced"))
+    monkeypatch.setattr(v2_interaction_runtime, "_question_ids",
+                        lambda *_: [response.question_id])
+    monkeypatch.setattr(v2_adaptation_runtime, "active_support_assignment",
+                        lambda *_: None)
+    monkeypatch.setattr(v2_rewards, "reconcile_rewards",
+                        lambda *_args, **_kwargs: None)
+
+    continue_native_academic_journey(db, response, lesson)
+    assert advances == []
+    assert lesson.step_index == 0
+    assert response.hint_used is True
+    assert proof.hint_used is True
