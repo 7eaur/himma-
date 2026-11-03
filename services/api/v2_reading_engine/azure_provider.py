@@ -12,7 +12,6 @@ import base64
 import json
 import os
 import wave
-import unicodedata
 
 import httpx
 
@@ -121,11 +120,6 @@ def _is_valid_pcm16_wav(audio: bytes) -> bool:
         return False
 
 
-def _has_arabic(text: str) -> bool:
-    return any("\u0600" <= ch <= "\u06FF" and
-               unicodedata.category(ch).startswith("L") for ch in text)
-
-
 class AzureSpeechProvider:
     def __init__(self, config: AzureSpeechConfig, http: httpx.AsyncClient):
         self.config = config
@@ -212,9 +206,11 @@ class AzureSpeechProvider:
             return SpeechEvidence(None, "none", self.config.lexical_locale, False,
                                   error_code="audio_invalid")
         def acceptable(evidence: SpeechEvidence) -> bool:
-            if not evidence.provider_usable or not evidence.transcript:
-                return False
-            return letter_mode or _has_arabic(evidence.transcript)
+            # A recognized non-Arabic token is still a recognition RESULT:
+            # the reading policy decides correct/incorrect, not retry_audio.
+            # letter_mode remains in this public adapter signature for callers.
+            return bool(evidence.provider_usable and evidence.transcript
+                        and evidence.transcript.strip())
         if mime == "audio/wav":
             if not _is_valid_pcm16_wav(audio):
                 return SpeechEvidence(None, "none", self.config.lexical_locale, False,

@@ -59,6 +59,21 @@ def test_worker_processes_approved_alias_without_touching_student_grade(db):
     assert len(provider.calls) == 1
 
 
+def test_worker_recognized_wrong_letter_is_zero_score_not_rerecord(db):
+    student, release, response, audio = new_v2_assessment(db)
+    job = enqueue_assessment(db, student, release, response, audio)
+    db.commit()
+    provider = Provider(transcript="بَ", usable=True)
+    outcome = run(db, provider, lambda item: b"audio-data" * 600)
+    db.expire_all()
+    assert outcome == "evidence_ready"
+    assert db.get(V2ReadingJob, job.id).status == "evidence_ready"
+    evaluation = db.query(V2ReadingEvaluation).one()
+    assert evaluation.decision == "incorrect"
+    assert float(evaluation.score_fraction) == 0.0
+    assert len(provider.calls) == 1
+
+
 def test_worker_unrecognized_speech_requests_retry_without_error_grade(db):
     student, release, response, audio = new_v2_assessment(db)
     job = enqueue_assessment(db, student, release, response, audio)

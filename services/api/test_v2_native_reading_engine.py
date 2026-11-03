@@ -145,24 +145,71 @@ def test_provider_failure_never_becomes_wrong_or_score(kind, reference, transcri
         assert result.passed_for_progress is None
 
 
-def test_unknown_chinese_does_not_count_as_wrong_without_evidence():
+@pytest.mark.parametrize("heard", ["بَ", "لِ", "嗯", "No"])
+def test_recognized_wrong_letter_is_incorrect_not_rerecord(heard):
     result = evaluate_reading(
-        kind="letter", mode="assessment", question_id="V2-POST-Q06",
-        reference="قُ", transcript="嗯",
+        kind="letter", mode="training", question_id="V2-PRE-Q06",
+        reference="لَ", transcript=heard,
         audio_valid=True, provider_usable=True,
-        alignment_reliable=True,
     )
-    assert result.status == "retry_audio"
+    assert result.status == "incorrect"
+    assert result.fraction == Decimal("0")
+    assert result.passed_for_progress is False
+    assert result.hint == "اقرأ الحرف المعروض وحاول مرة ثانية."
 
 
-def test_undecided_word_alignment_does_not_invent_academic_zero():
+@pytest.mark.parametrize("kind,reference,heard", [
+    ("word", "قَلَم", "علم"),
+    ("word", "كَتَبَ", "لَعِبَ"),
+    ("sentence", "دخل نادر المكتبة", "دخل نادر"),
+    ("text", "دخل نادر المكتبة", "دخل زيد المكتبة"),
+])
+def test_recognized_mismatch_is_graded_without_alignment_gate(kind, reference, heard):
+    result = evaluate_reading(
+        kind=kind, mode="training", question_id="TEST",
+        reference=reference, transcript=heard,
+        audio_valid=True, provider_usable=True,
+        alignment_reliable=False,
+    )
+    assert result.status == "incorrect" and result.fraction is not None
+    assert result.hint
+    assert result.student_payload(mode="training")["hint"] == result.hint
+
+
+def test_recognized_partial_sentence_is_scored_in_assessment():
     result = evaluate_reading(
         kind="sentence", mode="assessment", question_id="TEST",
         reference="دخل نادر المكتبة", transcript="دخل نادر",
         audio_valid=True, provider_usable=True,
-        alignment_reliable=False,
     )
-    assert result.status == "retry_audio" and result.fraction is None
+    assert result.status == "incorrect"
+    assert result.fraction == Decimal("0.66667")
+    assert result.student_payload(mode="assessment").get("hint") is None
+
+
+def test_word_and_sentence_scoring_ignores_diacritics_by_owner_decision():
+    for kind, expected, heard in [
+        ("word", "كَتَبَ", "كتب"),
+        ("sentence", "دَخَلَ نَادِرٌ الْمَكْتَبَةَ", "دخل نادر المكتبة"),
+    ]:
+        result = evaluate_reading(
+            kind=kind, mode="assessment", question_id="TEST",
+            reference=expected, transcript=heard,
+            audio_valid=True, provider_usable=True,
+        )
+        assert result.status == "correct"
+        assert result.fraction == Decimal("1")
+
+
+def test_no_transcript_or_unusable_recognition_is_only_rerecord_reason():
+    for transcript, usable in [(None, False), ("", True), ("  ", True), ("قلم", False)]:
+        result = evaluate_reading(
+            kind="word", mode="training", question_id="TEST",
+            reference="قلم", transcript=transcript,
+            audio_valid=True, provider_usable=usable,
+        )
+        assert result.status == "retry_audio"
+        assert result.fraction is None
 
 
 def test_30_question_score_is_fractional_not_binary_pass():

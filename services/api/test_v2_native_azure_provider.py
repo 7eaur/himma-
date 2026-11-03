@@ -125,7 +125,7 @@ def test_short_no_match_falls_back_to_fast_for_letter_chinese():
     assert len(urls) == 2
 
 
-def test_nonarabic_transcript_not_accepted_for_sentences():
+def test_nonarabic_recognized_transcript_reaches_policy_instead_of_forcing_rerecord():
     def handler(request):
         return httpx.Response(200, json={
             "combinedPhrases": [{"text": "Looks good."}],
@@ -137,8 +137,8 @@ def test_nonarabic_transcript_not_accepted_for_sentences():
                 b"audio" * 250, mime="audio/webm",
                 reference="دخل نادر", letter_mode=False)
     result = asyncio.run(run())
-    assert result.provider_usable is False
-    assert result.transcript is None
+    assert result.provider_usable is True
+    assert result.transcript == "Looks good."
 
 
 def test_failed_provider_yields_no_automatic_grade_and_no_secret_in_error():

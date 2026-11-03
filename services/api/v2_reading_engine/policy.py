@@ -7,7 +7,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from decimal import Decimal
-import unicodedata
 
 from .aliases import LetterMatch, match_letter_transcript
 from .scoring import WordScore, grade_words, training_hint
@@ -43,11 +42,6 @@ class ReadingDecision:
         return output
 
 
-def _contains_arabic(value: str) -> bool:
-    return any("\u0600" <= char <= "\u06FF" and
-               unicodedata.category(char).startswith("L") for char in value)
-
-
 def evaluate_reading(
     *,
     kind: str,
@@ -59,11 +53,13 @@ def evaluate_reading(
     provider_usable: bool,
     alignment_reliable: bool = False,
 ) -> ReadingDecision:
-    """Owner policy with explicit provider failure and confidence boundaries.
+    """A usable provider transcript is evaluated, even when it differs.
 
-    provider_usable must mean actual speech was recognized, not only that
-    Azure returned HTTP 200. alignment_reliable is separately required to
-    mark a *mismatch* wrong or to score multiple words from a transcript.
+    Retry recording ONLY for invalid audio or absent/unusable provider
+    recognition. The legacy alignment_reliable argument is accepted for
+    caller compatibility but never turns a recognized wrong answer into
+    retry_audio. Words and passages use straightforward text comparison,
+    ignoring harakat, as approved by the owner.
     """
     if kind not in {"letter", "word", "sentence", "text"}:
         raise ValueError("Unsupported reading task kind")
@@ -85,34 +81,21 @@ def evaluate_reading(
         if alias.matched:
             return ReadingDecision("correct", reference, Decimal("1"), True, None,
                                    "approved_letter_match", alias=alias)
-        # A random Latin/Chinese transcript is a provider failure, not proof
-        # that a child made an academic error.
-        if not _contains_arabic(transcript) or not alignment_reliable:
-            return ReadingDecision("retry_audio", reference, None, None, None,
-                                   "unresolved_letter_transcript", alias=alias)
+        # An actual recognition result that is not an approved alias is wrong.
+        # Never infer the specific phonetic mistake from transcript spelling.
         return ReadingDecision("incorrect", reference, Decimal("0"), False,
-                               "انتبه لحركة الحرف، ثم اقرأ مرة ثانية." if mode == "training" else None,
-                               "confirmed_letter_mismatch", alias=alias)
+                               "اقرأ الحرف المعروض وحاول مرة ثانية." if mode == "training" else None,
+                               "recognized_letter_mismatch", alias=alias)
 
-    if not _contains_arabic(transcript):
-        return ReadingDecision("retry_audio", reference, None, None, None,
-                               "unrecognized_language")
     score = grade_words(reference, transcript)
 
     if kind == "word":
         if score.fully_correct:
             return ReadingDecision("correct", reference, Decimal("1"), True, None,
                                    "full_word_match", alignment=score)
-        if not alignment_reliable:
-            return ReadingDecision("retry_audio", reference, None, None, None,
-                                   "word_mismatch_unconfirmed", alignment=score)
         return ReadingDecision("incorrect", reference, Decimal("0"), False,
                                training_hint(score) if mode == "training" else None,
-                               "confirmed_word_mismatch", alignment=score)
-
-    if not alignment_reliable:
-        return ReadingDecision("retry_audio", reference, None, None, None,
-                               "word_alignment_unconfirmed", alignment=score)
+                               "recognized_word_mismatch", alignment=score)
     passed = score.passed_assessment if mode == "assessment" else score.fully_correct
     return ReadingDecision(
         "correct" if passed else "incorrect",

@@ -147,9 +147,6 @@ async def run_one(
         transcript=result.transcript, question_id=work.question_id,
         audio_valid=result.error_code not in {"audio_invalid", "wav_format_invalid"},
         provider_usable=result.provider_usable,
-        # Transcript matches do not prove that every token was acoustically
-        # recognized; scoring mismatches requires separate calibration.
-        alignment_reliable=False,
     )
     with session_factory() as db:
         try:
