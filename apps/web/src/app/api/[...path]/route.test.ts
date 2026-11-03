@@ -7,12 +7,18 @@ describe("BFF response cache policy", () => {
     })).toBe("private, max-age=86400, immutable");
   });
 
-  it.each(["v2/student/home", "recordings/1", "v2/lessons/admin/media/VOC-04", "v2/content/media/VOC-04/extra"])(
+  it.each(["v2/student/home", "recordings/1", "v2/content/media/VOC-04/extra"])(
     "never expands browser reuse to private data or unrelated routes: %s", (upstreamPath) => {
       expect(responseCacheControl({ upstreamPath, method: "GET", ok: true,
         upstreamCacheControl: "private, max-age=86400, immutable", hasSetCookie: false,
       })).toBe("private, no-store");
     });
+
+  it("reuses versioned admin media only in the private browser cache", () => {
+    expect(responseCacheControl({ upstreamPath: "v2/lessons/admin/media/VOC-04", method: "GET", ok: true,
+      upstreamCacheControl: "private, max-age=86400, immutable", hasSetCookie: false,
+    })).toBe("private, max-age=86400, immutable");
+  });
 
   it("preserves a safe public cache policy for approved media reads", () => {
     expect(responseCacheControl({

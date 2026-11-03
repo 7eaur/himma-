@@ -63,7 +63,7 @@ it('keeps protected content hidden and allows retry on transient auth network er
       : Promise.resolve({ok:true,status:200,json:async()=>({role:"researcher",display_name:"مشرف اختبار"})});
   });
   render(<AdminDashboardLayout><div>محتوى محمي</div></AdminDashboardLayout>);
-  expect(await screen.findByRole("alert")).toHaveTextContent("تعذر التحقق من الاتصال");
+  expect(await screen.findByRole("alert")).toHaveTextContent("تعذر التحقق من جلسة المشرف");
   expect(screen.queryByText("محتوى محمي")).not.toBeInTheDocument();
   expect(mockReplace).not.toHaveBeenCalledWith("/admin/login");
   fireEvent.click(screen.getByRole("button",{name:"إعادة المحاولة"}));

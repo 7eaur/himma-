@@ -7,7 +7,7 @@ describe("EducationalImage", () => {
     render(<EducationalImage src="/question.webp?v=1" alt="صورة السؤال" width={300} height={220} onLoad={loaded} onError={jest.fn()}/>);
     expect(screen.getByRole("status", { name: "جاري تحميل الصورة" })).toBeInTheDocument();
     const img = screen.getByAltText("صورة السؤال");
-    expect(img).toHaveAttribute("loading", "eager");
+    expect(img).toHaveAttribute("loading", "lazy");
     expect(img).toHaveStyle({ opacity: "0" });
     await act(async () => { fireEvent.load(img); });
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
