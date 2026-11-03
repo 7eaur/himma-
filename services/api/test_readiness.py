@@ -226,21 +226,21 @@ def test_readiness_refuses_traffic_if_enabled_native_worker_has_exited(monkeypat
         "status": "ready", "service": "himma-api",
         "checks": {"database": "ok", "storage": "ok", "redis": "ok"},
     })
-    monkeypatch.delattr(main.app.state, "native_reading_task", raising=False)
+    # Patch the app once: Starlette State raises KeyError during repeated
+    # monkeypatch teardown when an originally absent attribute is restored.
+    monkeypatch.setattr(main, "app", SimpleNamespace(state=SimpleNamespace()))
     response = Response()
     result = main.readiness_check(response)
     assert response.status_code == 503
     assert result["checks"]["native_reading_worker"] == "unavailable"
 
-    monkeypatch.setattr(main.app.state, "native_reading_task",
-                        SimpleNamespace(done=lambda: False), raising=False)
+    main.app.state.native_reading_task = SimpleNamespace(done=lambda: False)
     response = Response()
     result = main.readiness_check(response)
     assert response.status_code == 200
     assert result["checks"]["native_reading_worker"] == "ok"
 
-    monkeypatch.setattr(main.app.state, "native_reading_task",
-                        SimpleNamespace(done=lambda: True), raising=False)
+    main.app.state.native_reading_task = SimpleNamespace(done=lambda: True)
     response = Response()
     result = main.readiness_check(response)
     assert response.status_code == 503
@@ -255,21 +255,21 @@ def test_railway_health_detects_crashed_enabled_reading_worker(monkeypatch):
     from fastapi import Response
 
     monkeypatch.setenv("HIMMA_V2_NATIVE_READING_ENABLED", "1")
-    monkeypatch.delattr(main.app.state, "native_reading_task", raising=False)
+    # Patch the app once: Starlette State raises KeyError during repeated
+    # monkeypatch teardown when an originally absent attribute is restored.
+    monkeypatch.setattr(main, "app", SimpleNamespace(state=SimpleNamespace()))
     response = Response()
     assert main.health_check(response) == {
         "status": "not_ready", "service": "himma-api",
     }
     assert response.status_code == 503
 
-    monkeypatch.setattr(main.app.state, "native_reading_task",
-                        SimpleNamespace(done=lambda: False), raising=False)
+    main.app.state.native_reading_task = SimpleNamespace(done=lambda: False)
     response = Response()
     assert main.health_check(response)["status"] == "ok"
     assert response.status_code == 200
 
-    monkeypatch.setattr(main.app.state, "native_reading_task",
-                        SimpleNamespace(done=lambda: True), raising=False)
+    main.app.state.native_reading_task = SimpleNamespace(done=lambda: True)
     response = Response()
     assert main.health_check(response)["status"] == "not_ready"
     assert response.status_code == 503
