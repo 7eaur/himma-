@@ -18,6 +18,7 @@ from v2_interaction_runtime import AnswerRequest, _canonical_answer
 from v2_lesson_runtime import _require_preview_student
 from v2_retry_state import active_retry
 from v2_review_claims import enforce_review_claim, clear_review_claim
+from v2_reading_engine.legacy_review_guard import reject_legacy_review_for_native
 from v2_audio_retention import (
     schedule_superseded_staged_audio, run_retention_after_commit,
     audio_upload_binding, track_new_audio_upload, mark_audio_submitted,
@@ -57,6 +58,7 @@ def request_retry(
     user: User = Depends(get_current_user), db: Session = Depends(get_db),
 ):
     row, session, question = _owner(db, kind, response_id, lock=True)
+    reject_legacy_review_for_native(db, kind=kind, response_id=row.id)
     if row.status != "pending_review":
         raise HTTPException(status_code=409, detail="لا يمكن طلب إعادة دليل مُقيَّم")
     enforce_review_claim(db, kind, row.id, user.id)

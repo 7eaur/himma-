@@ -39,6 +39,7 @@ from v2_retry_state import active_retry
 from v2_review_claims import enforce_review_claim, clear_review_claim
 from v2_audio_rubric import ReadingRubricV2, save_v2_reading_rubric
 from v2_reading_engine.assessment_scores import summarize_assessment
+from v2_reading_engine.legacy_review_guard import reject_legacy_review_for_native
 from v2_reading_engine.submission_bridge import create_reading_job, pending_reading_job_id
 from v2_audio_retention import (
     schedule_superseded_audio, run_retention_after_commit,
@@ -733,6 +734,7 @@ def review_response(response_id: int, body: ReviewRequest, background_tasks: Bac
     row = db.query(AssessmentQuestionResponse).filter(AssessmentQuestionResponse.id == response_id).with_for_update().one_or_none()
     if not row:
         raise HTTPException(status_code=404, detail="الإجابة غير موجودة")
+    reject_legacy_review_for_native(db, kind="assessment", response_id=row.id)
     if row.status != "pending_review":
         raise HTTPException(status_code=409, detail="تمت مراجعة الإجابة سابقًا")
     enforce_review_claim(db, "assessment", row.id, user.id)
