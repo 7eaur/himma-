@@ -101,8 +101,12 @@ describe("VideoPlayer", () => {
     Object.defineProperty(video, "readyState", {
       configurable: true, value: HTMLMediaElement.HAVE_CURRENT_DATA,
     });
+    Object.defineProperty(video, "paused", { configurable: true, value: false });
+    jest.useFakeTimers();
     fireEvent.canPlay(video);
     fireEvent.stalled(video);
+    act(() => jest.advanceTimersByTime(1300));
+    jest.useRealTimers();
     expect(screen.getByText(/الفيديو يتوقف مؤقتًا/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", {name: "إعادة محاولة التحميل"}));
     await waitFor(() => expect(HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(1));
@@ -113,8 +117,12 @@ describe("VideoPlayer", () => {
   it("shows recoverable buffering and media error states", async () => {
     render(<VideoPlayer src="/fixture.mp4" onCheckpoint={jest.fn()} onEnded={jest.fn()} />);
     const video = screen.getByText("متصفحك لا يدعم تشغيل الفيديو.").closest("video") as HTMLVideoElement;
+    Object.defineProperty(video, "paused", { configurable: true, value: false });
+    jest.useFakeTimers();
     fireEvent.canPlay(video);
     fireEvent.waiting(video);
+    act(() => jest.advanceTimersByTime(1300));
+    jest.useRealTimers();
     expect(video).toHaveAttribute("controls");
     expect(screen.getByText(/الفيديو يتوقف مؤقتًا/)).toBeInTheDocument();
     expect(screen.queryByText("جاري تجهيز الفيديو")).not.toBeInTheDocument();
@@ -352,8 +360,12 @@ it("keeps playback controls available and restores the local position after an e
   const video = screen.getByText("متصفحك لا يدعم تشغيل الفيديو.").closest("video") as HTMLVideoElement;
   Object.defineProperty(video, "duration", { configurable: true, value: 60 });
   Object.defineProperty(video, "currentTime", { configurable: true, writable: true, value: 21 });
+  Object.defineProperty(video, "paused", { configurable: true, value: false });
+  jest.useFakeTimers();
   fireEvent.canPlay(video);
   fireEvent.stalled(video);
+  act(() => jest.advanceTimersByTime(1300));
+  jest.useRealTimers();
   expect(video).toHaveAttribute("controls");
   expect(HTMLMediaElement.prototype.load).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole("button", { name: "إعادة محاولة التحميل" }));
