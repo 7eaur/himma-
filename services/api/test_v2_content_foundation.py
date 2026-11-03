@@ -162,7 +162,7 @@ def test_p07_production_resolution_points_to_existing_approved_media_route():
     assert approved_asset_path(asset) is not None
     resolved = MediaProvider(environment="production", fixture_enabled=False).resolve(asset)
     assert resolved.state == "ready" and resolved.test_only is False
-    assert resolved.url == "/api/v2/content/media/LET-01"
+    assert resolved.url is not None and resolved.url.startswith("/api/v2/content/media/LET-01?v=")
 
 
 def test_p07_approved_media_endpoint_never_serves_unapproved_or_missing_assets(student_client, monkeypatch):
