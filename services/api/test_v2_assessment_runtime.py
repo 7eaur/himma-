@@ -825,3 +825,141 @@ def test_pretest_reading_submission_stays_on_question_until_auto_grade(student_c
     assert next_question.status_code == 200, next_question.text
     assert next_question.json()["interaction"]["question"]["question_id"] == "V2-PRE-Q07"
     assert next_question.json()["session"]["progress"]["answered"] == 6
+
+
+
+def test_native_v2_voice_fraction_reaches_real_30_question_automatic_placement(student_client):
+    """Apply one live-structure voice result, finish the pinned 30, place once.
+
+    No human review call, Azure request, S3 network or student data involved.
+    A partly correct passage must affect placement by its actual fraction,
+    not by treating its >85% pass flag as a full point.
+    """
+    from datetime import datetime, timedelta, timezone
+    from decimal import Decimal
+
+    from v2_reading_engine.academic_apply import apply_evaluation
+    from v2_reading_engine.academic_journey import continue_native_academic_journey
+    from v2_reading_engine.job_store import enqueue_reading, claim_reading, record_evidence
+    from v2_reading_engine.policy import evaluate_reading
+    from v2_assessment_runtime import _finish_if_ready
+    from v2_reading_engine.assessment_scores import summarize_assessment
+
+    with TestingSessionLocal() as db:
+        student = db.query(Student).filter(Student.access_code == "STU001").one()
+        release = register_candidate_release(db)
+        journey = StudentJourney(
+            student_id=student.id, content_release_id=release.id,
+            current_level=1, placement_state="in_progress", status="active",
+        )
+        db.add(journey)
+        session = AssessmentSession(
+            student_id=student.id, content_release_id=release.id,
+            session_type="pretest", status="in_progress", v2_state="answering",
+            v2_question_index=19, assessment_attempt_no=1,
+            v2_policy_version="test-native-reading-fraction",
+        )
+        db.add(session)
+        db.flush()
+
+        questions = [q for q in get_release()["questions"] if q["role"] == "pretest"]
+        assert len(questions) == 30
+        voice = questions[19]
+        assert voice["id"] == "V2-PRE-Q20" and voice["interaction"] == "read_aloud"
+
+        def graded_answer(question, correct):
+            response = AssessmentQuestionResponse(
+                assessment_session_id=session.id, question_id=question["id"],
+                role="pretest", answer_json={"test": True}, submit_key=str(uuid4()),
+                status="graded", is_correct=correct,
+                skill_group=question["skill_group"],
+                evidence_type=question["evidence_type"],
+            )
+            db.add(response)
+            return response
+
+        for idx, question in enumerate(questions[:19]):
+            graded_answer(question, idx < 14)
+        db.flush()
+
+        reference = voice["reading_reference"]
+        response = AssessmentQuestionResponse(
+            assessment_session_id=session.id, question_id=voice["id"],
+            role="pretest", answer_json={"audio": "private"},
+            submit_key=str(uuid4()), status="pending_review", is_correct=None,
+            skill_group=voice["skill_group"], evidence_type=voice["evidence_type"],
+        )
+        db.add(response)
+        db.flush()
+        audio = AudioSubmission(
+            assessment_response_id=response.id,
+            storage_key=f"audio/{student.id}/native-passage.webm",
+            file_size=3600, mime_type="audio/webm", status="pending_review",
+        )
+        db.add(audio)
+        db.flush()
+        job = enqueue_reading(
+            db, student_id=student.id, audio_submission_id=audio.id,
+            content_release_id=release.id, question_id=voice["id"],
+            reference_text=reference, reading_kind="text",
+            learning_mode="assessment",
+        )
+        now = datetime.now(timezone.utc)
+        claim_reading(db, worker_id="synthetic-azure", now=now)
+        transcript = " ".join(reference.split()[:-1])  # One missing word.
+        decision = evaluate_reading(
+            kind="text", mode="assessment", question_id=voice["id"],
+            reference=reference, transcript=transcript,
+            audio_valid=True, provider_usable=True,
+        )
+        assert decision.status == "correct"
+        assert Decimal("0.85") < decision.fraction < Decimal("1")
+        record_evidence(
+            db, job_id=job.id, worker_id="synthetic-azure",
+            expected_version=job.version, decision=decision,
+            provider_name="azure-contract", provider_request_id="synthetic",
+            transcript=transcript, now=now + timedelta(seconds=1),
+        )
+        assert db.query(PlacementDecisionV2).count() == 0
+        assert apply_evaluation(
+            db, job_id=job.id,
+            continue_academic_journey=continue_native_academic_journey,
+        )
+        assert session.v2_question_index == 20
+        assert response.status == "graded"
+        assert response.is_correct is True
+        assert response.question_score_fraction == decision.fraction
+        assert job.status == "applied"
+        assert db.query(PlacementDecisionV2).count() == 0
+        assert apply_evaluation(
+            db, job_id=job.id,
+            continue_academic_journey=continue_native_academic_journey,
+        ) is False
+
+        for question in questions[20:]:
+            graded_answer(question, False)
+        db.flush()
+        session.v2_question_index = 30
+        total = summarize_assessment(db.query(AssessmentQuestionResponse).filter(
+            AssessmentQuestionResponse.assessment_session_id == session.id,
+        ).all())
+        assert total["correct"] == 15
+        assert total["score_percent"] < 50  # 14 + one partial != 15 full points.
+        _finish_if_ready(db, session)
+        db.flush()
+        assert session.status == "completed"
+        assert session.v2_state == "completed"
+        assert session.assigned_level == 1
+        assert abs(session.final_score - total["score_percent"]) < 0.0001
+        assert session.official_for_reporting is True
+        assert journey.placement_state == "placed"
+        assert journey.current_level == 1
+        assert db.query(PlacementDecisionV2).count() == 1
+        assert db.query(AuditLog).filter(
+            AuditLog.action == "v2_automatic_placement",
+        ).count() == 1
+        db.commit()
+
+        db.refresh(job)
+        assert db.query(PlacementDecisionV2).count() == 1
+        assert job.status == "applied"
