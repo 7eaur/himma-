@@ -212,3 +212,37 @@ def test_ready_endpoint_returns_200_or_503_from_readiness_state(client, monkeypa
     assert response.status_code == 503
     assert response.json()["checks"]["content"] == "unavailable"
     assert response.json()["checks"]["security_mode"] == "ok"
+
+
+
+def test_readiness_refuses_traffic_if_enabled_native_worker_has_exited(monkeypatch):
+    """Valid Azure credentials are insufficient if the API worker has stopped."""
+    from fastapi import Response
+    from types import SimpleNamespace
+
+    monkeypatch.setenv("HIMMA_V2_NATIVE_READING_ENABLED", "1")
+    monkeypatch.setattr(main, "runtime_security_ready", lambda: True)
+    monkeypatch.setattr(main, "readiness_report", lambda: {
+        "status": "ready", "service": "himma-api",
+        "checks": {"database": "ok", "storage": "ok", "redis": "ok"},
+    })
+    monkeypatch.delattr(main.app.state, "native_reading_task", raising=False)
+    response = Response()
+    result = main.readiness_check(response)
+    assert response.status_code == 503
+    assert result["checks"]["native_reading_worker"] == "unavailable"
+
+    monkeypatch.setattr(main.app.state, "native_reading_task",
+                        SimpleNamespace(done=lambda: False), raising=False)
+    response = Response()
+    result = main.readiness_check(response)
+    assert response.status_code == 200
+    assert result["checks"]["native_reading_worker"] == "ok"
+
+    monkeypatch.setattr(main.app.state, "native_reading_task",
+                        SimpleNamespace(done=lambda: True), raising=False)
+    response = Response()
+    result = main.readiness_check(response)
+    assert response.status_code == 503
+    assert result["checks"]["native_reading_worker"] == "unavailable"
+    assert "key" not in str(result).lower()

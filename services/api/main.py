@@ -50,9 +50,9 @@ import notification_events  # noqa: F401 — registers transactional notificatio
 import db.learning_models  # noqa: F401 — registers V2 session tables in Base.metadata
 
 
-# Runtime configuration still fails closed for unsafe provider/test settings.
-# Native speech read-model is read-only in this feature branch; no grading
-# occurs before the complete academic workflow replaces manual review.
+# Runtime configuration fails closed for unsafe provider/test settings.
+# V2 native speech grades only when explicitly enabled and the existing
+# PostgreSQL/Azure backend is configured. The fallback remains isolated.
 validate_runtime_safety()
 
 app = FastAPI(
@@ -146,6 +146,18 @@ def readiness_check(response: Response):
         checks["security_mode"] = "ok"
         report = dict(report)
         report["checks"] = checks
+    # When native grading is opted in, an Azure configuration alone is not
+    # evidence that the in-process worker is running. Do not route students
+    # to an API that can enqueue recordings but cannot process them.
+    if os.getenv("HIMMA_V2_NATIVE_READING_ENABLED", "0").strip() == "1":
+        task = getattr(app.state, "native_reading_task", None)
+        worker_ok = task is not None and not task.done()
+        report = dict(report)
+        checks = dict(report.get("checks") or {})
+        checks["native_reading_worker"] = "ok" if worker_ok else "unavailable"
+        report["checks"] = checks
+        if not worker_ok:
+            report["status"] = "not_ready"
     if report["status"] != "ready":
         response.status_code = 503
     return report
