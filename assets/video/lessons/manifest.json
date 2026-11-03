@@ -76,6 +76,22 @@
       "status": "approved",
       "approval": "owner_supplied_20261103",
       "upload_filename": "HIMMA_L1-10_480p.mp4"
+    },
+    "VID-L2-05": {
+      "lesson_id": "L2-05",
+      "source_path": "assets/video/lessons/HIMMA_L2-05_480p.mp4",
+      "source_sha256": "dcf407919ebb0ec85458b0c3806d6f8fe0e526ea504ea461f4e914a5f1435080",
+      "status": "approved",
+      "approval": "owner_supplied_20261103",
+      "upload_filename": "HIMMA_L1-11_480p.mp4"
+    },
+    "VID-L2-06": {
+      "lesson_id": "L2-06",
+      "source_path": "assets/video/lessons/HIMMA_L2-06_480p.mp4",
+      "source_sha256": "882c4e14ecebea5df98ae828ea5150b20f45e496342dae64639c4744482f74f5",
+      "status": "approved",
+      "approval": "owner_supplied_20261103",
+      "upload_filename": "HIMMA_L1-12_480p.mp4"
     }
   }
 }
