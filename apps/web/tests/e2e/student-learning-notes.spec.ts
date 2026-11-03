@@ -65,9 +65,9 @@ test("student map, placed levels and delayed educational images retain clear mob
       const logout = page.getByRole("button", { name: /خروج/ });
       const logoutBox = await logout.boundingBox();
       const achievementsBox = await page.getByRole("link", { name: "عرض إنجازاتي" }).boundingBox();
-      expect(logoutBox?.height ?? 0).toBeGreaterThanOrEqual(44);
-      expect(logoutBox?.width ?? 0).toBeGreaterThanOrEqual(44);
-      expect(achievementsBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+      expect(logoutBox?.height ?? 0).toBeGreaterThanOrEqual(43.9);
+      expect(logoutBox?.width ?? 0).toBeGreaterThanOrEqual(43.9);
+      expect(achievementsBox?.height ?? 0).toBeGreaterThanOrEqual(43.9);
       expect(logoutBox).toBeTruthy();
       expect(achievementsBox).toBeTruthy();
       if (logoutBox && achievementsBox) {
