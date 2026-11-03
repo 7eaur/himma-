@@ -163,9 +163,16 @@ def test_lesson_proof_grade_is_derived_from_same_reading_evaluation(db):
 def test_guided_reading_wrong_second_attempt_stays_on_same_question(monkeypatch, db):
     """A native reading error must not skip a guided step after two misses."""
     from v2_reading_engine.academic_journey import continue_native_academic_journey
-    import v2_interaction_runtime
-    import v2_adaptation_runtime
-    import v2_rewards
+    # The isolated contract runner has no FastAPI/Redis stack: inject only the
+    # journey's three collaborating functions, not a fake grade or DB result.
+    import sys
+    from types import ModuleType
+    v2_interaction_runtime = ModuleType("v2_interaction_runtime")
+    v2_adaptation_runtime = ModuleType("v2_adaptation_runtime")
+    v2_rewards = ModuleType("v2_rewards")
+    monkeypatch.setitem(sys.modules, "v2_interaction_runtime", v2_interaction_runtime)
+    monkeypatch.setitem(sys.modules, "v2_adaptation_runtime", v2_adaptation_runtime)
+    monkeypatch.setitem(sys.modules, "v2_rewards", v2_rewards)
 
     student, release, _assessment_answer, _audio = new_v2_assessment(db)
     lesson = LessonSession(
