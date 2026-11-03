@@ -147,6 +147,9 @@ def test_word_builder_auto_grades_without_human_review(student_client):
 
 
 def test_reading_upload_reuses_private_storage_and_is_academically_neutral(student_client, monkeypatch):
+    from v2_reading_engine import runtime
+    # Only an actually configured worker enables native submissions.
+    monkeypatch.setattr(runtime, "native_runtime_configuration", lambda: object())
     session_id = _start_at_questions(student_client, "L1-05", 3)
     monkeypatch.setattr(
         "v2_interaction_runtime.storage.upload_audio",
@@ -203,6 +206,9 @@ def test_original_snapshot_survives_current_bank_change_for_lesson_interaction(s
 
 
 def test_native_reading_grade_advances_lesson_atomically_without_staff(student_client, monkeypatch):
+    from v2_reading_engine import runtime
+    # Mirror the enabled branch while keeping Azure and production disabled.
+    monkeypatch.setattr(runtime, "native_runtime_configuration", lambda: object())
     from datetime import datetime, timedelta, timezone
     from decimal import Decimal
     from db.v2_reading_models import V2ReadingJob

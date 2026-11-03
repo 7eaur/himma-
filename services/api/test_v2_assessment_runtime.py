@@ -743,8 +743,13 @@ def test_missing_or_invalid_result_cannot_produce_placement_recommendation():
 
 
 def test_pretest_reading_submission_stays_on_question_until_auto_grade(student_client, monkeypatch):
-    """A voice upload must not advance placement before native speech evidence."""
+    """A configured native worker must hold placement until its evidence."""
     from db.v2_reading_models import V2ReadingJob
+    from v2_reading_engine import runtime
+    # Exercise the configured single-worker path; never require real keys or
+    # PostgreSQL for an isolated submission/academic integration test.
+    # The disabled-worker path is covered by the human-review regression tests.
+    monkeypatch.setattr(runtime, "native_runtime_configuration", lambda: object())
     start = student_client.post("/v2/assessments/pretest/start").json()
     session_id = start["session"]["session_id"]
     for _ in range(5):
