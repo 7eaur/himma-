@@ -22,7 +22,7 @@ from db.v2_reading_models import V2ReadingEvaluation, V2ReadingJob
 from v2_reading_engine.policy import ReadingDecision
 
 
-POLICY_VERSION = "himma-v2-native-reading/1"
+POLICY_VERSION = "himma-v2-native-reading/2"
 ALIAS_VERSION = "himma-v2-owner-approved-letter-aliases/1.2"
 _RETRYABLE = frozenset({"retry_audio", "service_unavailable"})
 _ERROR_CODE = re.compile(r"^[a-z][a-z0-9_]{0,99}$")

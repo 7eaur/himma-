@@ -12,6 +12,7 @@ import base64
 import json
 import os
 import wave
+import unicodedata
 
 import httpx
 
@@ -110,6 +111,17 @@ def _score(value: object) -> float | None:
     return float(value) if isinstance(value, (float, int)) and not isinstance(value, bool) else None
 
 
+def _has_recognized_speech_text(text: object) -> bool:
+    """A provider phrase must contain speech text, not punctuation alone.
+
+    Do not guess a child's spoken language here. Arabic, Latin, Chinese,
+    numerals and any other genuine letter/number remain usable recognition
+    results for the academic comparator; only empty/symbol-only strings fail.
+    """
+    return (isinstance(text, str) and
+            any(unicodedata.category(ch)[0] in {"L", "N"} for ch in text))
+
+
 def _is_valid_pcm16_wav(audio: bytes) -> bool:
     try:
         with wave.open(BytesIO(audio), "rb") as wav:
@@ -148,7 +160,7 @@ class AzureSpeechProvider:
             best = (payload.get("NBest") or [{}])[0]
             transcript = (best.get("Display") or payload.get("DisplayText") or "").strip()
             status = payload.get("RecognitionStatus")
-            usable = bool(transcript) and status == "Success"
+            usable = _has_recognized_speech_text(transcript) and status == "Success"
             return SpeechEvidence(
                 transcript or None, "short-audio", locale, usable,
                 confidence=_score(best.get("Confidence")), recognition_status=status,
@@ -188,12 +200,14 @@ class AzureSpeechProvider:
                           or " ".join(str(part.get("text", "")).strip() for part in phrases).strip())
             confidences = [_score(p.get("confidence")) for p in phrases if isinstance(p, dict)]
             confidences = [n for n in confidences if n is not None]
+            has_recognition = _has_recognized_speech_text(transcript)
             return SpeechEvidence(
-                transcript or None, "fast-transcription", locale,
-                bool(transcript), confidence=sum(confidences) / len(confidences)
+                transcript if has_recognition else None, "fast-transcription", locale,
+                has_recognition,
+                confidence=sum(confidences) / len(confidences)
                 if confidences else None,
-                recognition_status="Success" if transcript else "NoMatch",
-                error_code=None if transcript else "fast_no_match",
+                recognition_status="Success" if has_recognition else "NoMatch",
+                error_code=None if has_recognition else "fast_no_match",
                 request_id=request_id,
             )
         except (httpx.HTTPError, ValueError, TypeError, AttributeError, KeyError):
@@ -209,8 +223,8 @@ class AzureSpeechProvider:
             # A recognized non-Arabic token is still a recognition RESULT:
             # the reading policy decides correct/incorrect, not retry_audio.
             # letter_mode remains in this public adapter signature for callers.
-            return bool(evidence.provider_usable and evidence.transcript
-                        and evidence.transcript.strip())
+            return bool(evidence.provider_usable
+                        and _has_recognized_speech_text(evidence.transcript))
         if mime == "audio/wav":
             if not _is_valid_pcm16_wav(audio):
                 return SpeechEvidence(None, "none", self.config.lexical_locale, False,

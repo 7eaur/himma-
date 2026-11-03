@@ -1,0 +1,442 @@
+{
+  "schema": "himma-v2-native-reading-62-text-contract/v1",
+  "source": "7eaur/himma-lab@1463159825073ecc7a85601dee1a6ed9b5b57d7e (test reference only, no runtime dependency)",
+  "contentVersion": "himma-v2-62@4e6bf86528d17b8a1c81339cbe55634032cec5e3",
+  "sourceContentCommit": "4e6bf86528d17b8a1c81339cbe55634032cec5e3",
+  "cases": [
+    {
+      "id": "V2-PRE-Q06",
+      "role": "pretest",
+      "focus": "syllable_reading",
+      "reference": "لَ",
+      "group": "pretest"
+    },
+    {
+      "id": "V2-PRE-Q08",
+      "role": "pretest",
+      "focus": "simple_word_reading",
+      "reference": "وَرْدَة",
+      "group": "pretest"
+    },
+    {
+      "id": "V2-PRE-Q15",
+      "role": "pretest",
+      "focus": "long_word_reading",
+      "reference": "مَدْرَسَة",
+      "group": "pretest"
+    },
+    {
+      "id": "V2-PRE-Q16",
+      "role": "pretest",
+      "focus": "long_word_reading",
+      "reference": "مِفْتَاح",
+      "group": "pretest"
+    },
+    {
+      "id": "V2-PRE-Q17",
+      "role": "pretest",
+      "focus": "sentence_reading",
+      "reference": "عَادَ بَاسِلٌ مِنَ الْمَدْرَسَةِ.",
+      "group": "pretest"
+    },
+    {
+      "id": "V2-PRE-Q19",
+      "role": "pretest",
+      "focus": "connected_sentence_reading",
+      "reference": "دَخَلَ نَادِرٌ الْمَكْتَبَةَ. اخْتَارَ كِتَابًا صَغِيرًا.",
+      "group": "pretest"
+    },
+    {
+      "id": "V2-PRE-Q20",
+      "role": "pretest",
+      "focus": "short_text_reading",
+      "reference": "فِي الصَّبَاحِ زَارَتْ رِيمُ جَدَّتَهَا. أَحْضَرَتْ لَهَا زَهْرَةً. فَرِحَتِ الْجَدَّةُ بِالْهَدِيَّةِ.",
+      "group": "pretest"
+    },
+    {
+      "id": "L1-04-GP-02",
+      "role": "guided_practice",
+      "focus": "syllable_reading",
+      "reference": "رَ",
+      "group": "l1_lessons"
+    },
+    {
+      "id": "L1-04-GP-04",
+      "role": "guided_practice",
+      "focus": "syllable_reading",
+      "reference": "قِ",
+      "group": "l1_lessons"
+    },
+    {
+      "id": "L1-04-IC-A01",
+      "role": "independent_check",
+      "focus": "syllable_reading",
+      "reference": "بُ",
+      "group": "l1_lessons"
+    },
+    {
+      "id": "L1-04-IC-A03",
+      "role": "independent_check",
+      "focus": "syllable_reading",
+      "reference": "مَ",
+      "group": "l1_lessons"
+    },
+    {
+      "id": "L1-05-GP-04",
+      "role": "guided_practice",
+      "focus": "sound_blending",
+      "reference": "نَزَلَ",
+      "group": "l1_lessons"
+    },
+    {
+      "id": "L1-05-IC-A03",
+      "role": "independent_check",
+      "focus": "sound_blending",
+      "reference": "رَكَبَ",
+      "group": "l1_lessons"
+    },
+    {
+      "id": "L1-06-GP-01",
+      "role": "guided_practice",
+      "focus": "simple_word_reading",
+      "reference": "شَمْس",
+      "group": "l1_lessons"
+    },
+    {
+      "id": "L1-06-GP-03",
+      "role": "guided_practice",
+      "focus": "simple_word_reading",
+      "reference": "عَسَل",
+      "group": "l1_lessons"
+    },
+    {
+      "id": "L1-06-IC-A01",
+      "role": "independent_check",
+      "focus": "simple_word_reading",
+      "reference": "نَخْلَة",
+      "group": "l1_lessons"
+    },
+    {
+      "id": "L1-06-IC-A03",
+      "role": "independent_check",
+      "focus": "simple_word_reading",
+      "reference": "قَمَر",
+      "group": "l1_lessons"
+    },
+    {
+      "id": "SUP-03-GP-01",
+      "role": "guided_practice",
+      "focus": "syllable_reading",
+      "reference": "سُ",
+      "group": "l1_supports"
+    },
+    {
+      "id": "SUP-03-SC-01",
+      "role": "support_check",
+      "focus": "syllable_reading",
+      "reference": "دُ",
+      "group": "l1_supports"
+    },
+    {
+      "id": "SUP-04-GP-01",
+      "role": "guided_practice",
+      "focus": "simple_word_reading",
+      "reference": "قَلَم",
+      "group": "l1_supports"
+    },
+    {
+      "id": "SUP-04-SC-01",
+      "role": "support_check",
+      "focus": "simple_word_reading",
+      "reference": "بَحْر",
+      "group": "l1_supports"
+    },
+    {
+      "id": "SUP-04-SC-02",
+      "role": "support_check",
+      "focus": "simple_word_reading",
+      "reference": "كُرَة",
+      "group": "l1_supports"
+    },
+    {
+      "id": "SUP-03-GP-03",
+      "role": "guided_practice",
+      "focus": "syllable_reading",
+      "reference": "لِ",
+      "group": "l1_supports"
+    },
+    {
+      "id": "SUP-03-SC-03",
+      "role": "support_check",
+      "focus": "syllable_reading",
+      "reference": "فِ",
+      "group": "l1_supports"
+    },
+    {
+      "id": "L2-03-GP-01",
+      "role": "guided_practice",
+      "focus": "long_word_reading",
+      "reference": "مَكْتَب",
+      "group": "l2_lessons"
+    },
+    {
+      "id": "L2-03-GP-03",
+      "role": "guided_practice",
+      "focus": "long_word_reading",
+      "reference": "سَفِينَة",
+      "group": "l2_lessons"
+    },
+    {
+      "id": "L2-03-IC-A01",
+      "role": "independent_check",
+      "focus": "long_word_reading",
+      "reference": "حَقِيبَة",
+      "group": "l2_lessons"
+    },
+    {
+      "id": "L2-03-IC-A02",
+      "role": "independent_check",
+      "focus": "long_word_reading",
+      "reference": "مَزْرَعَة",
+      "group": "l2_lessons"
+    },
+    {
+      "id": "L2-03-IC-A04",
+      "role": "independent_check",
+      "focus": "long_word_reading",
+      "reference": "زَرَافَة",
+      "group": "l2_lessons"
+    },
+    {
+      "id": "L2-04-GP-01",
+      "role": "guided_practice",
+      "focus": "sentence_reading",
+      "reference": "ذَهَبَ سَامِي إِلَى الْمَدْرَسَةِ.",
+      "group": "l2_lessons"
+    },
+    {
+      "id": "L2-04-GP-02",
+      "role": "guided_practice",
+      "focus": "sentence_reading",
+      "reference": "تَشْرَبُ هِنْدٌ الْمَاءَ.",
+      "group": "l2_lessons"
+    },
+    {
+      "id": "L2-04-GP-04",
+      "role": "guided_practice",
+      "focus": "sentence_reading",
+      "reference": "تَجْرِي رَنَا فِي الْحَدِيقَةِ.",
+      "group": "l2_lessons"
+    },
+    {
+      "id": "L2-04-IC-A01",
+      "role": "independent_check",
+      "focus": "sentence_reading",
+      "reference": "جَلَسَ نَادِرٌ تَحْتَ الشَّجَرَةِ.",
+      "group": "l2_lessons"
+    },
+    {
+      "id": "L2-04-IC-A02",
+      "role": "independent_check",
+      "focus": "sentence_reading",
+      "reference": "حَمَلَتْ لَيْلَى حَقِيبَتَهَا.",
+      "group": "l2_lessons"
+    },
+    {
+      "id": "L2-04-IC-A03",
+      "role": "independent_check",
+      "focus": "sentence_reading",
+      "reference": "يَلْعَبُ خَالِدٌ بِالْكُرَةِ.",
+      "group": "l2_lessons"
+    },
+    {
+      "id": "L2-04-IC-A04",
+      "role": "independent_check",
+      "focus": "sentence_reading",
+      "reference": "كَتَبَتْ سَارَةُ وَاجِبَهَا.",
+      "group": "l2_lessons"
+    },
+    {
+      "id": "SUP-07-GP-01",
+      "role": "guided_practice",
+      "focus": "long_word_reading",
+      "reference": "حَدِيقَة",
+      "group": "l2_supports"
+    },
+    {
+      "id": "SUP-07-SC-01",
+      "role": "support_check",
+      "focus": "long_word_reading",
+      "reference": "مَكْتَبَة",
+      "group": "l2_supports"
+    },
+    {
+      "id": "L3-01-GP-01",
+      "role": "guided_practice",
+      "focus": "connected_sentence_reading",
+      "reference": "حَمَلَ عُمَرُ حَقِيبَتَهُ. دَخَلَ الْمَدْرَسَةَ.",
+      "group": "l3_lessons"
+    },
+    {
+      "id": "L3-01-GP-02",
+      "role": "guided_practice",
+      "focus": "connected_sentence_reading",
+      "reference": "سَقَتْ هِنْدٌ الزَّهْرَةَ. فَرِحَتْ عِنْدَمَا تَفَتَّحَتْ.",
+      "group": "l3_lessons"
+    },
+    {
+      "id": "L3-01-GP-04",
+      "role": "guided_practice",
+      "focus": "connected_sentence_reading",
+      "reference": "رَأَى نَادِرٌ عُصْفُورًا. وَضَعَ لَهُ مَاءً فِي الْحَدِيقَةِ.",
+      "group": "l3_lessons"
+    },
+    {
+      "id": "L3-01-IC-A01",
+      "role": "independent_check",
+      "focus": "connected_sentence_reading",
+      "reference": "فَتَحَتْ لَيْلَى النَّافِذَةَ. دَخَلَ الْهَوَاءُ إِلَى الْغُرْفَةِ.",
+      "group": "l3_lessons"
+    },
+    {
+      "id": "L3-01-IC-A02",
+      "role": "independent_check",
+      "focus": "connected_sentence_reading",
+      "reference": "زَرَعَ مَاجِدٌ بَذْرَةً. سَقَاهَا كُلَّ صَبَاحٍ.",
+      "group": "l3_lessons"
+    },
+    {
+      "id": "L3-01-IC-A03",
+      "role": "independent_check",
+      "focus": "connected_sentence_reading",
+      "reference": "وَجَدَ أَحْمَدُ كِتَابًا. أَعَادَهُ إِلَى صَاحِبَتِهِ.",
+      "group": "l3_lessons"
+    },
+    {
+      "id": "L3-02-GP-01",
+      "role": "guided_practice",
+      "focus": "short_text_reading",
+      "reference": "فِي الصَّبَاحِ ذَهَبَ مَازِنٌ إِلَى الْمَدْرَسَةِ. قَابَلَ صَدِيقَهُ عِنْدَ الْبَابِ. دَخَلَا الصَّفَّ مَعًا.",
+      "group": "l3_lessons"
+    },
+    {
+      "id": "L3-02-GP-03",
+      "role": "guided_practice",
+      "focus": "short_text_reading",
+      "reference": "جَلَسَ فَهْدٌ قُرْبَ النَّافِذَةِ. شَاهَدَ الْعَصَافِيرَ فَوْقَ الشَّجَرَةِ. كَتَبَ عَنْهَا جُمْلَةً فِي دَفْتَرِهِ.",
+      "group": "l3_lessons"
+    },
+    {
+      "id": "L3-02-GP-04",
+      "role": "guided_practice",
+      "focus": "short_text_reading",
+      "reference": "حَمَلَتْ لَيَانُ سَلَّةً صَغِيرَةً. وَضَعَتْ فِيهَا التُّفَّاحَ. قَدَّمَتْهَا لِأُمِّهَا عِنْدَ الْغَدَاءِ.",
+      "group": "l3_lessons"
+    },
+    {
+      "id": "L3-02-IC-A01",
+      "role": "independent_check",
+      "focus": "short_text_reading",
+      "reference": "زَارَتْ هِبَةُ جَدَّتَهَا بَعْدَ الْمَدْرَسَةِ. جَلَسَتَا فِي الْحَدِيقَةِ. حَدَّثَتْهَا الْجَدَّةُ عَنِ النَّبَاتَاتِ.",
+      "group": "l3_lessons"
+    },
+    {
+      "id": "L3-02-IC-A02",
+      "role": "independent_check",
+      "focus": "short_text_reading",
+      "reference": "عَادَ نَاصِرٌ مِنَ السُّوقِ. أَحْضَرَ خُبْزًا وَفَاكِهَةً. رَتَّبَ الْمُشْتَرَيَاتِ مَعَ أُخْتِهِ.",
+      "group": "l3_lessons"
+    },
+    {
+      "id": "L3-02-IC-A03",
+      "role": "independent_check",
+      "focus": "short_text_reading",
+      "reference": "فِي الْمَسَاءِ رَأَى يُوسُفُ الْقَمَرَ. أَخْبَرَ أَخَاهُ عَنْ شَكْلِهِ. رَسَمَا الْقَمَرَ فِي دَفْتَرٍ.",
+      "group": "l3_lessons"
+    },
+    {
+      "id": "SUP-08-GP-01",
+      "role": "guided_practice",
+      "focus": "connected_sentence_reading",
+      "reference": "وَقَفَ مَازِنٌ عِنْدَ الْبَابِ. ثُمَّ دَخَلَ الصَّفَّ.",
+      "group": "l3_supports"
+    },
+    {
+      "id": "SUP-08-SC-01",
+      "role": "support_check",
+      "focus": "connected_sentence_reading",
+      "reference": "زَرَعَ عُمَرُ بَذْرَةً. سَقَاهَا بِالْمَاءِ.",
+      "group": "l3_supports"
+    },
+    {
+      "id": "SUP-08-SC-02",
+      "role": "support_check",
+      "focus": "short_text_reading",
+      "reference": "خَرَجَتْ هِنْدٌ صَبَاحًا. رَأَتْ زَهْرَةً. وَضَعَتْ لَهَا مَاءً.",
+      "group": "l3_supports"
+    },
+    {
+      "id": "SUP-08-GP-04",
+      "role": "guided_practice",
+      "focus": "short_text_reading",
+      "reference": "جَاءَ عُمَرُ مُبَكِّرًا. جَلَسَ فِي الصَّفِّ. فَتَحَ كِتَابَهُ.",
+      "group": "l3_supports"
+    },
+    {
+      "id": "SUP-08-SC-04",
+      "role": "support_check",
+      "focus": "connected_sentence_reading",
+      "reference": "قَرَأَ بَاسِلٌ كِتَابًا. ثُمَّ أَعَادَهُ إِلَى الرَّفِّ.",
+      "group": "l3_supports"
+    },
+    {
+      "id": "V2-POST-Q06",
+      "role": "posttest",
+      "focus": "syllable_reading",
+      "reference": "قُ",
+      "group": "posttest"
+    },
+    {
+      "id": "V2-POST-Q08",
+      "role": "posttest",
+      "focus": "simple_word_reading",
+      "reference": "زَهْرَة",
+      "group": "posttest"
+    },
+    {
+      "id": "V2-POST-Q15",
+      "role": "posttest",
+      "focus": "long_word_reading",
+      "reference": "حَافِلَة",
+      "group": "posttest"
+    },
+    {
+      "id": "V2-POST-Q16",
+      "role": "posttest",
+      "focus": "long_word_reading",
+      "reference": "مِصْبَاح",
+      "group": "posttest"
+    },
+    {
+      "id": "V2-POST-Q17",
+      "role": "posttest",
+      "focus": "sentence_reading",
+      "reference": "زَرَعَتْ هَنَاءُ زَهْرَةً.",
+      "group": "posttest"
+    },
+    {
+      "id": "V2-POST-Q19",
+      "role": "posttest",
+      "focus": "connected_sentence_reading",
+      "reference": "فَتَحَ عَادِلٌ الْبَابَ. دَخَلَ صَدِيقُهُ مَسْرُورًا.",
+      "group": "posttest"
+    },
+    {
+      "id": "V2-POST-Q20",
+      "role": "posttest",
+      "focus": "short_text_reading",
+      "reference": "بَعْدَ الْمَدْرَسَةِ زَارَ مَاجِدٌ الْحَدِيقَةَ. شَاهَدَ شَجَرَةً كَبِيرَةً. جَلَسَ تَحْتَهَا يَسْتَرِيحُ.",
+      "group": "posttest"
+    }
+  ]
+}

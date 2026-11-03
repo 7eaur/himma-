@@ -221,3 +221,61 @@ def test_internal_worker_fails_closed_when_feature_disabled_or_secret_missing(mo
     monkeypatch.setenv("HIMMA_V2_NATIVE_READING_ENABLED", "true")
     with pytest.raises(ValueError, match="must be 0 or 1"):
         native_runtime_configuration()
+
+
+
+@pytest.mark.parametrize("heard", [".", "  !!!  ", "؟،…"])
+def test_fast_transcription_punctuation_only_is_no_recognition(heard):
+    calls = []
+    def handler(request):
+        calls.append(request)
+        return httpx.Response(200, json={
+            "combinedPhrases": [{"text": heard}],
+        })
+    engine, client = provider(handler)
+    async def run():
+        async with client:
+            return await engine.transcribe(
+                b"valid-format-stub" * 100, mime="audio/webm",
+                reference="قَلَم", letter_mode=False,
+            )
+    result = asyncio.run(run())
+    assert result.provider_usable is False
+    assert result.transcript is None
+    assert result.error_code == "fast_no_match"
+    assert len(calls) == 1
+
+
+@pytest.mark.parametrize("heard", ["مدرسة", "شيء آخر", "la", "例", "123"])
+def test_fast_transcription_usable_text_is_never_discarded_for_wrong_language(heard):
+    engine, client = provider(
+        lambda request: httpx.Response(200, json={
+            "combinedPhrases": [{"text": heard}],
+        }))
+    async def run():
+        async with client:
+            return await engine.transcribe(
+                b"valid-format-stub" * 100, mime="audio/mp4",
+                reference="مدرسة", letter_mode=False,
+            )
+    result = asyncio.run(run())
+    assert result.provider_usable is True
+    assert result.transcript == heard
+    assert result.error_code is None
+
+
+def test_fast_no_match_never_becomes_provider_outage():
+    engine, client = provider(
+        lambda request: httpx.Response(200, json={
+            "combinedPhrases": [], "phrases": [],
+        }))
+    async def run():
+        async with client:
+            return await engine.transcribe(
+                b"valid-format-stub" * 100, mime="audio/mp4",
+                reference="قلم", letter_mode=False,
+            )
+    result = asyncio.run(run())
+    assert result.error_code == "fast_no_match"
+    assert result.provider_usable is False
+    assert result.transcript is None
