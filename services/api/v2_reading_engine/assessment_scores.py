@@ -28,7 +28,12 @@ def summarize_assessment(rows: Iterable[Any], *, total: int = 30) -> dict[str, A
         label = str(row.skill_group)
         section = skills[label]
         fraction = getattr(row, "question_score_fraction", None)
-        if row.status != "graded" or (fraction is None and row.is_correct is None):
+        # An imported/legacy "graded" marker or a fractional value alone
+        # is NOT verified academic evidence. A native reading result must
+        # include the final correctness decision and fraction together.
+        # Keep incomplete rows neutral: never turn them into scores or level
+        # placement while a child's recording is awaiting evaluation.
+        if row.status != "graded" or not isinstance(row.is_correct, bool):
             pending += 1
             section["pending"] += 1
             continue

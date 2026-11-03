@@ -83,3 +83,60 @@ def test_mixed_skills_preserve_existing_shape():
     assert result["score_percent"] == 66.6667
     assert result["skills"]["letters"]["correct"] == 10
     assert result["skills"]["sentence"]["correct"] == 0
+
+
+
+def test_fraction_without_verified_correctness_cannot_complete_assessment():
+    # A broken handoff may have a numeric fraction before the academic
+    # decision is applied. The score must remain neutral and unplaceable.
+    entries = [row(skill="letters") for _ in range(29)] + [
+        row(status="graded", correct=None, fraction=Decimal("0.85714"),
+            skill="sentence")
+    ]
+    result = summarize_assessment(entries)
+    assert result["answered"] == 30
+    assert result["pending_review"] == 1
+    assert result["correct"] is None
+    assert result["score_percent"] is None
+    assert result["skills"]["sentence"]["pending"] == 1
+
+
+@pytest.mark.parametrize("correct_count,level,score", [
+    (0, 1, 0.0),
+    (14, 1, 46.6667),
+    (15, 2, 50.0),
+    (23, 2, 76.6667),
+    (24, 3, 80.0),
+    (30, 3, 100.0),
+])
+def test_exactly_30_graded_items_preserve_placement_bands(correct_count, level, score):
+    # This uses the same percentages consumed by the official 50/80
+    # placement policy, without requiring a runtime database or Azure.
+    answer_rows = [row(correct=True) for _ in range(correct_count)]
+    answer_rows += [row(correct=False) for _ in range(30 - correct_count)]
+    total = summarize_assessment(answer_rows)
+    assert total["score_percent"] == score
+    computed_level = 1 if score < 50 else 2 if score < 80 else 3
+    assert computed_level == level
+    assert total["correct"] == correct_count
+
+
+def test_partial_reading_fraction_affects_placement_not_binary_pass_count():
+    # 14 normal correct questions + one 85.714% reading + 15 wrong
+    # questions produces 49.5238% (L1), NOT 15/30=50% (L2).
+    rows = [row(correct=True) for _ in range(14)]
+    rows += [row(correct=True, fraction=Decimal("0.85714"), skill="sentence")]
+    rows += [row(correct=False) for _ in range(15)]
+    score = summarize_assessment(rows)
+    assert score["correct"] == 15
+    assert score["score_percent"] == 49.5238
+    assert score["score_percent"] < 50
+
+
+def test_no_recognition_never_creates_partial_score_or_placement():
+    rows = [row(correct=True) for _ in range(29)]
+    rows += [row(status="pending_review", correct=None, fraction=None)]
+    result = summarize_assessment(rows)
+    assert result["answered"] == 30
+    assert result["pending_review"] == 1
+    assert result["score_percent"] is None
