@@ -40,6 +40,7 @@ from v2_review_claims import enforce_review_claim, clear_review_claim
 from v2_audio_rubric import ReadingRubricV2, save_v2_reading_rubric
 from v2_reading_engine.assessment_scores import summarize_assessment
 from v2_reading_engine.legacy_review_guard import reject_legacy_review_for_native
+from db.v2_reading_models import V2ReadingJob
 from v2_reading_engine.submission_bridge import create_reading_job, pending_reading_job_id
 from v2_audio_retention import (
     schedule_superseded_audio, run_retention_after_commit,
@@ -591,6 +592,10 @@ def review_queue(
         AssessmentSession, AssessmentQuestionResponse.assessment_session_id == AssessmentSession.id
     ).join(Student, Student.id == AssessmentSession.student_id).filter(
         AssessmentQuestionResponse.status == "pending_review", AssessmentSession.v2_state.is_not(None),
+        # A native speech job must never look like a staff approval item.
+        ~db.query(V2ReadingJob.id).filter(
+            V2ReadingJob.assessment_response_id == AssessmentQuestionResponse.id
+        ).exists(),
     )
     rows = query.order_by(AssessmentQuestionResponse.created_at, AssessmentQuestionResponse.id).offset(offset).limit(limit + 1).all()
     page = rows[:limit]
