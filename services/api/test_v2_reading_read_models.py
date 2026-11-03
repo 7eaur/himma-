@@ -86,7 +86,8 @@ def test_training_incorrect_result_returns_teaching_hint_without_raw_asr(db):
     db.flush()
     result = student_reading_status(db, job_id=job.id, student_id=student.id)
     assert result["state"] == "incorrect"
-    assert result["retry_required"] is True
+    # Recognized but wrong: show a training hint, not an unclear-audio retry.
+    assert result["retry_required"] is False
     assert "نسيت كلمة" in result["hint"]
     assert "matched_alias" not in result and "transcript" not in result
 

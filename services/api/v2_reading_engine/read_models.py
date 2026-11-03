@@ -55,10 +55,12 @@ def student_reading_status(db: Session, *, job_id: int, student_id: int) -> dict
         if result.passed_for_progress:
             return {"state": "correct", "message": GOOD, "retry_required": False}
         hint = result.evidence_json.get("training_hint")
+        # An incorrect recognized reading is an ACADEMIC training attempt.
+        # "retry_required" is reserved for truly unrecognized audio only.
         return {
             "state": "incorrect", "message": TRY_AGAIN,
             "hint": hint if isinstance(hint, str) and 0 < len(hint) <= 250 else TRY_AGAIN,
-            "retry_required": True,
+            "retry_required": False,
         }
     return {"state": "processing", "message": PROCESSING, "retry_required": False}
 
