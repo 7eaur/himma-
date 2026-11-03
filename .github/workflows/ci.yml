@@ -344,6 +344,7 @@ jobs:
           tests/e2e/v2-reviewed-recordings-visual-baseline.spec.ts
           tests/e2e/v2-student-home-isolation.spec.ts
           tests/e2e/v2-pretest-recovery-matrix.spec.ts
+          tests/e2e/v2-native-reading-recovery.spec.ts
           --reporter=list
       - name: Upload Playwright report
         if: always()
