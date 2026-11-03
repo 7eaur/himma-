@@ -28,6 +28,9 @@ test("old reviewed-recordings bookmark opens one native reading result list", as
         created_at: "2026-11-02T11:00:00Z", has_audio: true,
       }], total: 1, next_offset: null } });
   });
+  const resultsPanel = page.locator("section").filter({
+    has: page.getByRole("heading", { name: "التسجيلات والنتائج", exact: true }),
+  });
   for (const width of [360, 390, 768, 1440]) {
     await page.setViewportSize({ width, height: 850 });
     mode = "results";
@@ -50,12 +53,14 @@ test("old reviewed-recordings bookmark opens one native reading result list", as
     // Refresh uses the always-visible header action; the transient inline
     // retry button is covered by an isolated component test. This removes a
     // race between error recovery and repeated viewport navigation.
-    await expect(page.getByRole("alert").filter({ hasText: "الخدمة غير متاحة" })).toBeVisible();
+    await expect(resultsPanel.getByRole("alert").filter({ hasText: "الخدمة غير متاحة" })).toBeVisible();
     await expect(page.getByText("طالب قراءة")).toHaveCount(0);
     await expect(page.locator("audio")).toHaveCount(0);
     mode = "empty";
     await page.getByRole("button", { name: "تحديث النتائج" }).click();
     await expect(page.getByText("لا توجد نتائج لهذه التصفية")).toBeVisible();
-    await expect(page.getByRole("alert")).toHaveCount(0);
+    // The framework may keep a separate empty route-announcement alert.
+    // Require all request errors to disappear within the actual results panel.
+    await expect(resultsPanel.getByRole("alert")).toHaveCount(0);
   }
 });
