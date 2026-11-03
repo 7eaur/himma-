@@ -277,10 +277,11 @@ test.describe("Himma UX system visual QA regression", () => {
     ]) {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
       await page.goto("/admin/audio-review?submission_id=99101");
-      await expect(page).toHaveURL(/\/admin\/v2-review-center\?tab=assessments$/);
-      await expect(page.getByRole("heading", { name: "مركز مراجعة التسجيلات" })).toBeVisible();
-      await expect(page.getByRole("tab", { name: "قراءات الاختبارات" })).toHaveAttribute("aria-selected", "true");
-      await expect(page.getByRole("heading", { name: "متابعة التسجيلات الصوتية" })).toBeVisible();
+      await expect(page).toHaveURL(/\/admin\/v2-review-center$/);
+      await expect(page.getByRole("heading", { name: "متابعة القراءة الصوتية" })).toBeVisible();
+      await expect(page.getByRole("group", { name: "حالة القراءة" })
+        .getByRole("button", { name: "جميع النتائج" })).toHaveAttribute("aria-pressed", "true");
+      await expect(page.getByRole("heading", { name: "التسجيلات والنتائج" })).toBeVisible();
       await expectNoHorizontalOverflow(page);
       await page.screenshot({ path: path.join(SCREENSHOT_DIR, `${viewport.name}-assessment-review.png`), fullPage: true });
     }

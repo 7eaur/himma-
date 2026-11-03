@@ -113,7 +113,7 @@ test("P09.0 V2 pretest states are readable without answer leakage at mobile, tab
         await expect(tray.getByRole("img", { name: "صورة العنصر 1" })).toHaveCount(0);
       } else {
         const sectionName = {
-          waiting_review: "إجاباتك محفوظة وتنتظر المراجعة",
+          waiting_review: "نستكمل التحقق من قراءتك",
           placement_pending_review: "نحدد مستواك تلقائيًا",
           completed: "اكتمل الاختبار القبلي",
         }[mode];
