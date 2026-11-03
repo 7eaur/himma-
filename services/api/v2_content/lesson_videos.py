@@ -1,7 +1,7 @@
 """Owner-approved media replacements without rewriting frozen academic banks.
 
 Only the exact temporary video contract may be superseded. Missing or altered
-approved replacements fail closed; they never fall back to the shared demo.
+approved replacements fail closed; they never fall back to the retired shared clip.
 """
 
 import json
