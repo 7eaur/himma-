@@ -6,9 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "test": "jest --runInBand",
-    "test:e2e": "playwright test"
+    "lint": "eslint"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.3.3",
