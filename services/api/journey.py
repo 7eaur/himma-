@@ -16,14 +16,10 @@ Journey only projects that canonical evidence into UI-facing states.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from db.models import AssessmentSession, Student
-from dependencies import get_current_student, get_db
 from level_completion import CORE_ACTIVITY_COUNT, completed_core_count, session_level_completion
-
-router = APIRouter(prefix="/journey", tags=["Student Journey"])
 
 LEVEL_NAMES = {
     1: "الاستعداد للقراءة",
@@ -160,11 +156,3 @@ def build_journey_summary(db: Session, student: Student) -> dict:
         "posttest_score": posttest_score,
         "posttest_ready": learning_journey_completed and bool(student.posttest_enabled) and not posttest_completed,
     }
-
-
-@router.get("")
-def student_journey(
-    db: Session = Depends(get_db),
-    student: Student = Depends(get_current_student),
-):
-    return build_journey_summary(db, student)
