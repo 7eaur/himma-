@@ -1,13 +1,8 @@
 {
   "kit": "Himma_Characters_Badges_UI_Kit_v1.0",
   "version": "1.0.0",
-  "file_count_excluding_manifest": 143,
+  "file_count_excluding_manifest": 141,
   "files": [
-    {
-      "path": "README_AR.md",
-      "bytes": 4402,
-      "sha256": "235071b9c0ca78d36931659762e1608648cc19ef7303c545b5de33b3eb3989cb"
-    },
     {
       "path": "assets/characters/boy/png/hem-chr-b-01-welcome-1024.png",
       "bytes": 417333,
@@ -697,11 +692,6 @@
       "path": "developer/asset-map.json",
       "bytes": 14864,
       "sha256": "a023dbe7f924460554aac4aa355c66a4e26518c2e9107583c09c9a6fb82ef0e9"
-    },
-    {
-      "path": "developer/character-production-notes.md",
-      "bytes": 1453,
-      "sha256": "c135f36b6d21cbe89226a2d96549fbb25a41de5d695ae0ce9bf05de470ec24d6"
     },
     {
       "path": "developer/himma-assets.css",

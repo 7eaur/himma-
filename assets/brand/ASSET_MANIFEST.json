@@ -16,11 +16,6 @@
   "asset_count_excluding_manifest": 48,
   "files": [
     {
-      "path": "README_AR.md",
-      "bytes": 2689,
-      "sha256": "6d6d01b4beb54bccd2ed17362af6f189e335bfc7c00863269b8d86cf4fb700bb"
-    },
-    {
       "path": "assets/icons/app-icon-maskable.svg",
       "bytes": 3235,
       "sha256": "e3b7fed80e213c399632380c293adfb827f86dec958e30ef6c169092a6cbbce2"

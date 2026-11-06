@@ -1,18 +1,8 @@
 {
   "package": "Himma_Educational_Images_Kit_v1.0",
   "version": "1.0",
-  "file_count": 193,
+  "file_count": 190,
   "files": [
-    {
-      "path": "QA_REPORT.json",
-      "size_bytes": 1373,
-      "sha256": "533ddd93b21f5a2230df6264417a96f6b23eaa30d4ec78ff8756e3a80e5ffe6e"
-    },
-    {
-      "path": "README_AR.md",
-      "size_bytes": 3812,
-      "sha256": "85266ae829bd323760fb63ddd64b46287b594630547b93037ab9d1e8dd096b55"
-    },
     {
       "path": "assets/sentences/png/hem-sen-01-salem-reads-book-1536x864.png",
       "size_bytes": 1507132,
@@ -927,11 +917,6 @@
       "path": "developer/himma-images.css",
       "size_bytes": 608,
       "sha256": "68b6291e040839f1724b0ca736dca6deee694946bafff827b4a2c6d30beaae7f"
-    },
-    {
-      "path": "developer/production-prompts.md",
-      "size_bytes": 1544,
-      "sha256": "a873d77e068fdf6085906c057b885f272c685aff06e369057da9bdc8ad43440d"
     },
     {
       "path": "developer/sequence-groups.json",

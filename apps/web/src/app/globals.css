@@ -10,9 +10,7 @@
 
 
 
-/* Google Fonts */
-
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Tajawal:wght@400;500;700;800&display=swap');
+/* Arabic fonts are bundled through Fontsource in layout.tsx. */
 
 
 

@@ -8,7 +8,7 @@ which carries a consonant-doubling distinction important for reading.
 
 The same projected text is used for learner-visible reading stimuli,
 expected_reading_text and explicit reading-context introductions so display,
-recording reference and exported training corpus cannot drift apart.
+and recording references cannot drift apart.
 """
 from __future__ import annotations
 

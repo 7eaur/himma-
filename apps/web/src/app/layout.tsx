@@ -1,5 +1,12 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Sans_Arabic, Tajawal } from "next/font/google";
+import "@fontsource/tajawal/400.css";
+import "@fontsource/tajawal/500.css";
+import "@fontsource/tajawal/700.css";
+import "@fontsource/tajawal/800.css";
+import "@fontsource/ibm-plex-sans-arabic/400.css";
+import "@fontsource/ibm-plex-sans-arabic/500.css";
+import "@fontsource/ibm-plex-sans-arabic/600.css";
+import "@fontsource/ibm-plex-sans-arabic/700.css";
 import "./tailwind.css";
 import "./globals.css";
 import "./fonts.css";
@@ -10,20 +17,6 @@ import "./ux-student-surfaces.css";
 import "./student-dashboard-corrections.css";
 import { ScrollAnimator } from "@/components/ScrollAnimator";
 import GlobalFeedback from "@/components/GlobalFeedback";
-
-const studentFont = Tajawal({
-  subsets: ["arabic"],
-  weight: ["400", "500", "700", "800"],
-  display: "swap",
-  variable: "--font-tajawal",
-});
-
-const researcherFont = IBM_Plex_Sans_Arabic({
-  subsets: ["arabic"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-  variable: "--font-ibm-plex-sans-arabic",
-});
 
 export const metadata: Metadata = {
   title: "منصة همة التعليمية",
@@ -36,11 +29,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="ar"
-      dir="rtl"
-      className={`${studentFont.variable} ${researcherFont.variable}`}
-    >
+    <html lang="ar" dir="rtl">
       <body>
         <ScrollAnimator />
         <GlobalFeedback />
