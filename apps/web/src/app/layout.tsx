@@ -24,6 +24,11 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://himma-om.com"),
   title: "هِمّة | تعلّم القراءة بثقة",
   description,
+  icons: {
+    icon: [{ url: "/icon.svg?v=himma-20261109", type: "image/svg+xml" }],
+    shortcut: "/favicon.ico?v=himma-20261109",
+    apple: [{ url: "/apple-icon.png?v=himma-20261109", sizes: "180x180", type: "image/png" }],
+  },
   openGraph: {
     type: "website",
     locale: "ar_OM",
@@ -31,13 +36,13 @@ export const metadata: Metadata = {
     title: "هِمّة | تعلّم القراءة بثقة",
     description,
     url: "https://himma-om.com",
-    images: [{ url: "/brand/social-preview.png", width: 1200, height: 630, alt: "شعار منصة هِمّة التعليمية" }],
+    images: [{ url: "/brand/social-preview-full.png", width: 1200, height: 630, alt: "شعار هِمّة — أتعلم، أتطور، أصل إلى القمة" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "هِمّة | تعلّم القراءة بثقة",
     description,
-    images: ["/brand/social-preview.png"],
+    images: ["/brand/social-preview-full.png"],
   },
 };
 
