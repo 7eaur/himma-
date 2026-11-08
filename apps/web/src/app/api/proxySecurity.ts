@@ -9,13 +9,28 @@ export function rejectUnsafeMutation(req: NextRequest): NextResponse | null {
   if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return null;
   const origin = req.headers.get("origin");
   const fetchSite = req.headers.get("sec-fetch-site")?.toLowerCase();
-  // Railway terminates HTTPS before forwarding to Next.js. Use its fixed
-  // public domain instead of the internal request URL or spoofable headers.
+  // Railway terminates HTTPS before Next.js. Trust only deployment-configured
+  // origins; request Host and forwarded headers cannot add trusted domains.
+  const trustedOrigins = new Set<string>();
   const publicDomain = process.env.RAILWAY_PUBLIC_DOMAIN?.trim().toLowerCase();
-  const trustedOrigin = publicDomain && /^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/.test(publicDomain)
-    ? `https://${publicDomain}`
-    : req.nextUrl.origin;
-  if (origin === "null" || (origin && origin !== trustedOrigin) || fetchSite === "cross-site") {
+  if (publicDomain && /^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/.test(publicDomain)) {
+    trustedOrigins.add(`https://${publicDomain}`);
+  }
+  for (const value of (process.env.APP_ALLOWED_ORIGINS ?? "").split(",")) {
+    const configured = value.trim();
+    if (!configured) continue;
+    try {
+      const url = new URL(configured);
+      if (url.protocol === "https:" && url.username === "" && url.password === ""
+          && url.pathname === "/" && url.search === "" && url.hash === "") {
+        trustedOrigins.add(url.origin);
+      }
+    } catch {
+      // Invalid configuration never widens the allowlist.
+    }
+  }
+  if (trustedOrigins.size === 0) trustedOrigins.add(req.nextUrl.origin);
+  if (origin === "null" || (origin && !trustedOrigins.has(origin)) || fetchSite === "cross-site") {
     return NextResponse.json({ detail: "مصدر الطلب غير مسموح" }, { status: 403 });
   }
   return null;
