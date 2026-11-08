@@ -1,5 +1,7 @@
 "use client";
 
+import DeveloperCredit from "@/components/DeveloperCredit";
+
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -133,6 +135,7 @@ export default function StudentLogin() {
             {isLoading ? <span className="spinner mx-auto border-4" /> : "ابدأ الآن"}
           </button>
         </form>
+        <DeveloperCredit />
       </div>
     </div>
   );

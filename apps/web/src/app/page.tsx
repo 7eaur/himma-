@@ -1,5 +1,7 @@
 "use client";
 
+import DeveloperCredit from "@/components/DeveloperCredit";
+
 import Image from "next/image";
 import Link from "next/link";
 import { BookOpenCheck, Headphones, Mic2, Route, ShieldCheck, Sparkles } from "lucide-react";
@@ -122,6 +124,7 @@ export default function WelcomePage() {
           <span>أتعلم، أتطور، أصل إلى القمة</span>
           <div className={styles.footerLinks}><Link href="/student/login">دخول الطالب</Link><Link href="/admin/login">دخول المشرف</Link></div>
         </div>
+        <DeveloperCredit />
       </footer>
     </div>
   );

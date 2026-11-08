@@ -18,9 +18,27 @@ import "./student-dashboard-corrections.css";
 import { ScrollAnimator } from "@/components/ScrollAnimator";
 import GlobalFeedback from "@/components/GlobalFeedback";
 
+const description = "هِمّة منصة تعليمية لتنمية مهارات القراءة العربية، تبدأ بتحديد مستوى الطالب وتقدم دروسًا تفاعلية وتدريبات صوتية وتقوية تناسب احتياجه، مع متابعة تقدمه خطوة بخطوة.";
+
 export const metadata: Metadata = {
-  title: "منصة همة التعليمية",
-  description: "أتعلم، أتطور، أصل إلى القمة",
+  metadataBase: new URL("https://himma-om.com"),
+  title: "هِمّة | تعلّم القراءة بثقة",
+  description,
+  openGraph: {
+    type: "website",
+    locale: "ar_OM",
+    siteName: "منصة هِمّة التعليمية",
+    title: "هِمّة | تعلّم القراءة بثقة",
+    description,
+    url: "https://himma-om.com",
+    images: [{ url: "/brand/social-preview.png", width: 1200, height: 630, alt: "شعار منصة هِمّة التعليمية" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "هِمّة | تعلّم القراءة بثقة",
+    description,
+    images: ["/brand/social-preview.png"],
+  },
 };
 
 export default function RootLayout({

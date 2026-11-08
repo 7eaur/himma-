@@ -1,5 +1,7 @@
 "use client";
 
+import DeveloperCredit from "@/components/DeveloperCredit";
+
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -142,6 +144,7 @@ export default function AdminLogin() {
             </button>
           </form>
           <p className="admin-login-hint"><ShieldCheck size={15} aria-hidden="true" /> الدخول مخصص للمشرفين المخولين بإدارة المنصة.</p>
+          <DeveloperCredit />
         </div>
       </div>
     </div>

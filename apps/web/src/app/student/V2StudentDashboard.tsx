@@ -1,5 +1,7 @@
 "use client";
 
+import DeveloperCredit from "@/components/DeveloperCredit";
+
 import { useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -280,6 +282,7 @@ export default function V2StudentDashboard({ home }: { home: StudentV2Home }) {
       </section>}
       <div id="student-achievements" className={styles.achievements}><V2Rewards data={home.rewards} /></div>
       {action.action !== "rerecord_required" && <StudentRetryTasks dashboard />}
+      <DeveloperCredit />
     </main>
   </div>;
 }
