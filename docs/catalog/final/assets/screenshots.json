@@ -3,176 +3,369 @@
     "file": "assets/admin-login.jpg",
     "source": "https://himma-om.com/admin/login",
     "page": "الدخول إلى لوحة المشرف",
-    "crop": [
-      292,
-      354,
-      652,
-      667
-    ]
+    "dimensions": [
+      1363,
+      936
+    ],
+    "markers": [
+      [
+        653,
+        422
+      ],
+      [
+        653,
+        524
+      ],
+      [
+        653,
+        600
+      ]
+    ],
+    "sha256": "29a0b359067d89de7a806db22856272cb466d700cbeb604a29d570f30de3e702"
   },
   {
     "file": "assets/admin-overview.jpg",
     "source": "https://himma-om.com/admin",
     "page": "لوحة المتابعة الرئيسية",
-    "crop": [
-      18,
-      148,
-      1093,
-      544
-    ]
+    "dimensions": [
+      1357,
+      980
+    ],
+    "markers": [
+      [
+        1080,
+        196
+      ],
+      [
+        1080,
+        282
+      ],
+      [
+        545,
+        196
+      ]
+    ],
+    "sha256": "32fe521154f2dfc1a4e85ed1cb0a9f7fdff6b371c02d7edbaa04adebaca03df7"
   },
   {
     "file": "assets/admin-students-empty.jpg",
     "source": "https://himma-om.com/admin/students",
     "page": "الوصول إلى حساب الطالب",
-    "crop": [
-      22,
-      155,
-      1095,
-      476
-    ]
+    "dimensions": [
+      1363,
+      936
+    ],
+    "markers": [
+      [
+        1060,
+        212
+      ],
+      [
+        337,
+        212
+      ],
+      [
+        623,
+        392
+      ]
+    ],
+    "sha256": "2df640298294760df78c725511d01a3a51db55af04647912c89a044a380967a8"
   },
   {
     "file": "assets/admin-add-student.jpg",
     "source": "https://himma-om.com/admin/students/new",
     "page": "إضافة طالب جديد",
-    "crop": [
-      545,
-      173,
-      1230,
-      715
-    ]
+    "dimensions": [
+      1363,
+      936
+    ],
+    "markers": [
+      [
+        1237,
+        239
+      ],
+      [
+        1237,
+        415
+      ],
+      [
+        1237,
+        478
+      ]
+    ],
+    "sha256": "da9e49d38818d925f8359e983d353007c6f691dc6ac691a18095bb5e05692dfd"
   },
   {
     "file": "assets/profile-overview.jpg",
     "source": "https://himma-om.com/admin/students/1",
     "page": "ملف الطالب: نظرة عامة",
-    "crop": [
-      24,
-      132,
-      1075,
-      776
-    ]
+    "dimensions": [
+      1357,
+      932
+    ],
+    "markers": [
+      [
+        1084,
+        174
+      ],
+      [
+        1084,
+        269
+      ],
+      [
+        1084,
+        650
+      ]
+    ],
+    "sha256": "a9d0221e83b7172991c7af8ff40f64b3c9a90a9a3628792f1a1b514931572d37"
   },
   {
     "file": "assets/admin-reading.jpg",
     "source": "https://himma-om.com/admin/v2-review-center",
     "page": "متابعة القراءة الصوتية",
-    "crop": [
-      22,
-      155,
-      1090,
-      634
-    ]
+    "dimensions": [
+      1363,
+      936
+    ],
+    "markers": [
+      [
+        1073,
+        284
+      ],
+      [
+        455,
+        284
+      ],
+      [
+        1073,
+        377
+      ]
+    ],
+    "sha256": "e9f6c8af83ec96c7a86392f5fb2ccd2e9b5f1d6d14d7af55edd2b1f00d9eb84c"
   },
   {
     "file": "assets/admin-question-answer.jpg",
     "source": "https://himma-om.com/admin/content-preview",
     "page": "بنك الدروس والأسئلة",
-    "crop": [
-      25,
-      153,
-      1090,
-      815
-    ]
+    "dimensions": [
+      1357,
+      949
+    ],
+    "markers": [
+      [
+        1085,
+        196
+      ],
+      [
+        1085,
+        304
+      ],
+      [
+        1085,
+        510
+      ]
+    ],
+    "sha256": "24172848732f4c72d1c4687264b18306fd64b764b9d5b1e5a528cfbed9f1c26a"
   },
   {
     "file": "assets/admin-media-videos.jpg",
     "source": "https://himma-om.com/admin/v2-media",
     "page": "الوسائط التعليمية",
-    "crop": [
-      26,
-      447,
-      1075,
-      865
-    ]
+    "dimensions": [
+      1357,
+      932
+    ],
+    "markers": [
+      [
+        1080,
+        521
+      ],
+      [
+        177,
+        521
+      ],
+      [
+        1052,
+        778
+      ]
+    ],
+    "sha256": "f389ecce5975d5726b2a59e46c16caf81d406906b3901e4b4f834a9604ae88a0"
   },
   {
     "file": "assets/admin-media-player.jpg",
     "source": "https://himma-om.com/admin/v2-media",
     "page": "معاينة ملفات الفيديو",
-    "crop": [
-      553,
-      100,
-      1068,
-      408
-    ]
+    "dimensions": [
+      1357,
+      932
+    ],
+    "markers": [
+      [
+        1050,
+        139
+      ],
+      [
+        1050,
+        271
+      ],
+      [
+        1050,
+        375
+      ]
+    ],
+    "sha256": "2702e429a5d7bf6fc89830f95f328487044de01a76d6d5165174a2464ed9d431"
   },
   {
     "file": "assets/admin-reports.jpg",
     "source": "https://himma-om.com/admin/reports",
     "page": "التقارير والإحصائيات",
-    "crop": [
-      25,
-      25,
-      1093,
-      506
-    ]
+    "dimensions": [
+      1363,
+      936
+    ],
+    "markers": [
+      [
+        323,
+        102
+      ],
+      [
+        1085,
+        197
+      ],
+      [
+        1085,
+        370
+      ]
+    ],
+    "sha256": "b0f38d477c9f6cc20c2e3b1b5b7b159960e2f90207158e84a320a21e38e1cac0"
   },
   {
     "file": "assets/admin-skills.jpg",
     "source": "https://himma-om.com/admin/skill-reports",
     "page": "ملخص المهارات",
-    "crop": [
-      24,
-      25,
-      1092,
-      469
-    ]
+    "dimensions": [
+      1363,
+      936
+    ],
+    "markers": [
+      [
+        167,
+        103
+      ],
+      [
+        1080,
+        235
+      ],
+      [
+        562,
+        235
+      ]
+    ],
+    "sha256": "6798d333beacabcd130acf70806c1c8d253c28f43d0952b335bdd1b54b09804e"
   },
   {
     "file": "assets/admin-settings-account.jpg",
     "source": "https://himma-om.com/admin/settings",
     "page": "إعدادات حساب المشرف",
-    "crop": [
-      64,
-      156,
-      1050,
-      456
-    ]
+    "dimensions": [
+      1363,
+      936
+    ],
+    "markers": [
+      [
+        1057,
+        187
+      ],
+      [
+        1045,
+        356
+      ],
+      [
+        1045,
+        415
+      ]
+    ],
+    "sha256": "fe02b0782b137ae2e0fd1af4921df52449daa74a7458d9d2391983f6c8283abd"
   },
   {
     "file": "assets/admin-settings-security.jpg",
     "source": "https://himma-om.com/admin/settings",
     "page": "الأمان وكلمة المرور",
-    "crop": [
-      64,
-      156,
-      1050,
-      548
-    ]
+    "dimensions": [
+      1363,
+      936
+    ],
+    "markers": [
+      [
+        1047,
+        360
+      ],
+      [
+        1047,
+        444
+      ],
+      [
+        701,
+        444
+      ]
+    ],
+    "sha256": "cdfeff0fd14676e5113290b2be9dbb4ecbd321cf0e89a3b51b603f685868cd72"
   },
   {
     "file": "assets/admin-settings-supervisors.jpg",
     "source": "https://himma-om.com/admin/settings",
     "page": "إدارة حسابات المشرفين",
-    "crop": [
-      65,
-      228,
-      1050,
-      608
-    ]
+    "dimensions": [
+      1363,
+      936
+    ],
+    "markers": [
+      [
+        1046,
+        329
+      ],
+      [
+        1045,
+        509
+      ],
+      [
+        700,
+        509
+      ]
+    ],
+    "sha256": "7689044c69a1a8d59b12b8046441daf42dcd60c4fa34a646f570b161351c96b7"
   },
   {
     "file": "assets/admin-logout.jpg",
     "source": "https://himma-om.com/admin",
     "page": "حساب المشرف والخروج الآمن",
-    "crop": [
-      1110,
-      690,
+    "dimensions": [
       1357,
-      936
-    ]
+      980
+    ],
+    "markers": [
+      [
+        1320,
+        741
+      ],
+      [
+        1320,
+        833
+      ],
+      [
+        1300,
+        901
+      ]
+    ],
+    "sha256": "32fe521154f2dfc1a4e85ed1cb0a9f7fdff6b371c02d7edbaa04adebaca03df7"
   },
   {
     "file": "assets/cover-dashboard.jpg",
     "source": "https://himma-om.com/admin",
     "page": "الغلاف",
-    "crop": [
-      0,
-      0,
+    "dimensions": [
       1357,
-      855
+      980
     ]
   }
 ]
