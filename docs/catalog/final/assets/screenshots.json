@@ -154,69 +154,25 @@
     ]
   },
   {
-    "file": "assets/student-login.jpg",
-    "source": "https://himma-om.com/admin/students",
-    "page": "دخول الطالب",
+    "file": "assets/admin-logout.jpg",
+    "source": "https://himma-om.com/admin",
+    "page": "حساب المشرف والخروج الآمن",
     "crop": [
-      499,
-      390,
-      860,
-      796
+      1110,
+      690,
+      1357,
+      936
     ]
   },
   {
-    "file": "assets/student-dashboard.jpg",
-    "source": "https://himma-om.com/student",
-    "page": "لوحة الطالب الرئيسية",
+    "file": "assets/cover-dashboard.jpg",
+    "source": "https://himma-om.com/admin",
+    "page": "الغلاف",
     "crop": [
-      137,
-      310,
-      1218,
-      873
-    ]
-  },
-  {
-    "file": "assets/template-single-choice.jpg",
-    "source": "https://himma-om.com/student/assessment-v2/1",
-    "page": "اختيار إجابة واحدة",
-    "crop": [
-      267,
-      388,
-      1097,
-      589
-    ]
-  },
-  {
-    "file": "assets/template-listen-choice.jpg",
-    "source": "https://himma-om.com/student/assessment-v2/1",
-    "page": "الاستماع ثم الاختيار",
-    "crop": [
-      267,
-      389,
-      1097,
-      674
-    ]
-  },
-  {
-    "file": "assets/template-ordering.jpg",
-    "source": "https://himma-om.com/student/assessment-v2/1",
-    "page": "ترتيب العناصر",
-    "crop": [
-      267,
-      390,
-      1097,
-      788
-    ]
-  },
-  {
-    "file": "assets/template-reading-ready.jpg",
-    "source": "https://himma-om.com/student/assessment-v2/1",
-    "page": "القراءة والتسجيل الصوتي",
-    "crop": [
-      328,
-      386,
-      1038,
-      799
+      0,
+      0,
+      1357,
+      855
     ]
   }
 ]
