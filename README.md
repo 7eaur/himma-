@@ -117,4 +117,6 @@ himma-/
 
 **Eng. Elyas Al Shaebi — المهندس إلياس الشعيبي**
 
+📱 **Phone / WhatsApp:** [+967 775 377 979](https://wa.me/967775377979)
+
 [GitHub](https://github.com/7eaur)
