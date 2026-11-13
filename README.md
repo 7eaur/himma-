@@ -13,7 +13,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 
-**[🌐 زيارة المنصة](https://himma-web-production-eafd.up.railway.app)**
+**[🌐 زيارة المنصة](https://himma-om.com)**
 
 </div>
 
